@@ -26,7 +26,7 @@ package import_data;
 
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafDataAccess;
-import io.github.mzmine.modules.io.import_rawdata_waters.api.MassLynxLib;
+import io.github.mzmine.modules.io.import_rawdata_waters.MassLynxLib;
 import java.io.File;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;

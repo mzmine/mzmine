@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_waters.api;
+package io.github.mzmine.modules.io.import_rawdata_waters;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * A utility to dynamically generate a Java record class from a String

@@ -22,10 +22,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_waters.api;
+package io.github.mzmine.modules.io.import_rawdata_waters;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MetadataOnlyScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
@@ -33,19 +35,30 @@ import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
+import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.MsProcessor;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
+import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
-import java.io.IOException;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -53,9 +66,9 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MassLynxReader implements AutoCloseable {
+public class MassLynxDataAccess implements AutoCloseable {
 
-  private static final Logger logger = Logger.getLogger(MassLynxReader.class.getName());
+  private static final Logger logger = Logger.getLogger(MassLynxDataAccess.class.getName());
 
   private final Arena arena = Arena.ofConfined();
   private final MemorySegment handle;
@@ -69,19 +82,25 @@ public class MassLynxReader implements AutoCloseable {
   private final FunctionType[] functionTypes;
   private final MassSpectrumType spectrumType;
 
-  private final MemorySegment scanInfoBuffer = arena.allocate(ScanInfo.layout());
+  private final @Nullable ScanImportProcessorConfig processor;
   private final boolean isDdaFile;
   private final boolean isImsFile;
-  private MemorySegment intensityBuffer = arena.allocate(ScanInfo.layout());
-  private MemorySegment mzBuffer = arena.allocate(ScanInfo.layout());
+  private final MemorySegment scanInfoBuffer = arena.allocate(ScanInfo.layout());
   private double[] mobilities = null;
+  private MemorySegment intensityBuffer = arena.allocate(0);
+  private MemorySegment mzBuffer = arena.allocate(0);
 
+  private MemorySegment mrmRtBuffer = arena.allocate(0);
+  private MemorySegment mrmIntensityBuffer = arena.allocate(0);
 
-  public MassLynxReader(@NotNull File rawFolder, boolean centroid,
-      @Nullable MemoryMapStorage storage) throws IOException {
+  public MassLynxDataAccess(@NotNull File rawFolder, boolean centroid,
+      @Nullable MemoryMapStorage storage, @Nullable ScanImportProcessorConfig processor) {
     handle = MassLynxLib.openFile(arena.allocateFrom(rawFolder.getAbsolutePath()));
+
     this.rawFolder = rawFolder;
     this.storage = storage;
+    this.processor = processor;
+
     isImsFile = MassLynxLib.isIonMobilityFile(handle) > 0;
     isDdaFile = MassLynxLib.isDdaFile(handle) > 0;
     numberOfFunctions = MassLynxLib.getNumberOfFunctions(handle);
@@ -117,7 +136,7 @@ public class MassLynxReader implements AutoCloseable {
 
     final int lockmassFunction = MassLynxLib.getLockmassFunction(handle);
 
-    if (lockmassFunction == MassLynxLib.NO_LOCKMASS_FUNCTION()) {
+    if (lockmassFunction == MassLynxConstants.NO_LOCKMASS_FUNCTION) {
       logger.finest("Did not find a lock mass function for file: " + rawFolder.getAbsolutePath());
       return;
     } else {
@@ -176,16 +195,23 @@ public class MassLynxReader implements AutoCloseable {
       throw new IndexOutOfBoundsException(
           "Function " + function + " > number of functions (" + numberOfFunctions + ")");
     }
+    if (function == MassLynxLib.getLockmassFunction(handle)) {
+      return FunctionType.LOCKMASS;
+    }
     if (MassLynxLib.isIonMobilityFunction(handle, function) == 1) {
       return FunctionType.IMS_MS;
     }
     if (MassLynxLib.getNumberOfMrmsInFunction(handle, function) > 0) {
       return FunctionType.MRM;
     }
-    return FunctionType.MS;
+    if (MassLynxLib.isMsFunction(handle, function) > 0) {
+      return FunctionType.MS;
+    }
+    throw new RuntimeException(
+        "Unknown function in file " + rawFolder.getName() + " - function " + function);
   }
 
-  public Scan readScan(RawDataFileImpl file, int function, int scan) {
+  public SimpleScan readScan(RawDataFileImpl file, int function, int scan) {
     return switch (getFunctionType(function)) {
       case IMS_MS -> {
         yield readFrame((IMSRawDataFileImpl) file, function, scan);
@@ -193,13 +219,25 @@ public class MassLynxReader implements AutoCloseable {
       case MS -> {
         yield readMsScan(file, function, scan);
       }
+      case LOCKMASS -> {
+        throw new IllegalStateException("Attempted to load lock mass function " + function);
+      }
       case MRM -> throw new IllegalStateException("MRM function, cannot read scan.");
     };
   }
 
-  private Scan readMsScan(RawDataFileImpl file, int function, int scan) {
+  private @Nullable SimpleScan readMsScan(RawDataFileImpl file, int function, int scan) {
     MassLynxLib.getScanInfo(handle, function, scan, scanInfoBuffer);
     final ScanInfoWrapper scanInfo = ScanInfoWrapper.fromScanInfo(scanInfoBuffer);
+    final MetadataOnlyScan metadataScan = scanInfo.metadataOnlyScan(spectrumType);
+
+    if (processor != null && processor.hasProcessors() && processor.scanFilter() != null
+        && processor.scanFilter().isActiveFilter()) {
+      final ScanSelection scanSelection = processor.scanFilter();
+      if (!scanSelection.matches(metadataScan)) {
+        return null;
+      }
+    }
 
     final int numDp = MassLynxLib.getDataPoints(handle, function, scan, mzBuffer, intensityBuffer,
         (int) mzBuffer.byteSize());
@@ -214,17 +252,39 @@ public class MassLynxReader implements AutoCloseable {
         StorageUtils.sliceFloats(mzBuffer, 0, numDp).toArray(MassLynxLib.C_FLOAT));
     final double[] intensities = ArrayUtils.floatToDouble(
         StorageUtils.sliceFloats(intensityBuffer, 0, numDp).toArray(MassLynxLib.C_FLOAT));
+
+    final SimpleSpectralArrays dataPoints;
+    if (processor != null && processor.isMassDetectActive(scanInfo.msLevel())) {
+      final SimpleSpectralArrays simpleSpectralArrays = new SimpleSpectralArrays(mzs, intensities);
+      dataPoints = processor.processor().processScan(metadataScan, simpleSpectralArrays);
+    } else {
+      dataPoints = new SimpleSpectralArrays(mzs, intensities);
+    }
 
     final String scanDefinition = "func=%d, scan=%d".formatted(function, scan);
 
     return new SimpleScan(file, scan, scanInfo.msLevel(), scanInfo.rt(),
-        scanInfo.msMsInfo(isDdaFile, isImsFile), mzs, intensities, spectrumType,
-        scanInfo.polarityType(), scanDefinition, null);
+        scanInfo.msMsInfo(isDdaFile, isImsFile), dataPoints.mzs(), dataPoints.intensities(),
+        spectrumType, scanInfo.polarityType(), scanDefinition, null);
   }
 
-  private Frame readFrame(IMSRawDataFileImpl file, int function, int scan) {
+  public @Nullable SimpleFrame readFrame(IMSRawDataFileImpl file, int function, int scan) {
     MassLynxLib.getScanInfo(handle, function, scan, scanInfoBuffer);
     final ScanInfoWrapper scanInfo = ScanInfoWrapper.fromScanInfo(scanInfoBuffer);
+    final MetadataOnlyScan metadataScan = scanInfo.metadataOnlyScan(spectrumType);
+
+    if (processor != null && processor.hasProcessors() && processor.scanFilter() != null
+        && processor.scanFilter().isActiveFilter()) {
+      final ScanSelection scanSelection = processor.scanFilter();
+      if (!scanSelection.matches(metadataScan)) {
+        return null;
+      }
+    }
+
+    // todo: maybe create convenience method to get threshold of mass detector, then we can threshold in c++
+//    if(processor != null && processor.isMassDetectActive(scanInfo.msLevel())) {
+//      MassLynxLib.setAbsoluteThreshold(handle, );
+//    }
 
     final int numDp = MassLynxLib.getDataPoints(handle, function, scan, mzBuffer, intensityBuffer,
         (int) mzBuffer.byteSize());
@@ -240,14 +300,23 @@ public class MassLynxReader implements AutoCloseable {
         StorageUtils.sliceFloats(mzBuffer, 0, numDp).toArray(MassLynxLib.C_FLOAT));
     final double[] intensities = ArrayUtils.floatToDouble(
         StorageUtils.sliceFloats(intensityBuffer, 0, numDp).toArray(MassLynxLib.C_FLOAT));
+
+    final SimpleSpectralArrays dataPoints;
+    if (processor != null && processor.isMassDetectActive(scanInfo.msLevel())) {
+      final SimpleSpectralArrays simpleSpectralArrays = new SimpleSpectralArrays(mzs, intensities);
+      dataPoints = processor.processor().processScan(metadataScan, simpleSpectralArrays);
+    } else {
+      dataPoints = new SimpleSpectralArrays(mzs, intensities);
+    }
+
     final String scanDefinition = "func=%d, scan=%d".formatted(function, scan);
-    final SimpleFrame frame = new SimpleFrame(file, scan, scanInfo.msLevel(), scanInfo.rt(), mzs,
-        intensities, spectrumType, scanInfo.polarityType(), scanDefinition, null,
-        MobilityType.TRAVELING_WAVE, scanInfo.msLevel() > 1 ? Set.of(
+    final SimpleFrame frame = new SimpleFrame(file, scan, scanInfo.msLevel(), scanInfo.rt(),
+        dataPoints.mzs(), dataPoints.intensities(), spectrumType, scanInfo.polarityType(),
+        scanDefinition, null, MobilityType.TRAVELING_WAVE, scanInfo.msLevel() > 1 ? Set.of(
         (IonMobilityMsMsInfo) scanInfo.msMsInfo(isDdaFile, isImsFile)) : null, null);
 
     final List<BuildingMobilityScan> mobScans = readMobilityScansForFrame(function, scan,
-        scanInfo.driftScanCount());
+        scanInfo.driftScanCount(), metadataScan);
 
     frame.setMobilityScans(mobScans, false);
     frame.setMobilities(getMobilityValues(function));
@@ -255,8 +324,10 @@ public class MassLynxReader implements AutoCloseable {
   }
 
   private @NotNull List<BuildingMobilityScan> readMobilityScansForFrame(int function, int scan,
-      int driftScanCount) {
+      int driftScanCount, @NotNull final MetadataOnlyScan metadataOnlyScan) {
     final List<BuildingMobilityScan> mobScans = new ArrayList<>();
+
+    final Instant mobScanLoadStart = Instant.now();
     for (int i = 0; i < driftScanCount; i++) {
       final int numMobScanDp = MassLynxLib.getMobilityScanDataPoints(handle, function, scan, i,
           mzBuffer, intensityBuffer, (int) mzBuffer.byteSize());
@@ -267,13 +338,28 @@ public class MassLynxReader implements AutoCloseable {
         MassLynxLib.getDataPoints(handle, function, scan, mzBuffer, intensityBuffer,
             (int) mzBuffer.byteSize());
       }
+
       final double[] mobScanMzs = ArrayUtils.floatToDouble(
           StorageUtils.sliceFloats(mzBuffer, 0, numMobScanDp).toArray(MassLynxLib.C_FLOAT));
       final double[] mobScanIntensities = ArrayUtils.floatToDouble(
           StorageUtils.sliceFloats(intensityBuffer, 0, numMobScanDp).toArray(MassLynxLib.C_FLOAT));
 
-      mobScans.add(new BuildingMobilityScan(i, mobScanMzs, mobScanIntensities));
+      final SimpleSpectralArrays dataPoints;
+      if (processor != null && processor.isMassDetectActive(metadataOnlyScan.getMSLevel())) {
+        final SimpleSpectralArrays simpleSpectralArrays = new SimpleSpectralArrays(mobScanMzs,
+            mobScanIntensities);
+        dataPoints = processor.processor().processScan(metadataOnlyScan, simpleSpectralArrays);
+      } else {
+        dataPoints = new SimpleSpectralArrays(mobScanMzs, mobScanIntensities);
+      }
+
+      mobScans.add(new BuildingMobilityScan(i, dataPoints.mzs(), dataPoints.intensities()));
     }
+    final Instant mobScanLoadEnd = Instant.now();
+    Duration duration = Duration.between(mobScanLoadStart, mobScanLoadEnd);
+    final long millis = duration.toMillis();
+    logger.finest("Loaded %d  mobility scans in %s ms".formatted(mobScans.size(), millis));
+
     return mobScans;
   }
 
@@ -289,8 +375,42 @@ public class MassLynxReader implements AutoCloseable {
     return mobilities;
   }
 
+  public OtherFeature readMrm(int function, int index,
+      @NotNull OtherTimeSeriesData timeSeriesData) {
+    assert getFunctionType(function) == FunctionType.MRM;
+
+    final double q1 = MassLynxLib.getMrmQ1Mass(handle, function, index);
+    final double q3 = MassLynxLib.getMrmQ3Mass(handle, function, index);
+    final int numDp = MassLynxLib.getMrmDataPoints(handle, function, index, mrmRtBuffer,
+        mrmIntensityBuffer, (int) mrmRtBuffer.byteSize());
+    if (StorageUtils.numDoubles(mrmRtBuffer) < numDp) {
+      mrmRtBuffer = arena.allocate(numDp * MassLynxLib.C_FLOAT.byteSize() * 2);
+      mrmIntensityBuffer = arena.allocate(numDp * MassLynxLib.C_FLOAT.byteSize() * 2);
+    }
+    final float[] rts = mrmRtBuffer.toArray(MassLynxLib.C_FLOAT);
+    final double[] intensities = ArrayUtils.floatToDouble(
+        mrmIntensityBuffer.toArray(MassLynxLib.C_FLOAT));
+
+    final NumberFormats formats = ConfigService.getGuiFormats();
+    final SimpleOtherTimeSeries series = new SimpleOtherTimeSeries(storage, rts, intensities,
+        "func=%d id=%d %s -> %s".formatted(function, index, formats.mz(q1), formats.mz(q3)),
+        timeSeriesData);
+
+    return ConversionUtils.newRawMrmFeature(q1, q3, ActivationMethod.CID, null, series);
+  }
+
+  public int getNumberOfFunctions() {
+    return numberOfFunctions;
+  }
+
+  public int getNumberOfMrmsInFunction(int function) {
+    assert getFunctionType(function) == FunctionType.MRM;
+    return MassLynxLib.getNumberOfMrmsInFunction(handle, function);
+  }
+
   @Override
   public void close() throws Exception {
+    MassLynxLib.closeFile(handle);
     arena.close();
   }
 }
