@@ -56,6 +56,8 @@ import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -497,7 +499,7 @@ public class MZTabmExportTask extends AbstractTask {
           modifyReliabilityForLipidMatch(mappedVal);
           String subtypeValue = mappedVal.toString();
 
-          String colName = STR."\{listWithSubsType.getUniqueID()}_\{uniqueID}_\{j}1";
+          String colName = listWithSubsType.getUniqueID() + "_" + uniqueID + "_" + j + "1";
           createSMEOptCols(sme, listWithSubsType, colName, subtypeValue);
 
           if (listWithSubsType.getUniqueID().equals(annotationType.getUniqueID())) {
@@ -632,18 +634,19 @@ public class MZTabmExportTask extends AbstractTask {
   }
 
   private void createSVHash(HashMap<String, List<RawDataFile>> svhash, RawDataFile file) {
-    for (UserParameter<?, ?> p : project.getParameters()) {
-      if (p.getName().contains("study variable")) {
-        if (svhash.containsKey(String.valueOf(project.getParameterValue(p, file)))) {
-          svhash.get(String.valueOf(project.getParameterValue(p, file))).add(file);
-        } else {
-          List<RawDataFile> l = new ArrayList<>();
-          l.add(file);
-          svhash.put(String.valueOf(project.getParameterValue(p, file)), l);
-        }
-        break;
+
+    final MetadataTable metadata = project.getProjectMetadata();
+    for (MetadataColumn<?> column : metadata.getColumns()) {
+      final String title = column.getTitle(); // todo check how mztab works. seems odd to not use the column title
+      final Object value = metadata.getValue(column, file);
+      if(value == null) {
+        return;
       }
+      final List<RawDataFile> filesList = svhash.computeIfAbsent(String.valueOf(value),
+          v -> new ArrayList<>());
+      filesList.add(file);
     }
+
   }
 
   @Nullable
@@ -686,7 +689,7 @@ public class MZTabmExportTask extends AbstractTask {
       } else {
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
-            STR."Invalid scan polarity \{polPara} encountered for file \{file.getName()}.");
+            "Invalid scan polarity " + polPara + " encountered for file " + file.getName() + ".");
         return null;
       }
       Parameter p = new Parameter().cvLabel("MS").cvAccession(polCVA).name(polarity);
