@@ -42,8 +42,7 @@ import org.jetbrains.annotations.NotNull;
 public class SingleSpectrumLibrarySearchModule implements MZmineModule {
 
   public static final String MODULE_NAME = "Single spectra spectral library search";
-  private static final String MODULE_DESCRIPTION =
-      "This method compares a scan with a spectral libraries";
+  private static final String MODULE_DESCRIPTION = "This method compares a scan with a spectral libraries";
 
   @Override
   public @NotNull String getName() {
@@ -58,18 +57,18 @@ public class SingleSpectrumLibrarySearchModule implements MZmineModule {
    * Show dialog for spectral db matching for the selected spectra
    * 
    */
-  public static void showSpectraIdentificationDialog(final Scan scan,
-      final SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
+  public static void showSpectraIdentificationDialog(final Scan scan, final SpectraPlot spectraPlot,
+      @NotNull Instant moduleCallDate) {
 
-    final SingleSpectrumLibrarySearchParameters parameters =
-        (SingleSpectrumLibrarySearchParameters) MZmineCore.getConfiguration()
-            .getModuleParameters(SingleSpectrumLibrarySearchModule.class);
+    final SingleSpectrumLibrarySearchParameters parameters = (SingleSpectrumLibrarySearchParameters) MZmineCore.getConfiguration()
+        .getModuleParameters(SingleSpectrumLibrarySearchModule.class);
 
     // Run task.
     if (parameters.showSetupDialog(scan, null, true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(new SingleSpectrumLibrarySearchTask(
-          parameters.cloneParameterSet(), scan, spectraPlot, moduleCallDate));
+          (SingleSpectrumLibrarySearchParameters) parameters.cloneParameterSet(), scan, spectraPlot,
+          moduleCallDate));
     }
   }
 

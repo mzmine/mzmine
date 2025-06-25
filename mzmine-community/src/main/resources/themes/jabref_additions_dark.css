@@ -43,6 +43,14 @@ Text, Text:hover {
   -fx-background-color: -jr-sidepane-background;
 }
 
+.error-label {
+  -fx-text-fill: #ff4f69;
+}
+
+.warning-label {
+  -fx-text-fill: #ffec3d;
+}
+
 .title-label {
   -fx-font-size: 14.0pt;
 }

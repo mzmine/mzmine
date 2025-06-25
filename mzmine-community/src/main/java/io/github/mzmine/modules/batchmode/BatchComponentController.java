@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,6 +56,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -107,6 +108,9 @@ public class BatchComponentController implements LastFilesComponent {
 
   @FXML
   public ComboBox<OriginalFeatureListOption> cmbHandleFlists;
+
+  @FXML
+  public Button btnCloneStep;
 
   private BatchQueue batchQueue;
 
@@ -468,6 +472,21 @@ public class BatchComponentController implements LastFilesComponent {
     }
     File baseFile = parameters.getValue(ChangeOutputFilesParameters.outBaseFile);
     ChangeOutputFilesUtils.applyTo(currentStepsList.getItems(), baseFile);
+  }
+
+  public void cloneParametersPressed(ActionEvent e) {
+    final var indices = currentStepsList.getSelectionModel().getSelectedIndices()
+        .toArray(Integer[]::new);
+    final MZmineProcessingStep<MZmineProcessingModule>[] newSteps = Arrays.stream(indices)
+        .map(i -> BatchUtils.cloneStep(currentStepsList.getItems().get(i)))
+        .toArray(MZmineProcessingStep[]::new);
+
+//    currentStepsList.getSelectionModel().clearSelection();
+    for (int r = indices.length - 1; r >= 0; r--) {
+      int insertIndex = indices[r] + 1;
+      var clonedStep = newSteps[r];
+      currentStepsList.getItems().add(insertIndex, clonedStep);
+    }
   }
 
   // Queue operations.

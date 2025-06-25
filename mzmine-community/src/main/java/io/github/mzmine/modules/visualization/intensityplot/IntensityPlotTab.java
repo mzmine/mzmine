@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,11 +30,11 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -74,6 +74,8 @@ import org.jfree.chart.title.TextTitle;
  */
 public class IntensityPlotTab extends MZmineTab {
 
+  private static final Logger logger = Logger.getLogger(IntensityPlotTab.class.getName());
+
   private static final Image pointsIcon = FxIconUtil.loadImageFromResources("icons/pointsicon.png");
   private static final Image linesIcon = FxIconUtil.loadImageFromResources("icons/linesicon.png");
   private static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
@@ -83,8 +85,6 @@ public class IntensityPlotTab extends MZmineTab {
 
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
   static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
-
-  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private IntensityPlotDataset dataset;
   private JFreeChart chart;

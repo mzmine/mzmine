@@ -27,19 +27,13 @@ package io.github.mzmine.datamodel.features.types;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.AreaBarChart;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
-import java.util.Map;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.AreaShareChart;
 import javafx.scene.Node;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AreaShareType extends DataType<Map<RawDataFile, ModularFeature>>
-    implements GraphicalColumType<Map<RawDataFile, ModularFeature>> {
+public class AreaShareType extends LinkedGraphicalType {
 
   @NotNull
   @Override
@@ -55,25 +49,11 @@ public class AreaShareType extends DataType<Map<RawDataFile, ModularFeature>>
   }
 
   @Override
-  public Property<Map<RawDataFile, ModularFeature>> createProperty() {
-    return new SimpleObjectProperty<>();
-  }
-
-  @Override
-  public Class<Map<RawDataFile, ModularFeature>> getValueClass() {
-    return (Class) Map.class;
-  }
-
-  @Override
-  public @Nullable Node createCellContent(ModularFeatureListRow row,
-      Map<RawDataFile, ModularFeature> cellData, RawDataFile raw, AtomicDouble progress) {
-
-    if(row.get(AreaShareType.class) != null) {
-      return null;
-    }
+  public @Nullable Node createCellContent(@NotNull ModularFeatureListRow row, Boolean cellData,
+      @Nullable RawDataFile raw, AtomicDouble progress) {
 
     if(row.getNumberOfFeatures() > 1) {
-      return new AreaBarChart(row, progress);
+      return new AreaShareChart(row, progress);
     };
     return null;
   }
@@ -82,5 +62,4 @@ public class AreaShareType extends DataType<Map<RawDataFile, ModularFeature>>
   public double getColumnWidth() {
     return 150;
   }
-
 }

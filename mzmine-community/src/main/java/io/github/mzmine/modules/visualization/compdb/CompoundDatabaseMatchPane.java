@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotat
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
@@ -39,7 +38,6 @@ import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import java.awt.Toolkit;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
@@ -48,13 +46,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.DefaultChemObjectBuilder;
-import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.exception.InvalidSmilesException;
-import org.openscience.cdk.inchi.InChIGeneratorFactory;
-import org.openscience.cdk.inchi.InChIToStructure;
-import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.smiles.SmilesParser;
 
 public class CompoundDatabaseMatchPane extends BorderPane {
 
@@ -66,14 +57,13 @@ public class CompoundDatabaseMatchPane extends BorderPane {
   private static final Logger logger = Logger.getLogger(CompoundDatabaseMatchPane.class.getName());
 
   private static final String VALUE_UNAVAILABLE = "N/A";
+  private static final List<DataType<?>> staticFields = List.of(new CompoundNameType(),
+      new NeutralMassType(), new IonTypeType(), new PrecursorMZType());
   private final GridPane entries;
   @NotNull
   private final CompoundDBAnnotation annotation;
   @Nullable
   private final ModularFeatureListRow row;
-
-  private static final List<DataType<?>> staticFields = List.of(new CompoundNameType(),
-      new NeutralMassType(), new IonTypeType(), new PrecursorMZType(), new DatabaseMatchInfoType());
 
   public CompoundDatabaseMatchPane(@NotNull CompoundDBAnnotation annotation,
       @Nullable ModularFeatureListRow row) {

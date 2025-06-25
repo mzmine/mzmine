@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,9 +46,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class StandardCompoundNormalizerTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(
+      StandardCompoundNormalizerTask.class.getName());
+
   private final OriginalFeatureListOption handleOriginal;
   private final MZmineProject project;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final ModularFeatureList originalFeatureList;
   private ModularFeatureList normalizedFeatureList;
 
@@ -59,7 +61,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
   private final AbundanceMeasure abundanceMeasure;
   private final double MZvsRTBalance;
   private final FeatureListRow[] standardRows;
-  private ParameterSet parameters;
+  private final ParameterSet parameters;
 
   public StandardCompoundNormalizerTask(MZmineProject project, FeatureList featureList,
       ParameterSet parameters, @Nullable MemoryMapStorage storage,
@@ -79,7 +81,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
     handleOriginal = parameters.getValue(StandardCompoundNormalizerParameters.handleOriginal);
     standardRows = parameters.getParameter(StandardCompoundNormalizerParameters.standardCompounds)
         .getMatchingRows(featureList);
-
+    this.parameters = parameters;
   }
 
   public double getFinishedPercentage() {

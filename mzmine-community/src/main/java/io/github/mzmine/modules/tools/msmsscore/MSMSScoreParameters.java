@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,16 +35,17 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 public class MSMSScoreParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter msmsTolerance = new MZToleranceParameter(
-      "MS/MS m/z tolerance", "Tolerance of the mass value to search (+/- range)");
+      "MS/MS m/z tolerance", "Tolerance of the mass value to search (+/- range)", 0.002, 8d);
 
   public static final PercentParameter msmsMinScore = new PercentParameter("MS/MS score threshold",
-      "If the score for MS/MS is lower, discard this match");
+      "If the score for MS/MS is lower, discard this match", 0d);
 
-  public static final OptionalParameter<IntegerParameter> useTopNSignals = new OptionalParameter<>( new IntegerParameter("Use only top N signals",
-      "Use only the most abundant N signals for scoring (speeds up the process)", 20), true);
+  public static final OptionalParameter<IntegerParameter> useTopNSignals = new OptionalParameter<>(
+      new IntegerParameter("Use only top N signals",
+          "Use only the most abundant N signals for scoring (speeds up the process)", 20), true);
 
   public MSMSScoreParameters() {
-    super(new Parameter[] {msmsTolerance, msmsMinScore, useTopNSignals});
+    super(new Parameter[]{msmsTolerance, msmsMinScore, useTopNSignals});
   }
 
 }

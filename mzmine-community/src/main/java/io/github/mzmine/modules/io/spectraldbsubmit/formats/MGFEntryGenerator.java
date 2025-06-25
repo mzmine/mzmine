@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,15 +37,16 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.formats;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.Arrays;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 public class MGFEntryGenerator {
 
@@ -123,18 +124,13 @@ public class MGFEntryGenerator {
   }
 
   /**
-   * Creates a simple MSP nist format DB entry
-   */
-  public static String createMGFEntry(SpectralLibraryEntry entry) {
-    return createMGFEntry(entry, entry.getOrElse(DBEntryField.SCAN_NUMBER, null));
-  }
-
-  /**
-   * Creates a simple MSP nist format DB entry
+   * Creates a simple mgf format DB entry
    *
-   * @param scanNumber overwrite the scannumber used for this entry
+   * @return a {@link SpectrumString} to allow for further filtering if the spectrum is empty after
+   * formatting the intensity values, removing 0 values after formatting.
    */
-  public static String createMGFEntry(SpectralLibraryEntry entry, @Nullable Integer scanNumber) {
+  public static SpectrumString createMGFEntry(SpectralLibraryEntry entry,
+      @NotNull final IntensityNormalizer normalizer) {
     String br = "\n";
     StringBuilder s = new StringBuilder();
     s.append("BEGIN IONS").append(br);
@@ -142,41 +138,57 @@ public class MGFEntryGenerator {
     // export sorted fields first, then the rest
     for (DBEntryField field : DBEntryField.values()) {
       String id = field.getMgfID();
-      if (id == null || id.isBlank()) {
+      if (id == null || id.isBlank()
+          // skip num peaks to count actually exported number of signals
+          || field == DBEntryField.NUM_PEAKS) {
         continue;
       }
-      // if scanNumber override is set - replace scan number and featureID (used by GNPS)
-      if (scanNumber != null && (field == DBEntryField.SCAN_NUMBER
-                                 || field == DBEntryField.FEATURE_ID)) {
-        appendValue(s, field, scanNumber);
-      } else {
-        // just use the value
-        entry.getField(field).ifPresent(value -> appendValue(s, field, value));
-      }
+      // write field if present
+      entry.getField(field).ifPresent(value -> s.append(createValueLine(field, value)));
     }
 
     // num peaks and data
     DataPoint[] dps = entry.getDataPoints();
 
-    NumberFormat mzForm = new DecimalFormat("0.######");
-    // minimum intensity after formatting
-    NumberFormat percentForm = new DecimalFormat("0.###");
-    double minIntensity = 0.0005;
-
-    double max = Arrays.stream(dps).mapToDouble(DataPoint::getIntensity).max().orElse(1d);
-    for (DataPoint dp : dps) {
-      double intensityPercent = dp.getIntensity() / max * 100.0;
-      if (intensityPercent >= minIntensity) {
-        s.append(mzForm.format(dp.getMZ())).append(" ").append(percentForm.format(intensityPercent))
-            .append(br);
-      }
-    }
+    SpectrumString spectralData = createSpectrumStringWithNumPeaks(normalizer, dps);
+    s.append(createValueLine(DBEntryField.NUM_PEAKS, spectralData.numSignals()));
+    s.append(spectralData.spectrum());
     s.append("END IONS").append(br);
-    return s.toString();
+    return new SpectrumString(s.toString(), spectralData.numSignals());
   }
 
-  private static StringBuilder appendValue(final StringBuilder s, final DBEntryField field,
-      final Object value) {
-    return s.append(field.getMgfID()).append("=").append(field.formatForMgf(value)).append("\n");
+  /**
+   * @return spectral data as a string ending with a new line
+   */
+  private static SpectrumString createSpectrumStringWithNumPeaks(
+      final @NotNull IntensityNormalizer normalizer, DataPoint[] dps) {
+    NumberFormat mzForm = new DecimalFormat("0.######");
+    // minimum intensity after formatting
+    NumberFormat intensityForm = normalizer.createExportFormat();
+
+    // normalize or keep original intensities
+    // mzmine <= v4.4 was normalizing intensities to 100%
+    // Parameter was added for better control and default changed to original intensities
+    dps = normalizer.normalize(dps, true);
+
+    // count actually exported data points
+    StringBuilder dataBuilder = new StringBuilder();
+    int numExportedValues = 0;
+    for (DataPoint dp : dps) {
+      String formattedIntensity = intensityForm.format(dp.getIntensity());
+
+      if (NumberFormats.IsZero(formattedIntensity, intensityForm)) {
+        continue; // skip data point if formatted intensity value is 0
+      }
+
+      dataBuilder.append(mzForm.format(dp.getMZ())).append(" ").append(formattedIntensity)
+          .append("\n");
+      numExportedValues++;
+    }
+    return new SpectrumString(dataBuilder.toString(), numExportedValues);
+  }
+
+  private static String createValueLine(final DBEntryField field, final Object value) {
+    return field.getMgfID() + "=" + field.formatForMgf(value) + "\n";
   }
 }

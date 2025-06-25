@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>MzMLBinaryDataInfo class.</p>
@@ -40,6 +41,7 @@ public class MzMLBinaryDataInfo {
   private MzMLArrayType arrayType;
   // the binary text content
   private String xmlBinaryContent;
+  private String unitAccession;
 
   /**
    * <p>
@@ -207,5 +209,13 @@ public class MzMLBinaryDataInfo {
    */
   public String getXmlBinaryContent() {
     return xmlBinaryContent;
+  }
+
+  public @Nullable String getUnitAccession() {
+    return unitAccession;
+  }
+
+  public void setUnitAccession(String unitAccession) {
+    this.unitAccession = unitAccession;
   }
 }

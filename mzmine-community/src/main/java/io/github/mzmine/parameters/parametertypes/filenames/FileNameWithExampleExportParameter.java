@@ -44,7 +44,7 @@ public class FileNameWithExampleExportParameter extends FileNameParameter {
 
   public FileNameWithExampleExportParameter(final String name, final String description,
       final List<ExtensionFilter> filters, @NotNull Consumer<File> exportExamples) {
-    super(name, description, filters, FileSelectionType.OPEN);
+    super(name, description, filters, FileSelectionType.OPEN, false);
     this.exportExamples = exportExamples;
   }
 

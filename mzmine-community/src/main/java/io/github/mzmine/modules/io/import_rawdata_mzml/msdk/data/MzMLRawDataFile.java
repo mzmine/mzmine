@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,15 +44,15 @@ public class MzMLRawDataFile {
 
   private final @NotNull List<String> msFunctions;
   /**
-   * scans or frames in IMS
-   */
-  private final @NotNull List<BuildingMzMLMsScan> msScans;
-  /**
    * each element is one frame with all its mobility scans
    */
   private final @NotNull List<BuildingMobilityScanStorage> mobilityScanData;
   private final @NotNull List<Chromatogram> chromatograms;
-
+  /**
+   * scans or frames in IMS
+   */
+  private List<BuildingMzMLMsScan> msScans;
+  private List<BuildingMzMLMsScan> otherSpectra;
   private @NotNull String defaultInstrumentConfiguration;
   private @NotNull String defaultDataProcessingScan;
   private @NotNull String defaultDataProcessingChromatogram;
@@ -63,21 +63,18 @@ public class MzMLRawDataFile {
   /**
    * @param sourceFile       a {@link File} object.
    * @param msFunctions      a {@link List} object.
-   * @param msScans          a {@link List} object.
    * @param chromatograms    a {@link List} object.
    * @param mobilityScanData list of mobility scan data already memory mapped. Each element
    *                         represents a frame that contains multiple mobility scans
    */
   @SuppressWarnings("null")
   public MzMLRawDataFile(File sourceFile, List<String> msFunctions,
-      List<BuildingMzMLMsScan> msScans, List<Chromatogram> chromatograms,
-      final List<BuildingMobilityScanStorage> mobilityScanData) {
+      List<Chromatogram> chromatograms, final List<BuildingMobilityScanStorage> mobilityScanData) {
     this.sourceFile = sourceFile;
     this.mobilityScanData = mobilityScanData;
     this.startTimeStamp = "";
     this.name = sourceFile != null ? sourceFile.getName() : null;
     this.msFunctions = msFunctions;
-    this.msScans = msScans;
     this.chromatograms = chromatograms;
     this.defaultInstrumentConfiguration = "unknown";
     this.defaultDataProcessingScan = "unknown";
@@ -108,8 +105,12 @@ public class MzMLRawDataFile {
   }
 
   @NotNull
-  public List<BuildingMzMLMsScan> getScans() {
-    return ImmutableList.copyOf(msScans);
+  public List<BuildingMzMLMsScan> getMsScans() {
+    return msScans != null ? ImmutableList.copyOf(msScans) : List.of();
+  }
+
+  public void setMsScans(List<BuildingMzMLMsScan> scans) {
+    this.msScans = scans;
   }
 
   @NotNull
@@ -149,4 +150,11 @@ public class MzMLRawDataFile {
     this.defaultDataProcessingChromatogram = defaultDataProcessingChromatogram;
   }
 
+  public void setOtherScans(List<BuildingMzMLMsScan> scanList) {
+    otherSpectra = scanList;
+  }
+
+  public @NotNull List<BuildingMzMLMsScan> getOtherSpectra() {
+    return otherSpectra != null ? ImmutableList.copyOf(otherSpectra) : List.of();
+  }
 }

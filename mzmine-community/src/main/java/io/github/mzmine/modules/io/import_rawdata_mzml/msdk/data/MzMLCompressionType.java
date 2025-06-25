@@ -25,6 +25,10 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * Enumeration of different compression types which are parsed by the MzML Parser
  */
@@ -41,12 +45,23 @@ public enum MzMLCompressionType {
   NUMPRESS_SHLOGF_ZLIB("MS:1002748",
       "MS-Numpress short logged float compression followed by zlib compression");
 
+  private static final Map<String, MzMLCompressionType> map = Arrays.stream(MzMLCompressionType.values()).collect(
+      Collectors.toMap(MzMLCompressionType::getAccession, v -> v));
+
   private String accession;
   private String name;
 
   MzMLCompressionType(String accession, String name) {
     this.accession = accession;
     this.name = name;
+  }
+
+  public static MzMLCompressionType ofAccession(String accession) {
+    return map.get(accession);
+  }
+
+  public static boolean isCompressionTypeAccession(String accession) {
+    return map.containsKey(accession);
   }
 
   /**

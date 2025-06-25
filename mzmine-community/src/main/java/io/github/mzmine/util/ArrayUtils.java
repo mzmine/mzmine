@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,17 @@
 
 package io.github.mzmine.util;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.function.Function;
+import java.util.function.ToDoubleFunction;
+import javax.validation.constraints.Null;
+import org.jetbrains.annotations.Nullable;
 
 public class ArrayUtils {
 
@@ -91,8 +97,22 @@ public class ArrayUtils {
   }
 
   public static double sum(double[] array) {
+    if (array == null) {
+      return 0d;
+    }
     double sum = 0d;
     for (double v : array) {
+      sum += v;
+    }
+    return sum;
+  }
+
+  public static float sum(float[] array) {
+    if (array == null) {
+      return 0f;
+    }
+    float sum = 0f;
+    for (float v : array) {
       sum += v;
     }
     return sum;
@@ -195,5 +215,150 @@ public class ArrayUtils {
       System.arraycopy(data, 0, result, offset, data.length);
     }
     return result;
+  }
+
+  public static float[] doubleToFloat(double[] values) {
+    float[] converted = new float[values.length];
+    for (int i = 0; i < values.length; i++) {
+      converted[i] = (float) values[i];
+    }
+    return converted;
+  }
+
+  public static double[] floatToDouble(float[] values) {
+    double[] converted = new double[values.length];
+    for (int i = 0; i < values.length; i++) {
+      converted[i] = (double) values[i];
+    }
+    return converted;
+  }
+
+  /**
+   * Max of any value extracted from values
+   *
+   * @return Optional maximum value
+   */
+  public static <T> OptionalDouble max(final T[] values, final ToDoubleFunction<T> extractor) {
+    if (values == null || values.length == 0) {
+      return OptionalDouble.empty();
+    }
+    if (values.length == 1) {
+      return OptionalDouble.of(extractor.applyAsDouble(values[0]));
+    }
+    double max = Double.NEGATIVE_INFINITY;
+    for (T value : values) {
+      final double v = extractor.applyAsDouble(value);
+      if (v > max) {
+        max = v;
+      }
+    }
+    return OptionalDouble.of(max);
+  }
+
+  /**
+   * min of any value extracted from values
+   *
+   * @return Optional minimum value
+   */
+  public static <T> OptionalDouble min(final T[] values, final ToDoubleFunction<T> extractor) {
+    if (values == null || values.length == 0) {
+      return OptionalDouble.empty();
+    }
+    if (values.length == 1) {
+      return OptionalDouble.of(extractor.applyAsDouble(values[0]));
+    }
+    double max = Double.POSITIVE_INFINITY;
+    for (T value : values) {
+      final double v = extractor.applyAsDouble(value);
+      if (v < max) {
+        max = v;
+      }
+    }
+    return OptionalDouble.of(max);
+  }
+
+  public static <T> double sum(final T[] values, final ToDoubleFunction<T> extractor) {
+    if (values == null) {
+      return 0d;
+    }
+    double sum = 0;
+    for (T value : values) {
+      final double v = extractor.applyAsDouble(value);
+      sum += v;
+    }
+    return sum;
+  }
+
+  public static OptionalDouble max(final double[] values) {
+    if (values == null || values.length == 0) {
+      return OptionalDouble.empty();
+    }
+    if (values.length == 1) {
+      return OptionalDouble.of(values[0]);
+    }
+    double max = Double.NEGATIVE_INFINITY;
+    for (double v : values) {
+      if (v > max) {
+        max = v;
+      }
+    }
+    return OptionalDouble.of(max);
+  }
+
+  public static Optional<Float> max(final float[] values) {
+    if (values == null || values.length == 0) {
+      return Optional.empty();
+    }
+    if (values.length == 1) {
+      return Optional.of(values[0]);
+    }
+    float max = Float.NEGATIVE_INFINITY;
+    for (float v : values) {
+      if (v > max) {
+        max = v;
+      }
+    }
+    return Optional.of(max);
+  }
+
+  public static OptionalDouble min(final double[] values) {
+    if (values == null || values.length == 0) {
+      return OptionalDouble.empty();
+    }
+    if (values.length == 1) {
+      return OptionalDouble.of(values[0]);
+    }
+    double max = Double.POSITIVE_INFINITY;
+    for (double v : values) {
+      if (v < max) {
+        max = v;
+      }
+    }
+    return OptionalDouble.of(max);
+  }
+
+  public static Optional<Float> min(final float[] values) {
+    if (values == null || values.length == 0) {
+      return Optional.empty();
+    }
+    if (values.length == 1) {
+      return Optional.of(values[0]);
+    }
+    float max = Float.POSITIVE_INFINITY;
+    for (float v : values) {
+      if (v < max) {
+        max = v;
+      }
+    }
+    return Optional.of(max);
+  }
+
+  /**
+   * Combines multiple arrays into a single array, filtering nulls that were passed as array and
+   * null array elements.
+   */
+  public static File[] combine(final @Nullable File[]... arrays) {
+    return Arrays.stream(arrays).filter(Objects::nonNull).flatMap(Arrays::stream)
+        .filter(Objects::nonNull).toArray(File[]::new);
   }
 }

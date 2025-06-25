@@ -46,7 +46,7 @@ public record FormulaWithExactMz(IMolecularFormula formula, double mz) {
   public String toString() {
     var formats = ConfigService.getGuiFormats();
     String mass = getCharge() == 0 ? "mass" : "m/z";
-    return STR."\{formulaString()}: \{mass}=\{formats.mz(mz)}";
+    return formulaString() + ": " + mass + "=" + formats.mz(mz);
   }
 
   /**
@@ -55,7 +55,7 @@ public record FormulaWithExactMz(IMolecularFormula formula, double mz) {
   public String toDeltaString() {
     var formats = ConfigService.getGuiFormats();
     String mass = getCharge() == 0 ? "Δmass" : "Δm/z";
-    return STR."\{formulaString()}: \{mass}=\{formats.mz(mz)}";
+    return formulaString() + ": " + mass + "=" + formats.mz(mz);
   }
 
   public @NotNull String formulaString() {

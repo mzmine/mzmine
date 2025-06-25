@@ -26,11 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorSetupDialog;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.util.ExitCode;
 
 public class CentroidMassDetectorParameters extends SimpleParameterSet {
 
@@ -41,14 +39,6 @@ public class CentroidMassDetectorParameters extends SimpleParameterSet {
   public CentroidMassDetectorParameters() {
     super(new UserParameter[]{noiseLevel},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#centroid");
-  }
-
-  @Override
-  public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    MassDetectorSetupDialog dialog =
-        new MassDetectorSetupDialog(valueCheckRequired, CentroidMassDetector.class, this);
-    dialog.showAndWait();
-    return dialog.getExitCode();
   }
 
 }

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import java.util.Collection;
 import java.util.List;
 import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
@@ -34,6 +35,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import org.controlsfx.control.SearchableComboBox;
+import org.jetbrains.annotations.NotNull;
 
 public class FxComboBox {
 
@@ -48,15 +51,39 @@ public class FxComboBox {
     return hBox;
   }
 
-  public static <T> ComboBox<T> createComboBox(String tooltip, List<T> values,
+  public static <T> ComboBox<T> createComboBox(String tooltip, Collection<T> values,
       Property<T> selectedItem) {
+    return addContent(tooltip, values, selectedItem, new ComboBox<T>());
+  }
+
+  private static <T, COMBO extends ComboBox<T>> @NotNull COMBO addContent(final String tooltip,
+      final Collection<T> values, final Property<T> selectedItem, final COMBO combo) {
+    if (values instanceof ObservableList<T> ov) {
+      combo.setItems(ov);
+    } else if (values instanceof List<T> list) {
+      combo.setItems(FXCollections.observableList(list));
+    } else {
+      combo.setItems(FXCollections.observableList(List.copyOf(values)));
+    }
+    combo.valueProperty().bindBidirectional(selectedItem);
+    combo.setTooltip(new Tooltip(tooltip));
+    return combo;
+  }
+
+  public static <T> SearchableComboBox<T> newSearchableComboBox(@NotNull String tooltip,
+      @NotNull List<T> values, @NotNull Property<T> selectedItem) {
+    return addContent(tooltip, values, selectedItem, new SearchableComboBox<>());
+  }
+
+  public static <T> ComboBox<T> createComboBox(String tooltip, Collection<T> values) {
     final ComboBox<T> combo = new ComboBox<>();
     if (values instanceof ObservableList<T> ov) {
       combo.setItems(ov);
+    } else if (values instanceof List<T> list) {
+      combo.setItems(FXCollections.observableList(list));
     } else {
-      combo.setItems(FXCollections.observableList(values));
+      combo.setItems(FXCollections.observableList(List.copyOf(values)));
     }
-    combo.valueProperty().bindBidirectional(selectedItem);
     combo.setTooltip(new Tooltip(tooltip));
     return combo;
   }

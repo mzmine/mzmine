@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,26 +32,26 @@ import org.jetbrains.annotations.NotNull;
 public final class CCSCalibrant {
 
   public static final double N2_MASS = 28.006148008;
-  private Double foundMz;
-  private Float foundMobility;
-  private final double libraryMass;
+  private final double libraryMz;
   private final float libraryMobility;
   private final float libraryCCS;
   private final int libraryCharge;
+  private Double foundMz;
+  private Float foundMobility;
 
-  public CCSCalibrant(Double foundMz, Float foundMobility, double libraryMass,
+  public CCSCalibrant(Double foundMz, Float foundMobility, double libraryMz,
       float libraryMobility, float libraryCCS, int libraryCharge) {
     this.foundMz = foundMz;
     this.foundMobility = foundMobility;
-    this.libraryMass = libraryMass;
+    this.libraryMz = libraryMz;
     this.libraryMobility = libraryMobility;
     this.libraryCCS = libraryCCS;
     this.libraryCharge = libraryCharge;
   }
 
-  public CCSCalibrant(@NotNull FeatureListRow row, double libraryMass, float libraryMobility,
+  public CCSCalibrant(@NotNull FeatureListRow row, double libraryMz, float libraryMobility,
       float libraryCCS, int libraryCharge) {
-    this(row.getAverageMZ(), row.getAverageMobility(), libraryMass, libraryMobility, libraryCCS,
+    this(row.getAverageMZ(), row.getAverageMobility(), libraryMz, libraryMobility, libraryCCS,
         libraryCharge);
   }
 
@@ -61,9 +61,14 @@ public final class CCSCalibrant {
         foundMz(), foundMobility(), libraryMz(), libraryMobility(), libraryCCS());
   }
 
+  /**
+   * @return modified reduced mass related coefficient for the calibrant in the drift gas N2
+   */
   public double getN2Gamma() {
-    return 1 / (double) libraryCharge() * Math.sqrt(
-        libraryMass * Math.abs(libraryCharge) / (libraryMass * libraryCharge + N2_MASS));
+    final double libraryMass = libraryMz * Math.abs(libraryCharge);
+    final double v =
+        (1 / (double) Math.abs(libraryCharge())) * Math.sqrt(libraryMass / (libraryMass + N2_MASS));
+    return v;
   }
 
   public Double foundMz() {
@@ -75,7 +80,7 @@ public final class CCSCalibrant {
   }
 
   public double libraryMz() {
-    return libraryMass;
+    return libraryMz;
   }
 
   public float libraryMobility() {
@@ -101,15 +106,15 @@ public final class CCSCalibrant {
     var that = (CCSCalibrant) obj;
     return Double.doubleToLongBits(this.foundMz) == Double.doubleToLongBits(that.foundMz)
         && Double.doubleToLongBits(this.foundMobility) == Double.doubleToLongBits(
-        that.foundMobility) && Double.doubleToLongBits(this.libraryMass) == Double.doubleToLongBits(
-        that.libraryMass) && Float.floatToIntBits(this.libraryMobility) == Float.floatToIntBits(
+        that.foundMobility) && Double.doubleToLongBits(this.libraryMz) == Double.doubleToLongBits(
+        that.libraryMz) && Float.floatToIntBits(this.libraryMobility) == Float.floatToIntBits(
         that.libraryMobility) && Float.floatToIntBits(this.libraryCCS) == Float.floatToIntBits(
         that.libraryCCS) && this.libraryCharge == that.libraryCharge;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(foundMz, foundMobility, libraryMass, libraryMobility, libraryCCS,
+    return Objects.hash(foundMz, foundMobility, libraryMz, libraryMobility, libraryCCS,
         libraryCharge);
   }
 

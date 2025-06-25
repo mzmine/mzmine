@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,8 +45,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param <T> type of the cell content
  */
-public class GroupableListViewCell<T> extends
-    DraggableListCell<GroupableListViewEntity> {
+public class GroupableListViewCell<T> extends DraggableListCell<GroupableListViewEntity> {
 
   private static final int INDENT = 20;
   private final String POSTFIX = "file";
@@ -70,14 +69,14 @@ public class GroupableListViewCell<T> extends
 
     // Setup group headers expanding/hiding
     expandButton.setOnMouseClicked(event -> {
-      getListView().getItems().removeAll(((GroupableListView<T>) getListView())
-          .getGroupItems((GroupEntity) getItem()));
+      getListView().getItems()
+          .removeAll(((GroupableListView<T>) getListView()).getGroupItems((GroupEntity) getItem()));
       setGraphic(hiddenButton);
       ((GroupEntity) getItem()).invertState();
     });
     hiddenButton.setOnMouseClicked(event -> {
-      getListView().getItems().addAll(getIndex() + 1, ((GroupableListView<T>) getListView())
-          .getGroupItems((GroupEntity) getItem()));
+      getListView().getItems().addAll(getIndex() + 1,
+          ((GroupableListView<T>) getListView()).getGroupItems((GroupEntity) getItem()));
       setGraphic(expandButton);
       ((GroupEntity) getItem()).invertState();
     });
@@ -200,15 +199,13 @@ public class GroupableListViewCell<T> extends
     setText(renameTextField.getText());
     getListView().setEditable(false);
 
-    getListView().getSelectionModel().clearSelection();
-    getListView().getSelectionModel().select(getIndex());
   }
 
   /**
    * Method extending {@link DraggableListCell#dragDroppedAction} to define drag and drop behaviour
    * of {@link GroupableListViewCell}s.
    *
-   * @param draggedIdx index of the dragged item
+   * @param draggedIdx   index of the dragged item
    * @param draggedToIdx new index for the dragged item
    */
   @Override
@@ -222,9 +219,9 @@ public class GroupableListViewCell<T> extends
     }
 
     // If groups' headers selected along with grouped element, do nothing
-    if (getGroupableListView().anyGroupSelected()
-        && (draggedToItem instanceof ValueEntity && (((ValueEntity<?>) draggedToItem).isGrouped())
-        || (draggedItem instanceof ValueEntity && ((ValueEntity<?>) draggedItem).isGrouped()))) {
+    if (getGroupableListView().anyGroupSelected() && (
+        draggedToItem instanceof ValueEntity && (((ValueEntity<?>) draggedToItem).isGrouped()) || (
+            draggedItem instanceof ValueEntity && ((ValueEntity<?>) draggedItem).isGrouped()))) {
       return;
     }
 
@@ -236,10 +233,11 @@ public class GroupableListViewCell<T> extends
     // Replace expanded groups' elements to their new positions,
     // save selected values and remove them from groups.
     List<ValueEntity<T>> selectedValues = new ArrayList<>();
-    for (GroupableListViewEntity selectedItem : getListView().getSelectionModel().getSelectedItems()) {
+    for (GroupableListViewEntity selectedItem : getListView().getSelectionModel()
+        .getSelectedItems()) {
       if (selectedItem instanceof GroupEntity && ((GroupEntity) selectedItem).isExpanded()) {
-        getListView().getItems().removeAll(
-            getGroupableListView().getGroupItems((GroupEntity) selectedItem));
+        getListView().getItems()
+            .removeAll(getGroupableListView().getGroupItems((GroupEntity) selectedItem));
         getListView().getItems().addAll(getListView().getItems().indexOf(selectedItem) + 1,
             getGroupableListView().getGroupItems((GroupEntity) selectedItem));
       } else if (selectedItem instanceof ValueEntity) {
@@ -250,8 +248,8 @@ public class GroupableListViewCell<T> extends
 
     // If drag target item is group, replace it's items to their new positions
     if (draggedToItem instanceof GroupEntity && ((GroupEntity) draggedToItem).isExpanded()) {
-      getListView().getItems().removeAll(
-          getGroupableListView().getGroupItems((GroupEntity) draggedToItem));
+      getListView().getItems()
+          .removeAll(getGroupableListView().getGroupItems((GroupEntity) draggedToItem));
       getListView().getItems().addAll(getListView().getItems().indexOf(draggedToItem) + 1,
           getGroupableListView().getGroupItems((GroupEntity) draggedToItem));
     }
@@ -271,8 +269,8 @@ public class GroupableListViewCell<T> extends
     // Update selection
     int newDraggedItemIdx = getGroupableListView().getItems().indexOf(draggedItem);
     getListView().getSelectionModel().clearSelection();
-    getListView().getSelectionModel().selectRange(newDraggedItemIdx,
-        newDraggedItemIdx + selectedItemsSize);
+    getListView().getSelectionModel()
+        .selectRange(newDraggedItemIdx, newDraggedItemIdx + selectedItemsSize);
 
   }
 

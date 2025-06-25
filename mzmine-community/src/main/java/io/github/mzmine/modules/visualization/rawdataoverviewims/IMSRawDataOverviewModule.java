@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
@@ -53,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class IMSRawDataOverviewModule implements MZmineRunnableModule {
 
-  public static void openIMSVisualizerTabWithFeatures(List<ModularFeature> features) {
+  public static void openIMSVisualizerTabWithFeatures(List<Feature> features) {
     if (features.isEmpty() || features.get(0) == null) {
       return;
     }
@@ -67,15 +66,15 @@ public class IMSRawDataOverviewModule implements MZmineRunnableModule {
       }
     }
 
-    final ModularFeature feature = features.get(0);
+    final Feature feature = features.get(0);
 
     // if no tab was found, make a new one.
     if (tab == null) {
       final RawDataFilesSelection rawFileSelection = new RawDataFilesSelection(
           RawDataFilesSelectionType.SPECIFIC_FILES);
       rawFileSelection.setSpecificFiles(new RawDataFile[]{feature.getRawDataFile()});
-      final MZTolerance tolerance = MZTolerance
-          .getMaximumDataPointTolerance((List<Feature>) (List<? extends Feature>) features);
+      final MZTolerance tolerance = MZTolerance.getMaximumDataPointTolerance(
+          (List<Feature>) (List<? extends Feature>) features);
 
       final ParameterSet parameterSet = MZmineCore.getConfiguration()
           .getModuleParameters(IMSRawDataOverviewModule.class).cloneParameterSet();
@@ -119,8 +118,8 @@ public class IMSRawDataOverviewModule implements MZmineRunnableModule {
   @Override
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    RawDataFilesParameter param = parameters
-        .getParameter(IMSRawDataOverviewParameters.rawDataFiles);
+    RawDataFilesParameter param = parameters.getParameter(
+        IMSRawDataOverviewParameters.rawDataFiles);
     RawDataFilesSelection selection = param.getValue();
     RawDataFile[] files = selection.getMatchingRawDataFiles();
     for (RawDataFile file : files) {

@@ -106,7 +106,7 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
     comboBox = new ComboBox<>(featureLists);
     comboBox.valueProperty().addListener(((observable, oldValue, newValue) -> parametersChanged()));
 
-    wrapper.getFinishedRegionListeners()
+    wrapper.getFinishedRegionSelectionListeners()
         .addListener((ListChangeListener<RegionSelectionListener>) c -> {
           parameters.getParameter(MobilityMzRegionExtractionParameters.regions)
               .setValue(wrapper.getFinishedRegionsAsListOfPointLists());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,10 +26,10 @@
 package io.github.mzmine.modules.visualization.spectra.msn_tree;
 
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.impl.CurrentProjectNoDialogParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-public class MSnTreeVisualizerParameters extends SimpleParameterSet {
+public class MSnTreeVisualizerParameters extends CurrentProjectNoDialogParameterSet {
 
   public static final MZToleranceParameter mzTol = new MZToleranceParameter("m/z tolerance",
       "Tolerance to group precursor ions into trees", 0.004, 20);

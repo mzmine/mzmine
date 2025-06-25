@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
@@ -34,49 +33,88 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.recursive.RecursiveMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.WaveletMassDetector;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
+import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public enum MassDetectors {
+public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
   /**
    * Handles Profile and Centroid mode data. Uses {@link ExactMassDetector} first with 0 noise level
    * on profile data
    */
-  FACTOR_OF_LOWEST(FactorOfLowestMassDetector.class),
+  FACTOR_OF_LOWEST,
   /**
    * Handles both profile and centroid mode data. Uses {@link ExactMassDetector} or
    * {@link CentroidMassDetector} for profile and centroid mode data
    */
-  AUTO(AutoMassDetector.class),
+  AUTO,
   /**
    * Only on centroided data
    */
-  CENTROID(CentroidMassDetector.class),
+  CENTROID,
   /**
    * Only on Profile mode data
    */
-  EXACT(ExactMassDetector.class),
+  EXACT,
   /**
    * Only on profile mode data
    */
-  LOCAL_MAX(LocalMaxMassDetector.class),
+  LOCAL_MAX,
   /**
    *
    */
-  RECURSIVE(RecursiveMassDetector.class),
+  RECURSIVE,
   /**
    *
    */
-  WAVELET(WaveletMassDetector.class);
+  WAVELET;
 
-  /**
-   * This instance is never used for mass detection but contains the name and factory logic
-   */
-  private final MassDetector massDetector;
+  @Override
+  public Class<? extends MassDetector> getModuleClass() {
+    return switch (this) {
+      case FACTOR_OF_LOWEST -> FactorOfLowestMassDetector.class;
+      case AUTO -> AutoMassDetector.class;
+      case CENTROID -> CentroidMassDetector.class;
+      case EXACT -> ExactMassDetector.class;
+      case LOCAL_MAX -> LocalMaxMassDetector.class;
+      case RECURSIVE -> RecursiveMassDetector.class;
+      case WAVELET -> WaveletMassDetector.class;
+    };
+  }
 
-  MassDetectors(final Class<? extends MassDetector> massDetectorClass) {
-    this.massDetector = MZmineCore.getModuleInstance(massDetectorClass);
+  @Override
+  public String toString() {
+    return getStableId();
+  }
+
+  @Override
+  public String getStableId() {
+    // do not change these values for load save
+    return switch (this) {
+      case FACTOR_OF_LOWEST -> "Factor of lowest signal";
+      case AUTO -> "Auto";
+      case CENTROID -> "Centroid";
+      case EXACT -> "Exact mass";
+      case LOCAL_MAX -> "Local maxima";
+      case RECURSIVE -> "Recursive threshold";
+      case WAVELET -> "Wavelet transform";
+    };
+  }
+
+  public boolean usesCentroidData() {
+    return switch (this) {
+      case CENTROID, FACTOR_OF_LOWEST, AUTO -> true;
+      case EXACT, LOCAL_MAX, RECURSIVE, WAVELET -> false;
+    };
+  }
+
+  public boolean usesProfileData() {
+    return switch (this) {
+      case CENTROID -> false;
+      case EXACT, LOCAL_MAX, RECURSIVE, WAVELET, FACTOR_OF_LOWEST, AUTO -> true;
+    };
   }
 
   /**
@@ -85,41 +123,26 @@ public enum MassDetectors {
    */
   @NotNull
   public static List<MassDetector> listModules() {
-    return Arrays.stream(values()).map(MassDetectors::getDefaultModule).toList();
-  }
-
-  /**
-   * Without AUTO mass detector as this only works when spectrum type is known. List of modules that
-   * contain the name and parameter class. Used by the parameters. use
-   * {@link MassDetector#create(ParameterSet)} to create the instance for processing
-   */
-  @NotNull
-  public static List<MassDetector> listModulesNoAuto() {
-    return Arrays.stream(values()).filter(md -> md != AUTO).map(MassDetectors::getDefaultModule)
-        .toList();
-  }
-
-  @NotNull
-  public ParameterSet getParametersCopy() {
-    return MZmineCore.getConfiguration().getModuleParameters(massDetector.getClass())
-        .cloneParameterSet();
+    return Arrays.stream(values()).map(MassDetectors::getModuleInstance).toList();
   }
 
   /**
    * Derive a mass detector with the following parameters
+   *
+   * @param parameters the parameter set of the sub parameters for this detector
    */
   @NotNull
   public MassDetector createMassDetector(@NotNull ParameterSet parameters) {
-    return massDetector.create(parameters);
+    return getModuleInstance().create(parameters);
   }
 
+  /**
+   * Derive a mass detector with the following parameters
+   *
+   * @param params selected detector and the sub parameters of this detector
+   */
   @NotNull
-  public MassDetector getDefaultModule() {
-    return massDetector;
-  }
-
-  @Override
-  public String toString() {
-    return massDetector.getName();
+  public static MassDetector createMassDetector(ValueWithParameters<MassDetectors> params) {
+    return params.value().createMassDetector(params.parameters());
   }
 }

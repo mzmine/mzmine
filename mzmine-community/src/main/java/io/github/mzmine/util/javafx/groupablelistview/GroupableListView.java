@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.sun.istack.Nullable;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,6 +39,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javafx.application.Platform;
@@ -53,12 +56,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
 
+  private static final Logger logger = Logger.getLogger(GroupableListView.class.getName());
   private final Map<GroupEntity, ObservableList<ValueEntity<T>>> listGroups = FXCollections.observableHashMap();
+
   private final ObservableList<GroupableListViewEntity> listItems = FXCollections.observableArrayList();
 
   private final ObservableList<T> selectedValues = FXCollections.observableArrayList();
-  private final ObservableList<GroupEntity> selectedGroups = FXCollections.observableArrayList();
 
+  private final ObservableList<GroupEntity> selectedGroups = FXCollections.observableArrayList();
   private Function<T, String> grouping;
 
   public GroupableListView() {
@@ -79,7 +84,8 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
               items.stream().filter(Objects::nonNull).filter(item -> item instanceof GroupEntity)
                   .map(item -> (GroupEntity) item).toList());
           // if group is selected, select all internal data files
-          selectedValues.setAll(items.stream().filter(Objects::nonNull).<T>mapMulti((item, consumer) -> {
+          selectedValues.setAll(
+              items.stream().filter(Objects::nonNull).<T>mapMulti((item, consumer) -> {
                 if (item instanceof GroupEntity ge) {
                   listGroups.get(ge).stream().map(ValueEntity::getValue).filter(Objects::nonNull)
                       .forEach(consumer::accept);
@@ -149,6 +155,10 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
       }
       setItems(listItems);
     });
+  }
+
+  public ObservableList<GroupableListViewEntity> getListItems() {
+    return listItems;
   }
 
   public void groupSelectedItems() {
@@ -373,6 +383,32 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     return null;
   }
 
+
+  public void sortItemObjects(final List<T> objects) {
+    Object2IntMap<T> indices = new Object2IntOpenHashMap<>();
+    for (final T key : objects) {
+      indices.put(key, -1);
+    }
+    // find index
+    for (int i = 0; i < listItems.size(); i++) {
+      if (listItems.get(i) instanceof ValueEntity ve) {
+        if (indices.containsKey(ve.getValue())) {
+          indices.put((T) ve.getValue(), i);
+        }
+      }
+    }
+    List<Integer> finalIndices = indices.values().intStream().filter(v -> v >= 0).sorted().boxed()
+        .toList();
+    if (finalIndices.size() < objects.size()) {
+      logger.warning(
+          "Did not find all indices of selected input items in list view: %d/%d".formatted(
+              finalIndices.size(), objects.size()));
+    }
+    if (!finalIndices.isEmpty()) {
+      sortItems(finalIndices);
+    }
+  }
+
   public void sortSelectedItems() {
     sortItems(getSelectionModel().getSelectedIndices());
   }
@@ -387,8 +423,9 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
    * @param indices indices of items to sort
    */
   public void sortItems(List<Integer> indices) {
-    if (indices == null || indices.isEmpty()) {
-      return;
+    // sort also if nothing is selected - then sort everything
+    if (indices == null || indices.size() == 1) {
+      indices = IntStream.range(0, listItems.size()).boxed().toList();
     }
 
     // Get items corresponding to indices
@@ -526,4 +563,5 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
 
   public void updateItems() {
   }
+
 }

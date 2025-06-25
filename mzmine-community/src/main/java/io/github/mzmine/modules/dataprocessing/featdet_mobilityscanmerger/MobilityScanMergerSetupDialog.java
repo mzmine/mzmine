@@ -62,7 +62,8 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
   private final SimpleParameterSet parameterSet;
   private final ComboBox<Frame> frameComboBox;
 
-  public MobilityScanMergerSetupDialog(boolean valueCheckRequired, SimpleParameterSet parameterSet) {
+  public MobilityScanMergerSetupDialog(boolean valueCheckRequired,
+      SimpleParameterSet parameterSet) {
     super(valueCheckRequired, parameterSet);
     this.parameterSet = parameterSet;
 
@@ -89,8 +90,8 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
 
     fileComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue instanceof IMSRawDataFile) {
-        frameComboBox
-            .setItems(FXCollections.observableArrayList(((IMSRawDataFile) newValue).getFrames()));
+        frameComboBox.setItems(
+            FXCollections.observableArrayList(((IMSRawDataFile) newValue).getFrames()));
       }
     });
 
@@ -125,6 +126,8 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
         .getValue();
     Weighting weighting = parameterSet.getParameter(MobilityScanMergerParameters.weightingType)
         .getValue();
+    Integer minDetections = parameterSet.getValue(
+        MobilityScanMergerParameters.minNumberOfDetections);
 
     if (intensityMergingType == null || mzTolerance == null || frameComboBox.getValue() == null) {
       return;
@@ -135,7 +138,8 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
       merged = SpectraMerging.calculatedMergedMzsAndIntensities(
           frameComboBox.getValue().getMobilityScans().stream().map(MobilityScan::getMassList)
               .toList(), mzTolerance, intensityMergingType,
-          new CenterFunction(CenterMeasure.AVG, weighting), null, noiseLevel, null);
+          new CenterFunction(SpectraMerging.DEFAULT_CENTER_MEASURE, weighting), null, noiseLevel,
+          minDetections);
     } catch (NullPointerException e) {
       MZmineCore.getDesktop().displayErrorMessage(
           "No mass list present in " + frameComboBox.getValue().getDataFile().getName()

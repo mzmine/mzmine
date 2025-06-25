@@ -27,10 +27,12 @@ package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class BioTransformerFilterParameters extends SimpleParameterSet {
 
@@ -55,6 +57,11 @@ public class BioTransformerFilterParameters extends SimpleParameterSet {
   public BioTransformerFilterParameters() {
     super(
         new Parameter[]{eductMustHaveMsMs, minEductHeight, productMustHaveMsMs, minProductHeight});
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 
 }

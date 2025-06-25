@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,19 +38,16 @@ import org.jetbrains.annotations.NotNull;
 
 public class CreateAvgNetworkFormulasModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Average formulas for annotation networks";
-  private static final String MODULE_DESCRIPTION =
-      "Creates a list of average molecular formulas from all formula lists of all ions in this network (e.g., M+H and M+Na)";
+  private static final String MODULE_NAME = "Average formulas for ion identities";
+  private static final String MODULE_DESCRIPTION = "Creates a list of average molecular formulas from all formula lists of all ions in this network (e.g., M+H and M+Na)";
 
   @Override
-  public @NotNull
-  String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @NotNull
-  MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.ION_IDENTITY_NETWORKS;
   }
 
@@ -65,11 +62,11 @@ public class CreateAvgNetworkFormulasModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @NotNull
-  ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    ModularFeatureList featureLists[] = parameters.getParameter(CreateAvgNetworkFormulasParameters.PEAK_LISTS)
-        .getValue().getMatchingFeatureLists();
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Instant moduleCallDate) {
+    ModularFeatureList featureLists[] = parameters.getParameter(
+        CreateAvgNetworkFormulasParameters.PEAK_LISTS).getValue().getMatchingFeatureLists();
 
     for (ModularFeatureList featureList : featureLists) {
       Task newTask = new CreateAvgNetworkFormulasTask(featureList, parameters, moduleCallDate);

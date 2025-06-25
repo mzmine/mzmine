@@ -78,7 +78,7 @@ public class WizardBatchBuilderTargetPlate extends BaseWizardBatchBuilder {
     }
     makeAndAddIsotopeFinderStep(q);
     makeAndAddLocalCsvDatabaseSearchStep(q, null);
-
+    makeAndAddBatchExportStep(q, true, null);
     return q;
   }
 

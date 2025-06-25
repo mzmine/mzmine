@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,9 +28,72 @@ package io.github.mzmine.util.collections;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.IntConsumer;
+import org.jetbrains.annotations.NotNull;
 
 public sealed interface IndexRange permits EmptyIndexRange, SimpleIndexRange, SingleIndexRange {
+
+  static List<IndexRange> findRanges(List<Integer> values) {
+    if (values == null || values.isEmpty()) {
+      return List.of();
+    }
+    List<Integer> sorted = values.stream().filter(Objects::nonNull).sorted().distinct().toList();
+    List<IndexRange> ranges = new ArrayList<>();
+    // 1    3 4 5     8 9
+    Integer first = sorted.getFirst();
+    Integer lastInRange = first;
+
+    for (int i = 1; i < sorted.size(); i++) {
+      Integer currentNumber = sorted.get(i);
+
+      if (lastInRange + 1 == currentNumber) {
+        lastInRange = currentNumber; // consecutive numbers
+        continue;
+      }
+      // gap detected
+      ranges.add(IndexRange.ofInclusive(first, lastInRange));
+      first = currentNumber;
+      lastInRange = first;
+    }
+
+    // ADD LAST
+    ranges.add(IndexRange.ofInclusive(first, lastInRange));
+
+    return ranges;
+  }
+
+  /**
+   * Creates an {@link IndexRange} from min to maxInclusive. Use {@link IndexRange#isEmpty()} to
+   * check for elements
+   *
+   * @param min          first index
+   * @param maxExclusive is last included index + 1
+   * @return an {@link IndexRange} that may be empty
+   */
+  @NotNull
+  static IndexRange ofExclusive(int min, int maxExclusive) {
+    return ofInclusive(min, maxExclusive - 1);
+  }
+
+  /**
+   * Creates an {@link IndexRange} from min to maxInclusive. Use {@link IndexRange#isEmpty()} to
+   * check for elements
+   *
+   * @param min          first index
+   * @param maxInclusive last included index
+   * @return an {@link IndexRange} that may be empty
+   */
+  @NotNull
+  static IndexRange ofInclusive(int min, int maxInclusive) {
+    if (maxInclusive < min || min == -1 || maxInclusive == -1) {
+      return EmptyIndexRange.INSTANCE;
+    }
+    if (maxInclusive == min) {
+      return new SingleIndexRange(min);
+    }
+    return new SimpleIndexRange(min, maxInclusive);
+  }
 
   int size();
 
@@ -113,7 +176,21 @@ public sealed interface IndexRange permits EmptyIndexRange, SimpleIndexRange, Si
    * Create a sublist view that contains this IndexRange
    */
   default <T> List<T> sublist(List<T> data) {
-    return isEmpty() ? List.of() : data.subList(min(), maxExclusive());
+    return sublist(data, false);
+  }
+
+  /**
+   * Create a sublist view or copy that contains this IndexRange
+   *
+   * @param createCopy if true then create a copy instead of a view. use copy if original list may
+   *                   be garbage collected but view will disrupt this
+   */
+  default <T> List<T> sublist(List<T> data, final boolean createCopy) {
+    if (isEmpty()) {
+      return List.of();
+    }
+    List<T> view = data.subList(min(), maxExclusive());
+    return createCopy ? new ArrayList<>(view) : view;
   }
 
   /**

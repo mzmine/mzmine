@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,22 +25,22 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.parameters.Parameter;
 import java.util.Collection;
 import java.util.logging.Logger;
+import javafx.beans.value.ChangeListener;
+import javafx.geometry.Rectangle2D;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import io.github.mzmine.parameters.Parameter;
-import javafx.beans.value.ChangeListener;
-import javafx.geometry.Rectangle2D;
-import javafx.stage.Screen;
-import javafx.stage.Stage;
 
 public class WindowSettingsParameter implements Parameter<Object> {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(WindowSettingsParameter.class.getName());
 
   private static final String POSX_ELEMENT = "posX";
   private static final String POSY_ELEMENT = "posY";
@@ -156,16 +156,21 @@ public class WindowSettingsParameter implements Parameter<Object> {
    */
   public void applySettingsToWindow(@NotNull final Stage stage) {
 
-    logger.finest("Setting window " + stage.getTitle() + " position " + posX + ":" + posY
-        + " and size " + width + "x" + height);
-    if (posX != null)
+    logger.finest(
+        "Setting window " + stage.getTitle() + " position " + posX + ":" + posY + " and size "
+            + width + "x" + height);
+    if (posX != null) {
       stage.setX(posX);
-    if (posY != null)
+    }
+    if (posY != null) {
       stage.setX(posY);
-    if (width != null)
+    }
+    if (width != null) {
       stage.setWidth(width);
-    if (height != null)
+    }
+    if (height != null) {
       stage.setHeight(height);
+    }
 
     if ((isMaximized != null) && isMaximized) {
       logger.finest("Setting window " + stage.getTitle() + " to maximized");
@@ -198,8 +203,8 @@ public class WindowSettingsParameter implements Parameter<Object> {
   }
 
   private boolean isOnScreen(Stage stage) {
-    Rectangle2D stagePosition =
-        new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+    Rectangle2D stagePosition = new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(),
+        stage.getHeight());
     var screens = Screen.getScreensForRectangle(stagePosition);
     return !screens.isEmpty();
   }

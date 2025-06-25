@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,25 +25,22 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.time.Instant;
-import java.util.Collection;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class PeakFinderModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Peak finder";
-  private static final String MODULE_DESCRIPTION =
-      "This method fills the missing peaks (gaps) in the feature list by searching for a peak in the raw data.";
+  private static final String MODULE_NAME = "Feature finder";
+  private static final String MODULE_DESCRIPTION = "This method fills the missing peaks (gaps) in the feature list by searching for a peak in the raw data.";
 
   @Override
   public @NotNull String getName() {
@@ -62,8 +59,8 @@ public class PeakFinderModule implements MZmineProcessingModule {
 
     MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
-    FeatureList[] peakLists =
-        parameters.getParameter(PeakFinderParameters.peakLists).getValue().getMatchingFeatureLists();
+    FeatureList[] peakLists = parameters.getParameter(PeakFinderParameters.peakLists).getValue()
+        .getMatchingFeatureLists();
 
     for (FeatureList peakList : peakLists) {
       Task newTask = new PeakFinderTask(project, peakList, parameters, storage, moduleCallDate);

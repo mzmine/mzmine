@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,7 +38,6 @@ import org.jetbrains.annotations.NotNull;
  * transpose of V.
  * <p>
  * https://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca
- *
  */
 public record PCAResult(SingularValueDecomposition svd) {
 
@@ -104,6 +103,30 @@ public record PCAResult(SingularValueDecomposition svd) {
   public RealMatrix getLoadingsMatrix() {
     final RealMatrix transpose = svd.getV().transpose();
     return transpose;
+  }
+
+  /**
+   * The contributions of the principle components
+   *
+   * @param components number of components
+   * @return length of returned array is limited by the components argument and the actual number of
+   * components available. PC1 will be first element [0].
+   */
+  public float[] getComponentContributions(int components) {
+    double[] singularValues = svd.getSingularValues();
+    // Calculate total variance - singularValues are related to standard deviation
+    double totalVariance = 0;
+    for (double value : singularValues) {
+      totalVariance += value * value;
+    }
+
+    components = Math.min(components, singularValues.length);
+    // Calculate variance explained by PC1 and PC2
+    float[] contributions = new float[components];
+    for (int i = 0; i < components; i++) {
+      contributions[i] = (float) ((singularValues[i] * singularValues[i]) / totalVariance);
+    }
+    return contributions;
   }
 
   public int componentCount() {

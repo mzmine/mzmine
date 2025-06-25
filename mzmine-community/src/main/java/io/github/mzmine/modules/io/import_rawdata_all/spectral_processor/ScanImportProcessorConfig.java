@@ -67,10 +67,8 @@ public final class ScanImportProcessorConfig {
 
   @Override
   public String toString() {
-    return STR."""
-    ScanImportProcessorConfig: scanFilter=\{scanFilter}
-    applyMassDetection: MS1=\{ms1MassDetectActive}; MS2..n=\{ms2MassDetectActive}
-    \{processor.description()}""";
+    return "ScanImportProcessorConfig: scanFilter=%s\napplyMassDetection: MS1=%s; MS2..n=%s\n%s".formatted(
+        scanFilter, ms1MassDetectActive, ms2MassDetectActive, processor.description());
   }
 
   public ScanSelection scanFilter() {

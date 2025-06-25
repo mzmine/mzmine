@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.isotopepatternscore;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -54,8 +55,12 @@ public class IsotopePatternScoreCalculator {
    * Returns a calculated similarity score of two isotope patterns in the range of 0 (not similar at
    * all) to 1 (100% same).
    */
-  public static float getSimilarityScore(@NotNull IsotopePattern ip1, @NotNull IsotopePattern ip2,
+  public static float getSimilarityScore(@NotNull MassSpectrum ip1, @NotNull MassSpectrum ip2,
       @NotNull MZTolerance mzTolerance, double noiseIntensity) {
+
+    if(ip1.getNumberOfDataPoints() == 0 || ip2.getNumberOfDataPoints() == 0) {
+      return 0f;
+    }
 
     double pattern1Intensity = 0.0, pattern2Intensity = 0.0;
     if (ip1.getBasePeakIndex() >= 0) {
@@ -66,21 +71,20 @@ public class IsotopePatternScoreCalculator {
     }
     final double patternIntensity = Math.max(pattern1Intensity, pattern2Intensity);
 
-    // Normalize the isotopes to intensity 0..1
-    IsotopePattern nip1 = IsotopePatternCalculator.normalizeIsotopePattern(ip1);
-    IsotopePattern nip2 = IsotopePatternCalculator.normalizeIsotopePattern(ip2);
 
     // Merge the data points from both isotope patterns into a single array.
     // Data points from first pattern will have positive intensities, data
     // points from second pattern will have negative intensities.
     List<DataPoint> mergedDataPoints = new ArrayList<>();
-    for (DataPoint dp : ScanUtils.extractDataPoints(nip1)) {
+
+    // Normalize the isotopes to intensity 0..1
+    for (DataPoint dp : ScanUtils.normalizeSpectrum(ip1)) {
       if (dp.getIntensity() * patternIntensity < noiseIntensity) {
         continue;
       }
       mergedDataPoints.add(dp);
     }
-    for (DataPoint dp : ScanUtils.extractDataPoints(nip2)) {
+    for (DataPoint dp : ScanUtils.normalizeSpectrum(ip2)) {
       if (dp.getIntensity() * patternIntensity < noiseIntensity) {
         continue;
       }

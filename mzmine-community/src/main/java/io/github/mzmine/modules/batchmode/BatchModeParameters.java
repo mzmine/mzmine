@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,16 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 import io.github.mzmine.util.ExitCode;
+import java.io.File;
 
 public class BatchModeParameters extends SimpleParameterSet {
 
@@ -51,5 +56,25 @@ public class BatchModeParameters extends SimpleParameterSet {
     BatchModeParameterSetupDialog dialog = new BatchModeParameterSetupDialog(this);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  /**
+   * Show dialog and load batch file
+   */
+  public static void showSetupDialogLoadFile(File batchFile) {
+    FxThread.runLater(() -> {
+      final ParameterSet params = ConfigService.getConfiguration()
+          .getModuleParameters(BatchModeModule.class).cloneParameterSet();
+      final BatchModeParameterSetupDialog dialog = new BatchModeParameterSetupDialog(params);
+      dialog.loadFile(batchFile);
+      params.getParameter(lastFiles).addFile(batchFile);
+      dialog.showAndWait();
+      if (dialog.getExitCode() != ExitCode.OK) {
+        return;
+      }
+      ConfigService.getConfiguration()
+          .setModuleParameters(BatchModeModule.class, params.cloneParameterSet(false));
+      MZmineCore.runMZmineModule(BatchModeModule.class, params);
+    });
   }
 }

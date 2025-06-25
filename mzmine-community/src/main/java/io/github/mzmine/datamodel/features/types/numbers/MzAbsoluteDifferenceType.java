@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Absolute m/z difference, e.g., used in {@link FormulaListType} to describe the difference between
@@ -75,4 +76,15 @@ public class MzAbsoluteDifferenceType extends DoubleType {
     return "\u0394 m/z";
   }
 
+  /**
+   * @param exactMass    the calculated mass.
+   * @param accurateMass the measured mass.
+   * @return the difference or null if either of the parameters is null.
+   */
+  public @Nullable static Double calculate(@Nullable Double exactMass, @Nullable Double accurateMass) {
+    if(exactMass == null || accurateMass == null) {
+      return null;
+    }
+    return accurateMass - exactMass;
+  }
 }

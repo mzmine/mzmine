@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,6 +47,7 @@ public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
   private RawDataFile tmpFile;
 
   /**
+   *
    */
   public ScanFilterSetupDialog(boolean valueCheckRequired, ParameterSet filterParameters,
       Class<? extends ScanFilter> filterClass) {
@@ -70,7 +71,7 @@ public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
   @Override
   protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
 
-    Scan newScan = rawDataFilter.filterScan(tmpFile, previewScan, filterParameters);
+    Scan newScan = rawDataFilter.filterScan(tmpFile, previewScan);
 
     ScanDataSet spectraDataSet = new ScanDataSet("Filtered scan", newScan);
     ScanDataSet spectraOriginalDataSet = new ScanDataSet("Original scan", previewScan);

@@ -31,8 +31,9 @@ import java.util.List;
 
 public class AbundanceMeasureParameter extends ComboParameter<AbundanceMeasure> {
 
-  public static final String DEFAULT_DESC = STR."Select which abundance type should be used for the calculations. \{Arrays.toString(
-      AbundanceMeasure.values())}";
+  public static final String DEFAULT_DESC =
+      "Select which abundance type should be used for the calculations. " + Arrays.toString(
+          AbundanceMeasure.values());
 
   public AbundanceMeasureParameter(String name, String description, AbundanceMeasure[] choices) {
     this(name, description, choices, AbundanceMeasure.Height);

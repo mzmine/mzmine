@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,17 +25,12 @@
 
 package io.github.mzmine.util.scans.similarity;
 
-import io.github.mzmine.main.MZmineCore;
-import java.util.List;
-import org.jetbrains.annotations.Nullable;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanAlignment;
-import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectralSimilarity;
-import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarity;
+import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Abstract class to implement differnt spactal similarity functions to match 2 spectra
@@ -44,25 +39,14 @@ import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectral
  */
 public abstract class SpectralSimilarityFunction implements MZmineModule {
 
-  public static final WeightedCosineSpectralSimilarity weightedCosine = MZmineCore
-      .getModuleInstance(WeightedCosineSpectralSimilarity.class);
-  public static final CompositeCosineSpectralSimilarity compositeCosine = MZmineCore
-      .getModuleInstance(CompositeCosineSpectralSimilarity.class);
   /**
-   * The collection of SpectralSImilarityFunctions
-   */
-  public static SpectralSimilarityFunction[] FUNCTIONS = new SpectralSimilarityFunction[]{
-      weightedCosine, compositeCosine};
-
-  /**
-   * @param parameters
    * @param mzTol
-   * @param minMatch   minimum overlap in signals
+   * @param minMatch minimum overlap in signals
    * @return A spectra similarity if all requirements were met - otherwise null
    */
   @Nullable
-  public abstract SpectralSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol,
-      int minMatch, DataPoint[] library, DataPoint[] query);
+  public abstract SpectralSimilarity getSimilarity(MZTolerance mzTol, int minMatch,
+      DataPoint[] library, DataPoint[] query);
 
   /**
    * Align two mass lists. Override if alignement is changed in a specific spectral similarity
@@ -73,7 +57,7 @@ public abstract class SpectralSimilarityFunction implements MZmineModule {
    * @param b
    * @return
    */
-  public List<DataPoint[]> alignDataPoints(MZTolerance mzTol, DataPoint[] a, DataPoint[] b) {
+  public static List<DataPoint[]> alignDataPoints(MZTolerance mzTol, DataPoint[] a, DataPoint[] b) {
     return ScanAlignment.align(mzTol, a, b);
   }
 
@@ -83,7 +67,7 @@ public abstract class SpectralSimilarityFunction implements MZmineModule {
    * @param aligned
    * @return
    */
-  protected int calcOverlap(List<DataPoint[]> aligned) {
+  protected static int calcOverlap(List<DataPoint[]> aligned) {
     return (int) aligned.stream().filter(dp -> dp[0] != null && dp[1] != null).count();
   }
 
@@ -93,7 +77,7 @@ public abstract class SpectralSimilarityFunction implements MZmineModule {
    * @param aligned
    * @return
    */
-  protected List<DataPoint[]> removeUnaligned(List<DataPoint[]> aligned) {
+  protected static List<DataPoint[]> removeUnaligned(List<DataPoint[]> aligned) {
     return ScanAlignment.removeUnaligned(aligned);
   }
 }

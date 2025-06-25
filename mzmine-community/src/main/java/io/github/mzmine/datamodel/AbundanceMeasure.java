@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -62,7 +63,7 @@ public enum AbundanceMeasure {
     if (featureOrRow == null) {
       return Float.NaN;
     }
-    return featureOrRow.get(type);
+    return Objects.requireNonNullElse(featureOrRow.get(type), Float.NaN);
   }
 
 }

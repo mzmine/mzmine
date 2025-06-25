@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
+import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -94,6 +95,10 @@ public class ChimericPrecursorChecker {
     // all data files from fragment scans to score if is chimeric
     Map<Scan, ChimericPrecursorResults> chimericMap = new HashMap<>();
     for (Scan scan : fragmentScans) {
+      if (scan instanceof PseudoSpectrum) {
+        // does not work on GC-EI scans. No precursor isolation
+        continue;
+      }
       chimericMap.computeIfAbsent(scan,
           key -> scoreChimericIsolation(precursorMz, scan, mainSignalMzTol, isolationMzTol,
               minimumPurity));
@@ -118,6 +123,11 @@ public class ChimericPrecursorChecker {
   public static ChimericPrecursorResults scoreChimericIsolation(final double precursorMz,
       final Scan fragmentScan, final MZTolerance mainSignalMzTol, final MZTolerance isolationMzTol,
       final double minimumPurity) {
+    // GC-EI, DIA etc
+    if (fragmentScan instanceof PseudoSpectrum) {
+      return ChimericPrecursorResults.NOT_APPLICABLE;
+    }
+
     // retrieve preceding ms1 scan
     final Scan ms1;
     if (fragmentScan instanceof MergedMsMsSpectrum msms) {

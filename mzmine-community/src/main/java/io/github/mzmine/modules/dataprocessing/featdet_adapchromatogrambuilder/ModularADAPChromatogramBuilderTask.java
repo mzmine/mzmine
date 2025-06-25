@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
-
-import static java.util.Objects.requireNonNullElse;
 
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
@@ -66,6 +64,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
+import static java.util.Objects.requireNonNullElse;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -148,7 +147,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Detecting chromatograms in " + dataFile;
+    return "Detecting %s in %s".formatted(isImaging ? "images" : "chromatograms", dataFile);
   }
 
   @Override
@@ -172,8 +171,10 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     if (scans.length == 0) {
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("There are no scans satisfying filtering values. Consider updating filters "
-          + "with \"Set filters\" in the \"Scans\" parameter.");
+      setErrorMessage("""
+          There are no scans in file "%s" satisfying scan filters. Consider updating filters
+          with "Show" on the "Scan filters" parameter. Filter was: %s""".formatted(
+          dataFile.getName(), scanSelection.toShortDescription()));
       return;
     }
 
@@ -191,7 +192,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
       if (s.getRetentionTime() < prevRT) {
         setStatus(TaskStatus.ERROR);
-        final String msg = "Retention time of scan #" + s.getScanNumber()
+        final String msg =
+            "Retention time of scan #" + s.getScanNumber() + " in file " + dataFile.getName()
             + " is smaller then the retention time of the previous scan."
             + " Please make sure you only use scans with increasing retention times."
             + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
@@ -212,15 +214,16 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       if (level != scans[i].getMSLevel()) {
         DesktopService.getDesktop().displayMessage(null,
             "mzmine thinks that you are running ADAP Chromatogram builder on both MS1- and MS2-scans. "
-                + "This will likely produce wrong results. "
-                + "Please, set the scan filter parameter to a specific MS level");
+            + "This will likely produce wrong results. "
+            + "Please, set the scan filter parameter to a specific MS level");
         break;
       }
       if (pol != scans[i].getPolarity()) {
-        DesktopService.getDesktop().displayMessage(STR."""
-            mzmine thinks you are processing data of multiple polarities (\{pol} and \{scans[i].getPolarity()})
+        DesktopService.getDesktop().displayMessage("""
+            mzmine thinks you are processing data of multiple polarities (%s and %s)
             at the same time. This will likely lead to wrong results.
-            Set the polarity filter in the wizard or the chromatogram builder step to process each polarity individually.""");
+            Set the polarity filter in the wizard or the chromatogram builder step to process each polarity individually.""".formatted(
+            pol, scans[i].getPolarity()));
         break;
       }
     }
@@ -236,9 +239,14 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     RangeMap<Double, ADAPChromatogram> rangeToChromMap = TreeRangeMap.create();
 
     // make a list of all the data points
-
-    final int totalDps = Arrays.stream(scans).map(Scan::getMassList)
-        .mapToInt(MassSpectrum::getNumberOfDataPoints).sum();
+    final int totalDps = Arrays.stream(scans).map(s -> {
+      if (s.getMassList() != null) {
+        return s.getMassList();
+      }
+      final MissingMassListException ex = new MissingMassListException(s);
+      DesktopService.getDesktop().displayErrorMessage(ex.getMessage());
+      throw ex;
+    }).mapToInt(MassSpectrum::getNumberOfDataPoints).sum();
     int dpCounter = 0;
 
     ExpandedDataPoint[] allMzValues = new ExpandedDataPoint[totalDps];
@@ -345,11 +353,13 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       if (dps >= minimumTotalScans && chromatogram.matchesMinContinuousDataPoints(scans,
           minGroupIntensity, minimumConsecutiveScans, minHighestPoint)) {
         // add zeros to edges
-        chromatogram.addNZeros(scans, 1, 1);
+        if (!isImaging) {
+          chromatogram.addNZeros(scans, 1, 1);
+        }
 
         // add to list
         ModularFeature modular = FeatureConvertors.ADAPChromatogramToModularFeature(newFeatureList,
-            dataFile, chromatogram);
+            dataFile, chromatogram, mzTolerance);
         ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, newFeatureID,
             modular);
         newFeatureList.addRow(newRow);

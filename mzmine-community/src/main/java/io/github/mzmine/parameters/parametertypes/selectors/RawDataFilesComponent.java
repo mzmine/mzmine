@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
+import java.util.Objects;
 import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -90,7 +91,7 @@ public class RawDataFilesComponent extends GridPane {
       if (type == RawDataFilesSelectionType.NAME_PATTERN) {
         final StringParameter nameParameter = new StringParameter("Name pattern",
             "Set name pattern that may include wildcards (*), e.g. *mouse* matches any name that contains mouse",
-            currentValue.getNamePattern());
+            Objects.requireNonNullElse(currentValue.getNamePattern(), ""));
         final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[] {nameParameter});
         final ExitCode exitCode = paramSet.showSetupDialog(true);
         if (exitCode == ExitCode.OK) {

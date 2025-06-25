@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,8 @@
  */
 
 package io.github.mzmine.parameters.parametertypes.selectors;
+
+import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.Parameter;
@@ -90,7 +92,7 @@ public class FeatureListsComponent extends HBox {
       if (type == FeatureListsSelectionType.NAME_PATTERN) {
         final StringParameter nameParameter = new StringParameter("Name pattern",
             "Set name pattern that may include wildcards (*), e.g. *mouse* matches any name that contains mouse",
-            currentValue.getNamePattern());
+            requireNonNullElse(currentValue.getNamePattern(), ""));
         final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[]{nameParameter});
         final ExitCode exitCode = paramSet.showSetupDialog(true);
         if (exitCode == ExitCode.OK) {
@@ -105,8 +107,8 @@ public class FeatureListsComponent extends HBox {
   }
 
   void setValue(@Nullable FeatureListsSelection newValue) {
-    currentValue = newValue!=null ? newValue.clone() : null;
-    if (newValue!=null && newValue.getSelectionType()!= null) {
+    currentValue = newValue != null ? newValue.clone() : null;
+    if (newValue != null && newValue.getSelectionType() != null) {
       typeCombo.getSelectionModel().select(newValue.getSelectionType());
     }
     updateNumPeakLists();

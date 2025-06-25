@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,12 +30,12 @@ import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.taskcontrol.TaskService;
+import io.github.mzmine.taskcontrol.TasksChangedEvent;
+import io.github.mzmine.taskcontrol.TasksChangedEvent.TasksAddedEvent;
+import io.github.mzmine.taskcontrol.TasksChangedEvent.TasksRemovedEvent;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javafx.collections.ListChangeListener.Change;
 import javafx.event.ActionEvent;
 
 /**
@@ -54,26 +54,16 @@ public class TasksViewInteractor extends FxInteractor<TasksViewModel> {
     return task.isFinished() || task.isCanceled();
   }
 
-  void onSubmittedTasksChanged(final Change<? extends WrappedTask> change) {
-    final List<WrappedTaskModel> toAdd = new ArrayList<>();
-    final Set<WrappedTask> toRemove = new HashSet<>();
-
-    while (change.next()) {
-      if (change.wasRemoved()) {
-        toRemove.addAll(change.getRemoved());
-      }
-      if (change.wasAdded()) {
-        List<? extends WrappedTask> addedSubList = change.getAddedSubList();
-        for (var task : addedSubList) {
-          toAdd.add(new WrappedTaskModel(task));
+  public void onSubmittedTasksChanged(TasksChangedEvent event) {
+    FxThread.runLater(() -> {
+      switch (event) {
+        case TasksAddedEvent(List<WrappedTask> _, List<WrappedTask> added) -> {
+          model.addTasks(added.stream().map(WrappedTaskModel::new).toList());
+        }
+        case TasksRemovedEvent(List<WrappedTask> _, Set<WrappedTask> removed) -> {
+          model.getTasks().removeIf(task -> removed.contains(task.getTask()));
         }
       }
-    }
-
-
-    FxThread.runLater(() -> {
-      model.getTasks().removeIf(task -> toRemove.contains(task.getTask()));
-      model.addTasks(toAdd);
     });
   }
 
@@ -118,4 +108,5 @@ public class TasksViewInteractor extends FxInteractor<TasksViewModel> {
   void showTasksView(ActionEvent actionEvent) {
     MZmineCore.getDesktop().handleShowTaskView();
   }
+
 }

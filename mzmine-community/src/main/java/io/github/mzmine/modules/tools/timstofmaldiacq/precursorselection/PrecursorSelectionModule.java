@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,13 +26,12 @@
 package io.github.mzmine.modules.tools.timstofmaldiacq.precursorselection;
 
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
 import java.util.Collection;
 import java.util.List;
 
 public interface PrecursorSelectionModule extends MZmineModule {
 
   public List<List<MaldiTimsPrecursor>> getPrecursorList(Collection<MaldiTimsPrecursor> precursors,
-      ParameterSet parameters, final double mobilityGap);
+      final double mobilityGap);
 
 }

@@ -38,6 +38,7 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
+import java.util.NoSuchElementException;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.NumberAxis;
 
@@ -71,12 +72,14 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends BufferedCh
     setPrefWidth(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH);
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
-    // todo: save min/max values of dataset in dataset iself so jfreechart does not have to loop
-    //  over all data points (also means the renderers have to support it)
-    chart.getXYPlot().getDomainAxis()
-        .setRange(RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(dataset.getDomainValueRange(), 0.001d)), false, true);
-    chart.getXYPlot().getRangeAxis()
-        .setRange(RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(dataset.getRangeValueRange(), 0.0001d)), false, true);
+    try {
+      chart.getXYPlot().getDomainAxis().setRange(RangeUtils.guavaToJFree(
+          RangeUtils.getPositiveRange(dataset.getDomainValueRange(), 0.001d)), false, true);
+      chart.getXYPlot().getRangeAxis().setRange(RangeUtils.guavaToJFree(
+          RangeUtils.getPositiveRange(dataset.getRangeValueRange(), 0.0001d)), false, true);
+    } catch (NullPointerException | NoSuchElementException e) {
+      // error in jfreechart draw method
+    }
 
     setChartCreateImage(chart, GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
         GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);

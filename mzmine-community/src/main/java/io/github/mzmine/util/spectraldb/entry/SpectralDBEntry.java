@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Level;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -143,9 +144,15 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
       final String value = reader.getElementText();
 
       DBEntryField field = DBEntryField.valueOf(keyName);
-      Object convertValue = field.convertValue(value);
-
-      fields.put(field, convertValue);
+      try {
+        Object convertValue = field.convertValue(value);
+        fields.put(field, convertValue);
+      } catch (Exception e) {
+        logger.log(Level.WARNING, """
+            Cannot convert value '%s' to type %s
+            Parsing will skip this value for field %s""".formatted(value, field.getObjectClass(),
+            field.toString()));
+      }
     }
 
     return fields;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,9 @@
 
 package io.github.mzmine.gui;
 
+import java.io.Console;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Get the desktop that may be headless or GUI
@@ -46,7 +48,17 @@ public class DesktopService {
   public static boolean isHeadLess() {
     return instance.isHeadLess();
   }
+
   public static boolean isGUI() {
     return instance.isGUI();
+  }
+
+  /**
+   * True if {@link System#console#isTerminal} is true and shows that console input is available.
+   * False if not terminal or if console==null
+   */
+  public static boolean hasTerminalInput() {
+    final @Nullable Console console = System.console();
+    return console != null && console.isTerminal();
   }
 }

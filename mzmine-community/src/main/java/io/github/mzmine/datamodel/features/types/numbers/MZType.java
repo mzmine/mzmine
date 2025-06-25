@@ -45,7 +45,7 @@ public class MZType extends DoubleType implements ExpandableType {
 
   @NotNull
   @Override
-  public final String getUniqueID() {
+  public String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
     return "mz";
   }

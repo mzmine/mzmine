@@ -50,7 +50,8 @@ public enum MobilityType {
   TIMS("1/k0", "Vs/cm^2", "TIMS"), // trapped ion mobility spectrometry
   DRIFT_TUBE("Drift time", "ms", "DTIMS"), // drift tube
   TRAVELING_WAVE("Drift time", "ms", "TWIMS"), // traveling wave ion mobility spectrometry
-  FAIMS("TODO", "TODO", "FAIMS"); // field asymmetric waveform ion mobility spectrometry
+  FAIMS("TODO", "TODO", "FAIMS"), // field asymmetric waveform ion mobility spectrometry
+  SLIM("Drift time", "ms", "SLIM");
 
   private final String axisLabel;
   private final String unit;
@@ -115,6 +116,7 @@ public enum MobilityType {
       case TIMS -> "TIMS";
       case DRIFT_TUBE -> "DT";
       case TRAVELING_WAVE -> "TW";
+      case SLIM -> "TW";
     };
   }
 }

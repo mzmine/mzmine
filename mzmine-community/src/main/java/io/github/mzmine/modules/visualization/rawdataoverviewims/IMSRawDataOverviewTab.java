@@ -78,6 +78,7 @@ public class IMSRawDataOverviewTab extends MZmineTab {
   @Override
   public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
     pane.setRawDataFile(rawDataFiles.stream().findFirst().get());
+    setSubTitle(rawDataFiles.stream().findFirst().map(RawDataFile::getName).orElse(null));
   }
 
   @Override

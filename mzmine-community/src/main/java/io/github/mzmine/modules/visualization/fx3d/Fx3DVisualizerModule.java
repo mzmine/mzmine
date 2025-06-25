@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,8 +56,8 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
   private static final Logger logger = Logger.getLogger(Fx3DVisualizerModule.class.getName());
 
-  private static final String MODULE_NAME = "3D visualizer";
-  private static final String MODULE_DESCRIPTION = "3D visualizer."; // TODO
+  private static final String MODULE_NAME = "3D plot";
+  private static final String MODULE_DESCRIPTION = "3D plot shows retention time, m/z, and intensity of MS data.";
 
   @Override
   public @NotNull String getName() {
@@ -71,18 +71,23 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
   public static void setupNew3DVisualizer(final RawDataFile dataFile, final Range<Double> mzRange,
       final Range<Float> rtRange, final Feature featureToShow) {
+    setupNew3DVisualizer(new RawDataFile[]{dataFile}, mzRange, rtRange,
+        Collections.singletonList(featureToShow));
+  }
+
+  public static void setupNew3DVisualizer(final RawDataFile[] dataFiles,
+      final Range<Double> mzRange, final Range<Float> rtRange, final List<Feature> featuresToShow) {
 
     final ParameterSet myParameters = MZmineCore.getConfiguration()
         .getModuleParameters(Fx3DVisualizerModule.class);
     final Fx3DVisualizerModule myInstance = MZmineCore.getModuleInstance(
         Fx3DVisualizerModule.class);
     myParameters.getParameter(Fx3DVisualizerParameters.dataFiles)
-        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[]{dataFile});
+        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, dataFiles);
     myParameters.getParameter(Fx3DVisualizerParameters.scanSelection)
         .setValue(new ScanSelection(1, rtRange));
     myParameters.getParameter(Fx3DVisualizerParameters.mzRange).setValue(mzRange);
-    myParameters.getParameter(Fx3DVisualizerParameters.features)
-        .setValue(Collections.singletonList(featureToShow));
+    myParameters.getParameter(Fx3DVisualizerParameters.features).setValue(featuresToShow);
 
     if (myParameters.showSetupDialog(true) == ExitCode.OK) {
       myInstance.runModule(ProjectService.getProjectManager().getCurrentProject(),

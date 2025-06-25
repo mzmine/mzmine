@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,13 +28,12 @@ package io.github.mzmine.modules.dataprocessing.filter_scanfilters;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
 
 public interface ScanFilter extends MZmineModule {
 
   /**
    * Returns a modified scan after being processed by the filter
    */
-  Scan filterScan(RawDataFile newFile, Scan scan, ParameterSet parameters);
+  Scan filterScan(RawDataFile newFile, Scan scan);
 
 }

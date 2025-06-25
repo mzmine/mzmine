@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,29 +35,31 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
-import javafx.scene.paint.Color;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 public class BrukerTdfTest {
 
@@ -70,12 +72,9 @@ public class BrukerTdfTest {
     String str = BrukerTdfTest.class.getClassLoader()
         .getResource("rawdatafiles/200ngHeLaPASEF_2min_compressed.d").getFile();
     File file = new File(str);
-    IMSRawDataFile rawDataFile = new IMSRawDataFileImpl(file.getName(), null,
-        MemoryMapStorage.forRawDataFile(), Color.BLACK);
-
     AtomicReference<TaskStatus> status = new AtomicReference<>(TaskStatus.WAITING);
 
-    AbstractTask importTask = new TDFImportTask(project, file, rawDataFile, TDFImportModule.class,
+    AbstractTask importTask = new TDFImportTask(project, file, null, TDFImportModule.class,
         new TDFImportParameters(), Instant.now());
     importTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
       status.set(newStatus);
@@ -96,7 +95,7 @@ public class BrukerTdfTest {
     logger.info("TDF import took " + ((end.getTime() - start.getTime()) / 1000) + " seconds");
     logger.info("Compare to 19 seconds on NVME SSD.");
 
-    return rawDataFile;
+    return (IMSRawDataFile) project.getCurrentRawDataFiles().getFirst();
   }
 
   @Disabled("Needs test file?")
@@ -147,8 +146,8 @@ public class BrukerTdfTest {
     IMSRawDataFile file = importTestFile();
     ScanSelection selection = new ScanSelection(1);
     List<Frame> frames = (List<Frame>) selection.getMatchingScans(file.getFrames());
-    MobilityScanDataAccess access = EfficientDataAccess
-        .of(file, MobilityScanDataType.RAW, selection);
+    MobilityScanDataAccess access = EfficientDataAccess.of(file, MobilityScanDataType.RAW,
+        selection);
     for (int i = 0; i < 5; i++) {
       final Frame realFrame = frames.get(i);
       final Frame accessFrame = access.nextFrame();
@@ -169,5 +168,37 @@ public class BrukerTdfTest {
         }
       }
     }
+  }
+
+  @DisabledOnOs(OS.MAC)
+  @Test
+  public void testCachedConversion() {
+    TDFUtils utils = new TDFUtils();
+
+    final URL resource = this.getClass()
+        .getResource("/rawdatafiles/additional/lc-tims-ms-pasef-a.d");
+    final long handle = utils.openFile(new File(resource.getFile()));
+
+    final List<SimpleSpectralArrays> f1v1 = utils.loadDataPointsForFrame(1, 660L, 818L);
+    final List<SimpleSpectralArrays> f2v1 = utils.loadDataPointsForFrame(2, 660L, 818L);
+
+    final List<SimpleSpectralArrays> f1v2 = utils.loadDataPointsForFrame_v2(1, 660L, 818L);
+    final List<SimpleSpectralArrays> f2v2 = utils.loadDataPointsForFrame_v2(2, 660L, 818L);
+
+//    Assertions.assertEquals(f1v1.size(), f1v2.size());
+//    Assertions.assertEquals(f2v1.size(), f2v2.size());
+//    for (int i = 0; i < f1v1.size(); i++) {
+//      final SimpleSpectralArrays v1 = f1v1.get(i);
+//      final SimpleSpectralArrays v2 = f1v2.get(i);
+//      Assertions.assertEquals(v1, v2);
+//
+//      final SimpleSpectralArrays d1 = f2v1.get(i);
+//      final SimpleSpectralArrays d2 = f2v2.get(i);
+//      Assertions.assertEquals(d1, d2);
+//    }
+
+    Assertions.assertEquals(f1v1, f1v2);
+    Assertions.assertEquals(f2v1, f2v2);
+    utils.close();
   }
 }

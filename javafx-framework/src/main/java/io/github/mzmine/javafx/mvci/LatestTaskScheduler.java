@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -139,6 +139,7 @@ public class LatestTaskScheduler {
       final @NotNull TaskPriority priority, final String uniqueTaskName,
       final @NotNull Duration delay) {
     if ((task instanceof FxUpdateTask<?> fxTask) && !fxTask.checkPreConditions()) {
+      fxTask.onFailedPreCondition();
       return;
     }
 
@@ -153,12 +154,12 @@ public class LatestTaskScheduler {
       PauseTransition updateAccumulator = delayedTasks.computeIfAbsent(uniqueTaskName,
           _ -> new PauseTransition(delay));
       updateAccumulator.setOnFinished(_ -> {
-        logger.fine(STR."Running task \{uniqueTaskName}");
+        logger.fine("Running task %s".formatted(uniqueTaskName));
         onTaskThread(task, priority);
       });
       updateAccumulator.setDuration(delay);
       updateAccumulator.playFromStart();
-      logger.fine(STR."Delaying task \{uniqueTaskName} because of new update trigger");
+      logger.fine("Delaying task %s because of new update trigger".formatted(uniqueTaskName));
     }
   }
 
@@ -172,7 +173,7 @@ public class LatestTaskScheduler {
     var oldTask = removeOldTask(uniqueTaskName);
     if (oldTask != null && !oldTask.isFinished()) {
       oldTask.cancel();
-      logger.finest(STR."Cancelled old task \{uniqueTaskName} because of new task trigger");
+      logger.finest("Cancelled old task %s because of new task trigger".formatted(uniqueTaskName));
     }
   }
 
@@ -187,6 +188,7 @@ public class LatestTaskScheduler {
     // if gui is updated after - add checks for latest task completion
     if (task instanceof FxUpdateTask<?> fxUpdateTask) {
       if (!fxUpdateTask.checkPreConditions()) {
+        fxUpdateTask.onFailedPreCondition();
         return;
       }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,26 +25,34 @@
 
 package io.github.mzmine.parameters.parametertypes.metadata;
 
+import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ValuePropertyComponent;
+import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Insets;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
 import javafx.util.StringConverter;
 import org.controlsfx.control.textfield.TextFields;
 import org.jetbrains.annotations.Nullable;
 
-public class MetadataGroupingComponent extends TextField implements
+public class MetadataGroupingComponent extends FlowPane implements
     ValuePropertyComponent<MetadataColumn<?>> {
 
   private final List<AvailableTypes> availableTypes;
 
   private final ObjectProperty<@Nullable MetadataColumn<?>> columnProperty = new SimpleObjectProperty<>();
+  private final TextField text;
 
   public MetadataGroupingComponent() {
     this(AvailableTypes.values());
@@ -56,13 +64,26 @@ public class MetadataGroupingComponent extends TextField implements
 
   public MetadataGroupingComponent(List<AvailableTypes> types) {
     super();
+    setHgap(FxLayout.DEFAULT_SPACE);
+    setPadding(Insets.EMPTY);
+
+    text = new TextField();
+
+    var icon = FxIconUtil.newIconButton(FxIcons.METADATA_TABLE,
+        "Open project metadata. (Import data files and metadata to then modify project metadata)",
+        () -> {
+          MZmineCore.getDesktop().addTab(new ProjectMetadataTab());
+        });
+
+    getChildren().addAll(text, icon);
+
     this.availableTypes = types;
-    final String[] columns = MZmineCore.getProjectMetadata().getColumns().stream()
+    final String[] columns = ProjectService.getMetadata().getColumns().stream()
         .filter(col -> availableTypes.contains(col.getType())).map(MetadataColumn::getTitle)
         .toArray(String[]::new);
-    TextFields.bindAutoCompletion(this, columns);
+    TextFields.bindAutoCompletion(text, columns);
 
-    Bindings.bindBidirectional(textProperty(), valueProperty(),
+    Bindings.bindBidirectional(text.textProperty(), valueProperty(),
         new StringConverter<MetadataColumn<?>>() {
           @Override
           public String toString(MetadataColumn<?> object) {
@@ -71,7 +92,7 @@ public class MetadataGroupingComponent extends TextField implements
 
           @Override
           public MetadataColumn<?> fromString(String string) {
-            return MZmineCore.getProjectMetadata().getColumnByName(string);
+            return ProjectService.getMetadata().getColumnByName(string);
           }
         });
   }
@@ -79,5 +100,13 @@ public class MetadataGroupingComponent extends TextField implements
   @Override
   public Property<MetadataColumn<?>> valueProperty() {
     return columnProperty;
+  }
+
+  public void setValue(String value) {
+    text.setText(value);
+  }
+
+  public String getValue() {
+    return text.getText();
   }
 }

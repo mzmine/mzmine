@@ -40,6 +40,7 @@ import java.util.Objects;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import org.apache.commons.math.MathException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -81,22 +82,14 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     name = parseName();
   }
 
-  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
-    writer.writeStartElement("iontype");
-    writer.writeAttribute("molecules", String.valueOf(molecules));
-    writer.writeAttribute("charge", String.valueOf(charge));
-
-    writer.writeStartElement("adduct");
-    adduct.saveToXML(writer);
-    writer.writeEndElement();
-
-    if (mod != null) {
-      writer.writeStartElement("modification");
-      mod.saveToXML(writer);
-      writer.writeEndElement();
-    }
-
-    writer.writeEndElement();
+  /**
+   * New ion type with different molecules count
+   *
+   * @param molecules
+   * @param ion
+   */
+  public IonType(int molecules, IonType ion) {
+    this(molecules, ion.adduct, ion.mod);
   }
 
   public static IonType loadFromXML(XMLStreamReader reader) throws XMLStreamException {
@@ -138,14 +131,22 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     return mod != null ? new IonType(molecules, adduct, mod) : new IonType(molecules, adduct);
   }
 
-  /**
-   * New ion type with different molecules count
-   *
-   * @param molecules
-   * @param ion
-   */
-  public IonType(int molecules, IonType ion) {
-    this(molecules, ion.adduct, ion.mod);
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement("iontype");
+    writer.writeAttribute("molecules", String.valueOf(molecules));
+    writer.writeAttribute("charge", String.valueOf(charge));
+
+    writer.writeStartElement("adduct");
+    adduct.saveToXML(writer);
+    writer.writeEndElement();
+
+    if (mod != null) {
+      writer.writeStartElement("modification");
+      mod.saveToXML(writer);
+      writer.writeEndElement();
+    }
+
+    writer.writeEndElement();
   }
 
   /**
@@ -429,6 +430,10 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
    * @return the neutral mass for this m/z calculated for this IonType
    */
   public double getMass(double mz) {
+    if (getAbsCharge() == 0) {
+      throw new IllegalStateException(
+          "Charge of adduct %s is 0. Cannot calculate neutral mass.".formatted(toString()));
+    }
     return ((mz * this.getAbsCharge()) - this.getMassDifference()) / this.getMolecules();
   }
 
@@ -441,6 +446,10 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
    * @return the m/z for this neutral ionized by IonType
    */
   public double getMZ(double neutralmass) {
+    if (getAbsCharge() == 0) {
+      throw new IllegalStateException(
+          "Charge of adduct %s is 0. Cannot calculate m/z.".formatted(toString()));
+    }
     return (neutralmass * getMolecules() + getMassDifference()) / getAbsCharge();
   }
 
@@ -502,6 +511,11 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     return PolarityType.UNKNOWN;
   }
 
+  /**
+   * Is adding or removing all sub adducts / modifications from the molecular formula
+   *
+   * @param formula the formula. The formula is cloned and the parameter is not altered.
+   */
   public IMolecularFormula addToFormula(IMolecularFormula formula)
       throws CloneNotSupportedException {
     return addToFormula(formula, true);
@@ -510,7 +524,7 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
   /**
    * Is adding or removing all sub adducts / modifications from the molecular formula.
    *
-   * @param formula the formula.
+   * @param formula the formula. The formula is cloned and the parameter is not altered.
    * @param ionize  if the formula shall be ionised.
    * @return The resulting molecule may be neutral if the charge of the molecule and the charge of
    * this adduct are opposite.

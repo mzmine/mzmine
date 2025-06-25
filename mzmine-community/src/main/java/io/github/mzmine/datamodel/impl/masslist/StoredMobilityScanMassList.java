@@ -69,7 +69,7 @@ public class StoredMobilityScanMassList implements MassList {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    storage.getMassListMzValues(getMobilityScanNumber(), dst, 0);
+    storage.getMassListMzValues(getMobilityScanNumber(), dst);
     return dst;
   }
 
@@ -78,7 +78,7 @@ public class StoredMobilityScanMassList implements MassList {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    storage.getMassListIntensityValues(getMobilityScanNumber(), dst, 0);
+    storage.getMassListIntensityValues(getMobilityScanNumber(), dst);
     return dst;
   }
 

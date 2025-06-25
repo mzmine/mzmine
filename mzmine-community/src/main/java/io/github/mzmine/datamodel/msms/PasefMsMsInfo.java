@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.datamodel.msms;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -36,26 +35,15 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author https://github.com/SteffenHeu
  */
-public interface PasefMsMsInfo extends DDAMsMsInfo {
-
-  String XML_SPECTRUM_NUMBER_RANGE_ATTR = "spectrumnumberrange";
+public interface PasefMsMsInfo extends DDAMsMsInfo, IonMobilityMsMsInfo {
 
   public final int UNKNOWN_CHARGE = 0;
   public final double UNKNOWN_COLISSIONENERGY = -1d;
-
-  public Frame getMsMsFrame();
-
-  public Frame getParentFrame();
 
   /**
    * @return The most intense m/z of the detected precursor.
    */
   @Nullable double getIsolationMz();
-
-  /**
-   * @return The range of spectra numbers in this frame where this precursor was fragmented in.
-   */
-  Range<Integer> getSpectrumNumberRange();
 
   /**
    * @return Collision energy this precursor was fragmented at in the given range. May be null if
@@ -68,19 +56,7 @@ public interface PasefMsMsInfo extends DDAMsMsInfo {
    */
   Integer getPrecursorCharge();
 
-  @Nullable
-  default Range<Float> getMobilityRange() {
-    final Frame msMsFrame = getMsMsFrame();
-    if (msMsFrame == null) {
-      return null;
-    }
-    final Range<Integer> spectrumNumberRange = getSpectrumNumberRange();
-    final double lower = msMsFrame.getMobilityForMobilityScanNumber(
-        spectrumNumberRange.lowerEndpoint());
-    final double upper = msMsFrame.getMobilityForMobilityScanNumber(
-        spectrumNumberRange.upperEndpoint());
-    return Range.closed((float) Math.min(lower, upper), (float) Math.max(lower, upper));
-  }
+  Frame getParentFrame();
 
   void writeToXML(XMLStreamWriter writer) throws XMLStreamException;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.projectload;
 
 import com.google.common.io.CountingInputStream;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
@@ -57,14 +58,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javafx.scene.control.ButtonType;
-import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.annotations.NotNull;
-import org.xml.sax.SAXException;
 
 public class ProjectOpeningTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(ProjectOpeningTask.class.getName());
 
   private File openFile;
   private MZmineProjectImpl newProject;
@@ -135,11 +133,10 @@ public class ProjectOpeningTask extends AbstractTask {
       // Check if existing raw data files are present
       ProjectManager projectManager = ProjectService.getProjectManager();
       if (projectManager.getCurrentProject().getDataFiles().length > 0) {
-        ButtonType confirm = MZmineCore.getDesktop().displayConfirmation(
-            "Loading the project will replace the existing raw data files and feature lists. Do you want to proceed?",
-            ButtonType.YES, ButtonType.NO);
+        boolean confirm = DialogLoggerUtil.showDialogYesNo("Replace existing project?",
+            "Loading the project will replace the existing raw data files and feature lists. Do you want to proceed?");
 
-        if (confirm != ButtonType.YES) {
+        if (confirm) {
           cancel();
           return;
         }
@@ -183,8 +180,6 @@ public class ProjectOpeningTask extends AbstractTask {
           versionInformationLoaded = true;
         } else if (entryName.equals(ProjectSavingTask.CONFIG_FILENAME)) {
           loadConfiguration(cis);
-        } else if (entryName.equals(ProjectSavingTask.PARAMETERS_FILENAME)) {
-          loadUserParameters(cis);
         } else if (entryName.equals(RawDataFileSaveHandler.RAW_DATA_IMPORT_BATCH_FILENAME)) {
           loadRawDataFiles(cis, zipFile);
         } else if (entryName.equals(ProjectSavingTask.STANDALONE_FILENAME)) {
@@ -313,11 +308,10 @@ public class ProjectOpeningTask extends AbstractTask {
     // Check if project was saved with a newer version
     if (mzmineMajorVersion > 0) {
       if ((projectMajorVersion > mzmineMajorVersion) || ((projectMajorVersion == mzmineMajorVersion)
-                                                         && (projectMinorVersion
-                                                             > mzmineMinorVersion))) {
+          && (projectMinorVersion > mzmineMinorVersion))) {
         String warning = "Warning: this project was saved with a newer version of MZmine ("
-                         + projectVersionString + "). Opening this project in MZmine "
-                         + mzmineVersionString + " may result in errors or loss of information.";
+            + projectVersionString + "). Opening this project in MZmine " + mzmineVersionString
+            + " may result in errors or loss of information.";
         MZmineCore.getDesktop().displayMessage(warning);
       }
     }
@@ -368,22 +362,6 @@ public class ProjectOpeningTask extends AbstractTask {
         e.printStackTrace();
       }
     }
-  }
-
-  private void loadUserParameters(InputStream is)
-      throws IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException {
-
-    // Older versions of MZmine had no parameter saving
-    if (userParameterOpenHandler == null) {
-      return;
-    }
-
-    logger.info("Loading user parameters");
-
-    currentLoadedObjectName = "User parameters";
-
-    userParameterOpenHandler.readUserParameters(is);
-
   }
 
   private boolean loadRawDataFiles(InputStream is, ZipFile zipFile) {

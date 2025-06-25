@@ -108,7 +108,7 @@ public class GroupedParameterSetupDialog extends EmptyParameterSetupDialogBase {
     propertySheet.setTitleFilter(filter);
   }
 
-  public void addParameterGroup(String group, Parameter[] parameters) {
+  public void addParameterGroup(String group, Parameter... parameters) {
     for (Parameter p : parameters) {
       items.add(new ParameterItem(p, group));
     }

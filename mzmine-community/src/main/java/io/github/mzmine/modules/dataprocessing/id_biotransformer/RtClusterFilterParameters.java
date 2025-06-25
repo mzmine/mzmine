@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,13 +42,18 @@ public class RtClusterFilterParameters extends SimpleParameterSet {
           new RTTolerance(0.15f, Unit.MINUTES)));
 
   public static final BooleanParameter rowCorrelationFilter = new BooleanParameter(
-      "Filter by row correlation",
-      "If selected, transformation products will only be matched to correlated features.\n"
-          + "The feature list must be grouped by the metaCorr module.",
-      false);
+      "Filter by row correlation", """
+      If selected, transformation products will only be matched to correlated features.
+      The feature list must be grouped by the metaCorr module.""", false);
+
+  public static final BooleanParameter reRankAnnotions = new BooleanParameter("Re-rank annotations",
+      """
+          If a row has previously been annotated by other annotation pipelines, the annotations
+          will be sorted by the highest score, if enabled. If the original annotations shall be maintained
+          in their current position, disable this parameter.""", true);
 
   public RtClusterFilterParameters() {
-    super(rtTolerance, rowCorrelationFilter);
+    super(rtTolerance, rowCorrelationFilter, reRankAnnotions);
   }
 
   @Override
@@ -58,8 +63,8 @@ public class RtClusterFilterParameters extends SimpleParameterSet {
 
   @Override
   public Map<String, Parameter<?>> getNameParameterMap() {
-    var map =  super.getNameParameterMap();
-    map.put("Filter by Row group", rowCorrelationFilter);
+    var map = super.getNameParameterMap();
+    map.put("Filter by Row group", getParameter(rowCorrelationFilter));
     return map;
   }
 }

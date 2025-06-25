@@ -60,7 +60,7 @@ public class AnovaTask extends AbstractTask {
 
   @Override
   public @NotNull String getTaskDescription() {
-    return STR."Calculating ANOVA values for \{flist.getNumberOfRows()} rows";
+    return "Calculating ANOVA values for %d rows".formatted(flist.getNumberOfRows());
   }
 
   public double getFinishedPercentage() {

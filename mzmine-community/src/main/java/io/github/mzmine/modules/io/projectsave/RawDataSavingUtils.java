@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -197,7 +197,7 @@ public class RawDataSavingUtils {
    * {@link RawDataFilesParameter} will be set to {@link RawDataFilesSelectionType#SPECIFIC_FILES}.
    *
    * @param parameterSet1 The first parameter set.
-   * @param parameterSet2 The second paramete set.
+   * @param parameterSet2 The second parameter set.
    * @return The merged parameter set.
    */
   @NotNull

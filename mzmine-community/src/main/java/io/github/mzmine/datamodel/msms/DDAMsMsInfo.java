@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,12 +32,7 @@ public interface DDAMsMsInfo extends MsMsInfo {
 
   String XML_PRECURSOR_MZ_ATTR = "precursormz";
   String XML_PRECURSOR_CHARGE_ATTR = "charge";
-  String XML_FRAGMENT_SCAN_ATTR = "fragmentscan";
   String XML_PARENT_SCAN_ATTR = "parentscan";
-  String XML_ACTIVATION_ENERGY_ATTR = "energy";
-  String XML_ACTIVATION_TYPE_ATTR = "activationtype";
-  String XML_MSLEVEL_ATTR = "mslevel";
-  String XML_ISOLATION_WINDOW_ATTR = "isolationwindow";
 
   @Nullable Float getActivationEnergy();
 

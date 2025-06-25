@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -86,8 +86,7 @@ class CodingDemoTask extends AbstractFeatureListTask {
     List<RowStats> results = new ArrayList<>();
 
     // process each row
-    var rows = featureList.getRows();
-    for (var row : rows) {
+    for (var row : featureList.getRows()) {
       if (!mzRange.contains(row.getAverageMZ()) && !rtRange.contains(
           row.getAverageRT().doubleValue())) {
         continue;
@@ -122,7 +121,7 @@ class CodingDemoTask extends AbstractFeatureListTask {
 
   @Override
   public String getTaskDescription() {
-    return STR."Demo task runs on \{featureList}";
+    return "Demo task runs on " + featureList;
   }
 
   @Override

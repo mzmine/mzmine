@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,11 +30,17 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,12 +49,23 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ZipUtils {
 
-  public static void unzipStream(ZipInputStream zipStream, File destinationFolder)
+  /**
+   * Known issue to unzip all assets download from zenodo. Somehow generates error. Use
+   * {@link #unzipFile(File, File)} instead
+   *
+   * @param zipStream
+   * @param destinationFolder
+   * @return
+   * @throws IOException
+   */
+  public static List<File> unzipStream(ZipInputStream zipStream, File destinationFolder)
       throws IOException {
 
     if (!destinationFolder.exists()) {
       destinationFolder.mkdirs();
     }
+
+    List<File> files = new ArrayList<>();
 
     ZipEntry entry;
     int readLen;
@@ -65,8 +82,10 @@ public class ZipUtils {
         }
         outputStream.close();
         extractedFile.setExecutable(true);
+        files.add(extractedFile);
       }
     }
+    return files;
   }
 
   /**
@@ -122,7 +141,7 @@ public class ZipUtils {
       }
 
       File extractedFile = new File(destinationFolder, entry.getName());
-      if(!extractedFile.toPath().normalize().startsWith(destinationFolder.toPath())) {
+      if (!extractedFile.toPath().normalize().startsWith(destinationFolder.toPath())) {
         throw new IllegalArgumentException("Bad zip entry.");
       }
 
@@ -149,5 +168,45 @@ public class ZipUtils {
       }
       zipStream.close();
     }
+  }
+
+  /**
+   * Uzips a file to an output directory
+   *
+   * @param file         zip file
+   * @param outDirectory output directory
+   * @return List of extracted files
+   * @throws IOException on IO error or if zip file may be malicious
+   */
+  public static List<File> unzipFile(final File file, final File outDirectory) throws IOException {
+    List<File> results = new ArrayList<>();
+    Path outPath = outDirectory.toPath();
+    try (org.apache.commons.compress.archivers.zip.ZipFile zipFile = org.apache.commons.compress.archivers.zip.ZipFile.builder()
+        .setFile(file).get()) {
+      Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
+      while (entries.hasMoreElements()) {
+        ZipArchiveEntry entry = entries.nextElement();
+        String entryName = entry.getName();
+        if (entryName.contains("..")) {
+          throw new IOException("Malicious zip entry: " + entryName);
+        }
+        Path outputFile = outPath.resolve(entryName).toAbsolutePath();
+
+        if (entry.isDirectory()) {
+          Files.createDirectories(outputFile);
+        } else {
+          Path parentFile = outputFile.getParent();
+          if (parentFile == null) {
+            throw new AssertionError("Parent path should never be null: " + file);
+          }
+
+          Files.createDirectories(parentFile);
+          Files.copy(zipFile.getInputStream(entry), outputFile,
+              StandardCopyOption.REPLACE_EXISTING);
+          results.add(outputFile.toFile());
+        }
+      }
+    }
+    return results;
   }
 }

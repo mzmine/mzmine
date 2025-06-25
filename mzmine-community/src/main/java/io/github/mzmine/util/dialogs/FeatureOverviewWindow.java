@@ -145,7 +145,7 @@ public class FeatureOverviewWindow extends Stage {
         scanSelection, // scan selection
         mzRange, // mz range
         featureSelection, // selected features
-        labelsMap); // labels
+        labelsMap, null); // labels
 
     pane.getItems().add(window.getContent());
     return pane;

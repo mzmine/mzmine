@@ -33,7 +33,7 @@
 <BorderPane xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataPaneController">
   <center>
-    <TableView fx:id="parameterTable" prefHeight="350" prefWidth="600">
+    <TableView fx:id="tableView" prefHeight="350" prefWidth="600">
       <placeholder>
         <Label text="No Parameters"/>
       </placeholder>

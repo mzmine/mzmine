@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,25 +31,21 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
-import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure2dUrlType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure3dUrlType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesIsomericStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureParser;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
@@ -90,54 +86,9 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   public SimpleCompoundDBAnnotation() {
   }
 
-  /**
-   * @param db      the database the compound is from.
-   * @param id      the compound's ID in the database.
-   * @param name    the compound's formula.
-   * @param formula the compound's name.
-   * @param urlDb   the URL of the compound in the database.
-   * @param url2d   the URL of the compound's 2D structure.
-   * @param url3d   the URL of the compound's 3D structure.
-   */
-  public SimpleCompoundDBAnnotation(final OnlineDatabases db, final String id, final String name,
-      final String formula, final URL urlDb, final URL url2d, final URL url3d) {
-    this(formula);
-    putIfNotNull(DatabaseNameType.class, db != null ? db.name() : null);
-    putIfNotNull(CompoundNameType.class, name);
-
-    if (id != null && db != null) {
-      put(DatabaseMatchInfoType.class,
-          new DatabaseMatchInfo(db, id, urlDb != null ? urlDb.toString() : db.getCompoundUrl(id)));
-    }
-
-    if (url2d != null) {
-      put(Structure2dUrlType.class, new UrlShortName(url2d.toString(), "2D Structure"));
-    }
-    if (url3d != null) {
-      put(Structure3dUrlType.class, new UrlShortName(url3d.toString(), "3D Structure"));
-    }
-
-  }
-
   public SimpleCompoundDBAnnotation(final String formula) {
     setFormula(formula);
   }
-
-  /**
-   * Calculate neutral mass if not already present. then keep the original.
-   *
-   * @param formula molecular formula
-   */
-  public void setFormula(final String formula) {
-    putIfNotNull(FormulaType.class, formula);
-
-    final IMolecularFormula neutralFormula = FormulaUtils.neutralizeFormulaWithHydrogen(formula);
-    if (neutralFormula != null) {
-      put(NeutralMassType.class, MolecularFormulaManipulator.getMass(neutralFormula,
-          MolecularFormulaManipulator.MonoIsotopic));
-    }
-  }
-
 
   public static CompoundDBAnnotation loadFromXML(XMLStreamReader reader,
       @NotNull final MZmineProject project, ModularFeatureList flist, ModularFeatureListRow row)
@@ -188,6 +139,20 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     return id;
   }
 
+  /**
+   * Calculate neutral mass if not already present. then keep the original.
+   *
+   * @param formula molecular formula
+   */
+  public void setFormula(final String formula) {
+    putIfNotNull(FormulaType.class, formula);
+
+    final IMolecularFormula neutralFormula = FormulaUtils.neutralizeFormulaWithHydrogen(formula);
+    if (neutralFormula != null) {
+      put(NeutralMassType.class, MolecularFormulaManipulator.getMass(neutralFormula,
+          MolecularFormulaManipulator.MonoIsotopic));
+    }
+  }
 
   /**
    * @return the structure parsed from smiles or inchi
@@ -203,6 +168,19 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     return structure;
   }
 
+  @Override
+  public void setStructure(final MolecularStructure structure) {
+    if (structure == null) {
+      return;
+    }
+    putIfNotNull(MolecularStructureType.class, structure);
+    putIfNotNull(SmilesStructureType.class, structure.canonicalSmiles());
+    putIfNotNull(SmilesIsomericStructureType.class, structure.isomericSmiles());
+    putIfNotNull(InChIKeyStructureType.class, structure.inchiKey());
+    putIfNotNull(InChIStructureType.class, structure.inchi());
+    putIfNotNull(FormulaType.class, structure.formulaString());
+    putIfNotNull(NeutralMassType.class, structure.monoIsotopicMass());
+  }
 
   @Override
   public <T> T get(@NotNull DataType<T> key) {
@@ -228,7 +206,11 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
   @Override
   public <T> T put(@NotNull DataType<T> key, T value) {
-    if (value != null && !key.getValueClass().isInstance(value)) {
+    if (value == null) {
+      return (T) data.remove(key);
+    }
+
+    if (!key.getValueClass().isInstance(value)) {
       throw new IllegalArgumentException(
           String.format("Cannot put value class (%s) for data type (%s). Value type mismatch.",
               value.getClass(), key.getClass()));
@@ -237,9 +219,14 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     return (T) data.put(actualKey, value);
   }
 
+  @Override
   public <T> T put(@NotNull Class<? extends DataType<T>> key, T value) {
     var actualKey = DataTypes.get(key);
-    if (value != null && !actualKey.getValueClass().isInstance(value)) {
+    if (value == null) {
+      return (T) data.remove(actualKey);
+    }
+
+    if (!actualKey.getValueClass().isInstance(value)) {
       throw new IllegalArgumentException(
           String.format("Cannot put value class (%s) for data type (%s). Value type mismatch.",
               value.getClass(), actualKey.getClass()));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,8 +36,9 @@ import javafx.scene.control.Button;
 
 public class MobilityRangeComponent extends DoubleRangeComponent {
 
+  private static final Logger logger = Logger.getLogger(MobilityRangeComponent.class.getName());
+
   private final Button setAutoButton;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   public MobilityRangeComponent() {
 
@@ -45,18 +46,19 @@ public class MobilityRangeComponent extends DoubleRangeComponent {
 
     setAutoButton = new Button("Auto range");
     setAutoButton.setOnAction(e -> {
-      RawDataFile currentFiles[] =
-          ProjectService.getProjectManager().getCurrentProject().getDataFiles();
+      RawDataFile currentFiles[] = ProjectService.getProjectManager().getCurrentProject()
+          .getDataFiles();
 
       Range<Double> mobilityRange = null;
       for (RawDataFile file : currentFiles) {
         if (file instanceof IMSRawDataFile) {
           IMSRawDataFile imsFile = (IMSRawDataFile) file;
           Range<Double> fileRange = imsFile.getDataMobilityRange();
-          if (mobilityRange == null)
+          if (mobilityRange == null) {
             mobilityRange = fileRange;
-          else
+          } else {
             mobilityRange = mobilityRange.span(fileRange);
+          }
         } else {
           mobilityRange = Range.singleton(0.0d);
           logger.log(Level.WARNING, "The selected raw data has no ion mobility dimension");
@@ -64,7 +66,8 @@ public class MobilityRangeComponent extends DoubleRangeComponent {
       }
       setValue(mobilityRange);
     });
-    RawDataFile currentFiles[] = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
+    RawDataFile currentFiles[] = ProjectService.getProjectManager().getCurrentProject()
+        .getDataFiles();
     setAutoButton.setDisable(currentFiles.length == 0);
 
     getChildren().add(setAutoButton);

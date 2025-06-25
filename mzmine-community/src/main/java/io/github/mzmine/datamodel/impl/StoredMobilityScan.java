@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Iterator;
@@ -72,7 +73,7 @@ public class StoredMobilityScan implements MobilityScan {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    storage.getRawMobilityScanMzValues(getMobilityScanNumber(), dst, 0);
+    storage.getRawMobilityScanMzValues(getMobilityScanNumber(), dst);
     return dst;
   }
 
@@ -81,7 +82,7 @@ public class StoredMobilityScan implements MobilityScan {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    storage.getRawMobilityScanIntensityValues(getMobilityScanNumber(), dst, 0);
+    storage.getRawMobilityScanIntensityValues(getMobilityScanNumber(), dst);
     return dst;
   }
 
@@ -167,7 +168,7 @@ public class StoredMobilityScan implements MobilityScan {
 
   @Nullable
   @Override
-  public PasefMsMsInfo getMsMsInfo() {
+  public IonMobilityMsMsInfo getMsMsInfo() {
     return storage.getFrame().getImsMsMsInfoForMobilityScan(getMobilityScanNumber());
   }
 

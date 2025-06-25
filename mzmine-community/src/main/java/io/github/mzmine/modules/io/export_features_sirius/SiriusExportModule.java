@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,8 +45,8 @@ import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.exceptions.ExceptionUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -92,7 +92,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
     final SiriusExportTask task = new SiriusExportTask(parameters, moduleCallDate);
     final ModularFeatureList flist = parameters.getValue(SiriusExportParameters.FEATURE_LISTS)
         .getMatchingFeatureLists()[0];
-    final File fileForFeatureList = task.getFileForFeatureList(task.isSubstitute(), flist);
+    final File fileForFeatureList = task.getFileForFeatureList(flist);
 
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileForFeatureList))) {
       task.exportRow(writer, row);
@@ -117,7 +117,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
       final SiriusExportTask task = new SiriusExportTask(parameters, moduleCallDate);
       final ModularFeatureList flist = parameters.getValue(SiriusExportParameters.FEATURE_LISTS)
           .getMatchingFeatureLists()[0];
-      final File fileForFeatureList = task.getFileForFeatureList(task.isSubstitute(), flist);
+      final File fileForFeatureList = task.getFileForFeatureList(flist);
 
       try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileForFeatureList))) {
         for (FeatureListRow row : rows) {

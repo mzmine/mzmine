@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,12 +28,14 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.parameters.ParameterSet;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +45,7 @@ public class KendrickMassPlotTab extends SimpleTab {
   private final KendrickMassPlotAnchorPaneController controller;
 
   public KendrickMassPlotTab(ParameterSet parameters) {
-    super("Kendrick Mass Plot");
+    super("4D feature plot Plot");
 
     AnchorPane root = null;
     FXMLLoader loader = new FXMLLoader((getClass().getResource("KendrickMassPlotAnchorPane.fxml")));
@@ -59,6 +61,10 @@ public class KendrickMassPlotTab extends SimpleTab {
     controller = loader.getController();
     controller.initialize(parameters);
     setContent(root);
+
+    final @NotNull ModularFeatureList[] flists = parameters.getParameter(
+        KendrickMassPlotParameters.featureList).getValue().getMatchingFeatureLists();
+    setSubTitle(MZmineTab.getFeatureListsSubtitle(List.of(flists)));
   }
 
   @NotNull

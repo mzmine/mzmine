@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonSeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.nio.DoubleBuffer;
+import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -58,8 +58,8 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
   protected int currentNumDataPoints;
   protected IonMobilitySeries currentMobilogram;
 
-  protected MobilogramDataAccess(@NotNull final IonMobilogramTimeSeries imts, @NotNull
-      MobilogramAccessType accessType) {
+  protected MobilogramDataAccess(@NotNull final IonMobilogramTimeSeries imts,
+      @NotNull MobilogramAccessType accessType) {
     assert imts.getNumberOfValues() > 0;
 
     this.imts = imts;
@@ -125,7 +125,7 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
           currentIntensities[dpIndex] = 0d;
           currentMzs[dpIndex] = 0d;
         }
-        if(currentSpectrumIndex == numValues && i < numSpectra - 1) {
+        if (currentSpectrumIndex == numValues && i < numSpectra - 1) {
           Arrays.fill(currentIntensities, i + 1, currentIntensities.length, 0d);
           break;
         }
@@ -136,8 +136,12 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
     return currentMobilogram;
   }
 
+  public IonMobilitySeries getCurrentMobilogram() {
+    return currentMobilogram;
+  }
+
   @Override
-  public DoubleBuffer getIntensityValueBuffer() {
+  public MemorySegment getIntensityValueBuffer() {
     throw new IllegalArgumentException(
         "MobilogramDataAccess shall be used to iterate over the mzs and intensities.");
   }
@@ -148,7 +152,7 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
   }
 
   @Override
-  public DoubleBuffer getMZValueBuffer() {
+  public MemorySegment getMZValueBuffer() {
     throw new IllegalArgumentException(
         "MobilogramDataAccess shall be used to iterate over the mzs and intensities.");
   }
@@ -218,7 +222,25 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     // depending on the type of data access, we can have more scans in currentSpectra than data points. (if 0s are included)
     // hence, this method is unsupported. A new SimpleIonMobilitySeries should be created with the respective spectra instead.
-    throw new IllegalArgumentException(
-        "MobilogramDataAccess shall be used to iterate over the mzs and intensities.");
+    // Will generate new series with zeroes included if that was the source for this data access
+//    return getCurrentMobilogram().copyAndReplace(storage, newMzValues, newIntensityValues);
+    throw new IllegalStateException(
+        "MobilogramDataAccess shall be used to iterate over the mzs and intensities. Maybe implement this copyAndReplace method in the future if needed.");
   }
+
+  /**
+   * Keeps mzs and scans and replaces intensities
+   *
+   * @param storage
+   * @param newIntensityValues
+   * @return
+   */
+  public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
+      @NotNull double[] newIntensityValues) {
+//    double[] newMzs = Arrays.copyOf(currentMzs, getNumberOfValues());
+//    return copyAndReplace(storage, newMzs, newIntensityValues);
+    throw new IllegalStateException(
+        "MobilogramDataAccess shall be used to iterate over the mzs and intensities. Maybe implement this copyAndReplace method in the future if needed.");
+  }
+
 }

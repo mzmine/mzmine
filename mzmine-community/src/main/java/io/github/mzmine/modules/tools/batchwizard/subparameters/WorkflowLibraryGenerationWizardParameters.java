@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,13 +26,18 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowLibraryGeneration;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import java.io.File;
 
 public final class WorkflowLibraryGenerationWizardParameters extends WorkflowWizardParameters {
+
+  public static final BooleanParameter exportUnknownScansFile = new BooleanParameter(
+      "Export scans file for 'unknowns'",
+      "Library generation only exports scans of annotated features. This option exports another file for unannotated features.",
+      false);
 
   public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
       true);
@@ -58,15 +63,18 @@ public final class WorkflowLibraryGenerationWizardParameters extends WorkflowWiz
 
 
   public WorkflowLibraryGenerationWizardParameters() {
-    super(WorkflowWizardParameterFactory.LIBRARY_GENERATION,
+    super(new WorkflowLibraryGeneration(),
         // actual parameters
-        metadata, exportPath, exportGnps, exportSirius, applySpectralNetworking);
+        metadata, exportPath, exportUnknownScansFile, exportGnps, exportSirius,
+        applySpectralNetworking);
   }
 
 
   public WorkflowLibraryGenerationWizardParameters(final File exportBasePath,
-      final boolean exportGnpsActive, boolean exportSiriusActive, boolean applySpectralNetworking) {
+      final boolean exportUnknownScansFileActive, final boolean exportGnpsActive,
+      boolean exportSiriusActive, boolean applySpectralNetworking) {
     this();
+    setParameter(exportUnknownScansFile, exportUnknownScansFileActive);
     setParameter(exportPath, exportBasePath);
     setParameter(exportGnps, exportGnpsActive);
     setParameter(exportSirius, exportSiriusActive);

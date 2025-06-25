@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcSubmitParameter
 import io.github.mzmine.modules.io.export_features_gnps.masst.MasstDatabase;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import io.github.mzmine.util.spectraldb.parser.MZmineJsonParser;
 import io.github.mzmine.util.web.RequestResponse;
 import jakarta.json.Json;
@@ -181,7 +182,7 @@ public class GNPSUtils {
         DataPoint[] spectrum = MZmineJsonParser.getDataPointsFromJsonArray(peaks);
         final double precursorMz = json.getJsonNumber("precursor_mz").doubleValue();
         final int charge = json.getJsonNumber("precursor_charge").intValue();
-        return SpectralLibraryEntry.create(null, precursorMz, charge, spectrum);
+        return SpectralLibraryEntryFactory.create(null, precursorMz, charge, spectrum);
       } else {
         // https://gnps.ucsd.edu/ProteoSAFe/SpectrumCommentServlet?SpectrumID=CCMSLIB00005463737
         // library ID
@@ -195,7 +196,7 @@ public class GNPSUtils {
           final JsonObject annotations = json.getJsonArray("annotations").getJsonObject(0);
           final double precursorMz = Double.parseDouble(
               annotations.getJsonString("Precursor_MZ").getString());
-          return SpectralLibraryEntry.create(null, precursorMz, spectrum);
+          return SpectralLibraryEntryFactory.create(null, precursorMz, spectrum);
         }
       }
     }

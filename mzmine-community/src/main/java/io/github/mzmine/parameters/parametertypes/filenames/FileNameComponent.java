@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,9 +26,14 @@
 package io.github.mzmine.parameters.parametertypes.filenames;
 
 
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.modules.io.download.AssetGroup;
+import io.github.mzmine.modules.io.download.DownloadAsset;
+import io.github.mzmine.modules.io.download.DownloadAssetButton;
 import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
@@ -45,22 +50,33 @@ import org.jetbrains.annotations.Nullable;
  */
 public class FileNameComponent extends HBox implements LastFilesComponent {
 
-  //public static final Font smallFont = new Font("SansSerif", 10);
-
+  private static final Logger logger = Logger.getLogger(FileNameComponent.class.getName());
   private final TextField txtFilename;
   private final LastFilesButton btnLastFiles;
   private final FileSelectionType type;
   private final List<ExtensionFilter> filters;
+
 
   public FileNameComponent(List<File> lastFiles, FileSelectionType type,
       final List<ExtensionFilter> filters) {
     this(lastFiles, type, filters, null);
   }
 
+  public FileNameComponent(final List<File> lastFiles, final FileSelectionType type,
+      final List<ExtensionFilter> filters, final AssetGroup extAsset,
+      final List<DownloadAsset> downloadLinks) {
+    this(lastFiles, type, filters, null, extAsset, downloadLinks);
+  }
+
+
   public FileNameComponent(List<File> lastFiles, FileSelectionType type,
       final List<ExtensionFilter> filters, @Nullable Consumer<File> exportExamples) {
-    // setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
+    this(lastFiles, type, filters, exportExamples, null, List.of());
+  }
 
+  private FileNameComponent(final List<File> lastFiles, final FileSelectionType type,
+      final List<ExtensionFilter> filters, @Nullable Consumer<File> exportExamples,
+      final AssetGroup extAsset, final List<DownloadAsset> downloadLinks) {
     this.type = type;
     this.filters = filters;
 
@@ -95,6 +111,12 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
       });
       getChildren().add(button);
     }
+    if (extAsset != null) {
+      var downloadButton = new DownloadAssetButton(extAsset, downloadLinks);
+      downloadButton.setOnDownloadFinished(
+          files -> FxThread.runLater(() -> setValue(files.stream().findFirst().orElse(null))));
+      getChildren().add(downloadButton);
+    }
 
     setAlignment(Pos.CENTER_LEFT);
     setSpacing(5);
@@ -103,8 +125,7 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
     initDragDropped();
   }
 
-
-  private File openSelectDialog(final List<File> lastFiles, final FileSelectionType type,
+  public File openSelectDialog(final List<File> lastFiles, final FileSelectionType type,
       final List<ExtensionFilter> filters) {
     // Create chooser.
     FileChooser fileChooser = new FileChooser();
@@ -190,8 +211,8 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
         for (File file : files) {
           if (patterns.stream()
               .anyMatch(filter -> file.getAbsolutePath().toLowerCase().endsWith(filter))) {
-           txtFilename.setText(file.getPath());
-           break;
+            txtFilename.setText(file.getPath());
+            break;
           }
         }
 

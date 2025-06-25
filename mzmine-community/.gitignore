@@ -26,3 +26,4 @@ not-bio
 /src/test/java/import_data/speed/local/tims32subs/
 /src/test/resources/biotransformer/jar/*
 licensereport
+/src/main/resources/MLModels/traced_model_float64.pt

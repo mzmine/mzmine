@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
@@ -47,7 +48,7 @@ public class SimpleImagingFrame extends SimpleFrame implements ImagingFrame {
       float retentionTime, double[] mzValues, double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       @NotNull Range<Double> scanMZRange, MobilityType mobilityType,
-      @Nullable Set<PasefMsMsInfo> precursorInfos, Float accumulationTime) {
+      @Nullable Set<IonMobilityMsMsInfo> precursorInfos, Float accumulationTime) {
     super(dataFile, scanNumber, msLevel, retentionTime, mzValues, intensityValues, spectrumType,
         polarity, scanDefinition, scanMZRange, mobilityType, precursorInfos, accumulationTime);
   }

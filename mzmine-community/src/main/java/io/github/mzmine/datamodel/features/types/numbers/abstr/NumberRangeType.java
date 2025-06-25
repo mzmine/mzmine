@@ -162,9 +162,9 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>> extends
     // first type is this
     // second is randomly MAX_REF_TYPE
     if (this.equals(sub)) {
-      return getExportFormat().format(((Range) value).lowerEndpoint());
+      return ((Range) value).lowerEndpoint();
     } else {
-      return getExportFormat().format(((Range) value).upperEndpoint());
+      return ((Range) value).upperEndpoint();
     }
   }
 

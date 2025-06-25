@@ -31,11 +31,27 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.MobilityQualitySummaryType;
+import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.RtQualitySummaryType;
+import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.ShapeClassificationScoreType;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.AsymmetricGaussianPeak;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.GaussianDoublePeak;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.FitQuality;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.GaussianPeak;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakDimension;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakFitterUtils;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakModelFunction;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakQualitySummary;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -44,6 +60,8 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +79,7 @@ public class FeatureFilterTask extends AbstractTask {
   private final MZmineProject project;
   private final FeatureList origPeakList;
   private ModularFeatureList filteredPeakList;
+  private final FeatureFilterChoices keepOrRemove;
 
   // Processed rows counter
   private int processedRows;
@@ -68,6 +87,8 @@ public class FeatureFilterTask extends AbstractTask {
 
   // Parameters
   private final ParameterSet parameters;
+  private List<PeakModelFunction> peakModels = List.of(new GaussianPeak(),
+      new AsymmetricGaussianPeak(), new GaussianDoublePeak());
 
   /**
    * Create the task.
@@ -87,6 +108,7 @@ public class FeatureFilterTask extends AbstractTask {
     filteredPeakList = null;
     processedRows = 0;
     totalRows = 0;
+    keepOrRemove = parameterSet.getValue(FeatureFilterParameters.keepMatching);
   }
 
   @Override
@@ -162,6 +184,16 @@ public class FeatureFilterTask extends AbstractTask {
         FeatureFilterParameters.PEAK_ASYMMETRYFACTOR).getValue();
     final boolean keepMs2Only = parameters.getParameter(FeatureFilterParameters.KEEP_MS2_ONLY)
         .getValue();
+    final boolean filterByShapeScore = parameters.getValue(FeatureFilterParameters.minRtShapeScore);
+    final double minRtShapeScore = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        FeatureFilterParameters.minRtShapeScore, 0d);
+    final boolean filterByMobilogramShape = parameters.getValue(
+        FeatureFilterParameters.minMobilityShapeScore);
+    final double minMobilogramScore = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        FeatureFilterParameters.minMobilityShapeScore, 0d);
+    final boolean filterByTopToEdge = parameters.getValue(FeatureFilterParameters.topToEdge);
+    final double topToEdgeThreshold = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        FeatureFilterParameters.topToEdge, 1d);
 
     final Range<Double> durationRange = parameters.getParameter(
         FeatureFilterParameters.PEAK_DURATION).getEmbeddedParameter().getValue();
@@ -181,6 +213,15 @@ public class FeatureFilterTask extends AbstractTask {
         parameters.getParameter(FeatureFilterParameters.PEAK_ASYMMETRYFACTOR).getEmbeddedParameter()
             .getValue());
 
+    if (filterByShapeScore) {
+      newPeakList.addFeatureType(new RtQualitySummaryType());
+      newPeakList.addRowType(new RtQualitySummaryType());
+    }
+    if(filterByMobilogramShape) {
+      newPeakList.addFeatureType(new MobilityQualitySummaryType());
+      newPeakList.addRowType(new MobilityQualitySummaryType());
+    }
+
     // Loop through all rows in feature list
     final ModularFeatureListRow[] rows = newPeakList.getRows()
         .toArray(ModularFeatureListRow[]::new);
@@ -188,12 +229,12 @@ public class FeatureFilterTask extends AbstractTask {
     int totalRawDataFiles = rawdatafiles.length;
     boolean[] keepPeak = new boolean[totalRawDataFiles];
     totalRows = rows.length;
+
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
       final ModularFeatureListRow row = rows[processedRows];
 
+      Arrays.fill(keepPeak, !getFailedTestValue());
       for (int i = 0; i < totalRawDataFiles; i++) {
-        // Peak values
-        keepPeak[i] = true;
         final Feature peak = row.getFeature(rawdatafiles[i]);
         // no feature for raw data file
         if (peak == null || peak.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
@@ -212,6 +253,12 @@ public class FeatureFilterTask extends AbstractTask {
         Float peakFWHM = peak.getFWHM();
         Float peakTailingFactor = peak.getTailingFactor();
         Float peakAsymmetryFactor = peak.getAsymmetryFactor();
+
+        final Range<Float> intensityRange = peak.getRawDataPointsIntensityRange();
+        final double topToEdge =
+            intensityRange != null ? intensityRange.upperEndpoint() / intensityRange.lowerEndpoint()
+                : 1d;
+
         if (peakFWHM == null) {
           peakFWHM = -1.0f;
         }
@@ -234,19 +281,55 @@ public class FeatureFilterTask extends AbstractTask {
             peakHeight)) || (filterByDatapoints && !datapointsRange.contains(peakDatapoints)) || (
             filterByFWHM && !fwhmRange.contains(peakFWHM)) || (filterByTailingFactor
             && !tailingRange.contains(peakTailingFactor)) || (filterByAsymmetryFactor
-            && !asymmetryRange.contains(peakAsymmetryFactor)) || (keepMs2Only
-            && bestMsMs == null)) {
+            && !asymmetryRange.contains(peakAsymmetryFactor)) || (keepMs2Only && bestMsMs == null)
+            || (filterByTopToEdge && topToEdge < topToEdgeThreshold)) {
           // Mark peak to be removed
-          keepPeak[i] = false;
+          keepPeak[i] = getFailedTestValue();
+          continue;
+        }
+
+        if (keepPeak[i] == getFailedTestValue()) {
+          continue;
+        }
+
+        // more expensive filters below here
+        final IonTimeSeries<? extends Scan> featureData = peak.getFeatureData();
+        if (filterByShapeScore) {
+          final double[] rts = new double[featureData.getNumberOfValues()];
+          final double[] intensities = new double[featureData.getNumberOfValues()];
+          featureData.getIntensityValues(intensities);
+          for (int j = 0; j < rts.length; j++) {
+            rts[j] = featureData.getRetentionTime(j);
+          }
+
+          if (!matchesRtShapeFilter(peak, minRtShapeScore, rts, intensities)) {
+            keepPeak[i] = getFailedTestValue();
+            continue;
+          }
+        }
+
+        if (filterByMobilogramShape && featureData instanceof IonMobilogramTimeSeries imts) {
+          final SummedIntensityMobilitySeries mobilogram = imts.getSummedMobilogram();
+          final double[] mobilities = new double[mobilogram.getNumberOfValues()];
+          final double[] mobIntensities = new double[mobilogram.getNumberOfValues()];
+          mobilogram.getIntensityValues(mobIntensities);
+          mobilogram.getMobilityValues(mobilities);
+
+          if (!matchesMobilogramShapeFilter(mobilities, mobIntensities, minMobilogramScore,
+              (ModularFeature) peak)) {
+            keepPeak[i] = getFailedTestValue();
+            continue;
+          }
         }
       }
+
       // empty row?
-      boolean isEmpty = Booleans.asList(keepPeak).stream().noneMatch(keep -> keep);
+      boolean isEmpty = Booleans.asList(keepPeak).stream().allMatch(keep -> keep == false);
       if (isEmpty) {
         newPeakList.removeRow(row);
       } else {
         for (int i = 0; i < rawdatafiles.length; i++) {
-          if (!keepPeak[i]) {
+          if (keepPeak[i] == false) {
             row.removeFeature(rawdatafiles[i]);
           }
         }
@@ -256,6 +339,42 @@ public class FeatureFilterTask extends AbstractTask {
     newPeakList.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(FeatureFilterModule.class, parameters,
             getModuleCallDate()));
+
     return newPeakList;
+  }
+
+  private boolean matchesMobilogramShapeFilter(double[] mobilities, double[] mobIntensities,
+      final double minMobilogramScore, ModularFeature peak) {
+    final FitQuality fit = PeakFitterUtils.fitPeakModels(mobilities, mobIntensities, peakModels);
+    if (fit == null) {
+      return false;
+    }
+    peak.set(MobilityQualitySummaryType.class,
+        new PeakQualitySummary(PeakDimension.MOBILITY, fit.peakShapeClassification(),
+            (float) fit.rSquared()));
+
+    return fit.rSquared() >= minMobilogramScore;
+  }
+
+  private boolean matchesRtShapeFilter(final Feature f, final double minShapeScore,
+      final double[] rts, final double[] intensities) {
+
+    final FitQuality fitted = PeakFitterUtils.fitPeakModels(rts, intensities, peakModels);
+    if (fitted == null) {
+      return false;
+    }
+
+    ((ModularFeature) f).set(RtQualitySummaryType.class,
+        new PeakQualitySummary(PeakDimension.RT, fitted.peakShapeClassification(),
+            (float) fitted.rSquared()));
+
+    return fitted.rSquared() >= minShapeScore;
+  }
+
+  private boolean getFailedTestValue() {
+    return switch (keepOrRemove) {
+      case FeatureFilterChoices.REMOVE_MATCHING -> true;
+      case FeatureFilterChoices.KEEP_MATCHING -> false;
+    };
   }
 }

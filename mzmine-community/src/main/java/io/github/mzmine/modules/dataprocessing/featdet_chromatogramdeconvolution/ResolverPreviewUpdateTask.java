@@ -66,7 +66,7 @@ class ResolverPreviewUpdateTask extends FxUpdateTask<Object> {
 
   public ResolverPreviewUpdateTask(String chartName, SimpleXYChart<?> chart, Feature feature,
       ModularFeatureList flist, GeneralResolverParameters parameters) {
-    super(STR."Updating \{chartName}", Instant.now());
+    super("Updating %s".formatted(chartName), Instant.now());
     this.chart = chart;
     this.feature = feature;
     this.flist = flist;
@@ -84,7 +84,7 @@ class ResolverPreviewUpdateTask extends FxUpdateTask<Object> {
 
   @Override
   public String getTaskDescription() {
-    return STR."Updating resolver preview with \{FeatureUtils.featureToString(feature)}";
+    return "Updating resolver preview with %s".formatted(FeatureUtils.featureToString(feature));
   }
 
   @Override
@@ -169,12 +169,12 @@ class ResolverPreviewUpdateTask extends FxUpdateTask<Object> {
         null);
     for (IonTimeSeries<? extends Scan> series : resolved) {
       final SummedIntensityMobilitySeries mobilogram = ((IonMobilogramTimeSeries) series).getSummedMobilogram();
+      final String name = "%s - %s %s".formatted(formats.mobility(mobilogram.getMobility(0)),
+          formats.mobility(mobilogram.getMobility(mobilogram.getNumberOfValues() - 1)),
+          ((Frame) series.getSpectrum(0)).getMobilityType().getUnit());
       ColoredXYDataset ds = new ColoredXYDataset(new SummedMobilogramXYProvider(mobilogram,
-          new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)),
-          STR."\{formats.mobility(mobilogram.getMobility(0))} - \{formats.mobility(
-              mobilogram.getMobility(
-                  mobilogram.getNumberOfValues() - 1))} \{((Frame) series.getSpectrum(
-              0)).getMobilityType().getUnit()}"), RunOption.THIS_THREAD);
+          new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)), name),
+          RunOption.THIS_THREAD);
       datasets.add(ds);
     }
     return datasets;
@@ -191,9 +191,10 @@ class ResolverPreviewUpdateTask extends FxUpdateTask<Object> {
             feature.getFeatureList().getSeletedScans(feature.getRawDataFile())), null);
 
     for (IonTimeSeries<? extends Scan> series : resolved) {
-      ColoredXYDataset ds = new ColoredXYDataset(new IonTimeSeriesToXYProvider(series,
-          STR."\{formats.rt(series.getSpectra().get(0).getRetentionTime())} - \{formats.rt(
-              series.getSpectra().get(series.getNumberOfValues() - 1).getRetentionTime())} min",
+      final String seriesKey =
+          formats.rt(series.getSpectra().get(0).getRetentionTime()) + " - " + formats.rt(
+              series.getSpectra().get(series.getNumberOfValues() - 1).getRetentionTime()) + " min";
+      ColoredXYDataset ds = new ColoredXYDataset(new IonTimeSeriesToXYProvider(series, seriesKey,
           new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))),
           RunOption.THIS_THREAD);
       datasets.add(ds);

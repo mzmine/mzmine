@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.IntToDoubleFunction;
 import java.util.function.ToDoubleFunction;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +49,21 @@ public class BinarySearch {
    * including both bounds
    */
   public static @NotNull IndexRange indexRange(double[] data, Range<? extends Number> range) {
-    return indexRange(range, 0, data.length, index -> data[index]);
+    return indexRange(data, range, 0, data.length);
+  }
+
+  /**
+   * Searches for the value - or the closest available. Copied from
+   * {@link Arrays#binarySearch(double[], double)}
+   *
+   * @param data  data source
+   * @param range search for index of lower and upper bound both always included!
+   * @return an {@link IndexRange} that may be empty but contains all values within range - always
+   * including both bounds
+   */
+  public static @NotNull IndexRange indexRange(double[] data, Range<? extends Number> range,
+      int fromIndex, int toIndexExclusive) {
+    return indexRange(range, fromIndex, toIndexExclusive, index -> data[index]);
   }
 
   /**
@@ -120,10 +135,11 @@ public class BinarySearch {
    * @return an {@link IndexRange} that may be empty but contains all values within range - always
    * including both bounds
    */
-  public static @NotNull IndexRange indexRange(final Range<? extends Number> range, final int fromIndex,
-      final int toIndexExclusive, final IntToDoubleFunction valueAtIndexProvider) {
-    return indexRange(range.lowerEndpoint().doubleValue(), range.upperEndpoint().doubleValue(), fromIndex, toIndexExclusive,
-        valueAtIndexProvider);
+  public static @NotNull IndexRange indexRange(final Range<? extends Number> range,
+      final int fromIndex, final int toIndexExclusive,
+      final IntToDoubleFunction valueAtIndexProvider) {
+    return indexRange(range.lowerEndpoint().doubleValue(), range.upperEndpoint().doubleValue(),
+        fromIndex, toIndexExclusive, valueAtIndexProvider);
   }
 
   /**
@@ -138,8 +154,24 @@ public class BinarySearch {
    */
   public static @NotNull <T> IndexRange indexRange(final Range<? extends Number> range,
       final List<T> values, final ToDoubleFunction<T> valueProvider) {
+    return indexRange(range, values, 0, valueProvider);
+  }
+
+  /**
+   * Searches for the value - or the closest available. Copied from
+   * {@link Arrays#binarySearch(double[], double)}
+   *
+   * @param range         search for index of lower and upper bound both always included!
+   * @param values        total number of values (collection size or array length)
+   * @param fromIndex     inclusive lower end
+   * @param valueProvider a function to compute or return the value at an index
+   * @return an {@link IndexRange} that may be empty but contains all values within range - always
+   * including both bounds
+   */
+  public static @NotNull <T> IndexRange indexRange(final Range<? extends Number> range,
+      final List<T> values, int fromIndex, final ToDoubleFunction<T> valueProvider) {
     return indexRange(range.lowerEndpoint().doubleValue(), range.upperEndpoint().doubleValue(),
-        values, 0, values.size(), valueProvider);
+        values, fromIndex, values.size(), valueProvider);
   }
 
   /**
@@ -220,7 +252,7 @@ public class BinarySearch {
     // start to search from lower index
     int upper = BinarySearch.binarySearch(upperValue, DefaultTo.LESS_EQUALS, lower,
         toIndexExclusive, valueAtIndexProvider);
-    return IndexRangeFactory.create(lower, upper);
+    return IndexRange.ofInclusive(lower, upper);
   }
 
   /**
@@ -238,7 +270,26 @@ public class BinarySearch {
    * the key is found.
    */
   public static int binarySearch(double[] data, double value, @NotNull DefaultTo noMatchDefault) {
-    return binarySearch(value, noMatchDefault, 0, data.length, index -> data[index]);
+    return binarySearch(data, value, noMatchDefault, 0, data.length);
+  }
+
+  /**
+   * Searches for the value - or the closest available. Copied from
+   * {@link Arrays#binarySearch(double[], double)}
+   *
+   * @param data           data source
+   * @param value          search for this value
+   * @param noMatchDefault option to handle a missing value
+   * @return this index of the given value or the closest available value if checked. index of the
+   * search key, if it is contained in the array; otherwise, (-(insertion point) - 1). The insertion
+   * point is defined as the point at which the key would be inserted into the array: the index of
+   * the first element greater than the key, or a.length if all elements in the array are less than
+   * the specified key. Note that this guarantees that the return value will be >= 0 if and only if
+   * the key is found.
+   */
+  public static int binarySearch(double[] data, double value, @NotNull DefaultTo noMatchDefault,
+      int fromIndex, int toIndexExclusive) {
+    return binarySearch(value, noMatchDefault, fromIndex, toIndexExclusive, index -> data[index]);
   }
 
   /**
@@ -257,6 +308,46 @@ public class BinarySearch {
    */
   public static int binarySearch(DoubleList data, double value, @NotNull DefaultTo noMatchDefault) {
     return binarySearch(value, noMatchDefault, 0, data.size(), data::getDouble);
+  }
+
+  /**
+   * Searches for the value - or the closest available. Copied from
+   * {@link Arrays#binarySearch(double[], double)}
+   *
+   * @param value          search for this value
+   * @param noMatchDefault option to handle a missing value
+   * @param valueFunction  a function to compute or return the value
+   * @return this index of the given value or the closest available value if checked. index of the
+   * search key, if it is contained in the array; otherwise, (-(insertion point) - 1). The insertion
+   * point is defined as the point at which the key would be inserted into the array: the index of
+   * the first element greater than the key, or a.length if all elements in the array are less than
+   * the specified key. Note that this guarantees that the return value will be >= 0 if and only if
+   * the key is found.
+   */
+  public static <T> int binarySearch(List<T> data, double value, @NotNull DefaultTo noMatchDefault,
+      Function<T, Double> valueFunction) {
+    return binarySearch(value, noMatchDefault, data.size(),
+        index -> valueFunction.apply(data.get(index)));
+  }
+
+  /**
+   * Searches for the value - or the closest available. Copied from
+   * {@link Arrays#binarySearch(double[], double)}
+   *
+   * @param value          search for this value
+   * @param noMatchDefault option to handle a missing value
+   * @param valueFunction  a function to compute or return the value
+   * @return this index of the given value or the closest available value if checked. index of the
+   * search key, if it is contained in the array; otherwise, (-(insertion point) - 1). The insertion
+   * point is defined as the point at which the key would be inserted into the array: the index of
+   * the first element greater than the key, or a.length if all elements in the array are less than
+   * the specified key. Note that this guarantees that the return value will be >= 0 if and only if
+   * the key is found.
+   */
+  public static <T> int binarySearch(T[] data, double value, @NotNull DefaultTo noMatchDefault,
+      Function<T, Double> valueFunction) {
+    return binarySearch(value, noMatchDefault, data.length,
+        index -> valueFunction.apply(data[index]));
   }
 
   /**
@@ -297,8 +388,14 @@ public class BinarySearch {
    */
   public static int binarySearch(double value, @NotNull DefaultTo noMatchDefault, int fromIndex,
       int toIndexExclusive, IntToDoubleFunction valueAtIndexProvider) {
-    if (toIndexExclusive == 0) {
+    if (fromIndex >= toIndexExclusive) {
       return -1;
+    }
+    if (toIndexExclusive <= 0) {
+      return -1;
+    }
+    if (fromIndex < 0) {
+      throw new IllegalArgumentException("fromIndex < 0 in binary search");
     }
 
     int low = fromIndex;
@@ -327,7 +424,8 @@ public class BinarySearch {
 
     // key not found.
     return switch (noMatchDefault) {
-      case CLOSEST_VALUE -> closestValue(value, toIndexExclusive, valueAtIndexProvider, low);
+      case CLOSEST_VALUE ->
+          closestValue(value, fromIndex, toIndexExclusive, valueAtIndexProvider, low);
       case MINUS_INSERTION_POINT -> -(low + 1);
       case GREATER_EQUALS ->
           greaterEquals(value, fromIndex, toIndexExclusive, valueAtIndexProvider, low);
@@ -335,18 +433,23 @@ public class BinarySearch {
     };
   }
 
-  private static int closestValue(final double value, final int toIndex,
-      final IntToDoubleFunction valueAtIndexProvider, final int index) {
-    if (index >= toIndex) {
-      return toIndex - 1;
+  private static int closestValue(final double value, final int fromIndex,
+      final int toIndexExclusive, final IntToDoubleFunction valueAtIndexProvider, final int index) {
+    if (index >= toIndexExclusive) {
+      return toIndexExclusive - 1;
     }
+
+    // should not happen because index is never below fromIndex
+//    if (index < fromIndex) {
+//      return -1;
+//    }
     // might be higher or lower
     final double adjacentValue = valueAtIndexProvider.applyAsDouble(index);
     // check for closest distance to value
-    if (adjacentValue <= value && index + 1 < toIndex) {
+    if (adjacentValue <= value && index + 1 < toIndexExclusive) {
       final double higherValue = valueAtIndexProvider.applyAsDouble(index + 1);
       return (Math.abs(value - adjacentValue) <= Math.abs(higherValue - value)) ? index : index + 1;
-    } else if (adjacentValue > value && index - 1 >= 0) {
+    } else if (adjacentValue > value && index - 1 >= fromIndex) {
       final double lowerValue = valueAtIndexProvider.applyAsDouble(index - 1);
       return (Math.abs(value - adjacentValue) <= Math.abs(lowerValue - value)) ? index : index - 1;
     } else {
@@ -357,10 +460,15 @@ public class BinarySearch {
 
   private static int lessEquals(final double value, final int fromIndex, final int toIndex,
       final IntToDoubleFunction valueAtIndexProvider, final int index) {
-    // toIndex exclusive
+    // index might be above toIndex
     if (index >= toIndex) {
       return toIndex - 1;  // last value
     }
+
+    // should not happen because index is never below fromIndex
+//    if (index < fromIndex) {
+//      return -1;
+//    }
     // might be higher or lower
     final double adjacentValue = valueAtIndexProvider.applyAsDouble(index);
     if (adjacentValue <= value) {
@@ -374,12 +482,15 @@ public class BinarySearch {
 
   private static int greaterEquals(final double value, final int fromIndex, final int toIndex,
       final IntToDoubleFunction valueAtIndexProvider, final int index) {
+    // should not happen because index is never below fromIndex
     if (index >= toIndex) {
       return -1;
     }
-    if (index < fromIndex) {
-      return fromIndex;
-    }
+    
+    // should not happen because index is never below fromIndex
+//    if (index < fromIndex) {
+//      return -1;
+//    }
     // might be higher or lower
     final double adjacentValue = valueAtIndexProvider.applyAsDouble(index);
     if (adjacentValue >= value) {
@@ -396,6 +507,25 @@ public class BinarySearch {
    */
   public enum DefaultTo {
     CLOSEST_VALUE, MINUS_INSERTION_POINT, GREATER_EQUALS, LESS_EQUALS;
+
+    public int decideFor(final float value, final int minInclusive, final int maxExclusive) {
+      int rounded = switch (this) {
+        case CLOSEST_VALUE -> Math.round(value);
+        case MINUS_INSERTION_POINT -> -(((int) value) + 1);
+        case GREATER_EQUALS -> (int) Math.ceil(value);
+        case LESS_EQUALS -> (int) Math.floor(value);
+      };
+      return withinBounds(rounded, minInclusive, maxExclusive);
+    }
   }
 
+  /**
+   * Regular bounds check
+   *
+   * @return value in truncated to min and max values, if value less than min then return min, if
+   * value greater maxExclusive -1 return this
+   */
+  private static int withinBounds(int value, int minInclusive, int maxExclusive) {
+    return Math.min(Math.max(value, minInclusive), maxExclusive - 1);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,6 +50,7 @@ import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParame
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.ResultsTextPane;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -136,6 +137,8 @@ public class LibrarySubmitTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
+    final IntensityNormalizer normalizer = IntensityNormalizer.createDefault();
+
     for (Entry<LibrarySubmitIonParameters, DataPoint[]> e : map.entrySet()) {
       LibrarySubmitIonParameters param = e.getKey();
       DataPoint[] dps = e.getValue();
@@ -145,7 +148,7 @@ public class LibrarySubmitTask extends AbstractTask {
       if (dps != null && dps.length > 2) {
         // export / submit json?
         if (fileJson != null || submitGNPS) {
-          String json = MZmineJsonGenerator.generateJSON(param, dps);
+          String json = MZmineJsonGenerator.generateJSON(param, dps, normalizer);
           log.info(json);
           if (saveLocal && fileJson != null) {
             if (writeToLocalGnpsJsonFile(fileJson, json)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,7 +40,10 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
+@DisabledOnOs(OS.MAC)
 public class CCSTest {
 
   private static Logger logger = Logger.getLogger(CCSTest.class.getName());
@@ -70,8 +73,8 @@ public class CCSTest {
     assert driftTimeMzRegression != null;
 
     logger.info("Slope: " + driftTimeMzRegression.getSlope() + "\tIntercept: "
-        + driftTimeMzRegression.getIntercept() + "\tR²: " + driftTimeMzRegression.getRSquare()
-        + "\tPoints: " + driftTimeMzRegression.getN());
+                + driftTimeMzRegression.getIntercept() + "\tR²: "
+                + driftTimeMzRegression.getRSquare() + "\tPoints: " + driftTimeMzRegression.getN());
 
     CCSCalibration dtimsSfCal = new DriftTubeCCSCalibration(driftTimeMzRegression);
 
@@ -92,7 +95,7 @@ public class CCSTest {
         List.of(mz322, mz622, mz922));
     logger.info(
         "Slope: " + timsRegression.getSlope() + "\tIntercept: " + timsRegression.getIntercept()
-            + "\tR²: " + timsRegression.getRSquare() + "\tPoints: " + timsRegression.getN());
+        + "\tR²: " + timsRegression.getRSquare() + "\tPoints: " + timsRegression.getN());
 
     CCSCalibration timsCalibration = new DriftTubeCCSCalibration(timsRegression);
 

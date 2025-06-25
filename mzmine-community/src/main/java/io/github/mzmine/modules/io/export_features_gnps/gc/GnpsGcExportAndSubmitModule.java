@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,7 +57,9 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class GnpsGcExportAndSubmitModule implements MZmineProcessingModule {
-  private final Logger logger = Logger.getLogger(getClass().getName());
+
+  private static final Logger logger = Logger.getLogger(
+      GnpsGcExportAndSubmitModule.class.getName());
 
   private static final String MODULE_NAME = "Export to GNPS-GC-MS (with ADAP)";
   private static final String MODULE_DESCRIPTION =

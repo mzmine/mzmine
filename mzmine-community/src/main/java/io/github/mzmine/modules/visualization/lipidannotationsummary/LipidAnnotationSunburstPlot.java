@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2024 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.visualization.lipidannotationsummary;
 
 import eu.hansolo.fx.charts.SunburstChart;
@@ -7,6 +32,7 @@ import eu.hansolo.fx.charts.data.TreeNode;
 import eu.hansolo.fx.charts.tools.TextOrientation;
 import eu.hansolo.fx.charts.tools.VisibleData;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidAnnotation;
@@ -75,7 +101,8 @@ public class LipidAnnotationSunburstPlot extends SunburstChart {
     int colorIndex = 1;
     for (Entry<LipidCategories, Map<LipidMainClasses, Map<ILipidClass, List<ILipidAnnotation>>>> entry : lipidCategoryToMainClassMap.entrySet()) {
       int categoryValue = getCategoryLipidAnnotationCount(entry);
-      Color categoryColor = MZmineCore.getConfiguration().getDefaultColorPalette().get(colorIndex);
+      Color categoryColor = ConfigService.getConfiguration().getDefaultColorPalette()
+          .get(colorIndex);
       TreeNode lipidCategoryTreeNode = includeLipidCategory ? new TreeNode(
           new ChartItem(categoryValue + "\n" + entry.getKey().getAbbreviation(), categoryValue,
               categoryColor), treeNodeDataset) : null;

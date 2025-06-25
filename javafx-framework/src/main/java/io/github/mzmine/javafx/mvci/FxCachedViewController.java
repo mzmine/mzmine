@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * MVCI controller with cached view. This is usually used when a view is expansive to create and may
- * be removed/added from/to the scene graph often. Otherwise, use the base implementation {@link FxController}
+ * be removed/added from/to the scene graph often. Otherwise, use the base implementation
+ * {@link FxController}
  */
 public abstract class FxCachedViewController<ViewModelClass> extends FxController<ViewModelClass> {
 
@@ -43,22 +44,12 @@ public abstract class FxCachedViewController<ViewModelClass> extends FxControlle
   }
 
   /**
-   * The cached view which is automatically created if not yet exists
-   *
-   * @return cached or new view
+   * Returns cached view or builds it if null
    */
-  public @NotNull Region getCachedView() {
+  public synchronized @NotNull Region buildView() {
     if (cachedView == null) {
-      return buildView();
+      cachedView = super.buildView();
     }
-    return cachedView;
-  }
-
-  /**
-   * Creates a view and sets the cached internal instance
-   */
-  public @NotNull Region buildView() {
-    cachedView = super.buildView();
     return cachedView;
   }
 
@@ -67,7 +58,7 @@ public abstract class FxCachedViewController<ViewModelClass> extends FxControlle
    *
    * @return the old view
    */
-  public @Nullable Region clearCachedView() {
+  public synchronized @Nullable Region clearCachedView() {
     Region internalView = cachedView;
     cachedView = null;
     return internalView;

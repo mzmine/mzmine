@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TopNSelectionModule implements PrecursorSelectionModule {
+
+  private final int numPrecursors;
+
+  // required default constructor for config
+  public TopNSelectionModule() {
+    numPrecursors = 5;
+  }
+
+  public TopNSelectionModule(ParameterSet parameters) {
+    numPrecursors = parameters.getValue(TopNSelectionParameters.numPrecursors);
+  }
+
 
   public static Map<MaldiTimsPrecursor, List<MaldiTimsPrecursor>> findOverlaps(
       List<MaldiTimsPrecursor> precursors, final double mobilityGap) {
@@ -138,7 +150,7 @@ public class TopNSelectionModule implements PrecursorSelectionModule {
     final float upperBound = Math.max(p1.mobility().lowerEndpoint(), p2.mobility().lowerEndpoint());
 
     return p1.mobility().isConnected(p2.mobility())
-        || Math.abs(lowerBound - upperBound) < minDistance;
+           || Math.abs(lowerBound - upperBound) < minDistance;
   }
 
   @Override
@@ -153,9 +165,7 @@ public class TopNSelectionModule implements PrecursorSelectionModule {
 
   @Override
   public List<List<MaldiTimsPrecursor>> getPrecursorList(Collection<MaldiTimsPrecursor> precursors,
-      ParameterSet parameters, final double mobilityGap) {
-    final int numPrecursors = parameters.getValue(TopNSelectionParameters.numPrecursors);
-
+      final double mobilityGap) {
     // get the top N precursors
     final List<MaldiTimsPrecursor> precursorSorted = new ArrayList<>(precursors.stream()
         .sorted((p1, p2) -> -1 * Float.compare(p1.feature().getHeight(), p2.feature().getHeight()))

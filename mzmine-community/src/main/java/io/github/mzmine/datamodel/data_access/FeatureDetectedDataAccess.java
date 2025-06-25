@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.data_access;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.List;
@@ -66,7 +67,22 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
    * @param dataFile define the data file in an aligned feature list
    */
   protected FeatureDetectedDataAccess(FeatureList flist, @Nullable RawDataFile dataFile) {
-    super(flist, dataFile);
+    this(flist, dataFile, null);
+  }
+
+  /**
+   * Access the chromatographic data of features in a feature list sorted by scan ID (usually sorted
+   * by retention time). Uses only data points currently assigned to features. This differs for
+   * chromatograms and resolved features
+   *
+   * @param flist                       target feature list. Loops through all features in dataFile
+   * @param dataFile                    define the data file in an aligned feature list
+   * @param binningMobilogramDataAccess access mobilogram data, only present for mobility data, null
+   *                                    otherwise. Checks are done internally
+   */
+  protected FeatureDetectedDataAccess(FeatureList flist, @Nullable RawDataFile dataFile,
+      @Nullable BinningMobilogramDataAccess binningMobilogramDataAccess) {
+    super(flist, dataFile, binningMobilogramDataAccess);
 
     // detected data points currently on feature/chromatogram
     int detected = getMaxNumOfDetectedDataPoints();
@@ -78,6 +94,11 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
   public List<Scan> getSpectra() {
     assert featureData != null;
     return featureData.getSpectra();
+  }
+
+  @Override
+  public List<Scan> getSpectraModifiable() {
+    return (List<Scan>) getOriginalSeries().getSpectraModifiable();
   }
 
 
@@ -115,8 +136,8 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
 
   /**
    * Set the data to the next feature, if available. Returns the feature for additional data access.
-   * retention time and intensity values should be accessed from this data class via {@link
-   * #getRetentionTime(int)} and {@link #getIntensity(int)}
+   * retention time and intensity values should be accessed from this data class via
+   * {@link #getRetentionTime(int)} and {@link #getIntensity(int)}
    *
    * @return the feature or null
    */
@@ -124,11 +145,31 @@ public class FeatureDetectedDataAccess extends FeatureDataAccess {
   public Feature nextFeature() {
     super.nextFeature();
     if (feature != null) {
-        featureData.getMzValues(mzs);
-        featureData.getIntensityValues(intensities);
-        currentNumberOfDataPoints = featureData.getNumberOfValues();
+      featureData.getMzValues(mzs);
+      featureData.getIntensityValues(intensities);
+      currentNumberOfDataPoints = featureData.getNumberOfValues();
     }
     return feature;
+  }
+
+  @Override
+  public double[] getIntensityValues() {
+    return intensities;
+  }
+
+  @Override
+  public double[] getMzValues() {
+    return mzs;
+  }
+
+  @Override
+  public int getMaxNumberOfValues() {
+    return mzs.length;
+  }
+
+  @Override
+  public IonTimeSeries<Scan> emptySeries() {
+    return featureData.emptySeries();
   }
 
 }

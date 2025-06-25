@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,12 +41,14 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class MSPEntryGenerator {
 
@@ -136,7 +138,8 @@ public class MSPEntryGenerator {
   /**
    * Creates a simple MSP nist format DB entry
    */
-  public static String createMSPEntry(SpectralLibraryEntry entry) {
+  public static String createMSPEntry(SpectralLibraryEntry entry,
+      @NotNull final IntensityNormalizer normalizer) {
 
     String def = ": ";
     String br = "\n";
@@ -152,13 +155,13 @@ public class MSPEntryGenerator {
           .ifPresent(value -> s.append(field.getNistMspID()).append(def).append(value).append(br));
     }
     var polarity = entry.getPolarity();
-    if(polarity.isDefined()) {
+    if (polarity.isDefined()) {
       String pol = PolarityType.POSITIVE.equals(polarity) ? "P" : "N";
       s.append(DBEntryField.POLARITY.getNistMspID()).append(def).append(pol).append(br);
     }
 
     // num peaks and data
-    DataPoint[] dps = entry.getDataPoints();
+    DataPoint[] dps = normalizer.normalize(entry.getDataPoints());
     s.append(DBEntryField.NUM_PEAKS.getNistMspID()).append(def).append(dps.length).append(br);
 
     NumberFormat mzForm = new DecimalFormat("0.######");

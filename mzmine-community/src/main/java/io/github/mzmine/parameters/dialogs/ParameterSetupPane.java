@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,13 +25,16 @@
 
 package io.github.mzmine.parameters.dialogs;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.EmbeddedParameterComponentProvider;
+import io.github.mzmine.parameters.FullColumnComponent;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.AdvancedParametersComponent;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComponent;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,6 +63,7 @@ import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class represents a basic pane for parameter setup when the {@link ParameterSetupDialog} is
@@ -67,7 +71,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  */
 @SuppressWarnings("rawtypes")
-public class ParameterSetupPane extends BorderPane {
+public class ParameterSetupPane extends BorderPane implements EmbeddedParameterComponentProvider {
 
   public static final Logger logger = Logger.getLogger(ParameterSetupPane.class.getName());
   protected final URL helpURL;
@@ -79,10 +83,10 @@ public class ParameterSetupPane extends BorderPane {
   // if needed.
   protected final ButtonBar pnlButtons;
   // Footer message
+  @Nullable
   protected final Region footerMessage;
   // the centerPane is empty and used as the main container for all parameter components
   protected final BorderPane mainPane;
-  protected final ScrollPane mainScrollPane;
   protected final BorderPane centerPane;
   // If true, the dialog won't allow the OK button to proceed, unless all
   // parameters pass the value check. This is undesirable in the BatchMode
@@ -109,7 +113,7 @@ public class ParameterSetupPane extends BorderPane {
    * @param message: html-formatted text
    */
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, Region message) {
+      boolean addOkButton, @Nullable Region message) {
     this(valueCheckRequired, parameters, addOkButton, false, message, true, true);
   }
 
@@ -119,18 +123,27 @@ public class ParameterSetupPane extends BorderPane {
    * @param message: html-formatted text
    */
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, Region message, boolean addParamComponents) {
+      boolean addOkButton, boolean addCancelButton, @Nullable Region message, boolean addParamComponents) {
     this(valueCheckRequired, parameters, addOkButton, addCancelButton, message, addParamComponents,
         true);
   }
 
   /**
    * Method to display setup dialog with a html-formatted footer message at the bottom.
-   *
    */
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, Region message, boolean addParamComponents,
+      boolean addOkButton, boolean addCancelButton, @Nullable Region message, boolean addParamComponents,
       boolean addHelp) {
+    this(valueCheckRequired, parameters, addOkButton, addCancelButton, message, addParamComponents,
+        addHelp, true);
+  }
+
+  /**
+   * Method to display setup dialog with a html-formatted footer message at the bottom.
+   */
+  public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
+      boolean addOkButton, boolean addCancelButton, @Nullable Region message, boolean addParamComponents,
+      boolean addHelp, boolean addScrollPane) {
     this.valueCheckRequired = valueCheckRequired;
     this.parameterSet = parameters;
     this.helpURL = parameters.getClass().getResource("help/help.html");
@@ -140,16 +153,23 @@ public class ParameterSetupPane extends BorderPane {
     mainPane = this;
 
     // Use main CSS
-    getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    if(DesktopService.isGUI()) {
+      // may be called in headless mode for graphics export
+      getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    }
 
     centerPane = new BorderPane();
 
-    mainScrollPane = new ScrollPane(centerPane);
-    // mainScrollPane.setStyle("-fx-border-color: red;");
-    mainScrollPane.setFitToWidth(true);
-    mainScrollPane.setFitToHeight(true);
-    mainScrollPane.setPadding(new Insets(10.0));
-    mainPane.setCenter(mainScrollPane);
+    if (addScrollPane) {
+      ScrollPane mainScrollPane = new ScrollPane(centerPane);
+      // mainScrollPane.setStyle("-fx-border-color: red;");
+      mainScrollPane.setFitToWidth(true);
+      mainScrollPane.setFitToHeight(true);
+      mainScrollPane.setPadding(new Insets(10.0));
+      mainPane.setCenter(mainScrollPane);
+    } else {
+      mainPane.setCenter(centerPane);
+    }
 
     // Add buttons to the ButtonBar
     pnlButtons = new ButtonBar();
@@ -209,14 +229,36 @@ public class ParameterSetupPane extends BorderPane {
       mainPane.setTop(pane);
     }
 
-//    setMinWidth(500.0);
-//    setMinHeight(400.0);
+    // do not set min height - this works badly with {@link ModuleOptionsEnumComponent}
+    // which then does not scale well or when too small crunches multiple components above each other
+    setMinWidth(300.0);
+  }
+
+  /**
+   * Embedded parameter setup pane without scroll pane and with all components initialized
+   *
+   * @param onParametersChanged run this method if parameters change through their components
+   */
+  @NotNull
+  public static ParameterSetupPane createEmbedded(final boolean valueCheckRequired,
+      final ParameterSet parameters, Runnable onParametersChanged) {
+    return new ParameterSetupPane(valueCheckRequired, parameters, false, false, null, true, false,
+        false) {
+      @Override
+      protected void parametersChanged() {
+        if (onParametersChanged != null) {
+          onParametersChanged.run();
+        }
+      }
+    };
   }
 
   public BorderPane getCenterPane() {
     return centerPane;
   }
 
+  @Override
+  @NotNull
   public Map<String, Node> getParametersAndComponents() {
     return parametersAndComponents;
   }
@@ -261,6 +303,9 @@ public class ParameterSetupPane extends BorderPane {
      * content's size preferences and constraints.
      */
     ColumnConstraints column1 = new ColumnConstraints();
+    column1.setHgrow(Priority.SOMETIMES);
+    column1.setMinWidth(USE_PREF_SIZE);
+    column1.setPrefWidth(Region.USE_COMPUTED_SIZE);
     ColumnConstraints column2 = new ColumnConstraints();
     column2.setFillWidth(true);
     column2.setHgrow(Priority.ALWAYS);
@@ -321,9 +366,11 @@ public class ParameterSetupPane extends BorderPane {
 
       RowConstraints rowConstraints = new RowConstraints();
       rowConstraints.setVgrow(up.getComponentVgrowPriority());
-      if (comp instanceof AdvancedParametersComponent) {
+      rowConstraints.setMinHeight(USE_PREF_SIZE);
+      rowConstraints.setPrefHeight(USE_COMPUTED_SIZE);
+      if (comp instanceof FullColumnComponent) {
         paramsPane.add(comp, 0, rowCounter, 2, 1);
-        rowConstraints.setVgrow(Priority.SOMETIMES);
+//        rowConstraints.setVgrow(Priority.NEVER);
       } else {
         paramsPane.add(label, 0, rowCounter);
         paramsPane.add(comp, 1, rowCounter, 1, 1);
@@ -410,26 +457,26 @@ public class ParameterSetupPane extends BorderPane {
     if (node instanceof TextField textField) {
       textField.textProperty()
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
-    }
-    if (node instanceof ComboBox<?> comboComp) {
+    } else if (node instanceof ComboBox<?> comboComp) {
       comboComp.valueProperty()
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
-    }
-    if (node instanceof ChoiceBox) {
+    } else if (node instanceof ChoiceBox) {
       ChoiceBox<?> choiceBox = (ChoiceBox) node;
       choiceBox.valueProperty()
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
-    }
-    if (node instanceof CheckBox checkBox) {
+    } else if (node instanceof CheckBox checkBox) {
       checkBox.selectedProperty()
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
-    }
-    if (node instanceof ListView listview) {
+    } else if (node instanceof ListView listview) {
       listview.getItems().addListener((ListChangeListener) change -> parametersChanged());
-    }
-    if (node instanceof Region panelComp) {
-      for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {
-        Node child = panelComp.getChildrenUnmodifiable().get(i);
+    } else if (node instanceof ModuleOptionsEnumComponent<?> options) {
+      options.addSubParameterChangedListener(this::parametersChanged);
+    } else if (node instanceof EmbeddedParameterComponentProvider prov) {
+      for (final Node child : prov.getComponents()) {
+        addListenersToNode(child);
+      }
+    } else if (node instanceof Region panelComp) {
+      for (final Node child : panelComp.getChildrenUnmodifiable()) {
         addListenersToNode(child);
       }
     }
@@ -461,4 +508,5 @@ public class ParameterSetupPane extends BorderPane {
     // this way its always right next to OK button
     ButtonBar.setButtonData(btnCheck, ButtonData.OK_DONE);
   }
+
 }

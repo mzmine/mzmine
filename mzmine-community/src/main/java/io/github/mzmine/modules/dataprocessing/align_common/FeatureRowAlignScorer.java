@@ -35,9 +35,11 @@ import io.github.mzmine.taskcontrol.Task;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.logging.Logger;
 
 public interface FeatureRowAlignScorer {
 
+  static final Logger logger = Logger.getLogger(FeatureRowAlignScorer.class.getName());
   /**
    * Align rows on base rows
    *
@@ -53,13 +55,17 @@ public interface FeatureRowAlignScorer {
     final ConcurrentLinkedDeque<RowVsRowScore> scoresList = new ConcurrentLinkedDeque<>();
 
     // stream all rows in all feature lists
-    unalignedRows.stream().flatMap(Collection::stream).parallel().forEach(rowToAdd -> {
-      if (parentTask.isCanceled()) {
-        return;
-      }
+    final long scoredRows = unalignedRows.stream().flatMap(Collection::stream).parallel()
+        .mapToLong(rowToAdd -> {
+          if (parentTask.isCanceled()) {
+            return 1L;
+          }
 
-      scoreRowAgainstBaseRows(baseRowsSorted, rowToAdd, scoresList);
-    });
+          scoreRowAgainstBaseRows(baseRowsSorted, rowToAdd, scoresList);
+          return 1L;
+        }).sum();
+
+    logger.finest(() -> String.format("Scored %d/%d rows", scoredRows, unalignedRows.size()));
     return scoresList;
   }
 

@@ -66,8 +66,8 @@ public class FeatureShapeChart extends BufferedChartNode {
       }
       IonTimeSeries<? extends Scan> dpSeries = f.getFeatureData();
       if (dpSeries != null) {
-        ColoredXYDataset dataset = new ColoredXYDataset(
-            new IonTimeSeriesToXYProvider(f), RunOption.THIS_THREAD);
+        ColoredXYDataset dataset = new ColoredXYDataset(new IonTimeSeriesToXYProvider(f),
+            RunOption.THIS_THREAD);
         datasets.add(dataset);
       }
       if (progress != null) {
@@ -108,13 +108,12 @@ public class FeatureShapeChart extends BufferedChartNode {
     try {
       chart.getXYPlot().getDomainAxis().setRange(defaultRange);
       chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
-    } catch (NoSuchElementException ex) {
+    } catch (NullPointerException | NoSuchElementException ex) {
       // error in jfreechart draw method
     }
 
-    var width = GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH;
-    var height = GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT;
     // set the chart to create a buffered image
-    setChartCreateImage(chart, width, height);
+    setChartCreateImage(chart, GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
+        GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
   }
 }

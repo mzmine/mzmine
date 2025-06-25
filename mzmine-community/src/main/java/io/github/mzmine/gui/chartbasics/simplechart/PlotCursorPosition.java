@@ -25,16 +25,17 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
+import io.github.mzmine.gui.chartbasics.gui.wrapper.MouseEventWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.data.xy.XYDataset;
 
 /**
- * Contains information about the currently selected point. The point is determined by the {@link
- * org.jfree.chart.plot.XYPlot#getDomainCrosshairValue()} and {@link
- * org.jfree.chart.plot.XYPlot#getRangeCrosshairValue()} methods. A listener can be added via the
- * {@link SimpleXYChart#cursorPositionProperty()}.
+ * Contains information about the currently selected point. The point is determined by the
+ * {@link org.jfree.chart.plot.XYPlot#getDomainCrosshairValue()} and
+ * {@link org.jfree.chart.plot.XYPlot#getRangeCrosshairValue()} methods. A listener can be added via
+ * the {@link SimpleXYChart#cursorPositionProperty()}.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -47,6 +48,7 @@ public class PlotCursorPosition {
   final double zValue;
   final XYDataset dataset;
   final int valueIndex;
+  private MouseEventWrapper mouseEvent;
 
   public PlotCursorPosition(final double domainVal, final double rangeVal, final double zValue,
       final int valueIndex, final XYDataset dataset) {
@@ -101,14 +103,23 @@ public class PlotCursorPosition {
       return false;
     }
     PlotCursorPosition that = (PlotCursorPosition) o;
-    return Double.compare(that.getRangeValue(), getRangeValue()) == 0 &&
-        Double.compare(that.getDomainValue(), getDomainValue()) == 0 &&
-        getValueIndex() == that.getValueIndex() &&
-        Objects.equals(getDataset(), that.getDataset());
+    return Double.compare(that.getRangeValue(), getRangeValue()) == 0
+        && Double.compare(that.getDomainValue(), getDomainValue()) == 0
+        && getValueIndex() == that.getValueIndex() && Objects.equals(getDataset(),
+        that.getDataset());
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(getRangeValue(), getDomainValue(), getDataset(), getValueIndex());
+  }
+
+  public void setMouseEvent(MouseEventWrapper e) {
+    this.mouseEvent = e;
+  }
+
+  @Nullable
+  public MouseEventWrapper getMouseEvent() {
+    return mouseEvent;
   }
 }

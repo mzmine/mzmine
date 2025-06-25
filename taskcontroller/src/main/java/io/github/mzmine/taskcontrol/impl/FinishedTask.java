@@ -63,4 +63,5 @@ public class FinishedTask extends AbstractTask {
     return finishedPercentage;
   }
 
+
 }

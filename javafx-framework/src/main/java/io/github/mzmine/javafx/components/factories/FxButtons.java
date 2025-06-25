@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.util.IconCodeSupplier;
@@ -65,6 +66,12 @@ public class FxButtons {
     return createButton(label, tooltip, FxIconUtil.getFontIcon(icon), _ -> onAction.run());
   }
 
+  public static Button createButton(String label, String tooltip,
+      EventHandler<ActionEvent> onAction) {
+    return createButton(label, tooltip, null, onAction);
+  }
+
+  
   public static Button createButton(@Nullable String label, @Nullable String tooltip,
       @Nullable Node icon, EventHandler<ActionEvent> onAction) {
     Button b = new Button(label, icon);
@@ -97,14 +104,32 @@ public class FxButtons {
   }
 
   public static Button createSaveButton(Runnable runnable) {
-    return createButton("Save", null, FxIconUtil.getFontIcon(FxIcons.SAVE), runnable);
+    return createSaveButton("Save", runnable);
+  }
+
+  public static Button createSaveButton(String text, Runnable runnable) {
+    return createButton(text, null, FxIconUtil.getFontIcon(FxIcons.SAVE), runnable);
   }
 
   public static Button createLoadButton(Runnable runnable) {
-    return createButton("Load", null, FxIconUtil.getFontIcon(FxIcons.LOAD), runnable);
+    return createLoadButton("Load", runnable);
+  }
+
+  public static Button createLoadButton(String text, Runnable runnable) {
+    return createButton(text, null, FxIconUtil.getFontIcon(FxIcons.LOAD), runnable);
   }
 
   public static Button createCancelButton(Runnable runnable) {
-    return createButton("Cancel", null, FxIconUtil.getFontIcon(FxIcons.CANCEL), runnable);
+    return createCancelButton("Cancel", runnable);
+  }
+
+  public static Button createCancelButton(String text, Runnable runnable) {
+    return createButton(text, null, FxIconUtil.getFontIcon(FxIcons.CANCEL), runnable);
+  }
+
+  public static Button createHelpButton(String url) {
+    return FxButtons.createButton("Help", "Open the documentation",
+        FxIconUtil.getFontIcon(FxIcons.QUESTIONMARK),
+        () -> DesktopService.getDesktop().openWebPage(url));
   }
 }

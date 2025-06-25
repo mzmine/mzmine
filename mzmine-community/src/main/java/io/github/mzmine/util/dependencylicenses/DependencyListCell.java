@@ -70,8 +70,9 @@ public class DependencyListCell extends ListCell<Dependency> {
 
     itemProperty().subscribe(d -> {
       if (d != null) {
-        dependencyName.setText(STR."\{d.moduleName()
-            .substring(Math.max(d.moduleName().lastIndexOf(":") + 1, 0))} v\{d.moduleVersion()}");
+        dependencyName.setText(
+            d.moduleName().substring(Math.max(d.moduleName().lastIndexOf(":") + 1, 0)) + " v"
+                + d.moduleVersion());
         if (!d.moduleLicenses().isEmpty()) {
           link.setText(d.moduleLicenses().getFirst().moduleLicense());
           link.setDisable(false);

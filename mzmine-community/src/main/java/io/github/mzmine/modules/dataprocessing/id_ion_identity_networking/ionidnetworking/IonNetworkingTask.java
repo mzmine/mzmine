@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary.CheckMode;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementTask;
@@ -48,7 +49,6 @@ import io.github.mzmine.util.FeatureListUtils;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -120,6 +120,27 @@ public class IonNetworkingTask extends AbstractTask {
   @Override
   public void run() {
     try {
+      if (featureList.isEmpty()) {
+        // nothing to do
+        setStatus(TaskStatus.FINISHED);
+        return;
+      }
+      List<RowGroup> groups = featureList.getGroups();
+      if (groups == null || groups.isEmpty()) {
+        // check if processing contains metaCorrelate - otherwise error out
+
+        final boolean missesGroupingStep = featureList.getAppliedMethods().stream()
+            .noneMatch(m -> m.getModule() instanceof CorrelateGroupingModule);
+
+        if (missesGroupingStep) {
+          error("Run %s step before: No groups found for feature List %s".formatted(
+              CorrelateGroupingModule.NAME, featureList.getName()));
+        } else {
+          setStatus(TaskStatus.FINISHED);
+          return;
+        }
+      }
+
       setStatus(TaskStatus.PROCESSING);
       // create library
       LOG.info("Creating annotation library");
@@ -137,10 +158,8 @@ public class IonNetworkingTask extends AbstractTask {
               getModuleCallDate()));
       setStatus(TaskStatus.FINISHED);
     } catch (Exception t) {
-      LOG.log(Level.SEVERE, "Adduct search error", t);
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage(t.getMessage());
-      throw new MSDKRuntimeException(t);
+      // just nothing found. no exception actually
+      setStatus(TaskStatus.FINISHED);
     }
   }
 

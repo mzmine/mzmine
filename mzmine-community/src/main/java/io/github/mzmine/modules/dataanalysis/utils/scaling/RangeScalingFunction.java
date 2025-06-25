@@ -41,7 +41,14 @@ public class RangeScalingFunction implements ScalingFunction {
 
   @Override
   public RealVector apply(RealVector realVector) {
+    final double columnMin = realVector.getMinValue();
+
+    // create a new vector once
+    realVector = realVector.mapSubtract(columnMin);
     final double columnMax = realVector.getLInfNorm();
-    return realVector.mapDivide(columnMax / maxValue);
+
+    // apply to same vector now
+    realVector.mapDivideToSelf(columnMax / maxValue);
+    return realVector.mapToSelf(scalingResultChecker);
   }
 }

@@ -49,7 +49,7 @@ public class DefaultHeadlessDesktop implements Desktop {
 
   @Override
   public void setStatusBarText(String text, Color textColor, String url) {
-    logger.info("Status bar: "+text);
+    logger.info("Status bar: " + text);
   }
 
   @Override
@@ -91,7 +91,7 @@ public class DefaultHeadlessDesktop implements Desktop {
   }
 
   @Override
-  public ButtonType displayConfirmation(String msg, ButtonType... buttonTypes) {
+  public ButtonType displayConfirmation(final String title, String msg, ButtonType... buttonTypes) {
     throw new UnsupportedOperationException();
   }
 

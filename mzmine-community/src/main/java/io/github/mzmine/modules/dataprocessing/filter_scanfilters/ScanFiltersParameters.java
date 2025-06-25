@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters;
 
-import io.github.mzmine.modules.dataprocessing.filter_scanfilters.mean.MeanFilter;
-import io.github.mzmine.modules.dataprocessing.filter_scanfilters.resample.ResampleFilter;
-import io.github.mzmine.modules.dataprocessing.filter_scanfilters.roundresample.RndResampleFilter;
-import io.github.mzmine.modules.dataprocessing.filter_scanfilters.savitzkygolay.SGFilter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -36,12 +32,9 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 
 public class ScanFiltersParameters extends SimpleParameterSet {
-
-  public static final ScanFilter[] rawDataFilters = {new SGFilter(), new MeanFilter(),
-      new ResampleFilter(), new RndResampleFilter()};
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
@@ -51,8 +44,8 @@ public class ScanFiltersParameters extends SimpleParameterSet {
   public static final StringParameter suffix = new StringParameter("Suffix",
       "This string is added to filename as suffix", "filtered");
 
-  public static final ModuleComboParameter<ScanFilter> filter = new ModuleComboParameter<ScanFilter>(
-      "Filter", "Raw data filter", rawDataFilters, rawDataFilters[0]);
+  public static final ModuleOptionsEnumComboParameter<ScanFilters> filter = new ModuleOptionsEnumComboParameter<>(
+      "Filter", "Raw data filter", ScanFilters.SAVITZKY_GOLAY);
 
   public static final BooleanParameter autoRemove = new BooleanParameter(
       "Remove source file after filtering",

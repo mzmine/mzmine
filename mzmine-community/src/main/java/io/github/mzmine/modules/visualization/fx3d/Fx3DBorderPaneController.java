@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -79,9 +79,11 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * @author akshaj The controller class of the Fx3DVisualizer which handles all user actions and
- *         shows the plot along with the table.
+ * shows the plot along with the table.
  */
 public class Fx3DBorderPaneController {
+
+  private static final Logger logger = Logger.getLogger(Fx3DBorderPaneController.class.getName());
 
   //@FXML
   //private Stage stage;
@@ -134,7 +136,6 @@ public class Fx3DBorderPaneController {
   private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
   private final Translate translateX = new Translate();
   private final Translate translateY = new Translate();
-  private Logger logger = Logger.getLogger(this.getClass().getName());
   private int rtResolution, mzResolution;
   private double mousePosX, mousePosY;
   private double mouseOldX, mouseOldY;
@@ -145,8 +146,7 @@ public class Fx3DBorderPaneController {
 
   private double maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
 
-  private ObservableList<Fx3DAbstractDataset> visualizedMeshPlots =
-      FXCollections.observableArrayList();
+  private ObservableList<Fx3DAbstractDataset> visualizedMeshPlots = FXCollections.observableArrayList();
   private List<Object> visualizedFiles = new ArrayList<Object>();
   private ObservableList<Node> meshViewList = FXCollections.observableArrayList();
   private FeatureList[] allFeatureLists;
@@ -191,11 +191,12 @@ public class Fx3DBorderPaneController {
     colorCol.setCellFactory(column -> new ColorPickerTableCell<Fx3DAbstractDataset>(column));
     double minValue = 0;
     double maxValue = 1;
-    opacityCol
-        .setCellFactory(column -> new SliderCell<Fx3DAbstractDataset>(column, minValue, maxValue));
+    opacityCol.setCellFactory(
+        column -> new SliderCell<Fx3DAbstractDataset>(column, minValue, maxValue));
 
-    visibilityCol.setCellFactory(column -> new ButtonCell<Fx3DAbstractDataset>(column,
-        new Glyph("FontAwesome", "EYE"), new Glyph("FontAwesome", "EYE_SLASH")));
+    visibilityCol.setCellFactory(
+        column -> new ButtonCell<Fx3DAbstractDataset>(column, new Glyph("FontAwesome", "EYE"),
+            new Glyph("FontAwesome", "EYE_SLASH")));
     axesBtn.setSelected(true);
     lightsBtn.setSelected(true);
     addLights();
@@ -207,9 +208,10 @@ public class Fx3DBorderPaneController {
     tableView.setItems(visualizedMeshPlots);
     plot.getChildren().add(meshViews);
     plot.getChildren().add(lights);
-    allDataFiles = Arrays.asList(ProjectService.getProjectManager().getCurrentProject().getDataFiles());
-    allFeatureLists = ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists()
-        .toArray(new FeatureList[0]);
+    allDataFiles = Arrays.asList(
+        ProjectService.getProjectManager().getCurrentProject().getDataFiles());
+    allFeatureLists = ProjectService.getProjectManager().getCurrentProject()
+        .getCurrentFeatureLists().toArray(new FeatureList[0]);
     scene3D.widthProperty().bind(root.widthProperty());
     scene3D.heightProperty().bind(root.heightProperty());
     scene3D.setCamera(camera);
@@ -332,15 +334,16 @@ public class Fx3DBorderPaneController {
   }
 
   public void updateVisualizedFiles(Collection<? extends RawDataFile> rawDataFiles) {
-    if(rawDataFiles == null || rawDataFiles.isEmpty()) {
+    if (rawDataFiles == null || rawDataFiles.isEmpty()) {
       return;
     }
 
-    for(RawDataFile file : allDataFiles) {
-      if(rawDataFiles.contains(file)) {
+    for (RawDataFile file : allDataFiles) {
+      if (rawDataFiles.contains(file)) {
         if (!visualizedFiles.contains(file)) {
-          MZmineCore.getTaskController().addTask(new Fx3DSamplingTask(file, scanSel, mzRange,
-              rtResolution, mzResolution, this), TaskPriority.HIGH);
+          MZmineCore.getTaskController().addTask(
+              new Fx3DSamplingTask(file, scanSel, mzRange, rtResolution, mzResolution, this),
+              TaskPriority.HIGH);
         }
       } else {
         visualizedFiles.remove(file);
@@ -353,6 +356,7 @@ public class Fx3DBorderPaneController {
   }
 
   class SortByOpacity implements Comparator<Node> {
+
     @Override
     public int compare(Node a, Node b) {
       final Double aOpacity = a.getOpacity();
@@ -405,8 +409,9 @@ public class Fx3DBorderPaneController {
           public void handle(ActionEvent e) {
             logger.finest("Context menu invoked. Add Data file button clicked. Adding dataset "
                 + file.getName() + " to the plot.");
-            MZmineCore.getTaskController().addTask(new Fx3DSamplingTask(file, scanSel, mzRange,
-                rtResolution, mzResolution, controller), TaskPriority.HIGH);
+            MZmineCore.getTaskController().addTask(
+                new Fx3DSamplingTask(file, scanSel, mzRange, rtResolution, mzResolution,
+                    controller), TaskPriority.HIGH);
             addMenuItems();
           }
         });
@@ -435,9 +440,9 @@ public class Fx3DBorderPaneController {
                 public void handle(ActionEvent e) {
                   logger.finest("Context menu invoked. Add Feature button clicked. Adding dataset "
                       + feature.toString() + " to the plot.");
-                  Fx3DFeatureDataset featureDataset =
-                      new Fx3DFeatureDataset(feature, rtResolution, mzResolution, rtRange, mzRange,
-                          maxOfAllBinnedIntensity, Color.rgb(165, 42, 42, 0.9));
+                  Fx3DFeatureDataset featureDataset = new Fx3DFeatureDataset(feature, rtResolution,
+                      mzResolution, rtRange, mzRange, maxOfAllBinnedIntensity,
+                      Color.rgb(165, 42, 42, 0.9));
                   addDataset(featureDataset);
                   addMenuItems();
                 }
@@ -458,9 +463,9 @@ public class Fx3DBorderPaneController {
     }
     //stage.setTitle(title);
     title = "3D plot of files [" + title + "], " + mzRange.lowerEndpoint().toString() + "-"
-        + mzRange.upperEndpoint().toString() + " m/z, RT "
-        + (float) (Math.round(rtRange.lowerEndpoint() * 100.0) / 100.0) + "-"
-        + (float) (Math.round(rtRange.upperEndpoint() * 100.0) / 100.0) + " min";
+        + mzRange.upperEndpoint().toString() + " m/z, RT " + (float) (
+        Math.round(rtRange.lowerEndpoint() * 100.0) / 100.0) + "-" + (float) (
+        Math.round(rtRange.upperEndpoint() * 100.0) / 100.0) + " min";
 
     label.setText(title);
     label.setTextFill(Color.WHITE);
@@ -694,11 +699,13 @@ public class Fx3DBorderPaneController {
 
   private static double clamp(double value, double min, double max) {
 
-    if (Double.compare(value, min) < 0)
+    if (Double.compare(value, min) < 0) {
       return min;
+    }
 
-    if (Double.compare(value, max) > 0)
+    if (Double.compare(value, max) > 0) {
       return max;
+    }
 
     return value;
   }

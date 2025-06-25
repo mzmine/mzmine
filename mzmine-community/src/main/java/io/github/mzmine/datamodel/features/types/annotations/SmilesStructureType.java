@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,7 +40,7 @@ public class SmilesStructureType extends StringType implements EditableColumnTyp
 
   @NotNull
   @Override
-  public final String getUniqueID() {
+  public String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
     return "smiles";
   }

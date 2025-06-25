@@ -27,9 +27,9 @@ package io.github.mzmine.modules.io.export_features_gnps.masst;
 
 import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
-import static io.github.mzmine.javafx.components.factories.FxTexts.masstPaper;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
@@ -99,7 +99,8 @@ public class GnpsMasstSubmitParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
         boldText("About the Mass Spectrometry Search Tool (MASST) direct submission:"), linebreak(),
-        text("When using MASST please cite:"), linebreak(), masstPaper);
+        text("When using MASST please cite:"), linebreak(),
+        ArticleReferences.MASST.hyperlinkText());
 
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();

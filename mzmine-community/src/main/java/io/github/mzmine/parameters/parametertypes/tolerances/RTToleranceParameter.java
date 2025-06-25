@@ -35,13 +35,14 @@ import org.w3c.dom.Element;
 
 public class RTToleranceParameter implements UserParameter<RTTolerance, RTToleranceComponent> {
 
+  private static final String DEFAULT_NAME = "Retention time tolerance";
+  private static final String DEFAULT_DESC = "Maximum allowed difference between two retention time values";
   private final ObservableList<Unit> toleranceTypes;
   private String name, description;
   private RTTolerance value;
 
   public RTToleranceParameter() {
-    this("Retention time tolerance",
-        "Maximum allowed difference between two retention time values");
+    this(DEFAULT_NAME, DEFAULT_DESC);
   }
 
   public RTToleranceParameter(String name, String description) {
@@ -58,6 +59,14 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
   public RTToleranceParameter(String name, String description, RTTolerance defaultValue) {
     this.name = name;
     this.description = description;
+    this.value = defaultValue;
+    this.toleranceTypes = FXCollections.observableArrayList(RTTolerance.Unit.values());
+  }
+
+  public RTToleranceParameter(RTTolerance defaultValue) {
+    this.name = DEFAULT_NAME;
+    this.description = DEFAULT_DESC;
+    ;
     this.value = defaultValue;
     this.toleranceTypes = FXCollections.observableArrayList(RTTolerance.Unit.values());
   }

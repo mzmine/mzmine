@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,7 +49,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ScanSmoothingTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(ScanSmoothingTask.class.getName());
 
   private final MZmineProject project;
   private final RawDataFile dataFile;
@@ -106,10 +106,11 @@ public class ScanSmoothingTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (totalScans == 0)
+    if (totalScans == 0) {
       return 0;
-    else
+    } else {
       return (double) processedScans / totalScans;
+    }
   }
 
   public RawDataFile getDataFile() {
@@ -139,8 +140,9 @@ public class ScanSmoothingTask extends AbstractTask {
       int i, j, si, sj, ii, k, ssi, ssj;
       for (i = 0; i < totalScans; i++) {
 
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
 
         // Smoothing in TIME space
         Scan scan = scanNumbers.get(i);
@@ -182,8 +184,9 @@ public class ScanSmoothingTask extends AbstractTask {
             if (sj > si) {
               timepassed++;
               // Allocate
-              if (mzValues == null || mzValues.length < sj - si + 1)
+              if (mzValues == null || mzValues.length < sj - si + 1) {
                 mzValues = new DataPoint[sj - si + 1][];
+              }
               // Load Data Points
               for (j = si; j <= sj; j++) {
                 Scan xscan = scanNumbers.get(j);
@@ -237,10 +240,12 @@ public class ScanSmoothingTask extends AbstractTask {
               double mz = newDP[k].getMZ();
               double intensidad = 0;
               if (newDP[k].getIntensity() > 0) {
-                for (si = k; si > 0
-                    && (newDP[si].getMZ() + mzTol >= mz || k - si <= mzPoints); si--);
-                for (sj = k; sj < newDP.length - 1
-                    && (newDP[sj].getMZ() - mzTol <= mz || sj - k <= mzPoints); sj++);
+                for (si = k; si > 0 && (newDP[si].getMZ() + mzTol >= mz || k - si <= mzPoints);
+                    si--)
+                  ;
+                for (sj = k; sj < newDP.length - 1 && (newDP[sj].getMZ() - mzTol <= mz
+                    || sj - k <= mzPoints); sj++)
+                  ;
                 double sum = 0;
                 for (j = si; j <= sj; j++) {
                   sum += newDP[j].getIntensity();
@@ -267,8 +272,9 @@ public class ScanSmoothingTask extends AbstractTask {
         for (FeatureListAppliedMethod appliedMethod : dataFile.getAppliedMethods()) {
           newRDF.getAppliedMethods().add(appliedMethod);
         }
-        newRDF.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-            ScanSmoothingModule.class, parameters, getModuleCallDate()));
+        newRDF.getAppliedMethods().add(
+            new SimpleFeatureListAppliedMethod(ScanSmoothingModule.class, parameters,
+                getModuleCallDate()));
 
         // Add the newly created file to the project
         project.addFile(newRDF);
@@ -281,8 +287,9 @@ public class ScanSmoothingTask extends AbstractTask {
         setStatus(TaskStatus.FINISHED);
 
         if (mzpassed + timepassed < totalScans / 2) {
-          logger.warning("It seems that parameters were not properly set. Scans processed : time="
-              + timepassed + ", mz=" + mzpassed);
+          logger.warning(
+              "It seems that parameters were not properly set. Scans processed : time=" + timepassed
+                  + ", mz=" + mzpassed);
         }
 
         logger.info("Finished Scan Smoothing on " + dataFile);

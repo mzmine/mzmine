@@ -25,17 +25,16 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.processors;
 
-import static io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorUtils.createMassDetector;
-
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.MsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,16 +57,16 @@ public class MassDetectorMsProcessor implements MsProcessor {
 
   @Nullable
   private MassDetector buildDetector(final @NotNull ParameterSet advanced,
-      final OptionalParameter<ModuleComboParameter<MassDetector>> msMassDetection,
+      final OptionalParameter<ModuleOptionsEnumComboParameter<MassDetectors>> msMassDetection,
       final StringBuilder description, final String msLevelStr) {
     var optionalParameter = advanced.getParameter(msMassDetection);
     if (!optionalParameter.getValue()) {
       return null;
     }
-    var ms1Step = optionalParameter.getEmbeddedParameter().getValue();
+    var detector = optionalParameter.getEmbeddedParameter().getValueWithParameters();
 
-    description.append("\n  - ").append(msLevelStr).append(ms1Step.getParameterSet().toString());
-    return createMassDetector(ms1Step);
+    description.append("\n  - ").append(msLevelStr).append(detector.parameters().toString());
+    return MassDetectors.createMassDetector(detector);
   }
 
   private SimpleSpectralArrays applyMassDetection(MassDetector msDetector,

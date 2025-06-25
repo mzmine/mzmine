@@ -28,31 +28,40 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.util.files.ExtensionFilters;
 
 /**
  * Reduced set of parameter for {@link LocalCSVDatabaseSearchParameters} used in the wizard
  */
 public class AnnotationLocalCSVDatabaseSearchParameters extends SimpleParameterSet {
 
+  public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
+      "Name of file that contains information for peak identification",
+      ExtensionFilters.CSV_TSV_IMPORT, FileSelectionType.OPEN);
+
   public static final OptionalParameter<StringParameter> filterSamplesColumn = new OptionalParameter<>(
-      new StringParameter("Filename column (for library generation)",
-          """
+      new StringParameter("Filename column (for library generation)", """
           Column header to filter matches to only occur in the given sample. Sample name needs to contain
           the value of this column. Use something unique as identifier, this could be the full data file name,
           or a sample id _A1_. Use a pre- and suffix (here _) to make this ID unique, otherwise A1 also
           matches A11, A12, [..]. Used for library generation workflows.
-          """,
-          "filename"), false);
+          """, "filename"), false);
   public static ComboParameter<MassOptions> massOptionsComboParameter = new ComboParameter<>(
       "Use precursor m/z",
       "Either use the precursor m/z from the database, or calculate various ions from the neutral mass/formula/smiles",
       MassOptions.values(), MassOptions.MASS_AND_IONS);
 
+  public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
+      "Select the columns you want to import from the library file.",
+      LocalCSVDatabaseSearchParameters.importTypes);
+
   public AnnotationLocalCSVDatabaseSearchParameters() {
-    super(LocalCSVDatabaseSearchParameters.dataBaseFile, massOptionsComboParameter,
-        filterSamplesColumn, LocalCSVDatabaseSearchParameters.columns);
+    super(dataBaseFile, massOptionsComboParameter, filterSamplesColumn, columns);
   }
 
   public enum MassOptions {

@@ -51,7 +51,9 @@ public class ImportTypeParameter implements UserParameter<List<ImportType>, Impo
   public ImportTypeParameter(String name, String description, List<ImportType> values) {
     this.name = name;
     this.description = description;
-    this.values.addAll(values);
+    this.values.addAll(values.stream()
+        .map(it -> new ImportType(it.isSelected(), it.getCsvColumnName(), it.getDataType()))
+        .toList());
   }
 
   @Override
@@ -80,18 +82,18 @@ public class ImportTypeParameter implements UserParameter<List<ImportType>, Impo
     final NodeList childNodes = xmlElement.getElementsByTagName(SUB_ELEMENT);
 
     for (int i = 0; i < childNodes.getLength(); i++) {
-        final Element typeElement = (Element) childNodes.item(i);
-        boolean selected = Boolean.valueOf(typeElement.getAttribute(SELECTED));
-        String columnName = typeElement.getAttribute(COL_NAME);
-        String typeName = typeElement.getAttribute(TYPE_NAME);
+      final Element typeElement = (Element) childNodes.item(i);
+      boolean selected = Boolean.valueOf(typeElement.getAttribute(SELECTED));
+      String columnName = typeElement.getAttribute(COL_NAME);
+      String typeName = typeElement.getAttribute(TYPE_NAME);
 
-        for (ImportType val : values) {
-          if (val.getDataType().getClass().getName().equals(typeName)) {
-            val.setSelected(selected);
-            val.setCsvColumnName(columnName);
-            break;
-          }
+      for (ImportType val : values) {
+        if (val.getDataType().getClass().getName().equals(typeName)) {
+          val.setSelected(selected);
+          val.setCsvColumnName(columnName);
+          break;
         }
+      }
     }
   }
 

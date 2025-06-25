@@ -62,7 +62,6 @@ public class ProjectSavingTask extends AbstractTask {
   public static final String VERSION_FILENAME = "MZMINE_VERSION";
   public static final String STANDALONE_FILENAME = "STANDALONE"; // only exists if it's a standalone project.
   public static final String CONFIG_FILENAME = MZmineConfiguration.CONFIG_FILE.getName();
-  public static final String PARAMETERS_FILENAME = "User parameters.xml";
   private static final Logger logger = Logger.getLogger(ProjectSavingTask.class.getName());
   private final ProjectSaveOption projectType;
 
@@ -73,7 +72,6 @@ public class ProjectSavingTask extends AbstractTask {
   // This hashtable maps raw data files to their ID within the saved project
   private final Hashtable<RawDataFile, String> dataFilesIDMap;
   private RawDataFileSaveHandler rawDataFileSaveHandler;
-  private UserParameterSaveHandler userParameterSaveHandler;
   private int currentStage;
   private String currentSavedObjectName;
 
@@ -133,11 +131,6 @@ public class ProjectSavingTask extends AbstractTask {
     if (rawDataFileSaveHandler != null) {
       rawDataFileSaveHandler.cancel();
     }
-
-    if (userParameterSaveHandler != null) {
-      userParameterSaveHandler.cancel();
-    }
-
   }
 
   @Override
@@ -150,6 +143,11 @@ public class ProjectSavingTask extends AbstractTask {
         case STANDALONE -> savedProject.setStandalone(true);
         case REFERENCING -> savedProject.setStandalone(false);
       }
+
+      // Update the location of the project
+      // set the location before starting the save process, so we can also determine relative
+      // paths for this project.
+      savedProject.setProjectFile(saveFile);
 
       // Prepare a temporary ZIP file. We create this file in the same
       // directory as the final saveFile to avoid moving between
@@ -200,7 +198,6 @@ public class ProjectSavingTask extends AbstractTask {
 
       // Stage 4 - save user parameters
       currentStage++;
-      saveUserParameters(zipStream);
       if (isCanceled()) {
         zipStream.close();
         tempFile.delete();
@@ -229,9 +226,6 @@ public class ProjectSavingTask extends AbstractTask {
             "Could not move the temporary file " + tempFile + " to the final location " + saveFile);
       }
 
-      // Update the location of the project
-      savedProject.setProjectFile(saveFile);
-
       // Update the window title to reflect the new name of the project
       // if (MZmineCore.getDesktop() instanceof MainWindow) {
       // MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
@@ -254,7 +248,7 @@ public class ProjectSavingTask extends AbstractTask {
       } else {
         setErrorMessage(
             "Failed saving the project. Error while saving " + currentSavedObjectName + ": "
-            + ExceptionUtils.exceptionToString(e));
+                + ExceptionUtils.exceptionToString(e));
       }
 
     }
@@ -388,31 +382,6 @@ public class ProjectSavingTask extends AbstractTask {
         break;
       }
     }
-  }
-
-  /**
-   * Save the feature lists
-   *
-   * @throws SAXException
-   * @throws TransformerConfigurationException
-   */
-  private void saveUserParameters(ZipOutputStream zipStream)
-      throws IOException, TransformerConfigurationException, SAXException {
-
-    if (isCanceled()) {
-      return;
-    }
-
-    logger.info("Saving user parameters");
-
-    zipStream.putNextEntry(new ZipEntry(PARAMETERS_FILENAME));
-
-    userParameterSaveHandler = new UserParameterSaveHandler(zipStream, savedProject,
-        dataFilesIDMap);
-
-    currentSavedObjectName = "User parameters";
-    userParameterSaveHandler.saveParameters();
-
   }
 
 }

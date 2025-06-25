@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 public final class MZmineLoggingConfiguration {
 
   private static final Logger logger = Logger.getLogger(MZmineLoggingConfiguration.class.getName());
+
   /**
    * Configures the logging properties according to the logging.properties file found in the jar
    * resources
@@ -44,10 +45,10 @@ public final class MZmineLoggingConfiguration {
 
     try {
       ClassLoader cl = MZmineLoggingConfiguration.class.getClassLoader();
-      InputStream loggingProperties = cl.getResourceAsStream("logging.properties");
-      LogManager logMan = LogManager.getLogManager();
-      logMan.readConfiguration(loggingProperties);
-      loggingProperties.close();
+      try (InputStream loggingProperties = cl.getResourceAsStream("logging.properties")) {
+        LogManager logMan = LogManager.getLogManager();
+        logMan.readConfiguration(loggingProperties);
+      }
     } catch (Exception e) {
       logger.log(Level.WARNING, "error during logger setup: " + e.getMessage(), e);
       e.printStackTrace();

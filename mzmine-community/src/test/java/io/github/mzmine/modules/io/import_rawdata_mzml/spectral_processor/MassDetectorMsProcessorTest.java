@@ -29,10 +29,8 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.mockito.Mockito.doReturn;
 
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetectorParameters;
-import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.processors.MassDetectorMsProcessor;
@@ -61,13 +59,10 @@ class MassDetectorMsProcessorTest {
     advanced = new AdvancedSpectraImportParameters().cloneParameterSet();
     advanced.setParameter(AdvancedSpectraImportParameters.ms2MassDetection, true);
 
-    final ParameterSet detectorParam = MZmineCore.getConfiguration()
-        .getModuleParameters(FactorOfLowestMassDetector.class).cloneParameterSet();
-    detectorParam.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 2d);
+    ParameterSet mdParam = MassDetectors.FACTOR_OF_LOWEST.getModuleParameters().cloneParameterSet();
+    mdParam.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 2d);
     advanced.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter()
-        .setValue(
-            new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(FactorOfLowestMassDetector.class),
-                detectorParam));
+        .setValue(MassDetectors.FACTOR_OF_LOWEST, mdParam);
   }
 
   @Test

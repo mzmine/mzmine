@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import org.jetbrains.annotations.NotNull;
@@ -60,6 +61,9 @@ public class VanKrevelenDiagramTab extends SimpleTab {
     controller = loader.getController();
     controller.initialize(parameters);
     setContent(root);
+    setSubTitle(getFeatureListsSubtitle(List.of(
+        parameters.getParameter(VanKrevelenDiagramParameters.featureList).getValue()
+            .getMatchingFeatureLists())));
   }
 
   @NotNull

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.taskcontrol;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -39,6 +38,7 @@ public interface Task extends Runnable {
 
   TaskStatus getStatus();
 
+  void setStatus(TaskStatus newStatus);
 
   /**
    * Convenience method for determining if this task has been canceled. Also returns true if the
@@ -70,7 +70,7 @@ public interface Task extends Runnable {
     this.error(message, null);
   }
 
-  void error(@NotNull String message, @Nullable Exception exceptionToLog);
+  void error(@Nullable String message, @Nullable Exception exceptionToLog);
 
   String getErrorMessage();
 
@@ -82,7 +82,8 @@ public interface Task extends Runnable {
   TaskPriority getTaskPriority();
 
   /**
-   * Cancel a running task by user request.
+   * Cancel a running task by user request. Status FINISHED and ERROR cannot be overwritten by
+   * cancel.
    */
   void cancel();
 

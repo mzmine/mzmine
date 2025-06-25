@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,9 +26,13 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.base.Strings;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.project.ProjectService;
+import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -98,11 +102,7 @@ public class RawDataFilesParameter implements
 
   @Override
   public RawDataFilesParameter cloneParameter() {
-    RawDataFilesParameter copy = new RawDataFilesParameter(name, minCount, maxCount);
-    if (value != null) {
-      copy.value = value.clone();
-    }
-    return copy;
+    return cloneParameter(true);
   }
 
   public RawDataFilesParameter cloneParameter(boolean keepSelection) {
@@ -165,10 +165,21 @@ public class RawDataFilesParameter implements
 
     NodeList items = xmlElement.getElementsByTagName("specific_file");
     for (int i = 0; i < items.getLength(); i++) {
-      String itemString = items.item(i).getTextContent();
+      String fileName = items.item(i).getTextContent();
       String path = ((Element) items.item(i)).getAttribute(PATH_ATTRIBUTE);
       path = path.isEmpty() ? null : path;
-      newValues.add(new RawDataFilePlaceholder(itemString, path));
+
+      final String relPathValue = ((Element) items.item(i)).getAttribute(
+          FileNamesParameter.XML_RELATIVE_PATH_ATTRIBUTE);
+      // try if we can find this file in a relative path
+      if (path != null && !new File(path).exists() && !relPathValue.isBlank()) {
+        final File relPath = ProjectService.getProject().resolveRelativePathToFile(relPathValue);
+        if (relPath != null && relPath.exists()) {
+          path = relPath.getAbsolutePath();
+        }
+      }
+
+      newValues.add(new RawDataFilePlaceholder(fileName, path));
     }
     RawDataFilePlaceholder[] specificFiles = newValues.toArray(new RawDataFilePlaceholder[0]);
 
@@ -194,12 +205,20 @@ public class RawDataFilesParameter implements
 
     if (value.getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES
         && value.getSpecificFiles() != null) {
+      final MZmineProject project = ProjectService.getProject();
       for (RawDataFile item : value.getSpecificFilesPlaceholders()) {
         assert item != null;
         Element newElement = parentDocument.createElement("specific_file");
         String fileName = item.getName();
         newElement.setTextContent(fileName);
         newElement.setAttribute(PATH_ATTRIBUTE, item.getAbsolutePath());
+
+        final Path relPath = project.getRelativePath(item.getAbsoluteFilePath().toPath());
+        if (relPath != null && project.resolveRelativePathToFile(relPath.toString()).exists()) {
+          newElement.setAttribute(FileNamesParameter.XML_RELATIVE_PATH_ATTRIBUTE,
+              relPath.toString());
+        }
+
         xmlElement.appendChild(newElement);
       }
     }
@@ -223,7 +242,8 @@ public class RawDataFilesParameter implements
   }
 
   @Override
-  public void setValueToComponent(RawDataFilesComponent component, @Nullable RawDataFilesSelection newValue) {
+  public void setValueToComponent(RawDataFilesComponent component,
+      @Nullable RawDataFilesSelection newValue) {
     component.setValue(newValue);
   }
 

@@ -51,7 +51,8 @@ public class WatersImsCalibrationReader {
   private static final Pattern coefficientPattern = Pattern.compile(
       "(\\*\\sCoefficient:\\s)(\\d+.\\d+)");
   private static final Pattern exponentPattern = Pattern.compile("(\\*\\sExponent:\\s)(\\d+.\\d+)");
-  private static final Pattern t0Pattern = Pattern.compile("(\\*\\st0:\\s)(\\d+(.\\d+)?)");
+  /*t0 pattern has been updated to accept negative t0 values*/
+  private static final Pattern t0Pattern = Pattern.compile("(\\*\\st0:\\s)(-?\\d+(\\.\\d+)?)");
   private static final Pattern edcPattern = Pattern.compile(
       "(EDC Delay Coefficient)(\\s+)(\\d+.\\d+)");
   private static final Pattern edcLowPattern = Pattern.compile(

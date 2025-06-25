@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class CorrelateGroupingModule implements MZmineProcessingModule {
 
-  private static final String NAME = "Correlation grouping (metaCorrelate)";
+  public static final String NAME = "Correlation grouping (metaCorrelate)";
 
   private static final String DESCRIPTION = "This method correlates and groups feature list rows based on multiple criteria (feature shape, intensity across samples, ...) ";
 

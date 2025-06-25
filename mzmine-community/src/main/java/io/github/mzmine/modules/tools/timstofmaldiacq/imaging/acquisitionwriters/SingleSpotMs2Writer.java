@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,9 +42,25 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SingleSpotMs2Writer implements MaldiMs2AcqusitionWriter {
+public class SingleSpotMs2Writer implements MaldiMs2AcquisitionWriter {
 
   private static final Logger logger = Logger.getLogger(SingleSpotMs2Writer.class.getName());
+  @Nullable
+  private final Integer laserOffsetX;
+  @Nullable
+  private final Integer laserOffsetY;
+
+  public SingleSpotMs2Writer() {
+    laserOffsetX = null;
+    laserOffsetY = null;
+  }
+
+  public SingleSpotMs2Writer(final ParameterSet parameters) {
+    laserOffsetX = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        SingleSpotMs2Parameters.laserOffsetX, null);
+    laserOffsetY = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        SingleSpotMs2Parameters.laserOffsetY, null);
+  }
 
   @Override
   public @NotNull String getName() {
@@ -58,15 +74,7 @@ public class SingleSpotMs2Writer implements MaldiMs2AcqusitionWriter {
 
   @Override
   public boolean writeAcqusitionFile(File acquisitionFile, List<ImagingSpot> spots,
-      CeSteppingTables tables, ParameterSet parameters, BooleanSupplier isCanceled,
-      File savePathDir) {
-
-    final Integer laserOffsetX =
-        parameters.getValue(SingleSpotMs2Parameters.laserOffsetX) ? parameters.getParameter(
-            SingleSpotMs2Parameters.laserOffsetX).getEmbeddedParameter().getValue() : null;
-    final Integer laserOffsetY =
-        parameters.getValue(SingleSpotMs2Parameters.laserOffsetY) ? parameters.getParameter(
-            SingleSpotMs2Parameters.laserOffsetY).getEmbeddedParameter().getValue() : null;
+      CeSteppingTables tables, BooleanSupplier isCanceled, File savePathDir) {
 
     final Map<Double, File> ceTableMap = new HashMap<>();
     for (CeSteppingTable table : tables.asList()) {

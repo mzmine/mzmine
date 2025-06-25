@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -36,7 +38,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.data.xy.AbstractXYZDataset;
 
@@ -47,7 +48,7 @@ public abstract class AbstractTaskXYZDataset extends AbstractXYZDataset implemen
   // TODO replace with internal getTask method
 
   private static final Logger logger = Logger.getLogger(AbstractTaskXYZDataset.class.getName());
-  
+
   @Serial
   private static final long serialVersionUID = 1L;
   private final StringProperty name = new SimpleStringProperty("Task name");
@@ -163,7 +164,8 @@ public abstract class AbstractTaskXYZDataset extends AbstractXYZDataset implemen
   }
 
   @Override
-  public void error(@NotNull String message, @Nullable Exception exceptionToLog) {
+  public void error(@Nullable String message, @Nullable Exception exceptionToLog) {
+    message = requireNonNullElse(message, "");
     if (exceptionToLog != null) {
       logger.log(Level.SEVERE, message, exceptionToLog);
     }

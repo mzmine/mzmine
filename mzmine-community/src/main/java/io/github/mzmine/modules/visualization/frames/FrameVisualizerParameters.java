@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,8 +26,10 @@
 package io.github.mzmine.modules.visualization.frames;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class FrameVisualizerParameters extends SimpleParameterSet {
 
@@ -35,5 +37,10 @@ public class FrameVisualizerParameters extends SimpleParameterSet {
 
   public FrameVisualizerParameters() {
     super(new Parameter[]{files});
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.ONLY;
   }
 }

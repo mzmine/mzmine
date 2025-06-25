@@ -57,7 +57,7 @@ public class MsnTreeFeatureDetectionParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("m/z tolerance", mzTol);
+    nameParameterMap.put("m/z tolerance", getParameter(mzTol));
     return nameParameterMap;
   }
 

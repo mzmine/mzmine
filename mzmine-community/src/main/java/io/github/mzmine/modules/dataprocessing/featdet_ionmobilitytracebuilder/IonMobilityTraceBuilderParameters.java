@@ -81,9 +81,9 @@ public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("Scan selection", scanSelection);
-    nameParameterMap.put("m/z tolerance", mzTolerance);
-    nameParameterMap.put("Minimum consecutive retention time data points", minDataPointsRt);
+    nameParameterMap.put("Scan selection", getParameter(scanSelection));
+    nameParameterMap.put("m/z tolerance", getParameter(mzTolerance));
+    nameParameterMap.put("Minimum consecutive retention time data points", getParameter(minDataPointsRt));
     return nameParameterMap;
   }
 

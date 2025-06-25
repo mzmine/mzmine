@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleImagingFrame;
-import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
@@ -50,6 +49,11 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMe
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
+import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
+import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import java.io.File;
 import java.io.IOException;
@@ -71,30 +75,24 @@ import org.jetbrains.annotations.Nullable;
  */
 public class TDFUtils {
 
-  public static final int SCAN_PACKAGE_SIZE = 50;
+  public static final int SCAN_PACKAGE_SIZE = 5_000;
   public static final int BUFFER_SIZE_INCREMENT = 100_000; // 100 kb increase each time we fail
   private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
-  private static int DEFAULT_NUMTHREADS = (int) Math.max(
-      MZmineCore.getConfiguration().getPreferences().getParameter(MZminePreferences.numOfThreads)
-          .getValue() * 0.8f, 1);
   private final NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-  private final int numThreads;
+  private final Int2DoubleMap indexToMzBuffer = new Int2DoubleOpenHashMap();
+  private final Int2IntMap indicesToIndexMap = new Int2IntOpenHashMap();
   public int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private TDFLibrary tdfLib = null;
-
-
+  private File file;
   /**
    * the handle of the currently opened file
    **/
   private long handle = 0L;
 
   public TDFUtils() {
-    this(DEFAULT_NUMTHREADS);
+    loadLibrary();
   }
 
-  public TDFUtils(int numThreads) {
-    this.numThreads = numThreads;
-  }
 
   /**
    * Creates an array of the given size and populates it with numbers from 1 to size
@@ -129,19 +127,6 @@ public class TDFUtils {
       case 2, 9, 10, 8 -> 2;
       default -> 0;
     };
-  }
-
-  /**
-   * Sets the default number of threads to use for each raw file across all {@link TDFUtils}
-   * instances.
-   *
-   * @param numThreads
-   */
-  public static void setDefaultNumThreads(int numThreads) {
-    numThreads = Math.max(numThreads, 1);
-    final int finalNumThreads = numThreads;
-    logger.finest(() -> "Setting number of threads per file to " + finalNumThreads);
-    DEFAULT_NUMTHREADS = numThreads;
   }
 
   /**
@@ -195,7 +180,7 @@ public class TDFUtils {
       return false;
     }
     logger.info("Native TDF library initialised " + tdfLib.toString());
-    setNumThreads(numThreads);
+    setNumThreads(1);
 
     return true;
   }
@@ -220,7 +205,7 @@ public class TDFUtils {
 
     if (!loadLibrary() || tdfLib == null) {
       logger.warning(() -> "File + " + path.getAbsolutePath() + " cannot be loaded because tdf "
-                           + "library could not be initialised.");
+          + "library could not be initialised.");
       return 0L;
     }
 
@@ -239,7 +224,8 @@ public class TDFUtils {
         throw new RuntimeException("Error opening tdf file.");
       }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
-                          + tdfLib.tims_has_recalibrated_state(handle));
+          + tdfLib.tims_has_recalibrated_state(handle));
+      this.file = path;
       return handle;
     } else {
       logger.finest(() -> "Opening tdf path " + path.getAbsolutePath());
@@ -250,7 +236,8 @@ public class TDFUtils {
         throw new RuntimeException("Error opening tdf file.");
       }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
-                          + tdfLib.tims_has_recalibrated_state(handle));
+          + tdfLib.tims_has_recalibrated_state(handle));
+      file = path;
       return handle;
     }
   }
@@ -273,14 +260,18 @@ public class TDFUtils {
       tdfLib.tims_close(handle);
     }
     handle = 0L;
+    file = null;
   }
 
   /**
+   * use {@link #loadDataPointsForFrame_v2(long, long, long)}
+   *
    * @param frameId   The id of the frame. See {@link TDFFrameTable}
    * @param scanBegin The first scan index (starting with 0)
    * @param scanEnd   The last scan index
    * @return List of {@link SimpleSpectralArrays}, each represents the data points of one scan
    */
+  @Deprecated
   public List<SimpleSpectralArrays> loadDataPointsForFrame(final long frameId, final long scanBegin,
       final long scanEnd) {
     if (handle == 0L) {
@@ -310,7 +301,7 @@ public class TDFUtils {
           final long finalStart = start;
           logger.fine(
               () -> "Could not read scans " + finalStart + "-" + end + " for frame " + frameId
-                    + ". Increasing buffer size to " + BUFFER_SIZE + " and reloading.");
+                  + ". Increasing buffer size to " + BUFFER_SIZE + " and reloading.");
           buffer = new byte[BUFFER_SIZE];
           continue; // try again
         }
@@ -345,6 +336,82 @@ public class TDFUtils {
     return dataPoints;
   }
 
+  /**
+   * Extracts mobility scans for the given range of scan numbers. Uses a caching functionality to be
+   * faster.
+   *
+   * @param frameId   The id of the frame. See {@link TDFFrameTable}
+   * @param scanBegin The first scan index (starting with 0)
+   * @param scanEnd   The last scan index
+   * @return List of {@link SimpleSpectralArrays}, each represents the data points of one scan
+   */
+  public List<SimpleSpectralArrays> loadDataPointsForFrame_v2(final long frameId,
+      final long scanBegin, final long scanEnd) {
+    if (handle == 0L) {
+      throw new IllegalStateException("No tdf data file opened yet.");
+    }
+    // the buffer is only valid for one frame,
+    // otherwise the index -> mz mapping may change due to temperature compensation
+    indexToMzBuffer.clear();
+
+    final List<SimpleSpectralArrays> dataPoints = new ArrayList<>((int) (scanEnd - scanBegin));
+
+    // buffer to store our scans. allocation takes time, so we want to reuse it
+    // cannot be final, since we might have to increase the buffer size on the run
+    // we don't just take a huge buffer, because clearing it takes time, too
+    byte[] buffer = new byte[BUFFER_SIZE];
+
+    // load scans in packs of SCAN_PACKAGE_SIZE to not cause a buffer overflow
+    long start = scanBegin;
+    while (start < scanEnd) {
+      // start is inclusive, end is exclusive
+      final long end = Math.min((start + SCAN_PACKAGE_SIZE), scanEnd);
+      final int numScans = (int) (end - start);
+
+      synchronized (tdfLib) {
+        final long lastError = tdfLib.tims_read_scans_v2(handle, frameId, start, end, buffer,
+            buffer.length);
+        // check if the buffer size was enough
+        if (printLastError(lastError)) {
+          BUFFER_SIZE += BUFFER_SIZE_INCREMENT;
+          final long finalStart = start;
+          logger.fine(
+              () -> "Could not read scans " + finalStart + "-" + end + " for frame " + frameId
+                  + ". Increasing buffer size to " + BUFFER_SIZE + " and reloading.");
+          buffer = new byte[BUFFER_SIZE];
+          continue; // try again
+        }
+      }
+
+      start = start + SCAN_PACKAGE_SIZE;
+
+      final IntBuffer intBuffer = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN)
+          .asIntBuffer();
+      final int[] scanBuffer = new int[intBuffer.remaining()];
+      intBuffer.get(scanBuffer);
+      // check out the layout of scanBuffer:
+      // - the first numScan integers specify the number of peaks for each scan
+      // - the next integers are pairs of (x,y) values for the scans. The x values are not masses
+      // but index values
+      int d = numScans;
+      for (int i = 0; i < numScans; i++) {
+        final int numPeaks = scanBuffer[i];
+        final int[] indices = Arrays.copyOfRange(scanBuffer, d, d + numPeaks);
+        d += numPeaks;
+        final double[] intensities = ConversionUtils.convertIntsToDoubles(
+            Arrays.copyOfRange(scanBuffer, d, d + numPeaks));
+        d += numPeaks;
+
+        synchronized (tdfLib) {
+          final double[] masses = convertIndicesToMZ_v2(handle, frameId, indices);
+          dataPoints.add(new SimpleSpectralArrays(masses, intensities));
+        }
+      }
+      Arrays.fill(buffer, (byte) 0);
+    }
+    return dataPoints;
+  }
+
 
   /**
    * Loads mobility resolved scans of a specific frame. Tested with scan modes 0 and 8 (MS1 and
@@ -355,7 +422,7 @@ public class TDFUtils {
    * @param processorConfig import scan processor config
    * @return List of scans for the given frame id. Empty scans have been filtered out.
    */
-  @Nullable
+  @NotNull
   public List<BuildingMobilityScan> loadSpectraForTIMSFrame(final SimpleFrame frame,
       @NotNull final TDFFrameTable frameTable,
       @NotNull final ScanImportProcessorConfig processorConfig) {
@@ -363,13 +430,14 @@ public class TDFUtils {
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
     final List<BuildingMobilityScan> spectra = new ArrayList<>(numScans);
-    final List<SimpleSpectralArrays> dataPoints = loadDataPointsForFrame(frameId, 0, numScans);
+
+    final List<SimpleSpectralArrays> dataPoints = loadDataPointsForFrame_v2(frameId, 0, numScans);
 
     if (numScans != dataPoints.size()) {
-      logger.warning(() -> "Number of scans for frame " + frameId + " in tdf (" + numScans
-                           + ") does not match number of loaded scans (" + dataPoints.size()
-                           + ").");
-      return null;
+      logger.warning(() -> "TDF file " + file.getName() + ": Number of scans for frame " + frameId
+          + " in tdf (" + numScans + ") does not match number of loaded scans (" + dataPoints.size()
+          + ").");
+      return spectra;
     }
 
     for (int i = 0; i < dataPoints.size(); i++) {
@@ -400,7 +468,7 @@ public class TDFUtils {
 
       if (error == 0) {
         logger.warning(() -> "Could not extract centroid scan for frame " + frameId + " for scans "
-                             + startScanNum + " to " + endScanNum + ".");
+            + startScanNum + " to " + endScanNum + ".");
         return SimpleSpectralArrays.EMPTY;
       }
 
@@ -435,7 +503,7 @@ public class TDFUtils {
     final String scanDefinition =
         metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
             frameTable.getScanModeColumn().get(frameIndex).intValue()) + " Frame #" + frameId
-        + " RT: " + rtFormat.format(rt);
+            + " RT: " + rtFormat.format(rt);
     final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
         .floatValue();
 
@@ -518,7 +586,7 @@ public class TDFUtils {
     final String scanDefinition =
         metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
             frameTable.getScanModeColumn().get(frameIndex).intValue()) + " Frame #" + frameId
-        + " RT: " + rtFormat.format(rt);
+            + " RT: " + rtFormat.format(rt);
     final Range<Double> mzRange = metaDataTable.getMzRange();
     final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
         .floatValue();
@@ -526,12 +594,12 @@ public class TDFUtils {
     SimpleFrame frame;
     if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
       frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel, rt, null, null,
-          MassSpectrumType.PROFILE, polarity,
-          scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
+          MassSpectrumType.PROFILE, polarity, scanDefinition, mzRange, MobilityType.TIMS, null,
+          accumulationTime);
     } else {
       frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel, rt, null, null,
-          MassSpectrumType.PROFILE,
-          polarity, scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
+          MassSpectrumType.PROFILE, polarity, scanDefinition, mzRange, MobilityType.TIMS, null,
+          accumulationTime);
       Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
           maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
       ((SimpleImagingFrame) frame).setCoordinates(coords);
@@ -613,6 +681,55 @@ public class TDFUtils {
     return buffer;
   }
 
+  /**
+   * Converts extracted indices to mz values while employing a cache to limit the number and size of
+   * API calls. Indices may only belong to a single frame. This method uses caching to convert
+   * indices faster.
+   */
+  private double[] convertIndicesToMZ_v2(final long handle, final long frameId,
+      final int[] indices) {
+
+    DoubleList unknownIndices = null;
+    final double[] mzs = new double[indices.length];
+
+    indicesToIndexMap.clear();
+
+    for (int i = 0; i < indices.length; i++) {
+      final double mz = indexToMzBuffer.get(indices[i]);
+      if (mz != 0) {
+        mzs[i] = mz;
+      } else {
+        if (unknownIndices == null) {
+          unknownIndices = new DoubleArrayList(indices.length / 2);
+        }
+        indicesToIndexMap.put(indices[i], i);
+        unknownIndices.add(indices[i]);
+      }
+    }
+
+    if (unknownIndices != null) {
+      unknownIndices.toDoubleArray();
+
+      final double[] buffer = new double[unknownIndices.size()];
+      final long error = tdfLib.tims_index_to_mz(handle, frameId, unknownIndices.toDoubleArray(),
+          buffer, unknownIndices.size());
+
+      if (error == 0) {
+        logger.warning(() -> "Could not convert indices to mzs for frame " + frameId);
+      }
+
+      // index in the newly converted mz buffer
+      for (int i = 0; i < unknownIndices.size(); i++) {
+        final int peakIndex = (int) unknownIndices.getDouble(i);
+        indexToMzBuffer.put(peakIndex, buffer[i]);
+        mzs[indicesToIndexMap.get(peakIndex)] = buffer[i];
+      }
+    }
+
+    Arrays.sort(mzs);
+    return mzs;
+  }
+
   // ---------------------------------------------------------------------------------------------
   // SQL-RELATED FUNCTIONS
   // -----------------------------------------------------------------------------------------------
@@ -664,8 +781,7 @@ public class TDFUtils {
       try {
         final String errorMessage = new String(errorBuffer, "UTF-8");
         logger.fine(() -> "Last TDF import error: " + errorMessage + " length: " + len
-                          + ". Required buffer size: " + errorCode + " actual size: "
-                          + BUFFER_SIZE);
+            + ". Required buffer size: " + errorCode + " actual size: " + BUFFER_SIZE);
         if (errorMessage.contains("CorruptFrameDataError")) {
           throw new IllegalStateException("Error reading tdf raw data. " + errorMessage);
         }
@@ -678,16 +794,15 @@ public class TDFUtils {
     }
   }
 
-  public void setNumThreads(int numThreads) {
+  private void setNumThreads(int numThreads) {
     if (tdfLib == null) {
       if (!loadLibrary()) {
         return;
       }
     }
     if (numThreads >= 1) {
-      logger.finest(() -> "Setting number of threads per file to " + numThreads);
+//      logger.finest(() -> "Setting number of threads per file to " + numThreads);
       tdfLib.tims_set_num_threads(numThreads);
     }
   }
-
 }

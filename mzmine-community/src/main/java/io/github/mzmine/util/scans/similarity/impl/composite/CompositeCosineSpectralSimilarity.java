@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,27 +49,44 @@ import org.jetbrains.annotations.Nullable;
  */
 public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunction {
 
+  private static final String name = "Composite cosine identity (e.g., GC-EI-MS; similar to NIST search)";
+  private final Weights weights;
+  private final double minCos;
+  private final HandleUnmatchedSignalOptions handleUnmatched;
+
+  /**
+   * required default constructor in module for initial instance in config
+   */
+  public CompositeCosineSpectralSimilarity() {
+    weights = Weights.SQRT;
+    minCos = 0.7;
+    handleUnmatched = HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO;
+  }
+
+  public CompositeCosineSpectralSimilarity(final ParameterSet parameters) {
+    weights = parameters.getParameter(CompositeCosineSpectralSimilarityParameters.weight)
+        .getValue();
+    minCos = parameters.getParameter(CompositeCosineSpectralSimilarityParameters.minCosine)
+        .getValue();
+    handleUnmatched = parameters.getParameter(
+        CompositeCosineSpectralSimilarityParameters.handleUnmatched).getValue();
+  }
+
   /**
    * Returns mass and intensity values detected in given scan
    */
   @Override
-  public SpectralSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol, int minMatch,
-      DataPoint[] library, DataPoint[] query) {
-    Weights weights = parameters.getParameter(CompositeCosineSpectralSimilarityParameters.weight)
-        .getValue();
-    double minCos = parameters.getParameter(CompositeCosineSpectralSimilarityParameters.minCosine)
-        .getValue();
-    HandleUnmatchedSignalOptions handleUnmatched = parameters.getParameter(
-        CompositeCosineSpectralSimilarityParameters.handleUnmatched).getValue();
+  public SpectralSimilarity getSimilarity(MZTolerance mzTol, int minMatch, DataPoint[] library,
+      DataPoint[] query) {
     return getSimilarity(weights, minCos, handleUnmatched, mzTol, minMatch, library, query);
   }
 
-  public SpectralSimilarity getSimilarity(Weights weights, double minCos,
+  public static SpectralSimilarity getSimilarity(Weights weights, double minCos,
       HandleUnmatchedSignalOptions handleUnmatched, MZTolerance mzTol, int minMatch,
       DataPoint[] library, DataPoint[] query) {
 
     // align
-    List<DataPoint[]> aligned = alignDataPoints(mzTol, library, query);
+    List<DataPoint[]> aligned = ScanAlignment.align(mzTol, library, query);
     // removes all signals which were not found in both masslists
     aligned = handleUnmatched.handleUnmatched(aligned);
 
@@ -90,7 +107,7 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
       double composite = (queryN * diffCosine + overlap * relativeFactor) / (queryN + overlap);
 
       if (composite >= minCos) {
-        return new SpectralSimilarity(getName(), composite, overlap, library, query, aligned);
+        return new SpectralSimilarity(name, composite, overlap, library, query, aligned);
       } else {
         return null;
       }
@@ -103,7 +120,7 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
    *
    * @param aligned list of aligned signals DataPoint[library, query]
    */
-  private double calcRelativeNeighbourFactor(List<DataPoint[]> aligned) {
+  private static double calcRelativeNeighbourFactor(List<DataPoint[]> aligned) {
     // remove all unaligned signals
     List<DataPoint[]> filtered = removeUnaligned(aligned);
     // sort by mz
@@ -133,8 +150,8 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
    *
    * @param filtered list of aligned signals DataPoint[library, query]
    */
-  private void sortByMZ(List<DataPoint[]> filtered) {
-    filtered.sort(Comparator.comparingDouble(this::getMinMZ));
+  private static void sortByMZ(List<DataPoint[]> filtered) {
+    filtered.sort(Comparator.comparingDouble(CompositeCosineSpectralSimilarity::getMinMZ));
   }
 
   /**
@@ -143,14 +160,14 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
    * @param dp array of aligned data points
    * @return minimum mz of aligned data points
    */
-  private double getMinMZ(DataPoint[] dp) {
+  private static double getMinMZ(DataPoint[] dp) {
     return Arrays.stream(dp).filter(Objects::nonNull).mapToDouble(DataPoint::getMZ).min().orElse(0);
   }
 
   @Override
   @NotNull
   public String getName() {
-    return "Composite cosine identity (e.g., GC-EI-MS; similar to NIST search)";
+    return name;
   }
 
   @Override

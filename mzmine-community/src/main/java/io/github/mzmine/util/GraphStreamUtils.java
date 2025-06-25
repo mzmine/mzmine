@@ -26,14 +26,14 @@
 package io.github.mzmine.util;
 
 
-import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.COMMUNITY_ID;
-
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.NetworkCluster;
 import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeAtt;
 import io.github.mzmine.modules.visualization.networking.visual.enums.ElementType;
 import io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.COMMUNITY_ID;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.COMMUNITY_SIZE;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -48,6 +48,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.graphstream.algorithm.community.Community;
 import org.graphstream.algorithm.community.EpidemicCommunityAlgorithm;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
@@ -141,8 +142,9 @@ public class GraphStreamUtils {
    * NodeAtt.COMMUNITY_ID
    *
    * @param graph
+   * @return
    */
-  public static void detectCommunities(final MultiGraph graph) {
+  public static @NotNull List<NetworkCluster> detectCommunities(final MultiGraph graph) {
     // detect communitites
     String attribute = COMMUNITY_ID.toString();
     String attributeScore = attribute + ".score";
@@ -153,11 +155,53 @@ public class GraphStreamUtils {
     String markerScore = marker + ".score";
 
     graph.nodes().forEach(node -> {
-      node.setAttribute(attribute, node.getAttribute(marker));
+      final Integer id = switch (node.getAttribute(marker)) {
+        case Community c -> c.id();
+        case Number n -> n.intValue();
+        case String s -> Integer.parseInt(s);
+        case null, default -> null;
+      };
+      node.setAttribute(attribute, id);
       node.setAttribute(attributeScore, node.getAttribute(markerScore));
       node.removeAttribute(marker);
       node.removeAttribute(markerScore);
     });
+
+    // sorted by size descending
+    List<NetworkCluster> communities = GraphStreamUtils.getCommunitySizes(graph);
+    // remove communities with 1 member
+    for (int i = communities.size() - 1; i >= 0; i--) {
+      final NetworkCluster cluster = communities.get(i);
+      if (cluster.size() == 1) {
+        for (final Node node : cluster.nodes()) {
+          node.removeAttribute(attribute);
+          node.removeAttribute(attributeScore);
+        }
+      } else {
+        communities = communities.subList(0, i + 1);
+        break; // finished removing communities with size 1
+      }
+    }
+
+    final Map<Integer, String> lowestNodeId = communities.stream()
+        .collect(Collectors.toMap(NetworkCluster::id, NetworkCluster::findLowestNodeID));
+
+    // sort also by the lowest node ID to differentiate same size communities
+    communities = communities.stream().sorted(Comparator.comparing(NetworkCluster::size).reversed()
+        .thenComparing(c -> lowestNodeId.get(c.id()))).toList();
+
+    // renumber community ids to make stable
+    int nextId = 1;
+    for (final NetworkCluster community : communities) {
+      for (final Node node : community.nodes()) {
+        node.setAttribute(attribute, nextId);
+        node.setAttribute(COMMUNITY_SIZE.toString(), community.size());
+      }
+      nextId++;
+    }
+    // recount the communities because ID has changed
+    return GraphStreamUtils.getCommunitySizes(graph).stream()
+        .sorted(Comparator.comparingInt(NetworkCluster::id)).toList();
   }
 
 
@@ -225,19 +269,30 @@ public class GraphStreamUtils {
   /**
    * Community sizes are counted, grouping by COMMUNITY_ID
    *
-   * @return map of community to size
+   * @return List of communities sorted by size descending
    */
   @NotNull
-  public static Object2IntMap<Object> getCommunitySizes(final MultiGraph graph) {
-    Object2IntMap<Object> communitySizes = new Object2IntOpenHashMap<>();
+  public static List<NetworkCluster> getCommunitySizes(final MultiGraph graph) {
+    Int2ObjectMap<NetworkCluster> communities = new Int2ObjectOpenHashMap<>();
     graph.nodes().forEach(node -> {
-      Object communityId = node.getAttribute(COMMUNITY_ID.toString());
+      Integer communityId = switch (node.getAttribute(COMMUNITY_ID.toString())) {
+        case String s -> Integer.parseInt(s);
+        case Number n -> n.intValue();
+        case Community c -> c.id();
+        case null, default -> null;
+      };
       if (communityId != null) {
-        communitySizes.computeInt(communityId,
-            (key, communitySize) -> communitySize == null ? 1 : communitySize + 1);
+        communities.compute(communityId, (id, cluster) -> {
+          if (cluster == null) {
+            return new NetworkCluster(new ArrayList<>(List.of(node)), id);
+          }
+          cluster.nodes().add(node);
+          return cluster;
+        });
       }
     });
-    return communitySizes;
+    return communities.values().stream()
+        .sorted(Comparator.comparingInt(NetworkCluster::size).reversed()).toList();
   }
 
 

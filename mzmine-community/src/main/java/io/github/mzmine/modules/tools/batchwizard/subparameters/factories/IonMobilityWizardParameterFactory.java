@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
@@ -39,7 +40,7 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
    * TIMS actually is a different workflow than the rest. slight changes because of MS2 acquisition
    * in PASEF
    */
-  TIMS, IMS, DTIMS, TWIMS;
+  TIMS, IMS, DTIMS, TWIMS, SLIM;
 
   @Override
   public String toString() {
@@ -48,6 +49,7 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
       case TIMS, IMS -> super.toString();
       case DTIMS -> "DTIMS";
       case TWIMS -> "TWIMS";
+      case SLIM -> "SLIM";
     };
   }
 
@@ -64,11 +66,12 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
           new IonMobilityWizardParameters(this, 4, 0.7, true, true, MobilityType.DRIFT_TUBE);
       case TWIMS ->
           new IonMobilityWizardParameters(this, 4, 0.4, true, true, MobilityType.TRAVELING_WAVE);
+      case SLIM -> new IonMobilityWizardParameters(this, 5, 4, true, true, MobilityType.SLIM);
     };
   }
 
   @Override
-  public String getUniqueId() {
+  public @NotNull String getUniqueID() {
     return name();
   }
 
@@ -80,8 +83,11 @@ public enum IonMobilityWizardParameterFactory implements WizardParameterFactory 
    */
   public MassSpectrometerWizardParameterFactory[] getMatchingMassSpectrometerPresets() {
     return switch (this) {
-      case TIMS, TWIMS, DTIMS ->
+      case TWIMS, DTIMS, SLIM ->
           new MassSpectrometerWizardParameterFactory[]{MassSpectrometerWizardParameterFactory.QTOF};
+      case TIMS ->
+          new MassSpectrometerWizardParameterFactory[]{MassSpectrometerWizardParameterFactory.QTOF,
+              MassSpectrometerWizardParameterFactory.FTICR};
       case NO_IMS, IMS -> MassSpectrometerWizardParameterFactory.values();
     };
   }

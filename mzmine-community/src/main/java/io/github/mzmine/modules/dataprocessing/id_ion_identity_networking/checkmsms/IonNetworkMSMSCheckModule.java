@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,33 +39,28 @@ import org.jetbrains.annotations.NotNull;
 
 public class IonNetworkMSMSCheckModule implements MZmineProcessingModule {
 
-  private static final String NAME = "Check all ion identities by MS/MS";
+  private static final String NAME = "Check ion identities by MS/MS";
 
-  private static final String DESCRIPTION =
-      "Checks ion identities (in-source fragments and multimers) by MS/MS";
+  private static final String DESCRIPTION = "Checks ion identities (in-source fragments and multimers) by MS/MS";
 
   @Override
-  public @NotNull
-  String getName() {
+  public @NotNull String getName() {
     return NAME;
   }
 
   @Override
-  public @NotNull
-  String getDescription() {
+  public @NotNull String getDescription() {
 
     return DESCRIPTION;
   }
 
   @Override
-  public @NotNull
-  MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.ION_IDENTITY_NETWORKS;
   }
 
   @Override
-  public @NotNull
-  Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return IonNetworkMSMSCheckParameters.class;
   }
 
@@ -75,8 +70,7 @@ public class IonNetworkMSMSCheckModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     ModularFeatureList[] pkl = parameters.getParameter(IonNetworkMSMSCheckParameters.PEAK_LISTS)
-        .getValue()
-        .getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists();
     for (ModularFeatureList p : pkl) {
       tasks.add(new IonNetworkMSMSCheckTask(project, parameters, p, moduleCallDate));
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.InetUtils;
 import io.github.mzmine.util.io.SemverVersionReader;
 import java.net.URL;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -74,7 +73,7 @@ public class NewVersionCheck implements Runnable {
       newestVersion = new Semver(newestVersionData, SemverType.LOOSE);
     } catch (Exception e) {
       result.set(new VersionCheckResult(VersionCheckResultType.NO_INTERNET, newestVersion));
-      logger.log(Level.WARNING, result.get().print(), e);
+//      logger.log(Level.WARNING, result.get().print(), e);
     }
 
     if (newestVersion == null) {

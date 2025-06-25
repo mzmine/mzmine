@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,7 @@ public class SimsefImagingSchedulerModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getName() {
-    return "SIMSEF scheduler module";
+    return "timsTOF SIMSEF imaging scheduler";
   }
 
   @Override
@@ -58,9 +58,11 @@ public class SimsefImagingSchedulerModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @NotNull ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    tasks.add(new SimsefImagingSchedulerTask(null, moduleCallDate, parameters, project, false, false));
+    tasks.add(
+        new SimsefImagingSchedulerTask(null, moduleCallDate, parameters, project, false, false));
     return ExitCode.OK;
   }
 

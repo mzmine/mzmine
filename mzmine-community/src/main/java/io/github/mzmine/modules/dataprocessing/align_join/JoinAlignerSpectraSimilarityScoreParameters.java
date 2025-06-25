@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,9 +27,9 @@ package io.github.mzmine.modules.dataprocessing.align_join;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
 
 /**
  * Parameters to compare spectra in join aligner
@@ -47,9 +47,9 @@ public class JoinAlignerSpectraSimilarityScoreParameters extends SimpleParameter
       "Choose the MS level of the scans that should be compared. Enter \"1\" for MS1 scans or \"2\" for MS/MS scans on MS level 2",
       2, 1, 1000);
 
-  public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction = new ModuleComboParameter<>(
+  public static final ModuleOptionsEnumComboParameter<SpectralSimilarityFunctions> similarityFunction = new ModuleOptionsEnumComboParameter<>(
       "Compare spectra similarity", "Algorithm to calculate similarity and filter matches",
-      SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.weightedCosine);
+      SpectralSimilarityFunctions.WEIGHTED_COSINE);
 
   public JoinAlignerSpectraSimilarityScoreParameters() {
     super(mzTolerance, msLevel, similarityFunction);

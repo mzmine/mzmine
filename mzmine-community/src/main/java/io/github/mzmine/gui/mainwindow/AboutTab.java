@@ -63,7 +63,7 @@ public class AboutTab extends SimpleTab {
     // Software + version
     contentBox.getChildren().add(FxLabels.newBoldLabel("Software Name"));
     Label softwareName = new Label(
-        STR."mzmine \{SemverVersionReader.getMZmineVersion()}, by mzio GmbH");
+        "mzmine " + SemverVersionReader.getMZmineVersion() + ", by mzio GmbH");
     contentBox.getChildren().add(softwareName);
 
     // Privacy Policy
@@ -86,7 +86,7 @@ public class AboutTab extends SimpleTab {
 
     // Copyright Notice
     contentBox.getChildren().add(FxLabels.newBoldLabel("Copyright Notice"));
-    Label copyrightNotice = new Label("©2024 by mzio GmbH and mzmine development team");
+    Label copyrightNotice = new Label("©2025 by mzio GmbH and mzmine development team");
     contentBox.getChildren().add(copyrightNotice);
 
     ScrollPane scrollPane = new ScrollPane(contentBox);

@@ -34,12 +34,12 @@ import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.IonMobilityUtils.MobilogramType;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -100,7 +100,7 @@ public class BuildSelectedRanges implements Runnable {
       binning.setMobilogram(mobilograms);
       final SummedIntensityMobilitySeries summed = binning.toSummedMobilogram(null);
       SummedMobilogramXYProvider provider = new SummedMobilogramXYProvider(summed,
-          new SimpleObjectProperty<>(FxColorUtil.awtColorToFX(color)), seriesKey, false, true,
+          new SimpleObjectProperty<>(FxColorUtil.awtColorToFX(color)), seriesKey, true, false,
           null);
       dataset = new ColoredXYDataset(provider, RunOption.THIS_THREAD);
       mobilogramConsumer.accept(dataset);

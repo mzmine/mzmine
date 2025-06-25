@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -83,7 +83,7 @@ public class OnlineLcReactivityParameters extends SimpleParameterSet {
       new MetadataGroupingParameter("Unique sample ID metadata", """
           Metadata column that defines a unique sample ID.
           Go to Project/Metadata to load a metadata sheet and reload this module to select this column.
-          The values should be a substring found in the filenames. 
+          The values should be a substring found in the filenames.
           Make sure to use a prefix or suffix before and after numbers otherwise id1 also matches id10.
           Just adding a id1_ will resolve this issue."""));
   public static final OptionalParameter<MetadataGroupingParameter> unreactedControls = new OptionalParameter<>(
@@ -102,7 +102,8 @@ public class OnlineLcReactivityParameters extends SimpleParameterSet {
         "unique_substring_contained_in_filenames_better_not_start_or_end_with_number_add_suffix",
         "([#6][CX3](=O)O)", "([#6][CX3](=O)O).(OC)>>[#6][CX3](=O)OC.O", 123.45));
     try {
-      file = CSVUtils.ensureTsvOrCsvFormat(file, "csv");
+      file = CSVUtils.ensureTsvOrCsvFormat(file, "tsv");
+
       CsvWriter.writeToFile(file, examples, OnlineReaction.class, WriterOptions.REPLACE);
     } catch (IOException e) {
       logger.log(Level.WARNING, "Cannot write example file", e);

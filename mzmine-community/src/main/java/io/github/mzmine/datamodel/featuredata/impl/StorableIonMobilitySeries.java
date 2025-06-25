@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.nio.DoubleBuffer;
+import java.lang.foreign.MemorySegment;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -41,8 +41,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Stores data points of several {@link MobilityScan}s. Usually wrapped in a {@link
- * SimpleIonMobilogramTimeSeries} representing the same feature with mobility resolution.
+ * Stores data points of several {@link MobilityScan}s. Usually wrapped in a
+ * {@link SimpleIonMobilogramTimeSeries} representing the same feature with mobility resolution.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -118,12 +118,12 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
   }
 
   @Override
-  public DoubleBuffer getIntensityValueBuffer() {
+  public MemorySegment getIntensityValueBuffer() {
     return ionTrace.getMobilogramIntensityValues(this);
   }
 
   @Override
-  public DoubleBuffer getMZValueBuffer() {
+  public MemorySegment getMZValueBuffer() {
     return ionTrace.getMobilogramMzValues(this);
   }
 
@@ -159,9 +159,18 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
   }
 
   @Override
+  public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable final MemoryMapStorage storage,
+      @NotNull final double[] newIntensityValues) {
+    var intensities = StorageUtils.storeValuesToDoubleBuffer(storage, newIntensityValues);
+    // reuse mz memory segment
+    var mzs = getMZValueBuffer();
+    return new SimpleIonMobilitySeries(mzs, intensities, scans);
+  }
+
+  @Override
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
-    return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, scans);
+    return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, this.scans);
   }
 
   @Override
@@ -180,5 +189,9 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
   @Override
   public int hashCode() {
     return Objects.hash(scans, numValues);
+  }
+
+  SimpleIonMobilogramTimeSeries getIonTrace() {
+    return ionTrace;
   }
 }

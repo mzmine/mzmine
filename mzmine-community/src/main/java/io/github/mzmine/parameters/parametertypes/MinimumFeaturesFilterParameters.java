@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
@@ -110,7 +111,7 @@ public class MinimumFeaturesFilterParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("Exclude estimated features (gap-filled)", EXCLUDE_ESTIMATED);
+    nameParameterMap.put("Exclude estimated features (gap-filled)", getParameter(EXCLUDE_ESTIMATED));
     return nameParameterMap;
   }
 
@@ -123,7 +124,7 @@ public class MinimumFeaturesFilterParameters extends SimpleParameterSet {
    * @return
    */
   public MinimumFeatureFilter createFilterWithGroups(MZmineProject project,
-      List<RawDataFile> rawDataFiles, String groupingParameter, double minHeight) {
+      List<RawDataFile> rawDataFiles, MetadataColumn<?> groupingParameter, double minHeight) {
     AbsoluteAndRelativeInt minFInSamples = this.getParameter(MIN_SAMPLES_ALL).getValue();
     AbsoluteAndRelativeInt minFInGroups = this.getParameter(MIN_SAMPLES_GROUP).getValue();
     double minIPercOverlap = this.getParameter(MIN_INTENSITY_OVERLAP).getValue();

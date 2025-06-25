@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.collections.SortOrder;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
+import java.awt.Paint;
 import java.util.Map;
 import javafx.beans.property.Property;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -112,7 +113,7 @@ public class PCALoadingsProvider extends SimpleXYProvider implements PlotXYZData
 
     // LinkedHashMap is sorted
     legendNames = typesInOrder.keySet().stream()
-        .map(type -> type instanceof MissingValueType _ ? "Not annotated" : type.getHeaderString())
+        .map(type -> type instanceof MissingValueType _ ? "Unknown" : type.getHeaderString())
         .toArray(String[]::new);
 
     setxValues(domainData);
@@ -147,6 +148,11 @@ public class PCALoadingsProvider extends SimpleXYProvider implements PlotXYZData
   @Override
   public String getLegendLabel(int category) {
     return legendNames[category];
+  }
+
+  @Override
+  public Paint getLegendItemColor(int category) {
+    return paintScale.getPaint(category);
   }
 
   @Override

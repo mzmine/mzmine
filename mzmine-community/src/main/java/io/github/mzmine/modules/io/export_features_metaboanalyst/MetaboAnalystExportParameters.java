@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.io.export_features_metaboanalyst;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParam
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class MetaboAnalystExportParameters extends SimpleParameterSet {
 
@@ -55,9 +56,11 @@ public class MetaboAnalystExportParameters extends SimpleParameterSet {
       AbundanceMeasure.Area);
 
   public MetaboAnalystExportParameters() {
-    super(new Parameter[]{featureLists, filename,
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/io/data-exchange-with-other-software.html#metaboanalyst-export",
+        featureLists, filename,
 //        format,
-        grouping, FEATURE_INTENSITY});
+        grouping, FEATURE_INTENSITY);
   }
 
 //  public static final ComboParameter<StatsFormat> format = new ComboParameter<>("Export format",
@@ -76,5 +79,10 @@ public class MetaboAnalystExportParameters extends SimpleParameterSet {
         case ALL_FACTORS -> "All factors (not MetaboAnalyst)";
       };
     }
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

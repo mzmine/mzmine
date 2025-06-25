@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -78,8 +78,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GnpsGcExportAndSubmitTask extends AbstractTask {
 
-  // Logger.
-  private final Logger logger = Logger.getLogger(getClass().getName());
+  private static final Logger logger = Logger.getLogger(GnpsGcExportAndSubmitTask.class.getName());
 
   private final ParameterSet parameters;
   private final AtomicDouble progress = new AtomicDouble(0);

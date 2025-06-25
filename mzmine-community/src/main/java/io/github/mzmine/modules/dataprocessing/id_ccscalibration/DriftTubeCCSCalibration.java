@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,8 +57,18 @@ public class DriftTubeCCSCalibration implements CCSCalibration {
     this.n = (int) simpleRegression.getN();
   }
 
+  public static CCSCalibration loadFromXML(Element element) {
+    double tfix = Double.parseDouble(element.getAttribute("tfix"));
+    double beta = Double.parseDouble(element.getAttribute("beta"));
+    double rsquare = Double.parseDouble(element.getAttribute("rsquare"));
+    int n = Integer.parseInt(element.getAttribute("n"));
+
+    return new DriftTubeCCSCalibration(beta, tfix, rsquare, n);
+  }
+
   private double getN2Gamma(double mz, int charge) {
-    return 1 / (double) charge * Math.sqrt(mz * charge / (mz * charge + CCSCalibrant.N2_MASS));
+    return 1 / (double) Math.abs(charge) * Math.sqrt(
+        mz * charge / (mz * charge + CCSCalibrant.N2_MASS));
   }
 
   @Override
@@ -86,15 +96,6 @@ public class DriftTubeCCSCalibration implements CCSCalibration {
     element.setAttribute("beta", String.valueOf(beta));
     element.setAttribute("rsquare", String.valueOf(rsquare));
     element.setAttribute("n", String.valueOf(n));
-  }
-
-  public static CCSCalibration loadFromXML(Element element) {
-    double tfix = Double.parseDouble(element.getAttribute("tfix"));
-    double beta = Double.parseDouble(element.getAttribute("beta"));
-    double rsquare = Double.parseDouble(element.getAttribute("rsquare"));
-    int n = Integer.parseInt(element.getAttribute("n"));
-
-    return new DriftTubeCCSCalibration(beta, tfix, rsquare, n);
   }
 
   @Override

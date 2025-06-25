@@ -120,7 +120,7 @@ public interface Desktop {
   /**
    * Displays a confirmation Yes/No alert. Can be called from any thread.
    */
-  ButtonType displayConfirmation(String msg, ButtonType... buttonTypes);
+  ButtonType displayConfirmation(final String title, String msg, ButtonType... buttonTypes);
 
 
   /**
@@ -160,7 +160,8 @@ public interface Desktop {
       String optOutMessage, Consumer<Boolean> optOutAction);
 
 
-  @NotNull ExitCode exit();
+  @NotNull
+  ExitCode exit();
 
   void openWebPage(@NotNull URL url);
 

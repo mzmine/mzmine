@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,8 +39,7 @@ import org.jetbrains.annotations.NotNull;
 public class SpectralLibraryImportModule implements MZmineProcessingModule {
 
   public static final String MODULE_NAME = "Import spectral library";
-  private static final String MODULE_DESCRIPTION =
-      "This method imports spectral libraries to speed up spectral library matching";
+  private static final String MODULE_DESCRIPTION = "This method imports spectral libraries to speed up spectral library matching";
 
   @Override
   public @NotNull String getName() {
@@ -69,7 +68,7 @@ public class SpectralLibraryImportModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.RAWDATAIMPORT;
+    return MZmineModuleCategory.SPECLIBIMPORT;
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.util.maths.Precision;
 import io.github.mzmine.util.maths.Weighting;
 import java.util.Arrays;
 import java.util.stream.DoubleStream;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Mathematical calculation-related helper class
@@ -164,23 +165,52 @@ public class MathUtils {
       return values[0];
     }
 
+    double[] vals = values.clone();
+    Arrays.sort(vals);
+    return calcQuantileSorted(vals, q);
+  }
+
+  /**
+   * @param sorted sorted ascending
+   * @param q      percentile
+   * @return the percentile value
+   */
+  public static double calcQuantileSorted(double[] sorted, double q) {
+    return calcQuantileSorted(sorted, 0, sorted.length, q);
+  }
+
+  /**
+   * @param sorted            sorted ascending
+   * @param startIndex        included start index of data range - can be used to exclude 0 values
+   *                          for example
+   * @param endIndexExclusive end value (exclusive)
+   * @param q                 percentile
+   * @return the percentile value
+   */
+  public static double calcQuantileSorted(double[] sorted, int startIndex, int endIndexExclusive,
+      double q) {
+    assert startIndex >= 0 && endIndexExclusive <= sorted.length;
+
+    var size = endIndexExclusive - startIndex;
+    if (size <= 0) {
+      return 0;
+    }
+
+    if (size == 1) {
+      return sorted[startIndex];
+    }
+
     if (q > 1) {
       q = 1;
     }
-
     if (q < 0) {
       q = 0;
     }
 
-    double[] vals = values.clone();
+    int ind1 = startIndex + (int) Math.floor((size - 1) * q);
+    int ind2 = startIndex + (int) Math.ceil((size - 1) * q);
 
-    Arrays.sort(vals);
-
-    int ind1 = (int) Math.floor((vals.length - 1) * q);
-    int ind2 = (int) Math.ceil((vals.length - 1) * q);
-
-    return (vals[ind1] + vals[ind2]) / 2;
-
+    return (sorted[ind1] + sorted[ind2]) / 2;
   }
 
   public static double[] calcQuantile(double[] values, double[] qs) {
@@ -224,45 +254,80 @@ public class MathUtils {
     return retVals;
   }
 
+  /**
+   * @return Sample standard deviation (n-1)
+   */
   public static double calcStd(double[] values) {
+    return calcStd(values, 0, values.length);
+  }
+
+  /**
+   * Only uses values in range
+   *
+   * @return Sample standard deviation (n-1)
+   */
+  public static double calcStd(double[] values, int start, int endExclusive) {
+    final int count = endExclusive - start;
+    if (values.length == 0 || count <= 0) {
+      return 0;
+    }
 
     double avg, stdev;
     double sum = 0;
-    for (double d : values) {
+    for (int i = start; i < endExclusive; i++) {
+      double d = values[i];
       sum += d;
     }
-    avg = sum / values.length;
+    avg = sum / count;
 
     sum = 0;
-    for (double d : values) {
-      sum += (d - avg) * (d - avg);
+    for (int i = start; i < endExclusive; i++) {
+      double d = values[i];
+      sum += Math.pow(d - avg, 2);
     }
 
-    stdev = Math.sqrt(sum / (values.length - 1));
+    stdev = Math.sqrt(sum / (count - 1));
     return stdev;
   }
 
-  public static double calcCV(double[] values) {
+  /**
+   * Only uses values in range
+   *
+   * @return relative Sample standard deviation (n-1) as RSD/mean
+   */
+  public static double calcRelativeStd(double[] values, int start, int endExclusive) {
+    final int count = endExclusive - start;
+    if (values.length == 0 || count <= 0) {
+      return 0;
+    }
 
     double avg, stdev;
     double sum = 0;
-    for (double d : values) {
+    for (int i = start; i < endExclusive; i++) {
+      double d = values[i];
       sum += d;
     }
-    avg = sum / values.length;
+    avg = sum / count;
 
-    if (avg == 0) {
-      return Double.NaN;
+    if (Double.compare(avg, 0) == 0) {
+      return 0; // special case for relative standard deviation
     }
 
     sum = 0;
-    for (double d : values) {
-      sum += (d - avg) * (d - avg);
+    for (int i = start; i < endExclusive; i++) {
+      double d = values[i];
+      sum += Math.pow(d - avg, 2);
     }
 
-    stdev = Math.sqrt(sum / (values.length - 1));
-
+    stdev = Math.sqrt(sum / (count - 1));
     return stdev / avg;
+  }
+
+  /**
+   * @return relative Sample standard deviation (n-1) as RSD/mean
+   */
+  public static double calcRelativeStd(double[] values) {
+    return calcRelativeStd(values, 0, values.length);
   }
 
   public static double calcAvg(double[] values) {
@@ -355,7 +420,7 @@ public class MathUtils {
   }
 
   public static double getPpmDiff(double calc, double real) {
-    return (real-calc) / calc * 1E6;
+    return (real - calc) / Math.abs(calc) * 1E6;
   }
 
   /**
@@ -388,5 +453,56 @@ public class MathUtils {
       return max;
     }
     return value;
+  }
+
+  /**
+   * Parse int from any object
+   */
+  public static @Nullable Integer parseInt(@Nullable Object v) {
+    try {
+      return switch (v) {
+        case Integer i -> i;
+        case String str -> Integer.parseInt(str);
+        case Long l -> l.intValue();
+        case Number n -> n.intValue();
+        case null -> null;
+        default -> null;
+      };
+    } catch (Exception ex) {
+      return null;
+    }
+  }
+
+  /**
+   * Regular bounds check
+   *
+   * @return value in truncated to min and max values, if value less than min then return min, if
+   * value greater maxExclusive -1 return this
+   */
+  public static int withinBounds(int value, int minInclusive, int maxExclusive) {
+    return Math.min(Math.max(value, minInclusive), maxExclusive - 1);
+  }
+
+  public static Double requireNonNanElse(@Nullable Double possiblyNaN, @Nullable Double instead) {
+    if(possiblyNaN == null) {
+      return null;
+    }
+    return Double.isNaN(possiblyNaN) ? instead : possiblyNaN;
+  }
+
+  public static Float requireNonNanElse(@Nullable Float possiblyNaN, @Nullable Float instead) {
+    if(possiblyNaN == null) {
+      return null;
+    }
+    return Float.isNaN(possiblyNaN) ? instead : possiblyNaN;
+  }
+
+  /**
+   * Avoids integer overflow
+   *
+   * @return {@link Integer#MAX_VALUE} for if value is larger. Otherwise, value itself
+   */
+  public static int capMaxInt(long value) {
+    return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) value;
   }
 }

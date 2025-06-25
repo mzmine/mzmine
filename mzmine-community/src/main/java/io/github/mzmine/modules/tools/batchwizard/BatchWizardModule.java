@@ -43,7 +43,6 @@ public class BatchWizardModule implements MZmineRunnableModule {
   public static final String NAME = "Processing wizard";
   public static final String DESCRIPTION = "Default workflows";
 
-
   @Override
   public @NotNull String getName() {
     return NAME;

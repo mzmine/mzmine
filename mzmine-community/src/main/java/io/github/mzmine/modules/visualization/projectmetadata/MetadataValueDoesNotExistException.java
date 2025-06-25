@@ -30,6 +30,6 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 public class MetadataValueDoesNotExistException extends RuntimeException {
 
   public <T> MetadataValueDoesNotExistException(MetadataColumn<T> column, Object value) {
-    super(STR."Value \{value} does not exist in metadata column \{column.getTitle()}.");
+    super("Value " + value + " does not exist in metadata column " + column.getTitle() + ".");
   }
 }

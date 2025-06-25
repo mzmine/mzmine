@@ -33,9 +33,11 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NoiseAmplitudeFeatureResolverParameters extends GeneralResolverParameters {
@@ -69,5 +71,10 @@ public class NoiseAmplitudeFeatureResolverParameters extends GeneralResolverPara
   @Override
   public @Nullable Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist) {
     return new NoiseAmplitudeFeatureResolver(parameterSet, flist);
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

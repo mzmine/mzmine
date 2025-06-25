@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,9 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
+/**
+ * Currently still in redevelopment
+ */
 public class MZTabmExportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Export to mzTab-m file.";

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -90,7 +90,7 @@ public enum WizardPart {
    * @return the WizardParameterFactory that matches the uniqueID
    */
   public Optional<WizardParameterFactory> getParameterFactory(final String uniqeId) {
-    return Arrays.stream(getDefaultPresets()).filter(p -> p.getUniqueId().equals(uniqeId))
+    return Arrays.stream(getDefaultPresets()).filter(p -> p.getUniqueID().equals(uniqeId))
         .findFirst();
   }
 }

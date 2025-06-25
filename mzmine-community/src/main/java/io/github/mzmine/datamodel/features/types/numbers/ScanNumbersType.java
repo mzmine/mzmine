@@ -25,10 +25,16 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import java.util.Comparator;
 import java.util.List;
+import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ScanNumbersType extends ListDataType<Scan> {
 
@@ -50,4 +56,17 @@ public class ScanNumbersType extends ListDataType<Scan> {
     return list != null ? String.valueOf(list.size()) : "";
   }
 
+  @Override
+  public @Nullable TreeTableColumn<ModularFeatureListRow, Object> createColumn(
+      final @Nullable RawDataFile raw, final @Nullable SubColumnsFactory parentType,
+      final int subColumnIndex) {
+
+    final TreeTableColumn<ModularFeatureListRow, Object> column = super.createColumn(raw,
+        parentType, subColumnIndex);
+
+    // sort column by number of scans instead of list object
+    column.setComparator(Comparator.comparingInt(v -> v instanceof List list ? list.size() : 0));
+
+    return column;
+  }
 }

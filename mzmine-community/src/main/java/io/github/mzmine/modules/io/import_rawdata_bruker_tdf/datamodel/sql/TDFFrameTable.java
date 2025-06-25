@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -139,8 +139,8 @@ public class TDFFrameTable extends TDFDataTable<Long> {
   private final TDFDataColumn<Long> numScansColumn;
   private final TDFDataColumn<Long> numPeaksColumn;
   private final TDFDataColumn<Long> mzCalibrationColumn;
-  private final TDFDataColumn<Long> t1Column;
-  private final TDFDataColumn<Long> t2Column;
+  private final TDFDataColumn<Double> t1Column;
+  private final TDFDataColumn<Double> t2Column;
   private final TDFDataColumn<Long> timsCalibrationColumn;
   private final TDFDataColumn<Long> propertyGroupColumn;
   private final TDFDataColumn<Double> accumulationTimeColumn;
@@ -176,8 +176,8 @@ public class TDFFrameTable extends TDFDataTable<Long> {
     numScansColumn = (TDFDataColumn<Long>) getColumn(NUM_SCANS);
     numPeaksColumn = (TDFDataColumn<Long>) getColumn(NUM_PEAKS);
     mzCalibrationColumn = (TDFDataColumn<Long>) getColumn(MZ_CALIBRATION);
-    t1Column = (TDFDataColumn<Long>) getColumn(T1);
-    t2Column = (TDFDataColumn<Long>) getColumn(T2);
+    t1Column = (TDFDataColumn<Double>) getColumn(T1);
+    t2Column = (TDFDataColumn<Double>) getColumn(T2);
     timsCalibrationColumn = (TDFDataColumn<Long>) getColumn(TIMS_CALIBRATION);
     propertyGroupColumn = (TDFDataColumn<Long>) getColumn(PROPERTY_GROUP);
     accumulationTimeColumn = (TDFDataColumn<Double>) getColumn(ACCUMULATION_TIME);
@@ -236,11 +236,11 @@ public class TDFFrameTable extends TDFDataTable<Long> {
     return mzCalibrationColumn;
   }
 
-  public TDFDataColumn<Long> getT1Column() {
+  public TDFDataColumn<Double> getT1Column() {
     return t1Column;
   }
 
-  public TDFDataColumn<Long> getT2Column() {
+  public TDFDataColumn<Double> getT2Column() {
     return t2Column;
   }
 

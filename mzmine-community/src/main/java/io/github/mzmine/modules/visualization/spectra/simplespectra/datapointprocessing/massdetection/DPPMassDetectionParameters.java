@@ -26,22 +26,19 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.massdetection;
 
 
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ColorParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import javafx.scene.paint.Color;
 
 public class DPPMassDetectionParameters extends SimpleParameterSet {
 
-  public static final MassDetector[] massDetectors = MassDetectors.listModulesNoAuto()
-      .toArray(MassDetector[]::new);
 
-  public static final ModuleComboParameter<MassDetector> massDetector = new ModuleComboParameter<MassDetector>(
-      "Mass detector", "Algorithm to use for mass detection and its parameters", massDetectors,
-      massDetectors[0]);
+  public static final ModuleOptionsEnumComboParameter<MassDetectors> massDetector = new ModuleOptionsEnumComboParameter<>(
+      "Mass detector", "Algorithm to use for mass detection and its parameters",
+      MassDetectors.FACTOR_OF_LOWEST);
 
   public static final BooleanParameter displayResults = new BooleanParameter("Display results",
       "Check if you want to display the mass detection results in the plot. Displaying too much datasets might decrease clarity.",

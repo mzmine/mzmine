@@ -30,12 +30,15 @@ import static java.util.Objects.requireNonNullElse;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Comparator;
+import java.util.logging.Logger;
 
 
 /**
  * Compare feature list rows either by ID, average m/z or median area of peaks
  */
 public class FeatureListRowSorter implements Comparator<FeatureListRow> {
+
+  private static final Logger logger = Logger.getLogger(FeatureListRowSorter.class.getName());
 
   public static final FeatureListRowSorter DEFAULT_RT = new FeatureListRowSorter(SortingProperty.RT,
       SortingDirection.Ascending);
@@ -67,41 +70,46 @@ public class FeatureListRowSorter implements Comparator<FeatureListRow> {
   }
 
   private double getValue(FeatureListRow row) {
-    switch (property) {
-      case Area:
+    return switch (property) {
+      case Area -> {
         Feature[] areaPeaks = row.getFeatures().toArray(new Feature[0]);
         double[] peakAreas = new double[areaPeaks.length];
         for (int i = 0; i < peakAreas.length; i++) {
           peakAreas[i] = areaPeaks[i].getArea();
         }
         double medianArea = MathUtils.calcQuantile(peakAreas, 0.5);
-        return medianArea;
-      case Intensity:
+        yield medianArea;
+      }
+      case Intensity -> {
         Feature[] intensityPeaks = row.getFeatures().toArray(new Feature[0]);
         double[] peakIntensities = new double[intensityPeaks.length];
         for (int i = 0; i < intensityPeaks.length; i++) {
           peakIntensities[i] = intensityPeaks[i].getArea();
         }
         double medianIntensity = MathUtils.calcQuantile(peakIntensities, 0.5);
-        return medianIntensity;
-      case Height:
+        yield medianIntensity;
+      }
+      case Height -> {
         Feature[] heightPeaks = row.getFeatures().toArray(new Feature[0]);
         double[] peakHeights = new double[heightPeaks.length];
         for (int i = 0; i < peakHeights.length; i++) {
           peakHeights[i] = heightPeaks[i].getHeight();
         }
         double medianHeight = MathUtils.calcQuantile(peakHeights, 0.5);
-        return medianHeight;
-      case MZ:
-        return row.getAverageMZ() + requireNonNullElse(row.getAverageRT(), 0f) / 10000000.0;
-      case RT:
-        return requireNonNullElse(row.getAverageRT(), 0f) + row.getAverageMZ() / 10000000.0;
-      case ID:
-        return row.getID();
-    }
+        yield medianHeight;
+      }
+      case MZ -> {
+        final Double mz = row.getAverageMZ();
+        if (mz == null) {
+          logger.info("yikes " + FeatureUtils.rowToString(row));
+        }
+        yield mz + requireNonNullElse(row.getAverageRT(), 0f) / 10000000.0;
+      }
+      case RT -> requireNonNullElse(row.getAverageRT(), 0f) + row.getAverageMZ() / 10000000.0;
+      case ID -> row.getID();
+    };
 
     // We should never get here, so throw exception
-    throw (new IllegalStateException());
   }
 
 }

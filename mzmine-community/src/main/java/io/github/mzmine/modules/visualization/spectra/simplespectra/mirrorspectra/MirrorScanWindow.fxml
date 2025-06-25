@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2022 The MZmine Development Team
+  ~ Copyright (c) 2004-2024 The MZmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -90,9 +90,9 @@
       </Accordion>
    </top>
    <center>
-      <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+      <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER" fx:id="tabPane">
         <tabs>
-          <Tab text="MS/MS mirror (modified cosine)">
+          <Tab text="Fragment spectrum mirror">
             <content>
                   <BorderPane>
                      <center>
@@ -102,7 +102,7 @@
                                  <top>
                                     <VBox BorderPane.alignment="CENTER">
                                        <children>
-                                          <Label fx:id="lbTitleCos" text="MS/MS mirror (modified cosine)">
+                                          <Label fx:id="lbTitleCos" text="Fragment spectrum mirror">
                                              <font>
                                                 <Font name="System Bold" size="12.0" />
                                              </font>
@@ -151,7 +151,7 @@
                   </BorderPane>
             </content>
           </Tab>
-          <Tab text="Neutral loss mirror">
+          <Tab text="Neutral loss mirror" fx:id="tabNeutralLoss">
             <content>
                   <BorderPane>
                      <center>

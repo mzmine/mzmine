@@ -88,7 +88,7 @@ public class MZRangeComponent extends DoubleRangeComponent {
         }
 
       } catch (Exception ex) {
-        ex.printStackTrace();
+        // silent, this is just not a parameter dialog
       }
 
       Range<Double> mzRange = null;

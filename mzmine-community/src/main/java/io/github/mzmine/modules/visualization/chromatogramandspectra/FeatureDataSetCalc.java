@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.IntensityMode;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.MzMode;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
 import io.github.mzmine.modules.visualization.chromatogram.MzRangeEicDataSet;
@@ -89,7 +88,8 @@ public class FeatureDataSetCalc extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return STR."Calculating \{mzRangesSorted.size()} base peak chromatogram(s) in \{rawDataFiles.size()} files.";
+    return "Calculating " + mzRangesSorted.size() + " base peak chromatogram(s) in "
+        + rawDataFiles.size() + " files.";
   }
 
   @Override

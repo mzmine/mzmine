@@ -25,6 +25,11 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Enumeration of different types of precision bit lengths which are parsed by the MzML Parser
  */
@@ -37,8 +42,16 @@ public enum MzMLBitLength {
 
   private final String accession;
 
+  private static final Map<String, MzMLBitLength> map = Arrays.stream(MzMLBitLength.values()).collect(
+      Collectors.toMap(MzMLBitLength::getAccession, v -> v));
+
   MzMLBitLength(String accession) {
     this.accession = accession;
+  }
+
+  @Nullable
+  public static MzMLBitLength of(String accession) {
+    return map.get(accession);
   }
 
   /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,12 @@ public enum MZmineModuleCategory {
   GAPFILLING("Gap filling"), //
   ISOTOPES("Isotopes"), //
   FEATURELIST("Feature list methods"), //
+  /**
+   * Only feature list resolving that splits separate features. Modules like
+   * {@link
+   * io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms.ChromatogramBlankSubtractionModule}
+   * use this to check if the module can be applied on the feature list
+   */
   FEATURE_RESOLVING("Resolving"), //
   FEATURE_GROUPING("Feature grouping"), //
   ION_IDENTITY_NETWORKS("Ion identity networking"), //
@@ -48,13 +54,16 @@ public enum MZmineModuleCategory {
   ANNOTATION("Annotation"), //
   FEATURELISTEXPORT("Feature list export"), //
   FEATURELISTIMPORT("Feature list import"), //
+  SPECLIBIMPORT("Spectral library import"), //
+  SPECLIB_PROCESSING("Spectral library processing"), //
   SPECLIBEXPORT("Spectral library export"), //
   VISUALIZATIONRAWDATA("Visualization"), //
   VISUALIZATIONFEATURELIST("Visualization feature list"), //
   VISUALIZATION_RAW_AND_FEATURE("Visualization data"), //
+  VISUALIZATION_OTHER_DATA("Visualization of data from other detectors"), //
   DATAANALYSIS("Data analysis"), //
   HELPSYSTEM("Help"), //
-  TOOLS("Tools"); //
+  TOOLS("Tools"), OTHER_DATA_PROCESSING("Processing other data"); //
 
   private final String name;
 
@@ -73,28 +82,29 @@ public enum MZmineModuleCategory {
       case RAWDATAIMPORT, RAWDATAEXPORT, RAWDATA, RAWDATAFILTERING -> MainCategory.SPECTRAL_DATA;
       case EIC_DETECTION, FEATURE_RESOLVING, GAPFILLING, ALIGNMENT, FEATURELIST ->
           MainCategory.FEATURE_DETECTION;
-      case ISOTOPES, SPECTRALDECONVOLUTION, FEATURELISTFILTERING -> MainCategory.FEATURE_FILTERING;
-      case NORMALIZATION, ANNOTATION, DATAANALYSIS, FEATURE_GROUPING, ION_IDENTITY_NETWORKS ->
-          MainCategory.FEATURE_PROCESSING;
+      case ISOTOPES, SPECTRALDECONVOLUTION, FEATURELISTFILTERING, NORMALIZATION, ANNOTATION,
+           DATAANALYSIS, FEATURE_GROUPING, ION_IDENTITY_NETWORKS -> MainCategory.FEATURE_PROCESSING;
       case FEATURELISTEXPORT, FEATURELISTIMPORT -> MainCategory.FEATURE_IO;
       case VISUALIZATIONRAWDATA, VISUALIZATIONFEATURELIST, VISUALIZATION_RAW_AND_FEATURE ->
           MainCategory.VISUALIZATION;
-      case SPECLIBEXPORT -> MainCategory.SPECTRAL_LIBRARY;
+      case SPECLIBEXPORT, SPECLIBIMPORT, SPECLIB_PROCESSING -> MainCategory.SPECTRAL_LIBRARY;
       // no main category
       case HELPSYSTEM, TOOLS -> MainCategory.OTHER;
       // no default so that the compiler marks missing cases
+      case OTHER_DATA_PROCESSING, VISUALIZATION_OTHER_DATA -> MainCategory.OTHER_DATA;
     };
   }
 
   public enum MainCategory {
     PROJECT("Project"), //
-    SPECTRAL_DATA("Spectral data"), //
-    SPECTRAL_LIBRARY("Spectral library"), //
+    SPECTRAL_DATA("Raw data methods"), //
     FEATURE_DETECTION("Feature detection"), //
-    FEATURE_FILTERING("Feature filtering"), //
     FEATURE_PROCESSING("Feature processing"), //
+    SPECTRAL_LIBRARY("Spectral library"), //
     FEATURE_IO("Feature IO"), //
-    VISUALIZATION("Visualization"), OTHER("Other");
+    VISUALIZATION("Visualization"), //
+    OTHER("Other"), //
+    OTHER_DATA("UV/Other data");
 
     private final String name;
 

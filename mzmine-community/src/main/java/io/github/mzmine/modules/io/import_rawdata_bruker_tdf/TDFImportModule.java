@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -25,8 +24,6 @@
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf;
 
-import com.google.common.base.Strings;
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -35,15 +32,11 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.RawDataFileUtils;
 import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -82,14 +75,12 @@ public class TDFImportModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     File fileNames[] = parameters.getParameter(TDFImportParameters.fileNames).getValue();
+    final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     if (Arrays.asList(fileNames).contains(null)) {
       logger.warning("List of filenames contains null");
       return ExitCode.ERROR;
     }
-
-    // Find common prefix in raw file names if in GUI mode
-    String commonPrefix = RawDataFileUtils.askToRemoveCommonPrefix(fileNames);
 
     for (int i = 0; i < fileNames.length; i++) {
 
@@ -99,30 +90,10 @@ public class TDFImportModule implements MZmineProcessingModule {
         return ExitCode.ERROR;
       }
 
-      // Set the new name by removing the common prefix
-      String newName;
-      if (!Strings.isNullOrEmpty(commonPrefix)) {
-        final String regex = "^" + Pattern.quote(commonPrefix);
-        newName = fileNames[i].getName().replaceFirst(regex, "");
-      } else {
-        newName = fileNames[i].getName();
-      }
+      Task newTask = new TDFImportTask(project, fileNames[i], storage, TDFImportModule.class,
+          parameters, moduleCallDate);
+      tasks.add(newTask);
 
-      try {
-        // IMS files are big, reserve a single storage for each file
-        final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
-
-        IMSRawDataFile newMZmineFile = MZmineCore.createNewIMSFile(newName,
-            fileNames[i].getAbsolutePath(), storage);
-        Task newTask = new TDFImportTask(project, fileNames[i], newMZmineFile,
-            TDFImportModule.class, parameters, moduleCallDate);
-        tasks.add(newTask);
-      } catch (IOException e) {
-        e.printStackTrace();
-        MZmineCore.getDesktop().displayErrorMessage("Could not create a new temporary file " + e);
-        logger.log(Level.SEVERE, "Could not create a new temporary file ", e);
-        return ExitCode.ERROR;
-      }
     }
 
     return ExitCode.OK;

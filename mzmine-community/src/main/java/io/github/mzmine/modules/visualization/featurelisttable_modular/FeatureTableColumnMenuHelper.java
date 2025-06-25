@@ -80,7 +80,7 @@ public class FeatureTableColumnMenuHelper extends TableColumnMenuHelper {
   private final FeatureTableFX featureTable;
 
   public FeatureTableColumnMenuHelper(FeatureTableFX featureTable) {
-    super(featureTable);
+    super(featureTable.getTable());
     this.featureTable = featureTable;
   }
 

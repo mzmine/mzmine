@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,27 +25,23 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
+import com.google.common.collect.Range;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.logging.Logger;
-
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.general.DatasetChangeEvent;
 
-import com.google.common.collect.Range;
-
 /**
  * Created by owen myers (oweenm@gmail.com) on 4/5/17.
  */
 
 public class BaseXYPlot extends XYPlot {
-  private static final long serialVersionUID = 1L;
 
-  public Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final long serialVersionUID = 1L;
 
   public Range<Double> totalMZRange;
   public Range<Float> totalRTRange;
@@ -60,8 +56,8 @@ public class BaseXYPlot extends XYPlot {
   public boolean logScale;
   public double maxValue = 0;
 
-  BaseXYPlot(TwoDDataSet dataset, Range<Float> rtRange, Range<Double> mzRange,
-      ValueAxis domainAxis, ValueAxis rangeAxis) {
+  BaseXYPlot(TwoDDataSet dataset, Range<Float> rtRange, Range<Double> mzRange, ValueAxis domainAxis,
+      ValueAxis rangeAxis) {
 
     super(dataset, domainAxis, rangeAxis, null);
 
@@ -91,8 +87,9 @@ public class BaseXYPlot extends XYPlot {
   void switchPalette() {
     TwoDPaletteType types[] = TwoDPaletteType.values();
     int newIndex = paletteType.ordinal() + 1;
-    if (newIndex >= types.length)
+    if (newIndex >= types.length) {
       newIndex = 0;
+    }
     paletteType = types[newIndex];
     zoomOutBitmap = null;
     datasetChanged(new DatasetChangeEvent(dataset, dataset));

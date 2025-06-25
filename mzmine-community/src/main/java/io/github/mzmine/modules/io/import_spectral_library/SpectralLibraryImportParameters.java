@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,17 +25,20 @@
 
 package io.github.mzmine.modules.io.import_spectral_library;
 
+import io.github.mzmine.modules.io.download.AssetCategory;
+import io.github.mzmine.modules.io.download.DownloadAssets;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesWithDownloadParameter;
 import io.github.mzmine.util.files.ExtensionFilters;
 
 public class SpectralLibraryImportParameters extends SimpleParameterSet {
 
 
-  public static final FileNamesParameter dataBaseFiles = new FileNamesParameter(
+  public static final FileNamesWithDownloadParameter dataBaseFiles = new FileNamesWithDownloadParameter(
       "Spectral library files", """
-      Name of file that contains information for peak identification
-      (GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx)""", ExtensionFilters.ALL_LIBRARY);
+      Path of spectral library files in common formats
+      (GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx)""", ExtensionFilters.ALL_LIBRARY,
+      DownloadAssets.forAssetGroup(AssetCategory.SPECTRAL_LIBRARIES), "Drag & drop your spectral libraries here.");
 
   public SpectralLibraryImportParameters() {
     super(dataBaseFiles);

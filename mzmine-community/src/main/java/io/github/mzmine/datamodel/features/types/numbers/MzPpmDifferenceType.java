@@ -28,9 +28,11 @@ package io.github.mzmine.datamodel.features.types.numbers;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.MathUtils;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Relative m/z difference in ppm (parts-per-million: 10^-6), e.g., used in {@link FormulaListType}
@@ -73,5 +75,18 @@ public class MzPpmDifferenceType extends FloatType {
       // only happens if types are used without initializing the MZmineCore
       return DEFAULT_FORMAT;
     }
+  }
+
+  /**
+   * @param exactMass    the calculated mass.
+   * @param accurateMass the measured mass.
+   * @return the ppm difference or null if either of the parameters is null.
+   */
+  public static @Nullable Double calculate(@Nullable Double exactMass,
+      @Nullable Double accurateMass) {
+    if (exactMass == null || accurateMass == null) {
+      return null;
+    }
+    return MathUtils.getPpmDiff(exactMass, accurateMass);
   }
 }

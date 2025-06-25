@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,7 +63,7 @@ public class WizardSequenceIOUtils {
 
   private static final Logger logger = Logger.getLogger(WizardSequenceIOUtils.class.getName());
   private static final String WIZARD_EXTENSION = "mzmwizard";
-  public static final ExtensionFilter FILE_FILTER = new ExtensionFilter("MZmine wizard preset",
+  public static final ExtensionFilter FILE_FILTER = new ExtensionFilter("mzmine wizard preset",
       "*." + WIZARD_EXTENSION);
   private static final String PART_TAG = "wiz_part";
   private static final String ELEMENT_TAG = "wizard";
@@ -166,7 +166,7 @@ public class WizardSequenceIOUtils {
           });
         } catch (Exception e) {
           logger.warning("Cannot set preset " + uniquePresetId + " to part " + part
-                         + ". Maybe it was renamed. " + e.getMessage());
+              + ". Maybe it was renamed. " + e.getMessage());
         }
       }
 
@@ -213,8 +213,8 @@ public class WizardSequenceIOUtils {
       return List.of();
     }
 
-    return FileAndPathUtil.findFilesInDir(path, FILE_FILTER, false).stream()
-        .filter(Objects::nonNull).flatMap(Arrays::stream).filter(Objects::nonNull).map(file -> {
+    return Arrays.stream(FileAndPathUtil.findFilesInDirFlat(path, FILE_FILTER, false, false))
+        .map(file -> {
           try {
             WizardSequence presets = WizardSequenceIOUtils.loadFromFile(file);
             return new LocalWizardSequenceFile(file, presets);

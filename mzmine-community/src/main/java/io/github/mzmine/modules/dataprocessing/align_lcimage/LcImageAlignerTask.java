@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -94,12 +94,12 @@ public class LcImageAlignerTask extends AbstractTask {
 
     // checked in setup dialog
     imageLists = Arrays.stream(matchingFeatureLists)
-        .filter(flist -> flist.hasFeatureType(ImageType.class))
-        .map(list -> (FeatureList) list).toList();
+        .filter(flist -> flist.hasFeatureType(ImageType.class)).map(list -> (FeatureList) list)
+        .toList();
 
     final List<FeatureList> featureLists = Arrays.stream(matchingFeatureLists)
-        .filter(flist -> !flist.hasFeatureType(ImageType.class))
-        .map(list -> (FeatureList) list).toList();
+        .filter(flist -> !flist.hasFeatureType(ImageType.class)).map(list -> (FeatureList) list)
+        .toList();
     if (featureLists.size() > 1) {
       logger.warning(
           "More than one DI/LC feature list selected. Using " + featureLists.get(0).getName());
@@ -127,7 +127,7 @@ public class LcImageAlignerTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
     return scoredRows.get() / totalRows * 0.8d
-        + processedScores.get() / (double) totalScores.get() * 0.2d;
+           + processedScores.get() / (double) totalScores.get() * 0.2d;
   }
 
   @Override
@@ -143,7 +143,7 @@ public class LcImageAlignerTask extends AbstractTask {
     final List<RawDataFile> allDataFiles = FeatureListUtils.getAllDataFiles(sourceLists);
     final ModularFeatureList alignedFlist = new ModularFeatureList(flistName, getMemoryMapStorage(),
         allDataFiles);
-    FeatureListUtils.transferRowTypes(alignedFlist, sourceLists);
+    FeatureListUtils.transferRowTypes(alignedFlist, sourceLists, true);
     FeatureListUtils.transferSelectedScans(alignedFlist, sourceLists);
 
     final List<FeatureListRow> lcRows = this.lcFeatureList.getRows().stream().map(

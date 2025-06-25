@@ -121,7 +121,7 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("m/z tolerance", MZTolerance);
+    nameParameterMap.put("m/z tolerance", getParameter(MZTolerance));
     return nameParameterMap;
   }
 }

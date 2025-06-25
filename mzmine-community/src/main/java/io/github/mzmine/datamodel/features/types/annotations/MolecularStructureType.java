@@ -117,7 +117,6 @@ public class MolecularStructureType extends DataType<MolecularStructure> impleme
     return () -> FxThread.runLater(() -> {
       if (superType instanceof CompoundDatabaseMatchesType) {
         CompoundDatabaseMatchTab tab = new CompoundDatabaseMatchTab(table);
-        tab.setFeatureRow(row);
         MZmineCore.getDesktop().addTab(tab);
       } else if (superType instanceof SpectralLibraryMatchesType) {
         MZmineCore.getDesktop().addTab(new SpectralIdentificationResultsTab(table));
