@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.export_features_mztabm;
 import com.google.common.collect.Range;
 import de.isas.mztab2.io.MzTabNonValidatingWriter;
 import de.isas.mztab2.io.MzTabValidatingWriter;
+import de.isas.mztab2.io.MzTabWriter;
 import de.isas.mztab2.model.Assay;
 import de.isas.mztab2.model.CV;
 import de.isas.mztab2.model.Database;
@@ -155,7 +156,7 @@ public class MZTabmExportTask extends AbstractTask {
     mtd.setMzTabID("1");
     mtd.setDescription(featureList.getName());
     mtd.addSoftwareItem(new Software().id(1).parameter(
-        new Parameter().cvLabel("MS").cvAccession("MS:1002342").name("MZmine")
+        new Parameter().cvLabel("MS").cvAccession("MS:1002342").name("mzmine")
             .value(String.valueOf(SemverVersionReader.getMZmineVersion()))));
     mtd.setSmallMoleculeQuantificationUnit(
         new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330")
@@ -178,7 +179,7 @@ public class MZTabmExportTask extends AbstractTask {
         .version("17.11.2022").uri("http://purl.obolibrary.org/obo/pride_cv.obo"));
     mtd.addDatabaseItem(new Database().id(1).prefix("mzmdb")
         .version(SemverVersionReader.getMZmineVersion().toString()).uri("https://mzmine.github.io/")
-        .param(new Parameter().name("MZmine database")));
+        .param(new Parameter().name("mzmine database")));
     return mtd;
   }
 
@@ -365,8 +366,9 @@ public class MZTabmExportTask extends AbstractTask {
       }
 
       mzTabFile.metadata(mtd);
-      MzTabValidatingWriter validatingWriter = new MzTabValidatingWriter();
-      validatingWriter.write(curFile.toPath(), mzTabFile);
+//      MzTabWriter writer = new MzTabValidatingWriter();
+      MzTabWriter writer = new MzTabNonValidatingWriter();
+      writer.write(curFile.toPath(), mzTabFile);
     } catch (Exception e) {
       e.printStackTrace();
       setStatus(TaskStatus.ERROR);
@@ -654,6 +656,7 @@ public class MZTabmExportTask extends AbstractTask {
     MsRun msRun = new MsRun();
     msRun.id(fileCounter);
     msRun.setLocation("file:///" + file.getAbsolutePath().replaceAll("\\\\", "/"));
+//    msRun.setName(file.getName());
     int dotIn = file.getName().indexOf(".");
     String fileFormat = "";
     if (dotIn != -1) {
