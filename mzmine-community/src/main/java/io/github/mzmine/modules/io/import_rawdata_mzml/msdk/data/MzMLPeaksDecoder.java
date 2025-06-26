@@ -246,7 +246,7 @@ public class MzMLPeaksDecoder {
     byte[] bytes;
     if (binaryData.charAt(0) == '\n') {
       // shimadzu's in-house converter uses an illegal linebreak in a binary array
-      bytes = Base64.getDecoder().decode(binaryData.substring(1));
+      bytes = Base64.getDecoder().decode(binaryData.strip());
     } else {
       bytes = Base64.getDecoder().decode(binaryData);
     }
