@@ -35,7 +35,7 @@ public class VolcanoPlotParameters extends SimpleParameterSet {
   public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1, true);
 
   public VolcanoPlotParameters() {
-    super(flist);
+    super("https://mzmine.github.io/mzmine_documentation/visualization_modules/statistics_dashboard/statistics_dashboard.html#volcano-plot", flist);
   }
 
   @Override

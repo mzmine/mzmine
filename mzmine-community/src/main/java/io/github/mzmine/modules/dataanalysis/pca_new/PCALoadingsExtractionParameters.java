@@ -61,7 +61,9 @@ public class PCALoadingsExtractionParameters extends SimpleParameterSet {
   public static final RegionsParameter regions = new RegionsParameter();
 
   public PCALoadingsExtractionParameters() {
-    super(flist, scaling, imputations, domainPc, rangePc, abundance, sampleTypes, regions);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/statistics_dashboard/statistics_dashboard.html#principal-component-analysis-pca",
+        flist, scaling, imputations, domainPc, rangePc, abundance, sampleTypes, regions);
   }
 
   public static PCALoadingsExtractionParameters fromPcaModel(PCAModel pcaModel,
