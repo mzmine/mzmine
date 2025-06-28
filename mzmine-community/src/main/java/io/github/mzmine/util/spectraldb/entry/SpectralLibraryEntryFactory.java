@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util.spectraldb.entry;
 
+import static io.github.mzmine.util.scans.ScanUtils.extractFragmentationMethodShort;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
@@ -337,7 +339,6 @@ public class SpectralLibraryEntryFactory {
         }));
         entry.putIfNotNull(DBEntryField.MS_LEVEL, msnInfo.getMsLevel());
       } else if (msMsInfo != null) {
-        entry.putIfNotNull(DBEntryField.FRAGMENTATION_METHOD, msMsInfo.getActivationMethod());
         Range<Double> window = msMsInfo.getIsolationWindow();
         if (window != null) {
           entry.putIfNotNull(DBEntryField.ISOLATION_WINDOW, RangeUtils.rangeLength(window));
@@ -345,6 +346,9 @@ public class SpectralLibraryEntryFactory {
         entry.putIfNotNull(DBEntryField.MS_LEVEL, msMsInfo.getMsLevel());
       }
     }
+
+    // extract fragmentation method from spectrum - may be mixed if multiple
+    entry.putIfNotNull(DBEntryField.FRAGMENTATION_METHOD, extractFragmentationMethodShort(spec));
 
     List<Float> energies = ScanUtils.extractCollisionEnergies(spec);
     if (!energies.isEmpty()) {
