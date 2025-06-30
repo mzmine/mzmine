@@ -117,7 +117,12 @@ public class ListModuleDocMainTest {
       ClassPath classPath = ClassPath.from(MZmineModule.class.getClassLoader());
       classPath.getTopLevelClassesRecursive("io.github.mzmine.modules").forEach(classInfo -> {
         try {
-          Object o = classInfo.load().getDeclaredConstructor().newInstance();
+          final Class<?> clazz = classInfo.load();
+          if (!MZmineModule.class.isAssignableFrom(clazz)) {
+            return;
+          }
+          
+          Object o = clazz.getDeclaredConstructor().newInstance();
           if (o instanceof MZmineModule mod) {
             ParameterSet parameterSet = null;
             try {
