@@ -23,22 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import static java.util.Comparator.comparing;
 import static java.util.Comparator.reverseOrder;
+import static java.util.Objects.requireNonNullElse;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.reflect.ClassPath;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.batchmode.BatchModeModulesList;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.io.JsonUtils;
+import io.github.mzmine.util.StringUtils;
+import io.github.mzmine.util.io.CsvWriter;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
@@ -50,18 +57,106 @@ import testutils.MZmineTestUtil;
 public class ListModuleDocMainTest {
 
   private static final Logger logger = Logger.getLogger(ListModuleDocMainTest.class.getName());
-  private static final File file = new File(
-      "D:\\OneDrive - mzio GmbH\\mzio\\development\\modules\\mzmine_modules4.7.8.json");
+
+  // select old and new file
+  private static final File file = new File("");
+  private static final File fileOld = new File("");
 
   @BeforeAll
   static void init() {
     MZmineTestUtil.startMzmineCore();
   }
 
+  @Test
+  void compareModules() throws IOException {
+    List<ModuleRecord> records47 = new ObjectMapper().readValue(file, new TypeReference<>() {
+    });
+    List<ModuleRecord> records43 = new ObjectMapper().readValue(fileOld, new TypeReference<>() {
+    });
+
+    final Map<String, ModuleRecord> map43 = records43.stream()
+        .collect(Collectors.toMap(ModuleRecord::className, Function.identity()));
+
+    List<Matches> matches = new ArrayList<>();
+
+    final Set<String> addedClassNames = new HashSet<>();
+
+    for (ModuleRecord v47 : records47) {
+      final ModuleRecord v43 = map43.get(v47.className);
+      addedClassNames.add(v47.className);
+
+      matches.add(new Matches(v47, v43));
+    }
+
+    for (ModuleRecord v43 : records43) {
+      if (!addedClassNames.contains(v43.className)) {
+        matches.add(new Matches(null, v43));
+      }
+    }
+
+    matches.sort(Comparator.comparingInt(Matches::size).reversed());
+
+    final List<ModuleComparison> comparison = matches.stream().map(ModuleComparison::new)
+        .sorted(comparing(v -> v.change.ordinal())).toList();
+    final String tsv = CsvWriter.writeToString(comparison, ModuleComparison.class, '\t', true);
+    logger.info("""
+        Comparison of modules:
+        """ + tsv);
+//    logger.info(comparison.stream().map(Object::toString).collect(Collectors.joining("\n")));
+  }
+
+  record Matches(ModuleRecord v47, ModuleRecord v43) {
+
+    public int size() {
+      return (v47 == null ? 0 : 1) + (v43 == null ? 0 : 1);
+    }
+  }
+
+  record ModuleComparison(String name, String className, ModuleChange change,
+                          boolean removedFromQuick, boolean isDeprecated, boolean isBatchModule,
+                          boolean isToolOrVisual, String docLink) {
+
+    ModuleComparison(Matches match) {
+      final ModuleRecord mod = requireNonNullElse(match.v47, match.v43);
+
+      boolean removedFromQuick = false;
+      ModuleChange change = ModuleChange.NOTHING;
+      if (match.size() == 2) {
+        if (StringUtils.hasValue(match.v47.docLink) && StringUtils.isBlank(match.v43.docLink)) {
+          change = ModuleChange.DOC_ADDED;
+        }
+        removedFromQuick = match.v43.isQuickAccess() && !match.v47.isQuickAccess();
+      } else if (match.v47 != null) {
+        change = ModuleChange.ADDED;
+        if (StringUtils.hasValue(match.v47.docLink)) {
+          change = ModuleChange.DOC_ADDED;
+        }
+      } else if (match.v43 != null) {
+        change = ModuleChange.REMOVED;
+      }
+
+      this(mod.name, mod.className, change, removedFromQuick, mod.isDeprecated, mod.isBatchModule,
+          mod.isToolOrVisual, mod.docLink);
+    }
+  }
+
+  record ModuleRecord(String name, String className, boolean isDeprecated, boolean isBatchModule,
+                      boolean isToolOrVisual, String docLink) {
+
+    public boolean isQuickAccess() {
+      return isBatchModule || isToolOrVisual;
+    }
+  }
+
+  enum ModuleChange {
+    DOC_ADDED, ADDED, REMOVED, NOTHING;
+  }
+
+
   @Disabled
   @Test
   void listModulesFromFile() throws IOException {
-    List<ModuleRecord> records = JsonUtils.MAPPER.readValue(file, new TypeReference<>() {
+    List<ModuleRecord> records = new ObjectMapper().readValue(file, new TypeReference<>() {
     });
 
     logger.info(records.stream().map(Object::toString).collect(Collectors.joining("\n")));
@@ -108,7 +203,7 @@ public class ListModuleDocMainTest {
         .thenComparing(ModuleRecord::isToolOrVisual, reverseOrder())
         .thenComparing(ModuleRecord::name));
 
-    JsonUtils.MAPPER.writer().writeValue(file, records);
+    new ObjectMapper().writer().writeValue(file, records);
   }
 
   List<ModuleParameters> listAllModules() {
@@ -121,7 +216,7 @@ public class ListModuleDocMainTest {
           if (!MZmineModule.class.isAssignableFrom(clazz)) {
             return;
           }
-          
+
           Object o = clazz.getDeclaredConstructor().newInstance();
           if (o instanceof MZmineModule mod) {
             ParameterSet parameterSet = null;
@@ -149,9 +244,4 @@ public class ListModuleDocMainTest {
 
   }
 
-
-  record ModuleRecord(String name, String className, boolean isDeprecated, boolean isBatchModule,
-                      boolean isToolOrVisual, String docLink) {
-
-  }
 }
