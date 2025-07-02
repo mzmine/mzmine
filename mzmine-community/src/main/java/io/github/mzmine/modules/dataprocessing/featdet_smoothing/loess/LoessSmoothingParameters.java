@@ -41,6 +41,6 @@ public class LoessSmoothingParameters extends SimpleParameterSet {
           "Enables intensity smoothing along the mobility axis.", 5, 0, Integer.MAX_VALUE));
 
   public LoessSmoothingParameters() {
-    super(rtSmoothing, mobilitySmoothing);
+    super("https://mzmine.github.io/mzmine_documentation/module_docs/featdet_smoothing/smoothing.html#loess-smoothing", rtSmoothing, mobilitySmoothing);
   }
 }

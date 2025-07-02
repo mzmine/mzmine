@@ -34,6 +34,6 @@ public class TTestParameters extends SimpleParameterSet {
       "t-Test configuration", "Configure the t-Test.");
 
   public TTestParameters() {
-    super(config);
+    super("https://mzmine.github.io/mzmine_documentation/visualization_modules/statistics_dashboard/statistics_dashboard.html#controls_1", config);
   }
 }
