@@ -114,7 +114,7 @@ public class ScanRtCorrectionMedianPreviewPane extends AbstractPreviewPane<List<
       final AnyXYProvider fitDataset = new AnyXYProvider(file.getColorAWT(),
           file.getName() + " corrected RTs", file.getNumOfScans(),
           i -> (double) file.getScan(i).getRetentionTime(),
-          i -> (double) cali.getCorrectedRtMovAvg(file.getScan(i).getRetentionTime()));
+          i -> (double) cali.getCorrectedRt(file.getScan(i).getRetentionTime()));
       datasets.add(new DatasetAndRenderer(new ColoredXYDataset(fitDataset, RunOption.THIS_THREAD),
           new ColoredXYLineRenderer()));
     }

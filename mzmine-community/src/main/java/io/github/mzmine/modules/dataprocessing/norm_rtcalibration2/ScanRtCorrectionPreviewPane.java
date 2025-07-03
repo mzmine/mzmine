@@ -125,7 +125,7 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
       final AnyXYProvider avgFitDataset = new AnyXYProvider(/*file.getColorAWT()*/clr,
           file.getName() + " fitted shift at RT vs original RTs", file.getNumOfScans(),
           i -> (double) file.getScan(i).getRetentionTime(),
-          i -> (double) -(cali.getCorrectedRtMovAvg(file.getScan(i).getRetentionTime())
+          i -> (double) -(cali.getCorrectedRt(file.getScan(i).getRetentionTime())
               - file.getScan(i).getRetentionTime()));
 
 //      datasets.add(new DatasetAndRenderer(new ColoredXYDataset(fitDataset, RunOption.THIS_THREAD),

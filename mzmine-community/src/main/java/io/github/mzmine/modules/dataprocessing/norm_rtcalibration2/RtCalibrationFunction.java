@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2004-2025 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
 
 import com.google.common.collect.Range;
@@ -12,32 +36,24 @@ import java.util.logging.Logger;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class RtCalibrationFunction {
+public class RtCalibrationFunction extends AbstractRtCalibrationFunction{
 
   private static final Logger logger = Logger.getLogger(RtCalibrationFunction.class.getName());
 
-  private final RawDataFilePlaceholder filePlaceholder;
   private final PolynomialSplineFunction movAvg;
 
   public RtCalibrationFunction(RawDataFile file, PolynomialSplineFunction function) {
-    this.filePlaceholder = new RawDataFilePlaceholder(file);
+    super(new RawDataFilePlaceholder(file));
     this.movAvg = function;
   }
 
   public RtCalibrationFunction(FeatureList flist, List<RtStandard> rtSortedStandards,
       double bandwidth) {
-    if (flist.getNumberOfRawDataFiles() > 1) {
-      throw new IllegalStateException(
-          "Cannot create a RtCalibrationFunction for a feature list with more than one data file (%s)".formatted(
-              flist.getName()));
-    }
+    super(flist);
 
     final RawDataFile file = flist.getRawDataFiles().getFirst();
     final Range<Float> fullRtRange = file.getDataRTRange();
-    filePlaceholder = new RawDataFilePlaceholder(file);
-
     DoubleArrayList thisRtValues = new DoubleArrayList();
     DoubleArrayList standardRtValues = new DoubleArrayList();
 
@@ -63,8 +79,8 @@ public class RtCalibrationFunction {
       @NotNull final RtCalibrationFunction previousRunCalibration, final double previousRunWeight,
       @NotNull final RtCalibrationFunction nextRunCalibration, final double nextRunWeight,
       double bandwidth) {
+    super(new RawDataFilePlaceholder(file));
 
-    filePlaceholder = new RawDataFilePlaceholder(file);
     final Range<Float> fullRtRange = file.getDataRTRange();
 
     final DoubleArrayList thisRtValues = new DoubleArrayList();
@@ -98,7 +114,7 @@ public class RtCalibrationFunction {
   @NotNull
   private PolynomialSplineFunction getInterpolatorIteratively(double initialBandwidth,
       DoubleArrayList calibratedRtValues, DoubleArrayList thisRtValues) {
-    final RawDataFile file = filePlaceholder.getMatchingFile();
+    final RawDataFile file = getRawDataFilePlaceholder().getMatchingFile();
     PolynomialSplineFunction movAvg = null;
     final double[] subtracted = AsymmetricLeastSquaresCorrection.subtract(
         calibratedRtValues.toDoubleArray(), thisRtValues.toDoubleArray());
@@ -137,59 +153,12 @@ public class RtCalibrationFunction {
     return movAvg;
   }
 
-  /**
-   * Adds a final RT pair for the end of the file (sets boundaries for calibration)
-   * @param rtSortedStandards modified
-   * @param fullRtRange full rt range of the file to be calibrated {@link RawDataFile#getDataRTRange()}
-   * @param finalStandardAverageRt the rt of the final standard for the data file
-   * @param thisRtValues modified
-   * @param calibratedRtValues modified
-   */
-  private static void addFinalRt(@NotNull List<RtStandard> rtSortedStandards,
-      Range<Float> fullRtRange, float finalStandardAverageRt, DoubleArrayList thisRtValues,
-      DoubleArrayList calibratedRtValues) {
-
-    // if this changes the rt range, we need to add an additional point.
-    // we keep the change after the last standard constant.
-    if (rtSortedStandards.getLast().getAverageRt() > fullRtRange.upperEndpoint()) {
-      final float avgRt = rtSortedStandards.getLast().getAverageRt();
-      final double offset = avgRt - finalStandardAverageRt;
-      final float timeToLastScan = fullRtRange.upperEndpoint() - finalStandardAverageRt;
-
-      thisRtValues.add(fullRtRange.upperEndpoint() + offset);
-      // is this correct? this would cause slightly different max rts for all files,
-      // but i cannot think of a better way to calculate this
-      calibratedRtValues.add(rtSortedStandards.getLast().getAverageRt() + timeToLastScan);
-    } else {
-      // keep the rt range of this file as it was.
-      thisRtValues.add(fullRtRange.upperEndpoint());
-      calibratedRtValues.add(fullRtRange.upperEndpoint());
-    }
-  }
-
-  @Nullable
-  public RawDataFile getRawDataFile() {
-    return filePlaceholder.getMatchingFile();
-  }
-
-  public float getCorrectedRtMovAvg(float originalRt) {
+  @Override
+  public float getCorrectedRt(float originalRt) {
     if (!movAvg.isValidPoint(originalRt)) {
       return originalRt;
     }
     return (float) movAvg.value(originalRt);
-  }
-
-  private static void ensureMonotonicity(double[] values) {
-    if (values.length <= 1) {
-      return;
-    }
-
-    for (int i = 1; i < values.length; i++) {
-      if (values[i] <= values[i - 1]) {
-        // Add a small increment to maintain monotonicity
-        values[i] = Math.nextUp(values[i - 1]);
-      }
-    }
   }
 
   public PolynomialSplineFunction getSplineFunction() {

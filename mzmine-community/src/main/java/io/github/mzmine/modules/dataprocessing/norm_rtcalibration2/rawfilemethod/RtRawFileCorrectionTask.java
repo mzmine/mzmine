@@ -35,7 +35,6 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,7 +67,7 @@ public class RtRawFileCorrectionTask extends AbstractRawDataFileTask {
       files.add(file);
       for (Scan scan : file.getScans()) {
         ((SimpleScan) scan).setCorrectedRetentionTime(
-            cali.getCorrectedRtMovAvg(scan.getRetentionTime()));
+            cali.getCorrectedRt(scan.getRetentionTime()));
       }
     }
   }
