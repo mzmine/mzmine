@@ -43,8 +43,8 @@ public class RtRawFileCorrectionModule implements MZmineProcessingModule {
   @Override
   public @NotNull String getDescription() {
     return """
-        This module applies retention time corrections calclulated by the %s module to taw data files. 
-        This module is only here to ensure reproducibility in project files.""".formatted(
+        This module applies retention time corrections calclulated by the %s module to raw data files. 
+        This module ensures reproducibility in project files.""".formatted(
         ScanRtCorrectionModule.MODULE_NAME);
   }
 

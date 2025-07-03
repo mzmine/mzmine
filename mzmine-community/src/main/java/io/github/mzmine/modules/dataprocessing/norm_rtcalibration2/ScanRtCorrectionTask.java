@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemethod.RtRawFileCorrectionModule;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
@@ -85,8 +86,9 @@ class ScanRtCorrectionTask extends AbstractTask {
     this.project = project;
     this.flists = Arrays.stream(
             parameters.getParameter(RTCorrectionParameters.featureLists).getValue()
-                .getMatchingFeatureLists()).sorted(FeatureListUtils.createDescendingNumberOfRowsSorter())
-        .map(FeatureList.class::cast).toList();
+                .getMatchingFeatureLists())
+        .sorted(FeatureListUtils.createDescendingNumberOfRowsSorter()).map(FeatureList.class::cast)
+        .toList();
     mzTolerance = parameters.getParameter(RTCorrectionParameters.MZTolerance).getValue();
     rtTolerance = parameters.getParameter(RTCorrectionParameters.RTTolerance).getValue();
     minHeight = parameters.getParameter(RTCorrectionParameters.minHeight).getValue();
@@ -161,7 +163,9 @@ class ScanRtCorrectionTask extends AbstractTask {
   /**
    * @param goodStandardsByRt All detected standards sorted by rt.
    * @param referenceFlists   The reference feature lists of these standards.
-   * @return
+   * @return A list that only contains standards with ascending retention times. Corrects the case
+   * of non linear shifts that cause standards of order A and B to appear in order of B and A in
+   * another feature list.
    */
   static List<RtStandard> removeNonMonotonousStandards(List<RtStandard> goodStandardsByRt,
       List<FeatureList> referenceFlists) {
@@ -377,12 +381,18 @@ class ScanRtCorrectionTask extends AbstractTask {
     RtRawFileCorrectionModule.applyOnThisThread(allCalibrations);
 
     for (FeatureList flist : flists) {
-      flist.streamFeatures().forEach(FeatureDataUtils::recalculateIonSeriesDependingTypes);
+      for (FeatureListRow row : flist.getRowsCopy()) {
+        for (ModularFeature f : row.getFeatures()) {
+          FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
+        }
+      }
     }
 
-    flists.forEach(flist -> flist.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(ScanRtCorrectionModule.class, parameters,
-            getModuleCallDate())));
+    for (FeatureList flist : flists) {
+      flist.addDescriptionOfAppliedTask(
+          new SimpleFeatureListAppliedMethod(ScanRtCorrectionModule.class, parameters,
+              getModuleCallDate()));
+    }
 
     setStatus(TaskStatus.FINISHED);
   }
