@@ -32,6 +32,7 @@ import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 public abstract class AbstractRtCalibrationFunction {
 
@@ -106,4 +107,7 @@ public abstract class AbstractRtCalibrationFunction {
   }
 
   public abstract float getCorrectedRt(float originalRt);
+
+  public abstract void saveToXML(Element calibrationFunctionElement);
+
 }

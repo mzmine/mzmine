@@ -26,6 +26,7 @@ package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemetho
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.AbstractRtCalibrationFunction;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RtCalibrationFunction;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.UserParameter;
@@ -46,13 +47,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 public class RtRawFileCorrectionParameter implements
-    UserParameter<List<RtCalibrationFunction>, Label> {
+    UserParameter<List<AbstractRtCalibrationFunction>, Label> {
 
   private static final Logger logger = Logger.getLogger(
       RtRawFileCorrectionParameter.class.getName());
 
   @NotNull
-  private final List<RtCalibrationFunction> calibrationFunctions = new ArrayList<>();
+  private final List<AbstractRtCalibrationFunction> calibrationFunctions = new ArrayList<>();
 
   @Override
   public String getDescription() {
@@ -70,12 +71,12 @@ public class RtRawFileCorrectionParameter implements
   }
 
   @Override
-  public void setValueToComponent(Label label, @Nullable List<RtCalibrationFunction> newValue) {
+  public void setValueToComponent(Label label, @Nullable List<AbstractRtCalibrationFunction> newValue) {
     // empty
   }
 
   @Override
-  public UserParameter<List<RtCalibrationFunction>, Label> cloneParameter() {
+  public UserParameter<List<AbstractRtCalibrationFunction>, Label> cloneParameter() {
     final RtRawFileCorrectionParameter rtRawFileCorrectionParameter = new RtRawFileCorrectionParameter();
     rtRawFileCorrectionParameter.setValue(List.copyOf(calibrationFunctions));
     return rtRawFileCorrectionParameter;
@@ -89,12 +90,12 @@ public class RtRawFileCorrectionParameter implements
 
   @Override
   @NotNull
-  public List<RtCalibrationFunction> getValue() {
+  public List<AbstractRtCalibrationFunction> getValue() {
     return calibrationFunctions;
   }
 
   @Override
-  public void setValue(@Nullable List<RtCalibrationFunction> newValue) {
+  public void setValue(@Nullable List<AbstractRtCalibrationFunction> newValue) {
     calibrationFunctions.clear();
     if (newValue != null) {
       calibrationFunctions.addAll(newValue);
@@ -134,7 +135,7 @@ public class RtRawFileCorrectionParameter implements
   public void saveValueToXML(Element xmlElement) {
 
     final Document doc = xmlElement.getOwnerDocument();
-    for (RtCalibrationFunction func : calibrationFunctions) {
+    for (AbstractRtCalibrationFunction func : calibrationFunctions) {
       final Element calibrationFunctionElement = doc.createElement("calibrationFunction");
       final RawDataFile file = func.getRawDataFile();
       if (file == null) {
@@ -142,9 +143,8 @@ public class RtRawFileCorrectionParameter implements
       }
 
       calibrationFunctionElement.setAttribute(CONST.XML_RAW_FILE_ELEMENT, file.getName());
-      final Element spline = ParsingUtils.createSplineFunctionXmlElement(doc,
-          func.getSplineFunction());
-      calibrationFunctionElement.appendChild(spline);
+      func.saveToXML(calibrationFunctionElement);
+
       xmlElement.appendChild(calibrationFunctionElement);
     }
   }

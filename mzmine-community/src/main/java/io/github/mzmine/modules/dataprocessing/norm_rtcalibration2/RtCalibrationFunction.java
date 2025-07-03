@@ -29,15 +29,19 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.als.AsymmetricLeastSquaresCorrection;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
+import io.github.mzmine.util.ParsingUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
-public class RtCalibrationFunction extends AbstractRtCalibrationFunction{
+public class RtCalibrationFunction extends AbstractRtCalibrationFunction {
 
   private static final Logger logger = Logger.getLogger(RtCalibrationFunction.class.getName());
 
@@ -159,6 +163,13 @@ public class RtCalibrationFunction extends AbstractRtCalibrationFunction{
       return originalRt;
     }
     return (float) movAvg.value(originalRt);
+  }
+
+  @Override
+  public void saveToXML(Element calibrationFunctionElement) {
+    final Document doc = calibrationFunctionElement.getOwnerDocument();
+    final Element spline = ParsingUtils.createSplineFunctionXmlElement(doc, getSplineFunction());
+    calibrationFunctionElement.appendChild(spline);
   }
 
   public PolynomialSplineFunction getSplineFunction() {

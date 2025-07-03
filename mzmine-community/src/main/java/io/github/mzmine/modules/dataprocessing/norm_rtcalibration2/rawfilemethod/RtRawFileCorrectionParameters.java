@@ -24,7 +24,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemethod;
 
-import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RtCalibrationFunction;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.AbstractRtCalibrationFunction;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import java.util.List;
 
@@ -36,7 +36,7 @@ public class RtRawFileCorrectionParameters extends SimpleParameterSet {
     super(calis);
   }
 
-  public static RtRawFileCorrectionParameters create(List<RtCalibrationFunction> calibrationFunctionList) {
+  public static RtRawFileCorrectionParameters create(List<AbstractRtCalibrationFunction> calibrationFunctionList) {
     final RtRawFileCorrectionParameters rtRawFileCorrectionParameters = (RtRawFileCorrectionParameters) new RtRawFileCorrectionParameters().cloneParameterSet();
     rtRawFileCorrectionParameters.setParameter(calis, calibrationFunctionList);
     return rtRawFileCorrectionParameters;
