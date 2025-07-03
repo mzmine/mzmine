@@ -84,11 +84,11 @@ public interface FeatureList {
 
   void addRowBinding(@NotNull List<RowBinding> bindings);
 
-  void addFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener);
+  void addFeatureTypeValueListener(DataType featureType, DataTypeValueChangeListener listener);
 
-  void addRowTypeListener(DataType rowType, DataTypeValueChangeListener listener);
+  void addRowTypeValueListener(DataType rowType, DataTypeValueChangeListener listener);
 
-  void removeRowTypeListener(DataType rowType, DataTypeValueChangeListener listener);
+  void removeRowTypeValueListener(DataType rowType, DataTypeValueChangeListener listener);
 
   void removeFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener);
 

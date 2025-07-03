@@ -69,7 +69,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
+import javafx.scene.control.TreeItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -108,6 +110,44 @@ public class FeatureListUtils {
       }
     });
     rows.setAll(table.getSelectedRows());
+  }
+
+  public static void bindSelectedRows(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<FeatureListRow>> selectedRows) {
+    weak.addListChangeListener(table, table.getSelectedTableRows(), c -> {
+      if (weak.isDisposed()) {
+        return;
+      }
+
+      var rows = c.getList().stream().<FeatureListRow>map(TreeItem::getValue).toList();
+      selectedRows.setValue(rows);
+    });
+    final List<FeatureListRow> rows = List.copyOf(table.getSelectedRows());
+    selectedRows.setValue(rows);
+  }
+
+  public static void bindSelectedFeatures(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<Feature>> selectedFeatures) {
+    weak.addListChangeListener(table, table.getSelectionModel().getSelectedCells(), c -> {
+      if (weak.isDisposed()) {
+        return;
+      }
+
+      List<Feature> features = List.copyOf(table.getSelectedFeatures());
+      selectedFeatures.setValue(features);
+    });
+  }
+
+  public static void bindSelectedRawDataFiles(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<RawDataFile>> selectedFiles) {
+    weak.addListChangeListener(table, table.getSelectionModel().getSelectedCells(), c -> {
+      if (weak.isDisposed()) {
+        return;
+      }
+
+      List<RawDataFile> raws = List.copyOf(table.getSelectedRawDataFiles());
+      selectedFiles.setValue(raws);
+    });
   }
 
   /**
@@ -764,4 +804,5 @@ public class FeatureListUtils {
     return Comparator.comparing(FeatureList::getNumberOfRows).reversed()
         .thenComparing(FeatureList::getName);
   }
+
 }
