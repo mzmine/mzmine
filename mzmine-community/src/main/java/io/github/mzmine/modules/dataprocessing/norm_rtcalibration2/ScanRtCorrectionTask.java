@@ -85,7 +85,7 @@ class ScanRtCorrectionTask extends AbstractTask {
     this.project = project;
     this.flists = Arrays.stream(
             parameters.getParameter(RTCorrectionParameters.featureLists).getValue()
-                .getMatchingFeatureLists()).sorted(Comparator.comparing(FeatureList::getNumberOfRows))
+                .getMatchingFeatureLists()).sorted(FeatureListUtils.createDescendingNumberOfRowsSorter())
         .map(FeatureList.class::cast).toList();
     mzTolerance = parameters.getParameter(RTCorrectionParameters.MZTolerance).getValue();
     rtTolerance = parameters.getParameter(RTCorrectionParameters.RTTolerance).getValue();
@@ -224,11 +224,11 @@ class ScanRtCorrectionTask extends AbstractTask {
 
         if (candidates.isEmpty()) {
           continue;
-        } else if (candidates.size() > 1 && dataPoints.length > 4) {
+        } else if (extendedCandidates.size() > 1 && dataPoints.length > 4) {
           // todo revisit in
           FeatureListRow bestCandidate = null;
           double bestSim = 0d;
-          for (FeatureListRow candidate : candidates) {
+          for (FeatureListRow candidate : extendedCandidates) {
             final Scan scan = candidate.getMostIntenseFragmentScan();
             if (scan == null || candidate.getMaxHeight() < minHeight) {
               continue;

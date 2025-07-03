@@ -24,18 +24,21 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.als;
 
-public class AlsCorrection {
+/**
+ * Performs asymmetric least squares baseline correction on an array of data
+ */
+public class AsymmetricLeastSquaresCorrection {
 
   /**
    * Performs asymmetric least squares baseline correction on an array of data.
    *
    * @param y     The input data array.
-   * @param lam   The smoothness parameter (lambda); common value is around 1e6.
+   * @param lambda   The smoothness parameter (lambda); common value is around 1e6.
    * @param p     The asymmetry parameter (0 < p < 1); common value is around 0.001.
    * @param nIter The number of iterations; common is 10 to 20.
    * @return The baseline
    */
-  public static double[] asymmetricLeastSquaresBaseline(double[] y, double lam, double p,
+  public static double[] asymmetricLeastSquaresBaseline(double[] y, double lambda, double p,
       int nIter) {
     int n = y.length;
     double[] w = new double[n];
@@ -47,7 +50,7 @@ public class AlsCorrection {
 
     for (int i = 0; i < nIter; i++) {
       double[] W = diag(w);
-      z = solve(W, lam, y);
+      z = solve(W, lambda, y);
 
       for (int j = 0; j < n; j++) {
         w[j] = y[j] > z[j] ? p : (1.0 - p);
@@ -117,7 +120,7 @@ public class AlsCorrection {
   }
 
   /**
-   * subtracts elements in y from the corresponding element in z and returns a new array.
+   * subtracts elements in z from the corresponding element in y and returns a new array.
    */
   public static double[] subtract(double[] y, double[] z) {
     double[] result = new double[y.length];
@@ -127,15 +130,4 @@ public class AlsCorrection {
     return result;
   }
 
-  public static void main(String[] args) {
-    // Example usage
-    double[] data = { /* Your data here */};
-    double lambda = 1e6;
-    double p = 0.001;
-    int nIter = 10;
-
-    double[] correctedData = asymmetricLeastSquaresBaseline(data, lambda, p, nIter);
-
-    // Use correctedData as needed
-  }
 }

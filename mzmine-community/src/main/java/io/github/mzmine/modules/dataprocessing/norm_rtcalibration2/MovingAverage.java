@@ -59,17 +59,17 @@ public class MovingAverage {
     result[0] = values[0];
 
     // Calculate middle values with moving average
-    for (int i = 1; i < n - 1; i++) {
-      // Calculate bounds for the window
-      int windowStart = Math.max(0, i - windowSize / 2);
-      int windowEnd = Math.min(n - 1, i + windowSize / 2);
-      int actualSize = windowEnd - windowStart + 1;
+    int actualSize = 0;
+    double sum = 0;
 
-      // Calculate average for the window
-      double sum = 0;
-      for (int j = windowStart; j <= windowEnd; j++) {
-        sum += values[j];
+    for (int i = 1; i < n - 1; i++) {
+      actualSize++;
+      sum += windowSize;
+      if(actualSize >= windowSize) {
+        sum -= values[i-actualSize];
+        actualSize--;
       }
+
       result[i] = sum / actualSize;
     }
 

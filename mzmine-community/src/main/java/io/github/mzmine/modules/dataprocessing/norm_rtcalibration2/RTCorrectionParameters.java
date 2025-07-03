@@ -118,7 +118,7 @@ public class RTCorrectionParameters extends SimpleParameterSet {
       return ExitCode.OK;
     }
     final ParameterSetupDialog dialog = new ParameterDialogWithPreviewPanes(valueCheckRequired,
-        this, ScanRtCorrectionPreviewPane::new);
+        this, null, ScanRtCorrectionPreviewPane::new, false);
     dialog.showAndWait();
     return dialog.getExitCode();
   }

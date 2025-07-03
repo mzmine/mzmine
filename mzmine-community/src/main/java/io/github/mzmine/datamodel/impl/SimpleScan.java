@@ -254,7 +254,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     return injectionTime < 0 ? null : injectionTime;
   }
 
-  public void setCorrectedRetentionTime(float corrected) {
+  public void setCorrectedRetentionTime(@Nullable Float corrected) {
     this.correctedRetentionTime = corrected;
   }
 
@@ -262,6 +262,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     return retentionTime;
   }
 
+  @Nullable
   public Float getCorrectedRetentionTime() {
     return correctedRetentionTime;
   }

@@ -4,7 +4,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.als.AlsCorrection;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.als.AsymmetricLeastSquaresCorrection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.List;
@@ -28,6 +28,12 @@ public class RtCalibrationFunction {
 
   public RtCalibrationFunction(FeatureList flist, List<RtStandard> rtSortedStandards,
       double bandwidth) {
+    if (flist.getNumberOfRawDataFiles() > 1) {
+      throw new IllegalStateException(
+          "Cannot create a RtCalibrationFunction for a feature list with more than one data file (%s)".formatted(
+              flist.getName()));
+    }
+
     final RawDataFile file = flist.getRawDataFiles().getFirst();
     final Range<Float> fullRtRange = file.getDataRTRange();
     filePlaceholder = new RawDataFilePlaceholder(file);
@@ -44,9 +50,10 @@ public class RtCalibrationFunction {
       standardRtValues.add(standard.getAverageRt());
     }
 
-    final FeatureListRow row = rtSortedStandards.getLast().standards().get(file);
-    final float averageRT = row.getAverageRT();
-    addFinalRt(rtSortedStandards, fullRtRange, averageRT, thisRtValues, standardRtValues);
+    final FeatureListRow lastStandard = rtSortedStandards.getLast().standards().get(file);
+    final float lastStandardAverageRT = lastStandard.getAverageRT();
+    addFinalRt(rtSortedStandards, fullRtRange, lastStandardAverageRT, thisRtValues,
+        standardRtValues);
 
     movAvg = getInterpolatorIteratively(bandwidth, standardRtValues, thisRtValues);
   }
@@ -93,14 +100,15 @@ public class RtCalibrationFunction {
       DoubleArrayList calibratedRtValues, DoubleArrayList thisRtValues) {
     final RawDataFile file = filePlaceholder.getMatchingFile();
     PolynomialSplineFunction movAvg = null;
-    final double[] subtracted = AlsCorrection.subtract(calibratedRtValues.toDoubleArray(),
-        thisRtValues.toDoubleArray());
+    final double[] subtracted = AsymmetricLeastSquaresCorrection.subtract(
+        calibratedRtValues.toDoubleArray(), thisRtValues.toDoubleArray());
     subtracted[0] = 0d;
     subtracted[subtracted.length - 1] = 0d;
 
     double[] avg = MovingAverage.calculate(subtracted,
         Math.max(1, (int) (subtracted.length * initialBandwidth)));
-    double[] alsFit = AlsCorrection.asymmetricLeastSquaresBaseline(avg, 100, 0.01, 1);
+    double[] alsFit = AsymmetricLeastSquaresCorrection.asymmetricLeastSquaresBaseline(avg, 100,
+        0.01, 1);
     alsFit[0] = 0d;
     alsFit[alsFit.length - 1] = 0d;
     movAvg = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(),
@@ -129,16 +137,24 @@ public class RtCalibrationFunction {
     return movAvg;
   }
 
+  /**
+   * Adds a final RT pair for the end of the file (sets boundaries for calibration)
+   * @param rtSortedStandards modified
+   * @param fullRtRange full rt range of the file to be calibrated {@link RawDataFile#getDataRTRange()}
+   * @param finalStandardAverageRt the rt of the final standard for the data file
+   * @param thisRtValues modified
+   * @param calibratedRtValues modified
+   */
   private static void addFinalRt(@NotNull List<RtStandard> rtSortedStandards,
-      Range<Float> fullRtRange, float averageRt, DoubleArrayList thisRtValues,
+      Range<Float> fullRtRange, float finalStandardAverageRt, DoubleArrayList thisRtValues,
       DoubleArrayList calibratedRtValues) {
 
     // if this changes the rt range, we need to add an additional point.
     // we keep the change after the last standard constant.
     if (rtSortedStandards.getLast().getAverageRt() > fullRtRange.upperEndpoint()) {
       final float avgRt = rtSortedStandards.getLast().getAverageRt();
-      final double offset = avgRt - averageRt;
-      final float timeToLastScan = fullRtRange.upperEndpoint() - averageRt;
+      final double offset = avgRt - finalStandardAverageRt;
+      final float timeToLastScan = fullRtRange.upperEndpoint() - finalStandardAverageRt;
 
       thisRtValues.add(fullRtRange.upperEndpoint() + offset);
       // is this correct? this would cause slightly different max rts for all files,
@@ -171,7 +187,7 @@ public class RtCalibrationFunction {
     for (int i = 1; i < values.length; i++) {
       if (values[i] <= values[i - 1]) {
         // Add a small increment to maintain monotonicity
-        values[i] = values[i - 1] + 0.001; // 1 millisecond increment
+        values[i] = Math.nextUp(values[i - 1]);
       }
     }
   }

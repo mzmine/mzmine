@@ -6,7 +6,7 @@ public class FileHasNoRunDateException extends RuntimeException {
 
   public FileHasNoRunDateException(RawDataFile file) {
     super(
-        "Run date is not available for sample %s. Cannot run RT calibration on a subset and extrapolate. Consider running RT calibration on all files.".formatted(
+        "Run date is not available for sample %s. Cannot run RT calibration on a subset and extrapolate. Consider running RT calibration on all files or add a run date in the metadata.".formatted(
             file.getName()));
   }
 }
