@@ -45,16 +45,16 @@ public final class MultilinearRawFileRtCorrectionModule implements RawFileRtCorr
       @NotNull AbstractRtCorrectionFunction nextRunCalibration, double nextRunWeight,
       @NotNull ParameterSet parameters) {
 
-    return new RtCalibrationFunction(file, rtSortedStandards,
-        (RtCalibrationFunction) previousRunCalibration, previousRunWeight,
-        (RtCalibrationFunction) nextRunCalibration, nextRunWeight,
+    return new MultiLinearRtCorrectionFunction(file, rtSortedStandards,
+        (MultiLinearRtCorrectionFunction) previousRunCalibration, previousRunWeight,
+        (MultiLinearRtCorrectionFunction) nextRunCalibration, nextRunWeight,
         parameters.getValue(MultilinearRawFileRtCalibrationParameters.correctionBandwidth));
   }
 
   @Override
   public AbstractRtCorrectionFunction createFromStandards(@NotNull FeatureList flist,
       @NotNull List<@NotNull RtStandard> rtSortedStandards, @NotNull ParameterSet parameters) {
-    return new RtCalibrationFunction(flist, rtSortedStandards,
+    return new MultiLinearRtCorrectionFunction(flist, rtSortedStandards,
         parameters.getValue(MultilinearRawFileRtCalibrationParameters.correctionBandwidth));
   }
 
@@ -64,7 +64,7 @@ public final class MultilinearRawFileRtCorrectionModule implements RawFileRtCorr
 
     final PolynomialSplineFunction polynomialSplineFunction = ParsingUtils.loadSplineFunctionFromParentXmlElement(
         element);
-    return new RtCalibrationFunction(file, polynomialSplineFunction);
+    return new MultiLinearRtCorrectionFunction(file, polynomialSplineFunction);
   }
 
   @Override

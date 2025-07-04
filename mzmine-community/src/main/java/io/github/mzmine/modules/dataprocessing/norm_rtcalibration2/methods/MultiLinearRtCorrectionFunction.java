@@ -42,18 +42,18 @@ import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class RtCalibrationFunction extends AbstractRtCorrectionFunction {
+public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunction {
 
-  private static final Logger logger = Logger.getLogger(RtCalibrationFunction.class.getName());
+  private static final Logger logger = Logger.getLogger(MultiLinearRtCorrectionFunction.class.getName());
 
   private final PolynomialSplineFunction movAvg;
 
-  public RtCalibrationFunction(RawDataFilePlaceholder file, PolynomialSplineFunction function) {
+  public MultiLinearRtCorrectionFunction(RawDataFilePlaceholder file, PolynomialSplineFunction function) {
     super(new RawDataFilePlaceholder(file));
     this.movAvg = function;
   }
 
-  public RtCalibrationFunction(FeatureList flist, List<RtStandard> rtSortedStandards,
+  public MultiLinearRtCorrectionFunction(FeatureList flist, List<RtStandard> rtSortedStandards,
       double bandwidth) {
     super(flist);
 
@@ -79,10 +79,10 @@ public class RtCalibrationFunction extends AbstractRtCorrectionFunction {
     movAvg = getInterpolatorIteratively(bandwidth, standardRtValues, thisRtValues);
   }
 
-  public RtCalibrationFunction(@NotNull final RawDataFile file,
+  public MultiLinearRtCorrectionFunction(@NotNull final RawDataFile file,
       @NotNull final List<RtStandard> rtSortedStandards,
-      @NotNull final RtCalibrationFunction previousRunCalibration, final double previousRunWeight,
-      @NotNull final RtCalibrationFunction nextRunCalibration, final double nextRunWeight,
+      @NotNull final MultiLinearRtCorrectionFunction previousRunCalibration, final double previousRunWeight,
+      @NotNull final MultiLinearRtCorrectionFunction nextRunCalibration, final double nextRunWeight,
       double bandwidth) {
     super(new RawDataFilePlaceholder(file));
 

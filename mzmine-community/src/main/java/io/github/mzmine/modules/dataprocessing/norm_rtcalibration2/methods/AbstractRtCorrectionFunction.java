@@ -46,7 +46,7 @@ public abstract class AbstractRtCorrectionFunction {
   public AbstractRtCorrectionFunction(FeatureList flist) {
     if (flist.getNumberOfRawDataFiles() > 1) {
       throw new IllegalStateException(
-          "Cannot create a RtCalibrationFunction for a feature list with more than one data file (%s)".formatted(
+          "Cannot create a RtCorrectionFunction for a feature list with more than one data file (%s)".formatted(
               flist.getName()));
     }
 
