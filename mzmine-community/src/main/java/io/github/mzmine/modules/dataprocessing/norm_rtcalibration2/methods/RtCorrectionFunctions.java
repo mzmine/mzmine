@@ -22,23 +22,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemethod;
+package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods;
 
-import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import java.util.List;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 
-public class RtRawFileCorrectionParameters extends SimpleParameterSet {
+public enum RtCorrectionFunctions implements ModuleOptionsEnum<RawFileRtCorrectionModule> {
+  MultiLinearCorrection;
 
-  public static RtRawFileCorrectionParameter calis = new RtRawFileCorrectionParameter();
-
-  public RtRawFileCorrectionParameters() {
-    super(calis);
+  @Override
+  public Class<? extends RawFileRtCorrectionModule> getModuleClass() {
+    return switch (this) {
+      case MultiLinearCorrection -> MultilinearRawFileRtCorrectionModule.class;
+    };
   }
 
-  public static RtRawFileCorrectionParameters create(List<AbstractRtCorrectionFunction> calibrationFunctionList) {
-    final RtRawFileCorrectionParameters rtRawFileCorrectionParameters = (RtRawFileCorrectionParameters) new RtRawFileCorrectionParameters().cloneParameterSet();
-    rtRawFileCorrectionParameters.setParameter(calis, calibrationFunctionList);
-    return rtRawFileCorrectionParameters;
+  @Override
+  public String getStableId() {
+    return getModuleInstance().getUniqueID();
   }
 }

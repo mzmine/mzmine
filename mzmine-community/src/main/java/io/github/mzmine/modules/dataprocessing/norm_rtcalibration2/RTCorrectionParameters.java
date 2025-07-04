@@ -31,6 +31,7 @@ import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRt
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.Parameter;
@@ -39,8 +40,8 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
@@ -73,12 +74,13 @@ public class RTCorrectionParameters extends SimpleParameterSet {
       determined by the acquisition type column in the metadata (CTRL/CMD + M).
       """, SampleType.values(), List.of(SampleType.values()));
 
-  public static final PercentParameter correctionBandwidth = new PercentParameter(
-      "Interpolation bandwidth", "", 0.5d, 0.01d, 1d);
+  public static final ModuleOptionsEnumComboParameter<RtCorrectionFunctions> calibrationFunctionModule = new ModuleOptionsEnumComboParameter<>(
+      "Correction method", "Choose the RT correction method you want to apply",
+      RtCorrectionFunctions.values(), RtCorrectionFunctions.MultiLinearCorrection);
 
   public RTCorrectionParameters() {
     super(new Parameter[]{featureLists, sampleTypes, MZTolerance, RTTolerance, minHeight,
-            correctionBandwidth},
+            calibrationFunctionModule},
         "https://mzmine.github.io/mzmine_documentation/module_docs/norm_rt_calibration/norm_rt_calibration.html");
   }
 

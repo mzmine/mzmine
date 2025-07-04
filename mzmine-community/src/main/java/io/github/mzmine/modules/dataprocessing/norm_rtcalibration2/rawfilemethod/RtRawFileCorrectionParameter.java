@@ -26,20 +26,19 @@ package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemetho
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.components.factories.FxLabels;
-import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.AbstractRtCalibrationFunction;
-import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RtCalibrationFunction;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RawFileRtCorrectionModule;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
-import io.github.mzmine.project.ProjectService;
-import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Label;
-import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -47,13 +46,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 public class RtRawFileCorrectionParameter implements
-    UserParameter<List<AbstractRtCalibrationFunction>, Label> {
+    UserParameter<List<AbstractRtCorrectionFunction>, Label> {
 
   private static final Logger logger = Logger.getLogger(
       RtRawFileCorrectionParameter.class.getName());
+  private static final String rtCorrectionFunctionElement = "rtCorrectionFunction";
+  private static final String rtCorrectionModuleAttribute = "correctionModule";
 
   @NotNull
-  private final List<AbstractRtCalibrationFunction> calibrationFunctions = new ArrayList<>();
+  private final List<AbstractRtCorrectionFunction> calibrationFunctions = new ArrayList<>();
 
   @Override
   public String getDescription() {
@@ -71,12 +72,13 @@ public class RtRawFileCorrectionParameter implements
   }
 
   @Override
-  public void setValueToComponent(Label label, @Nullable List<AbstractRtCalibrationFunction> newValue) {
+  public void setValueToComponent(Label label,
+      @Nullable List<AbstractRtCorrectionFunction> newValue) {
     // empty
   }
 
   @Override
-  public UserParameter<List<AbstractRtCalibrationFunction>, Label> cloneParameter() {
+  public UserParameter<List<AbstractRtCorrectionFunction>, Label> cloneParameter() {
     final RtRawFileCorrectionParameter rtRawFileCorrectionParameter = new RtRawFileCorrectionParameter();
     rtRawFileCorrectionParameter.setValue(List.copyOf(calibrationFunctions));
     return rtRawFileCorrectionParameter;
@@ -90,12 +92,12 @@ public class RtRawFileCorrectionParameter implements
 
   @Override
   @NotNull
-  public List<AbstractRtCalibrationFunction> getValue() {
+  public List<AbstractRtCorrectionFunction> getValue() {
     return calibrationFunctions;
   }
 
   @Override
-  public void setValue(@Nullable List<AbstractRtCalibrationFunction> newValue) {
+  public void setValue(@Nullable List<AbstractRtCorrectionFunction> newValue) {
     calibrationFunctions.clear();
     if (newValue != null) {
       calibrationFunctions.addAll(newValue);
@@ -113,19 +115,29 @@ public class RtRawFileCorrectionParameter implements
 
     this.calibrationFunctions.clear();
 
-    final NodeList calibrationFunctionsList = xmlElement.getElementsByTagName(
-        "calibrationFunction");
-    for (int i = 0; i < calibrationFunctionsList.getLength(); i++) {
-      final Element calibrationFunction = (Element) calibrationFunctionsList.item(i);
-      final String fileName = calibrationFunction.getAttribute(CONST.XML_RAW_FILE_ELEMENT);
-      final RawDataFile file = new RawDataFilePlaceholder(fileName, null, null);
+    final NodeList correctionFunctionsList = xmlElement.getElementsByTagName(
+        rtCorrectionFunctionElement);
+    for (int i = 0; i < correctionFunctionsList.getLength(); i++) {
+      final Element correctionFunctionElement = (Element) correctionFunctionsList.item(i);
+
+      final String correctionModuleId = correctionFunctionElement.getAttribute(
+          rtCorrectionModuleAttribute);
+      final String fileName = correctionFunctionElement.getAttribute(CONST.XML_RAW_FILE_ELEMENT);
+      final RawDataFilePlaceholder file = new RawDataFilePlaceholder(fileName, null, null);
+
+      final RtCorrectionFunctions corrFunction = ModuleOptionsEnum.parse(
+          RtCorrectionFunctions.class, correctionModuleId).orElseThrow(
+          () -> new IllegalArgumentException(
+              "Invalid id for RT correction function " + correctionModuleId + ". Cannot par"));
+
+      final RawFileRtCorrectionModule corrFunctionModule = corrFunction.getModuleInstance();
 
       try {
-        final PolynomialSplineFunction polynomialSplineFunction = ParsingUtils.loadSplineFunctionFromParentXmlElement(
-            calibrationFunction);
-        calibrationFunctions.add(new RtCalibrationFunction(file, polynomialSplineFunction));
+        final AbstractRtCorrectionFunction corrFunctionInstance = corrFunctionModule.loadFromXML(
+            correctionFunctionElement, file); calibrationFunctions.add(corrFunctionInstance);
       } catch (RuntimeException e) {
-        logger.log(Level.WARNING, e.getMessage(), e);
+        logger.log(Level.WARNING, "Error while loading RT correction function for file " + fileName,
+            e);
       }
 
     }
@@ -135,17 +147,20 @@ public class RtRawFileCorrectionParameter implements
   public void saveValueToXML(Element xmlElement) {
 
     final Document doc = xmlElement.getOwnerDocument();
-    for (AbstractRtCalibrationFunction func : calibrationFunctions) {
-      final Element calibrationFunctionElement = doc.createElement("calibrationFunction");
+    for (AbstractRtCorrectionFunction func : calibrationFunctions) {
+      final Element correctionFunctionElement = doc.createElement(rtCorrectionFunctionElement);
+
       final RawDataFile file = func.getRawDataFile();
       if (file == null) {
         continue; // file not loaded anymore
       }
 
-      calibrationFunctionElement.setAttribute(CONST.XML_RAW_FILE_ELEMENT, file.getName());
-      func.saveToXML(calibrationFunctionElement);
+      correctionFunctionElement.setAttribute(CONST.XML_RAW_FILE_ELEMENT, file.getName());
+      correctionFunctionElement.setAttribute(rtCorrectionModuleAttribute,
+          func.getRtCalibrationModule().getUniqueID());
+      func.saveToXML(correctionFunctionElement);
 
-      xmlElement.appendChild(calibrationFunctionElement);
+      xmlElement.appendChild(correctionFunctionElement);
     }
   }
 }

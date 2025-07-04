@@ -17,9 +17,12 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRende
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.previewpane.AbstractPreviewPane;
+import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.project.ProjectService;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,7 +73,11 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
     var mzTolerance = parameters.getParameter(RTCorrectionParameters.MZTolerance).getValue();
     var rtTolerance = parameters.getParameter(RTCorrectionParameters.RTTolerance).getValue();
     var minHeight = parameters.getParameter(RTCorrectionParameters.minHeight).getValue();
-    var bandwidth = parameters.getValue(RTCorrectionParameters.correctionBandwidth);
+    final ValueWithParameters<RtCorrectionFunctions> calibrationMethod = parameters.getParameter(
+        RTCorrectionParameters.calibrationFunctionModule).getValueWithParameters();
+    final var calibrationModuleParameters = calibrationMethod.parameters();
+    final var calibrationModule = calibrationMethod.value().getModuleInstance();
+
     var sampleTypeFilter = new SampleTypeFilter(
         parameters.getParameter(RTCorrectionParameters.sampleTypes).getValue());
 
@@ -94,13 +101,13 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
     goodStandards.sort(Comparator.comparingDouble(RtStandard::getMedianRt));
     final List<RtStandard> monotonousStandards = removeNonMonotonousStandards(goodStandards,
         referenceFlistsByNumRows);
-    final List<RtCalibrationFunction> allCalibrations = interpolateMissingCalibrations(
+    final List<AbstractRtCorrectionFunction> allCalibrations = interpolateMissingCalibrations(
         referenceFlistsByNumRows, flists, ProjectService.getMetadata(), monotonousStandards,
-        bandwidth);
+        calibrationModule, calibrationModuleParameters);
 
     final List<DatasetAndRenderer> datasets = new ArrayList<>();
 
-    for (RtCalibrationFunction cali : allCalibrations) {
+    for (AbstractRtCorrectionFunction cali : allCalibrations) {
       final RawDataFile file = cali.getRawDataFile();
 
       final var clr = ConfigService.getDefaultColorPalette().getNextColorAWT();
@@ -125,14 +132,15 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
       final AnyXYProvider avgFitDataset = new AnyXYProvider(/*file.getColorAWT()*/clr,
           file.getName() + " fitted shift at RT vs original RTs", file.getNumOfScans(),
           i -> (double) file.getScan(i).getRetentionTime(),
-          i -> (double) -(cali.getCorrectedRt(file.getScan(i).getRetentionTime())
-              - file.getScan(i).getRetentionTime()));
+          i -> (double) -(cali.getCorrectedRt(file.getScan(i).getRetentionTime()) - file.getScan(i)
+              .getRetentionTime()));
 
 //      datasets.add(new DatasetAndRenderer(new ColoredXYDataset(fitDataset, RunOption.THIS_THREAD),
 //          new ColoredXYLineRenderer()));
 
-      datasets.add(new DatasetAndRenderer(new ColoredXYDataset(avgFitDataset, RunOption.THIS_THREAD),
-          new ColoredXYLineRenderer()));
+      datasets.add(
+          new DatasetAndRenderer(new ColoredXYDataset(avgFitDataset, RunOption.THIS_THREAD),
+              new ColoredXYLineRenderer()));
     }
 
     return datasets;

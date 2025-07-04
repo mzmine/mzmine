@@ -22,23 +22,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemethod;
+package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods;
 
-import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import java.util.List;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
 
-public class RtRawFileCorrectionParameters extends SimpleParameterSet {
+public class MultilinearRawFileRtCalibrationParameters extends SimpleParameterSet {
 
-  public static RtRawFileCorrectionParameter calis = new RtRawFileCorrectionParameter();
+  public static final PercentParameter correctionBandwidth = new PercentParameter(
+      "Interpolation bandwidth", "", 0.5d, 0.01d, 1d);
 
-  public RtRawFileCorrectionParameters() {
-    super(calis);
-  }
-
-  public static RtRawFileCorrectionParameters create(List<AbstractRtCorrectionFunction> calibrationFunctionList) {
-    final RtRawFileCorrectionParameters rtRawFileCorrectionParameters = (RtRawFileCorrectionParameters) new RtRawFileCorrectionParameters().cloneParameterSet();
-    rtRawFileCorrectionParameters.setParameter(calis, calibrationFunctionList);
-    return rtRawFileCorrectionParameters;
+  public MultilinearRawFileRtCalibrationParameters() {
+    super(correctionBandwidth);
   }
 }

@@ -22,14 +22,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
+package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.als.AsymmetricLeastSquaresCorrection;
-import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.MovingAverage;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RtStandard;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.util.ParsingUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
@@ -41,13 +42,13 @@ import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class RtCalibrationFunction extends AbstractRtCalibrationFunction {
+public class RtCalibrationFunction extends AbstractRtCorrectionFunction {
 
   private static final Logger logger = Logger.getLogger(RtCalibrationFunction.class.getName());
 
   private final PolynomialSplineFunction movAvg;
 
-  public RtCalibrationFunction(RawDataFile file, PolynomialSplineFunction function) {
+  public RtCalibrationFunction(RawDataFilePlaceholder file, PolynomialSplineFunction function) {
     super(new RawDataFilePlaceholder(file));
     this.movAvg = function;
   }
@@ -166,10 +167,15 @@ public class RtCalibrationFunction extends AbstractRtCalibrationFunction {
   }
 
   @Override
-  public void saveToXML(Element calibrationFunctionElement) {
-    final Document doc = calibrationFunctionElement.getOwnerDocument();
+  public void saveToXML(Element correctionFunctionElement) {
+    final Document doc = correctionFunctionElement.getOwnerDocument();
     final Element spline = ParsingUtils.createSplineFunctionXmlElement(doc, getSplineFunction());
-    calibrationFunctionElement.appendChild(spline);
+    correctionFunctionElement.appendChild(spline);
+  }
+
+  @Override
+  public RawFileRtCorrectionModule getRtCalibrationModule() {
+    return RtCorrectionFunctions.MultiLinearCorrection.getModuleInstance();
   }
 
   public PolynomialSplineFunction getSplineFunction() {

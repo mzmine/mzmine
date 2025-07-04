@@ -64,7 +64,7 @@ public class MovingAverage {
 
     for (int i = 1; i < n - 1; i++) {
       actualSize++;
-      sum += windowSize;
+      sum += values[i];
       if(actualSize >= windowSize) {
         sum -= values[i-actualSize];
         actualSize--;

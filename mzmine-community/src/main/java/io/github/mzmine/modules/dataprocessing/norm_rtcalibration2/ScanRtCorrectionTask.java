@@ -35,11 +35,15 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RawFileRtCorrectionModule;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemethod.RtRawFileCorrectionModule;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
@@ -71,11 +75,12 @@ class ScanRtCorrectionTask extends AbstractTask {
   private final MZmineProject project;
   private final List<FeatureList> flists;
   private final SampleTypeFilter sampleTypeFilter;
-  private final double bandwidth;
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
   private final double minHeight;
   private final ParameterSet parameters;
+  private final ParameterSet calibrationModuleParameters;
+  private final RawFileRtCorrectionModule calibrationModule;
   private int processedRows, totalRows;
 
   public ScanRtCorrectionTask(MZmineProject project, ParameterSet parameters,
@@ -92,7 +97,12 @@ class ScanRtCorrectionTask extends AbstractTask {
     mzTolerance = parameters.getParameter(RTCorrectionParameters.MZTolerance).getValue();
     rtTolerance = parameters.getParameter(RTCorrectionParameters.RTTolerance).getValue();
     minHeight = parameters.getParameter(RTCorrectionParameters.minHeight).getValue();
-    bandwidth = parameters.getValue(RTCorrectionParameters.correctionBandwidth);
+
+    final ValueWithParameters<RtCorrectionFunctions> calibrationMethod = parameters.getParameter(
+        RTCorrectionParameters.calibrationFunctionModule).getValueWithParameters();
+    calibrationModuleParameters = calibrationMethod.parameters();
+    calibrationModule = calibrationMethod.value().getModuleInstance();
+
     sampleTypeFilter = new SampleTypeFilter(
         parameters.getParameter(RTCorrectionParameters.sampleTypes).getValue());
   }
@@ -111,26 +121,29 @@ class ScanRtCorrectionTask extends AbstractTask {
     return message;
   }
 
-  static @NotNull List<RtCalibrationFunction> interpolateMissingCalibrations(
+  static @NotNull List<AbstractRtCorrectionFunction> interpolateMissingCalibrations(
       List<FeatureList> referenceFlists, List<FeatureList> allFeatureLists, MetadataTable metadata,
-      List<RtStandard> monotonousStandards, double bandwidth) {
-    final Map<RawDataFile, RtCalibrationFunction> referenceCalibrations = referenceFlists.stream()
-        .map(flist -> new RtCalibrationFunction(flist, monotonousStandards, bandwidth))
-        .collect(Collectors.toMap(RtCalibrationFunction::getRawDataFile, cali -> cali));
+      List<RtStandard> monotonousStandards, RawFileRtCorrectionModule correctionModule,
+      ParameterSet correctionModuleParameters) {
+    final Map<RawDataFile, AbstractRtCorrectionFunction> referenceCalibrations = referenceFlists.stream()
+        .map(flist -> correctionModule.createFromStandards(flist, monotonousStandards,
+            correctionModuleParameters))
+        .collect(Collectors.toMap(AbstractRtCorrectionFunction::getRawDataFile, cali -> cali));
 
-    final List<RtCalibrationFunction> allCalibrations = new ArrayList<>(
+    final List<AbstractRtCorrectionFunction> allCalibrations = new ArrayList<>(
         referenceCalibrations.values());
     // calculate calibrations for other files
     for (FeatureList flist : allFeatureLists) {
       final RawDataFile file = flist.getRawDataFile(0);
-      final RtCalibrationFunction cali = referenceCalibrations.get(file);
+      final AbstractRtCorrectionFunction cali = referenceCalibrations.get(file);
       if (cali != null) {
         continue;
       }
 
       // if we cannot find one cali, just reuse the same as previous and next. Makes downstream implementation easier.
-      RtCalibrationFunction previousCali = getPreviousRun(file, referenceCalibrations, metadata);
-      RtCalibrationFunction nextCali = getNextRun(file, referenceCalibrations, metadata);
+      AbstractRtCorrectionFunction previousCali = getPreviousRun(file, referenceCalibrations,
+          metadata);
+      AbstractRtCorrectionFunction nextCali = getNextRun(file, referenceCalibrations, metadata);
       previousCali = previousCali == null ? nextCali : previousCali;
       nextCali = nextCali == null ? previousCali : nextCali;
       if (previousCali == null) {
@@ -152,8 +165,9 @@ class ScanRtCorrectionTask extends AbstractTask {
       final double nextRunWeight =
           (double) Math.abs(runDate.until(previousRunDate, ChronoUnit.SECONDS)) / totalTimeDistance;
 
-      final RtCalibrationFunction newCali = new RtCalibrationFunction(file, monotonousStandards,
-          previousCali, previousWeight, nextCali, nextRunWeight, bandwidth);
+      final AbstractRtCorrectionFunction newCali = correctionModule.createInterpolated(file,
+          monotonousStandards, previousCali, previousWeight, nextCali, nextRunWeight,
+          correctionModuleParameters);
       allCalibrations.add(newCali);
     }
 
@@ -228,7 +242,7 @@ class ScanRtCorrectionTask extends AbstractTask {
 
         if (candidates.isEmpty()) {
           continue;
-        } else if (extendedCandidates.size() > 1 && dataPoints.length > 4) {
+        } else if (candidates.size() > 1 && dataPoints.length > 4) {
           // todo revisit in
           FeatureListRow bestCandidate = null;
           double bestSim = 0d;
@@ -267,8 +281,8 @@ class ScanRtCorrectionTask extends AbstractTask {
     return goodStandards;
   }
 
-  private static RtCalibrationFunction getPreviousRun(@NotNull RawDataFile file,
-      @NotNull Map<RawDataFile, @NotNull RtCalibrationFunction> functions,
+  private static AbstractRtCorrectionFunction getPreviousRun(@NotNull RawDataFile file,
+      @NotNull Map<RawDataFile, @NotNull AbstractRtCorrectionFunction> functions,
       @NotNull MetadataTable metadata) {
     final DateMetadataColumn runDateColumn = metadata.getRunDateColumn();
     final LocalDateTime runDate = metadata.getValue(runDateColumn, file);
@@ -277,9 +291,9 @@ class ScanRtCorrectionTask extends AbstractTask {
     }
 
     long minPreviousRun = Long.MIN_VALUE;
-    RtCalibrationFunction previousRunCali = null;
+    AbstractRtCorrectionFunction previousRunCali = null;
 
-    for (RtCalibrationFunction function : functions.values()) {
+    for (AbstractRtCorrectionFunction function : functions.values()) {
       final RawDataFile thatFile = function.getRawDataFile();
       final LocalDateTime thatDate = metadata.getValue(runDateColumn, thatFile);
       if (thatDate == null) {
@@ -296,8 +310,8 @@ class ScanRtCorrectionTask extends AbstractTask {
     return previousRunCali;
   }
 
-  private static RtCalibrationFunction getNextRun(@NotNull RawDataFile file,
-      @NotNull Map<RawDataFile, @NotNull RtCalibrationFunction> functions,
+  private static AbstractRtCorrectionFunction getNextRun(@NotNull RawDataFile file,
+      @NotNull Map<RawDataFile, @NotNull AbstractRtCorrectionFunction> functions,
       @NotNull MetadataTable metadata) {
     final DateMetadataColumn runDateColumn = metadata.getRunDateColumn();
     final LocalDateTime runDate = metadata.getValue(runDateColumn, file);
@@ -306,9 +320,9 @@ class ScanRtCorrectionTask extends AbstractTask {
     }
 
     long minNextRun = Long.MAX_VALUE;
-    RtCalibrationFunction nextRunCali = null;
+    AbstractRtCorrectionFunction nextRunCali = null;
 
-    for (RtCalibrationFunction function : functions.values()) {
+    for (AbstractRtCorrectionFunction function : functions.values()) {
       final RawDataFile thatFile = function.getRawDataFile();
       final LocalDateTime thatDate = metadata.getValue(runDateColumn, thatFile);
       if (thatDate == null) {
@@ -374,9 +388,9 @@ class ScanRtCorrectionTask extends AbstractTask {
     goodStandards.sort(Comparator.comparingDouble(RtStandard::getMedianRt));
     final List<RtStandard> monotonousStandards = removeNonMonotonousStandards(goodStandards,
         referenceFlistsByNumRows);
-    final List<RtCalibrationFunction> allCalibrations = interpolateMissingCalibrations(
+    final List<AbstractRtCorrectionFunction> allCalibrations = interpolateMissingCalibrations(
         referenceFlistsByNumRows, flists, project.getProjectMetadata(), monotonousStandards,
-        bandwidth);
+        calibrationModule, calibrationModuleParameters);
 
     RtRawFileCorrectionModule.applyOnThisThread(allCalibrations);
 

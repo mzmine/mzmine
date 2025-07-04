@@ -22,11 +22,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
+package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RtStandard;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.List;
@@ -34,15 +35,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
-public abstract class AbstractRtCalibrationFunction {
+public abstract class AbstractRtCorrectionFunction {
 
   protected final RawDataFilePlaceholder filePlaceholder;
 
-  public AbstractRtCalibrationFunction(RawDataFilePlaceholder rawDataFilePlaceholder) {
+  public AbstractRtCorrectionFunction(RawDataFilePlaceholder rawDataFilePlaceholder) {
     filePlaceholder = rawDataFilePlaceholder;
   }
 
-  public AbstractRtCalibrationFunction(FeatureList flist) {
+  public AbstractRtCorrectionFunction(FeatureList flist) {
     if (flist.getNumberOfRawDataFiles() > 1) {
       throw new IllegalStateException(
           "Cannot create a RtCalibrationFunction for a feature list with more than one data file (%s)".formatted(
@@ -68,11 +69,13 @@ public abstract class AbstractRtCalibrationFunction {
 
   /**
    * Adds a final RT pair for the end of the file (sets boundaries for calibration)
-   * @param rtSortedStandards modified
-   * @param fullRtRange full rt range of the file to be calibrated {@link RawDataFile#getDataRTRange()}
+   *
+   * @param rtSortedStandards      modified
+   * @param fullRtRange            full rt range of the file to be calibrated
+   *                               {@link RawDataFile#getDataRTRange()}
    * @param finalStandardAverageRt the rt of the final standard for the data file
-   * @param thisRtValues modified
-   * @param calibratedRtValues modified
+   * @param thisRtValues           modified
+   * @param calibratedRtValues     modified
    */
   protected static void addFinalRt(@NotNull List<RtStandard> rtSortedStandards,
       Range<Float> fullRtRange, float finalStandardAverageRt, DoubleArrayList thisRtValues,
@@ -110,4 +113,5 @@ public abstract class AbstractRtCalibrationFunction {
 
   public abstract void saveToXML(Element calibrationFunctionElement);
 
+  public abstract RawFileRtCorrectionModule getRtCalibrationModule();
 }

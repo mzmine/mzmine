@@ -27,7 +27,7 @@ package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemetho
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RtCalibrationFunction;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -72,7 +72,7 @@ public class RtRawFileCorrectionModule implements MZmineProcessingModule {
     return RtRawFileCorrectionParameters.class;
   }
 
-  public static void applyOnThisThread(List<RtCalibrationFunction> calis) {
+  public static void applyOnThisThread(List<AbstractRtCorrectionFunction> calis) {
     final RtRawFileCorrectionParameters param = RtRawFileCorrectionParameters.create(
         calis);
 
