@@ -38,12 +38,12 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RtRawFileCorrectionModule implements MZmineProcessingModule {
+public class ApplyRtCorrectionToRawFileModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getDescription() {
     return """
-        This module applies retention time corrections calclulated by the %s module to raw data files. 
+        This module applies retention time corrections calculated by the %s module to raw data files.
         This module ensures reproducibility in project files.""".formatted(
         ScanRtCorrectionModule.MODULE_NAME);
   }
@@ -52,8 +52,8 @@ public class RtRawFileCorrectionModule implements MZmineProcessingModule {
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    tasks.add(new RtRawFileCorrectionTask(null, moduleCallDate, parameters,
-        RtRawFileCorrectionModule.class));
+    tasks.add(new ApplyRtCorrectionToRawFileTask(null, moduleCallDate, parameters,
+        ApplyRtCorrectionToRawFileModule.class));
     return ExitCode.OK;
   }
 
@@ -69,15 +69,15 @@ public class RtRawFileCorrectionModule implements MZmineProcessingModule {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return RtRawFileCorrectionParameters.class;
+    return ApplyRtCorrectionToRawFileParameters.class;
   }
 
   public static void applyOnThisThread(List<AbstractRtCorrectionFunction> calis) {
-    final RtRawFileCorrectionParameters param = RtRawFileCorrectionParameters.create(
+    final ApplyRtCorrectionToRawFileParameters param = ApplyRtCorrectionToRawFileParameters.create(
         calis);
 
-    final RtRawFileCorrectionTask task = new RtRawFileCorrectionTask(null,
-        Instant.now(), param, RtRawFileCorrectionModule.class);
+    final ApplyRtCorrectionToRawFileTask task = new ApplyRtCorrectionToRawFileTask(null,
+        Instant.now(), param, ApplyRtCorrectionToRawFileModule.class);
     task.run();
   }
 }

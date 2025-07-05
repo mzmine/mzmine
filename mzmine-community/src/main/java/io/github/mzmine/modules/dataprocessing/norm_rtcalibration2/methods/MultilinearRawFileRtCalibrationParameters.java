@@ -30,7 +30,7 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
 public class MultilinearRawFileRtCalibrationParameters extends SimpleParameterSet {
 
   public static final PercentParameter correctionBandwidth = new PercentParameter(
-      "Interpolation bandwidth", "", 0.5d, 0.01d, 1d);
+      "Interpolation bandwidth", "", 0.1d, 0.01d, 1d);
 
   public MultilinearRawFileRtCalibrationParameters() {
     super(correctionBandwidth);

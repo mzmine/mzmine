@@ -38,16 +38,16 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RtRawFileCorrectionTask extends AbstractRawDataFileTask {
+class ApplyRtCorrectionToRawFileTask extends AbstractRawDataFileTask {
 
   private final List<RawDataFile> files = new ArrayList<>();
   private final List<AbstractRtCorrectionFunction> calis;
 
-  protected RtRawFileCorrectionTask(@Nullable MemoryMapStorage storage,
+  protected ApplyRtCorrectionToRawFileTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
       @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
-    calis = parameters.getValue(RtRawFileCorrectionParameters.calis);
+    calis = parameters.getValue(ApplyRtCorrectionToRawFileParameters.calis);
   }
 
   @Override

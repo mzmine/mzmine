@@ -38,7 +38,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RawFileRtCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
-import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemethod.RtRawFileCorrectionModule;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemethod.ApplyRtCorrectionToRawFileModule;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
@@ -242,7 +242,7 @@ class ScanRtCorrectionTask extends AbstractTask {
 
         if (candidates.isEmpty()) {
           continue;
-        } else if (candidates.size() > 1 && dataPoints.length > 4) {
+        } else if (extendedCandidates.size() > 1 && dataPoints.length > 4) {
           // todo revisit in
           FeatureListRow bestCandidate = null;
           double bestSim = 0d;
@@ -392,7 +392,7 @@ class ScanRtCorrectionTask extends AbstractTask {
         referenceFlistsByNumRows, flists, project.getProjectMetadata(), monotonousStandards,
         calibrationModule, calibrationModuleParameters);
 
-    RtRawFileCorrectionModule.applyOnThisThread(allCalibrations);
+    ApplyRtCorrectionToRawFileModule.applyOnThisThread(allCalibrations);
 
     for (FeatureList flist : flists) {
       for (FeatureListRow row : flist.getRowsCopy()) {

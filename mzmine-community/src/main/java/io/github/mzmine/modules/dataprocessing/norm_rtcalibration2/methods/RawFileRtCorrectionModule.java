@@ -35,6 +35,9 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
+/**
+ * {@link MZmineModule} interface for retention time correction modules.
+ */
 public sealed interface RawFileRtCorrectionModule extends MZmineModule, UniqueIdSupplier permits
     MultilinearRawFileRtCorrectionModule {
 

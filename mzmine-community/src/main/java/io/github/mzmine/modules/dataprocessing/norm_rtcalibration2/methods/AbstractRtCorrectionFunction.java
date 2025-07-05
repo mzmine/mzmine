@@ -28,6 +28,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RtStandard;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.List;
@@ -35,6 +36,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
+/**
+ * Basic implementation of a RT correction on a raw data file basis. Each instance is specific for a
+ * single raw data file. The implementations of this class must have an associated
+ * {@link RawFileRtCorrectionModule} and must be listed in {@link RtCorrectionFunctions}. A
+ * correction can be interpolated between two neighbouring files, or created specifically for a set
+ * of standards. {@link RawFileRtCorrectionModule#createFromStandards(FeatureList, List, ParameterSet)} or {@link RawFileRtCorrectionModule#createInterpolated(RawDataFile, List, AbstractRtCorrectionFunction, double, AbstractRtCorrectionFunction, double, ParameterSet)}
+ */
 public abstract class AbstractRtCorrectionFunction {
 
   protected final RawDataFilePlaceholder filePlaceholder;
@@ -109,6 +117,9 @@ public abstract class AbstractRtCorrectionFunction {
     return filePlaceholder;
   }
 
+  /**
+   * Corrects the RT of a scan to a new RT
+   */
   public abstract float getCorrectedRt(float originalRt);
 
   public abstract void saveToXML(Element calibrationFunctionElement);

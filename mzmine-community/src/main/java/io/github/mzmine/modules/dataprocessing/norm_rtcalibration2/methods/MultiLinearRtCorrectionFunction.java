@@ -132,6 +132,7 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
         0.01, 1);
     alsFit[0] = 0d;
     alsFit[alsFit.length - 1] = 0d;
+
     movAvg = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(),
         MovingAverage.calculate(alsFit, (int) (subtracted.length * initialBandwidth)));
 
@@ -145,8 +146,10 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
       if (movAvg.value(file.getScan(i).getRetentionTime()) <= movAvg.value(
           file.getScan(i - 1).getRetentionTime())) {
         logger.warning(
-            "Cannot find monotonous calibration for file %s with bandwidth %.3f. Increasing by 0.01.".formatted(
+            "Cannot find monotonous calibration for file %s with bandwidth %.3f.".formatted(
                 file.getName(), initialBandwidth));
+        movAvg = null;
+        break;
       }
     }
 

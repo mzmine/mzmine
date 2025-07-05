@@ -28,17 +28,18 @@ import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.Abstr
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import java.util.List;
 
-public class RtRawFileCorrectionParameters extends SimpleParameterSet {
+public class ApplyRtCorrectionToRawFileParameters extends SimpleParameterSet {
 
   public static RtRawFileCorrectionParameter calis = new RtRawFileCorrectionParameter();
 
-  public RtRawFileCorrectionParameters() {
+  public ApplyRtCorrectionToRawFileParameters() {
     super(calis);
   }
 
-  public static RtRawFileCorrectionParameters create(List<AbstractRtCorrectionFunction> calibrationFunctionList) {
-    final RtRawFileCorrectionParameters rtRawFileCorrectionParameters = (RtRawFileCorrectionParameters) new RtRawFileCorrectionParameters().cloneParameterSet();
-    rtRawFileCorrectionParameters.setParameter(calis, calibrationFunctionList);
-    return rtRawFileCorrectionParameters;
+  public static ApplyRtCorrectionToRawFileParameters create(
+      List<AbstractRtCorrectionFunction> calibrationFunctionList) {
+    final ApplyRtCorrectionToRawFileParameters applyRtCorrectionToRawFileParameters = (ApplyRtCorrectionToRawFileParameters) new ApplyRtCorrectionToRawFileParameters().cloneParameterSet();
+    applyRtCorrectionToRawFileParameters.setParameter(calis, calibrationFunctionList);
+    return applyRtCorrectionToRawFileParameters;
   }
 }
