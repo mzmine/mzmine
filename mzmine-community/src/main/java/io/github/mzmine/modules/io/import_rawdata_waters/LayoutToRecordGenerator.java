@@ -137,15 +137,16 @@ public class LayoutToRecordGenerator {
         // The input string provided by the user
         String layoutString = """
             private static final GroupLayout $LAYOUT = MemoryLayout.structLayout(
-                    MassLynxLib.C_INT.withName("msLevel"),
-                    MassLynxLib.C_INT.withName("polarity"),
-                    MassLynxLib.C_INT.withName("driftScanCount"),
-                    MassLynxLib.C_FLOAT.withName("precursorMz"),
-                    MassLynxLib.C_FLOAT.withName("quadIsolationStart"),
-                    MassLynxLib.C_FLOAT.withName("quadIsolationEnd"),
-                    MassLynxLib.C_FLOAT.withName("collisionEnergy"),
-                    MassLynxLib.C_FLOAT.withName("rt")
-                ).withName("ScanInfo");
+                                             MassLynxLib.C_INT.withName("msLevel"),
+                                             MassLynxLib.C_INT.withName("polarity"),
+                                             MassLynxLib.C_INT.withName("driftScanCount"),
+                                             MassLynxLib.C_INT.withName("isProfile"),
+                                             MassLynxLib.C_FLOAT.withName("precursorMz"),
+                                             MassLynxLib.C_FLOAT.withName("quadIsolationStart"),
+                                             MassLynxLib.C_FLOAT.withName("quadIsolationEnd"),
+                                             MassLynxLib.C_FLOAT.withName("collisionEnergy"),
+                                             MassLynxLib.C_FLOAT.withName("rt")
+                                         ).withName("ScanInfo");
             """;
 
         LayoutToRecordGenerator generator = new LayoutToRecordGenerator();

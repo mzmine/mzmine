@@ -540,14 +540,13 @@ public class ConversionUtils {
   public static OtherFeature newRawMrmFeature(double q1, double q3,
       @Nullable ActivationMethod method, @Nullable Float energy,
       @NotNull SimpleOtherTimeSeries series) {
-    final OtherFeatureImpl feature = new OtherFeatureImpl();
+    final OtherFeatureImpl feature = new OtherFeatureImpl(series);
     feature.set(ChromatogramTypeType.class, ChromatogramType.MRM_SRM);
     feature.set(MZType.class, q3);
 
     final DDAMsMsInfoImpl msmsInfo = new DDAMsMsInfoImpl(q1, null, energy, null, null, 2, method,
         null);
     feature.set(MsMsInfoType.class, List.of(msmsInfo));
-    feature.set(OtherFeatureDataType.class, series);
     return feature;
   }
 

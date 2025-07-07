@@ -24,12 +24,15 @@
 
 package io.github.mzmine.modules.io.import_rawdata_waters;
 
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
@@ -37,12 +40,16 @@ import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -72,7 +79,8 @@ public class WatersRawImportTask extends AbstractTask implements RawDataImportTa
 
   public WatersRawImportTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       File rawFolder, @NotNull final Class<? extends MZmineModule> module,
-      @NotNull final ParameterSet parameters, @NotNull final MZmineProject project, @Nullable ScanImportProcessorConfig processor) {
+      @NotNull final ParameterSet parameters, @NotNull final MZmineProject project,
+      @Nullable ScanImportProcessorConfig processor) {
 
     super(storage, moduleCallDate);
     this.rawFolder = rawFolder;
@@ -85,7 +93,8 @@ public class WatersRawImportTask extends AbstractTask implements RawDataImportTa
 
   @Override
   public String getTaskDescription() {
-    return "Importing Waters (MassLynx) raw data file %s. Scan %d/%d".formatted(rawFolder.getName(), loadedItems, totalItems);
+    return "Importing Waters (MassLynx) raw data file %s. Scan %d/%d".formatted(rawFolder.getName(),
+        loadedItems, totalItems);
   }
 
   @Override
@@ -105,7 +114,7 @@ public class WatersRawImportTask extends AbstractTask implements RawDataImportTa
 
       dataFile = ml.createDataFile();
       OtherTimeSeriesDataImpl mrmData = null;
-      OtherDataFile mrmFileDataFile = null;
+      OtherDataFileImpl mrmFileDataFile = null;
 
       final List<SimpleScan> scans = new ArrayList<>();
       for (int function = 0; function < ml.getNumberOfFunctions(); function++) {
@@ -119,7 +128,14 @@ public class WatersRawImportTask extends AbstractTask implements RawDataImportTa
           case MRM -> {
             if (mrmData == null) {
               mrmFileDataFile = new OtherDataFileImpl(dataFile);
+              mrmFileDataFile.setDescription("MRM/SRM");
               mrmData = new OtherTimeSeriesDataImpl(mrmFileDataFile);
+              mrmData.setChromatogramType(ChromatogramType.MRM_SRM);
+              mrmData.setTimeSeriesRangeLabel("Intensity");
+              mrmData.setTimeSeriesRangeUnit("cts");
+              mrmData.setTimeSeriesDomainLabel("RT");
+              mrmData.setTimeSeriesDomainUnit("min");
+              mrmFileDataFile.setOtherTimeSeriesData(mrmData);
             }
             readMrmFunction(ml, function, mrmData);
           }
@@ -142,13 +158,37 @@ public class WatersRawImportTask extends AbstractTask implements RawDataImportTa
         final SimpleScan scan = sortedScans.get(i);
         scan.setScanNumber(i + 1);
         dataFile.addScan(scan);
+
+        // correct the quadrupole set mass for DDA spectra
+        // support.waters.com/KB_Inf/MassLynx/WKB28313_Why_doesnt_the_MSMS_set_mass_in_the_header_of_the_spectrum_window_match_the_peak_mass
+        if (scan.getMsMsInfo() != null && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
+          final double isolationMz = dda.getIsolationMz();
+          final Scan precursorScan = ScanUtils.findPrecursorScan(scan);
+          if (precursorScan == null) {
+            continue;
+          }
+
+          // let's take a reasonable range of 3 Da
+          final DataPoint actualPrecursor = ScanUtils.findBasePeak(precursorScan,
+              RangeUtils.rangeAround(isolationMz, 3d));
+
+          final DDAMsMsInfoImpl correctedMsMsInfo = new DDAMsMsInfoImpl(actualPrecursor.getMZ(),
+              dda.getPrecursorCharge(), dda.getActivationEnergy(), dda.getMsMsScan(),
+              dda.getParentScan(), scan.getMSLevel(), dda.getActivationMethod(),
+              dda.getIsolationWindow());
+          scan.setMsMsInfo(correctedMsMsInfo);
+        }
+      }
+
+      if (mrmFileDataFile != null && mrmFileDataFile.hasTimeSeries()) {
+        dataFile.addOtherDataFiles(List.of(mrmFileDataFile));
       }
 
       final var appliedMethod = new SimpleFeatureListAppliedMethod(module, parameters,
           getModuleCallDate());
       dataFile.getAppliedMethods().add(appliedMethod);
 
-      if(isCanceled()) {
+      if (isCanceled()) {
         return;
       }
 

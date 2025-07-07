@@ -24,13 +24,10 @@
 
 package io.github.mzmine.modules.io.import_rawdata_waters;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MetadataOnlyScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
@@ -44,7 +41,6 @@ import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.MsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
@@ -80,7 +76,7 @@ public class MassLynxDataAccess implements AutoCloseable {
   private final String acqDate;
   private final int analogChannelCount;
   private final FunctionType[] functionTypes;
-  private final MassSpectrumType spectrumType;
+  private final MassSpectrumType requestedSpectrumType;
 
   private final @Nullable ScanImportProcessorConfig processor;
   private final boolean isDdaFile;
@@ -105,7 +101,7 @@ public class MassLynxDataAccess implements AutoCloseable {
     isDdaFile = MassLynxLib.isDdaFile(handle) > 0;
     numberOfFunctions = MassLynxLib.getNumberOfFunctions(handle);
     analogChannelCount = MassLynxLib.getAnalogChannelCount(handle);
-    spectrumType = centroid ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
+    requestedSpectrumType = centroid ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
 
     final MemorySegment dateBuffer = arena.allocate(MassLynxLib.C_CHAR, 32);
     MassLynxLib.getAcquisitionDate(handle, dateBuffer, (int) dateBuffer.byteSize());
@@ -229,7 +225,7 @@ public class MassLynxDataAccess implements AutoCloseable {
   private @Nullable SimpleScan readMsScan(RawDataFileImpl file, int function, int scan) {
     MassLynxLib.getScanInfo(handle, function, scan, scanInfoBuffer);
     final ScanInfoWrapper scanInfo = ScanInfoWrapper.fromScanInfo(scanInfoBuffer);
-    final MetadataOnlyScan metadataScan = scanInfo.metadataOnlyScan(spectrumType);
+    final MetadataOnlyScan metadataScan = scanInfo.metadataOnlyScan(requestedSpectrumType);
 
     if (processor != null && processor.hasProcessors() && processor.scanFilter() != null
         && processor.scanFilter().isActiveFilter()) {
@@ -264,14 +260,15 @@ public class MassLynxDataAccess implements AutoCloseable {
     final String scanDefinition = "func=%d, scan=%d".formatted(function, scan);
 
     return new SimpleScan(file, scan, scanInfo.msLevel(), scanInfo.rt(),
-        scanInfo.msMsInfo(isDdaFile, isImsFile), dataPoints.mzs(), dataPoints.intensities(),
-        spectrumType, scanInfo.polarityType(), scanDefinition, null);
+        scanInfo.msLevel() > 1 ? scanInfo.msMsInfo(isDdaFile, isImsFile) : null, dataPoints.mzs(),
+        dataPoints.intensities(), metadataScan.getSpectrumType(), scanInfo.polarityType(),
+        scanDefinition, null);
   }
 
   public @Nullable SimpleFrame readFrame(IMSRawDataFileImpl file, int function, int scan) {
     MassLynxLib.getScanInfo(handle, function, scan, scanInfoBuffer);
     final ScanInfoWrapper scanInfo = ScanInfoWrapper.fromScanInfo(scanInfoBuffer);
-    final MetadataOnlyScan metadataScan = scanInfo.metadataOnlyScan(spectrumType);
+    final MetadataOnlyScan metadataScan = scanInfo.metadataOnlyScan(requestedSpectrumType);
 
     if (processor != null && processor.hasProcessors() && processor.scanFilter() != null
         && processor.scanFilter().isActiveFilter()) {
@@ -311,9 +308,10 @@ public class MassLynxDataAccess implements AutoCloseable {
 
     final String scanDefinition = "func=%d, scan=%d".formatted(function, scan);
     final SimpleFrame frame = new SimpleFrame(file, scan, scanInfo.msLevel(), scanInfo.rt(),
-        dataPoints.mzs(), dataPoints.intensities(), spectrumType, scanInfo.polarityType(),
-        scanDefinition, null, MobilityType.TRAVELING_WAVE, scanInfo.msLevel() > 1 ? Set.of(
-        (IonMobilityMsMsInfo) scanInfo.msMsInfo(isDdaFile, isImsFile)) : null, null);
+        dataPoints.mzs(), dataPoints.intensities(), metadataScan.getSpectrumType(),
+        scanInfo.polarityType(), scanDefinition, null, MobilityType.TRAVELING_WAVE,
+        scanInfo.msLevel() > 1 ? Set.of(
+            (IonMobilityMsMsInfo) scanInfo.msMsInfo(isDdaFile, isImsFile)) : null, null);
 
     final List<BuildingMobilityScan> mobScans = readMobilityScansForFrame(function, scan,
         scanInfo.driftScanCount(), metadataScan);
@@ -386,10 +384,14 @@ public class MassLynxDataAccess implements AutoCloseable {
     if (StorageUtils.numDoubles(mrmRtBuffer) < numDp) {
       mrmRtBuffer = arena.allocate(numDp * MassLynxLib.C_FLOAT.byteSize() * 2);
       mrmIntensityBuffer = arena.allocate(numDp * MassLynxLib.C_FLOAT.byteSize() * 2);
+      MassLynxLib.getMrmDataPoints(handle, function, index, mrmRtBuffer, mrmIntensityBuffer,
+          (int) mrmRtBuffer.byteSize());
     }
-    final float[] rts = mrmRtBuffer.toArray(MassLynxLib.C_FLOAT);
+    final float[] rts = mrmRtBuffer.asSlice(0, numDp * MassLynxLib.C_FLOAT.byteSize())
+        .toArray(MassLynxLib.C_FLOAT);
     final double[] intensities = ArrayUtils.floatToDouble(
-        mrmIntensityBuffer.toArray(MassLynxLib.C_FLOAT));
+        mrmIntensityBuffer.asSlice(0, numDp * MassLynxLib.C_FLOAT.byteSize())
+            .toArray(MassLynxLib.C_FLOAT));
 
     final NumberFormats formats = ConfigService.getGuiFormats();
     final SimpleOtherTimeSeries series = new SimpleOtherTimeSeries(storage, rts, intensities,
