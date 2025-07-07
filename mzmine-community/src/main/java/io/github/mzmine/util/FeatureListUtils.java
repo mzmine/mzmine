@@ -70,6 +70,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 import org.jetbrains.annotations.NotNull;
@@ -126,6 +127,20 @@ public class FeatureListUtils {
     selectedRows.setValue(rows);
   }
 
+  public static void bindSelectedRows(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<FeatureListRow>> selectedRows, ObservableBooleanValue isUpdateEnabled) {
+    weak.addListChangeListener(table, table.getSelectedTableRows(), c -> {
+      if (weak.isDisposed() || !isUpdateEnabled.get()) {
+        return;
+      }
+
+      var rows = c.getList().stream().<FeatureListRow>map(TreeItem::getValue).toList();
+      selectedRows.setValue(rows);
+    });
+    final List<FeatureListRow> rows = List.copyOf(table.getSelectedRows());
+    selectedRows.setValue(rows);
+  }
+
   public static void bindSelectedFeatures(WeakAdapter weak, FeatureTableFX table,
       ObjectProperty<List<Feature>> selectedFeatures) {
     weak.addListChangeListener(table, table.getSelectionModel().getSelectedCells(), c -> {
@@ -142,6 +157,18 @@ public class FeatureListUtils {
       ObjectProperty<List<RawDataFile>> selectedFiles) {
     weak.addListChangeListener(table, table.getSelectionModel().getSelectedCells(), c -> {
       if (weak.isDisposed()) {
+        return;
+      }
+
+      List<RawDataFile> raws = List.copyOf(table.getSelectedRawDataFiles());
+      selectedFiles.setValue(raws);
+    });
+  }
+
+  public static void bindSelectedRawDataFiles(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<RawDataFile>> selectedFiles, ObservableBooleanValue isUpdateEnabled) {
+    weak.addListChangeListener(table, table.getSelectionModel().getSelectedCells(), c -> {
+      if (weak.isDisposed() || !isUpdateEnabled.get()) {
         return;
       }
 

@@ -41,7 +41,7 @@ public class PseudoSpectrumVisualizerTab extends SimpleTab {
   }
 
   public PseudoSpectrumVisualizerTab(FeatureTableFX table) {
-    super("Pseudo spectrum");
+    super("Pseudo spectrum", true, true);
     controller = new PseudoSpectrumVisualizerController();
     final Region view = controller.buildView();
     super.setContent(view);
@@ -50,8 +50,12 @@ public class PseudoSpectrumVisualizerTab extends SimpleTab {
     weak = new WeakAdapter();
     setOnCloseRequest(_ -> weak.dipose()); // dispose on shutdown
 
-    FeatureListUtils.bindSelectedRows(weak, table, controller.selectedRowsProperty());
-    FeatureListUtils.bindSelectedRawDataFiles(weak, table, controller.selectedRawFilesProperty());
+    this.updateOnSelectionProperty().subscribe(updateEnabled -> {
+      FeatureListUtils.bindSelectedRows(weak, table, controller.selectedRowsProperty(),
+          updateOnSelectionProperty());
+      FeatureListUtils.bindSelectedRawDataFiles(weak, table, controller.selectedRawFilesProperty(),
+          updateOnSelectionProperty());
+    });
   }
 
   public PseudoSpectrumVisualizerController getController() {
