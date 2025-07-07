@@ -72,6 +72,7 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
       @Nullable List<FeatureList> flists) {
     var mzTolerance = parameters.getParameter(RTCorrectionParameters.MZTolerance).getValue();
     var rtTolerance = parameters.getParameter(RTCorrectionParameters.RTTolerance).getValue();
+    var rtMeasure = parameters.getParameter(RTCorrectionParameters.rtMeasure).getValue();
     var minHeight = parameters.getParameter(RTCorrectionParameters.minHeight).getValue();
     final ValueWithParameters<RtCorrectionFunctions> calibrationMethod = parameters.getParameter(
         RTCorrectionParameters.calibrationFunctionModule).getValueWithParameters();
@@ -97,13 +98,13 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
         flist.stream().sorted(Comparator.comparingDouble(FeatureListRow::getAverageMZ)).toList()));
 
     final List<RtStandard> goodStandards = findStandards(baseList, referenceFlistsByNumRows,
-        mzSortedRows, mzTolerance, rtTolerance, minHeight);
-    goodStandards.sort(Comparator.comparingDouble(RtStandard::getMedianRt));
+        mzSortedRows, mzTolerance, rtTolerance, minHeight, rtMeasure);
+    goodStandards.sort(Comparator.comparingDouble(rtMeasure::getRt));
     final List<RtStandard> monotonousStandards = removeNonMonotonousStandards(goodStandards,
-        referenceFlistsByNumRows);
+        referenceFlistsByNumRows, rtMeasure);
     final List<AbstractRtCorrectionFunction> allCalibrations = interpolateMissingCalibrations(
         referenceFlistsByNumRows, flists, ProjectService.getMetadata(), monotonousStandards,
-        calibrationModule, calibrationModuleParameters);
+        calibrationModule, rtMeasure, calibrationModuleParameters);
 
     final List<DatasetAndRenderer> datasets = new ArrayList<>();
 
@@ -114,29 +115,20 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
 
       if (sampleTypeFilter.matches(file)) {
         final AnyXYProvider medianVsOriginal = new AnyXYProvider(clr,
-            file.getName() + " standard shift vs average RT", monotonousStandards.size(),
-            i -> (double) monotonousStandards.get(i).getMedianRt(),
+            file.getName() + " standard shift vs %s RT".formatted(rtMeasure.toString()),
+            monotonousStandards.size(), i -> (double) rtMeasure.getRt(monotonousStandards.get(i)),
             i -> (monotonousStandards.get(i).standards().get(file).getAverageRT().doubleValue()
-                - monotonousStandards.get(i).getMedianRt()));
+                - rtMeasure.getRt(monotonousStandards.get(i))));
         datasets.add(
             new DatasetAndRenderer(new ColoredXYDataset(medianVsOriginal, RunOption.THIS_THREAD),
                 new ColoredXYShapeRenderer(true)));
       }
 
-//      final AnyXYProvider fitDataset = new AnyXYProvider(/*file.getColorAWT()*/clr,
-//          file.getName() + " correction at RT vs original RTs", file.getNumOfScans(),
-//          i -> (double) file.getScan(i).getRetentionTime(),
-//          i -> (double) cali.getCorrectedRtLoess(file.getScan(i).getRetentionTime()) - file.getScan(
-//              i).getRetentionTime());
-
       final AnyXYProvider avgFitDataset = new AnyXYProvider(/*file.getColorAWT()*/clr,
-          file.getName() + " fitted shift at RT vs original RTs", file.getNumOfScans(),
-          i -> (double) file.getScan(i).getRetentionTime(),
+          file.getName() + " fitted shift at RT vs original RTs".formatted(rtMeasure.toString()),
+          file.getNumOfScans(), i -> (double) file.getScan(i).getRetentionTime(),
           i -> (double) -(cali.getCorrectedRt(file.getScan(i).getRetentionTime()) - file.getScan(i)
               .getRetentionTime()));
-
-//      datasets.add(new DatasetAndRenderer(new ColoredXYDataset(fitDataset, RunOption.THIS_THREAD),
-//          new ColoredXYLineRenderer()));
 
       datasets.add(
           new DatasetAndRenderer(new ColoredXYDataset(avgFitDataset, RunOption.THIS_THREAD),

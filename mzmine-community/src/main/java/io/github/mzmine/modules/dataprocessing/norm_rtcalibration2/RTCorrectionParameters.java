@@ -39,6 +39,7 @@ import io.github.mzmine.parameters.dialogs.ParameterDialogWithPreviewPanes;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
@@ -47,6 +48,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.StringUtils;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -74,12 +76,19 @@ public class RTCorrectionParameters extends SimpleParameterSet {
       determined by the acquisition type column in the metadata (CTRL/CMD + M).
       """, SampleType.values(), List.of(SampleType.values()));
 
+  public static final ComboParameter<RTMeasure> rtMeasure = new ComboParameter<>(
+      "RT standard calculation",
+      "Specify how the standard RT shall be calculated, either by %s or %s.".formatted(
+          StringUtils.inQuotes(RTMeasure.MEDIAN.toString()),
+          StringUtils.inQuotes(RTMeasure.AVERAGE.toString())), RTMeasure.values(),
+      RTMeasure.MEDIAN);
+
   public static final ModuleOptionsEnumComboParameter<RtCorrectionFunctions> calibrationFunctionModule = new ModuleOptionsEnumComboParameter<>(
       "Correction method", "Choose the RT correction method you want to apply",
       RtCorrectionFunctions.values(), RtCorrectionFunctions.MultiLinearCorrection);
 
   public RTCorrectionParameters() {
-    super(new Parameter[]{featureLists, sampleTypes, MZTolerance, RTTolerance, minHeight,
+    super(new Parameter[]{featureLists, sampleTypes, MZTolerance, RTTolerance, minHeight, rtMeasure,
             calibrationFunctionModule},
         "https://mzmine.github.io/mzmine_documentation/module_docs/norm_rt_calibration/norm_rt_calibration.html");
   }

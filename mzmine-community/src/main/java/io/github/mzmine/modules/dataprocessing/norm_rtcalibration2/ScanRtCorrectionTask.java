@@ -81,6 +81,7 @@ class ScanRtCorrectionTask extends AbstractTask {
   private final ParameterSet parameters;
   private final ParameterSet calibrationModuleParameters;
   private final RawFileRtCorrectionModule calibrationModule;
+  private final RTMeasure rtMeasure;
   private int processedRows, totalRows;
 
   public ScanRtCorrectionTask(MZmineProject project, ParameterSet parameters,
@@ -97,6 +98,7 @@ class ScanRtCorrectionTask extends AbstractTask {
     mzTolerance = parameters.getParameter(RTCorrectionParameters.MZTolerance).getValue();
     rtTolerance = parameters.getParameter(RTCorrectionParameters.RTTolerance).getValue();
     minHeight = parameters.getParameter(RTCorrectionParameters.minHeight).getValue();
+    rtMeasure = parameters.getParameter(RTCorrectionParameters.rtMeasure).getValue();
 
     final ValueWithParameters<RtCorrectionFunctions> calibrationMethod = parameters.getParameter(
         RTCorrectionParameters.calibrationFunctionModule).getValueWithParameters();
@@ -124,9 +126,9 @@ class ScanRtCorrectionTask extends AbstractTask {
   static @NotNull List<AbstractRtCorrectionFunction> interpolateMissingCalibrations(
       List<FeatureList> referenceFlists, List<FeatureList> allFeatureLists, MetadataTable metadata,
       List<RtStandard> monotonousStandards, RawFileRtCorrectionModule correctionModule,
-      ParameterSet correctionModuleParameters) {
+      @NotNull final RTMeasure rtMeasure, ParameterSet correctionModuleParameters) {
     final Map<RawDataFile, AbstractRtCorrectionFunction> referenceCalibrations = referenceFlists.stream()
-        .map(flist -> correctionModule.createFromStandards(flist, monotonousStandards,
+        .map(flist -> correctionModule.createFromStandards(flist, monotonousStandards, rtMeasure,
             correctionModuleParameters))
         .collect(Collectors.toMap(AbstractRtCorrectionFunction::getRawDataFile, cali -> cali));
 
@@ -166,7 +168,7 @@ class ScanRtCorrectionTask extends AbstractTask {
           (double) Math.abs(runDate.until(previousRunDate, ChronoUnit.SECONDS)) / totalTimeDistance;
 
       final AbstractRtCorrectionFunction newCali = correctionModule.createInterpolated(file,
-          monotonousStandards, previousCali, previousWeight, nextCali, nextRunWeight,
+          monotonousStandards, previousCali, previousWeight, nextCali, nextRunWeight, rtMeasure,
           correctionModuleParameters);
       allCalibrations.add(newCali);
     }
@@ -182,7 +184,7 @@ class ScanRtCorrectionTask extends AbstractTask {
    * another feature list.
    */
   static List<RtStandard> removeNonMonotonousStandards(List<RtStandard> goodStandardsByRt,
-      List<FeatureList> referenceFlists) {
+      List<FeatureList> referenceFlists, RTMeasure rtMeasure) {
     final List<RtStandard> monotonousStandards = new ArrayList<>(goodStandardsByRt);
     for (int i = 1; i < monotonousStandards.size(); i++) {
       // check that all rts of this standard are higher than the individual feature lists rts in the previous standard.
@@ -207,13 +209,13 @@ class ScanRtCorrectionTask extends AbstractTask {
         }
       }
     }
-    monotonousStandards.sort(Comparator.comparingDouble(RtStandard::getMedianRt));
+    monotonousStandards.sort(Comparator.comparingDouble(rtMeasure::getRt));
     return monotonousStandards;
   }
 
   static @NotNull List<RtStandard> findStandards(FeatureList baseList,
       List<FeatureList> referenceFlists, Map<FeatureList, List<FeatureListRow>> mzSortedRows,
-      MZTolerance mzTolerance, RTTolerance rtTolerance, double minHeight) {
+      MZTolerance mzTolerance, RTTolerance rtTolerance, double minHeight, RTMeasure rtMeasure) {
     final List<FeatureListRow> baseRowsSorted = mzSortedRows.get(baseList);
     final List<RtStandard> goodStandards = new ArrayList<>();
     final WeightedCosineSpectralSimilarity cosine = new WeightedCosineSpectralSimilarity();
@@ -273,8 +275,8 @@ class ScanRtCorrectionTask extends AbstractTask {
       }
     }
 
-    final DoubleSummaryStatistics stats = goodStandards.stream()
-        .mapToDouble(RtStandard::getMedianRt).summaryStatistics();
+    final DoubleSummaryStatistics stats = goodStandards.stream().mapToDouble(rtMeasure::getRt)
+        .summaryStatistics();
     logger.finest("Found %d good standards that appear in all %d feature lists. %s".formatted(
         goodStandards.size(), referenceFlists.size(), stats.toString()));
 
@@ -384,13 +386,13 @@ class ScanRtCorrectionTask extends AbstractTask {
         flist.stream().sorted(Comparator.comparingDouble(FeatureListRow::getAverageMZ)).toList()));
 
     final List<RtStandard> goodStandards = findStandards(baseList, referenceFlistsByNumRows,
-        mzSortedRows, mzTolerance, rtTolerance, minHeight);
-    goodStandards.sort(Comparator.comparingDouble(RtStandard::getMedianRt));
+        mzSortedRows, mzTolerance, rtTolerance, minHeight, rtMeasure);
+    goodStandards.sort(Comparator.comparingDouble(rtMeasure::getRt));
     final List<RtStandard> monotonousStandards = removeNonMonotonousStandards(goodStandards,
-        referenceFlistsByNumRows);
+        referenceFlistsByNumRows, rtMeasure);
     final List<AbstractRtCorrectionFunction> allCalibrations = interpolateMissingCalibrations(
         referenceFlistsByNumRows, flists, project.getProjectMetadata(), monotonousStandards,
-        calibrationModule, calibrationModuleParameters);
+        calibrationModule, rtMeasure, calibrationModuleParameters);
 
     ApplyRtCorrectionToRawFileModule.applyOnThisThread(allCalibrations);
 

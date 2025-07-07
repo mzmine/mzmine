@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.als.AsymmetricLeastSquaresCorrection;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.MovingAverage;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTMeasure;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RtStandard;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.util.ParsingUtils;
@@ -54,7 +55,7 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
   }
 
   public MultiLinearRtCorrectionFunction(FeatureList flist, List<RtStandard> rtSortedStandards,
-      double bandwidth) {
+      double bandwidth, RTMeasure rtMeasure) {
     super(flist);
 
     final RawDataFile file = flist.getRawDataFiles().getFirst();
@@ -74,7 +75,7 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
     final FeatureListRow lastStandard = rtSortedStandards.getLast().standards().get(file);
     final float lastStandardAverageRT = lastStandard.getAverageRT();
     addFinalRt(rtSortedStandards, fullRtRange, lastStandardAverageRT, thisRtValues,
-        standardRtValues);
+        standardRtValues, rtMeasure);
 
     movAvg = getInterpolatorIteratively(bandwidth, standardRtValues, thisRtValues);
   }
@@ -83,7 +84,7 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
       @NotNull final List<RtStandard> rtSortedStandards,
       @NotNull final MultiLinearRtCorrectionFunction previousRunCalibration, final double previousRunWeight,
       @NotNull final MultiLinearRtCorrectionFunction nextRunCalibration, final double nextRunWeight,
-      double bandwidth) {
+      double bandwidth, RTMeasure rtMeasure) {
     super(new RawDataFilePlaceholder(file));
 
     final Range<Float> fullRtRange = file.getDataRTRange();
@@ -111,7 +112,7 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
         rtSortedStandards.getLast().standards().get(nextFile).getAverageRT() * nextRunWeight;
     final float lastStandardRt = (float) (previous + next);
 
-    addFinalRt(rtSortedStandards, fullRtRange, lastStandardRt, thisRtValues, standardRtValues);
+    addFinalRt(rtSortedStandards, fullRtRange, lastStandardRt, thisRtValues, standardRtValues, rtMeasure);
 
     movAvg = getInterpolatorIteratively(bandwidth, standardRtValues, thisRtValues);
   }
@@ -143,8 +144,11 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
     ensureMonotonicity(corrected);
     movAvg = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(), corrected);
     for (int i = 1; i < file.getNumOfScans(); i++) {
-      if (movAvg.value(file.getScan(i).getRetentionTime()) <= movAvg.value(
-          file.getScan(i - 1).getRetentionTime())) {
+      final float thisOriginalRt = file.getScan(i).getRetentionTime();
+      final double thisCorrectedRt = movAvg.value(thisOriginalRt);
+      final float previousRt = file.getScan(i - 1).getRetentionTime();
+      final double correctedPreviousRt = movAvg.value(previousRt);
+      if (thisCorrectedRt <= correctedPreviousRt) {
         logger.warning(
             "Cannot find monotonous calibration for file %s with bandwidth %.3f.".formatted(
                 file.getName(), initialBandwidth));

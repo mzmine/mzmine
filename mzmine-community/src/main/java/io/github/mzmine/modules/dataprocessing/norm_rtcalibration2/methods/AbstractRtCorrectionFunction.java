@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTMeasure;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RtStandard;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
@@ -69,8 +70,8 @@ public abstract class AbstractRtCorrectionFunction {
 
     for (int i = 1; i < values.length; i++) {
       if (values[i] <= values[i - 1]) {
-        // Add a small increment to maintain monotonicity
-        values[i] = Math.nextUp(values[i - 1]);
+        // Add a small increment to maintain monotonicity (10 ms). Math.nextUp is not enough.
+        values[i] = values[i - 1] + 0.0001666;
       }
     }
   }
@@ -87,19 +88,19 @@ public abstract class AbstractRtCorrectionFunction {
    */
   protected static void addFinalRt(@NotNull List<RtStandard> rtSortedStandards,
       Range<Float> fullRtRange, float finalStandardAverageRt, DoubleArrayList thisRtValues,
-      DoubleArrayList calibratedRtValues) {
+      DoubleArrayList calibratedRtValues, RTMeasure rtMeasure) {
 
     // if this changes the rt range, we need to add an additional point.
     // we keep the change after the last standard constant.
-    if (rtSortedStandards.getLast().getAverageRt() > fullRtRange.upperEndpoint()) {
-      final float avgRt = rtSortedStandards.getLast().getAverageRt();
+    if (rtSortedStandards.getLast().getRt(rtMeasure) > fullRtRange.upperEndpoint()) {
+      final float avgRt = rtSortedStandards.getLast().getRt(rtMeasure);
       final double offset = avgRt - finalStandardAverageRt;
       final float timeToLastScan = fullRtRange.upperEndpoint() - finalStandardAverageRt;
 
       thisRtValues.add(fullRtRange.upperEndpoint() + offset);
       // is this correct? this would cause slightly different max rts for all files,
       // but i cannot think of a better way to calculate this
-      calibratedRtValues.add(rtSortedStandards.getLast().getAverageRt() + timeToLastScan);
+      calibratedRtValues.add(rtSortedStandards.getLast().getRt(rtMeasure) + timeToLastScan);
     } else {
       // keep the rt range of this file as it was.
       thisRtValues.add(fullRtRange.upperEndpoint());

@@ -51,6 +51,13 @@ public final class RtStandard {
     return avgRt;
   }
 
+  public float getRt(RTMeasure measure) {
+    return switch (measure) {
+      case MEDIAN -> getMedianRt();
+      case AVERAGE -> getAverageRt();
+    };
+  }
+
   public HashMap<RawDataFile, FeatureListRow> standards() {
     return standards;
   }

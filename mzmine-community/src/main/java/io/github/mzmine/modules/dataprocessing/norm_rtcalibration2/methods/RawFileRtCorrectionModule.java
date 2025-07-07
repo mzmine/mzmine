@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTMeasure;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RtStandard;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
@@ -42,32 +43,37 @@ public sealed interface RawFileRtCorrectionModule extends MZmineModule, UniqueId
     MultilinearRawFileRtCorrectionModule {
 
   /**
-   * Creates an interpolated RT correction function based on two other correction functions. The two functions are weighted with the given weights.
-   * @param file The file to create the function for.
-   * @param rtSortedStandards The standards sorted by ascending retention time.
-   * @param previousRunCalibration  The calibration of the previous run.
-   * @param previousRunWeight The weight for the calibration of the previous run.
-   * @param nextRunCalibration The correction function of the next run
-   * @param nextRunWeight The weight for the correction function of the next run.
-   * @param parameters The parameters for this {@link RawFileRtCorrectionModule}
+   * Creates an interpolated RT correction function based on two other correction functions. The two
+   * functions are weighted with the given weights.
+   *
+   * @param file                   The file to create the function for.
+   * @param rtSortedStandards      The standards sorted by ascending retention time.
+   * @param previousRunCalibration The calibration of the previous run.
+   * @param previousRunWeight      The weight for the calibration of the previous run.
+   * @param nextRunCalibration     The correction function of the next run
+   * @param nextRunWeight          The weight for the correction function of the next run.
+   * @param parameters             The parameters for this {@link RawFileRtCorrectionModule}
    * @return A new RT correction function.
    */
   AbstractRtCorrectionFunction createInterpolated(@NotNull final RawDataFile file,
       @NotNull final List<RtStandard> rtSortedStandards,
-      @NotNull final AbstractRtCorrectionFunction previousRunCalibration, final double previousRunWeight,
+      @NotNull final AbstractRtCorrectionFunction previousRunCalibration,
+      final double previousRunWeight,
       @NotNull final AbstractRtCorrectionFunction nextRunCalibration, final double nextRunWeight,
-      @NotNull final ParameterSet parameters);
+      @NotNull final RTMeasure rtMeasure, @NotNull final ParameterSet parameters);
 
   /**
    * Creates a new unique correction function from the standards found in the feature list/file.
-   * @param flist The feature list of a single raw data file to create the calibration function for.
+   *
+   * @param flist             The feature list of a single raw data file to create the calibration
+   *                          function for.
    * @param rtSortedStandards The standards. Must contain the standards from the specific raw file
-   * @param parameters The parameters of this {@link RawFileRtCorrectionModule}
+   * @param parameters        The parameters of this {@link RawFileRtCorrectionModule}
    * @return A new correction function.
    */
   AbstractRtCorrectionFunction createFromStandards(@NotNull final FeatureList flist,
       @NotNull final List<@NotNull RtStandard> rtSortedStandards,
-      @NotNull final ParameterSet parameters);
+      @NotNull final RTMeasure rtMeasure, @NotNull final ParameterSet parameters);
 
   /**
    * Loads a function from XML during project load.

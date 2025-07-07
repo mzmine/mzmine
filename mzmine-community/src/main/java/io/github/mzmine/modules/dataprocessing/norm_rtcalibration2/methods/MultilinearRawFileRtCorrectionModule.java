@@ -26,6 +26,7 @@ package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTMeasure;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RtStandard;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
@@ -43,19 +44,22 @@ public final class MultilinearRawFileRtCorrectionModule implements RawFileRtCorr
       @NotNull List<RtStandard> rtSortedStandards,
       @NotNull AbstractRtCorrectionFunction previousRunCalibration, double previousRunWeight,
       @NotNull AbstractRtCorrectionFunction nextRunCalibration, double nextRunWeight,
-      @NotNull ParameterSet parameters) {
+      @NotNull final RTMeasure rtMeasure, @NotNull ParameterSet parameters) {
 
     return new MultiLinearRtCorrectionFunction(file, rtSortedStandards,
         (MultiLinearRtCorrectionFunction) previousRunCalibration, previousRunWeight,
         (MultiLinearRtCorrectionFunction) nextRunCalibration, nextRunWeight,
-        parameters.getValue(MultilinearRawFileRtCalibrationParameters.correctionBandwidth));
+        parameters.getValue(MultilinearRawFileRtCalibrationParameters.correctionBandwidth),
+        rtMeasure);
   }
 
   @Override
   public AbstractRtCorrectionFunction createFromStandards(@NotNull FeatureList flist,
-      @NotNull List<@NotNull RtStandard> rtSortedStandards, @NotNull ParameterSet parameters) {
+      @NotNull List<@NotNull RtStandard> rtSortedStandards, @NotNull final RTMeasure rtMeasure,
+      @NotNull ParameterSet parameters) {
     return new MultiLinearRtCorrectionFunction(flist, rtSortedStandards,
-        parameters.getValue(MultilinearRawFileRtCalibrationParameters.correctionBandwidth));
+        parameters.getValue(MultilinearRawFileRtCalibrationParameters.correctionBandwidth),
+        rtMeasure);
   }
 
   @Override
