@@ -143,11 +143,14 @@ public class RowsFilterParameters extends SimpleParameterSet {
           "Filters for mass defects of features.\nValid inputs: 0.314-0.5 or 0.90-0.15",
           MZmineCore.getConfiguration().getMZFormat()));
 
+  public static final BooleanParameter onlyCorrelatedWithOtherDetectors = new BooleanParameter("Only other detector correlated",
+      "If checked, the rows that don't contain MS2 scan will be removed.", false);
+
   public RowsFilterParameters() {
     super(new Parameter[]{FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,
             ISOTOPE_FILTER_13C, removeRedundantRows, MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
             KENDRICK_MASS_DEFECT, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, cvFilter, REMOVE_ROW,
-            MS2_Filter, KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID, massDefect, handleOriginal},
+            MS2_Filter, onlyCorrelatedWithOtherDetectors, KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID, massDefect, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
   }
 
