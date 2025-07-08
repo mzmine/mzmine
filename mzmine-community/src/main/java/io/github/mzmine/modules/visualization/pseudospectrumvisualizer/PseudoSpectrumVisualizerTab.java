@@ -50,12 +50,10 @@ public class PseudoSpectrumVisualizerTab extends SimpleTab {
     weak = new WeakAdapter();
     setOnCloseRequest(_ -> weak.dipose()); // dispose on shutdown
 
-    this.updateOnSelectionProperty().subscribe(updateEnabled -> {
-      FeatureListUtils.bindSelectedRows(weak, table, controller.selectedRowsProperty(),
-          updateOnSelectionProperty());
-      FeatureListUtils.bindSelectedRawDataFiles(weak, table, controller.selectedRawFilesProperty(),
-          updateOnSelectionProperty());
-    });
+    FeatureListUtils.bindSelectedRows(weak, table, controller.selectedRowsProperty(),
+        updateOnSelectionProperty());
+    FeatureListUtils.bindSelectedRawDataFiles(weak, table, controller.selectedRawFilesProperty(),
+        updateOnSelectionProperty());
   }
 
   public PseudoSpectrumVisualizerController getController() {
