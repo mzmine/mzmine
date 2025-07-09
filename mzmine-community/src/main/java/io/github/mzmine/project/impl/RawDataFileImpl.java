@@ -438,4 +438,11 @@ public class RawDataFileImpl implements RawDataFile {
   public void addOtherDataFiles(@NotNull List<@NotNull OtherDataFile> otherDataFiles) {
     this.otherDataFiles.addAll(otherDataFiles);
   }
+
+  public void clearCaches() {
+    dataRTRange.clear();
+    dataMaxTIC.clear();
+    dataMaxBasePeakIntensity.clear();
+    dataMZRange.clear();
+  }
 }

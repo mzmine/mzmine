@@ -42,7 +42,10 @@ import org.w3c.dom.Element;
  * single raw data file. The implementations of this class must have an associated
  * {@link RawFileRtCorrectionModule} and must be listed in {@link RtCorrectionFunctions}. A
  * correction can be interpolated between two neighbouring files, or created specifically for a set
- * of standards. {@link RawFileRtCorrectionModule#createFromStandards(FeatureList, List, ParameterSet)} or {@link RawFileRtCorrectionModule#createInterpolated(RawDataFile, List, AbstractRtCorrectionFunction, double, AbstractRtCorrectionFunction, double, ParameterSet)}
+ * of standards.
+ * {@link RawFileRtCorrectionModule#createFromStandards(FeatureList, List, ParameterSet)} or
+ * {@link RawFileRtCorrectionModule#createInterpolated(RawDataFile, List,
+ * AbstractRtCorrectionFunction, double, AbstractRtCorrectionFunction, double, ParameterSet)}
  */
 public abstract class AbstractRtCorrectionFunction {
 
@@ -82,7 +85,7 @@ public abstract class AbstractRtCorrectionFunction {
    * @param rtSortedStandards      modified
    * @param fullRtRange            full rt range of the file to be calibrated
    *                               {@link RawDataFile#getDataRTRange()}
-   * @param finalStandardAverageRt the rt of the final standard for the data file
+   * @param finalStandardAverageRt the rt of the final standard in this data file
    * @param thisRtValues           modified
    * @param calibratedRtValues     modified
    */
@@ -90,22 +93,15 @@ public abstract class AbstractRtCorrectionFunction {
       Range<Float> fullRtRange, float finalStandardAverageRt, DoubleArrayList thisRtValues,
       DoubleArrayList calibratedRtValues, RTMeasure rtMeasure) {
 
-    // if this changes the rt range, we need to add an additional point.
     // we keep the change after the last standard constant.
-    if (rtSortedStandards.getLast().getRt(rtMeasure) > fullRtRange.upperEndpoint()) {
-      final float avgRt = rtSortedStandards.getLast().getRt(rtMeasure);
-      final double offset = avgRt - finalStandardAverageRt;
-      final float timeToLastScan = fullRtRange.upperEndpoint() - finalStandardAverageRt;
+    final float correctedLastStandardRt = rtSortedStandards.getLast().getRt(rtMeasure);
+    final double offset = correctedLastStandardRt - finalStandardAverageRt;
+    final float timeToLastScan = fullRtRange.upperEndpoint() - finalStandardAverageRt;
 
-      thisRtValues.add(fullRtRange.upperEndpoint() + offset);
-      // is this correct? this would cause slightly different max rts for all files,
-      // but i cannot think of a better way to calculate this
-      calibratedRtValues.add(rtSortedStandards.getLast().getRt(rtMeasure) + timeToLastScan);
-    } else {
-      // keep the rt range of this file as it was.
-      thisRtValues.add(fullRtRange.upperEndpoint());
-      calibratedRtValues.add(fullRtRange.upperEndpoint());
-    }
+    thisRtValues.add(fullRtRange.upperEndpoint());
+    // is this correct? this would cause slightly different max rts for all files,
+    // but i cannot think of a better way to calculate this
+    calibratedRtValues.add(rtSortedStandards.getLast().getRt(rtMeasure) + timeToLastScan + offset);
   }
 
   @Nullable

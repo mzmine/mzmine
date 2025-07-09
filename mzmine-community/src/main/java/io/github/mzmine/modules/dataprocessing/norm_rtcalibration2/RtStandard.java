@@ -34,7 +34,7 @@ public final class RtStandard {
     return (int) standards.values().stream().filter(Objects::nonNull).count();
   }
 
-  public float getMedianRt() {
+  private float getMedianRt() {
     if (medianRt == null) {
       medianRt = (float) MathUtils.calcQuantileSorted(
           standards.values().stream().filter(Objects::nonNull)
@@ -43,7 +43,7 @@ public final class RtStandard {
     return medianRt;
   }
 
-  public float getAverageRt() {
+  private float getAverageRt() {
     if (avgRt == null) {
       avgRt = (float) standards.values().stream().filter(Objects::nonNull)
           .mapToDouble(FeatureListRow::getAverageRT).average().getAsDouble();

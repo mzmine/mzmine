@@ -69,7 +69,7 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
 
     for (RtStandard standard : rtSortedStandards) {
       thisRtValues.add(standard.standards().get(file).getAverageRT());
-      standardRtValues.add(standard.getAverageRt());
+      standardRtValues.add(standard.getRt(rtMeasure));
     }
 
     final FeatureListRow lastStandard = rtSortedStandards.getLast().standards().get(file);
@@ -103,7 +103,7 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
       final double next = standard.standards().get(nextFile).getAverageRT() * nextRunWeight;
 
       thisRtValues.add(previous + next);
-      standardRtValues.add(standard.getAverageRt());
+      standardRtValues.add(standard.getRt(rtMeasure));
     }
 
     final double previous =
@@ -124,15 +124,13 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
     PolynomialSplineFunction movAvg = null;
     final double[] subtracted = AsymmetricLeastSquaresCorrection.subtract(
         calibratedRtValues.toDoubleArray(), thisRtValues.toDoubleArray());
-    subtracted[0] = 0d;
-    subtracted[subtracted.length - 1] = 0d;
+    subtracted[0] = 0d; // ensure the first point is not shifted to keep all RTs > 0
 
     double[] avg = MovingAverage.calculate(subtracted,
         Math.max(1, (int) (subtracted.length * initialBandwidth)));
     double[] alsFit = AsymmetricLeastSquaresCorrection.asymmetricLeastSquaresBaseline(avg, 100,
         0.01, 1);
-    alsFit[0] = 0d;
-    alsFit[alsFit.length - 1] = 0d;
+    alsFit[0] = 0d; // ensure the first point is not shifted to keep all RTs > 0
 
     movAvg = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(),
         MovingAverage.calculate(alsFit, (int) (subtracted.length * initialBandwidth)));

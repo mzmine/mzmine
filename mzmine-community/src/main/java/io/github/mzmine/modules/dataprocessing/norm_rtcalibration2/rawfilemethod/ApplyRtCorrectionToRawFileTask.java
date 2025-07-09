@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractRawDataFileTask;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
@@ -64,6 +65,7 @@ class ApplyRtCorrectionToRawFileTask extends AbstractRawDataFileTask {
       }
 
       files.add(file);
+      ((RawDataFileImpl)file).clearCaches();
       for (Scan scan : file.getScans()) {
         ((SimpleScan) scan).setCorrectedRetentionTime(
             cali.getCorrectedRt(scan.getRetentionTime()));
