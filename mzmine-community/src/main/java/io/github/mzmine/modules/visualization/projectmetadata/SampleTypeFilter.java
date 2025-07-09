@@ -133,4 +133,9 @@ public class SampleTypeFilter {
   public EnumSet<SampleType> getTypes() {
     return EnumSet.copyOf(types);
   }
+
+  @Override
+  public String toString() {
+    return "SampleTypeFilter{" + "types=" + types + '}';
+  }
 }

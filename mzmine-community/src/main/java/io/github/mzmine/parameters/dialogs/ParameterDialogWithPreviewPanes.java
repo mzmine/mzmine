@@ -47,20 +47,22 @@ public class ParameterDialogWithPreviewPanes extends ParameterSetupDialogWithPre
   private final Function<ParameterSet, AbstractPreviewPane<?>> createNewPreview;
 
   public ParameterDialogWithPreviewPanes(boolean valueCheckRequired, ParameterSet parameters,
-      Region message, @NotNull Function<ParameterSet, AbstractPreviewPane<?>> createNewPreview) {
+      Region message, @NotNull Function<ParameterSet, AbstractPreviewPane<?>> createNewPreview, final boolean allowMultiplePreviews) {
     super(valueCheckRequired, parameters, message);
     this.createNewPreview = createNewPreview;
     scroll.setFitToWidth(true);
     scroll.setFitToHeight(true);
     scroll.setContent(vbox);
     vbox.setFillWidth(true);
-    previewWrapperPane.setBottom(
-        FxButtons.createButton("Add preview", FxIcons.PLUS, "Add another preview",
-            () ->{
-              final AbstractPreviewPane<?> preview = createNewPreview.apply(parameters);
-              vbox.getChildren().add(preview);
-              VBox.setVgrow(preview, Priority.SOMETIMES);
-            }));
+    if(allowMultiplePreviews) {
+      previewWrapperPane.setBottom(
+          FxButtons.createButton("Add preview", FxIcons.PLUS, "Add another preview",
+              () ->{
+                final AbstractPreviewPane<?> preview = createNewPreview.apply(parameters);
+                vbox.getChildren().add(preview);
+                VBox.setVgrow(preview, Priority.SOMETIMES);
+              }));
+    }
     previewWrapperPane.setCenter(scroll);
 
     final AbstractPreviewPane<?> previewPane = createNewPreview.apply(parameters);
@@ -70,7 +72,7 @@ public class ParameterDialogWithPreviewPanes extends ParameterSetupDialogWithPre
 
   public ParameterDialogWithPreviewPanes(boolean valueCheckRequired, ParameterSet parameters,
       @NotNull Function<ParameterSet, AbstractPreviewPane<?>> createNewPreview) {
-    this(valueCheckRequired, parameters, null, createNewPreview);
+    this(valueCheckRequired, parameters, null, createNewPreview, true);
   }
 
   @Override
