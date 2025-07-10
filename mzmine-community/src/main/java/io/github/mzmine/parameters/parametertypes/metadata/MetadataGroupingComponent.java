@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,11 +39,13 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.util.StringConverter;
 import org.controlsfx.control.textfield.TextFields;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MetadataGroupingComponent extends FlowPane implements
@@ -53,6 +55,7 @@ public class MetadataGroupingComponent extends FlowPane implements
 
   private final ObjectProperty<@Nullable MetadataColumn<?>> columnProperty = new SimpleObjectProperty<>();
   private final TextField text;
+  private final @NotNull ObservableValue<@NotNull List<?>> uniqueColumnValues;
 
   public MetadataGroupingComponent() {
     this(AvailableTypes.values());
@@ -95,6 +98,10 @@ public class MetadataGroupingComponent extends FlowPane implements
             return ProjectService.getMetadata().getColumnByName(string);
           }
         });
+
+    // find unique values in column
+    uniqueColumnValues = valueProperty().map(
+        col -> col == null ? List.of() : ProjectService.getMetadata().getDistinctColumnValues(col));
   }
 
   @Override
@@ -108,5 +115,12 @@ public class MetadataGroupingComponent extends FlowPane implements
 
   public String getValue() {
     return text.getText();
+  }
+
+  /**
+   * @return list of unique values in selected column or empty list
+   */
+  public @NotNull ObservableValue<@NotNull List<?>> uniqueColumnValuesProperty() {
+    return uniqueColumnValues;
   }
 }
