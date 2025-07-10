@@ -15,7 +15,7 @@ when
 then
     
     lipid.setScore(1);
-    lipid.setDescrCorrect("Contains [M-H]-; ");
+    lipid.setDescrCorrect("Contains [M-H]-, ");
 end
 rule "No presence [M+CH3COO]-"
 when
@@ -25,7 +25,7 @@ when
 then
 
     lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+CH3COO]-; ");
+    lipid.setDescrIncorrect("Missing [M+CH3COO]-, ");
 end
 
 rule "Presence [M-H+(CH3COONa)]-"
@@ -36,7 +36,7 @@ when
 then
     
     lipid.setScore(1);
-    lipid.setDescrCorrect("Contains [M-H+(CH3COONa)]-; ");
+    lipid.setDescrCorrect("Contains [M-H+(CH3COONa)]-, ");
 end
 
 rule "Presence [M+CH3COO]-"
@@ -47,7 +47,7 @@ when
 then
     
     lipid.setScore(1);
-    lipid.setDescrCorrect("Contains [M+CH3COO]-; ");
+    lipid.setDescrCorrect("Contains [M+CH3COO]-, ");
 end
 
 rule "Presence [M+Cl]-"
@@ -56,7 +56,7 @@ when
 then
     
     lipid.setScore(1);
-    lipid.setDescrCorrect("Contains [M+Cl]-; ");
+    lipid.setDescrCorrect("Contains [M+Cl]-, ");
 end
 
 
@@ -71,7 +71,7 @@ when
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
     lipid.setScore(2);
-    lipid.setDescrCorrect("Intensity OK [M+CH3COO]- > [M-H]-; ");
+    lipid.setDescrCorrect("Intensity OK [M+CH3COO]- > [M-H]-, ");
 end
 
 rule "Intensity [M-H]- > [M+Cl]-"
@@ -82,7 +82,7 @@ when
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
     lipid.setScore(2);
-    lipid.setDescrCorrect("Intensity OK [M-H]- > [M+Cl]-; ");
+    lipid.setDescrCorrect("Intensity OK [M-H]- > [M+Cl]-, ");
 end
 
 rule "Intensity [M+Cl]- > [M-H+(CH3COONa)]-"
@@ -94,7 +94,7 @@ when
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
     lipid.setScore(2);
-    lipid.setDescrCorrect("Intensity OK [M+Cl]- > [M-H+(CH3COONa)]-; ");
+    lipid.setDescrCorrect("Intensity OK [M+Cl]- > [M-H+(CH3COONa)]-, ");
 end
 
 
@@ -107,7 +107,7 @@ when
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
     lipid.setScore(-2);
-    lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO]- < [M-H]-; ");
+    lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO]- < [M-H]-, ");
 end
 
 rule "Intensity [M-H]- < [M+Cl]-"
@@ -118,7 +118,7 @@ when
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
     lipid.setScore(-2);
-    lipid.setDescrIncorrect("Intensity NOT OK [M-H]- < [M+Cl]-; ");
+    lipid.setDescrIncorrect("Intensity NOT OK [M-H]- < [M+Cl]-, ");
 end
 
 rule "Intensity [M+Cl]- < [M-H+(CH3COONa)]-"
@@ -130,7 +130,7 @@ when
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
     lipid.setScore(-2);
-    lipid.setDescrIncorrect("Intensity NOT OK [M+Cl]- < [M-H+(CH3COONa)]-; ");
+    lipid.setDescrIncorrect("Intensity NOT OK [M+Cl]- < [M-H+(CH3COONa)]-, ");
 end
 
 rule "Intensity [M-H]- < [M-H+(CH3COONa)]-"
@@ -142,7 +142,7 @@ when
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
     lipid.setScore(-2);
-    lipid.setDescrIncorrect("Intensity NOT OK [M-H]- < [M-H+(CH3COONa)]-; ");
+    lipid.setDescrIncorrect("Intensity NOT OK [M-H]- < [M-H+(CH3COONa)]-, ");
 end
 
 rule "Intensity [M+Cl]- > [M+CH3COO]-"
@@ -154,5 +154,5 @@ when
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
     lipid.setScore(-2);
-    lipid.setDescrIncorrect("Intensity NOT OK [M+Cl]- > [M+CH3COO]-; ");
+    lipid.setDescrIncorrect("Intensity NOT OK [M+Cl]- > [M+CH3COO]-, ");
 end

@@ -15,14 +15,14 @@ when
     $adduct: FoundAdduct(adductName == "[M+H]+")
 then
     lipid.setScore(1);
-    lipid.setDescrCorrect("Contains [M+H]+; ");
+    lipid.setDescrCorrect("Contains [M+H]+, ");
 end
 rule "No presence [M+H]+"
 when
     not FoundAdduct(adductName == "[M+H]+")
 then
     lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+H]+; ");
+    lipid.setDescrIncorrect("Missing [M+H]+, ");
 end
 
 rule "Presence [M+Na]+"
@@ -30,7 +30,7 @@ when
     $adduct: FoundAdduct(adductName == "[M+Na]+")
 then
     lipid.setScore(1);
-    lipid.setDescrCorrect("Contains [M+Na]+; ");
+    lipid.setDescrCorrect("Contains [M+Na]+, ");
 end
 
 rule "Presence [M+K]+"
@@ -38,7 +38,7 @@ when
     $adduct: FoundAdduct(adductName == "[M+K]+")
 then
     lipid.setScore(1);
-    lipid.setDescrCorrect("Contains [M+K]+; ");
+    lipid.setDescrCorrect("Contains [M+K]+, ");
 end
 
 rule "Presence [M+C2H7N2]+"
@@ -52,7 +52,7 @@ when
     eval($phase3 == MobilePhases.CH3OH)
 then
     lipid.setScore(1);
-    lipid.setDescrCorrect("Contains [M+C2H7N2]+; ");
+    lipid.setDescrCorrect("Contains [M+C2H7N2]+, ");
 end
 
 
@@ -61,5 +61,5 @@ when
     $adduct: FoundAdduct(adductName == "[M+H-H2O]+")
 then
     lipid.setScore(1);
-    lipid.setDescrCorrect("Contains [M+H-H2O]+; ");
+    lipid.setDescrCorrect("Contains [M+H-H2O]+, ");
 end

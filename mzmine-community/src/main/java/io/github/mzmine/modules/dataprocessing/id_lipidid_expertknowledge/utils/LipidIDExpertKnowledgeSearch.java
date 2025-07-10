@@ -189,11 +189,12 @@ public class LipidIDExpertKnowledgeSearch {
      * @param lipid MatchedLipid for the row.
      * @param found List of FoundAdducts for the group the row is part of.
      */
-    public static void findLipidsPositive(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases) {
+    public static void findLipidsPositive(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases, VirtualRowGroup virtualGroup) {
         // Find matching lipids based on detected adducts, re-direct to drl file depending on LipidMatched
         List<FoundLipid> detectedLipids = new ArrayList<>();
 
         FoundLipid lipid_ExpertKnowledge = new FoundLipid(lipid);
+        lipid_ExpertKnowledge.setSubgroupID(virtualGroup.getSubgroupID());
         lipid_ExpertKnowledge.setAdducts(found);
         String name = lipid.getLipidAnnotation().getLipidClass().getName();
         String abbr = lipid.getLipidAnnotation().getLipidClass().getAbbr();
@@ -363,11 +364,12 @@ public class LipidIDExpertKnowledgeSearch {
      * @param lipid MatchedLipid for the row.
      * @param found List of FoundAdducts for the group the row is part of.
      */
-    public static void findLipidsNegative(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases) {
+    public static void findLipidsNegative(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases, VirtualRowGroup virtualGroup) {
         // Find matching lipids based on detected adducts, re-direct to drl file depending on LipidMatched
         List<FoundLipid> detectedLipids = new ArrayList<>();
 
         FoundLipid lipid_ExpertKnowledge = new FoundLipid(lipid);
+        lipid_ExpertKnowledge.setSubgroupID(virtualGroup.getSubgroupID());
         lipid_ExpertKnowledge.setAdducts(found);
         String abbr = lipid.getLipidAnnotation().getLipidClass().getAbbr();
         String name = lipid.getLipidAnnotation().getLipidClass().getName();
