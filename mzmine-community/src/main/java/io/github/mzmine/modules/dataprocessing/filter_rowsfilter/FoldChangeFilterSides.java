@@ -23,23 +23,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance;
+package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.project.ProjectService;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import org.jetbrains.annotations.NotNull;
 
-public interface RowSignificanceTestResult {
+/**
+ * Defines how the fold-change filter will be applied
+ */
+public enum FoldChangeFilterSides implements UniqueIdSupplier {
+  ONE_SIDED, ABS_TWO_SIDED;
 
-  double pValue();
+  @Override
+  public String toString() {
+    return switch (this) {
+      case ONE_SIDED -> "One-sided (use signed value)";
+      case ABS_TWO_SIDED -> "Two-sided (use absolute value)";
+    };
+  }
 
-  FeatureListRow row();
-
-  String groupingColumn();
-
-  @Nullable
-  default MetadataColumn<?> column() {
-    return ProjectService.getMetadata().getColumnByName(groupingColumn());
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case ONE_SIDED -> "one_sided";
+      case ABS_TWO_SIDED -> "abs_two_sided";
+    };
   }
 }

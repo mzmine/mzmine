@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,8 @@
 
 package io.github.mzmine.parameters.parametertypes.statistics;
 
-import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestSamplingConfig;
+import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
+import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
@@ -36,17 +36,17 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record StorableTTestConfiguration(@NotNull TTestSamplingConfig samplingConfig,
+public record StorableTTestConfiguration(@NotNull SignificanceTests samplingConfig,
                                          @Nullable String column, @Nullable String groupA,
                                          @Nullable String groupB) {
 
   private static final Logger logger = Logger.getLogger(StorableTTestConfiguration.class.getName());
 
   /**
-   * @return A {@link StudentTTest} or null. The configuration is only returned if the column exists
-   * and the respective values exist in that column.
+   * @return A {@link UnivariateRowSignificanceTest} or null. The configuration is only returned if
+   * the column exists and the respective values exist in that column.
    */
-  public @Nullable <T> StudentTTest<T> toValidConfig() {
+  public @Nullable <T> UnivariateRowSignificanceTest<T> toValidConfig() {
     final MetadataTable metadata = ProjectService.getMetadata();
 
     final MetadataColumn<T> col = (MetadataColumn<T>) metadata.getColumnByName(column);
@@ -83,6 +83,6 @@ public record StorableTTestConfiguration(@NotNull TTestSamplingConfig samplingCo
           () -> "Same grouping parameter selected for both groups of the t-Test. (" + a + ")");
     }
 
-    return new StudentTTest<>(samplingConfig, col, a, b);
+    return new UnivariateRowSignificanceTest<>(samplingConfig, col, a, b);
   }
 }

@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,12 +27,10 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModules;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
+import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.RegionsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
@@ -46,16 +45,13 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
   public static final AbundanceMeasureParameter abundance = new AbundanceMeasureParameter(
       "Abundance measure", "Select which metric is used to calculate the p Values.",
       AbundanceMeasure.values());
-  public static final ComboParameter<RowSignificanceTestModules> test = new ComboParameter(
-      "Significance test", "Select the significance test",
-      RowSignificanceTestModules.TWO_GROUP_TESTS);
   public static final TTestConfigurationParameter config = new TTestConfigurationParameter(
-      "TTest configuration", "Configure the T-Test.");
+      "TTest configuration", "Configure the t-test.");
 
   public static final RegionsParameter regions = new RegionsParameter();
 
   public VolcanoPlotRegionExtractionParameters() {
-    super(flists, abundance, test, regions, config);
+    super(flists, abundance, regions, config);
   }
 
   public static VolcanoPlotRegionExtractionParameters create(VolcanoPlotModel model,
@@ -66,10 +62,10 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
     param.setParameter(VolcanoPlotRegionExtractionParameters.abundance,
         model.getAbundanceMeasure());
     param.setParameter(VolcanoPlotRegionExtractionParameters.regions, regions);
-    param.setParameter(VolcanoPlotRegionExtractionParameters.test,
-        RowSignificanceTestModules.TTEST);
+
+    final UnivariateRowSignificanceTest<?> test = (UnivariateRowSignificanceTest<?>) model.getTest();
     param.setParameter(VolcanoPlotRegionExtractionParameters.config,
-        ((StudentTTest<?>) model.getTest()).toConfiguration());
+        test == null ? null : test.toConfiguration());
 
     return param;
   }

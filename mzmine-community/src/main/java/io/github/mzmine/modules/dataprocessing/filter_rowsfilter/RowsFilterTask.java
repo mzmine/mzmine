@@ -51,7 +51,6 @@ import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -107,6 +106,7 @@ public class RowsFilterTask extends AbstractTask {
   private final Isotope13CFilter isotope13CFilter;
   @Nullable
   private final RsdFilter cvFilter;
+  private final @Nullable FoldChangeSignificanceRowFilter significanceFoldChangeFilter;
   private AbsoluteAndRelativeInt minSamples;
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
@@ -196,6 +196,14 @@ public class RowsFilterTask extends AbstractTask {
     cvFilter = filterByCv ? RsdFilter.of(
         (RsdFilterParameters) parameters.getEmbeddedParameterValue(RowsFilterParameters.cvFilter),
         origFeatureList) : null;
+
+    final boolean filterByFC = parameters.getValue(RowsFilterParameters.foldChangeFilter);
+    if (filterByFC) {
+      significanceFoldChangeFilter = parameters.getParameter(RowsFilterParameters.foldChangeFilter)
+          .getEmbeddedParameters().createFilter(origFeatureList.getRawDataFiles());
+    } else {
+      significanceFoldChangeFilter = null;
+    }
 
     // isotope filter
     filter13CIsotopes = parameters.getParameter(RowsFilterParameters.ISOTOPE_FILTER_13C).getValue();
@@ -521,6 +529,10 @@ public class RowsFilterTask extends AbstractTask {
     }
 
     if (filterByCv && cvFilter != null && !cvFilter.matches(row)) {
+      return true;
+    }
+
+    if (significanceFoldChangeFilter != null && !significanceFoldChangeFilter.matches(row)) {
       return true;
     }
 

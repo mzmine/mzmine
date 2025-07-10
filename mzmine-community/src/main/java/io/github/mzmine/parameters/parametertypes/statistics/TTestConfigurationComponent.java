@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.statistics;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestSamplingConfig;
+import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ValuePropertyComponent;
@@ -44,7 +44,7 @@ import javafx.util.Duration;
 public class TTestConfigurationComponent extends GridPane implements
     ValuePropertyComponent<StorableTTestConfiguration> {
 
-  private final ComboBox<TTestSamplingConfig> samplingCombo;
+  private final ComboBox<SignificanceTests> samplingCombo;
   private final ComboBox<String> metadataCombo;
   private final ComboBox<String> groupACombo;
   private final ComboBox<String> groupBCombo;
@@ -61,8 +61,8 @@ public class TTestConfigurationComponent extends GridPane implements
     super(5, 5);
 
     samplingCombo = new ComboBox<>(
-        FXCollections.observableList(List.of(TTestSamplingConfig.values())));
-    samplingCombo.getSelectionModel().select(TTestSamplingConfig.UNPAIRED);
+        FXCollections.observableList(List.of(SignificanceTests.univariateValues())));
+    samplingCombo.getSelectionModel().select(0);
 
     // using an actual combo here. TTest is used for visualisation which is not available in headless mode.
     final MetadataTable metadata = MZmineCore.getProjectMetadata();

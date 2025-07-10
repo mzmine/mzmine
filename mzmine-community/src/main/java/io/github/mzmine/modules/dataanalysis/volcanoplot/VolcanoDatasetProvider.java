@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvide
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
+import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
@@ -46,13 +46,14 @@ import org.jfree.chart.renderer.PaintScale;
 public class VolcanoDatasetProvider extends SimpleXYProvider implements
     XYItemObjectProvider<RowSignificanceTestResult>, PlotXYZDataProvider {
 
-  private final StudentTTest<?> test;
+  private final UnivariateRowSignificanceTest<?> test;
   private final List<RowSignificanceTestResult> results;
 
   private final AbundanceMeasure abundanceMeasure;
 
-  public VolcanoDatasetProvider(StudentTTest<?> test, List<RowSignificanceTestResult> results,
-      Color color, String key, AbundanceMeasure abundanceMeasure) {
+  public VolcanoDatasetProvider(UnivariateRowSignificanceTest<?> test,
+      List<RowSignificanceTestResult> results, Color color, String key,
+      AbundanceMeasure abundanceMeasure) {
     super(key, color, new DecimalFormat("0.0"), new DecimalFormat("0.0"));
     this.test = test;
     this.results = results;

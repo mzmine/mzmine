@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,44 +23,42 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance.ttest;
+package io.github.mzmine.modules.dataanalysis.significance;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
+import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestResult;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.statistics.StorableTTestConfiguration;
+import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import java.util.Objects;
-import org.apache.commons.math3.stat.inference.TestUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @param <T> Type of the metadata column.
  */
-public final class StudentTTest<T> implements RowSignificanceTest {
+public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTest {
 
-  private final TTestSamplingConfig samplingConfig;
+  private final SignificanceTests test;
   private final MetadataColumn<T> column;
   private final T groupA;
   private final T groupB;
   private final List<RawDataFile> groupedFilesA;
   private final List<RawDataFile> groupedFilesB;
 
-  public StudentTTest(@NotNull TTestSamplingConfig samplingConfig, MetadataColumn<T> column,
+  public UnivariateRowSignificanceTest(@NotNull SignificanceTests test, MetadataColumn<T> column,
       T groupA, T groupB) {
-    this.samplingConfig = samplingConfig;
+    this.test = test;
     this.column = column;
     this.groupA = groupA;
     this.groupB = groupB;
 
-    groupedFilesA = MZmineCore.getProjectMetadata().getMatchingFiles(column, this.groupA);
-    groupedFilesB = MZmineCore.getProjectMetadata().getMatchingFiles(column, this.groupB);
+    groupedFilesA = ProjectService.getMetadata().getMatchingFiles(column, this.groupA);
+    groupedFilesB = ProjectService.getMetadata().getMatchingFiles(column, this.groupB);
   }
 
   @Override
@@ -70,35 +68,18 @@ public final class StudentTTest<T> implements RowSignificanceTest {
     final double[] groupBAbundance = StatisticUtils.extractAbundance(row, groupedFilesB,
         abundanceMeasure);
 
-    if (!checkConditions(groupAAbundance, groupBAbundance)) {
+    try {
+      final double p = test.checkAndTest(List.of(groupAAbundance, groupBAbundance));
+      return new TTestResult(row, column.getTitle(), p);
+    } catch (Exception e) {
+      // expected that test may fail if number of samples is too low
+      // TODO make sure this does not happen after imputing missing values and providing a p value for every input
       return null;
     }
-    final double p = switch (samplingConfig) {
-      case PAIRED -> TestUtils.pairedTTest(groupAAbundance, groupBAbundance);
-      case UNPAIRED -> TestUtils.tTest(groupAAbundance, groupBAbundance);
-    };
-    return new TTestResult(row, column.getTitle(), p);
   }
 
-  private boolean checkConditions(double[] abundancesA, double[] abundancesB) {
-    switch (samplingConfig) {
-      case PAIRED -> {
-        // only perform paired test if the number of abundances is equal (pre/post treatment)
-        if (abundancesA.length != abundancesB.length || abundancesA.length < 2) {
-          return false;
-        }
-      }
-      case UNPAIRED -> {
-        if (abundancesA.length < 2 || abundancesB.length < 2) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  public TTestSamplingConfig samplingConfig() {
-    return samplingConfig;
+  public SignificanceTest getTest() {
+    return test;
   }
 
   public MetadataColumn<T> column() {
@@ -114,12 +95,12 @@ public final class StudentTTest<T> implements RowSignificanceTest {
   }
 
   public List<RawDataFile> getGroupAFiles() {
-    final MetadataTable metadata = MZmineCore.getProjectMetadata();
+    final MetadataTable metadata = ProjectService.getMetadata();
     return metadata.getMatchingFiles(column(), groupA());
   }
 
   public List<RawDataFile> getGroupBFiles() {
-    final MetadataTable metadata = MZmineCore.getProjectMetadata();
+    final MetadataTable metadata = ProjectService.getMetadata();
     return metadata.getMatchingFiles(column(), groupB());
   }
 
@@ -131,26 +112,25 @@ public final class StudentTTest<T> implements RowSignificanceTest {
     if (obj == null || obj.getClass() != this.getClass()) {
       return false;
     }
-    var that = (StudentTTest) obj;
-    return Objects.equals(this.samplingConfig, that.samplingConfig) && Objects.equals(this.column,
-        that.column) && Objects.equals(this.groupA, that.groupA) && Objects.equals(this.groupB,
-        that.groupB);
+    var that = (UnivariateRowSignificanceTest<?>) obj;
+    return Objects.equals(this.test, that.test) && Objects.equals(this.column, that.column)
+        && Objects.equals(this.groupA, that.groupA) && Objects.equals(this.groupB, that.groupB);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(samplingConfig, column, groupA, groupB);
+    return Objects.hash(test, column, groupA, groupB);
   }
 
   @Override
   public String toString() {
-    return "StudentTTest{" + "samplingConfig=" + samplingConfig + ", column=" + column + ", groupA="
-        + groupA + ", groupB=" + groupB + ", groupedFilesA=" + groupedFilesA + ", groupedFilesB="
+    return "StudentTTest{" + "samplingConfig=" + test + ", column=" + column + ", groupA=" + groupA
+        + ", groupB=" + groupB + ", groupedFilesA=" + groupedFilesA + ", groupedFilesB="
         + groupedFilesB + '}';
   }
 
   public StorableTTestConfiguration toConfiguration() {
-    return new StorableTTestConfiguration(samplingConfig(), column().getTitle(),
-        groupA().toString(), groupB().toString());
+    return new StorableTTestConfiguration(test, column().getTitle(), groupA().toString(),
+        groupB().toString());
   }
 }

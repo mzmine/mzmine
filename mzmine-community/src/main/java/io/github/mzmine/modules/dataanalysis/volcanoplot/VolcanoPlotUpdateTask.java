@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,7 +41,7 @@ import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
+import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -107,7 +107,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
         rowSignificanceTestResults, RowSignificanceTestResult::row, true,
         FeatureAnnotationPriority.getDataTypesInOrder());
 
-    if (!(test instanceof StudentTTest<?> ttest)) {
+    if (!(test instanceof UnivariateRowSignificanceTest<?> ttest)) {
       return;
     }
 
