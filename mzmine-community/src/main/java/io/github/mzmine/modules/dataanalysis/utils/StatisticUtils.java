@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,7 @@ public class StatisticUtils {
 
   public static double[] extractAbundance(FeatureListRow row, List<RawDataFile> group,
       AbundanceMeasure measure) {
+    // TODO handle zero values not just filter them out
     return group.stream().map(file -> measure.get((ModularFeature) row.getFeature(file)))
         .filter(Objects::nonNull).mapToDouble(Float::doubleValue).toArray();
   }
@@ -60,6 +61,9 @@ public class StatisticUtils {
 
   /**
    * Calculates the log2 transformed fold change between two groups.
+   *
+   * @return log2(a / b), 0 if both are the same, if a or b are 0 intensity then fallback is -10 or
+   * 10
    */
   public static double calculateLog2FoldChange(List<RawDataFile> groupAFiles,
       List<RawDataFile> groupBFiles, AbundanceMeasure abundanceMeasure,
@@ -68,8 +72,29 @@ public class StatisticUtils {
         abundanceMeasure);
     final double[] abB = StatisticUtils.extractAbundance(result.row(), groupBFiles,
         abundanceMeasure);
-    return MathUtils.log(2,
-        Arrays.stream(ab1).average().getAsDouble() / Arrays.stream(abB).average().getAsDouble());
+    return calculateLog2FoldChange(ab1, abB);
+  }
+
+  /**
+   * Calculates the log2 transformed fold change between two groups.
+   *
+   * @return log2(a / b), 0 if both are the same, if a or b are 0 intensity then fallback is -10 or
+   * 10
+   */
+  public static double calculateLog2FoldChange(double[] ab1, double[] abB) {
+    final double meanA = Arrays.stream(ab1).average().orElse(0d);
+    final double meanB = Arrays.stream(abB).average().orElse(0d);
+    if (Double.compare(meanA, meanB) == 0) {
+      // both the same - may be 0
+      return 0;
+    } else if (Double.compare(meanA, 0) == 0) {
+      // return a fixed number
+      return -10;
+    } else if (Double.compare(meanB, 0) == 0) {
+      return 10;
+    }
+
+    return MathUtils.log(2, meanA / meanB);
   }
 
   /**
@@ -143,8 +168,9 @@ public class StatisticUtils {
     // file2  2   2   1   1
     // file3  3   4   4   5
 
-    if(rows.size() < allFiles.size()) {
-      throw new IllegalStateException("Cannot perform PCA on a dataset with less rows/features than samples.");
+    if (rows.size() < allFiles.size()) {
+      throw new IllegalStateException(
+          "Cannot perform PCA on a dataset with less rows/features than samples.");
     }
 
     final RealMatrix data = new Array2DRowRealMatrix(allFiles.size(), rows.size());
