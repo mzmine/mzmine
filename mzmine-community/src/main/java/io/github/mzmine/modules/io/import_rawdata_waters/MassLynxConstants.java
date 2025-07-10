@@ -24,7 +24,12 @@
 
 package io.github.mzmine.modules.io.import_rawdata_waters;
 
+import java.lang.foreign.Linker;
+import java.lang.foreign.SymbolLookup;
+import java.nio.file.Path;
+
 public class MassLynxConstants {
+
   public static final float DEFAULT_FLOAT = -1.0f;
   public static final int DEFAULT_INT = -1;
 
@@ -35,4 +40,5 @@ public class MassLynxConstants {
   public static final int NO_DRIFT_SCANS = DEFAULT_INT;
   public static final int NO_LOCKMASS_FUNCTION = DEFAULT_INT;
   public static final float NO_RT = DEFAULT_FLOAT;
+
 }

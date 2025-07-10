@@ -24,6 +24,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_waters;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MetadataOnlyScan;
 import io.github.mzmine.datamodel.MobilityType;
@@ -83,10 +84,23 @@ public class MassLynxDataAccess implements AutoCloseable {
   private final boolean isImsFile;
   private final MemorySegment scanInfoBuffer = arena.allocate(ScanInfo.layout());
   private double[] mobilities = null;
+
+  /**
+   * contains doubles
+   */
   private MemorySegment intensityBuffer = arena.allocate(0);
+  /**
+   * contains doubles
+   */
   private MemorySegment mzBuffer = arena.allocate(0);
 
+  /**
+   * contains floats
+   */
   private MemorySegment mrmRtBuffer = arena.allocate(0);
+  /**
+   * contains floats
+   */
   private MemorySegment mrmIntensityBuffer = arena.allocate(0);
 
   public MassLynxDataAccess(@NotNull File rawFolder, boolean centroid,
@@ -237,17 +251,17 @@ public class MassLynxDataAccess implements AutoCloseable {
 
     final int numDp = MassLynxLib.getDataPoints(handle, function, scan, mzBuffer, intensityBuffer,
         (int) mzBuffer.byteSize());
-    if (numDp * MassLynxLib.C_FLOAT.byteSize() > mzBuffer.byteSize()) {
-      mzBuffer = arena.allocate(numDp * MassLynxLib.C_FLOAT.byteSize() * 2);
-      intensityBuffer = arena.allocate(numDp * MassLynxLib.C_FLOAT.byteSize() * 2);
+    if (numDp * MassLynxLib.C_DOUBLE.byteSize() > mzBuffer.byteSize()) {
+      mzBuffer = arena.allocate(numDp * MassLynxLib.C_DOUBLE.byteSize() * 2);
+      intensityBuffer = arena.allocate(numDp * MassLynxLib.C_DOUBLE.byteSize() * 2);
       MassLynxLib.getDataPoints(handle, function, scan, mzBuffer, intensityBuffer,
           (int) mzBuffer.byteSize());
     }
 
-    final double[] mzs = ArrayUtils.floatToDouble(
-        StorageUtils.sliceFloats(mzBuffer, 0, numDp).toArray(MassLynxLib.C_FLOAT));
-    final double[] intensities = ArrayUtils.floatToDouble(
-        StorageUtils.sliceFloats(intensityBuffer, 0, numDp).toArray(MassLynxLib.C_FLOAT));
+    final double[] mzs = StorageUtils.sliceDoubles(mzBuffer, 0, numDp)
+        .toArray(MassLynxLib.C_DOUBLE);
+    final double[] intensities = StorageUtils.sliceDoubles(intensityBuffer, 0, numDp)
+        .toArray(MassLynxLib.C_DOUBLE);
 
     final SimpleSpectralArrays dataPoints;
     if (processor != null && processor.isMassDetectActive(scanInfo.msLevel())) {
@@ -262,7 +276,7 @@ public class MassLynxDataAccess implements AutoCloseable {
     return new SimpleScan(file, scan, scanInfo.msLevel(), scanInfo.rt(),
         scanInfo.msLevel() > 1 ? scanInfo.msMsInfo(isDdaFile, isImsFile) : null, dataPoints.mzs(),
         dataPoints.intensities(), metadataScan.getSpectrumType(), scanInfo.polarityType(),
-        scanDefinition, null);
+        scanDefinition, getAcquisitionMassRange(function));
   }
 
   public @Nullable SimpleFrame readFrame(IMSRawDataFileImpl file, int function, int scan) {
@@ -286,17 +300,17 @@ public class MassLynxDataAccess implements AutoCloseable {
     final int numDp = MassLynxLib.getDataPoints(handle, function, scan, mzBuffer, intensityBuffer,
         (int) mzBuffer.byteSize());
 
-    if (numDp * MassLynxLib.C_FLOAT.byteSize() > mzBuffer.byteSize()) {
-      mzBuffer = arena.allocate(numDp * MassLynxLib.C_FLOAT.byteSize() * 2);
-      intensityBuffer = arena.allocate(numDp * MassLynxLib.C_FLOAT.byteSize() * 2);
+    if (numDp * MassLynxLib.C_DOUBLE.byteSize() > mzBuffer.byteSize()) {
+      mzBuffer = arena.allocate(numDp * MassLynxLib.C_DOUBLE.byteSize() * 2);
+      intensityBuffer = arena.allocate(numDp * MassLynxLib.C_DOUBLE.byteSize() * 2);
       MassLynxLib.getDataPoints(handle, function, scan, mzBuffer, intensityBuffer,
           (int) mzBuffer.byteSize());
     }
 
-    final double[] mzs = ArrayUtils.floatToDouble(
-        StorageUtils.sliceFloats(mzBuffer, 0, numDp).toArray(MassLynxLib.C_FLOAT));
-    final double[] intensities = ArrayUtils.floatToDouble(
-        StorageUtils.sliceFloats(intensityBuffer, 0, numDp).toArray(MassLynxLib.C_FLOAT));
+    final double[] mzs = StorageUtils.sliceDoubles(mzBuffer, 0, numDp)
+        .toArray(MassLynxLib.C_DOUBLE);
+    final double[] intensities = StorageUtils.sliceDoubles(intensityBuffer, 0, numDp)
+        .toArray(MassLynxLib.C_DOUBLE);
 
     final SimpleSpectralArrays dataPoints;
     if (processor != null && processor.isMassDetectActive(scanInfo.msLevel())) {
@@ -309,9 +323,9 @@ public class MassLynxDataAccess implements AutoCloseable {
     final String scanDefinition = "func=%d, scan=%d".formatted(function, scan);
     final SimpleFrame frame = new SimpleFrame(file, scan, scanInfo.msLevel(), scanInfo.rt(),
         dataPoints.mzs(), dataPoints.intensities(), metadataScan.getSpectrumType(),
-        scanInfo.polarityType(), scanDefinition, null, MobilityType.TRAVELING_WAVE,
-        scanInfo.msLevel() > 1 ? Set.of(
-            (IonMobilityMsMsInfo) scanInfo.msMsInfo(isDdaFile, isImsFile)) : null, null);
+        scanInfo.polarityType(), scanDefinition, getAcquisitionMassRange(function),
+        MobilityType.TRAVELING_WAVE, scanInfo.msLevel() > 1 ? Set.of(
+        (IonMobilityMsMsInfo) scanInfo.msMsInfo(isDdaFile, isImsFile)) : null, null);
 
     final List<BuildingMobilityScan> mobScans = readMobilityScansForFrame(function, scan,
         scanInfo.driftScanCount(), metadataScan);
@@ -325,22 +339,22 @@ public class MassLynxDataAccess implements AutoCloseable {
       int driftScanCount, @NotNull final MetadataOnlyScan metadataOnlyScan) {
     final List<BuildingMobilityScan> mobScans = new ArrayList<>();
 
-    final Instant mobScanLoadStart = Instant.now();
+//    final Instant mobScanLoadStart = Instant.now();
     for (int i = 0; i < driftScanCount; i++) {
       final int numMobScanDp = MassLynxLib.getMobilityScanDataPoints(handle, function, scan, i,
           mzBuffer, intensityBuffer, (int) mzBuffer.byteSize());
 
-      if (numMobScanDp * MassLynxLib.C_FLOAT.byteSize() > mzBuffer.byteSize()) {
-        mzBuffer = arena.allocate(numMobScanDp * MassLynxLib.C_FLOAT.byteSize() * 2);
-        intensityBuffer = arena.allocate(numMobScanDp * MassLynxLib.C_FLOAT.byteSize() * 2);
+      if (numMobScanDp * MassLynxLib.C_DOUBLE.byteSize() > mzBuffer.byteSize()) {
+        mzBuffer = arena.allocate(numMobScanDp * MassLynxLib.C_DOUBLE.byteSize() * 2);
+        intensityBuffer = arena.allocate(numMobScanDp * MassLynxLib.C_DOUBLE.byteSize() * 2);
         MassLynxLib.getDataPoints(handle, function, scan, mzBuffer, intensityBuffer,
             (int) mzBuffer.byteSize());
       }
 
-      final double[] mobScanMzs = ArrayUtils.floatToDouble(
-          StorageUtils.sliceFloats(mzBuffer, 0, numMobScanDp).toArray(MassLynxLib.C_FLOAT));
-      final double[] mobScanIntensities = ArrayUtils.floatToDouble(
-          StorageUtils.sliceFloats(intensityBuffer, 0, numMobScanDp).toArray(MassLynxLib.C_FLOAT));
+      final double[] mobScanMzs = StorageUtils.sliceDoubles(mzBuffer, 0, numMobScanDp)
+          .toArray(MassLynxLib.C_DOUBLE);
+      final double[] mobScanIntensities = StorageUtils.sliceDoubles(intensityBuffer, 0,
+          numMobScanDp).toArray(MassLynxLib.C_DOUBLE);
 
       final SimpleSpectralArrays dataPoints;
       if (processor != null && processor.isMassDetectActive(metadataOnlyScan.getMSLevel())) {
@@ -353,10 +367,10 @@ public class MassLynxDataAccess implements AutoCloseable {
 
       mobScans.add(new BuildingMobilityScan(i, dataPoints.mzs(), dataPoints.intensities()));
     }
-    final Instant mobScanLoadEnd = Instant.now();
-    Duration duration = Duration.between(mobScanLoadStart, mobScanLoadEnd);
-    final long millis = duration.toMillis();
-    logger.finest("Loaded %d  mobility scans in %s ms".formatted(mobScans.size(), millis));
+//    final Instant mobScanLoadEnd = Instant.now();
+//    Duration duration = Duration.between(mobScanLoadStart, mobScanLoadEnd);
+//    final long millis = duration.toMillis();
+//    logger.finest("Loaded %d  mobility scans in %s ms".formatted(mobScans.size(), millis));
 
     return mobScans;
   }
@@ -408,6 +422,17 @@ public class MassLynxDataAccess implements AutoCloseable {
   public int getNumberOfMrmsInFunction(int function) {
     assert getFunctionType(function) == FunctionType.MRM;
     return MassLynxLib.getNumberOfMrmsInFunction(handle, function);
+  }
+
+  public @Nullable Range<Double> getAcquisitionMassRange(int function) {
+    final double acquisitionRangeStart = MassLynxLib.getAcquisitionRangeStart(handle, function);
+    final double acquisitionRangeEnd = MassLynxLib.getAcquisitionRangeEnd(handle, function);
+
+    if (acquisitionRangeStart < acquisitionRangeEnd
+        && Float.compare((float) acquisitionRangeStart, MassLynxConstants.DEFAULT_FLOAT) != 0) {
+      return Range.closed(acquisitionRangeStart, acquisitionRangeEnd);
+    }
+    return null;
   }
 
   @Override

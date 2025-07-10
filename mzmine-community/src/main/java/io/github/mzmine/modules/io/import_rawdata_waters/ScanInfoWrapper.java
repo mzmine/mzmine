@@ -80,9 +80,10 @@ public record ScanInfoWrapper(int msLevel, int polarity, int driftScanCount, int
 
   public MetadataOnlyScan metadataOnlyScan(MassSpectrumType requestedSpectrumType) {
     final MassSpectrumType actualSpectrumType =
-        requestedSpectrumType == MassSpectrumType.PROFILE && isProfile() >= 1 ? MassSpectrumType.PROFILE
-            : MassSpectrumType.CENTROIDED;
-    return new SimpleBuildingScan(0, msLevel, polarityType(), actualSpectrumType, rt, precursorMz, 0);
+        requestedSpectrumType == MassSpectrumType.PROFILE && isProfile() >= 1
+            ? MassSpectrumType.PROFILE : MassSpectrumType.CENTROIDED;
+    return new SimpleBuildingScan(0, msLevel, polarityType(), actualSpectrumType, rt, precursorMz,
+        0);
   }
 
   public MsMsInfo msMsInfo(boolean isDda, boolean isIms) {
@@ -90,11 +91,11 @@ public record ScanInfoWrapper(int msLevel, int polarity, int driftScanCount, int
         Float.compare(collisionEnergy(), MassLynxConstants.NO_COLLISION_ENERGY) == 0 ? null
             : collisionEnergy();
     final Float isolationLower =
-        Float.compare(quadIsolationStart(), MassLynxConstants.NO_QUAD_ISOLATION) == 0 ? null
-            : quadIsolationStart();
+        Float.compare(quadIsolationStart(), MassLynxConstants.NO_QUAD_ISOLATION) == 0
+            && Float.compare(quadIsolationStart(), 0f) == 0 ? null : quadIsolationStart();
     final Float isolationUpper =
-        Float.compare(quadIsolationEnd(), MassLynxConstants.NO_QUAD_ISOLATION) == 0 ? null
-            : quadIsolationEnd();
+        Float.compare(quadIsolationEnd(), MassLynxConstants.NO_QUAD_ISOLATION) == 0
+            && Float.compare(quadIsolationEnd(), 0f) == 0 ? null : quadIsolationEnd();
     final Range<Double> mzIsolationWindow =
         isolationLower != null && isolationUpper != null ? Range.closed((double) isolationLower,
             (double) isolationUpper) : null;

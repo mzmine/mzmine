@@ -1,4 +1,6 @@
-package io.github.mzmine.modules.io.import_rawdata_waters;/*
+package io.github.mzmine.modules.io.import_rawdata_waters;
+
+/*
  * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
@@ -30,7 +32,7 @@ import java.lang.foreign.ValueLayout.OfLong;
 import java.lang.foreign.ValueLayout.OfShort;
 
 ///
-/// ´´´
+/// ´´´java
 /// private static SymbolLookup getSymbolLookup() {
 ///    // load mass lynx base library before
 ///    System.load(Path.of("external_tools\\waters_raw\\MassLynxRaw.dll").toAbsolutePath().toString());
@@ -335,7 +337,7 @@ public class MassLynxLib {
   private static final long SIZE_MAX = -1L;
   private static final int SIG_ATOMIC_MIN = (int) -2147483648L;
   private static final int SIG_ATOMIC_MAX = (int) 2147483647L;
-  private MassLynxLib() {
+  MassLynxLib() {
     // Should not be called directly
   }
 
@@ -2239,7 +2241,7 @@ public class MassLynxLib {
   /**
    * Function descriptor for:
    * {@snippet lang = c:
-   * uint32_t getDataPoints(Handle handle, int32_t function, int32_t scan, float *pMzBuffer, float *pIntensityBuffer, uint32_t bufferSizeInBytes)
+   * uint32_t getDataPoints(Handle handle, int32_t function, int32_t scan, double *pMzBuffer, double *pIntensityBuffer, uint32_t bufferSizeInBytes)
    *}
    */
   public static FunctionDescriptor getDataPoints$descriptor() {
@@ -2249,7 +2251,7 @@ public class MassLynxLib {
   /**
    * Downcall method handle for:
    * {@snippet lang = c:
-   * uint32_t getDataPoints(Handle handle, int32_t function, int32_t scan, float *pMzBuffer, float *pIntensityBuffer, uint32_t bufferSizeInBytes)
+   * uint32_t getDataPoints(Handle handle, int32_t function, int32_t scan, double *pMzBuffer, double *pIntensityBuffer, uint32_t bufferSizeInBytes)
    *}
    */
   public static MethodHandle getDataPoints$handle() {
@@ -2259,7 +2261,7 @@ public class MassLynxLib {
   /**
    * Address for:
    * {@snippet lang = c:
-   * uint32_t getDataPoints(Handle handle, int32_t function, int32_t scan, float *pMzBuffer, float *pIntensityBuffer, uint32_t bufferSizeInBytes)
+   * uint32_t getDataPoints(Handle handle, int32_t function, int32_t scan, double *pMzBuffer, double *pIntensityBuffer, uint32_t bufferSizeInBytes)
    *}
    */
   public static MemorySegment getDataPoints$address() {
@@ -2268,7 +2270,7 @@ public class MassLynxLib {
 
   /**
    * {@snippet lang = c:
-   * uint32_t getDataPoints(Handle handle, int32_t function, int32_t scan, float *pMzBuffer, float *pIntensityBuffer, uint32_t bufferSizeInBytes)
+   * uint32_t getDataPoints(Handle handle, int32_t function, int32_t scan, double *pMzBuffer, double *pIntensityBuffer, uint32_t bufferSizeInBytes)
    *}
    */
   public static int getDataPoints(MemorySegment handle, int function, int scan,
@@ -2289,7 +2291,7 @@ public class MassLynxLib {
   /**
    * Function descriptor for:
    * {@snippet lang = c:
-   * uint32_t getMobilityScanDataPoints(Handle handle, int32_t function, int32_t scan, int32_t mobilityScan, float *pMzBuffer, float *pIntensityBuffer, uint32_t bufferSizeInBytes)
+   * uint32_t getMobilityScanDataPoints(Handle handle, int32_t function, int32_t scan, int32_t mobilityScan, double *pMzBuffer, double *pIntensityBuffer, uint32_t bufferSizeInBytes)
    *}
    */
   public static FunctionDescriptor getMobilityScanDataPoints$descriptor() {
@@ -2299,7 +2301,7 @@ public class MassLynxLib {
   /**
    * Downcall method handle for:
    * {@snippet lang = c:
-   * uint32_t getMobilityScanDataPoints(Handle handle, int32_t function, int32_t scan, int32_t mobilityScan, float *pMzBuffer, float *pIntensityBuffer, uint32_t bufferSizeInBytes)
+   * uint32_t getMobilityScanDataPoints(Handle handle, int32_t function, int32_t scan, int32_t mobilityScan, double *pMzBuffer, double *pIntensityBuffer, uint32_t bufferSizeInBytes)
    *}
    */
   public static MethodHandle getMobilityScanDataPoints$handle() {
@@ -2309,7 +2311,7 @@ public class MassLynxLib {
   /**
    * Address for:
    * {@snippet lang = c:
-   * uint32_t getMobilityScanDataPoints(Handle handle, int32_t function, int32_t scan, int32_t mobilityScan, float *pMzBuffer, float *pIntensityBuffer, uint32_t bufferSizeInBytes)
+   * uint32_t getMobilityScanDataPoints(Handle handle, int32_t function, int32_t scan, int32_t mobilityScan, double *pMzBuffer, double *pIntensityBuffer, uint32_t bufferSizeInBytes)
    *}
    */
   public static MemorySegment getMobilityScanDataPoints$address() {
@@ -2318,7 +2320,7 @@ public class MassLynxLib {
 
   /**
    * {@snippet lang = c:
-   * uint32_t getMobilityScanDataPoints(Handle handle, int32_t function, int32_t scan, int32_t mobilityScan, float *pMzBuffer, float *pIntensityBuffer, uint32_t bufferSizeInBytes)
+   * uint32_t getMobilityScanDataPoints(Handle handle, int32_t function, int32_t scan, int32_t mobilityScan, double *pMzBuffer, double *pIntensityBuffer, uint32_t bufferSizeInBytes)
    *}
    */
   public static int getMobilityScanDataPoints(MemorySegment handle, int function, int scan,
@@ -2332,6 +2334,100 @@ public class MassLynxLib {
       }
       return (int) mh$.invokeExact(handle, function, scan, mobilityScan, pMzBuffer,
           pIntensityBuffer, bufferSizeInBytes);
+    } catch (Throwable ex$) {
+      throw new AssertionError("should not reach here", ex$);
+    }
+  }
+
+  /**
+   * Function descriptor for:
+   * {@snippet lang = c:
+   * double getAcquisitionRangeStart(Handle handle, uint32_t function)
+   *}
+   */
+  public static FunctionDescriptor getAcquisitionRangeStart$descriptor() {
+    return getAcquisitionRangeStart.DESC;
+  }
+
+  /**
+   * Downcall method handle for:
+   * {@snippet lang = c:
+   * double getAcquisitionRangeStart(Handle handle, uint32_t function)
+   *}
+   */
+  public static MethodHandle getAcquisitionRangeStart$handle() {
+    return getAcquisitionRangeStart.HANDLE;
+  }
+
+  /**
+   * Address for:
+   * {@snippet lang = c:
+   * double getAcquisitionRangeStart(Handle handle, uint32_t function)
+   *}
+   */
+  public static MemorySegment getAcquisitionRangeStart$address() {
+    return getAcquisitionRangeStart.ADDR;
+  }
+
+  /**
+   * {@snippet lang = c:
+   * double getAcquisitionRangeStart(Handle handle, uint32_t function)
+   *}
+   */
+  public static double getAcquisitionRangeStart(MemorySegment handle, int function) {
+    var mh$ = getAcquisitionRangeStart.HANDLE;
+    try {
+      if (TRACE_DOWNCALLS) {
+        traceDowncall("getAcquisitionRangeStart", handle, function);
+      }
+      return (double) mh$.invokeExact(handle, function);
+    } catch (Throwable ex$) {
+      throw new AssertionError("should not reach here", ex$);
+    }
+  }
+
+  /**
+   * Function descriptor for:
+   * {@snippet lang = c:
+   * double getAcquisitionRangeEnd(Handle handle, uint32_t function)
+   *}
+   */
+  public static FunctionDescriptor getAcquisitionRangeEnd$descriptor() {
+    return getAcquisitionRangeEnd.DESC;
+  }
+
+  /**
+   * Downcall method handle for:
+   * {@snippet lang = c:
+   * double getAcquisitionRangeEnd(Handle handle, uint32_t function)
+   *}
+   */
+  public static MethodHandle getAcquisitionRangeEnd$handle() {
+    return getAcquisitionRangeEnd.HANDLE;
+  }
+
+  /**
+   * Address for:
+   * {@snippet lang = c:
+   * double getAcquisitionRangeEnd(Handle handle, uint32_t function)
+   *}
+   */
+  public static MemorySegment getAcquisitionRangeEnd$address() {
+    return getAcquisitionRangeEnd.ADDR;
+  }
+
+  /**
+   * {@snippet lang = c:
+   * double getAcquisitionRangeEnd(Handle handle, uint32_t function)
+   *}
+   */
+  public static double getAcquisitionRangeEnd(MemorySegment handle, int function) {
+    var mh$ = getAcquisitionRangeEnd.HANDLE;
+    try {
+      if (TRACE_DOWNCALLS) {
+        traceDowncall("getAcquisitionRangeEnd", handle, function);
+      }
+      return (double) mh$.invokeExact(handle, function);
     } catch (Throwable ex$) {
       throw new AssertionError("should not reach here", ex$);
     }
@@ -3597,6 +3693,26 @@ public class MassLynxLib {
         MassLynxLib.C_POINTER, MassLynxLib.C_POINTER, MassLynxLib.C_INT);
 
     public static final MemorySegment ADDR = MassLynxLib.findOrThrow("getMobilityScanDataPoints");
+
+    public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+  }
+
+  private static class getAcquisitionRangeStart {
+
+    public static final FunctionDescriptor DESC = FunctionDescriptor.of(MassLynxLib.C_DOUBLE,
+        MassLynxLib.C_POINTER, MassLynxLib.C_INT);
+
+    public static final MemorySegment ADDR = MassLynxLib.findOrThrow("getAcquisitionRangeStart");
+
+    public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+  }
+
+  private static class getAcquisitionRangeEnd {
+
+    public static final FunctionDescriptor DESC = FunctionDescriptor.of(MassLynxLib.C_DOUBLE,
+        MassLynxLib.C_POINTER, MassLynxLib.C_INT);
+
+    public static final MemorySegment ADDR = MassLynxLib.findOrThrow("getAcquisitionRangeEnd");
 
     public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
   }
