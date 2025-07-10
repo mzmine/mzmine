@@ -275,6 +275,8 @@ public class RawDataFileTypeDetector {
         "[Ff]unction [Pp]arameters - [Ff]unction [0-9]+ - TOF SURVEY FUNCTION");
     final Pattern referenceFunctionPattern = Pattern.compile(
         "[Ff]unction [Pp]arameters - [Ff]unction [0-9]+ - REFERENCE");
+    final Pattern mobilityMsFunctionPattern = Pattern.compile(
+        "[Ff]unction [Pp]arameters - [Ff]unction [0-9]+ - MOBILITY MS FUNCTION");
     final Pattern mobilityPattern = Pattern.compile("\\[MOBILITY\\]");
     final Pattern tofModeIMSPattern = Pattern.compile("(TOFMode)(\\s+)(IMS)");
     final Pattern positivePolarityPattern = Pattern.compile(
@@ -290,6 +292,7 @@ public class RawDataFileTypeDetector {
     final PatternMatchCounter postiveCounter = new PatternMatchCounter(positivePolarityPattern);
     final PatternMatchCounter negativeCounter = new PatternMatchCounter(negativePolarityPattern);
     final PatternMatchCounter tofModeImsCounter = new PatternMatchCounter(tofModeIMSPattern);
+    final PatternMatchCounter mobilityFunctionCounter = new PatternMatchCounter(mobilityMsFunctionPattern);
 
 
     try (var reader = new BufferedReader(new FileReader(new File(watersFolder, "_extern.inf")))) {
@@ -302,8 +305,10 @@ public class RawDataFileTypeDetector {
         postiveCounter.checkMatch(line);
         negativeCounter.checkMatch(line);
         tofModeImsCounter.checkMatch(line);
+        mobilityFunctionCounter.checkMatch(line);
       });
       mobilityCounter.matches += tofModeImsCounter.matches;
+      mobilityCounter.matches += mobilityFunctionCounter.matches;
 
       final PolarityType polarity =
           (postiveCounter.matches > negativeCounter.matches) ? PolarityType.POSITIVE
