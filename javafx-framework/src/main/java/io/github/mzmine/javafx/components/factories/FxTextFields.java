@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,8 +27,11 @@ package io.github.mzmine.javafx.components.factories;
 
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import java.util.List;
+import java.util.Objects;
 import javafx.beans.property.Property;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -37,6 +40,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import org.controlsfx.control.textfield.AutoCompletionBinding;
+import org.controlsfx.control.textfield.TextFields;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -136,5 +141,26 @@ public class FxTextFields {
       textField.positionCaret(Math.min(caretPosition, textField.getLength()));
     }, PropertyUtils.DEFAULT_TEXT_FIELD_DELAY, textField.textProperty());
     return textFormatter;
+  }
+
+  /**
+   * Automatically bind auto completion to a text field based on a Observable
+   *
+   * @param textField the target
+   * @param options   options in an ObservableValue
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static AutoCompletionBinding<String> bindAutoCompletion(TextField textField,
+      ObservableValue<List<?>> options) {
+    return TextFields.bindAutoCompletion(textField, iSuggestionRequest -> {
+      final List<?> list = options.getValue();
+      if (list == null || list.isEmpty()) {
+        return List.of();
+      }
+      final String input = iSuggestionRequest.getUserText().toLowerCase();
+
+      return list.stream().map(Object::toString).filter(Objects::nonNull).map(String::toLowerCase)
+          .filter(str -> str.contains(input)).sorted().toList();
+    });
   }
 }
