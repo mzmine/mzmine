@@ -159,8 +159,8 @@ public class FxTextFields {
       }
       final String input = iSuggestionRequest.getUserText().toLowerCase();
 
-      return list.stream().map(Object::toString).filter(Objects::nonNull).map(String::toLowerCase)
-          .filter(str -> str.contains(input)).sorted().toList();
+      return list.stream().map(Object::toString).filter(Objects::nonNull)
+          .filter(str -> str.toLowerCase().contains(input)).sorted().toList();
     });
   }
 }
