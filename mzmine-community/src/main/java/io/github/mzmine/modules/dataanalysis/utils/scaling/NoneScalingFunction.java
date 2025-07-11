@@ -23,31 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance.anova;
+package io.github.mzmine.modules.dataanalysis.utils.scaling;
 
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfigParameter;
+import io.github.mzmine.datamodel.statistics.DataTable;
+import org.apache.commons.math3.linear.RealVector;
 
-public class AnovaParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1, 1);
+/**
+ * applies no scaling
+ */
+public class NoneScalingFunction implements ScalingFunction {
 
-  public static final AbundanceDataTablePreparationConfigParameter abundanceDataTablePreparation = new AbundanceDataTablePreparationConfigParameter();
-
-  public static final MetadataGroupingParameter groupingParameter = new MetadataGroupingParameter(
-      "Sample parameter", """
-      One metadata column has to be selected to be used in the test calculation.
-      They can be defined in "Project -> Sample Metadata"
-      """);
-
-  public AnovaParameters() {
-    super(featureLists, groupingParameter, abundanceDataTablePreparation);
+  @Override
+  public RealVector apply(RealVector input) {
+    return input;
   }
 
   @Override
-  public int getVersion() {
-    return 2;
+  public <T extends DataTable> T processInPlace(T data) {
+    return data;
   }
 }

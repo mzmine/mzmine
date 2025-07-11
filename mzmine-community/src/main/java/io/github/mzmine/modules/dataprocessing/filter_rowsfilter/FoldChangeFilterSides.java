@@ -23,31 +23,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance.anova;
+package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfigParameter;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import org.jetbrains.annotations.NotNull;
 
-public class AnovaParameters extends SimpleParameterSet {
+/**
+ * Defines how the fold-change filter will be applied
+ */
+public enum FoldChangeFilterSides implements UniqueIdSupplier {
+  ONE_SIDED, ABS_TWO_SIDED;
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1, 1);
-
-  public static final AbundanceDataTablePreparationConfigParameter abundanceDataTablePreparation = new AbundanceDataTablePreparationConfigParameter();
-
-  public static final MetadataGroupingParameter groupingParameter = new MetadataGroupingParameter(
-      "Sample parameter", """
-      One metadata column has to be selected to be used in the test calculation.
-      They can be defined in "Project -> Sample Metadata"
-      """);
-
-  public AnovaParameters() {
-    super(featureLists, groupingParameter, abundanceDataTablePreparation);
+  @Override
+  public String toString() {
+    return switch (this) {
+      case ONE_SIDED -> "One-sided (use signed value)";
+      case ABS_TWO_SIDED -> "Two-sided (use absolute value)";
+    };
   }
 
   @Override
-  public int getVersion() {
-    return 2;
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case ONE_SIDED -> "one_sided";
+      case ABS_TWO_SIDED -> "abs_two_sided";
+    };
   }
 }

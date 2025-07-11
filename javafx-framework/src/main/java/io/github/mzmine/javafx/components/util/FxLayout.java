@@ -261,7 +261,19 @@ public class FxLayout {
   public static GridPane newGrid2Col(@NotNull GridColumnGrow grow, Insets padding, int space,
       final Node... children) {
     var grid = new GridPane(space, space);
+    return applyGrid2Col(grid, grow, padding, space, children);
+  }
+
+  public static GridPane applyGrid2Col(@NotNull GridPane grid, final Node... children) {
+    return applyGrid2Col(grid, GridColumnGrow.RIGHT, DEFAULT_PADDING_INSETS, DEFAULT_SPACE,
+        children);
+  }
+
+  public static GridPane applyGrid2Col(@NotNull GridPane grid, @NotNull GridColumnGrow grow,
+      Insets padding, int space, final Node... children) {
     grid.setPadding(padding);
+    grid.setVgap(space);
+    grid.setHgap(space);
 
     ColumnConstraints column1 = new ColumnConstraints();
     ColumnConstraints column2 = new ColumnConstraints();
@@ -283,6 +295,7 @@ public class FxLayout {
     }
     return grid;
   }
+
 
   public static void setGrowColumn(final ColumnConstraints... columns) {
     for (final ColumnConstraints column : columns) {

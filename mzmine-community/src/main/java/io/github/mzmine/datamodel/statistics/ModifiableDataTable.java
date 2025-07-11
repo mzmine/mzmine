@@ -23,31 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance.anova;
+package io.github.mzmine.datamodel.statistics;
 
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfigParameter;
+public interface ModifiableDataTable extends DataTable {
 
-public class AnovaParameters extends SimpleParameterSet {
-
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1, 1);
-
-  public static final AbundanceDataTablePreparationConfigParameter abundanceDataTablePreparation = new AbundanceDataTablePreparationConfigParameter();
-
-  public static final MetadataGroupingParameter groupingParameter = new MetadataGroupingParameter(
-      "Sample parameter", """
-      One metadata column has to be selected to be used in the test calculation.
-      They can be defined in "Project -> Sample Metadata"
-      """);
-
-  public AnovaParameters() {
-    super(featureLists, groupingParameter, abundanceDataTablePreparation);
+  default void setFeatureData(int index, double[] data) {
+    double[] oldData = getFeatureData(index, false);
+    System.arraycopy(data, 0, oldData, 0, data.length);
   }
 
-  @Override
-  public int getVersion() {
-    return 2;
+  default void setSampleData(int index, double[] data) {
+    final int features = getNumberOfFeatures();
+    for (int row = 0; row < features; row++) {
+      setValue(row, index, data[index]);
+    }
+  }
+
+  default void setValue(int featureIndex, int sampleIndex, double value) {
+    double[] data = getFeatureData(featureIndex, false);
+    data[sampleIndex] = value;
   }
 }

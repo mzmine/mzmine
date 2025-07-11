@@ -26,7 +26,6 @@
 package io.github.mzmine.parameters.parametertypes.metadata;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
@@ -36,20 +35,21 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record MetadataGroupSelection(@NotNull String columnName, @NotNull String groupStr) {
+public record Metadata2GroupsSelection(@NotNull String columnName, @NotNull String groupA,
+                                       @NotNull String groupB) {
 
-  public static MetadataGroupSelection NONE = new MetadataGroupSelection("", "");
+  public static Metadata2GroupsSelection NONE = new Metadata2GroupsSelection("", "", "");
 
   /**
    * @return Checks if the current metadata table contains the specified column and the specified
    * value. Case sensitive.
    */
   public boolean isValid() {
-    if (columnName == null || columnName.isBlank() || groupStr == null || groupStr.isBlank()) {
+    if (columnName.isBlank() || groupA.isBlank() || groupB.isBlank()) {
       return false;
     }
 
-    final MetadataTable metadata = MZmineCore.getProjectMetadata();
+    final MetadataTable metadata = ProjectService.getMetadata();
 
     final MetadataColumn<?> column = getColumn();
     if (column == null) {
@@ -57,8 +57,9 @@ public record MetadataGroupSelection(@NotNull String columnName, @NotNull String
     }
 
     final Map<RawDataFile, Object> columnValues = metadata.getData().get(column);
-    return columnValues.values().stream()
-        .anyMatch(str -> StringUtils.isEqualToString(str, groupStr));
+    return columnValues.values().stream().anyMatch(
+        str -> StringUtils.isEqualToString(groupA, str) || StringUtils.isEqualToString(groupB,
+            str));
   }
 
   /**
@@ -70,27 +71,34 @@ public record MetadataGroupSelection(@NotNull String columnName, @NotNull String
   }
 
   /**
-   * @return A list of files that match have the same value as {@link #groupStr()} in the specified
+   * @return A list of files that match the same value as {@link #groupA()} in the specified
    * {@link #columnName} in the {@link MetadataTable}. Empty list if the column does not exist or it
    * does not contain the value.
    */
-  public List<RawDataFile> getMatchingFiles() {
-    return getMatchingFiles(ProjectService.getProject().getCurrentRawDataFiles());
-  }
-
-  /**
-   * @return A list of files that match have the same value as {@link #groupStr()} in the specified
-   * {@link #columnName} in the {@link MetadataTable}. Empty list if the column does not exist or it
-   * does not contain the value.
-   */
-  public List<RawDataFile> getMatchingFiles(@NotNull List<RawDataFile> dataFiles) {
+  public List<RawDataFile> getMatchingFilesA(List<RawDataFile> rawFiles) {
     if (!isValid()) {
       return List.of();
     }
 
-    final Map<RawDataFile, Object> column = ProjectService.getMetadata().getData().get(getColumn());
+    final Map<RawDataFile, Object> column = ProjectService.getMetadata().getColumnData(getColumn());
 
-    return dataFiles.stream().filter(raw -> StringUtils.isEqualToString(groupStr, column.get(raw)))
+    return rawFiles.stream().filter(raw -> StringUtils.isEqualToString(groupA, column.get(raw)))
+        .toList();
+  }
+
+  /**
+   * @return A list of files that match the same value as {@link #groupB()} in the specified
+   * {@link #columnName} in the {@link MetadataTable}. Empty list if the column does not exist or it
+   * does not contain the value.
+   */
+  public List<RawDataFile> getMatchingFilesB(List<RawDataFile> rawFiles) {
+    if (!isValid()) {
+      return List.of();
+    }
+
+    final Map<RawDataFile, Object> column = ProjectService.getMetadata().getColumnData(getColumn());
+
+    return rawFiles.stream().filter(raw -> StringUtils.isEqualToString(groupB, column.get(raw)))
         .toList();
   }
 }

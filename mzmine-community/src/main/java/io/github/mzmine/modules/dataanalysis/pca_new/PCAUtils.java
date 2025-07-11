@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,14 +28,18 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.statistics.DataTableUtils;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunction;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunction;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import java.util.List;
 import java.util.logging.Logger;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
+import org.jetbrains.annotations.Nullable;
 
 public class PCAUtils {
 
@@ -49,13 +53,20 @@ public class PCAUtils {
    *             0 and scaled according to the scaling function.
    * @return A pca result.
    */
-  public static PCAResult quickPCA(RealMatrix data, ScalingFunction scalingFunction) {
+  public static PCAResult quickPCA(RealMatrix data, @Nullable ScalingFunction scalingFunction) {
 
-    logger.finest(() -> "Performing scaling and centering");
-    final RealMatrix centeredMatrix = StatisticUtils.scaleAndCenter(data, scalingFunction, false);
+    // scaling might have been performed already on the FeatureDataTable
+    if (scalingFunction != null) {
+      logger.finest(() -> "Performing scaling and centering");
+      data = StatisticUtils.scaleAndCenter(data, scalingFunction, false);
+    } else {
+      // always make sure data is centered
+      logger.finest(() -> "Performing centering");
+      data = StatisticUtils.center(data, false);
+    }
 
     logger.finest(() -> "Performing singular value decomposition. This may take a while");
-    SingularValueDecomposition svd = new SingularValueDecomposition(centeredMatrix);
+    SingularValueDecomposition svd = new SingularValueDecomposition(data);
     // https://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca
 
     return new PCAResult(svd);
@@ -80,7 +91,7 @@ public class PCAUtils {
    * @return A pca result that can be mapped to the used rows.
    */
   public static PCARowsResult performPCAOnRows(List<FeatureListRow> rows, AbundanceMeasure measure,
-      ScalingFunction scalingFunction, ImputationFunction imputationFunction) {
+      ScalingFunction scalingFunction, ImputationFunctions imputationFunction) {
     return performPCAOnRows(rows, measure, scalingFunction, imputationFunction,
         SampleTypeFilter.all());
   }
@@ -93,7 +104,7 @@ public class PCAUtils {
    * @return A pca result that can be mapped to the used rows.
    */
   public static PCARowsResult performPCAOnRows(List<FeatureListRow> rows, AbundanceMeasure measure,
-      ScalingFunction scalingFunction, ImputationFunction imputationFunction,
+      ScalingFunction scalingFunction, ImputationFunctions imputationFunction,
       SampleTypeFilter sampleTypeFilter) {
     final List<RawDataFile> files = rows.stream().flatMap(row -> row.getRawDataFiles().stream())
         .distinct().filter(sampleTypeFilter::matches).toList();
@@ -103,8 +114,25 @@ public class PCAUtils {
     }
 
     final RealMatrix data = StatisticUtils.createDatasetFromRows(rows, files, measure);
-    StatisticUtils.imputeMissingValues(data, true, imputationFunction);
+
     final PCAResult pcaResult = quickPCA(data, scalingFunction);
     return new PCARowsResult(pcaResult, rows, files);
+  }
+
+  /**
+   * @param dataTable already sorted rows, filtered for sample type, and prepared
+   * @return the results or null if conditions are not met
+   */
+  public static PCARowsResult performPCAOnDataTable(FeaturesDataTable dataTable) {
+    final List<RawDataFile> files = dataTable.getRawDataFiles();
+    if (files.isEmpty()) {
+      return null;
+    }
+
+    // missing values are already imputed and scaling is also already applied
+    final RealMatrix data = DataTableUtils.createRealMatrix(dataTable);
+
+    final PCAResult pcaResult = quickPCA(data, null);
+    return new PCARowsResult(pcaResult, dataTable.getFeatureListRows(), files);
   }
 }

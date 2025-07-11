@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.statistics;
 
 
-import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestSamplingConfig;
+import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.parameters.PropertyParameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
@@ -88,8 +88,10 @@ public class TTestConfigurationParameter implements
   @Override
   public void loadValueFromXML(Element xmlElement) {
     final String colName = xmlElement.getAttribute(XML_COLUMN_ATTR);
-    final TTestSamplingConfig sampling = TTestSamplingConfig.parseOrElse(
-        xmlElement.getAttribute(XML_SAMPLING_ATTR), TTestSamplingConfig.UNPAIRED);
+
+    // used to be TTestSamplingConfig but was changed to other more detailed enum
+    final SignificanceTests sampling = SignificanceTests.parseOrDefault(
+        xmlElement.getAttribute(XML_SAMPLING_ATTR), SignificanceTests.WELCHS_T_TEST);
     final String a = xmlElement.getAttribute(XML_GRP_A_ATTR);
     final String b = xmlElement.getAttribute(XML_GRP_B_ATTR);
 
@@ -103,7 +105,7 @@ public class TTestConfigurationParameter implements
     }
 
     // save enum name as identifier for valueOf
-    xmlElement.setAttribute(XML_SAMPLING_ATTR, value.samplingConfig().name());
+    xmlElement.setAttribute(XML_SAMPLING_ATTR, value.samplingConfig().getUniqueID());
     xmlElement.setAttribute(XML_COLUMN_ATTR, value.column());
     xmlElement.setAttribute(XML_GRP_A_ATTR, value.groupA());
     xmlElement.setAttribute(XML_GRP_B_ATTR, value.groupB());

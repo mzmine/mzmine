@@ -23,31 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance.anova;
+package io.github.mzmine.datamodel.statistics;
 
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfigParameter;
+public interface DataTableProcessingStep {
 
-public class AnovaParameters extends SimpleParameterSet {
-
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1, 1);
-
-  public static final AbundanceDataTablePreparationConfigParameter abundanceDataTablePreparation = new AbundanceDataTablePreparationConfigParameter();
-
-  public static final MetadataGroupingParameter groupingParameter = new MetadataGroupingParameter(
-      "Sample parameter", """
-      One metadata column has to be selected to be used in the test calculation.
-      They can be defined in "Project -> Sample Metadata"
-      """);
-
-  public AnovaParameters() {
-    super(featureLists, groupingParameter, abundanceDataTablePreparation);
+  /**
+   * @return either the same table (inplace) or a copy after processing
+   */
+  default <T extends DataTable> T process(T data, boolean inPlace) {
+    return processInPlace(inPlace ? data : data.copy());
   }
 
-  @Override
-  public int getVersion() {
-    return 2;
-  }
+
+  /**
+   * If possible process in place but still some method may need to create a new DataTable. So
+   * always work with the result. Example for methods that generate new DataTable instead of in
+   * place are filters that remove features or samples.
+   *
+   * @param data this data table may be changed in place
+   * @return the processed table result
+   */
+  <T extends DataTable> T processInPlace(T data);
 }

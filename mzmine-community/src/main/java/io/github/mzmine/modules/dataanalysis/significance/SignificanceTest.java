@@ -23,31 +23,37 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance.anova;
+package io.github.mzmine.modules.dataanalysis.significance;
 
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfigParameter;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-public class AnovaParameters extends SimpleParameterSet {
+public interface SignificanceTest {
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1, 1);
-
-  public static final AbundanceDataTablePreparationConfigParameter abundanceDataTablePreparation = new AbundanceDataTablePreparationConfigParameter();
-
-  public static final MetadataGroupingParameter groupingParameter = new MetadataGroupingParameter(
-      "Sample parameter", """
-      One metadata column has to be selected to be used in the test calculation.
-      They can be defined in "Project -> Sample Metadata"
-      """);
-
-  public AnovaParameters() {
-    super(featureLists, groupingParameter, abundanceDataTablePreparation);
+  /**
+   * Applies prechecks. Use {@link #test(List)} to skip tests for multiple tests
+   *
+   * @return The tests p value
+   */
+  default double checkAndTest(List<double @NotNull []> data) {
+    applyPreChecks(data);
+    return test(data);
   }
 
-  @Override
-  public int getVersion() {
-    return 2;
-  }
+  /**
+   * Consider applying {@link #applyPreChecks(List)} once or on every call via
+   * {@link #checkAndTest(List)}
+   *
+   * @return The tests p value
+   */
+  double test(List<double @NotNull []> data);
+
+
+  /**
+   * Applies prechecks and throws IllegalArgumentException if mismatch
+   *
+   * @param data the list of groups data
+   * @return
+   */
+  boolean applyPreChecks(List<double @NotNull []> data);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,17 +43,22 @@ import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfigParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import org.jetbrains.annotations.NotNull;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
-  public static final String defaultGrouping = "No parameters defined";
-
+  // general parameters
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
   public static final StringParameter SUFFIX = new StringParameter("Name suffix",
       "Suffix to be added to feature list name", "filtered");
+
+  public static final AbundanceDataTablePreparationConfigParameter abundanceDataTablePreparation = new AbundanceDataTablePreparationConfigParameter(
+      """
+          These parameters are used by some filter options that work on the abundance table, e.g., RSD filter and significance and fold-change filter.""");
+
 
   public static final OptionalParameter<MinimumSamplesParameter> MIN_FEATURE_COUNT = new OptionalParameter<>(
       new MinimumSamplesParameter(), false);
@@ -118,6 +123,11 @@ public class RowsFilterParameters extends SimpleParameterSet {
       "Filter rows based on relative standard deviation (coefficient of variation, CV) in a specific sample group.",
       (RsdFilterParameters) new RsdFilterParameters().cloneParameterSet(), false);
 
+  public static final OptionalModuleParameter<FoldChangeSignificanceRowFilterParameters> foldChangeFilter = new OptionalModuleParameter<>(
+      "Significance/fold-change filter",
+      "Filter that works similar to the volcano plot on both the significance and fold-change.",
+      new FoldChangeSignificanceRowFilterParameters(), false);
+
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
       true);
 
@@ -143,11 +153,24 @@ public class RowsFilterParameters extends SimpleParameterSet {
           "Filters for mass defects of features.\nValid inputs: 0.314-0.5 or 0.90-0.15",
           MZmineCore.getConfiguration().getMZFormat()));
 
+  // resorted parameters to be more grouped
+  // TODO maybe make the dialog similar to the preferences by grouping up parameters
   public RowsFilterParameters() {
-    super(new Parameter[]{FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,
-            ISOTOPE_FILTER_13C, removeRedundantRows, MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
-            KENDRICK_MASS_DEFECT, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, cvFilter, REMOVE_ROW,
-            MS2_Filter, KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID, massDefect, handleOriginal},
+    super(new Parameter[]{
+            // general parameters
+            FEATURE_LISTS, SUFFIX, REMOVE_ROW, handleOriginal,
+            // general parameters that may be used by other filters
+            abundanceDataTablePreparation,
+            // sample filtering
+            MIN_FEATURE_COUNT, cvFilter, foldChangeFilter,
+            // isotopes
+            // TODO what does redundant do?
+            MIN_ISOTOPE_PATTERN_COUNT, ISOTOPE_FILTER_13C, removeRedundantRows,
+            // feature properties
+            MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE, KENDRICK_MASS_DEFECT, massDefect,
+            // identities / annotations
+            HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, MS2_Filter, KEEP_ALL_MS2, KEEP_ALL_ANNOTATED,
+            Reset_ID},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
   }
 
@@ -158,6 +181,6 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   @Override
   public int getVersion() {
-    return 2;
+    return 3;
   }
 }

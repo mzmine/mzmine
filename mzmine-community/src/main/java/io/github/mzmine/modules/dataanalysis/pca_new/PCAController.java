@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,7 +36,9 @@ import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataanalysis.volcanoplot.FeatureDataPreparationTask;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import java.awt.geom.Point2D;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
@@ -52,9 +54,16 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
     super(new PCAModel());
     builder = new PCAViewBuilder(model, this::onExtractRegionsPressed);
     //update on changes of these properties
-    PropertyUtils.onChange(this::waitAndUpdate, model.flistsProperty(), model.domainPcProperty(),
-        model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty(),
-        model.scalingFunctionProperty(), model.imputationFunctionProperty(),
+    PropertyUtils.onChange(this::prepareDataTable, model.flistsProperty(),
+        model.abundanceProperty(), model.imputationFunctionProperty(),
+        model.scalingFunctionProperty());
+
+    //update on changes of these properties
+    PropertyUtils.onChange(this::waitAndUpdate,
+        // data table property is changed by other listener methods
+        model.featureDataTableProperty(),
+        // other triggers
+        model.domainPcProperty(), model.rangePcProperty(), model.metadataColumnProperty(),
         model.sampleTypeFilterProperty());
   }
 
@@ -71,6 +80,26 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
   @Override
   public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
     return model.selectedRowsProperty();
+  }
+
+  /**
+   * Prepares the data, sets it to a property and will then trigger the computeDataset via other
+   * listener
+   */
+  private void prepareDataTable() {
+    // wait and prepare dataset
+    final List<FeatureList> flists = model.getFlists();
+    if (flists == null || flists.isEmpty()) {
+      model.featureDataTableProperty().set(null);
+      return;
+    }
+    // create the new dataset
+    final var config = new AbundanceDataTablePreparationConfig(model.getAbundance(),
+        model.getImputationFunction(), model.getScalingFunction());
+
+    onTaskThreadDelayed(
+        new FeatureDataPreparationTask(model.featureDataTableProperty(), flists.getFirst(),
+            config));
   }
 
   /**

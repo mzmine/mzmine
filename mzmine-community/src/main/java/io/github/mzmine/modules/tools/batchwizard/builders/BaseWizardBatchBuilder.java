@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,6 +42,7 @@ import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchModule;
 import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchParameters;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters.ChimericMsOption;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
@@ -75,11 +76,11 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinde
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters.ScanRange;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
-import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RsdFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.Isotope13CFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterChoices;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RsdFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
@@ -930,6 +931,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT).getEmbeddedParameter()
         .setValue(minAlignedSamples);
 
+    param.getParameter(RowsFilterParameters.abundanceDataTablePreparation)
+        .setAll(AbundanceMeasure.Area, ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION);
+
     param.setParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT, false);
     param.setParameter(RowsFilterParameters.ISOTOPE_FILTER_13C, filter13C);
 
@@ -943,7 +947,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     final RsdFilterParameters cvFilter = param.getParameter(RowsFilterParameters.cvFilter)
         .getEmbeddedParameters();
-    cvFilter.setParameter(RsdFilterParameters.abundanceMeasure, AbundanceMeasure.Area);
+    cvFilter.setParameter(RsdFilterParameters.maxMissingValues, 0.2);
     cvFilter.setParameter(RsdFilterParameters.grouping,
         new MetadataGroupSelection(MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()));
     cvFilter.setParameter(RsdFilterParameters.keepUndetected, false);
@@ -1115,7 +1119,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter().setValue(1E1);
     param.setParameter(ImsExpanderParameters.mzTolerance, mzTolScans);
     // need to set SLIM specifically here, as it looks like TWIMS in the raw data.
-    param.setParameter(ImsExpanderParameters.mobilogramBinWidth, imsInstrumentType == MobilityType.SLIM, 10);
+    param.setParameter(ImsExpanderParameters.mobilogramBinWidth,
+        imsInstrumentType == MobilityType.SLIM, 10);
     param.setParameter(ImsExpanderParameters.maxNumTraces, false);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ImsExpanderModule.class),

@@ -35,27 +35,33 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
- * Selects a single group from a metadata column
+ * Selects two groups from a metadata column, e.g., for univariate comparison
  */
-public class MetadataGroupSelectionParameter implements
-    UserParameter<MetadataGroupSelection, MetadataGroupSelectionComponent> {
+public class Metadata2GroupsSelectionParameter implements
+    UserParameter<Metadata2GroupsSelection, Metadata2GroupsSelectionComponent> {
+
+  private static final String XML_COLUMN_ATTR = "column";
+  private static final String XML_GROUPA_ATTR = "groupA";
+  private static final String XML_GROUPB_ATTR = "groupB";
 
   private final String name;
   private final String descr;
-  private final String XML_COLUMN_ATTR = "column";
-  private final String XML_GROUP_ATTR = "group";
   @NotNull
-  private MetadataGroupSelection value;
+  private Metadata2GroupsSelection value;
 
-  public MetadataGroupSelectionParameter(String name, String descr) {
-    this(name, descr, new MetadataGroupSelection("", ""));
+  public Metadata2GroupsSelectionParameter(String descr) {
+    this("Metadata selection", descr);
   }
 
-  public MetadataGroupSelectionParameter(String name, String descr,
-      @Nullable MetadataGroupSelection defaultValue) {
+  public Metadata2GroupsSelectionParameter(String name, String descr) {
+    this(name, descr, Metadata2GroupsSelection.NONE);
+  }
+
+  public Metadata2GroupsSelectionParameter(String name, String descr,
+      @NotNull Metadata2GroupsSelection defaultValue) {
     this.name = name;
     this.descr = descr;
-    value = requireNonNullElse(defaultValue, MetadataGroupSelection.NONE);
+    value = defaultValue;
   }
 
   @Override
@@ -64,19 +70,21 @@ public class MetadataGroupSelectionParameter implements
   }
 
   @Override
-  public @NotNull MetadataGroupSelection getValue() {
+  @NotNull
+  public Metadata2GroupsSelection getValue() {
     return value;
   }
 
   @Override
-  public void setValue(@Nullable MetadataGroupSelection newValue) {
-    value = requireNonNullElse(newValue, MetadataGroupSelection.NONE);
+  public void setValue(@Nullable Metadata2GroupsSelection newValue) {
+    value = requireNonNullElse(newValue, Metadata2GroupsSelection.NONE);
   }
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
     // can only check if there is a value
-    if (StringUtils.isBlank(value.columnName()) || StringUtils.isBlank(value.groupStr())) {
+    if (StringUtils.isBlank(value.columnName()) || StringUtils.isBlank(value.groupA())
+        || StringUtils.isBlank(value.groupB())) {
       errorMessages.add(
           "No value set for parameter %s. Select a column and group.".formatted(getName()));
       return false;
@@ -87,15 +95,17 @@ public class MetadataGroupSelectionParameter implements
   @Override
   public void loadValueFromXML(Element xmlElement) {
     final String column = xmlElement.getAttribute(XML_COLUMN_ATTR);
-    final String group = xmlElement.getAttribute(XML_GROUP_ATTR);
+    final String groupA = xmlElement.getAttribute(XML_GROUPA_ATTR);
+    final String groupB = xmlElement.getAttribute(XML_GROUPB_ATTR);
 
-    this.value = new MetadataGroupSelection(column.trim(), group.trim());
+    this.value = new Metadata2GroupsSelection(column.trim(), groupA.trim(), groupB.trim());
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    xmlElement.setAttribute(XML_COLUMN_ATTR, value != null ? value.columnName() : "");
-    xmlElement.setAttribute(XML_GROUP_ATTR, value != null ? value.groupStr() : "");
+    xmlElement.setAttribute(XML_COLUMN_ATTR, value.columnName());
+    xmlElement.setAttribute(XML_GROUPA_ATTR, value.groupA());
+    xmlElement.setAttribute(XML_GROUPB_ATTR, value.groupB());
   }
 
   @Override
@@ -104,31 +114,26 @@ public class MetadataGroupSelectionParameter implements
   }
 
   @Override
-  public MetadataGroupSelectionComponent createEditingComponent() {
-    return new MetadataGroupSelectionComponent();
+  public Metadata2GroupsSelectionComponent createEditingComponent() {
+    return new Metadata2GroupsSelectionComponent();
   }
 
   @Override
   public void setValueFromComponent(
-      MetadataGroupSelectionComponent metadataGroupSelectionComponent) {
+      Metadata2GroupsSelectionComponent metadataGroupSelectionComponent) {
     this.value = metadataGroupSelectionComponent.getValue();
   }
 
   @Override
-  public void setValueToComponent(MetadataGroupSelectionComponent metadataGroupSelectionComponent,
-      @Nullable MetadataGroupSelection newValue) {
+  public void setValueToComponent(Metadata2GroupsSelectionComponent metadataGroupSelectionComponent,
+      @Nullable Metadata2GroupsSelection newValue) {
     metadataGroupSelectionComponent.setValue(newValue);
   }
 
   @Override
-  public UserParameter<MetadataGroupSelection, MetadataGroupSelectionComponent> cloneParameter() {
-    final MetadataGroupSelectionParameter param = new MetadataGroupSelectionParameter(name, descr);
-    if (value == null) {
-      param.setValue(null);
-      return param;
-    }
-    param.setValue(new MetadataGroupSelection(value.columnName(), value.groupStr()));
-    return param;
+  public UserParameter<Metadata2GroupsSelection, Metadata2GroupsSelectionComponent> cloneParameter() {
+    // value is immutable so can be reused
+    return new Metadata2GroupsSelectionParameter(name, descr, value);
   }
 
 }
