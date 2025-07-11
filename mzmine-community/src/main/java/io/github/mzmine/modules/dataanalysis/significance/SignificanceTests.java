@@ -95,7 +95,7 @@ public enum SignificanceTests implements UniqueIdSupplier, SignificanceTest {
 
 
   private static final SignificanceTests[] univariateTests = {WELCHS_T_TEST, STUDENTS_T_TEST,
-      PAIRED_T_TEST, MANN_WHITNEY_U_TEST};
+      PAIRED_T_TEST};
   private static final SignificanceTests[] multivariateTests = {ONE_WAY_ANOVA};
 
   public static final MannWhitneyUTest MANN_WHITNEY_U_TEST_INST = new MannWhitneyUTest();

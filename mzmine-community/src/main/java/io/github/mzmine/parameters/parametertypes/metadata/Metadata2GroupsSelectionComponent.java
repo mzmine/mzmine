@@ -54,8 +54,8 @@ public class Metadata2GroupsSelectionComponent extends GridPane {
     FxLayout.applyGrid2Col(this,
         // children
         newLabelNoWrap("Metadata column"), columnField, //
-        newLabelNoWrap("Metadata group A"), groupFieldA, //
-        newLabelNoWrap("Metadata group B"), groupFieldB //
+        newLabelNoWrap("Group A"), groupFieldA, //
+        newLabelNoWrap("Group B"), groupFieldB //
     );
   }
 

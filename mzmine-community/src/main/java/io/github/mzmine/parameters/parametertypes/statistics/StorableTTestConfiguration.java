@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.statistics;
 
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
@@ -46,7 +47,17 @@ public record StorableTTestConfiguration(@NotNull SignificanceTests samplingConf
    * @return A {@link UnivariateRowSignificanceTest} or null. The configuration is only returned if
    * the column exists and the respective values exist in that column.
    */
-  public @Nullable <T> UnivariateRowSignificanceTest<T> toValidConfig() {
+  public @Nullable <T> UnivariateRowSignificanceTest<T> toValidConfig(
+      @NotNull FeaturesDataTable fullDataTable) {
+    return this.<T>toValidConfig(fullDataTable, null);
+  }
+
+  /**
+   * @param fullOrTableA the full data table with all samples or already split into table A
+   * @param dataTableB   might be null if only a full feature table is provided
+   */
+  public @Nullable <T> UnivariateRowSignificanceTest<T> toValidConfig(
+      @NotNull FeaturesDataTable fullOrTableA, @Nullable FeaturesDataTable dataTableB) {
     final MetadataTable metadata = ProjectService.getMetadata();
 
     final MetadataColumn<T> col = (MetadataColumn<T>) metadata.getColumnByName(column);
@@ -83,6 +94,13 @@ public record StorableTTestConfiguration(@NotNull SignificanceTests samplingConf
           () -> "Same grouping parameter selected for both groups of the t-Test. (" + a + ")");
     }
 
-    return new UnivariateRowSignificanceTest<>(samplingConfig, col, a, b);
+    if (dataTableB != null) {
+      // already grouped
+      return new UnivariateRowSignificanceTest<>(fullOrTableA, dataTableB, samplingConfig, col, a,
+          b);
+    } else {
+      // only full feature table
+      return new UnivariateRowSignificanceTest<>(fullOrTableA, samplingConfig, col, a, b);
+    }
   }
 }

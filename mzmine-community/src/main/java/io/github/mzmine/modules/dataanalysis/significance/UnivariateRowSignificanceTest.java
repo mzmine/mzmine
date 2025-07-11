@@ -25,16 +25,16 @@
 
 package io.github.mzmine.modules.dataanalysis.significance;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestResult;
-import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.statistics.StorableTTestConfiguration;
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,34 +47,74 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
   private final MetadataColumn<T> column;
   private final T groupA;
   private final T groupB;
-  private final List<RawDataFile> groupedFilesA;
-  private final List<RawDataFile> groupedFilesB;
+  private final FeaturesDataTable groupAData;
+  private final FeaturesDataTable groupBData;
+  private final @NotNull Map<FeatureListRow, Integer> featureRowIndexMap;
 
-  public UnivariateRowSignificanceTest(@NotNull SignificanceTests test, MetadataColumn<T> column,
-      T groupA, T groupB) {
+  public UnivariateRowSignificanceTest(@NotNull FeaturesDataTable dataTable,
+      @NotNull SignificanceTests test, MetadataColumn<T> column, T groupA, T groupB) {
+    List<RawDataFile> groupedFilesA = ProjectService.getMetadata().getMatchingFiles(column, groupA);
+    List<RawDataFile> groupedFilesB = ProjectService.getMetadata().getMatchingFiles(column, groupB);
+
+    if (groupedFilesA.size() < 2 || groupedFilesB.size() < 2) {
+      throw new IllegalArgumentException("""
+          Not enough matching files for group, at least two samples required but column %s had %s n=%d and %s n=%d samples.""".formatted(
+          column.getTitle(), groupA, groupedFilesA.size(), groupB, groupedFilesB.size()));
+    }
+
+    // split table into the two groups
+    var groupAData = dataTable.subsetBySamples(groupedFilesA);
+    var groupBData = dataTable.subsetBySamples(groupedFilesB);
+    this(groupAData, groupBData, test, column, groupA, groupB);
+  }
+
+  public FeaturesDataTable getGroupAData() {
+    return groupAData;
+  }
+
+  public FeaturesDataTable getGroupBData() {
+    return groupBData;
+  }
+
+  /**
+   * Already provides the two separate grouped {@link FeaturesDataTable}
+   *
+   * @param groupAData data for group A
+   * @param groupBData data for groupB
+   */
+  public UnivariateRowSignificanceTest(@NotNull FeaturesDataTable groupAData,
+      @NotNull FeaturesDataTable groupBData, @NotNull SignificanceTests test,
+      MetadataColumn<T> column, T groupA, T groupB) {
     this.test = test;
     this.column = column;
     this.groupA = groupA;
     this.groupB = groupB;
+    this.groupAData = groupAData;
+    this.groupBData = groupBData;
 
-    groupedFilesA = ProjectService.getMetadata().getMatchingFiles(column, this.groupA);
-    groupedFilesB = ProjectService.getMetadata().getMatchingFiles(column, this.groupB);
+    if (groupAData.getNumberOfSamples() < 2 || groupBData.getNumberOfSamples() < 2) {
+      throw new IllegalArgumentException("""
+          Not enough matching files for group, at least two samples required but column %s had %s n=%d and %s n=%d samples.""".formatted(
+          column.getTitle(), groupA, groupAData.getNumberOfSamples(), groupB,
+          groupBData.getNumberOfSamples()));
+    }
+
+    featureRowIndexMap = groupAData.getFeatureRowIndexMap();
   }
 
   @Override
-  public RowSignificanceTestResult test(FeatureListRow row, AbundanceMeasure abundanceMeasure) {
-    final double[] groupAAbundance = StatisticUtils.extractAbundance(row, groupedFilesA,
-        abundanceMeasure);
-    final double[] groupBAbundance = StatisticUtils.extractAbundance(row, groupedFilesB,
-        abundanceMeasure);
+  public RowSignificanceTestResult test(FeatureListRow row) {
+    final int rowIndex = featureRowIndexMap.get(row);
+    final double[] groupAAbundance = groupAData.getFeatureData(rowIndex, false);
+    final double[] groupBAbundance = groupBData.getFeatureData(rowIndex, false);
 
     try {
       final double p = test.checkAndTest(List.of(groupAAbundance, groupBAbundance));
       return new TTestResult(row, column.getTitle(), p);
     } catch (Exception e) {
-      // expected that test may fail if number of samples is too low
-      // TODO make sure this does not happen after imputing missing values and providing a p value for every input
-      return null;
+      // this should not happen after imputing missing values and providing a p value for every input
+      throw new IllegalStateException(
+          "Reached ANOVA error which should not happen after missing value imputation");
     }
   }
 
@@ -115,18 +155,6 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
     var that = (UnivariateRowSignificanceTest<?>) obj;
     return Objects.equals(this.test, that.test) && Objects.equals(this.column, that.column)
         && Objects.equals(this.groupA, that.groupA) && Objects.equals(this.groupB, that.groupB);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(test, column, groupA, groupB);
-  }
-
-  @Override
-  public String toString() {
-    return "StudentTTest{" + "samplingConfig=" + test + ", column=" + column + ", groupA=" + groupA
-        + ", groupB=" + groupB + ", groupedFilesA=" + groupedFilesA + ", groupedFilesB="
-        + groupedFilesB + '}';
   }
 
   public StorableTTestConfiguration toConfiguration() {

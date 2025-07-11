@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.metadata;
 import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.util.StringUtils;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,9 +82,11 @@ public class Metadata2GroupsSelectionParameter implements
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if (!value.isValid()) {
+    // can only check if there is a value
+    if (StringUtils.isBlank(value.columnName()) || StringUtils.isBlank(value.groupA())
+        || StringUtils.isBlank(value.groupB())) {
       errorMessages.add(
-          "Selected metadata column or group does not exist (case sensitive). " + value);
+          "No value set for parameter %s. Select a column and group.".formatted(getName()));
       return false;
     }
     return true;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataanalysis.utils.scaling;
 
+import io.github.mzmine.datamodel.statistics.DataTable;
+import java.util.Arrays;
 import org.apache.commons.math3.linear.RealVector;
 
 public class RangeScalingFunction implements ScalingFunction {
@@ -50,5 +52,40 @@ public class RangeScalingFunction implements ScalingFunction {
     // apply to same vector now
     realVector.mapDivideToSelf(columnMax / maxValue);
     return realVector.mapToSelf(scalingResultChecker);
+  }
+
+
+  @Override
+  public <T extends DataTable> T processInPlace(T data) {
+    for (double[] feature : data) {
+      if (feature == null || feature.length == 0) {
+        continue;
+      }
+
+      // Find min and max
+      double min = feature[0];
+      double max = feature[0];
+      for (double value : feature) {
+        if (value > max) {
+          max = value;
+        }
+        if (value < min) {
+          min = value;
+        }
+      }
+
+      // Scale values between 0 and maxValue
+      final double range = max - min;
+      final double scale = maxValue / range;
+      if (range == 0) {
+        // If all values are identical, set them to maxValue/2
+        Arrays.fill(feature, maxValue / 2d);
+      } else {
+        for (int i = 0; i < feature.length; i++) {
+          feature[i] = (feature[i] - min) * scale;
+        }
+      }
+    }
+    return data;
   }
 }

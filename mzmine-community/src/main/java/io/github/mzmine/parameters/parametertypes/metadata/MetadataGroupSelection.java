@@ -29,10 +29,10 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.StringUtils;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,7 +66,7 @@ public record MetadataGroupSelection(@NotNull String columnName, @NotNull String
    */
   @Nullable
   public MetadataColumn<?> getColumn() {
-    return MZmineCore.getProjectMetadata().getColumnByName(columnName());
+    return ProjectService.getMetadata().getColumnByName(columnName());
   }
 
   /**
@@ -75,14 +75,22 @@ public record MetadataGroupSelection(@NotNull String columnName, @NotNull String
    * does not contain the value.
    */
   public List<RawDataFile> getMatchingFiles() {
+    return getMatchingFiles(ProjectService.getProject().getCurrentRawDataFiles());
+  }
+
+  /**
+   * @return A list of files that match have the same value as {@link #groupStr()} in the specified
+   * {@link #columnName} in the {@link MetadataTable}. Empty list if the column does not exist or it
+   * does not contain the value.
+   */
+  public List<RawDataFile> getMatchingFiles(@NotNull List<RawDataFile> dataFiles) {
     if (!isValid()) {
       return List.of();
     }
 
-    final Map<RawDataFile, Object> column = MZmineCore.getProjectMetadata().getData()
-        .get(getColumn());
-    return column.entrySet().stream()
-        .filter(entry -> StringUtils.isEqualToString(groupStr, entry.getValue())).map(Entry::getKey)
+    final Map<RawDataFile, Object> column = ProjectService.getMetadata().getData().get(getColumn());
+
+    return dataFiles.stream().filter(raw -> StringUtils.isEqualToString(groupStr, column.get(raw)))
         .toList();
   }
 }

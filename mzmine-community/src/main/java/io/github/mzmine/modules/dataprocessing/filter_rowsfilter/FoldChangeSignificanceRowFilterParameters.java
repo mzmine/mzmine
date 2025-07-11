@@ -25,19 +25,15 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelection;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelectionParameter;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSet {
@@ -49,13 +45,9 @@ public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSe
   public static final Metadata2GroupsSelectionParameter grouping = new Metadata2GroupsSelectionParameter(
       "Select the metadata column and two groups to calculate the fold-change and significance for filtering.");
 
-  public static final AbundanceMeasureParameter abundanceMeasure = new AbundanceMeasureParameter(
-      "Abundance measure",
-      "Select the abundance measure (height or area) to use for CV calculation.",
-      AbundanceMeasure.values(), AbundanceMeasure.Area);
-
-  public static final PercentParameter maxPValue = new PercentParameter("Maximum p-value",
-      "Maximum p-value when comparing group A/group B (default 0.05)", 0.05, 0d, 1d);
+  public static final DoubleParameter maxPValue = new DoubleParameter("Maximum p-value",
+      "Maximum p-value when comparing group A/group B (default 0.05)",
+      ConfigService.getGuiFormats().scoreFormat(), 0.05, 0d, 1d);
 
   public static final DoubleParameter minFoldChangeFactor = new DoubleParameter(
       "log2(fold-change) threshold", """
@@ -70,17 +62,17 @@ public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSe
 
 
   public FoldChangeSignificanceRowFilterParameters() {
-    super(grouping, abundanceMeasure, maxPValue, minFoldChangeFactor, foldChangeSideOption);
+    super(grouping, test, maxPValue, minFoldChangeFactor, foldChangeSideOption);
   }
 
-  public FoldChangeSignificanceRowFilter createFilter(List<RawDataFile> rawFiles) {
+  public FoldChangeSignificanceRowFilter createFilter(FeaturesDataTable dataTable) {
     final Metadata2GroupsSelection group = this.getValue(grouping);
-    final AbundanceMeasure measure = this.getValue(abundanceMeasure);
     final double maxP = this.getValue(maxPValue);
     final double minFC = this.getValue(minFoldChangeFactor);
     final FoldChangeFilterSides fcSideOption = this.getValue(foldChangeSideOption);
     final SignificanceTests significanceTest = this.getValue(test);
-    return new FoldChangeSignificanceRowFilter(rawFiles, group, maxP, minFC, fcSideOption, measure,
+
+    return new FoldChangeSignificanceRowFilter(dataTable, group, maxP, minFC, fcSideOption,
         significanceTest);
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,13 +30,13 @@ import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.statistics.DataTableUtils;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
-import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunction;
-import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunction;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
@@ -64,10 +64,10 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
   private final List<DatasetAndRenderer> scoresDatasets = new ArrayList<>();
   private final List<DatasetAndRenderer> loadingsDatasets = new ArrayList<>();
   private final List<Integer> components = new ArrayList<>();
-  private final ImputationFunction imputer;
 
   private final ScalingFunction scaling;
   private final SampleTypeFilter sampleTypeFilter;
+  private FeaturesDataTable featureDataTable;
   private PCARowsResult pcaRowsResult;
 
   protected PCAUpdateTask(@NotNull String taskName, PCAModel model) {
@@ -85,9 +85,8 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     final ScalingFunctions scalingFunction = model.getScalingFunction();
     scaling = scalingFunction.getScalingFunction();
 
-    final ImputationFunctions imputationFunction = model.getImputationFunction();
-    imputer = imputationFunction.getImputer();
     sampleTypeFilter = model.getSampleTypeFilter();
+    featureDataTable = model.getFeatureDataTable();
   }
 
   @Override
@@ -110,7 +109,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
       return false;
     }
 
-    if (abundance == null) {
+    if (abundance == null || featureDataTable == null) {
       return false;
     }
 
@@ -123,17 +122,28 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 
   @Override
   protected void process() {
-    final List<FeatureListRow> rows = sampleTypeFilter.filter(flists.get(0).getRows());
+    // only keep matching sample types
+    featureDataTable = DataTableUtils.applySampleFilter(featureDataTable, sampleTypeFilter);
+    if (featureDataTable.getNumberOfSamples() == 0) {
+      return;
+    }
+
+    // data was already prepared
+    final List<FeatureListRow> rows = featureDataTable.getFeatureListRows();
+
+    // change sorting
     final Comparator<? super DataType<?>> annotationPrioSorter = FeatureAnnotationPriority.createSorter(
         SortOrder.ASCENDING);
     final Map<FeatureListRow, DataType<?>> rowsMappedToBestAnnotation = CompoundAnnotationUtils.mapBestAnnotationTypesByPriority(
         rows, true);
-    final List<FeatureListRow> rowsSortedByAnnotationPrio = rows.stream().sorted(
-        ((r1, r2) -> annotationPrioSorter.compare(rowsMappedToBestAnnotation.get(r1),
-            rowsMappedToBestAnnotation.get(r2)))).toList();
+    final Comparator<FeatureListRow> finalRowSorter = (r1, r2) -> annotationPrioSorter.compare(
+        rowsMappedToBestAnnotation.get(r1), rowsMappedToBestAnnotation.get(r2));
 
-    pcaRowsResult = PCAUtils.performPCAOnRows(rowsSortedByAnnotationPrio, abundance, scaling,
-        imputer, sampleTypeFilter);
+    // apply sorting to DataTable
+    featureDataTable = DataTableUtils.createSortedCopy(featureDataTable, finalRowSorter);
+
+    // perform PCA - scaling and missing value imputation is already done
+    pcaRowsResult = PCAUtils.performPCAOnDataTable(featureDataTable);
     if (pcaRowsResult == null) {
       return;
     }

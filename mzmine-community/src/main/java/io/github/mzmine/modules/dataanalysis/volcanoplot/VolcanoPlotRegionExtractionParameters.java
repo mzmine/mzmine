@@ -27,31 +27,42 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.RegionsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfigParameter;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationParameters;
+import io.github.mzmine.parameters.parametertypes.statistics.StorableTTestConfiguration;
 import io.github.mzmine.parameters.parametertypes.statistics.TTestConfigurationParameter;
 import java.awt.geom.Point2D;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter(1, 1);
-  public static final AbundanceMeasureParameter abundance = new AbundanceMeasureParameter(
-      "Abundance measure", "Select which metric is used to calculate the p Values.",
-      AbundanceMeasure.values());
   public static final TTestConfigurationParameter config = new TTestConfigurationParameter(
       "TTest configuration", "Configure the t-test.");
 
   public static final RegionsParameter regions = new RegionsParameter();
 
+  public static final AbundanceDataTablePreparationConfigParameter dataPreparationConfig = new AbundanceDataTablePreparationConfigParameter();
+
+  private static final AbundanceMeasureParameter LEGACY_ABUNDANCE_PARAMETER = new AbundanceMeasureParameter(
+      "Abundance measure", "Select which metric is used to calculate the p Values.",
+      AbundanceMeasure.values());
+
   public VolcanoPlotRegionExtractionParameters() {
-    super(flists, abundance, regions, config);
+    super(flists, regions, dataPreparationConfig, config);
   }
 
   public static VolcanoPlotRegionExtractionParameters create(VolcanoPlotModel model,
@@ -59,27 +70,77 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
     final VolcanoPlotRegionExtractionParameters param = (VolcanoPlotRegionExtractionParameters) new VolcanoPlotRegionExtractionParameters().cloneParameterSet();
     param.setParameter(VolcanoPlotRegionExtractionParameters.flists,
         new FeatureListsSelection((ModularFeatureList) model.getFlists().getFirst()));
-    param.setParameter(VolcanoPlotRegionExtractionParameters.abundance,
-        model.getAbundanceMeasure());
     param.setParameter(VolcanoPlotRegionExtractionParameters.regions, regions);
 
-    final UnivariateRowSignificanceTest<?> test = (UnivariateRowSignificanceTest<?>) model.getTest();
-    param.setParameter(VolcanoPlotRegionExtractionParameters.config,
-        test == null ? null : test.toConfiguration());
+    final StorableTTestConfiguration test = model.getTest();
+    param.setParameter(VolcanoPlotRegionExtractionParameters.config, test);
+
+    final AbundanceDataTablePreparationParameters dataPrepParams = param.getParameter(
+        VolcanoPlotRegionExtractionParameters.dataPreparationConfig).getEmbeddedParameters();
+
+    dataPrepParams.setParameter(AbundanceDataTablePreparationParameters.missingValueImputation,
+        model.getMissingValueImputation());
+    dataPrepParams.setParameter(AbundanceDataTablePreparationParameters.abundanceMeasure,
+        model.getAbundanceMeasure());
 
     return param;
   }
 
-  public VolcanoPlotModel toModel() {
+  public VolcanoPlotModel toModel(FeaturesDataTable dataTable) {
     VolcanoPlotModel model = new VolcanoPlotModel();
     model.setFlists(List.of(getValue(flists).getMatchingFeatureLists()));
-    model.setTest(getValue(config).toValidConfig());
-    model.setAbundanceMeasure(getValue(abundance));
+    model.setTest(getValue(config));
+    final AbundanceDataTablePreparationConfig preparationConfig = getParameter(
+        dataPreparationConfig).createConfig();
+    model.setAbundanceMeasure(preparationConfig.measure());
+    model.setMissingValueImputation(preparationConfig.missingValueImputation());
+    model.setFeatureDataTable(dataTable);
     return model;
   }
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      // this changes behavior a bit but should be fine. There will be very few batches that actually rely on this module.
+      // For a while people can just use the same old version to reproduce old results
+      case 2 ->
+          "Added support for missing value imputation. This has changed the default of missing value imputation to global limit of detection.";
+      default -> null;
+    };
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var map = super.getNameParameterMap();
+
+    // the AbundanceMeasure parameter was moved into another parameter
+    final AbundanceDataTablePreparationParameters embeddedParameters = getParameter(
+        dataPreparationConfig).getEmbeddedParameters();
+    final AbundanceMeasureParameter newAbundanceParameter = embeddedParameters.getParameter(
+        AbundanceDataTablePreparationParameters.abundanceMeasure);
+    map.put(LEGACY_ABUNDANCE_PARAMETER.getName(), newAbundanceParameter);
+    return map;
+  }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams) {
+    super.handleLoadedParameters(loadedParams);
+    if (!loadedParams.containsKey(dataPreparationConfig.getName())) {
+      // old parameterset only used abundance measure directly
+      // set default to zero value imputation
+      getParameter(dataPreparationConfig).getEmbeddedParameters()
+          .setParameter(AbundanceDataTablePreparationParameters.missingValueImputation,
+              ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION);
+    }
   }
 }

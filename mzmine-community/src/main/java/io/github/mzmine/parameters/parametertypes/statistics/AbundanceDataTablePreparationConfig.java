@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,17 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance.ttest;
+package io.github.mzmine.parameters.parametertypes.statistics;
 
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.statistics.TTestConfigurationParameter;
+import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
+import javax.annotation.Nullable;
 
-public class TTestParameters extends SimpleParameterSet {
+public record AbundanceDataTablePreparationConfig(AbundanceMeasure measure,
+                                                  ImputationFunctions missingValueImputation,
+                                                  @Nullable ScalingFunctions scalingFunction) {
 
-  public static final TTestConfigurationParameter config = new TTestConfigurationParameter(
-      "t-Test configuration", "Configure the t-Test.");
-
-  public TTestParameters() {
-    super("https://mzmine.github.io/mzmine_documentation/visualization_modules/statistics_dashboard/statistics_dashboard.html#controls_1", config);
+  public AbundanceDataTablePreparationConfig(AbundanceMeasure measure,
+      ImputationFunctions missingValueImputation) {
+    this(measure, missingValueImputation, null);
   }
 }

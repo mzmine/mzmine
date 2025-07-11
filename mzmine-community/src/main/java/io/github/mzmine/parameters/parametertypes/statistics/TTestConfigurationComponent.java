@@ -26,7 +26,9 @@
 package io.github.mzmine.parameters.parametertypes.statistics;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
+import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ValuePropertyComponent;
@@ -144,7 +146,25 @@ public class TTestConfigurationComponent extends GridPane implements
     return valueProperty;
   }
 
+  public void setTest(RowSignificanceTest test) {
+    if (test == null) {
+      setValue(null);
+    } else if (test instanceof UnivariateRowSignificanceTest<?> uniTest) {
+      setValue(uniTest.toConfiguration());
+    } else {
+      throw new IllegalArgumentException(
+          "Unsupported test type in stats dashboard: " + test.getClass());
+    }
+  }
+
   public void setValue(StorableTTestConfiguration value) {
+    if (value == null) {
+      metadataCombo.setValue(null);
+      groupACombo.setValue(null);
+      groupBCombo.setValue(null);
+      samplingCombo.setValue(null);
+      return;
+    }
     this.valueProperty.set(value);
     metadataCombo.setValue(value.column());
     groupACombo.setValue(value.groupA());

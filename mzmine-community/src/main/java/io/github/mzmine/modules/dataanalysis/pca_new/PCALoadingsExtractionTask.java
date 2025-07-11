@@ -30,10 +30,13 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -68,6 +71,10 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
   protected void process() {
     final var param = (PCALoadingsExtractionParameters) parameters;
     final PCAModel pcaModel = param.toPcaModel();
+
+    // prepare data
+    prepareData(pcaModel);
+
     final PCAUpdateTask task = new PCAUpdateTask("task", pcaModel);
     if (!task.checkPreConditions()) {
       error("Cannot build PCA. Please check the parameters, metadata may be missing.");
@@ -95,6 +102,14 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
     }
     resultFlist.setRowsApplySort(rows);
     project.addFeatureList(resultFlist);
+  }
+
+  private static void prepareData(PCAModel pcaModel) {
+    final var config = new AbundanceDataTablePreparationConfig(pcaModel.getAbundance(),
+        pcaModel.getImputationFunction(), pcaModel.getScalingFunction());
+    final FeaturesDataTable dataTable = StatisticUtils.extractAbundancesPrepareData(
+        pcaModel.getFlists().getFirst(), config);
+    pcaModel.setFeatureDataTable(dataTable);
   }
 
   @Override

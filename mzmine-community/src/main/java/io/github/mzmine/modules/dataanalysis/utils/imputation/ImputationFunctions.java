@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,13 +25,17 @@
 
 package io.github.mzmine.modules.dataanalysis.utils.imputation;
 
-public enum ImputationFunctions {
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import org.jetbrains.annotations.NotNull;
 
-  OneFifthOfMinimum, Zero;
+public enum ImputationFunctions implements UniqueIdSupplier {
+
+  GLOBAL_LIMIT_OF_DETECTION, OneFifthOfMinimum, Zero;
 
   public ImputationFunction getImputer() {
     return switch (this) {
       case Zero -> new ZeroImputer();
+      case GLOBAL_LIMIT_OF_DETECTION -> new GlobalLimitOfDetectionImputer();
       case OneFifthOfMinimum -> new OneFifthOfMinimumImputer();
     };
   }
@@ -41,6 +45,16 @@ public enum ImputationFunctions {
     return switch (this) {
       case Zero -> "Zero (0)";
       case OneFifthOfMinimum -> "1/5 of minimum";
+      case GLOBAL_LIMIT_OF_DETECTION -> "LOD (1/3 of global minimum)";
+    };
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case Zero -> "Zero";
+      case OneFifthOfMinimum -> "OneFifthOfMinimum";
+      case GLOBAL_LIMIT_OF_DETECTION -> "GLOBAL_LIMIT_OF_DETECTION";
     };
   }
 }

@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
@@ -39,7 +39,9 @@ import io.github.mzmine.util.FeatureUtils;
 import java.awt.Color;
 import java.text.DecimalFormat;
 import java.util.List;
+import java.util.Map;
 import javafx.beans.property.Property;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
@@ -48,16 +50,20 @@ public class VolcanoDatasetProvider extends SimpleXYProvider implements
 
   private final UnivariateRowSignificanceTest<?> test;
   private final List<RowSignificanceTestResult> results;
-
-  private final AbundanceMeasure abundanceMeasure;
+  private final @NotNull Map<FeatureListRow, Integer> featureRowIndexMap;
+  private final FeaturesDataTable dataA;
+  private final FeaturesDataTable dataB;
 
   public VolcanoDatasetProvider(UnivariateRowSignificanceTest<?> test,
-      List<RowSignificanceTestResult> results, Color color, String key,
-      AbundanceMeasure abundanceMeasure) {
+      List<RowSignificanceTestResult> results, Color color, String key) {
     super(key, color, new DecimalFormat("0.0"), new DecimalFormat("0.0"));
     this.test = test;
     this.results = results;
-    this.abundanceMeasure = abundanceMeasure;
+    // quick find index of rows
+    dataA = test.getGroupAData();
+    dataB = test.getGroupBData();
+
+    featureRowIndexMap = dataA.getFeatureRowIndexMap();
   }
 
   @Override
@@ -87,15 +93,19 @@ public class VolcanoDatasetProvider extends SimpleXYProvider implements
   @Override
   public void computeValues(Property<TaskStatus> status) {
     double[] minusLog10PValue = new double[results.size()];
-    final List<RawDataFile> groupAFiles = test.getGroupAFiles();
-    final List<RawDataFile> groupBFiles = test.getGroupBFiles();
+    double[] log2FoldChange = new double[results.size()];
 
     for (int i = 0; i < results.size(); i++) {
-      minusLog10PValue[i] = -Math.log10(results.get(i).pValue());
-    }
-    double[] log2FoldChange = StatisticUtils.calculateLog2FoldChange(results, groupAFiles,
-        groupBFiles, abundanceMeasure);
+      final RowSignificanceTestResult result = results.get(i);
+      minusLog10PValue[i] = -Math.log10(result.pValue());
 
+      // not all rows are in this dataset so use the index to retrieve data
+      final int rowIndex = featureRowIndexMap.get(result.row());
+      final double[] a = dataA.getFeatureData(rowIndex, false);
+      final double[] b = dataB.getFeatureData(rowIndex, false);
+      log2FoldChange[i] = StatisticUtils.calculateLog2FoldChange(a, b);
+    }
+    // reuse the groups from stats test
     setxValues(log2FoldChange);
     setyValues(minusLog10PValue);
   }

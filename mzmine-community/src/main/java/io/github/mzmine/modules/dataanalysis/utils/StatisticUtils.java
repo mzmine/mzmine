@@ -28,35 +28,77 @@ package io.github.mzmine.modules.dataanalysis.utils;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
+import io.github.mzmine.datamodel.statistics.FeatureListRowAbundances;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunction;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 import org.apache.commons.math.util.MathUtils;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
+import org.jetbrains.annotations.NotNull;
 
 public class StatisticUtils {
 
-  public static double[] extractAbundance(FeatureListRow row, List<RawDataFile> group,
-      AbundanceMeasure measure) {
-    // TODO handle zero values not just filter them out
-    return group.stream().map(file -> measure.get((ModularFeature) row.getFeature(file)))
-        .filter(Objects::nonNull).mapToDouble(Float::doubleValue).toArray();
+  /**
+   * Extract abundances and apply missing value imputation and other transformations
+   *
+   * @param config configures the preparation of data
+   * @return a data table
+   */
+  public static FeaturesDataTable extractAbundancesPrepareData(FeatureList flist,
+      AbundanceDataTablePreparationConfig config) {
+    return extractAbundancesPrepareData(flist.getRows(), flist.getRawDataFiles(), config);
   }
 
-  public static double[] calculateLog2FoldChange(List<RowSignificanceTestResult> testResults,
-      List<RawDataFile> groupAFiles, List<RawDataFile> groupBFiles,
-      AbundanceMeasure abundanceMeasure) {
-    return testResults.stream().mapToDouble(result -> {
-      return calculateLog2FoldChange(groupAFiles, groupBFiles, abundanceMeasure, result);
-    }).toArray();
+  /**
+   * Extract abundances and apply missing value imputation and other transformations
+   *
+   * @param rows   define data
+   * @param files  define data
+   * @param config configures the preparation of data
+   * @return a data table
+   */
+  public static FeaturesDataTable extractAbundancesPrepareData(List<FeatureListRow> rows,
+      List<RawDataFile> files, AbundanceDataTablePreparationConfig config) {
+
+    // extract values for each row
+    FeatureListRowAbundances[] abundances = rows.stream().map(row -> {
+      // keep track of the original missing values
+      return FeatureListRowAbundances.of(row, extractAbundance(row, files, config.measure()), true);
+    }).toArray(FeatureListRowAbundances[]::new);
+
+    // create data table
+    FeaturesDataTable data = new FeaturesDataTable(files, abundances);
+    data = config.missingValueImputation().getImputer().process(data, true);
+
+    if (config.scalingFunction() != null) {
+      // apply scaling
+      data = config.scalingFunction().getScalingFunction().process(data, true);
+    }
+
+    return data;
+  }
+
+  /**
+   * @return data array with missing values as Double.NaN
+   */
+  public static double[] extractAbundance(FeatureListRow row, List<RawDataFile> group,
+      AbundanceMeasure measure) {
+    final double[] abundances = new double[group.size()];
+    for (int i = 0; i < group.size(); i++) {
+      abundances[i] = measure.getOrNaN((ModularFeature) row.getFeature(group.get(i)));
+    }
+    return abundances;
   }
 
   /**
@@ -65,14 +107,17 @@ public class StatisticUtils {
    * @return log2(a / b), 0 if both are the same, if a or b are 0 intensity then fallback is -10 or
    * 10
    */
-  public static double calculateLog2FoldChange(List<RawDataFile> groupAFiles,
-      List<RawDataFile> groupBFiles, AbundanceMeasure abundanceMeasure,
-      RowSignificanceTestResult result) {
-    final double[] ab1 = StatisticUtils.extractAbundance(result.row(), groupAFiles,
-        abundanceMeasure);
-    final double[] abB = StatisticUtils.extractAbundance(result.row(), groupBFiles,
-        abundanceMeasure);
-    return calculateLog2FoldChange(ab1, abB);
+  public static double[] calculateLog2FoldChange(FeaturesDataTable tableA,
+      FeaturesDataTable tableB) {
+    final int features = tableA.getNumberOfFeatures();
+    final double[] result = new double[features];
+
+    for (int i = 0; i < features; i++) {
+      final double[] dataA = tableA.getFeatureData(i, false);
+      final double[] dataB = tableB.getFeatureData(i, false);
+      result[i] = calculateLog2FoldChange(dataA, dataB);
+    }
+    return result;
   }
 
   /**
@@ -192,5 +237,53 @@ public class StatisticUtils {
     }
 
     return data;
+  }
+
+  /**
+   * Stream all non-NaN values
+   *
+   * @param data any dimensions
+   * @return a stream of all non-NaN values
+   */
+  public static @NotNull DoubleStream streamAllNonNaNValues(RealMatrix data) {
+    return IntStream.range(0, data.getColumnDimension()).boxed().mapMultiToDouble(
+        (col, consumer) -> IntStream.range(0, data.getRowDimension()).boxed().forEach(row -> {
+          final double value = data.getEntry(row, col);
+          if (!Double.isNaN(value)) {
+            consumer.accept(value);
+          }
+        }));
+  }
+
+  /**
+   * Allows to stream over all non-NaN values in all rows and multiple groups of raw data files.
+   *
+   * @param rows             all rows to be streamed
+   * @param abundanceMeasure measure
+   * @param raws             multiple groups of raw data files allowed
+   * @return a stream of all non-NaN values
+   */
+  public static @NotNull DoubleStream streamAllNonNaNValues(List<FeatureListRow> rows,
+      @NotNull AbundanceMeasure abundanceMeasure, List<RawDataFile> raws) {
+    return rows.stream().mapMultiToDouble((row, consumer) -> {
+      for (RawDataFile raw : raws) {
+        final ModularFeature feature = (ModularFeature) row.getFeature(raw);
+        if (feature != null) {
+          final double value = abundanceMeasure.getOrNaN(feature);
+          if (!Double.isNaN(value)) {
+            consumer.accept(value);
+          }
+        }
+      }
+    });
+
+  }
+
+  public static void replaceNaN(double[] data, double value, boolean replaceZero) {
+    for (int i = 0; i < data.length; i++) {
+      if (Double.isNaN(data[i]) || (replaceZero && Double.compare(data[i], 0d) == 0)) {
+        data[i] = value;
+      }
+    }
   }
 }

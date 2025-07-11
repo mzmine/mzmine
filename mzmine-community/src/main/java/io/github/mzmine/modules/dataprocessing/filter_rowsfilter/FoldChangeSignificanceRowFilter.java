@@ -25,9 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
@@ -48,30 +47,30 @@ public final class FoldChangeSignificanceRowFilter {
   private final double maxValueP;
   private final double minLog2FoldChange;
   private final FoldChangeFilterSides foldChangeFilterSides;
-  private final @NotNull AbundanceMeasure abundanceMeasure;
   private final SignificanceTests test;
   private final UnivariateRowSignificanceTest<Object> rowTest;
   private final boolean applySignificancePFilter;
   private final boolean applyFoldChangeFilter;
-  private final List<RawDataFile> groupA;
-  private final List<RawDataFile> groupB;
+  private final FeaturesDataTable groupAData;
+  private final FeaturesDataTable groupBData;
 
   /**
-   * @param rawFiles              all raw data files in a feature list to use as groups. grouping
-   *                              defines the groups
+   * @param dataTable             a data table that is already zero value/missing value imputed
+   *                              etc.
    * @param grouping              column and two groups
    * @param maxValueP             maxmimum p value. use <=0 to deactivate
    * @param minLog2FoldChange     use 0 to deactivate, either signed or absolute value
    * @param foldChangeFilterSides FC may be applied to Math.abs(value) to filter both up and down
    *                              regulation or as a signed filter to only retain one side.
    */
-  public FoldChangeSignificanceRowFilter(List<RawDataFile> rawFiles,
+  public FoldChangeSignificanceRowFilter(FeaturesDataTable dataTable,
       @NotNull Metadata2GroupsSelection grouping, double maxValueP, double minLog2FoldChange,
-      FoldChangeFilterSides foldChangeFilterSides, @NotNull AbundanceMeasure abundanceMeasure,
-      SignificanceTests test) {
+      FoldChangeFilterSides foldChangeFilterSides, SignificanceTests test) {
+
+    final List<RawDataFile> rawFiles = dataTable.getRawDataFiles();
     this.grouping = grouping;
-    this.groupA = grouping.getMatchingFilesA(rawFiles);
-    this.groupB = grouping.getMatchingFilesB(rawFiles);
+    List<RawDataFile> groupA = grouping.getMatchingFilesA(rawFiles);
+    List<RawDataFile> groupB = grouping.getMatchingFilesB(rawFiles);
 
     // need at least 2 values per group
     if (groupA.size() < 2 || groupB.size() < 2) {
@@ -80,13 +79,16 @@ public final class FoldChangeSignificanceRowFilter {
               grouping, groupA.size(), groupB.size()));
     }
 
+    // split table into the two groups
+    this.groupAData = dataTable.subsetBySamples(groupA);
+    this.groupBData = dataTable.subsetBySamples(groupB);
+
     this.maxValueP = maxValueP;
     this.minLog2FoldChange = minLog2FoldChange;
     this.foldChangeFilterSides = foldChangeFilterSides;
-    this.abundanceMeasure = abundanceMeasure;
     this.test = test;
     rowTest = new StorableTTestConfiguration(test, grouping().columnName(), grouping.groupA(),
-        grouping.groupB()).toValidConfig();
+        grouping.groupB()).toValidConfig(groupAData, groupBData);
     if (rowTest == null) {
       throw new IllegalArgumentException(
           "Invalid group selection for univariate test: " + grouping);
@@ -104,10 +106,13 @@ public final class FoldChangeSignificanceRowFilter {
   }
 
 
-  public boolean matches(FeatureListRow row) {
-    // TODO check that 0-values are handled so that every sample in each group has a value
-    final double[] aValues = StatisticUtils.extractAbundance(row, groupA, abundanceMeasure);
-    final double[] bValues = StatisticUtils.extractAbundance(row, groupB, abundanceMeasure);
+  /**
+   * @param rowIndex row index in the data tables
+   * @return true if all requirements are met
+   */
+  public boolean matches(int rowIndex) {
+    final double[] aValues = groupAData.getFeatureData(rowIndex, false);
+    final double[] bValues = groupBData.getFeatureData(rowIndex, false);
 
     if (applySignificancePFilter) {
       final double p = rowTest.getTest().test(List.of(aValues, bValues));
@@ -149,10 +154,6 @@ public final class FoldChangeSignificanceRowFilter {
     return foldChangeFilterSides;
   }
 
-  public @NotNull AbundanceMeasure abundanceMeasure() {
-    return abundanceMeasure;
-  }
-
   public SignificanceTests test() {
     return test;
   }
@@ -170,22 +171,20 @@ public final class FoldChangeSignificanceRowFilter {
         && Double.doubleToLongBits(this.maxValueP) == Double.doubleToLongBits(that.maxValueP)
         && Double.doubleToLongBits(this.minLog2FoldChange) == Double.doubleToLongBits(
         that.minLog2FoldChange) && Objects.equals(this.foldChangeFilterSides,
-        that.foldChangeFilterSides) && Objects.equals(this.abundanceMeasure, that.abundanceMeasure)
-        && Objects.equals(this.test, that.test);
+        that.foldChangeFilterSides) && Objects.equals(this.test, that.test);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(grouping, maxValueP, minLog2FoldChange, foldChangeFilterSides,
-        abundanceMeasure, test);
+    return Objects.hash(grouping, maxValueP, minLog2FoldChange, foldChangeFilterSides, test);
   }
 
   @Override
   public String toString() {
     return "FoldChangeSignificanceRowFilter[" + "grouping=" + grouping + ", " + "maxValueP="
         + maxValueP + ", " + "minFoldChangeFactor=" + minLog2FoldChange + ", "
-        + "useAbsoluteFoldChange=" + foldChangeFilterSides + ", " + "abundanceMeasure="
-        + abundanceMeasure + ", " + "test=" + test + ']';
+        + "useAbsoluteFoldChange=" + foldChangeFilterSides + ", " + "abundanceMeasure=" + "test="
+        + test + ']';
   }
 
 }
