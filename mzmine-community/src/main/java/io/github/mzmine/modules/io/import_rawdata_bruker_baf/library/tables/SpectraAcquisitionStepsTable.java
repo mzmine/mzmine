@@ -33,6 +33,8 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFDa
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
 
@@ -77,7 +79,7 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
       BafAcqusitionKeysTable.MsLevelCol);
 
   private final boolean importProfile;
-  private MassSpectrumType spectrumType = MassSpectrumType.CENTROIDED;
+  private MassSpectrumType preferredSpectrumType = MassSpectrumType.CENTROIDED;
 
 
   public SpectraAcquisitionStepsTable(boolean importProfileIfPossible) {
@@ -135,9 +137,11 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
 
     if (b) {
       if (containsProfileData() && importProfile) {
-        spectrumType = MassSpectrumType.PROFILE;
+        preferredSpectrumType = MassSpectrumType.PROFILE;
       } else if (containsCentroidData()) {
-        spectrumType = MassSpectrumType.CENTROIDED;
+        preferredSpectrumType = MassSpectrumType.CENTROIDED;
+      } else if (containsProfileData()) {
+        preferredSpectrumType = MassSpectrumType.PROFILE;
       } else {
         throw new RuntimeException(
             "No valid spectrum type found. (File contains neither centroid nor profile data.)");
@@ -147,13 +151,13 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
   }
 
   public boolean containsCentroidData() {
-    return lineMzIdCol.stream().noneMatch(id -> id == null || id == 0) && lineIntensityCol.stream()
-        .noneMatch(id -> id == null || id == 0);
+    return lineMzIdCol.stream().anyMatch(id -> id != null && id != 0) && lineIntensityCol.stream()
+        .anyMatch(id -> id != null && id != 0);
   }
 
   public boolean containsProfileData() {
-    return profileMzIdCol.stream().noneMatch(id -> id == null || id == 0)
-        && profileIntensityCol.stream().noneMatch(id -> id == null || id == 0);
+    return profileMzIdCol.stream().anyMatch(id -> id != null && id != 0)
+        && profileIntensityCol.stream().anyMatch(id -> id != null && id != 0);
   }
 
   public int getId(int index) {
@@ -172,7 +176,7 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
     return mzAcqRangeUpper.get(index);
   }
 
-  public long getMzIds(int index) {
+  public long getMzIds(int index, @NotNull final MassSpectrumType spectrumType) {
     return switch (spectrumType) {
       case CENTROIDED -> lineMzIdCol.get(index);
       case PROFILE -> profileMzIdCol.get(index);
@@ -180,7 +184,7 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
     };
   }
 
-  public long getIntensityIds(int index) {
+  public long getIntensityIds(int index, @NotNull final MassSpectrumType spectrumType) {
     return switch (spectrumType) {
       case CENTROIDED -> lineIntensityCol.get(index);
       case PROFILE -> profileIntensityCol.get(index);
@@ -209,9 +213,17 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
    */
   public int getMsLevel(int index) {
     return switch (msLevelCol.get(index).intValue()) {
-      case 0 -> 1;
+      case 0 -> {
+        yield switch (getScanMode(index)) {
+          case 0 -> 1;
+          case 2 -> 2;
+          case 4 -> 2;
+          case 5 -> 2;
+          default -> throw new RuntimeException("Unknown scan mode.");
+        };
+      }
       case 1 -> 2;
-      default -> throw new IllegalStateException("Unknown scan mode.");
+      default -> throw new IllegalStateException("Unknown ms level.");
     };
   }
 
@@ -219,7 +231,34 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
     return idCol.size();
   }
 
-  public MassSpectrumType getSpectrumType() {
-    return spectrumType;
+  public MassSpectrumType getPreferredSpectrumType() {
+    return preferredSpectrumType;
+  }
+
+  private boolean scanHasData(int index) {
+    final Long lineMzId = lineMzIdCol.get(index);
+    final Long profileMzId = profileMzIdCol.get(index);
+
+    return (lineMzId != null && lineMzId != 0) || (profileMzId != null && profileMzId != 0);
+  }
+
+  /**
+   * @return The spectrum type to read for the requested scan index. Null if no data is available
+   * for the scan (=no data saved). The return may differ from {@link #getPreferredSpectrumType()}
+   * in case the preferred data type is not available.
+   */
+  @Nullable
+  public MassSpectrumType getSpectrumType(int index) {
+    if (!scanHasData(index)) {
+      return null;
+    }
+
+    return switch (getPreferredSpectrumType()) {
+      case CENTROIDED ->
+          lineMzIdCol.get(index) != null ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
+      case PROFILE -> profileMzIdCol.get(index) != null ? MassSpectrumType.PROFILE
+          : MassSpectrumType.CENTROIDED;
+      default -> throw new RuntimeException("Invalid spectrum type: " + getPreferredSpectrumType());
+    };
   }
 }

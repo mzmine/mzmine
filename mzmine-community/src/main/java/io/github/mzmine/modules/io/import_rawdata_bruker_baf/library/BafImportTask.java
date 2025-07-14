@@ -124,13 +124,18 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
       totalScans = scanTable.getNumberOfScans();
       for (int i = 0; i < scanTable.getNumberOfScans(); i++) {
         final int id = scanTable.getId(i);
+        final MassSpectrumType availableSpectrumType = scanTable.getSpectrumType(i);
+        if (availableSpectrumType == null) {
+          // it is possible that no data was recorded for a specific spectrum (e.g. during column wash. Skip that spectrum.)
+          continue;
+        }
 
         final MsMsInfo msMsInfo = ms2Table.getMsMsInfo(id);
         final SimpleBuildingScan metadataScan = new SimpleBuildingScan(id, scanTable.getMsLevel(i),
-            scanTable.getPolarity(i), scanTable.getSpectrumType(), scanTable.getRt(i), 0d, 0);
+            scanTable.getPolarity(i), availableSpectrumType, scanTable.getRt(i), 0d, 0);
 
         if (scanProcessorConfig.scanFilter().matches(metadataScan)) {
-          final SimpleSpectralArrays mzIntensities = baf.loadPeakData(i);
+          final SimpleSpectralArrays mzIntensities = baf.loadPeakData(i, availableSpectrumType);
           final SimpleSpectralArrays arrays = scanProcessorConfig.processor()
               .processScan(metadataScan,
                   new SimpleSpectralArrays(mzIntensities.mzs(), mzIntensities.intensities()));
