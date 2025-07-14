@@ -26,17 +26,21 @@
 package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
-import java.util.Arrays;
 import java.util.List;
 
 public class AbundanceMeasureParameter extends ComboParameter<AbundanceMeasure> {
 
-  public static final String DEFAULT_DESC =
-      "Select which abundance type should be used for the calculations. " + Arrays.toString(
-          AbundanceMeasure.values());
-
   public AbundanceMeasureParameter(String name, String description, AbundanceMeasure[] choices) {
     this(name, description, choices, AbundanceMeasure.Height);
+  }
+
+  public AbundanceMeasureParameter() {
+    this(AbundanceMeasure.Height);
+  }
+
+  public AbundanceMeasureParameter(AbundanceMeasure defaultValue) {
+    this("Abundance measure", "Select the abundance measure.", AbundanceMeasure.values(),
+        defaultValue);
   }
 
   public AbundanceMeasureParameter(String name, String description, AbundanceMeasure[] choices,

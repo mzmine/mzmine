@@ -36,14 +36,11 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
-import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
-import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectFilter;
-import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListUtils;
@@ -107,9 +104,8 @@ public class RowsFilterTask extends AbstractTask {
   private final Range<Float> fwhmRange;
   private final Isotope13CFilter isotope13CFilter;
   private final FoldChangeSignificanceRowFilterParameters significanceFoldChangeFilterParameters;
-  private final AbundanceDataTablePreparationConfig abundanceDataTablePreparationConfig;
   private final RsdFilterParameters cvFilterParameters;
-  private AbsoluteAndRelativeInt minSamples;
+  private final AbsoluteAndRelativeInt minSamples;
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
 
@@ -117,7 +113,6 @@ public class RowsFilterTask extends AbstractTask {
   // Processed rows counter
   private int processedRows, totalRows;
   private FoldChangeSignificanceRowFilter significanceFoldChangeFilter;
-  private FeaturesDataTable dataTable;
   private RsdFilter cvFilter;
 
 
@@ -166,9 +161,6 @@ public class RowsFilterTask extends AbstractTask {
         .getEmbeddedParameter().getValue() : MassDefectFilter.ALL;
 
     // get embedded parameters
-    abundanceDataTablePreparationConfig = parameters.getParameter(
-        RowsFilterParameters.abundanceDataTablePreparation).getEmbeddedParameters().createConfig();
-
     kendrickParam = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
         .getEmbeddedParameters();
     rangeKMD = kendrickParam.getParameter(
@@ -275,13 +267,13 @@ public class RowsFilterTask extends AbstractTask {
       boolean processInCurrentList) {
     // prepare filters that require a prepared data table
     if (significanceFoldChangeFilterParameters != null) {
-      FeaturesDataTable dataTable = getDataTable(featureList);
-      significanceFoldChangeFilter = significanceFoldChangeFilterParameters.createFilter(dataTable);
+      significanceFoldChangeFilter = significanceFoldChangeFilterParameters.createFilter(
+          featureList.getRows(), featureList.getRawDataFiles());
     }
 
     if (cvFilterParameters != null) {
-      FeaturesDataTable dataTable = getDataTable(featureList);
-      cvFilter = cvFilterParameters.createFilter(dataTable);
+      cvFilter = cvFilterParameters.createFilter(featureList.getRows(),
+          featureList.getRawDataFiles());
     }
 
     // if keep is selected we remove rows on failed criteria
@@ -371,18 +363,6 @@ public class RowsFilterTask extends AbstractTask {
             getModuleCallDate()));
 
     return newFeatureList;
-  }
-
-  /**
-   * only prepares the data table if requested once
-   */
-  private FeaturesDataTable getDataTable(FeatureList featureList) {
-    if (dataTable != null) {
-      return dataTable;
-    }
-    dataTable = StatisticUtils.extractAbundancesPrepareData(featureList.getRows(),
-        featureList.getRawDataFiles(), abundanceDataTablePreparationConfig);
-    return dataTable;
   }
 
   private boolean isFilterRowCriteriaFailed(final int totalSamples, FeatureListRow row,

@@ -25,18 +25,31 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
+import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelection;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
+import io.github.mzmine.parameters.parametertypes.statistics.MissingValueImputationParameter;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSet {
+
+  public static final AbundanceMeasureParameter abundanceMeasure = new AbundanceMeasureParameter();
+
+  public static final MissingValueImputationParameter missingValueImputation = new MissingValueImputationParameter();
 
   public static final ComboParameter<SignificanceTests> test = new ComboParameter<>(
       "Significance test", "Test to compare two groups", SignificanceTests.univariateValues(),
@@ -49,7 +62,7 @@ public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSe
       "Maximum p-value when comparing group A/group B (default 0.05)",
       ConfigService.getGuiFormats().scoreFormat(), 0.05, 0d, 1d);
 
-  public static final DoubleParameter minFoldChangeFactor = new DoubleParameter(
+  public static final DoubleParameter minLog2FoldChange = new DoubleParameter(
       "log2(fold-change) threshold", """
       The log2(FC) threshold (as log2(group A/group B)), e.g., 1 and -1 correspond to FC 2 and 0.5, respectively.
       The threshold may be applied to two sides (up/down regulation) using absolute values or a single side using signed values like -1 for everything downregulated.""",
@@ -58,17 +71,40 @@ public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSe
   public static final ComboParameter<FoldChangeFilterSides> foldChangeSideOption = new ComboParameter<>(
       "Fold-change filter", """
       Fold-change filter may be applied by absolute or signed value so looking at both sides or just a single side, respectively.""",
-      FoldChangeFilterSides.values(), FoldChangeFilterSides.ABS_TWO_SIDED);
+      FoldChangeFilterSides.values(), FoldChangeFilterSides.ABS_BOTH_SIDES);
 
 
   public FoldChangeSignificanceRowFilterParameters() {
-    super(grouping, test, maxPValue, minFoldChangeFactor, foldChangeSideOption);
+    super(abundanceMeasure, missingValueImputation, grouping, test, maxPValue, minLog2FoldChange,
+        foldChangeSideOption);
   }
 
-  public FoldChangeSignificanceRowFilter createFilter(FeaturesDataTable dataTable) {
+  public void setAll(AbundanceMeasure measure, ImputationFunctions missingImputation,
+      Metadata2GroupsSelection grouping, SignificanceTests significanceTest, double maxPValue,
+      double minLog2FoldChange, FoldChangeFilterSides fcSides) {
+    setParameter(abundanceMeasure, measure);
+    setParameter(missingValueImputation, missingImputation);
+    setParameter(FoldChangeSignificanceRowFilterParameters.grouping, grouping);
+    setParameter(test, significanceTest);
+    setParameter(FoldChangeSignificanceRowFilterParameters.maxPValue, maxPValue);
+    setParameter(FoldChangeSignificanceRowFilterParameters.minLog2FoldChange, minLog2FoldChange);
+    setParameter(foldChangeSideOption, fcSides);
+  }
+
+  public FoldChangeSignificanceRowFilter createFilter(List<FeatureListRow> rows,
+      List<RawDataFile> rawFiles) {
+    // prepare data
+    final AbundanceMeasure measure = getValue(abundanceMeasure);
+    final ImputationFunctions missingImputation = getValue(missingValueImputation);
+    final var config = new AbundanceDataTablePreparationConfig(measure, missingImputation);
+
+    final FeaturesDataTable dataTable = StatisticUtils.extractAbundancesPrepareData(rows, rawFiles,
+        config);
+
+    // create filter
     final Metadata2GroupsSelection group = this.getValue(grouping);
     final double maxP = this.getValue(maxPValue);
-    final double minFC = this.getValue(minFoldChangeFactor);
+    final double minFC = this.getValue(minLog2FoldChange);
     final FoldChangeFilterSides fcSideOption = this.getValue(foldChangeSideOption);
     final SignificanceTests significanceTest = this.getValue(test);
 
@@ -80,4 +116,5 @@ public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSe
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
   }
+
 }

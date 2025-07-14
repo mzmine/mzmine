@@ -84,8 +84,10 @@ public final class FoldChangeSignificanceRowFilter {
     this.groupBData = dataTable.subsetBySamples(groupB);
 
     this.maxValueP = maxValueP;
-    this.minLog2FoldChange = minLog2FoldChange;
     this.foldChangeFilterSides = foldChangeFilterSides;
+    this.minLog2FoldChange =
+        foldChangeFilterSides == FoldChangeFilterSides.ABS_BOTH_SIDES ? Math.abs(minLog2FoldChange)
+            : minLog2FoldChange;
     this.test = test;
     rowTest = new StorableTTestConfiguration(test, grouping().columnName(), grouping.groupA(),
         grouping.groupB()).toValidConfig(groupAData, groupBData);
@@ -123,9 +125,10 @@ public final class FoldChangeSignificanceRowFilter {
 
     if (applyFoldChangeFilter) {
       final double log2FC = StatisticUtils.calculateLog2FoldChange(aValues, bValues);
-      if (foldChangeFilterSides == FoldChangeFilterSides.ABS_TWO_SIDED
-          && Math.abs(log2FC) < minLog2FoldChange) {
-        return false;
+      if (foldChangeFilterSides == FoldChangeFilterSides.ABS_BOTH_SIDES) {
+        if (Math.abs(log2FC) < minLog2FoldChange) {
+          return false;
+        }
       } else {
         // negative side then positive side
         if ((minLog2FoldChange < 0 && log2FC > minLog2FoldChange) || //

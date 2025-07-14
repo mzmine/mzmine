@@ -38,7 +38,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfigParameter;
-import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationParameters;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfigSubParameters;
 import io.github.mzmine.parameters.parametertypes.statistics.StorableTTestConfiguration;
 import io.github.mzmine.parameters.parametertypes.statistics.TTestConfigurationParameter;
 import java.awt.geom.Point2D;
@@ -75,12 +75,13 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
     final StorableTTestConfiguration test = model.getTest();
     param.setParameter(VolcanoPlotRegionExtractionParameters.config, test);
 
-    final AbundanceDataTablePreparationParameters dataPrepParams = param.getParameter(
+    final AbundanceDataTablePreparationConfigSubParameters dataPrepParams = param.getParameter(
         VolcanoPlotRegionExtractionParameters.dataPreparationConfig).getEmbeddedParameters();
 
-    dataPrepParams.setParameter(AbundanceDataTablePreparationParameters.missingValueImputation,
+    dataPrepParams.setParameter(
+        AbundanceDataTablePreparationConfigSubParameters.missingValueImputation,
         model.getMissingValueImputation());
-    dataPrepParams.setParameter(AbundanceDataTablePreparationParameters.abundanceMeasure,
+    dataPrepParams.setParameter(AbundanceDataTablePreparationConfigSubParameters.abundanceMeasure,
         model.getAbundanceMeasure());
 
     return param;
@@ -124,10 +125,10 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
     var map = super.getNameParameterMap();
 
     // the AbundanceMeasure parameter was moved into another parameter
-    final AbundanceDataTablePreparationParameters embeddedParameters = getParameter(
+    final AbundanceDataTablePreparationConfigSubParameters embeddedParameters = getParameter(
         dataPreparationConfig).getEmbeddedParameters();
     final AbundanceMeasureParameter newAbundanceParameter = embeddedParameters.getParameter(
-        AbundanceDataTablePreparationParameters.abundanceMeasure);
+        AbundanceDataTablePreparationConfigSubParameters.abundanceMeasure);
     map.put(LEGACY_ABUNDANCE_PARAMETER.getName(), newAbundanceParameter);
     return map;
   }
@@ -139,7 +140,7 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
       // old parameterset only used abundance measure directly
       // set default to zero value imputation
       getParameter(dataPreparationConfig).getEmbeddedParameters()
-          .setParameter(AbundanceDataTablePreparationParameters.missingValueImputation,
+          .setParameter(AbundanceDataTablePreparationConfigSubParameters.missingValueImputation,
               ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION);
     }
   }

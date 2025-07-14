@@ -29,22 +29,14 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
 
-public class AbundanceDataTablePreparationParameters extends SimpleParameterSet {
+public class AbundanceDataTablePreparationConfigSubParameters extends SimpleParameterSet {
 
-  public static final AbundanceMeasureParameter abundanceMeasure = new AbundanceMeasureParameter(
-      "Abundance measure",
-      "Select the abundance measure (height or area) to use for any test that uses abundance.",
-      AbundanceMeasure.values(), AbundanceMeasure.Area);
+  public static final AbundanceMeasureParameter abundanceMeasure = new AbundanceMeasureParameter();
 
+  public static final MissingValueImputationParameter missingValueImputation = new MissingValueImputationParameter();
 
-  public static final ComboParameter<ImputationFunctions> missingValueImputation = new ComboParameter<>(
-      "Missing value imputation",
-      "Missing values will be changed for other small values like an estimated LOD (portion of the smalles value across the dataset) or feature-wise lowest values.",
-      ImputationFunctions.values(), ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION);
-
-  public AbundanceDataTablePreparationParameters() {
+  public AbundanceDataTablePreparationConfigSubParameters() {
     super(abundanceMeasure, missingValueImputation);
   }
 

@@ -32,21 +32,21 @@ import org.jetbrains.annotations.NotNull;
  * Defines how the fold-change filter will be applied
  */
 public enum FoldChangeFilterSides implements UniqueIdSupplier {
-  ONE_SIDED, ABS_TWO_SIDED;
+  ONE_SIDE, ABS_BOTH_SIDES;
 
   @Override
   public String toString() {
     return switch (this) {
-      case ONE_SIDED -> "One-sided (use signed value)";
-      case ABS_TWO_SIDED -> "Two-sided (use absolute value)";
+      case ONE_SIDE -> "One side (use signed value)";
+      case ABS_BOTH_SIDES -> "Both sides (use absolute value)";
     };
   }
 
   @Override
   public @NotNull String getUniqueID() {
     return switch (this) {
-      case ONE_SIDED -> "one_sided";
-      case ABS_TWO_SIDED -> "abs_two_sided";
+      case ONE_SIDE -> "one_side";
+      case ABS_BOTH_SIDES -> "abs_both_sides";
     };
   }
 }

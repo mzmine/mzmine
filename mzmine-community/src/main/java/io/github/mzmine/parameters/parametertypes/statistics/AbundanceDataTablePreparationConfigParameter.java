@@ -27,10 +27,10 @@ package io.github.mzmine.parameters.parametertypes.statistics;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
-import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 
 public class AbundanceDataTablePreparationConfigParameter extends
-    SubModuleParameter<AbundanceDataTablePreparationParameters> {
+    ParameterSetParameter<AbundanceDataTablePreparationConfigSubParameters> {
 
   public AbundanceDataTablePreparationConfigParameter() {
     this("""
@@ -42,7 +42,7 @@ public class AbundanceDataTablePreparationConfigParameter extends
   }
 
   public AbundanceDataTablePreparationConfigParameter(String name, String description) {
-    super(name, description, new AbundanceDataTablePreparationParameters());
+    super(name, description, new AbundanceDataTablePreparationConfigSubParameters());
   }
 
   public AbundanceDataTablePreparationConfig createConfig() {
@@ -55,7 +55,7 @@ public class AbundanceDataTablePreparationConfigParameter extends
 
   @Override
   public AbundanceDataTablePreparationConfigParameter cloneParameter() {
-    final AbundanceDataTablePreparationParameters embeddedParametersClone = (AbundanceDataTablePreparationParameters) getEmbeddedParameters().cloneParameterSet();
+    final AbundanceDataTablePreparationConfigSubParameters embeddedParametersClone = (AbundanceDataTablePreparationConfigSubParameters) getEmbeddedParameters().cloneParameterSet();
     final AbundanceDataTablePreparationConfigParameter copy = new AbundanceDataTablePreparationConfigParameter(
         getName(), getDescription());
     copy.setEmbeddedParameters(embeddedParametersClone);

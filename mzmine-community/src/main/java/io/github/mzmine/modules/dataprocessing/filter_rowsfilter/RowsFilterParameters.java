@@ -43,7 +43,6 @@ import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfigParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,11 +53,6 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public static final StringParameter SUFFIX = new StringParameter("Name suffix",
       "Suffix to be added to feature list name", "filtered");
-
-  public static final AbundanceDataTablePreparationConfigParameter abundanceDataTablePreparation = new AbundanceDataTablePreparationConfigParameter(
-      """
-          These parameters are used by some filter options that work on the abundance table, e.g., RSD filter and significance and fold-change filter.""");
-
 
   public static final OptionalParameter<MinimumSamplesParameter> MIN_FEATURE_COUNT = new OptionalParameter<>(
       new MinimumSamplesParameter(), false);
@@ -159,8 +153,6 @@ public class RowsFilterParameters extends SimpleParameterSet {
     super(new Parameter[]{
             // general parameters
             FEATURE_LISTS, SUFFIX, REMOVE_ROW, handleOriginal,
-            // general parameters that may be used by other filters
-            abundanceDataTablePreparation,
             // sample filtering
             MIN_FEATURE_COUNT, cvFilter, foldChangeFilter,
             // isotopes
