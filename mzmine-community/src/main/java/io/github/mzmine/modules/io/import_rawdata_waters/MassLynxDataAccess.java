@@ -217,8 +217,9 @@ public class MassLynxDataAccess implements AutoCloseable {
     if (MassLynxLib.isMsFunction(handle, function) > 0) {
       return FunctionType.MS;
     }
-    throw new RuntimeException(
-        "Unknown function in file " + rawFolder.getName() + " - function " + function);
+    return FunctionType.NOT_MS;
+//    throw new RuntimeException(
+//        "Unknown function in file " + rawFolder.getName() + " - function " + function);
   }
 
   public SimpleScan readScan(RawDataFileImpl file, int function, int scan) {
@@ -233,6 +234,7 @@ public class MassLynxDataAccess implements AutoCloseable {
         throw new IllegalStateException("Attempted to load lock mass function " + function);
       }
       case MRM -> throw new IllegalStateException("MRM function, cannot read scan.");
+      case NOT_MS -> throw new IllegalStateException("Non-MS function, cannot read scan.");
     };
   }
 

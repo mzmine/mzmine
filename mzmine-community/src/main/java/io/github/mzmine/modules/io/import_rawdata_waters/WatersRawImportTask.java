@@ -142,6 +142,9 @@ public class WatersRawImportTask extends AbstractTask implements RawDataImportTa
           case LOCKMASS -> {
             // skip lock mass loading
           }
+          case NOT_MS -> {
+            // skip other data for now
+          }
         }
       }
 

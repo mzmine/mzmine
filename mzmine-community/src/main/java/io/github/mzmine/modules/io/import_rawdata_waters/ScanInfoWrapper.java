@@ -92,10 +92,10 @@ public record ScanInfoWrapper(int msLevel, int polarity, int driftScanCount, int
             : collisionEnergy();
     final Float isolationLower =
         Float.compare(quadIsolationStart(), MassLynxConstants.NO_QUAD_ISOLATION) == 0
-            && Float.compare(quadIsolationStart(), 0f) == 0 ? null : quadIsolationStart();
+            || Float.compare(quadIsolationStart(), 0f) == 0 ? null : quadIsolationStart();
     final Float isolationUpper =
         Float.compare(quadIsolationEnd(), MassLynxConstants.NO_QUAD_ISOLATION) == 0
-            && Float.compare(quadIsolationEnd(), 0f) == 0 ? null : quadIsolationEnd();
+            || Float.compare(quadIsolationEnd(), 0f) == 0 ? null : quadIsolationEnd();
     final Range<Double> mzIsolationWindow =
         isolationLower != null && isolationUpper != null ? Range.closed((double) isolationLower,
             (double) isolationUpper) : null;

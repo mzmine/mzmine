@@ -25,5 +25,5 @@
 package io.github.mzmine.modules.io.import_rawdata_waters;
 
 enum FunctionType {
-  MS, IMS_MS, MRM, LOCKMASS
+  MS, IMS_MS, MRM, LOCKMASS, NOT_MS
 }
