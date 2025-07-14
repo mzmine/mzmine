@@ -157,12 +157,50 @@ public class FxTextFields {
       if (list == null || list.isEmpty()) {
         return List.of();
       }
-      final String input = iSuggestionRequest.getUserText().toLowerCase();
+      List<String> strings = list.stream().filter(Objects::nonNull).map(Object::toString).toList();
 
-      return list.stream().map(Object::toString).filter(Objects::nonNull)
-          .filter(str -> str.toLowerCase().contains(input)).sorted().toList();
+      final String input = iSuggestionRequest.getUserText();
+      return autoCompleteSubMatch(strings, input);
     });
   }
+
+  /**
+   * Automatically bind auto completion to a text field based on a list, e.g., ObservableList or
+   * static
+   *
+   * @param textField the target
+   * @param options   options in an ObservableValue
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static AutoCompletionBinding<String> bindAutoCompletion(TextField textField,
+      List<?> options) {
+
+    return TextFields.bindAutoCompletion(textField, iSuggestionRequest -> {
+      final String input = iSuggestionRequest.getUserText();
+      return autoCompleteSubMatch(options, input);
+    });
+  }
+
+  /**
+   * Only matches substrings. If there is only one match that is exactly the input then the result
+   * is an empty list to not show suggestions in TextFields
+   */
+  public static @NotNull List<String> autoCompleteSubMatch(final List<?> options,
+      final String input) {
+    if (options == null || options.isEmpty()) {
+      return List.of();
+    }
+    final String lowerInput = input.toLowerCase();
+
+    final List<String> matches = options.stream().filter(Objects::nonNull).map(Object::toString)
+        .filter(str -> str.toLowerCase().contains(lowerInput)).sorted().toList();
+    if (matches.size() == 1 && matches.getFirst().equals(input)) {
+      // exact input match - return empty
+      return List.of();
+    }
+    return matches;
+  }
+
 
   /**
    * Auto grows the pref column count property to fit the current text
@@ -170,8 +208,11 @@ public class FxTextFields {
    * @return the same as input
    */
   public static TextField autoGrowFitText(final TextField field) {
+    // pref column is wider than one char on windows at least
+    // so multiply by factor
     field.prefColumnCountProperty()
-        .bind(field.textProperty().map(text -> Math.max(text.length() + 1, 8)));
+        .bind(field.textProperty().map(text -> Math.max(text.length() * 0.7, 8)));
     return field;
   }
+
 }

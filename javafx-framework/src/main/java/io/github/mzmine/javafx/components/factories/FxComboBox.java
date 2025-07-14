@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import org.controlsfx.control.SearchableComboBox;
+import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.jetbrains.annotations.NotNull;
 
 public class FxComboBox {
@@ -91,5 +92,16 @@ public class FxComboBox {
   public static <T> ComboBox<T> createComboBox(String tooltip, T[] values,
       Property<T> selectedItem) {
     return createComboBox(tooltip, List.of(values), selectedItem);
+  }
+
+
+  /**
+   * Automatically bind auto-completion to a combobox
+   *
+   * @param combo the target for auto-completion. Only works if set to editable
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static AutoCompletionBinding<String> bindAutoCompletion(ComboBox<?> combo) {
+    return FxTextFields.bindAutoCompletion(combo.getEditor(), combo.getItems());
   }
 }

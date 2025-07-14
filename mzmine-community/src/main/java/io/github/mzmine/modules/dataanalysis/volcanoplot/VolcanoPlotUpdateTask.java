@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -62,7 +61,6 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
 
   private final FeatureList flist;
   private final RowSignificanceTest test;
-  private final AbundanceMeasure abundanceMeasure;
   private final double pValue;
   private final TotalFinishedItemsProgress progress = new TotalFinishedItemsProgress();
   private @Nullable List<DatasetAndRenderer> temporaryDatasets;
@@ -86,7 +84,6 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
       test = null;
     }
 
-    abundanceMeasure = model.getAbundanceMeasure();
     pValue = model.getpValue();
     progress.setTotal(flist != null ? flist.getNumberOfRows() : 0);
   }

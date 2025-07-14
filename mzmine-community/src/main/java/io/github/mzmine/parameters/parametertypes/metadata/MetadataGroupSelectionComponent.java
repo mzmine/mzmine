@@ -27,28 +27,22 @@ package io.github.mzmine.parameters.parametertypes.metadata;
 
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabelNoWrap;
 
-import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
-import javafx.scene.control.TextField;
+import javafx.scene.control.ComboBox;
 import javafx.scene.layout.GridPane;
-import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MetadataGroupSelectionComponent extends GridPane {
 
-  private static final int inputSize = 20;
+  // auto completion is automatically bound to both fields
   private final MetadataGroupingComponent columnField = new MetadataGroupingComponent();
-  private final TextField groupField = new TextField();
+  private final ComboBox<String> groupField = columnField.createLinkedGroupCombo();
 
   public MetadataGroupSelectionComponent() {
     super();
     setHgap(FxLayout.DEFAULT_SPACE);
     setVgap(FxLayout.DEFAULT_SPACE);
-
-    groupField.setPrefColumnCount(inputSize);
-    final AutoCompletionBinding<String> newBinding = FxTextFields.bindAutoCompletion(groupField,
-        columnField.uniqueColumnValuesProperty());
 
     FxLayout.applyGrid2Col(this,
         // children
@@ -60,7 +54,7 @@ public class MetadataGroupSelectionComponent extends GridPane {
   @NotNull
   public MetadataGroupSelection getValue() {
     final String column = columnField.getValue();
-    final String group = groupField.textProperty().getValue();
+    final String group = groupField.getValue();
 
     if (column == null || group == null) {
       return MetadataGroupSelection.NONE;
@@ -71,12 +65,12 @@ public class MetadataGroupSelectionComponent extends GridPane {
 
   public void setValue(@Nullable MetadataGroupSelection value) {
     if (value == null) {
-      groupField.setText("");
+      groupField.setValue("");
       columnField.setValue("");
       return;
     }
 
-    groupField.setText(value.groupStr());
+    groupField.setValue(value.groupStr());
     columnField.setValue(value.columnName());
   }
 }

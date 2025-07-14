@@ -27,32 +27,20 @@ package io.github.mzmine.parameters.parametertypes.metadata;
 
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabelNoWrap;
 
-import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
-import javafx.scene.control.TextField;
+import javafx.scene.control.ComboBox;
 import javafx.scene.layout.GridPane;
-import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class Metadata2GroupsSelectionComponent extends GridPane {
 
-  private static final int inputSize = 20;
   private final MetadataGroupingComponent columnField = new MetadataGroupingComponent();
-  private final TextField groupFieldA = new TextField();
-  private final TextField groupFieldB = new TextField();
+  private final ComboBox<String> groupFieldA = columnField.createLinkedGroupCombo();
+  private final ComboBox<String> groupFieldB = columnField.createLinkedGroupCombo();
 
   public Metadata2GroupsSelectionComponent() {
     super();
-    groupFieldA.setPrefColumnCount(inputSize);
-    groupFieldB.setPrefColumnCount(inputSize);
-
-    // auto bind unique column values to group field
-    final AutoCompletionBinding<String> newBinding = FxTextFields.bindAutoCompletion(groupFieldA,
-        columnField.uniqueColumnValuesProperty());
-    final AutoCompletionBinding<String> newBindingB = FxTextFields.bindAutoCompletion(groupFieldB,
-        columnField.uniqueColumnValuesProperty());
-
     FxLayout.applyGrid2Col(this,
         // children
         newLabelNoWrap("Metadata column"), columnField, //
@@ -63,22 +51,22 @@ public class Metadata2GroupsSelectionComponent extends GridPane {
 
   public void setValue(@Nullable Metadata2GroupsSelection value) {
     if (value == null) {
-      groupFieldA.setText("");
-      groupFieldB.setText("");
+      groupFieldA.setValue("");
+      groupFieldB.setValue("");
       columnField.setValue("");
       return;
     }
 
-    groupFieldA.setText(value.groupA());
-    groupFieldB.setText(value.groupB());
+    groupFieldA.setValue(value.groupA());
+    groupFieldB.setValue(value.groupB());
     columnField.setValue(value.columnName());
   }
 
   @NotNull
   public Metadata2GroupsSelection getValue() {
     final String column = columnField.getValue();
-    final String groupA = groupFieldA.getText();
-    final String groupB = groupFieldB.getText();
+    final String groupA = groupFieldA.getValue();
+    final String groupB = groupFieldB.getValue();
 
     if (column == null || groupA == null || groupB == null) {
       return Metadata2GroupsSelection.NONE;

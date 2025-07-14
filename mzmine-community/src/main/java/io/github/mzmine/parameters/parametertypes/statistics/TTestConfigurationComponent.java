@@ -25,18 +25,17 @@
 
 package io.github.mzmine.parameters.parametertypes.statistics;
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ValuePropertyComponent;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
 import java.util.List;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -47,7 +46,7 @@ public class TTestConfigurationComponent extends GridPane implements
     ValuePropertyComponent<StorableTTestConfiguration> {
 
   private final ComboBox<SignificanceTests> samplingCombo;
-  private final ComboBox<String> metadataCombo;
+  private final MetadataGroupingComponent metadataCombo;
   private final ComboBox<String> groupACombo;
   private final ComboBox<String> groupBCombo;
 
@@ -67,42 +66,24 @@ public class TTestConfigurationComponent extends GridPane implements
     samplingCombo.getSelectionModel().select(0);
 
     // using an actual combo here. TTest is used for visualisation which is not available in headless mode.
-    final MetadataTable metadata = MZmineCore.getProjectMetadata();
-    metadataCombo = new ComboBox<>(FXCollections.observableList(
-        metadata.getColumns().stream().map(MetadataColumn::getTitle).sorted().toList()));
+    metadataCombo = new MetadataGroupingComponent();
 
     // todo check if this actually works or throws type exceptions.
-    groupACombo = new ComboBox<>();
-    groupBCombo = new ComboBox<>();
-    metadataCombo.setEditable(true);
-    groupACombo.setEditable(true);
-    groupBCombo.setEditable(true);
+    groupACombo = metadataCombo.createLinkedGroupCombo();
+    groupBCombo = metadataCombo.createLinkedGroupCombo();
 
-    metadataCombo.getSelectionModel().selectedItemProperty().addListener((obs, o, newColName) -> {
-      final MetadataTable meta = MZmineCore.getProjectMetadata();
-      var col = meta.getColumnByName(newColName);
-      if (col == null) {
-        final String a = groupACombo.getSelectionModel().getSelectedItem();
-        final String b = groupBCombo.getSelectionModel().getSelectedItem();
-        groupACombo.getSelectionModel().clearSelection();
-        groupBCombo.getSelectionModel().clearSelection();
-        groupACombo.setItems(FXCollections.observableList(List.of()));
-        groupBCombo.setItems(FXCollections.observableList(List.of()));
-        // this keeps the selection if an invalid metadata column was selected, but removes all the other choices
-        // necessary for the batch mode if no metadata was imported yet
-        groupACombo.getSelectionModel().select(a);
-        groupBCombo.getSelectionModel().select(b);
-        return;
-      }
-      final List<?> distinctColumnValues = meta.getDistinctColumnValues(col);
+    metadataCombo.uniqueColumnValuesProperty()
+        .addListener((ListChangeListener<? super String>) change -> {
+          final ObservableList<? extends String> newOptions = change.getList();
+          if (newOptions.size() < 2) {
+            // this keeps the selection if an invalid metadata column was selected
+            // necessary for the batch mode if no metadata was imported yet
+            return;
+          }
 
-      final ObservableList<String> observableValues = FXCollections.observableList(
-          distinctColumnValues.stream().map(Object::toString).toList());
-      groupACombo.setItems(observableValues);
-      groupBCombo.setItems(observableValues);
-      groupACombo.getSelectionModel().selectFirst();
-      groupBCombo.getSelectionModel().selectLast();
-    });
+          groupACombo.setValue(newOptions.getFirst());
+          groupBCombo.setValue(newOptions.getLast());
+        });
 
     add(new Label("Metadata column"), 0, 0);
     add(metadataCombo, 1, 0);

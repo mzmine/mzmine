@@ -40,12 +40,15 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.scene.control.TextField;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
-import org.controlsfx.control.textfield.TextFields;
+import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,8 +58,8 @@ public class MetadataGroupingComponent extends HBox implements
   private final List<AvailableTypes> availableTypes;
 
   private final ObjectProperty<@Nullable MetadataColumn<?>> columnProperty = new SimpleObjectProperty<>();
-  private final TextField text;
-  private final @NotNull ObservableValue<@NotNull List<?>> uniqueColumnValues;
+  private final ComboBox<String> comboBox;
+  private final @NotNull ObservableList<String> uniqueColumnValues = FXCollections.observableArrayList();
 
   public MetadataGroupingComponent() {
     this(AvailableTypes.values());
@@ -70,9 +73,18 @@ public class MetadataGroupingComponent extends HBox implements
     super();
     setSpacing(FxLayout.DEFAULT_SPACE);
     setPadding(Insets.EMPTY);
+    this.availableTypes = types;
 
-    text = new TextField();
-    FxTextFields.autoGrowFitText(text);
+    // find all columns at time of creation
+    final List<String> columns = ProjectService.getMetadata().getColumns().stream()
+        .filter(col -> availableTypes.contains(col.getType())).map(MetadataColumn::getTitle)
+        .toList();
+
+    comboBox = new ComboBox<>(FXCollections.observableArrayList(columns));
+    comboBox.setEditable(true);
+
+    FxTextFields.autoGrowFitText(comboBox.getEditor());
+    FxTextFields.bindAutoCompletion(comboBox.getEditor(), columns);
 
     var icon = FxIconUtil.newIconButton(FxIcons.METADATA_TABLE,
         "Open project metadata. (Import data files and metadata to then modify project metadata)",
@@ -80,15 +92,9 @@ public class MetadataGroupingComponent extends HBox implements
           MZmineCore.getDesktop().addTab(new ProjectMetadataTab());
         });
 
-    getChildren().addAll(text, icon);
+    getChildren().addAll(comboBox, icon);
 
-    this.availableTypes = types;
-    final String[] columns = ProjectService.getMetadata().getColumns().stream()
-        .filter(col -> availableTypes.contains(col.getType())).map(MetadataColumn::getTitle)
-        .toArray(String[]::new);
-    TextFields.bindAutoCompletion(text, columns);
-
-    Bindings.bindBidirectional(text.textProperty(), valueProperty(),
+    Bindings.bindBidirectional(comboBox.getEditor().textProperty(), valueProperty(),
         new StringConverter<MetadataColumn<?>>() {
           @Override
           public String toString(MetadataColumn<?> object) {
@@ -102,8 +108,41 @@ public class MetadataGroupingComponent extends HBox implements
         });
 
     // find unique values in column
-    uniqueColumnValues = valueProperty().map(
-        col -> col == null ? List.of() : ProjectService.getMetadata().getDistinctColumnValues(col));
+    valueProperty().subscribe(nv -> {
+      if (nv == null) {
+        uniqueColumnValues.clear();
+        return;
+      }
+      final List<?> uniqueValues = ProjectService.getMetadata().getDistinctColumnValues(nv);
+      final List<String> uniqueStrings = uniqueValues.stream().map(Object::toString).toList();
+      uniqueColumnValues.setAll(uniqueStrings);
+    });
+  }
+
+
+  /**
+   * @return a combobox with auto completion of the selected column groups
+   */
+  public ComboBox<String> createLinkedGroupCombo() {
+    final ComboBox<String> combo = new ComboBox<>();
+    combo.setEditable(true);
+    FxTextFields.autoGrowFitText(combo.getEditor());
+    // auto bind unique column values to group field
+    final AutoCompletionBinding<String> newBinding = FxTextFields.bindAutoCompletion(
+        combo.getEditor(), uniqueColumnValues);
+
+    // bind items to the unique ccolumn values by mapping the values to strings
+    uniqueColumnValuesProperty().addListener((ListChangeListener<? super String>) change -> {
+      final String value = combo.getValue();
+      // combo should not directly use the unique list as this may overwrite the value property as well
+      // therefore set items on change
+      combo.getItems().setAll(uniqueColumnValues);
+      // need to keep value for now in the editor even if it is not a valid selection
+      // at least for parameters this is important
+      combo.getEditor().setText(value);
+    });
+
+    return combo;
   }
 
   @Override
@@ -112,17 +151,25 @@ public class MetadataGroupingComponent extends HBox implements
   }
 
   public void setValue(String value) {
-    text.setText(value);
+    comboBox.getEditor().setText(value);
   }
 
   public String getValue() {
-    return text.getText();
+    return comboBox.getEditor().getText();
   }
 
   /**
    * @return list of unique values in selected column or empty list
    */
-  public @NotNull ObservableValue<@NotNull List<?>> uniqueColumnValuesProperty() {
+  public @NotNull ObservableList<String> uniqueColumnValuesProperty() {
     return uniqueColumnValues;
+  }
+
+  public SingleSelectionModel<String> getSelectionModel() {
+    return comboBox.getSelectionModel();
+  }
+
+  public ComboBox<String> getComboBox() {
+    return comboBox;
   }
 }
