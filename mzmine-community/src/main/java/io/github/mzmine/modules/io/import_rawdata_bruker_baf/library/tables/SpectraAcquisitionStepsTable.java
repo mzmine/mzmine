@@ -78,6 +78,10 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
   private final TDFDataColumn<Long> msLevelCol = new TDFDataColumn<>(
       BafAcqusitionKeysTable.MsLevelCol);
 
+  // in isCid/bbCID data, there is no steps table. So we cannot get the ce from there, but we can
+  // extract it from the variables table.
+  private final TDFDataColumn<Double> fallbackCeColumn = new TDFDataColumn<>("fallbackCE");
+
   private final boolean importProfile;
   private MassSpectrumType preferredSpectrumType = MassSpectrumType.CENTROIDED;
 
@@ -91,14 +95,14 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
         Arrays.asList(rtCol, segment, acquisitionKey, mzAcqRangeLowerCol, mzAcqRangeUpper,
             sumIntensityCol, maxIntensityCol, profileMzIdCol, profileIntensityCol, lineMzIdCol,
             lineIntensityCol, lineAreaIdCol, polarityCol, scanModeCol, acquisitionModeCol,
-            msLevelCol));
+            msLevelCol, fallbackCeColumn));
   }
 
   @Override
   protected String getColumnHeadersForQuery() {
     final String spectraTable = BafSpectraTable.NAME;
     final String acqTable = BafAcqusitionKeysTable.NAME;
-    final String stepsTableStr = BafStepsTable.NAME;
+    final String variableTable = BafVariables.NAME;
 
     final String spectraString = new BafSpectraTable().columns().stream()
         .map(col -> "%s.%s".formatted(spectraTable, col.getCoulumnName()))
@@ -107,14 +111,10 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
         .filter(col -> !col.getCoulumnName().equals(BafAcqusitionKeysTable.ID_COL))
         .map(col -> "%s.%s".formatted(acqTable, col.getCoulumnName()))
         .collect(Collectors.joining(", "));
-    /*final String stepsString = stepsTable.columns().stream()
-        .filter(col -> !col.getCoulumnName().equals(BafStepsTable.MS_LEVEL_COL)) // duplicate
-        .map(col -> "%s.%s".formatted(stepsTableStr, col.getCoulumnName()))
-        .collect(Collectors.joining(", "));
-    final String collisionEnergyCol =
-        BafVariables.NAME + "." + BafVariables.VALUE_COL + " AS CollisionEnergy";*/
+    final String variableTableString =
+        variableTable + "." + BafVariables.VALUE_COL + " AS " + fallbackCeColumn.getCoulumnName();
 
-    return String.join(", ", spectraString, acqString);
+    return String.join(", ", spectraString, acqString, variableTableString);
   }
 
   @Override
@@ -125,9 +125,10 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
     return "SELECT " + columnHeadersForQuery + " FROM " + spectraTable + //
         " LEFT JOIN " + acqTable + " ON " + spectraTable + "." + BafSpectraTable.AQUISITION_KEY_COL
         + "=" + acqTable + "." + BafAcqusitionKeysTable.ID_COL + //
-//        " LEFT JOIN " + BafStepsTable.NAME + " ON " + spectraTable + "." + BafSpectraTable.ID_COL
-//        + "=" + BafStepsTable.NAME + "." + BafStepsTable.TARGET_SPECTRUM_COL + //
         // documentation says 5 is a constant value. could also get it from the SupportedVariables table otherwise.
+        " LEFT JOIN " + BafVariables.NAME + " ON " + spectraTable + "." + BafSpectraTable.ID_COL
+        + "=" + BafVariables.NAME + "." + BafVariables.SPECTRUM_COL + " AND " + BafVariables.NAME
+        + "." + BafVariables.VARIABLE_COL + "=5" + //
         " ORDER BY " + spectraTable + "." + BafSpectraTable.ID_COL;
   }
 
@@ -260,5 +261,9 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
           : MassSpectrumType.CENTROIDED;
       default -> throw new RuntimeException("Invalid spectrum type: " + getPreferredSpectrumType());
     };
+  }
+
+  public Double getFallbackCe(int index) {
+    return fallbackCeColumn.get(index);
   }
 }
