@@ -32,6 +32,8 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class Metadata2GroupsSelectionComponent extends GridPane {
 
@@ -59,19 +61,7 @@ public class Metadata2GroupsSelectionComponent extends GridPane {
     );
   }
 
-  public Metadata2GroupsSelection getValue() {
-    final String column = columnField.getValue();
-    final String groupA = groupFieldA.getText();
-    final String groupB = groupFieldB.getText();
-
-    if (column == null || groupA == null || groupB == null) {
-      return Metadata2GroupsSelection.NONE;
-    }
-
-    return new Metadata2GroupsSelection(column.trim(), groupA.trim(), groupB.trim());
-  }
-
-  public void setValue(Metadata2GroupsSelection value) {
+  public void setValue(@Nullable Metadata2GroupsSelection value) {
     if (value == null) {
       groupFieldA.setText("");
       groupFieldB.setText("");
@@ -82,5 +72,18 @@ public class Metadata2GroupsSelectionComponent extends GridPane {
     groupFieldA.setText(value.groupA());
     groupFieldB.setText(value.groupB());
     columnField.setValue(value.columnName());
+  }
+
+  @NotNull
+  public Metadata2GroupsSelection getValue() {
+    final String column = columnField.getValue();
+    final String groupA = groupFieldA.getText();
+    final String groupB = groupFieldB.getText();
+
+    if (column == null || groupA == null || groupB == null) {
+      return Metadata2GroupsSelection.NONE;
+    }
+
+    return new Metadata2GroupsSelection(column.trim(), groupA.trim(), groupB.trim());
   }
 }

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.metadata;
 
+import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
@@ -42,13 +43,13 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
 import org.controlsfx.control.textfield.TextFields;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MetadataGroupingComponent extends FlowPane implements
+public class MetadataGroupingComponent extends HBox implements
     ValuePropertyComponent<MetadataColumn<?>> {
 
   private final List<AvailableTypes> availableTypes;
@@ -67,10 +68,11 @@ public class MetadataGroupingComponent extends FlowPane implements
 
   public MetadataGroupingComponent(List<AvailableTypes> types) {
     super();
-    setHgap(FxLayout.DEFAULT_SPACE);
+    setSpacing(FxLayout.DEFAULT_SPACE);
     setPadding(Insets.EMPTY);
 
     text = new TextField();
+    FxTextFields.autoGrowFitText(text);
 
     var icon = FxIconUtil.newIconButton(FxIcons.METADATA_TABLE,
         "Open project metadata. (Import data files and metadata to then modify project metadata)",

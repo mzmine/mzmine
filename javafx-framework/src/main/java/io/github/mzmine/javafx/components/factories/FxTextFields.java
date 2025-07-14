@@ -163,4 +163,15 @@ public class FxTextFields {
           .filter(str -> str.toLowerCase().contains(input)).sorted().toList();
     });
   }
+
+  /**
+   * Auto grows the pref column count property to fit the current text
+   *
+   * @return the same as input
+   */
+  public static TextField autoGrowFitText(final TextField field) {
+    field.prefColumnCountProperty()
+        .bind(field.textProperty().map(text -> Math.max(text.length() + 1, 8)));
+    return field;
+  }
 }
