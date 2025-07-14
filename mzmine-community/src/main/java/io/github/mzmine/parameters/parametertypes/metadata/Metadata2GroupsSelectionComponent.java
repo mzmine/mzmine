@@ -36,8 +36,10 @@ import org.jetbrains.annotations.Nullable;
 public class Metadata2GroupsSelectionComponent extends GridPane {
 
   private final MetadataGroupingComponent columnField = new MetadataGroupingComponent();
-  private final ComboBox<String> groupFieldA = columnField.createLinkedGroupCombo();
-  private final ComboBox<String> groupFieldB = columnField.createLinkedGroupCombo();
+  private final ComboBox<String> groupFieldA = columnField.createLinkedGroupCombo(
+      "Select first group (A) from column.");
+  private final ComboBox<String> groupFieldB = columnField.createLinkedGroupCombo(
+      "Select second group (B) from column.");
 
   public Metadata2GroupsSelectionComponent() {
     super();

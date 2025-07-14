@@ -69,8 +69,8 @@ public class TTestConfigurationComponent extends GridPane implements
     metadataCombo = new MetadataGroupingComponent();
 
     // todo check if this actually works or throws type exceptions.
-    groupACombo = metadataCombo.createLinkedGroupCombo();
-    groupBCombo = metadataCombo.createLinkedGroupCombo();
+    groupACombo = metadataCombo.createLinkedGroupCombo("Select first group (A) from column.");
+    groupBCombo = metadataCombo.createLinkedGroupCombo("Select second group (B) from column.");
 
     metadataCombo.uniqueColumnValuesProperty()
         .addListener((ListChangeListener<? super String>) change -> {

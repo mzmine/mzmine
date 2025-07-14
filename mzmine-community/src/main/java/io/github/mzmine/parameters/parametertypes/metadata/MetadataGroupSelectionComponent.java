@@ -37,7 +37,8 @@ public class MetadataGroupSelectionComponent extends GridPane {
 
   // auto completion is automatically bound to both fields
   private final MetadataGroupingComponent columnField = new MetadataGroupingComponent();
-  private final ComboBox<String> groupField = columnField.createLinkedGroupCombo();
+  private final ComboBox<String> groupField = columnField.createLinkedGroupCombo(
+      "Select group from column.");
 
   public MetadataGroupSelectionComponent() {
     super();

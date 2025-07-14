@@ -25,7 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.metadata;
 
-import io.github.mzmine.javafx.components.factories.FxTextFields;
+import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
@@ -48,7 +48,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
-import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,11 +79,8 @@ public class MetadataGroupingComponent extends HBox implements
         .filter(col -> availableTypes.contains(col.getType())).map(MetadataColumn::getTitle)
         .toList();
 
-    comboBox = new ComboBox<>(FXCollections.observableArrayList(columns));
-    comboBox.setEditable(true);
-
-    FxTextFields.autoGrowFitText(comboBox.getEditor());
-    FxTextFields.bindAutoCompletion(comboBox.getEditor(), columns);
+    comboBox = FxComboBox.newAutoCompleteComboBox("Define a column in the sample metadata.",
+        FXCollections.observableArrayList(columns));
 
     var icon = FxIconUtil.newIconButton(FxIcons.METADATA_TABLE,
         "Open project metadata. (Import data files and metadata to then modify project metadata)",
@@ -123,13 +119,8 @@ public class MetadataGroupingComponent extends HBox implements
   /**
    * @return a combobox with auto completion of the selected column groups
    */
-  public ComboBox<String> createLinkedGroupCombo() {
-    final ComboBox<String> combo = new ComboBox<>();
-    combo.setEditable(true);
-    FxTextFields.autoGrowFitText(combo.getEditor());
-    // auto bind unique column values to group field
-    final AutoCompletionBinding<String> newBinding = FxTextFields.bindAutoCompletion(
-        combo.getEditor(), uniqueColumnValues);
+  public ComboBox<String> createLinkedGroupCombo(String tooltip) {
+    final ComboBox<String> combo = FxComboBox.newAutoCompleteComboBox(tooltip);
 
     // bind items to the unique ccolumn values by mapping the values to strings
     uniqueColumnValuesProperty().addListener((ListChangeListener<? super String>) change -> {

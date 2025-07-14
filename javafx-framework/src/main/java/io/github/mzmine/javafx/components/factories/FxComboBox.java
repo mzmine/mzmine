@@ -25,6 +25,7 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import io.github.mzmine.javafx.components.skins.DynamicWidthComboBoxSkin;
 import java.util.Collection;
 import java.util.List;
 import javafx.beans.property.Property;
@@ -94,6 +95,29 @@ public class FxComboBox {
     return createComboBox(tooltip, List.of(values), selectedItem);
   }
 
+  /**
+   * A combobox with auto complete for its items. This is useful for parameters when the input text
+   * may be used although items do not define this option. This may be different from
+   * SearchableComboBox but not testet.
+   */
+  public static <T> ComboBox<T> newAutoCompleteComboBox(String tooltip) {
+    return newAutoCompleteComboBox(tooltip, List.of());
+  }
+
+  /**
+   * A combobox with auto complete for its items. This is useful for parameters when the input text
+   * may be used although items do not define this option. This may be different from
+   * SearchableComboBox but not testet.
+   */
+  public static <T> ComboBox<T> newAutoCompleteComboBox(String tooltip, Collection<T> items) {
+    final ComboBox<T> combo = createComboBox(tooltip, items);
+    // auto grow with input
+    combo.setSkin(new DynamicWidthComboBoxSkin<>(combo));
+    combo.setEditable(true);
+    // auto complete for items
+    FxComboBox.bindAutoCompletion(combo);
+    return combo;
+  }
 
   /**
    * Automatically bind auto-completion to a combobox
@@ -104,4 +128,5 @@ public class FxComboBox {
   public static AutoCompletionBinding<String> bindAutoCompletion(ComboBox<?> combo) {
     return FxTextFields.bindAutoCompletion(combo.getEditor(), combo.getItems());
   }
+
 }
