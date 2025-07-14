@@ -55,6 +55,7 @@ import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.Q3QuantMzType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
@@ -123,6 +124,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final NPClassifierPathwayType npclassyfierPathwayType = DataTypes.get(
       NPClassifierPathwayType.class);
   private final DatabaseNameType databaseType = DataTypes.get(DatabaseNameType.class);
+  private final Q3QuantMzType q3QuantMzType = DataTypes.get(Q3QuantMzType.class);
 
   // vars
   private final FeatureList[] featureLists;
@@ -480,6 +482,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     final String npclassifierSuperclass = entry.get(npclassyfierSuperclassType);
     final String npclassifierclass = entry.get(npclassyfierClassType);
     final String npclassifierPathway = entry.get(npclassyfierPathwayType);
+    final Double q3QuantMz =
+        entry.get(q3QuantMzType) != null ? Double.parseDouble(entry.get(q3QuantMzType)) : null;
 
     final String lineComment;
     if (!commentFields.isEmpty()) {
@@ -513,6 +517,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     a.putIfNotNull(npclassyfierSuperclassType, npclassifierSuperclass);
     a.putIfNotNull(npclassyfierClassType, npclassifierclass);
     a.putIfNotNull(npclassyfierPathwayType, npclassifierPathway);
+    a.putIfNotNull(q3QuantMzType, q3QuantMz);
     return a;
   }
 
