@@ -39,6 +39,7 @@ import javafx.scene.layout.HBox;
 import org.controlsfx.control.SearchableComboBox;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FxComboBox {
 
@@ -77,13 +78,13 @@ public class FxComboBox {
     return addContent(tooltip, values, selectedItem, new SearchableComboBox<>());
   }
 
-  public static <T> ComboBox<T> createComboBox(String tooltip, Collection<T> values) {
+  public static <T> ComboBox<T> createComboBox(String tooltip, @Nullable Collection<T> values) {
     final ComboBox<T> combo = new ComboBox<>();
     if (values instanceof ObservableList<T> ov) {
       combo.setItems(ov);
     } else if (values instanceof List<T> list) {
       combo.setItems(FXCollections.observableList(list));
-    } else {
+    } else if (values != null) {
       combo.setItems(FXCollections.observableList(List.copyOf(values)));
     }
     combo.setTooltip(new Tooltip(tooltip));
@@ -101,7 +102,7 @@ public class FxComboBox {
    * SearchableComboBox but not testet.
    */
   public static <T> ComboBox<T> newAutoCompleteComboBox(String tooltip) {
-    return newAutoCompleteComboBox(tooltip, List.of());
+    return newAutoCompleteComboBox(tooltip, null);
   }
 
   /**
@@ -109,7 +110,8 @@ public class FxComboBox {
    * may be used although items do not define this option. This may be different from
    * SearchableComboBox but not testet.
    */
-  public static <T> ComboBox<T> newAutoCompleteComboBox(String tooltip, Collection<T> items) {
+  public static <T> ComboBox<T> newAutoCompleteComboBox(String tooltip,
+      @Nullable Collection<T> items) {
     final ComboBox<T> combo = createComboBox(tooltip, items);
     // auto grow with input
     combo.setSkin(new DynamicWidthComboBoxSkin<>(combo));
