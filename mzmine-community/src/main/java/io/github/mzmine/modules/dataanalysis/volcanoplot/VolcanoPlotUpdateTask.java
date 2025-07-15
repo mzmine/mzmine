@@ -42,7 +42,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
-import io.github.mzmine.parameters.parametertypes.statistics.StorableTTestConfiguration;
+import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -77,7 +77,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
     }
 
     final FeaturesDataTable dataTable = model.getFeatureDataTable();
-    final StorableTTestConfiguration testConfig = model.getTest();
+    final UnivariateRowSignificanceTestConfig testConfig = model.getTest();
     if (testConfig != null && dataTable != null) {
       test = testConfig.toValidConfig(dataTable);
     } else {

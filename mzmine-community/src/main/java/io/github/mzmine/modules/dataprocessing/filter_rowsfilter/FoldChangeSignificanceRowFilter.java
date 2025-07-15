@@ -31,7 +31,7 @@ import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelection;
-import io.github.mzmine.parameters.parametertypes.statistics.StorableTTestConfiguration;
+import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -89,8 +89,8 @@ public final class FoldChangeSignificanceRowFilter {
         foldChangeFilterSides == FoldChangeFilterSides.ABS_BOTH_SIDES ? Math.abs(minLog2FoldChange)
             : minLog2FoldChange;
     this.test = test;
-    rowTest = new StorableTTestConfiguration(test, grouping().columnName(), grouping.groupA(),
-        grouping.groupB()).toValidConfig(groupAData, groupBData);
+    rowTest = new UnivariateRowSignificanceTestConfig(test, grouping().columnName(),
+        grouping.groupA(), grouping.groupB()).toValidConfig(groupAData, groupBData);
     if (rowTest == null) {
       throw new IllegalArgumentException(
           "Invalid group selection for univariate test: " + grouping);

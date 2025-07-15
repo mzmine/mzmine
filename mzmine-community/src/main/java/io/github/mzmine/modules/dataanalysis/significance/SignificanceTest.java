@@ -53,7 +53,6 @@ public interface SignificanceTest {
    * Applies prechecks and throws IllegalArgumentException if mismatch
    *
    * @param data the list of groups data
-   * @return
    */
-  boolean applyPreChecks(List<double @NotNull []> data);
+  void applyPreChecks(List<double @NotNull []> data);
 }

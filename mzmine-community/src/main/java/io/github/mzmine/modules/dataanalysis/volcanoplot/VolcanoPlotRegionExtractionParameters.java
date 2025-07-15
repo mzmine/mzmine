@@ -39,8 +39,8 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfigParameter;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfigSubParameters;
-import io.github.mzmine.parameters.parametertypes.statistics.StorableTTestConfiguration;
 import io.github.mzmine.parameters.parametertypes.statistics.TTestConfigurationParameter;
+import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import java.awt.geom.Point2D;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +72,7 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
         new FeatureListsSelection((ModularFeatureList) model.getFlists().getFirst()));
     param.setParameter(VolcanoPlotRegionExtractionParameters.regions, regions);
 
-    final StorableTTestConfiguration test = model.getTest();
+    final UnivariateRowSignificanceTestConfig test = model.getTest();
     param.setParameter(VolcanoPlotRegionExtractionParameters.config, test);
 
     final AbundanceDataTablePreparationConfigSubParameters dataPrepParams = param.getParameter(

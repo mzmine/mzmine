@@ -28,10 +28,10 @@ package io.github.mzmine.modules.dataanalysis.significance;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestResult;
+import io.github.mzmine.modules.dataanalysis.significance.ttest.UnivariateRowSignificanceTestResult;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.parameters.parametertypes.statistics.StorableTTestConfiguration;
+import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import java.util.Map;
@@ -110,7 +110,7 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
 
     try {
       final double p = test.checkAndTest(List.of(groupAAbundance, groupBAbundance));
-      return new TTestResult(row, column.getTitle(), p);
+      return new UnivariateRowSignificanceTestResult(row, column.getTitle(), p);
     } catch (Exception e) {
       // this should not happen after imputing missing values and providing a p value for every input
       throw new IllegalStateException(
@@ -157,8 +157,8 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
         && Objects.equals(this.groupA, that.groupA) && Objects.equals(this.groupB, that.groupB);
   }
 
-  public StorableTTestConfiguration toConfiguration() {
-    return new StorableTTestConfiguration(test, column().getTitle(), groupA().toString(),
+  public UnivariateRowSignificanceTestConfig toConfiguration() {
+    return new UnivariateRowSignificanceTestConfig(test, column().getTitle(), groupA().toString(),
         groupB().toString());
   }
 }

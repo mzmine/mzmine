@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.statistics;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -33,6 +34,8 @@ import org.jetbrains.annotations.NotNull;
 public interface FeatureListRowAbundances {
 
   /**
+   * @param values             is the feature values for all samples in the order of the samples
+   *                           {@link RawDataFile} list of the parent {@link DataTable}
    * @param trackMissingValues creates a {@link MissingValuesImputedFeatureListRowAbundances} to
    *                           track the original missing values so that if zero values are imputed
    *                           later the original missing values ratio is kept

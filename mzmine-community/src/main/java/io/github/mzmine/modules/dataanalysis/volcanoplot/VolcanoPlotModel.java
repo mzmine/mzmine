@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
-import io.github.mzmine.parameters.parametertypes.statistics.StorableTTestConfiguration;
+import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import java.util.Collection;
 import java.util.List;
 import javafx.beans.property.DoubleProperty;
@@ -53,7 +53,7 @@ public class VolcanoPlotModel {
 
   private final ObjectProperty<Collection<DatasetAndRenderer>> datasets = new SimpleObjectProperty<>(
       List.of());
-  private final ObjectProperty<@Nullable StorableTTestConfiguration> test = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable UnivariateRowSignificanceTestConfig> test = new SimpleObjectProperty<>();
 
   private final DoubleProperty pValue = new SimpleDoubleProperty(0.05);
 
@@ -119,15 +119,15 @@ public class VolcanoPlotModel {
     return datasets;
   }
 
-  public @Nullable StorableTTestConfiguration getTest() {
+  public @Nullable UnivariateRowSignificanceTestConfig getTest() {
     return test.get();
   }
 
-  public void setTest(@Nullable StorableTTestConfiguration test) {
+  public void setTest(@Nullable UnivariateRowSignificanceTestConfig test) {
     this.test.set(test);
   }
 
-  public ObjectProperty<@Nullable StorableTTestConfiguration> testProperty() {
+  public ObjectProperty<@Nullable UnivariateRowSignificanceTestConfig> testProperty() {
     return test;
   }
 

@@ -54,13 +54,14 @@ public class FxComboBox {
     return hBox;
   }
 
-  public static <T> ComboBox<T> createComboBox(String tooltip, Collection<T> values,
-      Property<T> selectedItem) {
-    return addContent(tooltip, values, selectedItem, new ComboBox<T>());
+  public static <T> ComboBox<T> createComboBox(@Nullable String tooltip, Collection<T> values,
+      @Nullable Property<T> selectedItem) {
+    return addContent(tooltip, values, selectedItem, new ComboBox<>());
   }
 
-  private static <T, COMBO extends ComboBox<T>> @NotNull COMBO addContent(final String tooltip,
-      final Collection<T> values, final Property<T> selectedItem, final COMBO combo) {
+  private static <T, COMBO extends ComboBox<T>> @NotNull COMBO addContent(
+      @Nullable final String tooltip, final Collection<T> values,
+      @Nullable final Property<T> selectedItem, final COMBO combo) {
     if (values instanceof ObservableList<T> ov) {
       combo.setItems(ov);
     } else if (values instanceof List<T> list) {
@@ -68,30 +69,26 @@ public class FxComboBox {
     } else {
       combo.setItems(FXCollections.observableList(List.copyOf(values)));
     }
-    combo.valueProperty().bindBidirectional(selectedItem);
-    combo.setTooltip(new Tooltip(tooltip));
+    if (selectedItem != null) {
+      combo.valueProperty().bindBidirectional(selectedItem);
+    }
+    if (tooltip != null) {
+      combo.setTooltip(new Tooltip(tooltip));
+    }
     return combo;
   }
 
-  public static <T> SearchableComboBox<T> newSearchableComboBox(@NotNull String tooltip,
+  public static <T> SearchableComboBox<T> newSearchableComboBox(@Nullable String tooltip,
       @NotNull List<T> values, @NotNull Property<T> selectedItem) {
     return addContent(tooltip, values, selectedItem, new SearchableComboBox<>());
   }
 
-  public static <T> ComboBox<T> createComboBox(String tooltip, @Nullable Collection<T> values) {
-    final ComboBox<T> combo = new ComboBox<>();
-    if (values instanceof ObservableList<T> ov) {
-      combo.setItems(ov);
-    } else if (values instanceof List<T> list) {
-      combo.setItems(FXCollections.observableList(list));
-    } else if (values != null) {
-      combo.setItems(FXCollections.observableList(List.copyOf(values)));
-    }
-    combo.setTooltip(new Tooltip(tooltip));
-    return combo;
+  public static <T> ComboBox<T> createComboBox(@Nullable String tooltip,
+      @Nullable Collection<T> values) {
+    return addContent(tooltip, values, null, new ComboBox<>());
   }
 
-  public static <T> ComboBox<T> createComboBox(String tooltip, T[] values,
+  public static <T> ComboBox<T> createComboBox(@Nullable String tooltip, T[] values,
       Property<T> selectedItem) {
     return createComboBox(tooltip, List.of(values), selectedItem);
   }
@@ -101,7 +98,7 @@ public class FxComboBox {
    * may be used although items do not define this option. This may be different from
    * SearchableComboBox but not testet.
    */
-  public static <T> ComboBox<T> newAutoCompleteComboBox(String tooltip) {
+  public static <T> ComboBox<T> newAutoCompleteComboBox(@Nullable String tooltip) {
     return newAutoCompleteComboBox(tooltip, null);
   }
 
@@ -110,7 +107,7 @@ public class FxComboBox {
    * may be used although items do not define this option. This may be different from
    * SearchableComboBox but not testet.
    */
-  public static <T> ComboBox<T> newAutoCompleteComboBox(String tooltip,
+  public static <T> ComboBox<T> newAutoCompleteComboBox(@Nullable String tooltip,
       @Nullable Collection<T> items) {
     final ComboBox<T> combo = createComboBox(tooltip, items);
     // auto grow with input
