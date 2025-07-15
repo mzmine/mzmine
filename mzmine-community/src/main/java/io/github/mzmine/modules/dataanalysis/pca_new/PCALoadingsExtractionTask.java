@@ -35,6 +35,7 @@ import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.MeanCenterScalingFunction;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -105,8 +106,10 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
   }
 
   private static void prepareData(PCAModel pcaModel) {
+    // always apply mean centering for PCA
     final var config = new AbundanceDataTablePreparationConfig(pcaModel.getAbundance(),
-        pcaModel.getImputationFunction(), pcaModel.getScalingFunction());
+        pcaModel.getImputationFunction(), pcaModel.getScalingFunction(),
+        new MeanCenterScalingFunction());
     final FeaturesDataTable dataTable = StatisticUtils.extractAbundancesPrepareData(
         pcaModel.getFlists().getFirst(), config);
     pcaModel.setFeatureDataTable(dataTable);

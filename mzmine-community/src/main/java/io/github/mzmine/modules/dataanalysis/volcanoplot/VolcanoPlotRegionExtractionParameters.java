@@ -57,7 +57,7 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
 
   public static final AbundanceDataTablePreparationConfigParameter dataPreparationConfig = new AbundanceDataTablePreparationConfigParameter();
 
-  private static final AbundanceMeasureParameter LEGACY_ABUNDANCE_PARAMETER = new AbundanceMeasureParameter(
+  private final AbundanceMeasureParameter LEGACY_ABUNDANCE_PARAMETER = new AbundanceMeasureParameter(
       "Abundance measure", "Select which metric is used to calculate the p Values.",
       AbundanceMeasure.values());
 
@@ -115,7 +115,7 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
       // this changes behavior a bit but should be fine. There will be very few batches that actually rely on this module.
       // For a while people can just use the same old version to reproduce old results
       case 2 ->
-          "Added support for missing value imputation. This has changed the default of missing value imputation to global limit of detection.";
+          "Added support for missing value imputation. This introduced missing value imputation as default global LOD (limit of detection).";
       default -> null;
     };
   }

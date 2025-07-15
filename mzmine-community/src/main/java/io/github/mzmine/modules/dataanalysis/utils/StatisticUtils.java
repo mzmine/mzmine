@@ -85,6 +85,10 @@ public class StatisticUtils {
       // apply scaling
       data = config.scalingFunction().getScalingFunction().process(data, true);
     }
+    if (config.meanCentering() != null) {
+      // apply scaling
+      data = config.meanCentering().process(data, true);
+    }
 
     return data;
   }
@@ -159,8 +163,7 @@ public class StatisticUtils {
       final double sum = columnVector.getL1Norm();
       final double mean = sum / columnVector.getDimension();
 
-      var resultVector = result.getColumnVector(col);
-      resultVector = columnVector.mapSubtract(mean);
+      var resultVector = columnVector.mapSubtract(mean);
       result.setColumnVector(col, resultVector);
     }
     return result;

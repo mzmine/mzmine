@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 public record Metadata2GroupsSelection(@NotNull String columnName, @NotNull String groupA,
                                        @NotNull String groupB) {
 
-  public static Metadata2GroupsSelection NONE = new Metadata2GroupsSelection("", "", "");
+  public final static Metadata2GroupsSelection NONE = new Metadata2GroupsSelection("", "", "");
 
   /**
    * @return Checks if the current metadata table contains the specified column and the specified

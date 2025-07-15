@@ -36,6 +36,7 @@ import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.MeanCenterScalingFunction;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.FeatureDataPreparationTask;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
@@ -95,7 +96,7 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
     }
     // create the new dataset
     final var config = new AbundanceDataTablePreparationConfig(model.getAbundance(),
-        model.getImputationFunction(), model.getScalingFunction());
+        model.getImputationFunction(), model.getScalingFunction(), new MeanCenterScalingFunction());
 
     onTaskThreadDelayed(
         new FeatureDataPreparationTask(model.featureDataTableProperty(), flists.getFirst(),
