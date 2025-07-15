@@ -44,7 +44,7 @@ public class ComboWithIntOrAutoParameter extends
   }
 
   @Override
-  public UserParameter<IntOrAutoValue, ComboWithInputComponent<IntOrAuto>> cloneParameter() {
+  public ComboWithIntOrAutoParameter cloneParameter() {
     final IntegerParameter embeddedClone = embeddedParameter.cloneParameter();
     embeddedClone.setValue(value.manual());
     final ComboWithIntOrAutoParameter clone = new ComboWithIntOrAutoParameter(
