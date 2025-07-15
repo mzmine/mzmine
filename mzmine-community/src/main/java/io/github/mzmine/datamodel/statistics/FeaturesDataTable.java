@@ -28,12 +28,14 @@ package io.github.mzmine.datamodel.statistics;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.collections.CollectionUtils;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class FeaturesDataTable implements ModifiableDataTable {
 
@@ -42,11 +44,89 @@ public final class FeaturesDataTable implements ModifiableDataTable {
 
   private final @NotNull List<RawDataFile> dataFiles;
   private final @NotNull FeatureListRowAbundances[] dataRows;
+  // thought about lazy initialization but then the map would be volatile with many reads that may slow down
+  // initialization of map should be fast - memory overhead should be fine
+  // dont expose the exact class outside as this might change in the future. public uses Map<T, Integer>
+  private final Object2IntMap<FeatureListRow> featureRowIndexMap;
+  private final Object2IntMap<RawDataFile> dataFileIndexMap;
 
   public FeaturesDataTable(@NotNull List<RawDataFile> dataFiles,
       @NotNull FeatureListRowAbundances[] dataRows) {
+    this(dataFiles, dataRows, null, null);
+  }
+
+  /**
+   * Local constructor to
+   *
+   * @param featureRowIndexMap null to recreate the index
+   * @param dataFileIndexMap   null to recreate the index
+   */
+  FeaturesDataTable(@NotNull List<RawDataFile> dataFiles,
+      @NotNull FeatureListRowAbundances[] dataRows,
+      @Nullable Object2IntMap<FeatureListRow> featureRowIndexMap,
+      @Nullable Object2IntMap<RawDataFile> dataFileIndexMap) {
     this.dataFiles = dataFiles;
     this.dataRows = dataRows;
+
+    // simple check if data is correct
+    if (dataFileIndexMap != null) {
+      if (dataFileIndexMap.size() != dataFiles.size()) {
+        throw new IllegalArgumentException(
+            "Number of raw data files (%d) does not match its own index (size=%d).".formatted(
+                dataFiles.size(), dataFileIndexMap.size()));
+      }
+
+      for (int i = 0; i < dataFiles.size(); i++) {
+        if (dataFileIndexMap.getInt(dataRows[i].row()) != i) {
+          throw new IllegalArgumentException(
+              "Data file index map does not match the position of samples in the list.");
+        }
+      }
+    }
+    if (featureRowIndexMap != null) {
+      if (featureRowIndexMap.size() != dataRows.length) {
+        throw new IllegalArgumentException(
+            "Number of feature rows (%d) does not match its own index (size=%d).".formatted(
+                dataRows.length, featureRowIndexMap.size()));
+      }
+      for (int i = 0; i < dataRows.length; i++) {
+        if (featureRowIndexMap.getInt(dataRows[i].row()) != i) {
+          throw new IllegalArgumentException(
+              "Feature row index map does not match the position of rows in the array.");
+        }
+      }
+    }
+
+    // index data if needed
+    this.featureRowIndexMap = featureRowIndexMap != null ? featureRowIndexMap
+        : CollectionUtils.indexMapUnordered(
+            Arrays.stream(dataRows).map(FeatureListRowAbundances::row).toList());
+    this.dataFileIndexMap =
+        dataFileIndexMap != null ? dataFileIndexMap : CollectionUtils.indexMapUnordered(dataFiles);
+  }
+
+  /**
+   * Creates a copy with new rows, e.g., after sorting. Reuses data files and index
+   */
+  public FeaturesDataTable copyWithNewRows(FeatureListRowAbundances[] newRows) {
+    // reuse data file map
+    return new FeaturesDataTable(dataFiles, newRows, null, dataFileIndexMap);
+  }
+
+  public int getFeatureIndex(FeatureListRow row) {
+    return featureRowIndexMap.getInt(row);
+  }
+
+  public int getSampleIndex(RawDataFile dataFile) {
+    return dataFileIndexMap.getInt(dataFile);
+  }
+
+  public void setValue(FeatureListRow row, RawDataFile dataFile, double value) {
+    setValue(getFeatureIndex(row), getSampleIndex(dataFile), value);
+  }
+
+  public double getValue(FeatureListRow row, RawDataFile dataFile) {
+    return getValue(getFeatureIndex(row), getSampleIndex(dataFile));
   }
 
   public Stream<double[]> streamRows() {
@@ -76,14 +156,14 @@ public final class FeaturesDataTable implements ModifiableDataTable {
    * @return map of the data file to index
    */
   public @NotNull Map<RawDataFile, Integer> getDataFileIndexMap() {
-    return CollectionUtils.indexMap(getRawDataFiles());
+    return dataFileIndexMap;
   }
 
   /**
    * @return map of the row to index
    */
   public @NotNull Map<FeatureListRow, Integer> getFeatureRowIndexMap() {
-    return CollectionUtils.indexMap(getFeatureListRows());
+    return featureRowIndexMap;
   }
 
   public @NotNull Stream<FeatureListRowAbundances> streamDataRows() {
@@ -94,13 +174,21 @@ public final class FeaturesDataTable implements ModifiableDataTable {
     return streamDataRows().map(FeatureListRowAbundances::row).toList();
   }
 
+  public double[] getFeatureData(FeatureListRow row, boolean copy) {
+    return getFeatureData(getFeatureIndex(row), copy);
+  }
+
   @Override
-  public double[] getFeatureData(int i, boolean copy) {
-    final double[] abundances = dataRows[i].abundances();
+  public double[] getFeatureData(int rowIndex, boolean copy) {
+    final double[] abundances = dataRows[rowIndex].abundances();
     if (copy) {
       return Arrays.copyOf(abundances, abundances.length);
     }
     return abundances;
+  }
+
+  public double[] getSampleData(RawDataFile raw) {
+    return getSampleData(getSampleIndex(raw));
   }
 
   @Override
@@ -116,7 +204,7 @@ public final class FeaturesDataTable implements ModifiableDataTable {
   public FeaturesDataTable copy() {
     final var dataClone = Arrays.stream(dataRows).map(FeatureListRowAbundances::copy)
         .toArray(FeatureListRowAbundances[]::new);
-    return new FeaturesDataTable(dataFiles, dataClone);
+    return new FeaturesDataTable(dataFiles, dataClone, featureRowIndexMap, dataFileIndexMap);
   }
 
   /**
@@ -125,7 +213,7 @@ public final class FeaturesDataTable implements ModifiableDataTable {
    */
   public FeaturesDataTable subsetBySamples(List<RawDataFile> group) {
     // find index of raw data files
-    final Map<RawDataFile, Integer> fileIndexMap = CollectionUtils.indexMap(dataFiles);
+    final Map<RawDataFile, Integer> fileIndexMap = CollectionUtils.indexMapOrdered(dataFiles);
 
     final int[] groupIndexes = group.stream().mapToInt(fileIndexMap::get).toArray();
     if (groupIndexes.length != group.size()) {
@@ -140,7 +228,12 @@ public final class FeaturesDataTable implements ModifiableDataTable {
     final FeatureListRowAbundances[] subData = Arrays.stream(dataRows)
         .map(row -> row.subsetByIndexes(groupIndexes)).toArray(FeatureListRowAbundances[]::new);
 
-    return new FeaturesDataTable(group, subData);
+    // only reuse the rows as they are the same - samples indexes are recomputed
+    return new FeaturesDataTable(group, subData, featureRowIndexMap, null);
+  }
+
+  public @NotNull FeatureListRowAbundances getFeatureRow(FeatureListRow row) {
+    return getFeatureRow(getFeatureIndex(row));
   }
 
   public @NotNull FeatureListRowAbundances getFeatureRow(int rowIndex) {

@@ -151,7 +151,7 @@ public class DataTableUtils {
     final FeatureListRowAbundances[] sortedData = data.streamDataRows()
         .sorted((a, b) -> sorter.compare(a.row(), b.row()))
         .toArray(FeatureListRowAbundances[]::new);
-    return new FeaturesDataTable(data.getRawDataFiles(), sortedData);
+    return data.copyWithNewRows(sortedData);
   }
 
   /**
