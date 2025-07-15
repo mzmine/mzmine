@@ -114,9 +114,11 @@ public record OtherTraceSelection(@Nullable ChromatogramType chromatogramType,
   }
 
   public Stream<OtherFeature> streamMatchingTraces(OtherTimeSeriesData otherTimeSeriesData) {
-    // go from top level to make sure everything matches. if not, the stream will simply be empty.
-    return streamMatchingTraces(
-        List.of(otherTimeSeriesData.getOtherDataFile().getCorrespondingRawDataFile()));
+    // make sure everything matches. if not, the stream will simply be empty.
+    if(!matchesTimeSeriesData(otherTimeSeriesData)) {
+      return Stream.empty();
+    }
+    return rawOrProcessed.streamMatching(otherTimeSeriesData);
   }
 
   public List<OtherFeature> getMatchingTraces(OtherTimeSeriesData otherTimeSeriesData) {
@@ -139,15 +141,15 @@ public record OtherTraceSelection(@Nullable ChromatogramType chromatogramType,
   public Stream<OtherTimeSeriesData> streamMatchingTimeSeriesData(Collection<RawDataFile> msFiles) {
     return msFiles.stream().flatMap(f -> f.getOtherDataFiles().stream())
         .filter(OtherDataFile::hasTimeSeries).map(OtherDataFile::getOtherTimeSeriesData)
-        .filter(Objects::nonNull)//
-        .filter(
-            data -> chromatogramType == null || data.getChromatogramType() == chromatogramType)//
-        .filter(data -> rangeUnitFilter == null || data.getTimeSeriesRangeUnit()
-            .matches(rangeUnitFilter))//
-        .filter(data -> rangeLabelFilter == null || data.getTimeSeriesRangeLabel()
-            .matches(rangeLabelFilter))//
-        .filter(data -> descriptionFilter == null || data.getOtherDataFile().getDescription()
-            .matches(descriptionFilter)); //
+        .filter(this::matchesTimeSeriesData); //
+  }
+
+  private boolean matchesTimeSeriesData(OtherTimeSeriesData obj) {
+    return Objects.nonNull(obj) && (chromatogramType == null
+        || obj.getChromatogramType() == chromatogramType) && (rangeUnitFilter == null
+        || obj.getTimeSeriesRangeUnit().matches(rangeUnitFilter)) && (rangeLabelFilter == null
+        || obj.getTimeSeriesRangeLabel().matches(rangeLabelFilter)) && (descriptionFilter == null
+        || obj.getOtherDataFile().getDescription().matches(descriptionFilter));
   }
 
   /**
