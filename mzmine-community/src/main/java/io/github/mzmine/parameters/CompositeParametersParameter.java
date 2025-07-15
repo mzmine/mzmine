@@ -26,35 +26,34 @@
 package io.github.mzmine.parameters;
 
 import javafx.scene.Node;
-import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
-public abstract class AbstractParameter<ValueType, EditorComponent extends Node> implements
-    UserParameter<ValueType, EditorComponent> {
+/**
+ * Parameter that combines multiple parameters that are only internally used to handle sub values,
+ * create components, save, load values...
+ */
+public abstract class CompositeParametersParameter<ValueType, EditorComponent extends Node> extends
+    AbstractParameter<ValueType, EditorComponent> {
 
-  protected final String name;
-  protected final String description;
 
-  public AbstractParameter(String name, String description) {
+  public CompositeParametersParameter(String name, String description) {
     this(name, description, null);
   }
 
-  public AbstractParameter(String name, String description, @Nullable ValueType defaultVal) {
-    this.name = name;
-    this.description = description;
-    // delegate to sub classes
-    if (defaultVal != null) {
-      setValue(defaultVal);
-    }
+  public CompositeParametersParameter(String name, String description, ValueType defaultVal) {
+    super(name, description, defaultVal);
+  }
+
+  protected abstract Parameter<?>[] getInternalParameters();
+
+  @Override
+  public void loadValueFromXML(Element xmlElement) {
+    ParameterUtils.loadParametersInOrder(xmlElement, getInternalParameters());
   }
 
   @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public String getDescription() {
-    return description;
+  public void saveValueToXML(Element xmlElement) {
+    ParameterUtils.saveInOrder(xmlElement, getInternalParameters());
   }
 
 }
