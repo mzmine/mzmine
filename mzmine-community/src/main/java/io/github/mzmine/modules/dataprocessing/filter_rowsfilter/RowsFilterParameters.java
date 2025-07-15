@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesInMetadataParameter;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -44,7 +45,9 @@ import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
@@ -56,6 +59,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<MinimumSamplesParameter> MIN_FEATURE_COUNT = new OptionalParameter<>(
       new MinimumSamplesParameter(), false);
+
+  public static final OptionalParameter<MinimumSamplesInMetadataParameter> MIN_FEATURE_IN_GROUP_COUNT = new OptionalParameter<>(
+      new MinimumSamplesInMetadataParameter(), false);
 
   public static final OptionalParameter<IntegerParameter> MIN_ISOTOPE_PATTERN_COUNT = new OptionalParameter<>(
       new IntegerParameter("Minimum features in an isotope pattern",
@@ -154,12 +160,12 @@ public class RowsFilterParameters extends SimpleParameterSet {
             // general parameters
             FEATURE_LISTS, SUFFIX, REMOVE_ROW, handleOriginal,
             // sample filtering
-            MIN_FEATURE_COUNT, cvFilter, foldChangeFilter,
+            MIN_FEATURE_COUNT, MIN_FEATURE_IN_GROUP_COUNT, cvFilter, foldChangeFilter,
             // isotopes
             // TODO what does redundant do?
             MIN_ISOTOPE_PATTERN_COUNT, ISOTOPE_FILTER_13C, removeRedundantRows,
             // feature properties
-            MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE, KENDRICK_MASS_DEFECT, massDefect,
+            MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE, massDefect, KENDRICK_MASS_DEFECT,
             // identities / annotations
             HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, MS2_Filter, KEEP_ALL_MS2, KEEP_ALL_ANNOTATED,
             Reset_ID},
@@ -174,5 +180,17 @@ public class RowsFilterParameters extends SimpleParameterSet {
   @Override
   public int getVersion() {
     return 3;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return super.getVersionMessage(version);
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    final Map<String, Parameter<?>> map = super.getNameParameterMap();
+    map.put("Minimum aligned features (samples)", MIN_FEATURE_COUNT);
+    return map;
   }
 }

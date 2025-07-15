@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -38,8 +39,9 @@ import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibrary
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilter;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilterConfig;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
-import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectFilter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -51,6 +53,7 @@ import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -74,7 +77,6 @@ public class RowsFilterTask extends AbstractTask {
   private final boolean onlyIdentified;
   private final boolean filterByIdentityText;
   private final boolean filterByCommentText;
-  private final boolean filterByMinFeatureCount;
   private final boolean filterByMinIsotopePatternSize;
   private final boolean filterByMzRange;
   private final boolean filterByRtRange;
@@ -105,7 +107,8 @@ public class RowsFilterTask extends AbstractTask {
   private final Isotope13CFilter isotope13CFilter;
   private final FoldChangeSignificanceRowFilterParameters significanceFoldChangeFilterParameters;
   private final RsdFilterParameters cvFilterParameters;
-  private final AbsoluteAndRelativeInt minSamples;
+  private final MinimumSamplesFilter minSamples;
+  private final MinimumSamplesFilter minSamplesInGroup;
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
 
@@ -131,6 +134,7 @@ public class RowsFilterTask extends AbstractTask {
     this.project = project;
     parameters = parameterSet;
     origFeatureList = list;
+    final List<RawDataFile> rawFiles = origFeatureList.getRawDataFiles();
     filteredFeatureList = null;
     processedRows = 0;
     totalRows = 0;
@@ -142,7 +146,6 @@ public class RowsFilterTask extends AbstractTask {
     onlyIdentified = parameters.getValue(RowsFilterParameters.HAS_IDENTITIES);
     filterByIdentityText = parameters.getValue(RowsFilterParameters.IDENTITY_TEXT);
     filterByCommentText = parameters.getValue(RowsFilterParameters.COMMENT_TEXT);
-    filterByMinFeatureCount = parameters.getValue(RowsFilterParameters.MIN_FEATURE_COUNT);
     filterByMinIsotopePatternSize = parameters.getValue(
         RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT);
     filterByMzRange = parameters.getValue(RowsFilterParameters.MZ_RANGE);
@@ -153,8 +156,13 @@ public class RowsFilterTask extends AbstractTask {
     filterByKMD = parameters.getValue(RowsFilterParameters.KENDRICK_MASS_DEFECT);
     filterByMS2 = parameters.getValue(RowsFilterParameters.MS2_Filter);
     filterOption = parameters.getValue(RowsFilterParameters.REMOVE_ROW);
-    minSamples = parameters.getEmbeddedParameterValueIfSelectedOrElse(
-        RowsFilterParameters.MIN_FEATURE_COUNT, null);
+
+    // create min samples filter based on all files and on groups in column
+    minSamples = parameters.getOptionalValue(RowsFilterParameters.MIN_FEATURE_COUNT)
+        .map(min -> new MinimumSamplesFilterConfig(min).createFilter(rawFiles)).orElse(null);
+    minSamplesInGroup = parameters.getOptionalValue(RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT)
+        .map(config -> config.createFilter(rawFiles)).orElse(null);
+
     renumber = parameters.getValue(RowsFilterParameters.Reset_ID);
     filterByMassDefect = parameters.getValue(RowsFilterParameters.massDefect);
     massDefectFilter = filterByMassDefect ? parameters.getParameter(RowsFilterParameters.massDefect)
@@ -280,21 +288,20 @@ public class RowsFilterTask extends AbstractTask {
     // otherwise we remove those that match all criteria
     boolean removeFailed = RowsFilterChoices.KEEP_MATCHING == filterOption;
 
-    final int totalSamples = featureList.getRawDataFiles().size();
     // check if min samples filter is valid
-    if (filterByMinFeatureCount) {
-      int numMinSamples = minSamples.getMaximumValue(totalSamples);
-      if (numMinSamples > totalSamples) {
-        var filterName = RowsFilterParameters.MIN_FEATURE_COUNT.getName();
-        var errorMessage = """
-            The "%s" parameter in the feature list rows filter step requires %d samples, but \
-            the processed feature list %s only contains %d samples. Check the feature list rows \
-            filter and adjust the minimum number of samples. Relative percentages help to scale this parameter automatically from small to large datasets.
-            The current processing step and all following will be cancelled.""".formatted(
-            filterName, numMinSamples, featureList, totalSamples);
-
-        // kill the job this is a misconfiguration that needs to be handled
-        error(errorMessage);
+    if (minSamples != null) {
+      String message = minSamples.getInvalidConfigMessage(
+          RowsFilterParameters.MIN_FEATURE_COUNT.getName(), featureList);
+      if (message != null) {
+        error(message);
+        return null;
+      }
+    }
+    if (minSamplesInGroup != null) {
+      String message = minSamplesInGroup.getInvalidConfigMessage(
+          RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT.getName(), featureList);
+      if (message != null) {
+        error(message);
         return null;
       }
     }
@@ -322,7 +329,7 @@ public class RowsFilterTask extends AbstractTask {
       // rows that fail any of the criteria.
       // Only add the row if none of the criteria have failed.
       boolean keepRow = (keepAllWithMS2 && hasMS2) || (keepAnnotated && annotated)
-          || isFilterRowCriteriaFailed(totalSamples, row, rowIndex, hasMS2) != removeFailed;
+          || isFilterRowCriteriaFailed(row, rowIndex, hasMS2) != removeFailed;
       if (keepRow) {
         rowsToAdd.add(row);
       }
@@ -365,8 +372,7 @@ public class RowsFilterTask extends AbstractTask {
     return newFeatureList;
   }
 
-  private boolean isFilterRowCriteriaFailed(final int totalSamples, FeatureListRow row,
-      int rowIndex, boolean hasMS2) {
+  private boolean isFilterRowCriteriaFailed(FeatureListRow row, int rowIndex, boolean hasMS2) {
 
     // Check ms2 filter .
     if (filterByMS2 && !hasMS2) {
@@ -375,8 +381,13 @@ public class RowsFilterTask extends AbstractTask {
 
     // Check number of features.
     final int featureCount = row.getNumberOfFeatures();
-    if (filterByMinFeatureCount) {
-      if (!minSamples.checkGreaterEqualMax(totalSamples, featureCount)) {
+    if (minSamples != null) {
+      if (!minSamples.matches(row)) {
+        return true;
+      }
+    }
+    if (minSamplesInGroup != null) {
+      if (!minSamplesInGroup.matches(row)) {
         return true;
       }
     }
