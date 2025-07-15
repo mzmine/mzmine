@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
+import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
+import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 
@@ -54,15 +56,12 @@ import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
-import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -77,7 +76,6 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
   private static final Logger logger = Logger.getLogger(VolcanoPlotViewBuilder.class.getName());
 
-  private final int space = 5;
   private final Stroke annotationStroke = EStandardChartTheme.DEFAULT_MARKER_STROKE;
   private final SimpleXYChart<PlotXYDataProvider> chart = new SimpleXYChart<>("Volcano plot",
       "log2(fold change)", "-log10(p-Value)");
@@ -151,7 +149,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
     final VBox pValueAndButtonPane = newVBox(helpButton, pValueBox);
 
     final TitledPane controls = newTitledPane("Controls",
-        createControlsPane(testConfigPane, dataPreparationPane, pValueAndButtonPane));
+        newFlowPane(testConfigPane, dataPreparationPane, pValueAndButtonPane));
     final Accordion accordion = new Accordion(
         newTitledPane("Region of interest (ROI) selection", regionWrapper.getControlPane()),
         controls);
@@ -161,25 +159,12 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
   @NotNull
   private HBox createPValueBox() {
-    final HBox pValueBox = new HBox(space);
     Label label = new Label("p-Value:");
     final DoubleComponent pValueComponent = new DoubleComponent(100, 0.0, 1d,
         new DecimalFormat("0.###"), 0.05);
     Bindings.bindBidirectional(pValueComponent.getTextField().textProperty(),
         model.pValueProperty(), new DecimalFormat("0.###"));
-    pValueBox.getChildren().addAll(label, pValueComponent.getTextField());
-    return pValueBox;
-  }
-
-  @NotNull
-  private FlowPane createControlsPane(Region... panes) {
-    final FlowPane controls = new FlowPane(Orientation.HORIZONTAL);
-    controls.setHgap(space);
-    controls.setVgap(space);
-    controls.getChildren().addAll(panes);
-    controls.setPadding(new Insets(space));
-    controls.setAlignment(Pos.TOP_LEFT);
-    return controls;
+    return newHBox(Insets.EMPTY, label, pValueComponent.getTextField());
   }
 
   @NotNull
@@ -189,9 +174,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
     abundanceCombo.setValue(model.getAbundanceMeasure());
     model.abundanceMeasureProperty().bindBidirectional(abundanceCombo.valueProperty());
 
-    final HBox abundanceBox = new HBox(space);
-    abundanceBox.getChildren().addAll(new Label("Abundance measure:"), abundanceCombo);
-    return abundanceBox;
+    return newHBox(Insets.EMPTY, new Label("Abundance measure:"), abundanceCombo);
   }
 
   @NotNull
@@ -200,9 +183,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
         FXCollections.observableList(List.of(ImputationFunctions.values())));
     missingValueCombo.valueProperty().bindBidirectional(model.missingValueImputationProperty());
 
-    final HBox abundanceBox = new HBox(space);
-    abundanceBox.getChildren().addAll(new Label("Missing value imputation:"), missingValueCombo);
-    return abundanceBox;
+    return newHBox(Insets.EMPTY, new Label("Missing value imputation:"), missingValueCombo);
   }
 
   private Region createTestParametersPane() {
