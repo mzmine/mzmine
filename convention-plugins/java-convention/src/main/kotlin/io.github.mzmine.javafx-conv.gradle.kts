@@ -23,13 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import org.gradle.internal.os.OperatingSystem
+
 plugins {
     id("io.github.mzmine.java-common-conv")
     id("org.openjfx.javafxplugin")
 }
 
 // https://github.com/gradle/gradle/issues/15383
-val libs = versionCatalogs.named("libs")/*
+val libs = versionCatalogs.named("libs")
+
+val os = OperatingSystem.current()
+val arch = System.getProperty("os.arch")
+val classifier = when {
+    os.isWindows -> "win"
+    os.isLinux -> if (arch == "aarch64") "linux-aarch64" else "linux"
+    os.isMacOsX -> if (arch == "aarch64") "mac-aarch64" else "mac"
+    else -> error("Unsupported OS for JavaFX: ${os.name}")
+}
+
+/*
  * Include JavaFX modules
  */
 javafx {
@@ -43,6 +56,8 @@ javafx {
         "javafx.web",
         "javafx.graphics"
     )
+
+    
 }
 
 
