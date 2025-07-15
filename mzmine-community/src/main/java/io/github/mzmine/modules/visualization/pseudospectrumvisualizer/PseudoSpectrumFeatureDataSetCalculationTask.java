@@ -118,8 +118,12 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
         }
         default -> {
           final MsMsInfo msMsInfo = scan.getMsMsInfo();
-          if (msMsInfo != null && msMsInfo.getIsolationWindow() != null
-              && msMsInfo.getIsolationWindow().contains(feature.getMZ())) {
+          if (msMsInfo != null &&
+              // either no mz isolation
+              ((msMsInfo.getIsolationWindow() == null
+                  // or matching mz isolation
+                  || msMsInfo.getIsolationWindow() != null && msMsInfo.getIsolationWindow()
+                  .contains(feature.getMZ())))) {
             c.accept(scan);
           }
         }
