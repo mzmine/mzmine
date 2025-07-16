@@ -87,7 +87,7 @@ public class StatisticUtils {
     }
     if (config.meanCentering() != null) {
       // apply scaling
-//      data = config.meanCentering().process(data, true);
+      data = config.meanCentering().process(data, true);
     }
 
     return data;

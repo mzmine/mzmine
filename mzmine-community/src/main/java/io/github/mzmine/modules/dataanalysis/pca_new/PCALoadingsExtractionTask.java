@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -36,6 +37,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.MeanCenterScalingFunction;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -110,8 +112,22 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
     final var config = new AbundanceDataTablePreparationConfig(pcaModel.getAbundance(),
         pcaModel.getImputationFunction(), pcaModel.getScalingFunction(),
         new MeanCenterScalingFunction());
+
+    // only on samples
+    final FeatureList featureList = pcaModel.getFlists().getFirst();
+
+    final SampleTypeFilter sampleFilter = pcaModel.getSampleTypeFilter();
+    final List<RawDataFile> selectedSamples = sampleFilter.filterFiles(
+        featureList.getRawDataFiles());
+    if (selectedSamples.isEmpty()) {
+      pcaModel.setFeatureDataTable(null);
+      return;
+    }
+
+    // only prepare data for list of files
     final FeaturesDataTable dataTable = StatisticUtils.extractAbundancesPrepareData(
-        pcaModel.getFlists().getFirst(), config);
+        featureList.getRows(), selectedSamples, config);
+
     pcaModel.setFeatureDataTable(dataTable);
   }
 

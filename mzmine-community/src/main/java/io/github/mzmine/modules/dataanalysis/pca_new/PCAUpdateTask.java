@@ -92,16 +92,12 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
       return false;
     }
 
-//    if (metadataColumn != null && MZmineCore.getProjectMetadata().getColumnByName(metadataColumn) == null
-//        && !metadataColumn.isBlank()) {
-//      return false;
-//    }
-
     if (flists == null || flists.isEmpty() || flists.getFirst() == null) {
       return false;
     }
 
-    if (abundance == null || featureDataTable == null) {
+    if (abundance == null || featureDataTable == null
+        || featureDataTable.getNumberOfSamples() == 0) {
       return false;
     }
 
@@ -114,9 +110,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 
   @Override
   protected void process() {
-    // only keep matching sample types
-    featureDataTable = DataTableUtils.applySampleFilter(featureDataTable, sampleTypeFilter);
-    if (featureDataTable.getNumberOfSamples() == 0) {
+    if (featureDataTable == null || featureDataTable.getNumberOfSamples() == 0) {
       return;
     }
 

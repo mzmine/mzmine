@@ -70,7 +70,7 @@ public class PCAUtils {
     } else {
       // if origin was DataTable then it should already be centered but just apply centering again
       // always make sure data is centered
-      data = StatisticUtils.center(data, false);
+//      data = StatisticUtils.center(data, false);
     }
 
     logger.finest(() -> "Performing singular value decomposition. This may take a while");
