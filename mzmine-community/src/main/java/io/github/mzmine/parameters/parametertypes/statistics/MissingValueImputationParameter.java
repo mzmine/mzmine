@@ -43,7 +43,7 @@ public class MissingValueImputationParameter extends ComboParameter<ImputationFu
   public MissingValueImputationParameter(ImputationFunctions defaultValue) {
     this("Missing value imputation",
         "Missing values will be changed for other small values like an estimated LOD (portion of the smalles value across the dataset) or feature-wise lowest values.",
-        ImputationFunctions.values(), defaultValue);
+        ImputationFunctions.valuesExcludeNone, defaultValue);
   }
 
   public MissingValueImputationParameter(String name, String description,

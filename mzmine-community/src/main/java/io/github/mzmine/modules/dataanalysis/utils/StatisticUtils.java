@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.statistics.DataTableProcessingHistory;
 import io.github.mzmine.datamodel.statistics.FeatureListRowAbundances;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunction;
@@ -77,19 +78,24 @@ public class StatisticUtils {
       return FeatureListRowAbundances.of(row, extractAbundance(row, files, config.measure()), true);
     }).toArray(FeatureListRowAbundances[]::new);
 
-    // create data table
+    // create data table already setting history as this will be applied
     FeaturesDataTable data = new FeaturesDataTable(files, abundances);
-    data = config.missingValueImputation().getImputer().process(data, true);
 
-    if (config.scalingFunction() != null) {
+    if (config.missingValueImputation().isActive()) {
+      data = config.missingValueImputation().getImputer().process(data, true);
+    }
+
+    if (config.scalingFunction().isActive()) {
       // apply scaling
       data = config.scalingFunction().getScalingFunction().process(data, true);
     }
-    if (config.meanCentering() != null) {
-      // apply scaling
-      data = config.meanCentering().process(data, true);
+    if (config.centeringFunction().isActive()) {
+      // apply centering after scaling!
+      data = config.centeringFunction().getScalingFunction().process(data, true);
     }
 
+    final DataTableProcessingHistory history = new DataTableProcessingHistory(config);
+    data.setProcessingHistory(history);
     return data;
   }
 

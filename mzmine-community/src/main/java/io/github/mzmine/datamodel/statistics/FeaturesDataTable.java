@@ -50,9 +50,17 @@ public final class FeaturesDataTable implements ModifiableDataTable {
   private final Object2IntMap<FeatureListRow> featureRowIndexMap;
   private final Object2IntMap<RawDataFile> dataFileIndexMap;
 
+  // properties that may be set:
+  private @NotNull DataTableProcessingHistory processingHistory;
+
   public FeaturesDataTable(@NotNull List<RawDataFile> dataFiles,
       @NotNull FeatureListRowAbundances[] dataRows) {
-    this(dataFiles, dataRows, null, null);
+    this(dataFiles, dataRows, new DataTableProcessingHistory());
+  }
+
+  public FeaturesDataTable(@NotNull List<RawDataFile> dataFiles,
+      @NotNull FeatureListRowAbundances[] dataRows, @NotNull DataTableProcessingHistory history) {
+    this(dataFiles, dataRows, null, null, history);
   }
 
   /**
@@ -64,9 +72,11 @@ public final class FeaturesDataTable implements ModifiableDataTable {
   FeaturesDataTable(@NotNull List<RawDataFile> dataFiles,
       @NotNull FeatureListRowAbundances[] dataRows,
       @Nullable Object2IntMap<FeatureListRow> featureRowIndexMap,
-      @Nullable Object2IntMap<RawDataFile> dataFileIndexMap) {
+      @Nullable Object2IntMap<RawDataFile> dataFileIndexMap,
+      @NotNull DataTableProcessingHistory history) {
     this.dataFiles = dataFiles;
     this.dataRows = dataRows;
+    this.processingHistory = history;
 
     // simple check if data is correct
     if (dataFileIndexMap != null) {
@@ -110,7 +120,7 @@ public final class FeaturesDataTable implements ModifiableDataTable {
    */
   public FeaturesDataTable copyWithNewRows(FeatureListRowAbundances[] newRows) {
     // reuse data file map
-    return new FeaturesDataTable(dataFiles, newRows, null, dataFileIndexMap);
+    return new FeaturesDataTable(dataFiles, newRows, null, dataFileIndexMap, processingHistory);
   }
 
   public int getFeatureIndex(FeatureListRow row) {
@@ -189,7 +199,8 @@ public final class FeaturesDataTable implements ModifiableDataTable {
   public FeaturesDataTable copy() {
     final var dataClone = Arrays.stream(dataRows).map(FeatureListRowAbundances::copy)
         .toArray(FeatureListRowAbundances[]::new);
-    return new FeaturesDataTable(dataFiles, dataClone, featureRowIndexMap, dataFileIndexMap);
+    return new FeaturesDataTable(dataFiles, dataClone, featureRowIndexMap, dataFileIndexMap,
+        processingHistory);
   }
 
   /**
@@ -214,7 +225,7 @@ public final class FeaturesDataTable implements ModifiableDataTable {
         .map(row -> row.subsetByIndexes(groupIndexes)).toArray(FeatureListRowAbundances[]::new);
 
     // only reuse the rows as they are the same - samples indexes are recomputed
-    return new FeaturesDataTable(group, subData, featureRowIndexMap, null);
+    return new FeaturesDataTable(group, subData, featureRowIndexMap, null, processingHistory);
   }
 
   public @NotNull FeatureListRowAbundances getFeatureRow(FeatureListRow row) {
@@ -223,5 +234,13 @@ public final class FeaturesDataTable implements ModifiableDataTable {
 
   public @NotNull FeatureListRowAbundances getFeatureRow(int rowIndex) {
     return dataRows[rowIndex];
+  }
+
+  public void setProcessingHistory(@NotNull DataTableProcessingHistory history) {
+    this.processingHistory = history;
+  }
+
+  public @NotNull DataTableProcessingHistory getProcessingHistory() {
+    return processingHistory;
   }
 }

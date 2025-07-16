@@ -45,20 +45,23 @@ public class PCAUtils {
    * Calculates the PCA of a matrix by singular value decomposition (svd).
    * https://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca
    *
-   * @param data the data. The imputed data  see {@link ImputationFunction}. Will be centered around
-   *             0 and scaled according to the scaling function.
+   * @param scaledCenteredData the data. The imputed data  see {@link ImputationFunction} that is
+   *                           already scaled and centered 0 and scaled according to the scaling
+   *                           function.
    * @return A pca result.
    */
-  public static PCAResult quickPCA(RealMatrix data) {
-    return quickPCA(data, null);
+  public static PCAResult quickPCA(RealMatrix scaledCenteredData) {
+    return quickPCA(scaledCenteredData, null);
   }
 
   /**
    * Calculates the PCA of a matrix by singular value decomposition (svd).
    * https://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca
    *
-   * @param data the data. The imputed data  see {@link ImputationFunction}. Will be centered around
-   *             0 and scaled according to the scaling function.
+   * @param data            the data. The imputed data  see {@link ImputationFunction} either
+   *                        already scaled and centered or otherwise provide a scaling funtion.
+   * @param scalingFunction if null then data needs to be scaled and centered before. If not null
+   *                        then we apply center(scale(data))
    * @return A pca result.
    */
   public static PCAResult quickPCA(RealMatrix data, @Nullable ScalingFunction scalingFunction) {
@@ -67,10 +70,6 @@ public class PCAUtils {
     if (scalingFunction != null) {
       logger.finest(() -> "Performing scaling and centering");
       data = StatisticUtils.scaleAndCenter(data, scalingFunction, false);
-    } else {
-      // if origin was DataTable then it should already be centered but just apply centering again
-      // always make sure data is centered
-//      data = StatisticUtils.center(data, false);
     }
 
     logger.finest(() -> "Performing singular value decomposition. This may take a while");
