@@ -1,4 +1,4 @@
-name: Specific branch release
+name: Specific branch release_mac
 
 on:
   workflow_dispatch
