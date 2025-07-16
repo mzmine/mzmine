@@ -87,7 +87,7 @@ public class StatisticUtils {
     }
     if (config.meanCentering() != null) {
       // apply scaling
-      data = config.meanCentering().process(data, true);
+//      data = config.meanCentering().process(data, true);
     }
 
     return data;
@@ -160,6 +160,7 @@ public class StatisticUtils {
 //      for (int row = 0; row < columnVector.getDimension(); row++) {
 //        sum += columnVector.getEntry(row);
 //      }
+
       final double sum = columnVector.getL1Norm();
       final double mean = sum / columnVector.getDimension();
 

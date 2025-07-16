@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
@@ -39,9 +38,7 @@ import io.github.mzmine.util.FeatureUtils;
 import java.awt.Color;
 import java.text.DecimalFormat;
 import java.util.List;
-import java.util.Map;
 import javafx.beans.property.Property;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
@@ -50,7 +47,6 @@ public class VolcanoDatasetProvider extends SimpleXYProvider implements
 
   private final UnivariateRowSignificanceTest<?> test;
   private final List<RowSignificanceTestResult> results;
-  private final @NotNull Map<FeatureListRow, Integer> featureRowIndexMap;
   private final FeaturesDataTable dataA;
   private final FeaturesDataTable dataB;
 
@@ -62,8 +58,6 @@ public class VolcanoDatasetProvider extends SimpleXYProvider implements
     // quick find index of rows
     dataA = test.getGroupAData();
     dataB = test.getGroupBData();
-
-    featureRowIndexMap = dataA.getFeatureRowIndexMap();
   }
 
   @Override
@@ -100,7 +94,7 @@ public class VolcanoDatasetProvider extends SimpleXYProvider implements
       minusLog10PValue[i] = -Math.log10(result.pValue());
 
       // not all rows are in this dataset so use the index to retrieve data
-      final int rowIndex = featureRowIndexMap.get(result.row());
+      final int rowIndex = dataA.getFeatureIndex(result.row());
       final double[] a = dataA.getFeatureData(rowIndex, false);
       final double[] b = dataB.getFeatureData(rowIndex, false);
       log2FoldChange[i] = StatisticUtils.calculateLog2FoldChange(a, b);

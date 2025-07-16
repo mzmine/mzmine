@@ -34,7 +34,6 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,7 +48,6 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
   private final T groupB;
   private final FeaturesDataTable groupAData;
   private final FeaturesDataTable groupBData;
-  private final @NotNull Map<FeatureListRow, Integer> featureRowIndexMap;
 
   public UnivariateRowSignificanceTest(@NotNull FeaturesDataTable dataTable,
       @NotNull SignificanceTests test, MetadataColumn<T> column, T groupA, T groupB) {
@@ -99,12 +97,11 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
           groupBData.getNumberOfSamples()));
     }
 
-    featureRowIndexMap = groupAData.getFeatureRowIndexMap();
   }
 
   @Override
   public RowSignificanceTestResult test(FeatureListRow row) {
-    final int rowIndex = featureRowIndexMap.get(row);
+    final int rowIndex = groupAData.getFeatureIndex(row);
     final double[] groupAAbundance = groupAData.getFeatureData(rowIndex, false);
     final double[] groupBAbundance = groupBData.getFeatureData(rowIndex, false);
 

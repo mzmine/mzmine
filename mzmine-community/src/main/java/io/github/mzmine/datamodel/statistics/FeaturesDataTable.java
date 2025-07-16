@@ -77,7 +77,7 @@ public final class FeaturesDataTable implements ModifiableDataTable {
       }
 
       for (int i = 0; i < dataFiles.size(); i++) {
-        if (dataFileIndexMap.getInt(dataRows[i].row()) != i) {
+        if (dataFileIndexMap.getInt(dataFiles.get(i)) != i) {
           throw new IllegalArgumentException(
               "Data file index map does not match the position of samples in the list.");
         }
@@ -149,21 +149,6 @@ public final class FeaturesDataTable implements ModifiableDataTable {
 
   public RawDataFile getRawDataFile(int index) {
     return dataFiles.get(index);
-  }
-
-
-  /**
-   * @return map of the data file to index
-   */
-  public @NotNull Map<RawDataFile, Integer> getDataFileIndexMap() {
-    return dataFileIndexMap;
-  }
-
-  /**
-   * @return map of the row to index
-   */
-  public @NotNull Map<FeatureListRow, Integer> getFeatureRowIndexMap() {
-    return featureRowIndexMap;
   }
 
   public @NotNull Stream<FeatureListRowAbundances> streamDataRows() {

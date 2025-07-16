@@ -66,7 +66,7 @@ public class FxComboBox {
       combo.setItems(ov);
     } else if (values instanceof List<T> list) {
       combo.setItems(FXCollections.observableList(list));
-    } else {
+    } else if (values != null) {
       combo.setItems(FXCollections.observableList(List.copyOf(values)));
     }
     if (selectedItem != null) {
