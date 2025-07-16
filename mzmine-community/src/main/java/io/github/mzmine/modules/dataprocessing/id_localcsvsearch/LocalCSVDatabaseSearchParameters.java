@@ -69,6 +69,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.util.files.ExtensionFilters;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -94,22 +95,24 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
           "Column header to filter matches to only occur in the given sample. Used for library generation workflows.",
           "raw_filename"), false);
 
+  public static final OptionalParameter<MZToleranceParameter> mzTolerance = new OptionalParameter<>(
+      new MZToleranceParameter(), true);
+  public static final OptionalParameter<RTToleranceParameter> rtTolerance = new OptionalParameter<>(
+      new RTToleranceParameter(), false);
+  public static final OptionalParameter<MobilityToleranceParameter> mobTolerance = new OptionalParameter<>(
+      new MobilityToleranceParameter(new MobilityTolerance(0.01f)), false);
+  public static final OptionalParameter<PercentParameter> ccsTolerance = new OptionalParameter<>(
+      new PercentParameter("CCS tolerance (%)",
+          "Maximum allowed difference (in per cent) for two ccs values.", 0.05), false);
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
-  public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
-  public static final MobilityToleranceParameter mobTolerance = new MobilityToleranceParameter(
-      new MobilityTolerance(0.01f));
-  public static final PercentParameter ccsTolerance = new PercentParameter("CCS tolerance (%)",
-      "Maximum allowed difference (in per cent) for two ccs values.", 0.05);
   public static final OptionalModuleParameter<IonLibraryParameterSet> ionLibrary = new OptionalModuleParameter<>(
       "Use adducts",
       "If enabled, m/z values for multiple adducts will be calculated and matched against the feature list.",
-      EmbeddedComponentOptions.VIEW_IN_WINDOW,
-      (IonLibraryParameterSet) new IonLibraryParameterSet());
+      EmbeddedComponentOptions.VIEW_IN_WINDOW, new IonLibraryParameterSet());
   public static final OptionalModuleParameter<IsotopePatternMatcherParameters> isotopePatternMatcher = new OptionalModuleParameter<>(
       "Use isotope matcher",
       "Matches predicted and detected isotope pattern. Make sure to run isotope finder before on the feature list.",
-      (IsotopePatternMatcherParameters) new IsotopePatternMatcherParameters());
+      new IsotopePatternMatcherParameters());
 
   public static final List<ImportType> importTypes = List.of(
       new ImportType(true, "neutral_mass", new NeutralMassType()),
@@ -187,4 +190,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
   }
+
+//  @Override
+//  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams) {
+//  }
 }
