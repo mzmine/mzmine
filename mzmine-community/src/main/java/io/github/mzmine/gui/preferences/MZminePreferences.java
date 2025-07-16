@@ -520,7 +520,8 @@ public class MZminePreferences extends SimpleParameterSet {
   }
 
   @Override
-  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
     updateSystemProxySettings();
     updateGuiFormat();
     darkModeProperty.set(getValue(MZminePreferences.theme).isDark());
