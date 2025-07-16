@@ -45,6 +45,10 @@ public class ImportType {
 
   private int columnIndex = -1;
 
+  public ImportType(boolean selected, DataType<?> dataType) {
+    this(selected, dataType.getUniqueID(), dataType);
+  }
+
   public ImportType(Boolean selected, String csvColumnName, DataType<?> dataType) {
     this.selected = new SimpleBooleanProperty(selected);
     this.csvColumnName = new SimpleStringProperty(csvColumnName);
