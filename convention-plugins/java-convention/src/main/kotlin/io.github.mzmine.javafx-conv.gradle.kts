@@ -23,7 +23,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 plugins {
     id("io.github.mzmine.java-common-conv")
     id("org.openjfx.javafxplugin")
