@@ -45,8 +45,6 @@ javafx {
         "javafx.web",
         "javafx.graphics"
     )
-
-    
 }
 
 
