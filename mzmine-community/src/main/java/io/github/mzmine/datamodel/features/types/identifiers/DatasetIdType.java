@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.datamodel.features.types.identifiers;
 
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
@@ -36,14 +35,14 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Universal spectrum identifier for a spectrum in the public domaine
  */
-public class UsiType extends StringType implements EditableColumnType, StringParser<String>,
+public class DatasetIdType extends StringType implements EditableColumnType, StringParser<String>,
     AnnotationType {
 
   private final StringConverter<String> converter = new DefaultStringConverter();
 
   @Override
   public @NotNull String getHeaderString() {
-    return "USI";
+    return "Dataset ID";
   }
 
   @Override
@@ -60,6 +59,6 @@ public class UsiType extends StringType implements EditableColumnType, StringPar
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "usi";
+    return "dataset_id";
   }
 }

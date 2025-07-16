@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -52,6 +51,9 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassi
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.identifiers.CASType;
+import io.github.mzmine.datamodel.features.types.identifiers.InternalIdType;
+import io.github.mzmine.datamodel.features.types.identifiers.IupacNameType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
@@ -126,6 +128,9 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       NPClassifierPathwayType.class);
   private final DatabaseNameType databaseType = DataTypes.get(DatabaseNameType.class);
   private final Q3QuantMzType q3QuantMzType = DataTypes.get(Q3QuantMzType.class);
+  private final CASType casType = DataTypes.get(CASType.class);
+  private final InternalIdType internalIdType = DataTypes.get(InternalIdType.class);
+  private final IupacNameType iupacNameType = DataTypes.get(IupacNameType.class);
 
   // vars
   private final FeatureList[] featureLists;
@@ -490,6 +495,9 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     final String npclassifierPathway = entry.get(npclassyfierPathwayType);
     final Double q3QuantMz =
         entry.get(q3QuantMzType) != null ? Double.parseDouble(entry.get(q3QuantMzType)) : null;
+    final String iupacName = entry.get(iupacNameType);
+    final String cas = entry.get(casType);
+    final String internalId = entry.get(internalIdType);
 
     final String lineComment;
     if (!commentFields.isEmpty()) {
@@ -524,6 +532,10 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     a.putIfNotNull(npclassyfierClassType, npclassifierclass);
     a.putIfNotNull(npclassyfierPathwayType, npclassifierPathway);
     a.putIfNotNull(q3QuantMzType, q3QuantMz);
+    a.putIfNotNull(internalIdType, internalId);
+    a.putIfNotNull(casType, cas);
+    a.putIfNotNull(iupacNameType, iupacName);
+
     return a;
   }
 

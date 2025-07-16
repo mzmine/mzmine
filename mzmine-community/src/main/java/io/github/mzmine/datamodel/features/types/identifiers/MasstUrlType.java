@@ -22,20 +22,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.datamodel.features.types.identifiers;
 
-import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.abstr.UrlType;
 import org.jetbrains.annotations.NotNull;
 
-public class EntryIdType extends StringType {
+/**
+ * URL to MASST job on GNPS. MASST is the mass spectrometry search tool. e.g. <a
+ * href="https://gnps.ucsd.edu/ProteoSAFe/status.jsp?task=fa0437e82d0a4a4493c8c2dcb4977c07">https://gnps.ucsd.edu/ProteoSAFe/status.jsp?task=fa0437e82d0a4a4493c8c2dcb4977c07</a>
+ *
+ * @author Robin Schmid (<a
+ * href="https://github.com/robinschmid">https://github.com/robinschmid</a>)
+ */
+public class MasstUrlType extends UrlType {
 
+  @NotNull
   @Override
-  public @NotNull String getUniqueID() {
-    return "entry_id";
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "masst_url";
   }
 
+  @NotNull
   @Override
-  public @NotNull String getHeaderString() {
-    return "Entry ID";
+  public String getHeaderString() {
+    return "MASST";
   }
 }

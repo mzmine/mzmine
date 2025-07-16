@@ -107,6 +107,7 @@ public class MZmineJsonLibraryEntry {
   public SpectralQuality quality;
   public Double purity;
   public Integer numSignals;
+  public String internalId;
 
   public String classyFireSuperclass;
   public String classyFireClass;
@@ -115,6 +116,7 @@ public class MZmineJsonLibraryEntry {
   public String npClassifierSuperclass;
   public String npClassifierPathway;
   public String npClassifierClass;
+  public String iupacName;
 
 
   @JsonDeserialize(using = SpectrumDeserializer.class)
@@ -164,7 +166,8 @@ public class MZmineJsonLibraryEntry {
       case NPCLASSIFIER_CLASS -> npClassifierClass;
       case NPCLASSIFIER_PATHWAY -> npClassifierPathway;
       case CAS -> cas;
-
+      case INTERNAL_ID -> internalId;
+      case IUPAC_NAME -> iupacName;
       case MS_LEVEL -> msLevel;
       case RT -> rt;
       case RETENTION_INDEX -> ri;

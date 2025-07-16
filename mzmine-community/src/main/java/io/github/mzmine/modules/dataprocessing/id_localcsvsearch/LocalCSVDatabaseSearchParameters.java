@@ -43,6 +43,9 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassi
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.identifiers.CASType;
+import io.github.mzmine.datamodel.features.types.identifiers.InternalIdType;
+import io.github.mzmine.datamodel.features.types.identifiers.IupacNameType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
@@ -138,7 +141,10 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType(false, "npclassifier_superclass", new NPClassifierSuperclassType()),
       new ImportType(false, "npclassifier_class", new NPClassifierClassType()),
       new ImportType(false, "npclassifier_pathway", new NPClassifierPathwayType()),
-      new ImportType(false, new Q3QuantMzType().getUniqueID(), new Q3QuantMzType()));
+      new ImportType(false, new Q3QuantMzType().getUniqueID(), new Q3QuantMzType()),
+      new ImportType(false, new IupacNameType()), //
+      new ImportType(false, new CASType()), //
+      new ImportType(false, new InternalIdType()));
 
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);

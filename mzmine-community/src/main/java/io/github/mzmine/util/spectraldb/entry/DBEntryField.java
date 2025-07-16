@@ -32,15 +32,19 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.datamodel.features.types.annotations.DatasetIdType;
-import io.github.mzmine.datamodel.features.types.annotations.EntryIdType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
+import io.github.mzmine.datamodel.features.types.identifiers.CASType;
+import io.github.mzmine.datamodel.features.types.identifiers.DatasetIdType;
+import io.github.mzmine.datamodel.features.types.identifiers.EntryIdType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.PeptideSequenceType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.SourceScanUsiType;
+import io.github.mzmine.datamodel.features.types.identifiers.InternalIdType;
+import io.github.mzmine.datamodel.features.types.identifiers.IupacNameType;
+import io.github.mzmine.datamodel.features.types.identifiers.SourceScanUsiType;
 import io.github.mzmine.datamodel.features.types.annotations.SplashType;
-import io.github.mzmine.datamodel.features.types.annotations.UsiType;
+import io.github.mzmine.datamodel.features.types.identifiers.UsiType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
@@ -88,7 +92,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public enum DBEntryField {
   // Compound specific
-  ENTRY_ID, NAME, SYNONYMS, COMMENT, DESCRIPTION, MOLWEIGHT(Double.class), EXACT_MASS(Double.class),
+  ENTRY_ID, NAME, SYNONYMS, COMMENT, DESCRIPTION, MOLWEIGHT(Double.class), EXACT_MASS(
+      Double.class), IUPAC_NAME, INTERNAL_ID,
 
   // structure
   FORMULA, INCHI, INCHIKEY, SMILES, PEPTIDE_SEQ,
@@ -280,6 +285,10 @@ public enum DBEntryField {
       case NPClassifierSuperclassType _ -> DBEntryField.NPCLASSIFIER_SUPERCLASS;
       case NPClassifierClassType _ -> DBEntryField.NPCLASSIFIER_CLASS;
       case NPClassifierPathwayType _ -> DBEntryField.NPCLASSIFIER_PATHWAY;
+      case PubChemIdType _ -> DBEntryField.PUBCHEM;
+      case CASType _ -> CAS;
+      case IupacNameType _ -> IUPAC_NAME;
+      case InternalIdType _ -> INTERNAL_ID;
 //        case SynonymType _ -> DBEntryField.SYNONYM;
       default -> UNSPECIFIED;
     };
@@ -307,10 +316,10 @@ public enum DBEntryField {
    * @return The mzmine json format key or an empty String
    */
   public Class<? extends DataType> getDataType() {
+    // note: also add in fromDataType
     return switch (this) {
-      case UNSPECIFIED, ACQUISITION, SOFTWARE, CAS, COMMENT, DESCRIPTION, DATA_COLLECTOR,
-           INSTRUMENT, //
-           INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM,  //
+      case UNSPECIFIED, ACQUISITION, SOFTWARE, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, //
+           INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, //
            CHEMSPIDER, MONA_ID, GNPS_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
            QUALITY, QUALITY_CHIMERIC, FILENAME, //
            SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N,
@@ -318,6 +327,9 @@ public enum DBEntryField {
            MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS,
            MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURE_FULL_ID, FEATURELIST_NAME_FEATURE_ID,
            RETENTION_INDEX -> StringType.class;
+      case COMMENT -> CommentType.class;
+      case CAS -> CASType.class;
+      case PUBCHEM -> PubChemIdType.class;
       case ENTRY_ID -> EntryIdType.class;
       case MERGED_N_SAMPLES -> TotalSamplesType.class;
       case CLASSYFIRE_SUPERCLASS -> ClassyFireSuperclassType.class;
@@ -353,6 +365,8 @@ public enum DBEntryField {
       // are there other formats that define those properly?
       case FEATURE_MS1_HEIGHT -> HeightType.class;
       case FEATURE_MS1_REL_HEIGHT -> RelativeHeightType.class;
+      case IUPAC_NAME -> IupacNameType.class;
+      case INTERNAL_ID -> InternalIdType.class;
     };
   }
 
@@ -431,6 +445,8 @@ public enum DBEntryField {
       case SIRIUS_MERGED_STATS -> "merged_statistics";
       case ONLINE_REACTIVITY -> "online_reactivity";
       case UNSPECIFIED -> "";
+      case IUPAC_NAME -> "iupac_name";
+      case INTERNAL_ID -> "internal_id";
     };
   }
 
@@ -453,6 +469,8 @@ public enum DBEntryField {
       case EXACT_MASS -> "ExactMass";
       case FRAGMENTATION_METHOD -> "Method";
       case ISOLATION_WINDOW -> "Isolation_window";
+      case IUPAC_NAME -> "Iupac";
+      case INTERNAL_ID -> "Internal_id";
       case FORMULA -> "Formula";
       case INCHIKEY -> "InChIKey";
       case INSTRUMENT -> "Instrument";
@@ -520,6 +538,8 @@ public enum DBEntryField {
       case DESCRIPTION -> "DESCRIPTION";
       case DATA_COLLECTOR -> "DATACOLLECTOR";
       case EXACT_MASS -> "EXACTMASS";
+      case IUPAC_NAME -> "IUPAC";
+      case INTERNAL_ID -> "INTERNAL_ID";
       case FORMULA -> "FORMULA";
       case INCHI -> "INCHI";
       case INCHIKEY -> "INCHIAUX";
@@ -601,6 +621,8 @@ public enum DBEntryField {
       case ENTRY_ID -> "SPECTRUMID";
       case COMMENT -> "COMMENT";
       case DESCRIPTION -> "DESCRIPTION";
+      case IUPAC_NAME -> "IUPAC_NAME";
+      case INTERNAL_ID -> "INTERNAL_ID";
       case FORMULA -> "FORMULA";
       case MS_LEVEL -> "MSLEVEL";
       case CCS -> "CCS";
@@ -655,6 +677,8 @@ public enum DBEntryField {
       case IMS_TYPE -> "";
       case DATA_COLLECTOR -> "";
       case EXACT_MASS -> "##MW";
+      case IUPAC_NAME -> "";
+      case INTERNAL_ID -> "";
       case FORMULA -> "##MOLFORM";
       case INCHI -> "";
       case INCHIKEY -> "";
@@ -774,7 +798,8 @@ public enum DBEntryField {
            PEPTIDE_SEQ, //
            IMS_TYPE, ONLINE_REACTIVITY, CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS,
            CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS,
-           NPCLASSIFIER_PATHWAY, FEATURELIST_NAME_FEATURE_ID, MERGED_N_SAMPLES -> {
+           NPCLASSIFIER_PATHWAY, FEATURELIST_NAME_FEATURE_ID, MERGED_N_SAMPLES, IUPAC_NAME,
+           INTERNAL_ID -> {
 
         // format lists and arrays as json so that they can easily be parsed
         if (value instanceof Collection<?> || value.getClass().isArray()) {
