@@ -197,7 +197,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
   @NotNull
   private HBox createMissingValueBox() {
     final ComboBox<ImputationFunctions> missingValueCombo = new ComboBox<>(
-        FXCollections.observableList(List.of(ImputationFunctions.values())));
+        FXCollections.observableList(List.of(ImputationFunctions.valuesExcludeNone)));
     missingValueCombo.valueProperty().bindBidirectional(model.missingValueImputationProperty());
 
     final HBox abundanceBox = new HBox(space);

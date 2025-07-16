@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 public enum ScalingFunctions implements UniqueIdSupplier {
   AutoScaling, ParetoScaling, RangeScaling, MeanCentering, None;
 
-  public final static ScalingFunctions[] valuesWithoutNone = new ScalingFunctions[]{AutoScaling,
+  public final static ScalingFunctions[] valuesExcludeNone = new ScalingFunctions[]{AutoScaling,
       ParetoScaling, RangeScaling, MeanCentering};
 
   public ScalingFunction getScalingFunction() {
