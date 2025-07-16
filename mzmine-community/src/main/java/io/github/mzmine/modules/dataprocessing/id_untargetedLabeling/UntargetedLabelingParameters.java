@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -44,37 +45,37 @@ public class UntargetedLabelingParameters extends SimpleParameterSet {
 
   // ---- INPUT DATA PARAMETERS ----
   /**
-   * Feature lists containing unlabeled peaks to analyze
+   * Feature lists containing both labeled and unlabeled samples
    */
-  public static final FeatureListsParameter unlabeledFeatureLists = new FeatureListsParameter(
-      "Unlabeled feature lists", "Feature lists containing unlabeled samples", 1, Integer.MAX_VALUE,
-      false);
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter(
+      "Feature lists", "Aligned feature lists containing both labeled and unlabeled samples", 1,
+      Integer.MAX_VALUE, false);
 
   /**
-   * Feature lists containing labeled peaks to analyze
+   * Metadata column for sample grouping
    */
-  public static final FeatureListsParameter labeledFeatureLists = new FeatureListsParameter(
-      "Labeled feature lists", "Feature lists containing labeled samples", 1, Integer.MAX_VALUE,
-      false);
+  public static final MetadataGroupingParameter metadataGrouping = new MetadataGroupingParameter(
+      "Sample grouping",
+      "Select metadata column to distinguish between labeled and unlabeled samples");
+
+  /**
+   * Value identifying unlabeled samples in metadata
+   */
+  public static final StringParameter unlabeledGroupValue = new StringParameter(
+      "Unlabeled group value",
+      "Value in the selected metadata column that identifies unlabeled samples", "unlabeled");
+
+  /**
+   * Value identifying labeled samples in metadata
+   */
+  public static final StringParameter labeledGroupValue = new StringParameter("Labeled group value",
+      "Value in the selected metadata column that identifies labeled samples", "labeled");
 
   /**
    * Name for the result feature list
    */
   public static final StringParameter suffix = new StringParameter("Suffix",
       "Suffix to add to feature list name", "labeled");
-
-  // ---- SAMPLE GROUP PARAMETERS ----
-  /**
-   * Name for the unlabeled sample group
-   */
-  public static final StringParameter unlabeledGroupName = new StringParameter(
-      "Unlabeled group name", "Name of the group with unlabeled samples", "C12");
-
-  /**
-   * Name for the labeled sample group
-   */
-  public static final StringParameter labeledGroupName = new StringParameter("Labeled group name",
-      "Name of the group with labeled samples", "C13");
 
   // ---- TRACER PARAMETERS ----
   /**
@@ -176,10 +177,7 @@ public class UntargetedLabelingParameters extends SimpleParameterSet {
   public UntargetedLabelingParameters() {
     super(new Parameter[]{
         // Input data parameters
-        unlabeledFeatureLists, labeledFeatureLists, suffix,
-
-        // Sample group parameters
-        unlabeledGroupName, labeledGroupName,
+        featureLists, metadataGrouping, unlabeledGroupValue, labeledGroupValue, suffix,
 
         // Tracer parameters
         tracerType, maximumIsotopologues, minimumIsotopePatternSize,

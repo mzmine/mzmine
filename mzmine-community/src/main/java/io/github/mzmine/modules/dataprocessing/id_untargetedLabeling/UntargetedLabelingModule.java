@@ -40,15 +40,15 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This module implements untargeted isotope labeling analysis based on feature lists from unlabeled
- * samples.
+ * This module implements untargeted isotope labeling analysis based on aligned feature lists
+ * containing both labeled and unlabeled samples.
  */
 public class UntargetedLabelingModule implements MZmineProcessingModule {
 
-  public static final String MODULE_NAME = "Untargeted isotope labeling (feature-based)";
+  public static final String MODULE_NAME = "Untargeted isotope labeling (metadata-based)";
   public static final String MODULE_DESCRIPTION =
-      "This module detects isotopically labeled compounds by identifying features "
-          + "in unlabeled samples and searching for corresponding labeled patterns in labeled samples.";
+      "This module detects isotopically labeled compounds by analyzing aligned feature lists "
+          + "containing both labeled and unlabeled samples, using metadata to distinguish sample groups.";
 
   @Override
   public @NotNull String getName() {
@@ -75,29 +75,48 @@ public class UntargetedLabelingModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    // Get unlabeled feature lists
-    FeatureList[] unlabeledFeatureLists = parameters.getParameter(
-        UntargetedLabelingParameters.unlabeledFeatureLists).getValue().getMatchingFeatureLists();
+    // Get feature lists
+    FeatureList[] featureLists = parameters.getParameter(UntargetedLabelingParameters.featureLists)
+        .getValue().getMatchingFeatureLists();
 
-    // Get labeled feature lists
-    FeatureList[] labeledFeatureLists = parameters.getParameter(
-        UntargetedLabelingParameters.labeledFeatureLists).getValue().getMatchingFeatureLists();
+    // Get metadata grouping parameters
+    String metadataColumnName = parameters.getParameter(
+        UntargetedLabelingParameters.metadataGrouping).getValue();
+    String unlabeledValue = parameters.getParameter(
+        UntargetedLabelingParameters.unlabeledGroupValue).getValue();
+    String labeledValue = parameters.getParameter(UntargetedLabelingParameters.labeledGroupValue)
+        .getValue();
 
-    // Ensure we have both labeled and unlabeled feature lists
-    if (unlabeledFeatureLists.length == 0 || labeledFeatureLists.length == 0) {
-      logger.warning("Either unlabeled or labeled feature lists are missing");
+    // Ensure we have feature lists
+    if (featureLists.length == 0) {
+      logger.warning("No feature lists selected");
+      return ExitCode.ERROR;
+    }
+
+    // Validate metadata column is selected
+    if (metadataColumnName == null || metadataColumnName.trim().isEmpty()) {
+      logger.warning("No metadata column selected for sample grouping");
+      return ExitCode.ERROR;
+    }
+
+    // Validate group values are provided
+    if (unlabeledValue == null || unlabeledValue.trim().isEmpty()) {
+      logger.warning("No unlabeled group value specified");
+      return ExitCode.ERROR;
+    }
+
+    if (labeledValue == null || labeledValue.trim().isEmpty()) {
+      logger.warning("No labeled group value specified");
       return ExitCode.ERROR;
     }
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
-    // For each unlabeled feature list, pair with each labeled feature list
-    for (FeatureList unlabeledFeatureList : unlabeledFeatureLists) {
-      for (FeatureList labeledFeatureList : labeledFeatureLists) {
-        Task newTask = new UntargetedLabelingTask(project, unlabeledFeatureList, labeledFeatureList,
-            parameters, storage, moduleCallDate);
-        tasks.add(newTask);
-      }
+    // Create task for each feature list
+    for (FeatureList featureList : featureLists) {
+      Task newTask = new UntargetedLabelingTask(project, featureList, metadataColumnName,
+          unlabeledValue, labeledValue, parameters, storage, moduleCallDate);
+      tasks.add(newTask);
     }
 
     return ExitCode.OK;
