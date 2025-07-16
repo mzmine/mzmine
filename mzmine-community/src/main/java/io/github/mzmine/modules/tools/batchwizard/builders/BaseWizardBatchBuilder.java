@@ -31,6 +31,9 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.main.ConfigService;
@@ -251,10 +254,10 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   private final boolean checkLocalCsvDatabase;
   // lipid annotation
   private final boolean annotateLipids;
+  protected File csvLibraryFile;
   private @NotNull String csvFilterSamplesColumn = "";
   private MassOptions csvMassOptions;
   private List<ImportType> csvColumns;
-  protected File csvLibraryFile;
 
   protected BaseWizardBatchBuilder(final WizardSequence steps) {
     super(steps);
@@ -1115,7 +1118,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter().setValue(1E1);
     param.setParameter(ImsExpanderParameters.mzTolerance, mzTolScans);
     // need to set SLIM specifically here, as it looks like TWIMS in the raw data.
-    param.setParameter(ImsExpanderParameters.mobilogramBinWidth, imsInstrumentType == MobilityType.SLIM, 10);
+    param.setParameter(ImsExpanderParameters.mobilogramBinWidth,
+        imsInstrumentType == MobilityType.SLIM, 10);
     param.setParameter(ImsExpanderParameters.maxNumTraces, false);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ImsExpanderModule.class),
@@ -1388,21 +1392,31 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(LocalCSVDatabaseSearchParameters.dataBaseFile, csvLibraryFile);
     param.setParameter(LocalCSVDatabaseSearchParameters.fieldSeparator,
         csvLibraryFile.getName().toLowerCase().endsWith(".csv") ? "," : "\\t");
-    param.setParameter(LocalCSVDatabaseSearchParameters.columns, csvColumns);
-    param.setParameter(LocalCSVDatabaseSearchParameters.mzTolerance, mzTolInterSample);
-    param.setParameter(LocalCSVDatabaseSearchParameters.rtTolerance,
-        Objects.requireNonNullElse(rtTol, new RTTolerance(9999999, Unit.MINUTES)));
-    param.setParameter(LocalCSVDatabaseSearchParameters.mobTolerance, imsFwhmMobTolerance);
-    param.setParameter(LocalCSVDatabaseSearchParameters.ccsTolerance, 0.05);
+    param.setParameter(LocalCSVDatabaseSearchParameters.commentFields, "");
     param.setParameter(LocalCSVDatabaseSearchParameters.filterSamples,
         !csvFilterSamplesColumn.isBlank(), csvFilterSamplesColumn.trim());
-    param.setParameter(LocalCSVDatabaseSearchParameters.commentFields, "");
+    param.setParameter(LocalCSVDatabaseSearchParameters.mzTolerance,
+        ImportType.isDataTypeSelectedInImportTypes(csvColumns, MZType.class), mzTolInterSample);
+    param.setParameter(LocalCSVDatabaseSearchParameters.rtTolerance,
+        ImportType.isDataTypeSelectedInImportTypes(csvColumns, RTType.class),
+        Objects.requireNonNullElse(rtTol, new RTTolerance(9999999, Unit.MINUTES)));
+    param.setParameter(LocalCSVDatabaseSearchParameters.mobTolerance,
+        ImportType.isDataTypeSelectedInImportTypes(csvColumns,
+            io.github.mzmine.datamodel.features.types.numbers.MobilityType.class),
+        imsFwhmMobTolerance);
+    param.setParameter(LocalCSVDatabaseSearchParameters.ccsTolerance,
+        ImportType.isDataTypeSelectedInImportTypes(csvColumns, CCSType.class), 0.05);
+
     // define ions
     var ionLibParams = param.getParameter(LocalCSVDatabaseSearchParameters.ionLibrary)
         .getEmbeddedParameters();
     createAndSetIonLibrary(ionLibParams);
     param.setParameter(LocalCSVDatabaseSearchParameters.ionLibrary,
         csvMassOptions == MassOptions.MASS_AND_IONS);
+
+    param.setParameter(LocalCSVDatabaseSearchParameters.isotopePatternMatcher, false);
+
+    param.setParameter(LocalCSVDatabaseSearchParameters.columns, csvColumns);
 
     MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(LocalCSVDatabaseSearchModule.class), param);

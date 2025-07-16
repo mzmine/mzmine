@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -128,12 +129,12 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
   // vars
   private final FeatureList[] featureLists;
-  private final MobilityTolerance mobTolerance;
-  private final Double ccsTolerance;
+  private final @Nullable MobilityTolerance mobTolerance;
+  private final @Nullable Double ccsTolerance;
   private final File dataBaseFile;
   private final String fieldSeparator;
-  private final MZTolerance mzTolerance;
-  private final RTTolerance rtTolerance;
+  private final @Nullable MZTolerance mzTolerance;
+  private final @Nullable RTTolerance rtTolerance;
   private final IsotopePatternMatcherParameters isotopePatternMatcherParameters;
   private final MZTolerance isotopeMzTolerance;
   private final double minRelativeIsotopeIntensity;
@@ -162,12 +163,14 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     fieldSeparator = parameters.getParameter(LocalCSVDatabaseSearchParameters.fieldSeparator)
         .getValue();
     importTypes = parameters.getParameter(LocalCSVDatabaseSearchParameters.columns).getValue();
-    mzTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.mzTolerance).getValue();
-    rtTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.rtTolerance).getValue();
-    mobTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.mobTolerance)
-        .getValue();
-    ccsTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.ccsTolerance)
-        .getValue();
+    mzTolerance = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        LocalCSVDatabaseSearchParameters.mzTolerance, null);
+    rtTolerance = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        LocalCSVDatabaseSearchParameters.rtTolerance, null);
+    mobTolerance = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        LocalCSVDatabaseSearchParameters.mobTolerance, null);
+    ccsTolerance = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        LocalCSVDatabaseSearchParameters.ccsTolerance, null);
 
     Boolean calcMz = parameters.getValue(LocalCSVDatabaseSearchParameters.ionLibrary);
     ionLibraryParameterSet = calcMz != null && calcMz ? parameters.getParameter(
@@ -404,10 +407,12 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     assert mz != null;
     final Float rt = annotation.getRT();
     final Float mobility = annotation.getMobility();
-    var mzRange = mzTolerance.getToleranceRange(mz);
-    Range<Float> rtRange =
+    // we need a range with boundaries for binary search. Range.all does not have boundaries
+    final Range<Double> mzRange = mzTolerance != null ? mzTolerance.getToleranceRange(mz)
+        : Range.closed(0d, Double.MAX_VALUE);
+    final Range<Float> rtRange =
         rtTolerance != null && rt != null ? rtTolerance.getToleranceRange(rt) : Range.all();
-    Range<Float> mobilityRange =
+    final Range<Float> mobilityRange =
         mobTolerance != null && mobility != null ? mobTolerance.getToleranceRange(mobility)
             : Range.all();
 
@@ -434,9 +439,10 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     return annotations;
   }
 
-  private void checkMatchAndAnnotate(CompoundDBAnnotation annotation, FeatureListRow row,
-      MZTolerance mzTolerance, RTTolerance rtTolerance, MobilityTolerance mobTolerance,
-      Double percCcsTolerance) {
+  private void checkMatchAndAnnotate(@NotNull CompoundDBAnnotation annotation,
+      @NotNull FeatureListRow row, @Nullable MZTolerance mzTolerance,
+      @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobTolerance,
+      @Nullable Double percCcsTolerance) {
 
     final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(row, mzTolerance,
         rtTolerance, mobTolerance, percCcsTolerance);

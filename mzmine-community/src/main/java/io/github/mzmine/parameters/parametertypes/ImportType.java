@@ -26,12 +26,16 @@
 package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ImportType {
 
@@ -45,6 +49,23 @@ public class ImportType {
     this.selected = new SimpleBooleanProperty(selected);
     this.csvColumnName = new SimpleStringProperty(csvColumnName);
     this.dataType = new SimpleObjectProperty<>(dataType);
+  }
+
+  /**
+   * @param importTypes A list of import types
+   * @param type        the type to search for
+   * @return true if the type is in the list and selected, false if the type is not in the list or
+   * in the list but not selected.
+   */
+  public static boolean isDataTypeSelectedInImportTypes(
+      @Nullable final List<@Nullable ImportType> importTypes,
+      @NotNull final Class<? extends DataType<?>> type) {
+    if (importTypes == null) {
+      return false;
+    }
+    final DataType<?> instance = DataTypes.get(type);
+    return importTypes.stream().filter(t -> t != null && t.getDataType().equals(instance))
+        .findFirst().map(ImportType::isSelected).orElse(false);
   }
 
   @Override
@@ -91,7 +112,7 @@ public class ImportType {
 
   /**
    * @return The column index if specified. This value is not set in the gui and has to be
-   * determined from the file.
+   * determined from the file. -1 if the column index was not found.
    */
   public int getColumnIndex() {
     return columnIndex;

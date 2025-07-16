@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
@@ -71,6 +72,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -191,7 +193,40 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
     return IonMobilitySupport.SUPPORTED;
   }
 
-//  @Override
-//  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams) {
-//  }
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
+    if (loadedVersion == 1) {
+      // before version 2, the parameters were not optional, if we imported rt, mob, or ccs, we always matched against those.
+      final List<ImportType> importTypes = getValue(columns);
+      // mz was always enabled, the only possibility is that a large tolerance was used
+      setParameter(mzTolerance, true);
+
+      final boolean rtFilterEnabled = ImportType.isDataTypeSelectedInImportTypes(importTypes,
+          RTType.class);
+      setParameter(rtTolerance, rtFilterEnabled);
+
+      final boolean mobFilterEnabled = ImportType.isDataTypeSelectedInImportTypes(importTypes,
+          MobilityType.class);
+      setParameter(mobTolerance, mobFilterEnabled);
+
+      final boolean ccsFilterEnabled = ImportType.isDataTypeSelectedInImportTypes(importTypes,
+          CCSType.class);
+      setParameter(ccsTolerance, ccsFilterEnabled);
+    }
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 2 ->
+          "m/z, RT, mobility, and CCS tolerances were made optional. The parameters were enabled/disabled based on the types imported from the csv database.";
+      default -> null;
+    };
+  }
 }
