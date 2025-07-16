@@ -80,7 +80,6 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
   private final MobilityTolerance mobilityTolerance;
   private final Double backgroundValue;
   private final Boolean correct_NA_tracer;
-  private final Integer charge;
   private final double[] tracerPurity;
   private final String tracerIsotope;
   private final ParameterSet parameters;
@@ -112,7 +111,6 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
       this.backgroundValue = null;
     }
     correct_NA_tracer = true; // parameters.getParameter(IsotopeNaturalAbundanceParameters.correct_NA_tracer).getValue();
-    charge = parameters.getParameter(IsotopeNaturalAbundanceParameters.charge).getValue();
     double purityValue = parameters.getParameter(IsotopeNaturalAbundanceParameters.tracerPurity)
         .getValue();
     tracerPurity = new double[]{1.0 - purityValue, purityValue};
@@ -141,15 +139,6 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
 
   @Override
   public void run() {
-
-    boolean testsPass = CorrectorDebugger.runDiagnosticTests();
-    if (testsPass) {
-      logger.info("Diagnostic tests passed. Proceeding with normal processing.");
-    } else {
-      logger.warning(
-          "Diagnostic tests failed. Proceeding with caution, results may be unreliable.");
-    }
-
     // Continue with your existing code...
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running isotope natural abundance correction on " + featureList);
@@ -220,6 +209,7 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
       // create an array of measurement for the unlabeled compound and the measurements for the labeled compounds. If a compound does not have a measured isotope peak, the corresponding value in the array will be 0.
       double[] measurements = new double[elementNumber + 1];
       measurements[0] = unlabeledRow.getMaxArea();
+      int charge = unlabeledRow.getRowCharge();
       int counter = 1;
       for (FeatureListRow labeledRow : labeledRows) {
         int index = Integer.parseInt(
@@ -244,8 +234,6 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
       }
 
       double[] correctedMeasurements;
-      // create a corrector object
-      MetaboliteCorrectorFactory factory = new MetaboliteCorrectorFactory();
       // define the options for the corrector
       HashMap options = new HashMap<>();
 
@@ -265,7 +253,7 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
                     + "The resolution will be set to " + lowestCalculatedResolution);
           }
         } else {
-          // notify the user that the input was invalid and that the fallback low resulution correction is applied
+          // notify the user that the input was invalid and that the fallback low resolution correction is applied
           logger.warning(
               "The input resolution was invalid. The low resolution correction will be applied.");
         }
@@ -273,12 +261,12 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
         // notify the user that the low resolution correction is applied
         logger.warning("The low resolution correction is applied.");
       }
-
       options.put("charge", charge);
       options.put("tracerPurity", tracerPurity);
       options.put("correct_NA_tracer", correct_NA_tracer);
       options.put("resolutionFormulaCode", resolutionFormulaCode);
-      MetaboliteCorrector corrector = factory.createCorrector(formula, tracerIsotope, options);
+      MetaboliteCorrector corrector = MetaboliteCorrectorFactory.createCorrector(formula,
+          tracerIsotope, options);
       // correct the measurements
       CorrectedResult result = corrector.correct(measurements);
       correctedMeasurements = result.getCorrectedMeasurements();
@@ -313,11 +301,10 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
         }
       }
 
-      System.out.println("Isotopologue fraction of " + compoundName + ": " + Arrays.toString(
+      logger.info("Isotopologue fraction of " + compoundName + ": " + Arrays.toString(
           isotopologueFraction));
-      System.out.println(
-          "Mean enrichment of " + compoundName + ": " + Arrays.toString(meanEnrichment));
-      System.out.println("Residuum of " + compoundName + ": " + Arrays.toString(residuum));
+      logger.info("Mean enrichment of " + compoundName + ": " + Arrays.toString(meanEnrichment));
+      logger.info("Residuum of " + compoundName + ": " + Arrays.toString(residuum));
     }
 
     // Loop through all peaks
@@ -346,300 +333,6 @@ class IsotopeNaturalAbundanceTask extends AbstractTask {
     Float candidateMobility = row.getAverageMobility();
     return candidateMobility == null || mobilityTolerance.checkWithinTolerance(mainMobility,
         candidateMobility);
-  }
-
-
-  /**
-   * A simple utility class to test the MetaboliteCorrector implementation. Run this directly from
-   * your IsotopeNaturalAbundanceTask to verify the implementation.
-   */
-  public class CorrectorDebugger {
-
-    /**
-     * Run detailed diagnostic tests to verify the corrector implementation.
-     *
-     * @return true if all tests pass, false otherwise
-     */
-    public static boolean runDiagnosticTests() {
-      System.out.println("=====================================================");
-      System.out.println("RUNNING DETAILED DIAGNOSTIC TESTS");
-      System.out.println("=====================================================");
-
-      boolean allPassed = true;
-
-      // First, test basic initialization
-      try {
-        testBasicInitialization();
-        System.out.println("✓ Basic initialization test passed");
-      } catch (Exception e) {
-        System.err.println("✗ Basic initialization test FAILED: " + e.getMessage());
-        e.printStackTrace();
-        // Don't continue if we can't even initialize properly
-        return false;
-      }
-
-      // Test individual components
-      try {
-        testTracerParsing();
-        System.out.println("✓ Tracer parsing test passed");
-      } catch (Exception e) {
-        System.err.println("✗ Tracer parsing test FAILED: " + e.getMessage());
-        e.printStackTrace();
-        allPassed = false;
-      }
-
-      try {
-        testMassDistributionVector();
-        System.out.println("✓ Mass distribution vector test passed");
-      } catch (Exception e) {
-        System.err.println("✗ Mass distribution vector test FAILED: " + e.getMessage());
-        e.printStackTrace();
-        allPassed = false;
-      }
-
-      try {
-        testConvolution();
-        System.out.println("✓ Convolution test passed");
-      } catch (Exception e) {
-        System.err.println("✗ Convolution test FAILED: " + e.getMessage());
-        e.printStackTrace();
-        allPassed = false;
-      }
-
-      // Now test the full correction process
-      try {
-        testGlucoseFullCorrection();
-        System.out.println("✓ Glucose full correction test passed");
-      } catch (Exception e) {
-        System.err.println("✗ Glucose full correction test FAILED: " + e.getMessage());
-        e.printStackTrace();
-        allPassed = false;
-      }
-
-      System.out.println("=====================================================");
-      if (allPassed) {
-        System.out.println("All diagnostic tests PASSED! Implementation looks correct.");
-      } else {
-        System.out.println("Some diagnostic tests FAILED! See above for details.");
-      }
-      System.out.println("=====================================================");
-
-      return allPassed;
-    }
-
-    /**
-     * Test basic initialization of the corrector.
-     */
-    private static void testBasicInitialization() throws Exception {
-      System.out.println("Testing basic corrector initialization...");
-
-      String formula = "C3H7NO2"; // Alanine
-      String tracer = "13C";
-
-      java.util.HashMap<String, Object> options = new java.util.HashMap<>();
-      options.put("charge", 1);
-      options.put("correct_NA_tracer", true);
-
-      // Create the corrector
-      MetaboliteCorrector corrector = MetaboliteCorrectorFactory.createCorrector(formula, tracer,
-          options);
-
-      // Verify it's not null
-      if (corrector == null) {
-        throw new Exception("Corrector initialization failed - returned null");
-      }
-
-      System.out.println("  Successfully created: " + corrector.getClass().getSimpleName());
-    }
-
-    /**
-     * Test tracer parsing functionality.
-     */
-    private static void testTracerParsing() throws Exception {
-      System.out.println("Testing tracer parsing...");
-
-      // Test different tracer formats
-      String formula = "C3H7NO2"; // Alanine
-      String[] tracers = {"13C", "15N", "2H"};
-
-      for (String tracer : tracers) {
-        java.util.HashMap<String, Object> options = new java.util.HashMap<>();
-        options.put("charge", 1);
-        options.put("correct_NA_tracer", true);
-
-        try {
-          MetaboliteCorrector corrector = MetaboliteCorrectorFactory.createCorrector(formula,
-              tracer, options);
-          System.out.println("  Successfully parsed tracer: " + tracer);
-
-          // Use reflection to check tracer element and index
-          java.lang.reflect.Field elementField = MetaboliteCorrector.class.getDeclaredField(
-              "tracerElement");
-          elementField.setAccessible(true);
-          String tracerElement = (String) elementField.get(corrector);
-
-          java.lang.reflect.Field indexField = MetaboliteCorrector.class.getDeclaredField(
-              "tracerIsotopeIndex");
-          indexField.setAccessible(true);
-          int tracerIsotopeIndex = (int) indexField.get(corrector);
-
-          System.out.println(
-              "  Tracer element: " + tracerElement + ", isotope index: " + tracerIsotopeIndex);
-        } catch (Exception e) {
-          throw new Exception("Failed to parse tracer " + tracer + ": " + e.getMessage());
-        }
-      }
-    }
-
-    /**
-     * Test mass distribution vector calculation.
-     */
-    private static void testMassDistributionVector() throws Exception {
-      System.out.println("Testing mass distribution vector calculation...");
-
-      String formula = "C3H7NO2"; // Alanine
-      String tracer = "13C";
-
-      java.util.HashMap<String, Object> options = new java.util.HashMap<>();
-      options.put("charge", 1);
-      options.put("correct_NA_tracer", true);
-
-      LowResMetaboliteCorrector corrector = (LowResMetaboliteCorrector) MetaboliteCorrectorFactory.createCorrector(
-          formula, tracer, options);
-
-      // Use reflection to access the mass distribution vector
-      java.lang.reflect.Method method = LowResMetaboliteCorrector.class.getDeclaredMethod(
-          "getMassDistributionVector");
-      method.setAccessible(true);
-      double[] vector = (double[]) method.invoke(corrector);
-
-      if (vector == null || vector.length == 0) {
-        throw new Exception("Mass distribution vector is null or empty");
-      }
-
-      System.out.println("  Mass distribution vector length: " + vector.length);
-      System.out.println(
-          "  First few values: " + vector[0] + ", " + (vector.length > 1 ? vector[1] : "N/A") + ", "
-              + (vector.length > 2 ? vector[2] : "N/A"));
-
-      // Check that it sums to approximately 1
-      double sum = 0;
-      for (double v : vector) {
-        sum += v;
-      }
-
-      if (Math.abs(sum - 1.0) > 0.001) {
-        throw new Exception("Mass distribution vector does not sum to 1.0: " + sum);
-      }
-
-      System.out.println("  Vector sum: " + sum + " (should be close to 1.0)");
-    }
-
-    /**
-     * Test convolution functionality.
-     */
-    private static void testConvolution() throws Exception {
-      System.out.println("Testing convolution functionality...");
-
-      String formula = "C3H7NO2"; // Alanine
-      String tracer = "13C";
-
-      java.util.HashMap<String, Object> options = new java.util.HashMap<>();
-      options.put("charge", 1);
-
-      MetaboliteCorrector corrector = MetaboliteCorrectorFactory.createCorrector(formula, tracer,
-          options);
-
-      // Test arrays
-      double[] a = {0.5, 0.5};
-      double[] b = {0.8, 0.2};
-
-      // Use reflection to access the convolve method
-      java.lang.reflect.Method method = MetaboliteCorrector.class.getDeclaredMethod("convolve",
-          double[].class, double[].class);
-      method.setAccessible(true);
-      double[] result = (double[]) method.invoke(corrector, a, b);
-
-      if (result == null || result.length != 3) {
-        throw new Exception("Convolution result invalid: " + (result == null ? "null"
-            : "length " + result.length + " (expected 3)"));
-      }
-
-      System.out.println(
-          "  Convolution result: [" + result[0] + ", " + result[1] + ", " + result[2] + "]");
-      System.out.println("  Expected result: [0.4, 0.5, 0.1]");
-
-      // Check that result sums to 1
-      double sum = 0;
-      for (double v : result) {
-        sum += v;
-      }
-
-      if (Math.abs(sum - 1.0) > 0.001) {
-        throw new Exception("Convolution result doesn't sum to 1.0: " + sum);
-      }
-    }
-
-    /**
-     * Test full correction process for glucose.
-     */
-    private static void testGlucoseFullCorrection() throws Exception {
-      System.out.println("Testing full correction process for glucose...");
-
-      String formula = "C6H12O6"; // Glucose
-      String tracer = "13C";
-
-      java.util.HashMap<String, Object> options = new java.util.HashMap<>();
-      options.put("charge", 1);
-      options.put("correct_NA_tracer", true);
-
-      // Explicit tracer purity for Carbon (2 isotopes in our dataset)
-      double[] tracerPurity = {0.01, 0.99}; // 99% 13C purity
-      options.put("tracerPurity", tracerPurity);
-
-      // Create the corrector
-      MetaboliteCorrector corrector = MetaboliteCorrectorFactory.createCorrector(formula, tracer,
-          options);
-
-      // Create reasonable test measurements
-      double[] measurements = {10000.0, 650.0, 30.0, 5.0, 1.0, 0.5, 0.1};
-
-      // Perform correction
-      System.out.println("  Performing correction...");
-      LowResMetaboliteCorrector.CorrectedResult result = corrector.correct(measurements);
-
-      // Check results
-      if (result == null) {
-        throw new Exception("Correction result is null");
-      }
-
-      double[] fractions = result.getIsotopologueFraction();
-      double[] areas = result.getCorrectedArea();
-      double[] residuum = result.getResiduum();
-      double meanEnrichment = result.getMeanEnrichment();
-
-      System.out.println("  Corrected fractions: " + java.util.Arrays.toString(fractions));
-      System.out.println("  Corrected areas: " + java.util.Arrays.toString(areas));
-      System.out.println("  Residuum: " + java.util.Arrays.toString(residuum));
-      System.out.println("  Mean enrichment: " + meanEnrichment);
-
-      // Check that fractions sum to 1
-      double sum = 0;
-      for (double v : fractions) {
-        sum += v;
-      }
-
-      if (Math.abs(sum - 1.0) > 0.001) {
-        throw new Exception("Isotopologue fractions don't sum to 1.0: " + sum);
-      }
-
-      System.out.println("  Fraction sum: " + sum + " (should be close to 1.0)");
-
-      // For glucose with natural abundance, M+0 should be dominant
-      if (fractions[0] < 0.7) {
-        throw new Exception("M+0 fraction unexpectedly low: " + fractions[0] + " (expected >0.7)");
-      }
-    }
   }
 }
 

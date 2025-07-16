@@ -29,7 +29,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -66,9 +65,6 @@ public class IsotopeNaturalAbundanceParameters extends SimpleParameterSet {
 
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
-  public static final IntegerParameter charge = new IntegerParameter("Charge",
-      "Charge of the measured ion, usually 1 or -1.");
-
   // tracer purity as an array of double values
   public static final DoubleParameter tracerPurity = new DoubleParameter("Tracer purity",
       "Purity of the tracer isotope as a ratio of 0 to 1.", NumberFormat.getNumberInstance(), 1.00);
@@ -97,7 +93,7 @@ public class IsotopeNaturalAbundanceParameters extends SimpleParameterSet {
 
   public IsotopeNaturalAbundanceParameters() {
     super(new Parameter[]{peakLists, suffix, mzTolerance, resolution, mzOfResolution,
-        resolutionFormulaCode, rtTolerance, charge, tracerPurity, mobilityTolerace, backgroundValue,
+        resolutionFormulaCode, rtTolerance, tracerPurity, mobilityTolerace, backgroundValue,
         tracerIsotope, handleOriginal}, "https://mzmine.github.io/mzmine_documentation");
   }
 
