@@ -45,7 +45,8 @@ public enum ImputationFunctions implements UniqueIdSupplier {
     return switch (this) {
       case Zero -> "Zero (0)";
       case OneFifthOfMinimum -> "1/5 of minimum";
-      case GLOBAL_LIMIT_OF_DETECTION -> "LOD (1/3 of global minimum)";
+      case GLOBAL_LIMIT_OF_DETECTION ->
+          "LOD (1/%.0f of global minimum)".formatted(GlobalLimitOfDetectionImputer.DEVISOR);
     };
   }
 
