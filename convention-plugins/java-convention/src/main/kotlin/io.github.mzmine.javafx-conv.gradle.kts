@@ -23,7 +23,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import org.gradle.internal.os.OperatingSystem
 
 plugins {
     id("io.github.mzmine.java-common-conv")
