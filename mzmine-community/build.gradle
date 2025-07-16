@@ -433,10 +433,10 @@ task signApp(dependsOn: jpackage) {
             getLogger().info("entitlementsPth " + entitlementsPth)
 
             // Define codesign command
-            Consumer<Path> codesign = (Path p) -> exec {
+            Consumer<Path> codesign = { Path p -> exec {
                 commandLine(["codesign", "--deep", "--force", "--timestamp", "-s", "${developerID}", "--options",
                              "runtime", "--entitlements", "${entitlementsPth}", "-f", "-v", "${p}"])
-            }
+            } }
 
             getLogger().lifecycle('Deleting unused "non-notarizable" libraries...')
 
@@ -460,22 +460,25 @@ task signApp(dependsOn: jpackage) {
 
             getLogger().lifecycle("Signing libraires nested in jars...")
 
-            // Define native libraries nested in jars that are to be signed
-            ArrayList<Path> jarNestedLibs = [
-                    FileSystems.newFileSystem(jarsDir.resolve("jna-inchi-darwin-x86-64-1.2.jar")).getPath("darwin-x86-64/libjnainchi.dylib"),
-                    FileSystems.newFileSystem(jarsDir.resolve("jna-inchi-darwin-aarch64-1.2.jar")).getPath("darwin-aarch64/libjnainchi.dylib"),
-                    /*FileSystems.newFileSystem(jarsDir.resolve("adap-4.1.10.jar")).getPath("lib/macosx-x86_64/libadapwavelet.so"),*/
-            ]
-
-            // Move each library out of .jar, sign it, and put it back
+            // Dynamically find and sign all native libraries in JARs
             Path tmpJarsDir = layout.buildDirectory.dir("tmp/jarLibs").get().asFile.toPath()
             Files.createDirectories(tmpJarsDir)
-            for (Path inJar : jarNestedLibs) {
-                Path tmpPath = tmpJarsDir.resolve(inJar.getFileName().toString())
-                Files.copy(inJar, tmpPath, StandardCopyOption.REPLACE_EXISTING)
-                codesign(tmpPath.toAbsolutePath())
-                Files.copy(tmpPath, inJar, StandardCopyOption.REPLACE_EXISTING)
-                inJar.fileSystem.close()
+            
+            // Find all JAR files in the app directory
+            jarsDir.toFile().listFiles().findAll { it.name.endsWith('.jar') }.each { jarFile ->
+                getLogger().lifecycle("Processing jar for native libraries: ${jarFile.name}")
+                try (FileSystem jarFs = FileSystems.newFileSystem(jarFile.toPath(), null)) {
+                    // Find all native libraries in this JAR
+                    Files.walk(jarFs.getPath("/")).each { path ->
+                        if (path.getFileName().toString().matches(".*\\.(dylib|jnilib|so|dll)")) {
+                            getLogger().lifecycle("Found native library in ${jarFile.name}: ${path}")
+                            Path tmpPath = tmpJarsDir.resolve(jarFile.name + "_" + path.getFileName().toString())
+                            Files.copy(path, tmpPath, StandardCopyOption.REPLACE_EXISTING)
+                            codesign(tmpPath.toAbsolutePath())
+                            Files.copy(tmpPath, path, StandardCopyOption.REPLACE_EXISTING)
+                        }
+                    }
+                }
             }
 
             getLogger().lifecycle("Signing jars...")
