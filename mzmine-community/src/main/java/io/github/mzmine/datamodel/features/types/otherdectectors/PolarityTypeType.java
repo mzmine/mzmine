@@ -67,28 +67,4 @@ public class PolarityTypeType extends EnumDataType<PolarityType> implements Null
     return PolarityType.class;
   }
 
-  @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (value == null) {
-      writer.writeCharacters(CONST.XML_NULL_VALUE);
-      return;
-    }
-
-    if (value instanceof PolarityType pol) {
-      writer.writeCharacters(pol.name());
-    }
-  }
-
-  @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    final String text = ParsingUtils.readNullableString(reader.getElementText());
-    if (text == null) {
-      return null;
-    }
-    return PolarityType.valueOf(text);
-  }
 }

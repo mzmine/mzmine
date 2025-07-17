@@ -36,7 +36,9 @@ import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.abstr.EnumDataType;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -75,32 +77,6 @@ public class MobilityUnitType extends EnumDataType<MobilityType> {
   }
 
   @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (value == null) {
-      return;
-    }
-    if (!(value instanceof MobilityType mt)) {
-      throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
-    }
-    writer.writeCharacters(mt.name());
-  }
-
-  @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    String name = reader.getElementText();
-    if (name.isEmpty()) {
-      return null;
-    }
-    return MobilityType.valueOf(name);
-  }
-
-  @Override
   public @NotNull List<RowBinding> createDefaultRowBindings() {
     return List.of(new SimpleRowBinding(this, BindingsType.CONSENSUS));
   }
@@ -123,5 +99,16 @@ public class MobilityUnitType extends EnumDataType<MobilityType> {
     } else {
       return super.evaluateBindings(bindingType, models);
     }
+  }
+
+  @Override
+  public @Nullable Function<@Nullable String, @Nullable MobilityType> getMapper() {
+    return s -> {
+      if (s == null) {
+        return null;
+      }
+      return Arrays.stream(MobilityType.values()).filter(t -> t.getUnit().equals(s)).findFirst()
+          .orElse(null);
+    };
   }
 }
