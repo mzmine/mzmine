@@ -33,8 +33,10 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.util.ParsingUtils;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.function.Function;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
@@ -178,4 +180,8 @@ public abstract class FloatType extends NumberType<Float> {
     return result;
   }
 
+  @Override
+  public @Nullable Function<@Nullable String, @Nullable Float> getMapper() {
+    return ParsingUtils::stringToFloat;
+  }
 }

@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import java.util.function.Function;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javax.xml.stream.XMLStreamException;
@@ -83,4 +84,8 @@ public abstract class StringType extends DataType<String> {
     return text;
   }
 
+  @Override
+  public @Nullable Function<@Nullable String, @Nullable String> getMapper() {
+    return s -> s;
+  }
 }
