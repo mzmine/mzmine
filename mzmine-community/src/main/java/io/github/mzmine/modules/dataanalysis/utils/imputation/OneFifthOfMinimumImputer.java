@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,27 @@
 
 package io.github.mzmine.modules.dataanalysis.utils.imputation;
 
+import io.github.mzmine.datamodel.statistics.DataTable;
+import io.github.mzmine.datamodel.statistics.DataTableUtils;
+import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import org.apache.commons.math3.linear.RealVector;
 
+/**
+ * 1/5 of the minimum intensity for each feature
+ */
 public class OneFifthOfMinimumImputer implements ImputationFunction {
 
   @Override
+  public <T extends DataTable> T processInPlace(T data) {
+    for (double[] feature : data) {
+      // calculate minimum
+      final double minValue = DataTableUtils.getMinimum(feature, true).orElse(1d) / 3d;
+      StatisticUtils.replaceNaN(feature, minValue, true);
+    }
+
+    return data;
+  }
+
   public Double apply(RealVector realVector) {
     final double minValue = realVector.getMinValue();
     return minValue * 1 / 5;

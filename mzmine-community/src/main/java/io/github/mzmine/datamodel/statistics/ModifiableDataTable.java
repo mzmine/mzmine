@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,12 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance.ttest;
+package io.github.mzmine.datamodel.statistics;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
+public interface ModifiableDataTable extends DataTable {
 
-public record TTestResult(FeatureListRow row, String groupingColumn, double pValue) implements
-    RowSignificanceTestResult {
+  default void setFeatureData(int index, double[] data) {
+    double[] oldData = getFeatureData(index, false);
+    System.arraycopy(data, 0, oldData, 0, data.length);
+  }
 
+  default void setSampleData(int index, double[] data) {
+    final int features = getNumberOfFeatures();
+    for (int row = 0; row < features; row++) {
+      setValue(row, index, data[index]);
+    }
+  }
+
+  default void setValue(int featureIndex, int sampleIndex, double value) {
+    double[] data = getFeatureData(featureIndex, false);
+    data[sampleIndex] = value;
+  }
 }

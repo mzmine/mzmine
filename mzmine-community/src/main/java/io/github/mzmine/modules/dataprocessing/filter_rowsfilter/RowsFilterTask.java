@@ -53,7 +53,6 @@ import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -86,7 +85,6 @@ public class RowsFilterTask extends AbstractTask {
   private final boolean filterByCharge;
   private final boolean filterByKMD;
   private final boolean filterByMS2;
-  private final boolean filterByCv;
   private final boolean onlyWithOtherCorrelated;
   private final RowsFilterChoices filterOption;
   private final boolean renumber;
@@ -108,14 +106,16 @@ public class RowsFilterTask extends AbstractTask {
   private final Range<Float> rtRange;
   private final Range<Float> fwhmRange;
   private final Isotope13CFilter isotope13CFilter;
-  @Nullable
-  private final RsdFilter cvFilter;
+  private final FoldChangeSignificanceRowFilterParameters significanceFoldChangeFilterParameters;
+  private final RsdFilterParameters cvFilterParameters;
+  private final AbsoluteAndRelativeInt minSamples;
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
-  private AbsoluteAndRelativeInt minSamples;
   private FeatureList filteredFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
+  private FoldChangeSignificanceRowFilter significanceFoldChangeFilter;
+  private RsdFilter cvFilter;
 
 
   /**
@@ -155,7 +155,6 @@ public class RowsFilterTask extends AbstractTask {
     filterByKMD = parameters.getValue(RowsFilterParameters.KENDRICK_MASS_DEFECT);
     filterByMS2 = parameters.getValue(RowsFilterParameters.MS2_Filter);
     filterOption = parameters.getValue(RowsFilterParameters.REMOVE_ROW);
-    filterByCv = parameters.getValue(RowsFilterParameters.cvFilter);
     onlyWithOtherCorrelated = parameters.getValue(
         RowsFilterParameters.onlyCorrelatedWithOtherDetectors);
     minSamples = parameters.getEmbeddedParameterValueIfSelectedOrElse(
@@ -198,9 +197,12 @@ public class RowsFilterTask extends AbstractTask {
     fwhmRange = filterByFWHM ? RangeUtils.toFloatRange(
         parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter().getValue())
         : null;
-    cvFilter = filterByCv ? RsdFilter.of(
-        (RsdFilterParameters) parameters.getEmbeddedParameterValue(RowsFilterParameters.cvFilter),
-        origFeatureList) : null;
+
+    this.cvFilterParameters = parameters.getEmbeddedParametersIfSelectedOrElse(
+        RowsFilterParameters.cvFilter, null);
+
+    this.significanceFoldChangeFilterParameters = parameters.getEmbeddedParametersIfSelectedOrElse(
+        RowsFilterParameters.foldChangeFilter, null);
 
     // isotope filter
     filter13CIsotopes = parameters.getParameter(RowsFilterParameters.ISOTOPE_FILTER_13C).getValue();
@@ -267,6 +269,17 @@ public class RowsFilterTask extends AbstractTask {
    */
   private FeatureList filterFeatureListRows(final FeatureList featureList,
       boolean processInCurrentList) {
+    // prepare filters that require a prepared data table
+    if (significanceFoldChangeFilterParameters != null) {
+      significanceFoldChangeFilter = significanceFoldChangeFilterParameters.createFilter(
+          featureList.getRows(), featureList.getRawDataFiles());
+    }
+
+    if (cvFilterParameters != null) {
+      cvFilter = cvFilterParameters.createFilter(featureList.getRows(),
+          featureList.getRawDataFiles());
+    }
+
     // if keep is selected we remove rows on failed criteria
     // otherwise we remove those that match all criteria
     boolean removeFailed = RowsFilterChoices.KEEP_MATCHING == filterOption;
@@ -296,7 +309,12 @@ public class RowsFilterTask extends AbstractTask {
     // requires copy of rows as there is no efficient way to remove rows from the list
     // the use setAll
     final ArrayList<FeatureListRow> rowsToAdd = new ArrayList<>((int) (totalRows * 0.75));
+
+    // keep track of index
+    int rowIndex = -1;
     for (final FeatureListRow row : featureList.getRows()) {
+      rowIndex++;
+
       if (isCanceled()) {
         return null;
       }
@@ -308,7 +326,7 @@ public class RowsFilterTask extends AbstractTask {
       // rows that fail any of the criteria.
       // Only add the row if none of the criteria have failed.
       boolean keepRow = (keepAllWithMS2 && hasMS2) || (keepAnnotated && annotated)
-          || isFilterRowCriteriaFailed(totalSamples, row, hasMS2) != removeFailed;
+          || isFilterRowCriteriaFailed(totalSamples, row, rowIndex, hasMS2) != removeFailed;
       if (keepRow) {
         rowsToAdd.add(row);
       }
@@ -352,7 +370,7 @@ public class RowsFilterTask extends AbstractTask {
   }
 
   private boolean isFilterRowCriteriaFailed(final int totalSamples, FeatureListRow row,
-      boolean hasMS2) {
+      int rowIndex, boolean hasMS2) {
 
     // Check ms2 filter .
     if (filterByMS2 && !hasMS2) {
@@ -539,7 +557,11 @@ public class RowsFilterTask extends AbstractTask {
       return true;
     }
 
-    if (filterByCv && cvFilter != null && !cvFilter.matches(row)) {
+    if (cvFilter != null && !cvFilter.matches(row, rowIndex)) {
+      return true;
+    }
+
+    if (significanceFoldChangeFilter != null && !significanceFoldChangeFilter.matches(rowIndex)) {
       return true;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataanalysis.utils.scaling;
 
+import io.github.mzmine.datamodel.statistics.DataTable;
+import java.util.Arrays;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
@@ -39,6 +41,24 @@ public class AutoScalingFunction implements ScalingFunction {
   @Override
   public RealVector apply(RealVector input) {
     final double sd = dev.evaluate(input.toArray());
+    if (Double.compare(sd, 0d) == 0) {
+      return input.mapToSelf(v -> 0);
+    }
     return input.mapDivide(sd).mapToSelf(scalingResultChecker);
+  }
+
+  @Override
+  public <T extends DataTable> T processInPlace(T data) {
+    for (double[] feature : data) {
+      final double sd = dev.evaluate(feature);
+      if (Double.compare(sd, 0d) == 0) {
+        Arrays.fill(feature, 0d);
+      } else {
+        for (int i = 0; i < feature.length; i++) {
+          feature[i] = scalingResultChecker.value(feature[i] / sd);
+        }
+      }
+    }
+    return data;
   }
 }
