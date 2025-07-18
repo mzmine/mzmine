@@ -44,8 +44,13 @@ public class ComboWithStringInputParameter<EnumType> extends
 
   @Override
   public UserParameter<ComboWithStringInputValue<EnumType>, ComboWithInputComponent<EnumType>> cloneParameter() {
-    return new ComboWithStringInputParameter<>(embeddedParameter.cloneParameter(), choices,
-        inputTrigger, value);
+    final StringParameter embeddedClone = embeddedParameter.cloneParameter();
+    final ComboWithStringInputValue<EnumType> clonedValue = new ComboWithStringInputValue<>(
+        value.getSelectedOption(), value.embeddedValue());
+    final ComboWithStringInputParameter<EnumType> clone = new ComboWithStringInputParameter<>(
+        embeddedClone, choices, inputTrigger, clonedValue);
+    clone.setValue(clonedValue);
+    return clone;
   }
 
   @Override
