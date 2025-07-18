@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,30 +22,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.datamodel.features.types.abstr.UrlType;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
+import io.github.mzmine.parameters.ValueChangeDecorator;
+import java.util.ArrayList;
+import java.util.List;
+import javafx.animation.PauseTransition;
+import javafx.scene.control.TextField;
+import javafx.util.Duration;
 
-/**
- * URL to MASST job on GNPS. MASST is the mass spectrometry search tool. e.g. <a
- * href="https://gnps.ucsd.edu/ProteoSAFe/status.jsp?task=fa0437e82d0a4a4493c8c2dcb4977c07">https://gnps.ucsd.edu/ProteoSAFe/status.jsp?task=fa0437e82d0a4a4493c8c2dcb4977c07</a>
- *
- * @author Robin Schmid (<a
- * href="https://github.com/robinschmid">https://github.com/robinschmid</a>)
- */
-public class MasstUrlType extends UrlType {
+public class StringParameterComponent extends TextField implements ValueChangeDecorator {
 
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "masst_url";
+  private final List<Runnable> valueChangeListeners = new ArrayList<>();
+  private final PauseTransition delay = new PauseTransition(Duration.millis(500));
+
+  public StringParameterComponent() {
+    super();
+    textProperty().addListener((_, _, _) -> delay.playFromStart());
+    delay.setOnFinished(_ -> {
+      for (Runnable lst : valueChangeListeners) {
+        lst.run();
+      }
+    });
   }
 
-  @NotNull
   @Override
-  public String getHeaderString() {
-    return "MASST";
+  public void addValueChangedListener(Runnable onChange) {
+    valueChangeListeners.add(onChange);
   }
 }

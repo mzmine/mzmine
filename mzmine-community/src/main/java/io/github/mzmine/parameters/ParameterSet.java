@@ -146,7 +146,7 @@ public interface ParameterSet extends ParameterContainer {
 
   /**
    * This method loads parameters from xml and uses the names and old names in
-   * {@link #getNameParameterMap()}. After loading the method {@link #handleLoadedParameters(Map)}
+   * {@link #getNameParameterMap()}. After loading the method {@link #handleLoadedParameters(Map, int)}
    * is called with the actually loaded parameters.
    *
    * @return a Map of parameter name to parameters that were actually loaded from XML - parameters
@@ -162,9 +162,10 @@ public interface ParameterSet extends ParameterContainer {
    * load old legacy parameters and map their values to new parameters or load parameters and apply
    * their value also to other parameters that were added later.
    *
-   * @param loadedParams map of parameter name to actually loaded parameters
+   * @param loadedParams  map of parameter name to actually loaded parameters
+   * @param loadedVersion the version of the loaded parameter set
    */
-  default void handleLoadedParameters(Map<String, Parameter<?>> loadedParams) {
+  default void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, final int loadedVersion) {
   }
 
 

@@ -25,12 +25,14 @@
 
 package io.github.mzmine.parameters.impl;
 
+import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
@@ -40,6 +42,7 @@ import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -112,6 +115,11 @@ public class SimpleParameterSet implements ParameterSet {
     // finding nested ParameterSets
 //    NodeList list = xmlElement.getElementsByTagName(parameterElement);
 
+    final int loadedVersion = switch (xmlElement.hasAttribute(BatchQueue.MODULE_VERSION_ATTR)) {
+      case true -> Integer.parseInt(xmlElement.getAttribute(BatchQueue.MODULE_VERSION_ATTR));
+      case false -> 1;
+    };
+
     Map<String, Parameter<?>> loadedParameters = HashMap.newHashMap(nameParameterMap.size());
 
     var childNodes = xmlElement.getChildNodes();
@@ -142,7 +150,7 @@ public class SimpleParameterSet implements ParameterSet {
         }
       }
     }
-    handleLoadedParameters(loadedParameters);
+    handleLoadedParameters(loadedParameters, loadedVersion);
     return loadedParameters;
   }
 

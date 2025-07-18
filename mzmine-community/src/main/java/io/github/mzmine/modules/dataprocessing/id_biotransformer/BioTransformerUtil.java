@@ -55,15 +55,15 @@ import org.jetbrains.annotations.NotNull;
 
 public class BioTransformerUtil {
 
-  private static final List<ImportType> types = List.of(
-      new ImportType(true, "Molecular formula", DataTypes.get(FormulaType.class)),
-      new ImportType(true, "SMILES", DataTypes.get(SmilesStructureType.class)),
-      new ImportType(true, "InChI", DataTypes.get(InChIStructureType.class)),
-      new ImportType(true, "InChIKey", DataTypes.get(InChIKeyStructureType.class)),
-      new ImportType(true, "Reaction", DataTypes.get(ReactionType.class)),
-      new ImportType(true, "Enzyme(s)", DataTypes.get(EnzymeType.class)),
-      new ImportType(true, "ALogP", DataTypes.get(ALogPType.class)),
-      new ImportType(true, "Metabolite ID", DataTypes.get(CompoundNameType.class)));
+  private static final List<ImportType<?>> types = List.of(
+      new ImportType<>(true, "Molecular formula", DataTypes.get(FormulaType.class)),
+      new ImportType<>(true, "SMILES", DataTypes.get(SmilesStructureType.class)),
+      new ImportType<>(true, "InChI", DataTypes.get(InChIStructureType.class)),
+      new ImportType<>(true, "InChIKey", DataTypes.get(InChIKeyStructureType.class)),
+      new ImportType<>(true, "Reaction", DataTypes.get(ReactionType.class)),
+      new ImportType<>(true, "Enzyme(s)", DataTypes.get(EnzymeType.class)),
+      new ImportType<>(true, "ALogP", DataTypes.get(ALogPType.class)),
+      new ImportType<>(true, "Metabolite ID", DataTypes.get(CompoundNameType.class)));
   private static final Logger logger = Logger.getLogger(BioTransformerUtil.class.getName());
 
   private BioTransformerUtil() {

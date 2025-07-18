@@ -97,7 +97,7 @@ public class ColorByMetadataParameters extends SimpleParameterSet {
   }
 
   @Override
-  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams) {
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, final int loadedVersion) {
     // transfer old parameter type to new type
     if (loadedParams.containsKey(colorByColumn.getName())) {
       getParameter(columnSelection).setValue(colorByColumn.getValue());
@@ -106,4 +106,6 @@ public class ColorByMetadataParameters extends SimpleParameterSet {
               colorByColumn.getEmbeddedParameter().getValue());
     }
   }
+
+
 }

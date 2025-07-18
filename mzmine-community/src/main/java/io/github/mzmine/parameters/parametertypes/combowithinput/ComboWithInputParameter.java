@@ -138,6 +138,7 @@ public abstract class ComboWithInputParameter<EnumType, ValueType extends ComboW
       if (option instanceof UniqueIdSupplier uid) {
         if (uid.getUniqueID().equals(selectedAttr)) {
           setValue(createValue(option, embeddedParameter));
+          break;
         }
       } else {
         if (option.toString().equals(selectedAttr)) {
@@ -153,7 +154,7 @@ public abstract class ComboWithInputParameter<EnumType, ValueType extends ComboW
     if (value == null) {
       return;
     }
-    if (value instanceof UniqueIdSupplier uniqueId) {
+    if (value.getSelectedOption() instanceof UniqueIdSupplier uniqueId) {
       xmlElement.setAttribute("selected", uniqueId.getUniqueID());
     } else {
       xmlElement.setAttribute("selected", value.getSelectedOption().toString());

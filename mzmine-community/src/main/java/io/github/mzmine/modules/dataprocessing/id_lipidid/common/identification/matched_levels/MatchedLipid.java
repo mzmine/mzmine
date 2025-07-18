@@ -319,6 +319,21 @@ public class MatchedLipid implements FeatureAnnotation {
   }
 
   @Override
+  public @Nullable String getIupacName() {
+    return null;
+  }
+
+  @Override
+  public @Nullable String getCAS() {
+    return null;
+  }
+
+  @Override
+  public @Nullable String getInternalId() {
+    return null;
+  }
+
+  @Override
   public @Nullable String getFormula() {
     return MolecularFormulaManipulator.getString(getLipidAnnotation().getMolecularFormula());
   }

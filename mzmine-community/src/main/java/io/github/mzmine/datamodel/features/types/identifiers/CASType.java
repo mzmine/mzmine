@@ -22,20 +22,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.datamodel.features.types.identifiers;
 
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import org.jetbrains.annotations.NotNull;
 
-public class EntryIdType extends StringType {
+public class CASType extends StringType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "entry_id";
+    return "cas";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Entry ID";
+    return "CAS";
   }
 }

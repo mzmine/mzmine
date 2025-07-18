@@ -32,8 +32,10 @@ import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
+import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.components.util.FxLayout.GridColumnGrow;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.color.ColorScaleUtil;
@@ -44,15 +46,21 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.io.ClipboardWriter;
+import io.github.mzmine.util.io.JsonUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import jakarta.json.Json;
 import java.awt.Dimension;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -93,8 +101,6 @@ import org.jfree.data.Range;
 
 public class SpectralMatchPanelFX extends GridPane {
 
-  private static final Logger logger = Logger.getLogger(SpectralMatchPanelFX.class.getName());
-
   public static final int META_WIDTH = 500;
   public static final int ENTRY_HEIGHT = 400;
   public static final int STRUCTURE_HEIGHT = 150;
@@ -108,6 +114,7 @@ public class SpectralMatchPanelFX extends GridPane {
       "icons/exp_graph_emf.png");
   protected static final Image iconSvg = FxIconUtil.loadImageFromResources(
       "icons/exp_graph_svg.png");
+  private static final Logger logger = Logger.getLogger(SpectralMatchPanelFX.class.getName());
   private static final int ICON_WIDTH = 50;
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
   // min color is a darker red
@@ -167,6 +174,28 @@ public class SpectralMatchPanelFX extends GridPane {
 
 //    setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
 //        BorderWidths.DEFAULT)));
+  }
+
+  private static void copyTextToClipboard(String o) {
+    ClipboardWriter.writeToClipBoard(o);
+    Notifications.create().title("Copied to clipboard").hideAfter(new Duration(2500))
+        .owner(MZmineCore.getDesktop().getMainWindow()).show();
+
+    // Other option for overlay
+//          var popOver = new PopOver();
+//          popOver.setContentNode(new Label("Copied to clipboard"));
+//          popOver.setAutoHide(true);
+//          popOver.setAutoFix(true);
+//          popOver.setHideOnEscape(true);
+//          popOver.setDetachable(true);
+//          popOver.setDetached(false);
+//          popOver.setArrowLocation(ArrowLocation.LEFT_BOTTOM);
+//
+//          PauseTransition pause = new PauseTransition(Duration.seconds(2.5));
+//          pause.setOnFinished(e -> popOver.hide());
+//          pause.play();
+//
+//          popOver.show(text);
   }
 
   private Pane createTitlePane() {
@@ -293,6 +322,7 @@ public class SpectralMatchPanelFX extends GridPane {
     BorderPane pnOther = extractMetaData("Other information", hit.getEntry(),
         DBEntryField.OTHER_FIELDS);
     BorderPane pnLib = extractLibraryPanel(hit.getEntry());
+    final BorderPane pnExtra = extractJsonMetaData("Additional fields", hit.getEntry());
 
     var leftBox = new VBox(4, pnCompounds);
     leftBox.setPadding(Insets.EMPTY);
@@ -308,6 +338,9 @@ public class SpectralMatchPanelFX extends GridPane {
     g1.add(spectrumInfo, 0, 1, 2, 1);
 
     metaDataPanel.getChildren().add(g1);
+    if(pnExtra != null) {
+      metaDataPanel.getChildren().add(pnExtra);
+    }
     metaDataPanel.setMinSize(META_WIDTH, ENTRY_HEIGHT);
 //    metaDataPanel.setPrefSize(META_WIDTH, -1);
     metaDataPanel.setPrefWidth(META_WIDTH);
@@ -414,26 +447,30 @@ public class SpectralMatchPanelFX extends GridPane {
     return pn;
   }
 
-  private static void copyTextToClipboard(String o) {
-    ClipboardWriter.writeToClipBoard(o);
-    Notifications.create().title("Copied to clipboard").hideAfter(new Duration(2500))
-        .owner(MZmineCore.getDesktop().getMainWindow()).show();
+  private BorderPane extractJsonMetaData(String title, SpectralLibraryEntry entry) {
+    final String json = entry.getOrElse(DBEntryField.JSON_STRING, "");
+    if (json == null || json.isBlank()) {
+      return null;
+    }
 
-    // Other option for overlay
-//          var popOver = new PopOver();
-//          popOver.setContentNode(new Label("Copied to clipboard"));
-//          popOver.setAutoHide(true);
-//          popOver.setAutoFix(true);
-//          popOver.setHideOnEscape(true);
-//          popOver.setDetachable(true);
-//          popOver.setDetached(false);
-//          popOver.setArrowLocation(ArrowLocation.LEFT_BOTTOM);
-//
-//          PauseTransition pause = new PauseTransition(Duration.seconds(2.5));
-//          pause.setOnFinished(e -> popOver.hide());
-//          pause.play();
-//
-//          popOver.show(text);
+    final Map<String, String> jsonEntries = JsonUtils.readValueOrElse(json, new LinkedHashMap<>());
+    final GridPane main = FxLayout.newGrid2Col(GridColumnGrow.BOTH, FxLayout.DEFAULT_PADDING_INSETS);
+
+    int index = 0;
+    for (Entry<String, String> e : jsonEntries.entrySet()) {
+      final Label text = FxLabels.newLabel(e.getKey() + ": " + e.getValue());
+//      text.setMaxWidth(150);
+      text.setOnMouseClicked(_ -> copyTextToClipboard(text.getText()));
+      main.add(text, index % 2, index / 2);
+      index++;
+    }
+
+    Label otherInfo = new Label(title);
+    otherInfo.getStyleClass().add("bold-title-label");
+    BorderPane pn = new BorderPane(main);
+    BorderPane.setAlignment(main, Pos.TOP_LEFT);
+    pn.setTop(otherInfo);
+    return pn;
   }
 
   public void applySettings(@Nullable ParameterSet param) {

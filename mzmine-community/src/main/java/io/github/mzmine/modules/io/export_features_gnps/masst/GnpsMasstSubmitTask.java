@@ -39,7 +39,7 @@ package io.github.mzmine.modules.io.export_features_gnps.masst;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
-import io.github.mzmine.datamodel.features.types.annotations.MasstUrlType;
+import io.github.mzmine.datamodel.features.types.identifiers.MasstUrlType;
 import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;

@@ -70,8 +70,9 @@ public abstract class ComposedParameterSet implements ParameterSet {
   }
 
   @Override
-  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
-    getParamSet().handleLoadedParameters(loadedParams);
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
+    getParamSet().handleLoadedParameters(loadedParams, loadedVersion);
   }
 
   @Override
