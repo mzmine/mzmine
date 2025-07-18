@@ -85,7 +85,6 @@ public class RowsFilterTask extends AbstractTask {
   private final boolean filterByCharge;
   private final boolean filterByKMD;
   private final boolean filterByMS2;
-  private final boolean filterByCv;
   private final boolean onlyWithOtherCorrelated;
   private final RowsFilterChoices filterOption;
   private final boolean renumber;

@@ -168,8 +168,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
             // feature properties
             MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE, KENDRICK_MASS_DEFECT, massDefect,
             // identities / annotations
-            HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, MS2_Filter, onlyCorrelatedWithOtherDetectors, KEEP_ALL_MS2, KEEP_ALL_ANNOTATED,
-            Reset_ID},
+            HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, MS2_Filter, onlyCorrelatedWithOtherDetectors,
+            KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
   }
 
@@ -180,7 +180,13 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   @Override
   public @Nullable String getVersionMessage(int version) {
-    return switch (version)
+    return switch (version) {
+      case 3 -> """
+          "%s" has changed internally. Missing value imputation was added
+          "%s" was added as an additional filtering option.""".formatted(cvFilter.getName(),
+          foldChangeFilter.getName());
+      default -> null;
+    };
   }
 
   @Override
