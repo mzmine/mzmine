@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,17 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance.ttest;
+package io.github.mzmine.modules.dataanalysis.utils.imputation;
 
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.statistics.TTestConfigurationParameter;
+import io.github.mzmine.datamodel.statistics.DataTable;
+import io.github.mzmine.datamodel.statistics.DataTableUtils;
+import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 
-public class TTestParameters extends SimpleParameterSet {
+public class GlobalLimitOfDetectionImputer implements ImputationFunction {
 
-  public static final TTestConfigurationParameter config = new TTestConfigurationParameter(
-      "t-Test configuration", "Configure the t-Test.");
+  public static final double DEVISOR = 5;
 
-  public TTestParameters() {
-    super("https://mzmine.github.io/mzmine_documentation/visualization_modules/statistics_dashboard/statistics_dashboard.html#controls_1", config);
+  public GlobalLimitOfDetectionImputer() {
   }
+
+  @Override
+  public <T extends DataTable> T processInPlace(T data) {
+    // calculate minimum
+    final double globalMinimum = DataTableUtils.getMinimum(data, true).orElse(1d) / DEVISOR;
+    for (double[] feature : data) {
+      StatisticUtils.replaceNaN(feature, globalMinimum, true);
+    }
+
+    return data;
+  }
+
 }

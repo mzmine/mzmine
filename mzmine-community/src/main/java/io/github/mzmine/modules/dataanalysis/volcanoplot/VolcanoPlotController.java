@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import java.awt.geom.Point2D;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
@@ -67,8 +68,32 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> implem
   }
 
   private void initializeListeners() {
-    PropertyUtils.onChange(this::computeDataset, model.testProperty(), model.flistsProperty(),
-        model.abundanceMeasureProperty(), model.pValueProperty());
+    PropertyUtils.onChange(this::prepareDataTable, model.flistsProperty(),
+        model.abundanceMeasureProperty(), model.missingValueImputationProperty());
+
+    // either the data table changes or the test or other requirements
+    PropertyUtils.onChange(this::computeDataset, model.featureDataTableProperty(),
+        model.testProperty(), model.pValueProperty());
+  }
+
+  /**
+   * Prepares the data, sets it to a property and will then trigger the computeDataset via other
+   * listener
+   */
+  private void prepareDataTable() {
+    // wait and prepare dataset
+    final List<FeatureList> flists = model.getFlists();
+    if (flists == null || flists.isEmpty()) {
+      model.featureDataTableProperty().set(null);
+      return;
+    }
+    // create the new dataset
+    final var config = new AbundanceDataTablePreparationConfig(model.getAbundanceMeasure(),
+        model.getMissingValueImputation());
+
+    onTaskThreadDelayed(
+        new FeatureDataPreparationTask(model.featureDataTableProperty(), flists.getFirst(),
+            config));
   }
 
   private void computeDataset() {

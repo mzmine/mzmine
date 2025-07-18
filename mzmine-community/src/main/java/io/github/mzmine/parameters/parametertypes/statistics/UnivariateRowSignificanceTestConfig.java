@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,9 @@
 
 package io.github.mzmine.parameters.parametertypes.statistics;
 
-import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestSamplingConfig;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
+import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
+import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
@@ -36,17 +37,28 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record StorableTTestConfiguration(@NotNull TTestSamplingConfig samplingConfig,
-                                         @Nullable String column, @Nullable String groupA,
-                                         @Nullable String groupB) {
+public record UnivariateRowSignificanceTestConfig(@NotNull SignificanceTests samplingConfig,
+                                                  @Nullable String column, @Nullable String groupA,
+                                                  @Nullable String groupB) {
 
-  private static final Logger logger = Logger.getLogger(StorableTTestConfiguration.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      UnivariateRowSignificanceTestConfig.class.getName());
 
   /**
-   * @return A {@link StudentTTest} or null. The configuration is only returned if the column exists
-   * and the respective values exist in that column.
+   * @return A {@link UnivariateRowSignificanceTest} or null. The configuration is only returned if
+   * the column exists and the respective values exist in that column.
    */
-  public @Nullable <T> StudentTTest<T> toValidConfig() {
+  public @Nullable <T> UnivariateRowSignificanceTest<T> toValidConfig(
+      @NotNull FeaturesDataTable fullDataTable) {
+    return this.<T>toValidConfig(fullDataTable, null);
+  }
+
+  /**
+   * @param fullOrTableA the full data table with all samples or already split into table A
+   * @param dataTableB   might be null if only a full feature table is provided
+   */
+  public @Nullable <T> UnivariateRowSignificanceTest<T> toValidConfig(
+      @NotNull FeaturesDataTable fullOrTableA, @Nullable FeaturesDataTable dataTableB) {
     final MetadataTable metadata = ProjectService.getMetadata();
 
     final MetadataColumn<T> col = (MetadataColumn<T>) metadata.getColumnByName(column);
@@ -83,6 +95,13 @@ public record StorableTTestConfiguration(@NotNull TTestSamplingConfig samplingCo
           () -> "Same grouping parameter selected for both groups of the t-Test. (" + a + ")");
     }
 
-    return new StudentTTest<>(samplingConfig, col, a, b);
+    if (dataTableB != null) {
+      // already grouped
+      return new UnivariateRowSignificanceTest<>(fullOrTableA, dataTableB, samplingConfig, col, a,
+          b);
+    } else {
+      // only full feature table
+      return new UnivariateRowSignificanceTest<>(fullOrTableA, samplingConfig, col, a, b);
+    }
   }
 }

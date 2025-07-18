@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,8 +27,12 @@ package io.github.mzmine.javafx.components.factories;
 
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Supplier;
 import javafx.beans.property.Property;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -37,6 +41,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import org.controlsfx.control.textfield.AutoCompletionBinding;
+import org.controlsfx.control.textfield.TextFields;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -137,4 +143,86 @@ public class FxTextFields {
     }, PropertyUtils.DEFAULT_TEXT_FIELD_DELAY, textField.textProperty());
     return textFormatter;
   }
+
+  /**
+   * Automatically bind auto completion to a text field based on a Observable
+   *
+   * @param textField the target
+   * @param options   options in an ObservableValue
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static AutoCompletionBinding<String> bindAutoCompletion(TextField textField,
+      ObservableValue<List<?>> options) {
+    return bindAutoCompletion(textField, options::getValue);
+  }
+
+  /**
+   * Automatically bind auto completion to a text field based on a list, e.g., ObservableList or
+   * static
+   *
+   * @param textField       the target
+   * @param optionsSupplier options
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static AutoCompletionBinding<String> bindAutoCompletion(TextField textField,
+      @NotNull final Supplier<List<?>> optionsSupplier) {
+
+    return TextFields.bindAutoCompletion(textField, iSuggestionRequest -> {
+      final String input = iSuggestionRequest.getUserText();
+      return autoCompleteSubMatch(optionsSupplier.get(), input);
+    });
+  }
+
+  /**
+   * Automatically bind auto completion to a text field based on a list, e.g., ObservableList or
+   * static
+   *
+   * @param textField the target
+   * @param options   options
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static AutoCompletionBinding<String> bindAutoCompletion(TextField textField,
+      @Nullable final List<?> options) {
+
+    return TextFields.bindAutoCompletion(textField, iSuggestionRequest -> {
+      final String input = iSuggestionRequest.getUserText();
+      return autoCompleteSubMatch(options, input);
+    });
+  }
+
+
+  /**
+   * Only matches substrings. If there is only one match that is exactly the input then the result
+   * is an empty list to not show suggestions in TextFields
+   */
+  public static @NotNull List<String> autoCompleteSubMatch(@Nullable final List<?> options,
+      final String input) {
+    if (options == null || options.isEmpty()) {
+      return List.of();
+    }
+    final String lowerInput = input.toLowerCase();
+
+    final List<String> matches = options.stream().filter(Objects::nonNull).map(Object::toString)
+        .filter(str -> str.toLowerCase().contains(lowerInput)).sorted().toList();
+    if (matches.size() == 1 && matches.getFirst().equals(input)) {
+      // exact input match - return empty
+      return List.of();
+    }
+    return matches;
+  }
+
+
+  /**
+   * Auto grows the pref column count property to fit the current text
+   *
+   * @return the same as input
+   */
+  public static TextField autoGrowFitText(final TextField field) {
+    // pref column is wider than one char on windows at least
+    // so multiply by factor
+    field.prefColumnCountProperty()
+        .bind(field.textProperty().map(text -> Math.max(text.length() * 0.7, 8)));
+    return field;
+  }
+
 }
