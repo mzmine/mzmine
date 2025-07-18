@@ -26,6 +26,7 @@
 package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.features.types.annotations.AcquisitionMethodType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -135,7 +136,7 @@ public enum DBEntryField {
   INSTRUMENT_TYPE, INSTRUMENT, IMS_TYPE, ION_SOURCE, RESOLUTION, POLARITY,
 
   // other
-  PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE,
+  PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE, ACQUISITION_METHOD,
 
   // Dataset ID is for MassIVE or other repositories
   DATASET_ID, FILENAME, USI, SOURCE_SCAN_USI(List.class),
@@ -171,7 +172,7 @@ public enum DBEntryField {
       INCHI, INCHIKEY, SMILES, NUM_PEAKS, FEATURE_ID, FEATURE_FULL_ID};
   public static final DBEntryField[] INSTRUMENT_FIELDS = new DBEntryField[]{INSTRUMENT_TYPE,
       INSTRUMENT, ION_SOURCE, RESOLUTION, MS_LEVEL, COLLISION_ENERGY, MERGED_SPEC_TYPE, ACQUISITION,
-      SOFTWARE};
+      ACQUISITION_METHOD, SOFTWARE};
 
   private static final Logger logger = Logger.getLogger(DBEntryField.class.getName());
 
@@ -280,6 +281,7 @@ public enum DBEntryField {
       case NPClassifierSuperclassType _ -> DBEntryField.NPCLASSIFIER_SUPERCLASS;
       case NPClassifierClassType _ -> DBEntryField.NPCLASSIFIER_CLASS;
       case NPClassifierPathwayType _ -> DBEntryField.NPCLASSIFIER_PATHWAY;
+      case AcquisitionMethodType _ -> ACQUISITION_METHOD;
 //        case SynonymType _ -> DBEntryField.SYNONYM;
       default -> UNSPECIFIED;
     };
@@ -344,6 +346,7 @@ public enum DBEntryField {
       case SMILES -> SmilesStructureType.class;
       case PEPTIDE_SEQ -> PeptideSequenceType.class;
       case CCS -> CCSType.class;
+      case ACQUISITION_METHOD -> AcquisitionMethodType.class;
       case DATASET_ID -> DatasetIdType.class;
       case USI -> UsiType.class;
       case SOURCE_SCAN_USI -> SourceScanUsiType.class;
@@ -413,6 +416,7 @@ public enum DBEntryField {
       case MSN_ISOLATION_WINDOWS -> "msn_isolation_windows";
       case FRAGMENTATION_METHOD -> "fragmenation_method";
       case ISOLATION_WINDOW -> "isolation_window";
+      case ACQUISITION_METHOD -> "acquisition_method";
       case DATASET_ID -> "dataset_id";
       case USI -> "usi";
       case SOURCE_SCAN_USI -> "source_scan_usi";
@@ -479,6 +483,7 @@ public enum DBEntryField {
       case USI -> "usi";
       case DESCRIPTION -> "description";
       case QUALITY -> "quality";
+      case ACQUISITION_METHOD -> "acquisition_method";
       case DATASET_ID -> "dataset_id";
       case QUALITY_CHIMERIC -> "quality_chimeric";
       case QUALITY_PRECURSOR_PURITY -> "precursor_purity";
@@ -548,6 +553,7 @@ public enum DBEntryField {
       case PEPTIDE_SEQ -> "PEPTIDE_SEQUENCE";
       case QUALITY_CHIMERIC -> "QUALITY_CHIMERIC";
       case QUALITY_PRECURSOR_PURITY -> "PRECURSOR_PURITY";
+      case ACQUISITION_METHOD -> "ACQUISITION_METHOD";
       case DATASET_ID -> "DATASET_ID";
       case QUALITY -> "QUALITY";
       case QUALITY_EXPLAINED_INTENSITY -> "QUALITY_EXPLAINED_INTENSITY";
@@ -617,6 +623,7 @@ public enum DBEntryField {
       case USI -> "USI";
       case QUALITY_CHIMERIC -> "QUALITY_CHIMERIC";
       case QUALITY_PRECURSOR_PURITY -> "PRECURSOR_PURITY";
+      case ACQUISITION_METHOD -> "ACQUISITION_METHOD";
       case DATASET_ID -> "DATASET_ID";
       case QUALITY -> "QUALITY";
       case QUALITY_EXPLAINED_INTENSITY -> "QUALITY_EXPLAINED_INTENSITY";
@@ -690,6 +697,7 @@ public enum DBEntryField {
       case FILENAME -> "";
       case USI -> "";
       case QUALITY -> "";
+      case ACQUISITION_METHOD -> "";
       case DATASET_ID -> "";
       case QUALITY_CHIMERIC -> "";
       case QUALITY_EXPLAINED_INTENSITY -> "";
@@ -764,7 +772,8 @@ public enum DBEntryField {
            PUBCHEM, MONA_ID, CHEMSPIDER, FEATURE_ID, FEATURE_FULL_ID, PUBMED, SYNONYMS, NAME,
            ENTRY_ID, NUM_PEAKS, //
            MS_LEVEL, INSTRUMENT, ION_SOURCE, RESOLUTION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, //
-           COMMENT, DESCRIPTION, MOLWEIGHT, FORMULA, INCHI, INCHIKEY, SMILES, CAS, CCS, //
+           COMMENT, DESCRIPTION, MOLWEIGHT, FORMULA, INCHI, INCHIKEY, SMILES, CAS, CCS,
+           ACQUISITION_METHOD, //
            ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS,
            COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,
            MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, //

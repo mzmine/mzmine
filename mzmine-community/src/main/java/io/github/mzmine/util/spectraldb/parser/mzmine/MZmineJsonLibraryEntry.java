@@ -116,6 +116,8 @@ public class MZmineJsonLibraryEntry {
   public String npClassifierPathway;
   public String npClassifierClass;
 
+  public String acquisitionMethod;
+
 
   @JsonDeserialize(using = SpectrumDeserializer.class)
   public double[][] signals;
@@ -196,6 +198,7 @@ public class MZmineJsonLibraryEntry {
       case PRINCIPAL_INVESTIGATOR -> investigator;
       case DATA_COLLECTOR -> dataCollector;
       case SOFTWARE -> softwaresource;
+      case ACQUISITION_METHOD -> acquisitionMethod;
       case DATASET_ID -> datasetId;
       case FILENAME -> null;
       case USI -> usi;
