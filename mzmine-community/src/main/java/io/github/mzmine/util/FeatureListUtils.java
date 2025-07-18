@@ -842,4 +842,13 @@ public class FeatureListUtils {
     return (int) features;
   }
 
+  /**
+   * @return Creates a sorter which sorts by descending number of rows. Avoids collisions by the
+   * name of the feature list.
+   */
+  public static Comparator<FeatureList> createDescendingNumberOfRowsSorter() {
+    return Comparator.comparing(FeatureList::getNumberOfRows).reversed()
+        .thenComparing(FeatureList::getName);
+  }
+
 }
