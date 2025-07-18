@@ -225,6 +225,7 @@ public class MZmineJsonLibraryEntry {
            FEATURE_MS1_REL_HEIGHT -> null;
       case SCAN_NUMBER -> scanNumber;
       case UNSPECIFIED -> null;
+      case JSON_STRING -> null;
     };
   }
 

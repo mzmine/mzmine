@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.JsonStringType;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
@@ -140,7 +141,7 @@ public enum DBEntryField {
   INSTRUMENT_TYPE, INSTRUMENT, IMS_TYPE, ION_SOURCE, RESOLUTION, POLARITY,
 
   // other
-  PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE,
+  PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE, JSON_STRING,
 
   // Dataset ID is for MassIVE or other repositories
   DATASET_ID, FILENAME, USI, SOURCE_SCAN_USI(List.class),
@@ -170,10 +171,11 @@ public enum DBEntryField {
   public static final DBEntryField[] OTHER_FIELDS = new DBEntryField[]{PRINCIPAL_INVESTIGATOR,
       DATA_COLLECTOR, ENTRY_ID, COMMENT};
   public static final DBEntryField[] DATABASE_FIELDS = new DBEntryField[]{USI, PUBMED, PUBCHEM,
-      MONA_ID, CHEMSPIDER, CAS};
-  public static final DBEntryField[] COMPOUND_FIELDS = new DBEntryField[]{NAME, SYNONYMS, FORMULA,
-      MOLWEIGHT, EXACT_MASS, ION_TYPE, PRECURSOR_MZ, CHARGE, RT, RETENTION_INDEX, CCS, POLARITY,
-      INCHI, INCHIKEY, SMILES, NUM_PEAKS, FEATURE_ID, FEATURE_FULL_ID};
+      MONA_ID, CHEMSPIDER, CAS, INTERNAL_ID};
+  public static final DBEntryField[] COMPOUND_FIELDS = new DBEntryField[]{NAME, SYNONYMS,
+      IUPAC_NAME, FORMULA, MOLWEIGHT, EXACT_MASS, ION_TYPE, PRECURSOR_MZ, CHARGE, RT,
+      RETENTION_INDEX, CCS, POLARITY, INCHI, INCHIKEY, SMILES, NUM_PEAKS, FEATURE_ID,
+      FEATURE_FULL_ID};
   public static final DBEntryField[] INSTRUMENT_FIELDS = new DBEntryField[]{INSTRUMENT_TYPE,
       INSTRUMENT, ION_SOURCE, RESOLUTION, MS_LEVEL, COLLISION_ENERGY, MERGED_SPEC_TYPE, ACQUISITION,
       SOFTWARE};
@@ -289,6 +291,7 @@ public enum DBEntryField {
       case CASType _ -> CAS;
       case IupacNameType _ -> IUPAC_NAME;
       case InternalIdType _ -> INTERNAL_ID;
+      case JsonStringType _ -> JSON_STRING;
 //        case SynonymType _ -> DBEntryField.SYNONYM;
       default -> UNSPECIFIED;
     };
@@ -367,6 +370,7 @@ public enum DBEntryField {
       case FEATURE_MS1_REL_HEIGHT -> RelativeHeightType.class;
       case IUPAC_NAME -> IupacNameType.class;
       case INTERNAL_ID -> InternalIdType.class;
+      case JSON_STRING -> JsonStringType.class;
     };
   }
 
@@ -427,6 +431,7 @@ public enum DBEntryField {
       case MSN_ISOLATION_WINDOWS -> "msn_isolation_windows";
       case FRAGMENTATION_METHOD -> "fragmenation_method";
       case ISOLATION_WINDOW -> "isolation_window";
+      case JSON_STRING -> "additional_json";
       case DATASET_ID -> "dataset_id";
       case USI -> "usi";
       case SOURCE_SCAN_USI -> "source_scan_usi";
@@ -514,6 +519,7 @@ public enum DBEntryField {
       case SIRIUS_MERGED_SCANS -> "";
       case SIRIUS_MERGED_STATS -> "";
       case UNSPECIFIED -> "";
+      case JSON_STRING -> "additional_json";
     };
   }
 
@@ -582,6 +588,7 @@ public enum DBEntryField {
       case SIRIUS_MERGED_STATS -> "MERGED_STATS";
       case ONLINE_REACTIVITY -> "ONLINE_REACTIVITY";
       case UNSPECIFIED -> "";
+      case JSON_STRING -> "ADDITIONAL_JSON";
     };
   }
 
@@ -652,6 +659,7 @@ public enum DBEntryField {
       case SIRIUS_MERGED_STATS -> "MERGED_STATS";
       case ONLINE_REACTIVITY -> "ONLINE_REACTIVITY";
       case UNSPECIFIED -> "";
+      case JSON_STRING -> "ADDITIONAL_JSON";
     };
   }
 
@@ -721,6 +729,7 @@ public enum DBEntryField {
       case FEATURE_ID, FEATURE_FULL_ID, FEATURELIST_NAME_FEATURE_ID -> "";
       case SIRIUS_MERGED_SCANS -> "";
       case UNSPECIFIED -> "";
+      case JSON_STRING -> "";
     };
   }
 
@@ -799,7 +808,7 @@ public enum DBEntryField {
            IMS_TYPE, ONLINE_REACTIVITY, CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS,
            CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS,
            NPCLASSIFIER_PATHWAY, FEATURELIST_NAME_FEATURE_ID, MERGED_N_SAMPLES, IUPAC_NAME,
-           INTERNAL_ID -> {
+           INTERNAL_ID, JSON_STRING -> {
 
         // format lists and arrays as json so that they can easily be parsed
         if (value instanceof Collection<?> || value.getClass().isArray()) {

@@ -285,15 +285,18 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
     if (!loadedParams.containsKey(extraColumns.getName())) {
       // if the parameter was not loaded, we set to ignore. Otherwise we would not have clear
       // behaviour when loading old batches.
+      final String current = getParameter(extraColumns).getValue().embeddedValue();
       setParameter(extraColumns,
-          new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IGNORE, null));
+          new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IGNORE, current));
     }
 
     if (loadedParams.containsKey(commentFields.getName())) {
       final String commentFieldValues = commentFields.getValue();
-      setParameter(extraColumns,
-          new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IMPORT_SPECIFIC,
-              commentFieldValues));
+      if(!commentFieldValues.isBlank()) {
+        setParameter(extraColumns,
+            new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IMPORT_SPECIFIC,
+                commentFieldValues));
+      }
     }
   }
 

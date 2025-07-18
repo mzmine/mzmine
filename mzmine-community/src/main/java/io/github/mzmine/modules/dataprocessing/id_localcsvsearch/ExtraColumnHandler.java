@@ -46,7 +46,8 @@ public class ExtraColumnHandler {
     }
 
     final String[] columns = columnsList.strip().split(",");
-    extraColumns = Arrays.stream(columns).map(String::strip).collect(Collectors.toSet());
+    extraColumns = Arrays.stream(columns).map(String::strip).filter(s -> !s.isBlank())
+        .collect(Collectors.toSet());
   }
 
   public HandleExtraColumnsOptions getSelectedOption() {
