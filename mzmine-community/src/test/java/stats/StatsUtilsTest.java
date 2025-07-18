@@ -68,17 +68,4 @@ public class StatsUtilsTest {
     Assertions.assertEquals(0, unitVar.getEntry(2, 3));
   }
 
-  @Test
-  void testImputation() {
-    // TODO needs tests for DataTable or FeatureDataTable
-//    final Array2DRowRealMatrix matrix = new Array2DRowRealMatrix(missingData);
-//    final RealMatrix zero = StatisticUtils.imputeMissingValues(matrix, false, new ZeroImputer());
-//    Assertions.assertEquals(0, zero.getEntry(1, 1));
-//    Assertions.assertEquals(0, zero.getEntry(2, 3));
-//
-//    final RealMatrix oneFifth = StatisticUtils.imputeMissingValues(matrix, false,
-//        new OneFifthOfMinimumImputer());
-//    Assertions.assertEquals((double) 1 / 5, oneFifth.getEntry(1, 1));
-//    Assertions.assertEquals((double) 2 / 5, oneFifth.getEntry(2, 3));
-  }
 }
