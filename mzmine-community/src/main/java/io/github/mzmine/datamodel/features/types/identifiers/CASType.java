@@ -31,7 +31,7 @@ public class CASType extends StringType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "cas_id";
+    return "cas";
   }
 
   @Override

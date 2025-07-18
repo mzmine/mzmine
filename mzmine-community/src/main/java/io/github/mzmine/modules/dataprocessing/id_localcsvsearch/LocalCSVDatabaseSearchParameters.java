@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 import static io.github.mzmine.util.StringUtils.inQuotes;
 
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundNameIdentifier;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
@@ -77,6 +78,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.files.ExtensionFilters;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -224,8 +226,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       List<ImportType<?>> selectedTypes) {
     boolean compoundIdentifierSelected = false;
 
-    for (DataType<?> identifierType : CompoundDBAnnotation.compoundIdentifiers) {
-      if (importTypeListContainsType(selectedTypes, identifierType)) {
+    for (CompoundNameIdentifier identifierType : CompoundNameIdentifier.values()) {
+      if (importTypeListContainsType(selectedTypes, identifierType.getDataType())) {
         compoundIdentifierSelected = true;
         break;
       }
@@ -234,9 +236,9 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
     if (!compoundIdentifierSelected) {
       errorMessages.add(
           "No compound identifier selected. Either of %s must be selected to provide an identifier for a compound.".formatted(
-              inQuotes(
-                  CompoundDBAnnotation.compoundIdentifiers.stream().map(DataType::getHeaderString)
-                      .collect(Collectors.joining(", ")))));
+              inQuotes(Arrays.stream(CompoundNameIdentifier.values())
+                  .map(CompoundNameIdentifier::getDataType).map(DataType::getHeaderString)
+                  .collect(Collectors.joining(", ")))));
     }
 
     return compoundIdentifierSelected;
