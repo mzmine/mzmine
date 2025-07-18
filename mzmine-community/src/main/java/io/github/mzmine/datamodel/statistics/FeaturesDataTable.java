@@ -228,6 +228,20 @@ public final class FeaturesDataTable implements ModifiableDataTable {
     return new FeaturesDataTable(group, subData, featureRowIndexMap, null, processingHistory);
   }
 
+  /**
+   * Subset by {@link FeatureListRow} list
+   *
+   * @param subsetRows only keep those rows
+   * @return a new data table with the same samples but subset of rows
+   */
+  public FeaturesDataTable subsetByFeatures(List<FeatureListRow> subsetRows) {
+    final FeatureListRowAbundances[] filtered = subsetRows.stream().map(this::getFeatureRow)
+        .toArray(FeatureListRowAbundances[]::new);
+
+    // recompute row index map
+    return new FeaturesDataTable(dataFiles, filtered, null, dataFileIndexMap, processingHistory);
+  }
+
   public @NotNull FeatureListRowAbundances getFeatureRow(FeatureListRow row) {
     return getFeatureRow(getFeatureIndex(row));
   }
@@ -243,4 +257,5 @@ public final class FeaturesDataTable implements ModifiableDataTable {
   public @NotNull DataTableProcessingHistory getProcessingHistory() {
     return processingHistory;
   }
+
 }
