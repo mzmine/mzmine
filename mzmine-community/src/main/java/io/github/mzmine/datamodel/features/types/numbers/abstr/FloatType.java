@@ -47,6 +47,8 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class FloatType extends NumberType<Float> {
 
+  private static final Function<@Nullable String, @Nullable Float> stringToFloat = ParsingUtils::stringToFloat;
+
   protected FloatType(NumberFormat defaultFormat) {
     super(defaultFormat);
   }
@@ -75,7 +77,7 @@ public abstract class FloatType extends NumberType<Float> {
     if (!(value instanceof Float)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-          + value.getClass());
+              + value.getClass());
     }
     writer.writeCharacters(String.valueOf(value));
   }
@@ -182,6 +184,6 @@ public abstract class FloatType extends NumberType<Float> {
 
   @Override
   public @Nullable Function<@Nullable String, @Nullable Float> getMapper() {
-    return ParsingUtils::stringToFloat;
+    return stringToFloat;
   }
 }

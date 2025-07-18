@@ -65,7 +65,9 @@ public enum PolarityType implements UniqueIdSupplier {
     return switch (str.toLowerCase()) {
       case "+", "positive", "pos", "+1", "1+", "1" -> PolarityType.POSITIVE;
       case "-", "negative", "neg", "-1", "1-" -> PolarityType.NEGATIVE;
-      case "any polarity" -> PolarityType.ANY; // sometimes used as filter option
+      case "any polarity", "any" -> PolarityType.ANY; // sometimes used as filter option
+      case "neutral", "n" -> PolarityType.NEUTRAL;
+      case "unknown" -> PolarityType.UNKNOWN;
       default -> UNKNOWN;
     };
   }

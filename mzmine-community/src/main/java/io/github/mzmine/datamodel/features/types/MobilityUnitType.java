@@ -25,24 +25,15 @@
 
 package io.github.mzmine.datamodel.features.types;
 
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.abstr.EnumDataType;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,12 +94,9 @@ public class MobilityUnitType extends EnumDataType<MobilityType> {
 
   @Override
   public @Nullable Function<@Nullable String, @Nullable MobilityType> getMapper() {
-    return s -> {
-      if (s == null) {
-        return null;
-      }
-      return Arrays.stream(MobilityType.values()).filter(t -> t.getUnit().equals(s)).findFirst()
-          .orElse(null);
-    };
+    /**
+     * The unit is not unique, cannot map back from {@link MobilityType#getUnit()}
+     */
+    return null;
   }
 }

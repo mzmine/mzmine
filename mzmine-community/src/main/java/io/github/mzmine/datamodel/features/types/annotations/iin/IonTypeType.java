@@ -49,6 +49,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class IonTypeType extends DataType<IonType> {
 
+  private static final Function<@Nullable String, @Nullable IonType> mapper = IonTypeParser::parse;
+
   @Override
   public @NotNull String getUniqueID() {
     return "adduct";
@@ -101,6 +103,6 @@ public class IonTypeType extends DataType<IonType> {
 
   @Override
   public @Nullable Function<@Nullable String, @Nullable IonType> getMapper() {
-    return IonTypeParser::parse;
+    return mapper;
   }
 }

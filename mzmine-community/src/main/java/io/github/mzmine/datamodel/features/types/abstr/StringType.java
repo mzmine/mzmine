@@ -46,6 +46,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class StringType extends DataType<String> {
 
+  public static final Function<@Nullable String, @Nullable String> mapper = s -> s;
+
   @Override
   public StringProperty createProperty() {
     return new SimpleStringProperty("");
@@ -67,7 +69,7 @@ public abstract class StringType extends DataType<String> {
     if (!(value instanceof String str)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-          + value.getClass());
+              + value.getClass());
     }
     writer.writeCharacters(str);
   }
@@ -86,6 +88,6 @@ public abstract class StringType extends DataType<String> {
 
   @Override
   public @Nullable Function<@Nullable String, @Nullable String> getMapper() {
-    return s -> s;
+    return mapper;
   }
 }
