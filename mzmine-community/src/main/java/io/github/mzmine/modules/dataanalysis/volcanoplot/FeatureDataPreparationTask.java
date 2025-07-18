@@ -25,32 +25,44 @@
 
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
+import java.util.List;
 import javafx.beans.property.ObjectProperty;
+import javafx.collections.ObservableList;
 
 /**
  * Simple task that extracts and prepares feature data and sets it to a property
  */
 public class FeatureDataPreparationTask extends FxUpdateTask<ObjectProperty<FeaturesDataTable>> {
 
-  private final FeatureList featureList;
+  private final ObservableList<FeatureListRow> rows;
+  private final List<RawDataFile> selectedFiles;
   private final AbundanceDataTablePreparationConfig config;
   private FeaturesDataTable dataTable;
 
   public FeatureDataPreparationTask(ObjectProperty<FeaturesDataTable> model,
       FeatureList featureList, AbundanceDataTablePreparationConfig config) {
+    this(model, featureList.getRows(), featureList.getRawDataFiles(), config);
+  }
+
+  public FeatureDataPreparationTask(ObjectProperty<FeaturesDataTable> model,
+      ObservableList<FeatureListRow> rows, List<RawDataFile> selectedFiles,
+      AbundanceDataTablePreparationConfig config) {
     super("Prepare feature data table", model);
-    this.featureList = featureList;
+    this.rows = rows;
+    this.selectedFiles = selectedFiles;
     this.config = config;
   }
 
   @Override
   protected void process() {
-    dataTable = StatisticUtils.extractAbundancesPrepareData(featureList, config);
+    dataTable = StatisticUtils.extractAbundancesPrepareData(rows, selectedFiles, config);
   }
 
   @Override

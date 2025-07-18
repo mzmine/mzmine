@@ -28,13 +28,12 @@ package io.github.mzmine.modules.dataanalysis.significance;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestResult;
+import io.github.mzmine.modules.dataanalysis.significance.ttest.UnivariateRowSignificanceTestResult;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.parameters.parametertypes.statistics.StorableTTestConfiguration;
+import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,7 +48,6 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
   private final T groupB;
   private final FeaturesDataTable groupAData;
   private final FeaturesDataTable groupBData;
-  private final @NotNull Map<FeatureListRow, Integer> featureRowIndexMap;
 
   public UnivariateRowSignificanceTest(@NotNull FeaturesDataTable dataTable,
       @NotNull SignificanceTests test, MetadataColumn<T> column, T groupA, T groupB) {
@@ -99,18 +97,17 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
           groupBData.getNumberOfSamples()));
     }
 
-    featureRowIndexMap = groupAData.getFeatureRowIndexMap();
   }
 
   @Override
   public RowSignificanceTestResult test(FeatureListRow row) {
-    final int rowIndex = featureRowIndexMap.get(row);
+    final int rowIndex = groupAData.getFeatureIndex(row);
     final double[] groupAAbundance = groupAData.getFeatureData(rowIndex, false);
     final double[] groupBAbundance = groupBData.getFeatureData(rowIndex, false);
 
     try {
       final double p = test.checkAndTest(List.of(groupAAbundance, groupBAbundance));
-      return new TTestResult(row, column.getTitle(), p);
+      return new UnivariateRowSignificanceTestResult(row, column.getTitle(), p);
     } catch (Exception e) {
       // this should not happen after imputing missing values and providing a p value for every input
       throw new IllegalStateException(
@@ -157,8 +154,8 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
         && Objects.equals(this.groupA, that.groupA) && Objects.equals(this.groupB, that.groupB);
   }
 
-  public StorableTTestConfiguration toConfiguration() {
-    return new StorableTTestConfiguration(test, column().getTitle(), groupA().toString(),
+  public UnivariateRowSignificanceTestConfig toConfiguration() {
+    return new UnivariateRowSignificanceTestConfig(test, column().getTitle(), groupA().toString(),
         groupB().toString());
   }
 }

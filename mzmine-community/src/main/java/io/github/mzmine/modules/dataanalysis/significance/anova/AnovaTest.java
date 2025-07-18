@@ -29,11 +29,11 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.statistics.DataTableUtils;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.math3.stat.inference.TestUtils;
@@ -42,17 +42,15 @@ public class AnovaTest implements RowSignificanceTest {
 
   private final List<List<RawDataFile>> groupedFiles;
   private final MetadataColumn<?> groupingColumn;
-  // the data table and its raw data file indexes
+  // the data table
   private final FeaturesDataTable dataTable;
-  private final Map<RawDataFile, Integer> dataTableFileIndexMap;
-  private final Map<FeatureListRow, Integer> rowIndexMap;
 
   public AnovaTest(FeaturesDataTable dataTable, MetadataColumn<?> groupingColumn)
       throws MetadataColumnDoesNotExistException {
     this.dataTable = dataTable;
     this.groupingColumn = groupingColumn;
 
-    final MetadataTable metadata = MZmineCore.getProjectMetadata();
+    final MetadataTable metadata = ProjectService.getMetadata();
     final Map<?, List<RawDataFile>> fileGrouping = metadata.groupFilesByColumn(groupingColumn);
     // can check conditions here that all groups have at least two values because we impute missing values
     for (var group : fileGrouping.entrySet()) {
@@ -63,20 +61,13 @@ public class AnovaTest implements RowSignificanceTest {
       }
     }
     groupedFiles = fileGrouping.values().stream().toList();
-
-    // index dataTable sample for quick access
-    dataTableFileIndexMap = dataTable.getDataFileIndexMap();
-    rowIndexMap = dataTable.getFeatureRowIndexMap();
   }
 
   @Override
   public AnovaResult test(FeatureListRow row) {
     // conditions are already checked in the constructor
-    final int rowIndex = rowIndexMap.get(row);
-
-    final List<double[]> intensityGroups = groupedFiles.stream().map(
-            group -> DataTableUtils.extractRowData(dataTable, dataTableFileIndexMap, rowIndex, group))
-        .toList();
+    final List<double[]> intensityGroups = DataTableUtils.extractGroupsRowData(dataTable, row,
+        groupedFiles);
 
     final double pValue = TestUtils.oneWayAnovaPValue(intensityGroups);
     final double fValue = TestUtils.oneWayAnovaFValue(intensityGroups);

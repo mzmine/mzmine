@@ -29,6 +29,7 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import javafx.beans.property.Property;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
@@ -152,15 +153,23 @@ public class FxTextFields {
    */
   public static AutoCompletionBinding<String> bindAutoCompletion(TextField textField,
       ObservableValue<List<?>> options) {
-    return TextFields.bindAutoCompletion(textField, iSuggestionRequest -> {
-      final List<?> list = options.getValue();
-      if (list == null || list.isEmpty()) {
-        return List.of();
-      }
-      List<String> strings = list.stream().filter(Objects::nonNull).map(Object::toString).toList();
+    return bindAutoCompletion(textField, options::getValue);
+  }
 
+  /**
+   * Automatically bind auto completion to a text field based on a list, e.g., ObservableList or
+   * static
+   *
+   * @param textField       the target
+   * @param optionsSupplier options
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static AutoCompletionBinding<String> bindAutoCompletion(TextField textField,
+      @NotNull final Supplier<List<?>> optionsSupplier) {
+
+    return TextFields.bindAutoCompletion(textField, iSuggestionRequest -> {
       final String input = iSuggestionRequest.getUserText();
-      return autoCompleteSubMatch(strings, input);
+      return autoCompleteSubMatch(optionsSupplier.get(), input);
     });
   }
 
@@ -169,11 +178,11 @@ public class FxTextFields {
    * static
    *
    * @param textField the target
-   * @param options   options in an ObservableValue
+   * @param options   options
    * @return AutoCompletionBinding of the string representation
    */
   public static AutoCompletionBinding<String> bindAutoCompletion(TextField textField,
-      List<?> options) {
+      @Nullable final List<?> options) {
 
     return TextFields.bindAutoCompletion(textField, iSuggestionRequest -> {
       final String input = iSuggestionRequest.getUserText();
@@ -181,11 +190,12 @@ public class FxTextFields {
     });
   }
 
+
   /**
    * Only matches substrings. If there is only one match that is exactly the input then the result
    * is an empty list to not show suggestions in TextFields
    */
-  public static @NotNull List<String> autoCompleteSubMatch(final List<?> options,
+  public static @NotNull List<String> autoCompleteSubMatch(@Nullable final List<?> options,
       final String input) {
     if (options == null || options.isEmpty()) {
       return List.of();

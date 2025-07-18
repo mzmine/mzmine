@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataanalysis.utils.scaling;
 
 import io.github.mzmine.datamodel.statistics.DataTable;
+import java.util.Arrays;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
@@ -36,15 +37,23 @@ public class ParetoScalingFunction implements ScalingFunction {
   @Override
   public RealVector apply(RealVector realVector) {
     final double sd = dev.evaluate(realVector.toArray());
+    if (Double.compare(sd, 0d) == 0) {
+      return realVector.mapToSelf(v -> 0);
+    }
     return realVector.mapDivide(Math.sqrt(sd)).mapToSelf(scalingResultChecker);
   }
 
   @Override
   public <T extends DataTable> T processInPlace(T data) {
     for (double[] feature : data) {
-      final double sd = Math.sqrt(dev.evaluate(feature));
-      for (int i = 0; i < feature.length; i++) {
-        feature[i] /= sd;
+      final double sd = dev.evaluate(feature);
+      if (Double.compare(sd, 0d) == 0) {
+        Arrays.fill(feature, 0d);
+      } else {
+        final double sqrtSD = Math.sqrt(sd);
+        for (int i = 0; i < feature.length; i++) {
+          feature[i] = scalingResultChecker.value(feature[i] / sqrtSD);
+        }
       }
     }
     return data;

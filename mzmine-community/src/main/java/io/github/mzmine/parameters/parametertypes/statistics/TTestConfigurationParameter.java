@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 public class TTestConfigurationParameter implements
-    PropertyParameter<StorableTTestConfiguration, TTestConfigurationComponent> {
+    PropertyParameter<UnivariateRowSignificanceTestConfig, TTestConfigurationComponent> {
 
   private final String name;
   private final String desc;
@@ -44,14 +44,14 @@ public class TTestConfigurationParameter implements
   private final String XML_GRP_B_ATTR = "selected_b";
 
   @Nullable
-  private StorableTTestConfiguration value;
+  private UnivariateRowSignificanceTestConfig value;
 
   public TTestConfigurationParameter(String name, String desc) {
     this(name, desc, null);
   }
 
   public TTestConfigurationParameter(String name, String desc,
-      @Nullable StorableTTestConfiguration value) {
+      @Nullable UnivariateRowSignificanceTestConfig value) {
     this.name = name;
     this.desc = desc;
     this.value = value;
@@ -63,12 +63,12 @@ public class TTestConfigurationParameter implements
   }
 
   @Override
-  public @Nullable StorableTTestConfiguration getValue() {
+  public @Nullable UnivariateRowSignificanceTestConfig getValue() {
     return value;
   }
 
   @Override
-  public void setValue(@Nullable StorableTTestConfiguration newValue) {
+  public void setValue(@Nullable UnivariateRowSignificanceTestConfig newValue) {
     this.value = newValue;
   }
 
@@ -95,7 +95,7 @@ public class TTestConfigurationParameter implements
     final String a = xmlElement.getAttribute(XML_GRP_A_ATTR);
     final String b = xmlElement.getAttribute(XML_GRP_B_ATTR);
 
-    value = new StorableTTestConfiguration(sampling, colName, a, b);
+    value = new UnivariateRowSignificanceTestConfig(sampling, colName, a, b);
   }
 
   @Override
@@ -128,12 +128,12 @@ public class TTestConfigurationParameter implements
 
   @Override
   public void setValueToComponent(TTestConfigurationComponent tTestConfigurationComponent,
-      @Nullable StorableTTestConfiguration newValue) {
+      @Nullable UnivariateRowSignificanceTestConfig newValue) {
     tTestConfigurationComponent.setValue(newValue);
   }
 
   @Override
-  public UserParameter<StorableTTestConfiguration, TTestConfigurationComponent> cloneParameter() {
+  public UserParameter<UnivariateRowSignificanceTestConfig, TTestConfigurationComponent> cloneParameter() {
     return new TTestConfigurationParameter(name, desc, value);
   }
 }

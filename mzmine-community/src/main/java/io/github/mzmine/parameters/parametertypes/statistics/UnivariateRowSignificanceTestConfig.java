@@ -37,11 +37,12 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record StorableTTestConfiguration(@NotNull SignificanceTests samplingConfig,
-                                         @Nullable String column, @Nullable String groupA,
-                                         @Nullable String groupB) {
+public record UnivariateRowSignificanceTestConfig(@NotNull SignificanceTests samplingConfig,
+                                                  @Nullable String column, @Nullable String groupA,
+                                                  @Nullable String groupB) {
 
-  private static final Logger logger = Logger.getLogger(StorableTTestConfiguration.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      UnivariateRowSignificanceTestConfig.class.getName());
 
   /**
    * @return A {@link UnivariateRowSignificanceTest} or null. The configuration is only returned if

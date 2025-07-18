@@ -58,8 +58,7 @@ public class AbundanceDataTablePreparationConfigParameter extends
     final AbundanceDataTablePreparationConfigSubParameters embeddedParametersClone = (AbundanceDataTablePreparationConfigSubParameters) getEmbeddedParameters().cloneParameterSet();
     final AbundanceDataTablePreparationConfigParameter copy = new AbundanceDataTablePreparationConfigParameter(
         getName(), getDescription());
-    copy.setEmbeddedParameters(embeddedParametersClone);
-    copy.setValue(this.getValue());
+    copy.setValue(embeddedParametersClone);
     return copy;
   }
 

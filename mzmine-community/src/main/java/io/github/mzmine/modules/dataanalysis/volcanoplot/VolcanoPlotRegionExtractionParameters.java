@@ -39,8 +39,8 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfigParameter;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfigSubParameters;
-import io.github.mzmine.parameters.parametertypes.statistics.StorableTTestConfiguration;
 import io.github.mzmine.parameters.parametertypes.statistics.TTestConfigurationParameter;
+import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import java.awt.geom.Point2D;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +57,7 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
 
   public static final AbundanceDataTablePreparationConfigParameter dataPreparationConfig = new AbundanceDataTablePreparationConfigParameter();
 
-  private static final AbundanceMeasureParameter LEGACY_ABUNDANCE_PARAMETER = new AbundanceMeasureParameter(
+  private final AbundanceMeasureParameter LEGACY_ABUNDANCE_PARAMETER = new AbundanceMeasureParameter(
       "Abundance measure", "Select which metric is used to calculate the p Values.",
       AbundanceMeasure.values());
 
@@ -72,7 +72,7 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
         new FeatureListsSelection((ModularFeatureList) model.getFlists().getFirst()));
     param.setParameter(VolcanoPlotRegionExtractionParameters.regions, regions);
 
-    final StorableTTestConfiguration test = model.getTest();
+    final UnivariateRowSignificanceTestConfig test = model.getTest();
     param.setParameter(VolcanoPlotRegionExtractionParameters.config, test);
 
     final AbundanceDataTablePreparationConfigSubParameters dataPrepParams = param.getParameter(
@@ -115,7 +115,7 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
       // this changes behavior a bit but should be fine. There will be very few batches that actually rely on this module.
       // For a while people can just use the same old version to reproduce old results
       case 2 ->
-          "Added support for missing value imputation. This has changed the default of missing value imputation to global limit of detection.";
+          "Added support for missing value imputation. This introduced missing value imputation as default global LOD (limit of detection).";
       default -> null;
     };
   }

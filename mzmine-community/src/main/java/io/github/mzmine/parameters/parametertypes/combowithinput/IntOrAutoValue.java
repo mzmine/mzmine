@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,42 +22,43 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.utils.scaling;
+package io.github.mzmine.parameters.parametertypes.combowithinput;
 
-import io.github.mzmine.datamodel.statistics.DataTable;
-import java.util.Arrays;
-import org.apache.commons.math3.linear.RealVector;
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.parameters.parametertypes.combowithinput.IntOrAutoValue.IntOrAuto;
+import org.jetbrains.annotations.NotNull;
 
-
-/**
- * Scales a vector to the standard deviation of its values.
- */
-public class AutoScalingFunction implements ScalingFunction {
-
-  private final StandardDeviation dev = new StandardDeviation(true);
+public record IntOrAutoValue(IntOrAuto value, int manual) implements ComboWithInputValue<IntOrAuto, Integer> {
 
   @Override
-  public RealVector apply(RealVector input) {
-    final double sd = dev.evaluate(input.toArray());
-    if (Double.compare(sd, 0d) == 0) {
-      return input.mapToSelf(v -> 0);
-    }
-    return input.mapDivide(sd).mapToSelf(scalingResultChecker);
+  public IntOrAuto getSelectedOption() {
+    return value;
   }
 
   @Override
-  public <T extends DataTable> T processInPlace(T data) {
-    for (double[] feature : data) {
-      final double sd = dev.evaluate(feature);
-      if (Double.compare(sd, 0d) == 0) {
-        Arrays.fill(feature, 0d);
-      } else {
-        for (int i = 0; i < feature.length; i++) {
-          feature[i] = scalingResultChecker.value(feature[i] / sd);
-        }
-      }
-    }
-    return data;
+  public Integer getEmbeddedValue() {
+    return manual;
   }
+
+  public enum IntOrAuto implements UniqueIdSupplier {
+    AUTO, MANUAL;
+
+    @Override
+    public @NotNull String getUniqueID() {
+      return switch (this) {
+        case AUTO -> "auto";
+        case MANUAL -> "manual";
+      };
+    }
+
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case AUTO -> "auto";
+        case MANUAL -> "manual";
+      };
+    }
+  }
+
 }

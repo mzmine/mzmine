@@ -31,13 +31,15 @@ import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 
 public class GlobalLimitOfDetectionImputer implements ImputationFunction {
 
+  public static final double DEVISOR = 5;
+
   public GlobalLimitOfDetectionImputer() {
   }
 
   @Override
   public <T extends DataTable> T processInPlace(T data) {
     // calculate minimum
-    final double globalMinimum = DataTableUtils.getMinimum(data, true).orElse(1d) / 3d;
+    final double globalMinimum = DataTableUtils.getMinimum(data, true).orElse(1d) / DEVISOR;
     for (double[] feature : data) {
       StatisticUtils.replaceNaN(feature, globalMinimum, true);
     }

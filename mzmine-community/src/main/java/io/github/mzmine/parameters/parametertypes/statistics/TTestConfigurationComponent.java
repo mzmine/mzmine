@@ -43,7 +43,7 @@ import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
 
 public class TTestConfigurationComponent extends GridPane implements
-    ValuePropertyComponent<StorableTTestConfiguration> {
+    ValuePropertyComponent<UnivariateRowSignificanceTestConfig> {
 
   private final ComboBox<SignificanceTests> samplingCombo;
   private final MetadataGroupingComponent metadataCombo;
@@ -56,7 +56,7 @@ public class TTestConfigurationComponent extends GridPane implements
    * The value as selected in the gui. automatically updated on change. Value may be null, if an
    * invalid selection was made.
    */
-  private final ObjectProperty<StorableTTestConfiguration> valueProperty = new SimpleObjectProperty<>();
+  private final ObjectProperty<UnivariateRowSignificanceTestConfig> valueProperty = new SimpleObjectProperty<>();
 
   public TTestConfigurationComponent() {
     super(5, 5);
@@ -114,16 +114,16 @@ public class TTestConfigurationComponent extends GridPane implements
       return;
     }
 
-    valueProperty.set(new StorableTTestConfiguration(sampling, columnName, a, b));
+    valueProperty.set(new UnivariateRowSignificanceTestConfig(sampling, columnName, a, b));
   }
 
-  public StorableTTestConfiguration getValue() {
+  public UnivariateRowSignificanceTestConfig getValue() {
     updateValueProperty();
     return valueProperty.get();
   }
 
   @Override
-  public ObjectProperty<StorableTTestConfiguration> valueProperty() {
+  public ObjectProperty<UnivariateRowSignificanceTestConfig> valueProperty() {
     return valueProperty;
   }
 
@@ -138,7 +138,7 @@ public class TTestConfigurationComponent extends GridPane implements
     }
   }
 
-  public void setValue(StorableTTestConfiguration value) {
+  public void setValue(UnivariateRowSignificanceTestConfig value) {
     if (value == null) {
       metadataCombo.setValue(null);
       groupACombo.setValue(null);

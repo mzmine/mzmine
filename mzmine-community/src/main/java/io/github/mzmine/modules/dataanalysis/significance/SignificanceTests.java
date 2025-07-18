@@ -211,8 +211,8 @@ public enum SignificanceTests implements UniqueIdSupplier, SignificanceTest {
   }
 
   @Override
-  public boolean applyPreChecks(List<double[]> data) {
-    return switch (this) {
+  public void applyPreChecks(List<double[]> data) {
+    boolean valid = switch (this) {
       case STUDENTS_T_TEST, PAIRED_T_TEST, MANN_WHITNEY_U_TEST, WELCHS_T_TEST -> {
         if (data.size() != 2) {
           throw new IllegalArgumentException(

@@ -26,37 +26,38 @@
 package io.github.mzmine.modules.dataanalysis.utils.scaling;
 
 import io.github.mzmine.datamodel.statistics.DataTable;
-import java.util.Arrays;
+import io.github.mzmine.util.MathUtils;
 import org.apache.commons.math3.linear.RealVector;
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
-
 
 /**
- * Scales a vector to the standard deviation of its values.
+ * Center data to mean
  */
-public class AutoScalingFunction implements ScalingFunction {
+public class MeanCenterScalingFunction implements ScalingFunction {
 
-  private final StandardDeviation dev = new StandardDeviation(true);
+  public MeanCenterScalingFunction() {
+
+  }
 
   @Override
-  public RealVector apply(RealVector input) {
-    final double sd = dev.evaluate(input.toArray());
-    if (Double.compare(sd, 0d) == 0) {
-      return input.mapToSelf(v -> 0);
-    }
-    return input.mapDivide(sd).mapToSelf(scalingResultChecker);
+  public RealVector apply(RealVector columnVector) {
+    final double sum = columnVector.getL1Norm();
+    final double mean = sum / columnVector.getDimension();
+
+    return columnVector.mapSubtract(mean);
   }
+
 
   @Override
   public <T extends DataTable> T processInPlace(T data) {
     for (double[] feature : data) {
-      final double sd = dev.evaluate(feature);
-      if (Double.compare(sd, 0d) == 0) {
-        Arrays.fill(feature, 0d);
-      } else {
-        for (int i = 0; i < feature.length; i++) {
-          feature[i] = scalingResultChecker.value(feature[i] / sd);
-        }
+      if (feature == null || feature.length == 0) {
+        continue;
+      }
+
+      final double mean = MathUtils.calcAvg(feature);
+
+      for (int i = 0; i < feature.length; i++) {
+        feature[i] -= mean;
       }
     }
     return data;

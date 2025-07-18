@@ -29,13 +29,17 @@ import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
 
 public enum ScalingFunctions implements UniqueIdSupplier {
-  AutoScaling, ParetoScaling, RangeScaling, None;
+  AutoScaling, ParetoScaling, RangeScaling, MeanCentering, None;
+
+  public final static ScalingFunctions[] valuesExcludeNone = new ScalingFunctions[]{AutoScaling,
+      ParetoScaling, RangeScaling, MeanCentering};
 
   public ScalingFunction getScalingFunction() {
     return switch (this) {
       case AutoScaling -> new AutoScalingFunction();
       case ParetoScaling -> new ParetoScalingFunction();
       case RangeScaling -> new RangeScalingFunction();
+      case MeanCentering -> new MeanCenterScalingFunction();
       case None -> new NoneScalingFunction();
     };
   }
@@ -46,6 +50,7 @@ public enum ScalingFunctions implements UniqueIdSupplier {
       case AutoScaling -> "Auto scaling (SD)";
       case ParetoScaling -> "Pareto scaling (√SD)";
       case RangeScaling -> "Range scaling [-1; 1]";
+      case MeanCentering -> "Mean centering";
       case None -> "No scaling";
     };
   }
@@ -56,7 +61,15 @@ public enum ScalingFunctions implements UniqueIdSupplier {
       case AutoScaling -> "AutoScaling";
       case ParetoScaling -> "ParetoScaling";
       case RangeScaling -> "RangeScaling";
+      case MeanCentering -> "MeanCentering";
       case None -> "None";
     };
+  }
+
+  /**
+   * @return true if this is not None
+   */
+  public boolean isActive() {
+    return this != None;
   }
 }

@@ -26,16 +26,34 @@
 package io.github.mzmine.parameters.parametertypes.statistics;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.statistics.DataTable;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
 
-public record AbundanceDataTablePreparationConfig(AbundanceMeasure measure,
-                                                  ImputationFunctions missingValueImputation,
-                                                  @Nullable ScalingFunctions scalingFunction) {
+/**
+ * Defines all the preprocessing of a {@link DataTable} for statistical tests
+ *
+ * <pre>
+ * Default order of steps is:
+ * - extract by measure
+ * - impute missing values
+ * - scale (if present)
+ * - center (if present)
+ * </pre>
+ *
+ * @param measure                how to extract the abundance
+ * @param missingValueImputation impute missing values
+ * @param scalingFunction        scale data, maybe {@link ScalingFunctions#None} for deactivate
+ * @param centeringFunction      center data, maybe {@link ScalingFunctions#None} for deactivate
+ */
+public record AbundanceDataTablePreparationConfig(@NotNull AbundanceMeasure measure,
+                                                  @NotNull ImputationFunctions missingValueImputation,
+                                                  @NotNull ScalingFunctions scalingFunction,
+                                                  @NotNull ScalingFunctions centeringFunction) {
 
-  public AbundanceDataTablePreparationConfig(AbundanceMeasure measure,
-      ImputationFunctions missingValueImputation) {
-    this(measure, missingValueImputation, null);
+  public AbundanceDataTablePreparationConfig(@NotNull AbundanceMeasure measure,
+      @NotNull ImputationFunctions missingValueImputation) {
+    this(measure, missingValueImputation, ScalingFunctions.None, ScalingFunctions.None);
   }
 }

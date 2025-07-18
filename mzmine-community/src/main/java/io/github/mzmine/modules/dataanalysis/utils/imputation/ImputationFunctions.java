@@ -30,13 +30,17 @@ import org.jetbrains.annotations.NotNull;
 
 public enum ImputationFunctions implements UniqueIdSupplier {
 
-  GLOBAL_LIMIT_OF_DETECTION, OneFifthOfMinimum, Zero;
+  GLOBAL_LIMIT_OF_DETECTION, OneFifthOfMinimum, Zero, None;
+
+  public static final ImputationFunctions[] valuesExcludeNone = new ImputationFunctions[]{
+      GLOBAL_LIMIT_OF_DETECTION, OneFifthOfMinimum, Zero};
 
   public ImputationFunction getImputer() {
     return switch (this) {
       case Zero -> new ZeroImputer();
       case GLOBAL_LIMIT_OF_DETECTION -> new GlobalLimitOfDetectionImputer();
       case OneFifthOfMinimum -> new OneFifthOfMinimumImputer();
+      case None -> new KeepOriginalImputer();
     };
   }
 
@@ -45,7 +49,9 @@ public enum ImputationFunctions implements UniqueIdSupplier {
     return switch (this) {
       case Zero -> "Zero (0)";
       case OneFifthOfMinimum -> "1/5 of minimum";
-      case GLOBAL_LIMIT_OF_DETECTION -> "LOD (1/3 of global minimum)";
+      case GLOBAL_LIMIT_OF_DETECTION ->
+          "LOD (1/%.0f of global minimum)".formatted(GlobalLimitOfDetectionImputer.DEVISOR);
+      case None -> "None";
     };
   }
 
@@ -55,6 +61,14 @@ public enum ImputationFunctions implements UniqueIdSupplier {
       case Zero -> "Zero";
       case OneFifthOfMinimum -> "OneFifthOfMinimum";
       case GLOBAL_LIMIT_OF_DETECTION -> "GLOBAL_LIMIT_OF_DETECTION";
+      case None -> "none";
     };
+  }
+
+  /**
+   * @return true if not None
+   */
+  public boolean isActive() {
+    return this != None;
   }
 }

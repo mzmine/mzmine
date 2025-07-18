@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureBinding;
@@ -36,7 +37,9 @@ import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.FeatureDataPreparationTask;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import java.awt.geom.Point2D;
@@ -56,15 +59,14 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
     //update on changes of these properties
     PropertyUtils.onChange(this::prepareDataTable, model.flistsProperty(),
         model.abundanceProperty(), model.imputationFunctionProperty(),
-        model.scalingFunctionProperty());
+        model.scalingFunctionProperty(), model.sampleTypeFilterProperty());
 
     //update on changes of these properties
     PropertyUtils.onChange(this::waitAndUpdate,
         // data table property is changed by other listener methods
         model.featureDataTableProperty(),
         // other triggers
-        model.domainPcProperty(), model.rangePcProperty(), model.metadataColumnProperty(),
-        model.sampleTypeFilterProperty());
+        model.domainPcProperty(), model.rangePcProperty(), model.metadataColumnProperty());
   }
 
   private void onExtractRegionsPressed(List<List<Point2D>> regions) {
@@ -93,13 +95,19 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
       model.featureDataTableProperty().set(null);
       return;
     }
+
+    // only extract and prepare data from selected samples for greater separation
+    final FeatureList featureList = flists.getFirst();
+    final SampleTypeFilter sampleFilter = model.getSampleTypeFilter();
+    final List<RawDataFile> selectedFiles = sampleFilter.filterFiles(featureList.getRawDataFiles());
+
     // create the new dataset
     final var config = new AbundanceDataTablePreparationConfig(model.getAbundance(),
-        model.getImputationFunction(), model.getScalingFunction());
+        model.getImputationFunction(), model.getScalingFunction(), ScalingFunctions.MeanCentering);
 
     onTaskThreadDelayed(
-        new FeatureDataPreparationTask(model.featureDataTableProperty(), flists.getFirst(),
-            config));
+        new FeatureDataPreparationTask(model.featureDataTableProperty(), featureList.getRows(),
+            selectedFiles, config));
   }
 
   /**

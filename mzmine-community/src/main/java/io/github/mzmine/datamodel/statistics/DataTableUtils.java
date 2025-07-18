@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.OptionalDouble;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -91,26 +90,6 @@ public class DataTableUtils {
   }
 
   /**
-   * Extracts a double array for a subset of samples
-   *
-   * @param dataTable        the actual data
-   * @param dataFileIndexMap a map derived from {@link FeaturesDataTable#getDataFileIndexMap()} to
-   *                         quickly lookup data file index
-   * @param featureIndex     the row index
-   * @param subset           defines the target data
-   * @return a value array for the subset
-   */
-  public static double[] extractRowData(FeaturesDataTable dataTable,
-      Map<RawDataFile, Integer> dataFileIndexMap, int featureIndex, List<RawDataFile> subset) {
-    final double[] data = new double[subset.size()];
-    for (int i = 0; i < subset.size(); i++) {
-      final int sampleIndex = dataFileIndexMap.get(subset.get(i));
-      data[i] = dataTable.getValue(featureIndex, sampleIndex);
-    }
-    return data;
-  }
-
-  /**
    * colums = features, rows = raw files
    * <pre>
    *        f1  f2  f3  f4
@@ -151,7 +130,7 @@ public class DataTableUtils {
     final FeatureListRowAbundances[] sortedData = data.streamDataRows()
         .sorted((a, b) -> sorter.compare(a.row(), b.row()))
         .toArray(FeatureListRowAbundances[]::new);
-    return new FeaturesDataTable(data.getRawDataFiles(), sortedData);
+    return data.copyWithNewRows(sortedData);
   }
 
   /**
@@ -168,5 +147,48 @@ public class DataTableUtils {
 
     // only for specific samples
     return data.subsetBySamples(files);
+  }
+
+  /**
+   * @param table  the data table
+   * @param row    a single row to extract data from
+   * @param groups list of groups to subset the row data into groups
+   * @return list of groups' data arrays for a single row.  Each data array represents a group of
+   * abundances of the row in a data files group.
+   */
+  public static List<double[]> extractGroupsRowData(FeaturesDataTable table, FeatureListRow row,
+      List<List<RawDataFile>> groups) {
+    return groups.stream().map(group -> DataTableUtils.extractRowData(table, row, group)).toList();
+  }
+
+  /**
+   * Extracts a double array for a subset of samples
+   *
+   * @param table  the actual data
+   * @param row    the row
+   * @param subset defines the target data
+   * @return a value array for the subset
+   */
+  public static double[] extractRowData(FeaturesDataTable table, FeatureListRow row,
+      List<RawDataFile> subset) {
+    return extractRowData(table, table.getFeatureIndex(row), subset);
+  }
+
+  /**
+   * Extracts a double array for a subset of samples
+   *
+   * @param dataTable    the actual data
+   * @param featureIndex the row index
+   * @param subset       defines the target data
+   * @return a value array for the subset
+   */
+  public static double[] extractRowData(FeaturesDataTable dataTable, int featureIndex,
+      List<RawDataFile> subset) {
+    final double[] data = new double[subset.size()];
+    for (int i = 0; i < subset.size(); i++) {
+      final int sampleIndex = dataTable.getSampleIndex(subset.get(i));
+      data[i] = dataTable.getValue(featureIndex, sampleIndex);
+    }
+    return data;
   }
 }

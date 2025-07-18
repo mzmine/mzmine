@@ -37,8 +37,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
-import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunction;
-import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
@@ -58,14 +56,12 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
   private final Integer rangePcIndex;
   private final Integer domainPcIndex;
   private final MetadataColumn<?> metadataColumn;
-  private final List<FeatureListRow> selectedRows;
   private final AbundanceMeasure abundance;
   private final List<FeatureList> flists;
   private final List<DatasetAndRenderer> scoresDatasets = new ArrayList<>();
   private final List<DatasetAndRenderer> loadingsDatasets = new ArrayList<>();
   private final List<Integer> components = new ArrayList<>();
 
-  private final ScalingFunction scaling;
   private final SampleTypeFilter sampleTypeFilter;
   private FeaturesDataTable featureDataTable;
   private PCARowsResult pcaRowsResult;
@@ -76,14 +72,10 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     domainPcIndex = Objects.requireNonNullElse(model.getDomainPc(), 0) - 1;
     rangePcIndex = Objects.requireNonNullElse(model.getRangePc(), 0) - 1;
     metadataColumn = model.getMetadataColumn();
-    selectedRows = model.getSelectedRows();
     // only aligned feature lists
     flists = model.getFlists().stream().filter(flist -> flist.getNumberOfRawDataFiles() > 1)
         .toList();
     abundance = model.getAbundance();
-
-    final ScalingFunctions scalingFunction = model.getScalingFunction();
-    scaling = scalingFunction.getScalingFunction();
 
     sampleTypeFilter = model.getSampleTypeFilter();
     featureDataTable = model.getFeatureDataTable();
@@ -100,16 +92,12 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
       return false;
     }
 
-//    if (metadataColumn != null && MZmineCore.getProjectMetadata().getColumnByName(metadataColumn) == null
-//        && !metadataColumn.isBlank()) {
-//      return false;
-//    }
-
     if (flists == null || flists.isEmpty() || flists.getFirst() == null) {
       return false;
     }
 
-    if (abundance == null || featureDataTable == null) {
+    if (abundance == null || featureDataTable == null
+        || featureDataTable.getNumberOfSamples() == 0) {
       return false;
     }
 
@@ -122,9 +110,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 
   @Override
   protected void process() {
-    // only keep matching sample types
-    featureDataTable = DataTableUtils.applySampleFilter(featureDataTable, sampleTypeFilter);
-    if (featureDataTable.getNumberOfSamples() == 0) {
+    if (featureDataTable == null || featureDataTable.getNumberOfSamples() == 0) {
       return;
     }
 

@@ -23,42 +23,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.utils.scaling;
+package io.github.mzmine.modules.dataanalysis.utils.imputation;
 
 import io.github.mzmine.datamodel.statistics.DataTable;
-import java.util.Arrays;
-import org.apache.commons.math3.linear.RealVector;
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
-
-/**
- * Scales a vector to the standard deviation of its values.
- */
-public class AutoScalingFunction implements ScalingFunction {
-
-  private final StandardDeviation dev = new StandardDeviation(true);
-
-  @Override
-  public RealVector apply(RealVector input) {
-    final double sd = dev.evaluate(input.toArray());
-    if (Double.compare(sd, 0d) == 0) {
-      return input.mapToSelf(v -> 0);
-    }
-    return input.mapDivide(sd).mapToSelf(scalingResultChecker);
-  }
+public class KeepOriginalImputer implements ImputationFunction {
 
   @Override
   public <T extends DataTable> T processInPlace(T data) {
-    for (double[] feature : data) {
-      final double sd = dev.evaluate(feature);
-      if (Double.compare(sd, 0d) == 0) {
-        Arrays.fill(feature, 0d);
-      } else {
-        for (int i = 0; i < feature.length; i++) {
-          feature[i] = scalingResultChecker.value(feature[i] / sd);
-        }
-      }
-    }
     return data;
   }
+
 }
