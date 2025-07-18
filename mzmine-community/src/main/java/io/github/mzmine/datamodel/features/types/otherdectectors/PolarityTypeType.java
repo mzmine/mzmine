@@ -49,7 +49,7 @@ public class PolarityTypeType extends EnumDataType<PolarityType> implements Null
     NoTextColumn {
 
   public static final Function<@Nullable String, @Nullable PolarityType> mapper = s -> {
-    if (s == null) {
+    if (s == null || s.isBlank()) {
       return null;
     }
     return PolarityType.parseFromString(s);
