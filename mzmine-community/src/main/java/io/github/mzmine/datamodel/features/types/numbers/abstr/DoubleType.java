@@ -47,6 +47,8 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class DoubleType extends NumberType<Double> {
 
+  private static final Function<@Nullable String, @Nullable Double> stringToDouble = ParsingUtils::stringToDouble;
+
   protected DoubleType(NumberFormat defaultFormat) {
     super(defaultFormat);
   }
@@ -183,6 +185,6 @@ public abstract class DoubleType extends NumberType<Double> {
 
   @Override
   public @Nullable Function<@Nullable String, @Nullable Double> getMapper() {
-    return ParsingUtils::stringToDouble;
+    return stringToDouble;
   }
 }
