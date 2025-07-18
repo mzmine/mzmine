@@ -107,6 +107,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.Lip
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClassesProvider;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.HandleExtraColumnsOptions;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
@@ -173,6 +174,7 @@ import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt.Mode;
+import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithStringInputValue;
 import io.github.mzmine.parameters.parametertypes.combowithinput.FeatureLimitOptions;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
@@ -257,7 +259,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected File csvLibraryFile;
   private @NotNull String csvFilterSamplesColumn = "";
   private MassOptions csvMassOptions;
-  private List<ImportType> csvColumns;
+  private List<ImportType<?>> csvColumns;
 
   protected BaseWizardBatchBuilder(final WizardSequence steps) {
     super(steps);
@@ -1392,7 +1394,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(LocalCSVDatabaseSearchParameters.dataBaseFile, csvLibraryFile);
     param.setParameter(LocalCSVDatabaseSearchParameters.fieldSeparator,
         csvLibraryFile.getName().toLowerCase().endsWith(".csv") ? "," : "\\t");
-    param.setParameter(LocalCSVDatabaseSearchParameters.commentFields, "");
+    param.setParameter(LocalCSVDatabaseSearchParameters.extraColumns, new ComboWithStringInputValue<>(
+        HandleExtraColumnsOptions.IGNORE, null));
     param.setParameter(LocalCSVDatabaseSearchParameters.filterSamples,
         !csvFilterSamplesColumn.isBlank(), csvFilterSamplesColumn.trim());
     param.setParameter(LocalCSVDatabaseSearchParameters.mzTolerance,

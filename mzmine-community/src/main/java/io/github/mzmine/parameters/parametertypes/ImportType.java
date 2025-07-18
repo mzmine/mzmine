@@ -25,9 +25,12 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -37,22 +40,46 @@ import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ImportType {
+public class ImportType<T> {
 
   private final BooleanProperty selected;
   private final StringProperty csvColumnName;
-  private final ObjectProperty<DataType<?>> dataType;
+  private final ObjectProperty<DataType<T>> dataType;
+  private final @NotNull Function<@Nullable String, @Nullable T> mapper;
 
   private int columnIndex = -1;
 
-  public ImportType(boolean selected, DataType<?> dataType) {
-    this(selected, dataType.getUniqueID(), dataType);
+  public ImportType(boolean selected, @NotNull final DataType<T> dataType) {
+    if (dataType.getMapper() == null) {
+      throw new IllegalArgumentException(
+          "DataType %s has no string mapper. Cannot use in ImportType".formatted(
+              dataType.getUniqueID()));
+    }
+    this(selected, dataType.getUniqueID(), dataType, dataType.getMapper());
   }
 
-  public ImportType(Boolean selected, String csvColumnName, DataType<?> dataType) {
+  public ImportType(boolean selected, @NotNull final DataType<T> dataType,
+      @NotNull final Function<@Nullable String, @Nullable T> customMapper) {
+    this(selected, dataType.getUniqueID(), dataType, customMapper);
+  }
+
+  public ImportType(Boolean selected, @NotNull final String csvColumnName,
+      @NotNull final DataType<T> dataType) {
+    if (dataType.getMapper() == null) {
+      throw new IllegalArgumentException(
+          "DataType %s has no string mapper. Cannot use in ImportType".formatted(
+              dataType.getUniqueID()));
+    }
+    this(selected, csvColumnName, dataType, dataType.getMapper());
+  }
+
+  public ImportType(Boolean selected, @NotNull final String csvColumnName,
+      @NotNull final DataType<T> dataType,
+      @NotNull final Function<@Nullable String, @Nullable T> customMapper) {
     this.selected = new SimpleBooleanProperty(selected);
     this.csvColumnName = new SimpleStringProperty(csvColumnName);
     this.dataType = new SimpleObjectProperty<>(dataType);
+    this.mapper = customMapper;
   }
 
   /**
@@ -62,7 +89,7 @@ public class ImportType {
    * in the list but not selected.
    */
   public static boolean isDataTypeSelectedInImportTypes(
-      @Nullable final List<@Nullable ImportType> importTypes,
+      @Nullable final List<@Nullable ImportType<?>> importTypes,
       @NotNull final Class<? extends DataType<?>> type) {
     if (importTypes == null) {
       return false;
@@ -102,15 +129,15 @@ public class ImportType {
     return csvColumnName;
   }
 
-  public DataType<?> getDataType() {
+  public DataType<T> getDataType() {
     return dataType.get();
   }
 
-  public void setDataType(DataType<?> dataType) {
+  public void setDataType(DataType<T> dataType) {
     this.dataType.set(dataType);
   }
 
-  public ObjectProperty<DataType<?>> dataTypeProperty() {
+  public ObjectProperty<DataType<T>> dataTypeProperty() {
     return dataType;
   }
 
@@ -130,4 +157,36 @@ public class ImportType {
     this.columnIndex = columnIndex;
   }
 
+  public @NotNull Function<String, T> getMapper() {
+    return mapper;
+  }
+
+  public T apply(@Nullable String[] csvValues) {
+    return apply(csvValues[columnIndex]);
+  }
+
+  public T apply(@Nullable String csvValue) {
+    return mapper.apply(csvValue);
+  }
+
+  public T apply(Map<DataType<?>, @Nullable String> csvValues) {
+    final String s = csvValues.get(dataType);
+    return apply(s);
+  }
+
+  public T applyAndRemove(Map<@NotNull String, @Nullable String> csvValues) {
+    final String value = csvValues.remove(csvColumnName.get());
+    return apply(value);
+  }
+
+  /**
+   * Checks if the {@link ImportType#csvColumnName()} is present in the csvValues map. If yes, gets
+   * the value, removes it and maps it into the compound annotation. This method is a type save way
+   * to circumvent using non-templated code.
+   */
+  public void applyRemoveAndPut(@NotNull Map<@NotNull String, @Nullable String> csvValues,
+      @NotNull CompoundDBAnnotation annotation) {
+    final T value = applyAndRemove(csvValues);
+    annotation.put(dataType.get(), value);
+  }
 }

@@ -42,6 +42,9 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structur
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure3dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.identifiers.CASType;
+import io.github.mzmine.datamodel.features.types.identifiers.InternalIdType;
+import io.github.mzmine.datamodel.features.types.identifiers.IupacNameType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityAbsoluteDifferenceType;
@@ -86,6 +89,13 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     Comparable<CompoundDBAnnotation> {
 
   Logger logger = Logger.getLogger(CompoundDBAnnotation.class.getName());
+
+  /**
+   * List of valid "identifiers" (in order). One of these must be present
+   */
+  static final List<DataType<?>> compoundIdentifiers = List.of(new CompoundNameType(), new IupacNameType(),
+      new SmilesStructureType(), new InternalIdType(), new InChIKeyStructureType(),
+      new InChIStructureType(), new FormulaType(), new CASType());
 
   String XML_ELEMENT_OLD = "compound_db_annotation";
   String XML_TYPE_ATTRIBUTE_OLD = "annotationtype";
