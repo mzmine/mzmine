@@ -44,7 +44,9 @@ import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
@@ -147,6 +149,11 @@ public class RowsFilterParameters extends SimpleParameterSet {
           "Filters for mass defects of features.\nValid inputs: 0.314-0.5 or 0.90-0.15",
           MZmineCore.getConfiguration().getMZFormat()));
 
+  public static final BooleanParameter onlyCorrelatedWithOtherDetectors = new BooleanParameter(
+      "Require other detector correlation",
+      "If checked, the rows that do not have at least one feature that is correlated to a signal of another detector will be removed.",
+      false);
+
   // resorted parameters to be more grouped
   // TODO maybe make the dialog similar to the preferences by grouping up parameters
   public RowsFilterParameters() {
@@ -161,7 +168,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
             // feature properties
             MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE, KENDRICK_MASS_DEFECT, massDefect,
             // identities / annotations
-            HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, MS2_Filter, KEEP_ALL_MS2, KEEP_ALL_ANNOTATED,
+            HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, MS2_Filter, onlyCorrelatedWithOtherDetectors, KEEP_ALL_MS2, KEEP_ALL_ANNOTATED,
             Reset_ID},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
   }
@@ -172,7 +179,19 @@ public class RowsFilterParameters extends SimpleParameterSet {
   }
 
   @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version)
+  }
+
+  @Override
   public int getVersion() {
     return 3;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var map = super.getNameParameterMap();
+    map.put("Only other detector correlated", getParameter(onlyCorrelatedWithOtherDetectors));
+    return map;
   }
 }

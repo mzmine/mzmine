@@ -165,32 +165,4 @@ public class DetectionType extends EnumDataType<FeatureStatus> implements
   public ObjectProperty<FeatureStatus> createProperty() {
     return new SimpleObjectProperty<>(FeatureStatus.UNKNOWN);
   }
-
-  @Override
-  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value,
-      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
-      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
-      throws XMLStreamException {
-    if (value == null) {
-      return;
-    }
-    if (!(value instanceof FeatureStatus status)) {
-      throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
-    }
-    writer.writeCharacters(status.toString());
-  }
-
-  @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
-      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
-      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
-      throws XMLStreamException {
-    String elementText = reader.getElementText();
-    if (elementText.isEmpty()) {
-      return null;
-    }
-    return FeatureStatus.valueOf(elementText);
-  }
 }

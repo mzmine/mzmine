@@ -36,13 +36,16 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.PeakShapeClassificationType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.RtQualitySummaryType;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorPurityType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.SimpleStatistics;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CvType;
 import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.ShapeClassificationScoreType;
@@ -187,5 +190,20 @@ public class GeneralTypeTests {
         PeakShapeClassification.FRONTING_GAUSSIAN, 0.97f);
 
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
+  }
+
+  @Test
+  void testMzType() {
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new MZType(), 545.32123);
+  }
+
+  @Test
+  void testRtType() {
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new RTType(), 23.45f);
+  }
+
+  @Test
+  void testCommentType() {
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new CommentType(), "testcomment[]{}asda#d20913151/#´d 13d");
   }
 }
