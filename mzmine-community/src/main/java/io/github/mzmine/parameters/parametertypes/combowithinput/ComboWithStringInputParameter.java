@@ -24,11 +24,12 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import javafx.collections.ObservableList;
 
-public class ComboWithStringInputParameter<EnumType> extends
+public class ComboWithStringInputParameter<EnumType extends UniqueIdSupplier> extends
     ComboWithInputParameter<EnumType, ComboWithStringInputValue<EnumType>, StringParameter> {
 
   public ComboWithStringInputParameter(StringParameter embeddedParameter, EnumType[] values,

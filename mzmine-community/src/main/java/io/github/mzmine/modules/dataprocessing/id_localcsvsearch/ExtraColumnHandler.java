@@ -47,7 +47,7 @@ public class ExtraColumnHandler {
 
     final String[] columns = columnsList.strip().split(",");
     extraColumns = Arrays.stream(columns).map(String::strip).filter(s -> !s.isBlank())
-        .collect(Collectors.toSet());
+        .map(String::toLowerCase).collect(Collectors.toSet());
   }
 
   public HandleExtraColumnsOptions getSelectedOption() {
@@ -68,7 +68,7 @@ public class ExtraColumnHandler {
     }
     return switch (selectedOption) {
       case IGNORE -> false;
-      case IMPORT_SPECIFIC -> extraColumns.contains(column);
+      case IMPORT_SPECIFIC -> extraColumns.contains(column.toLowerCase());
       case IMPORT_ALL -> true;
     };
   }

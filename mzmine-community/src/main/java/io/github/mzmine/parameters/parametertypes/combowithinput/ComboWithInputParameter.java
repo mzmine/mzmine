@@ -44,7 +44,7 @@ import org.w3c.dom.Element;
  * value is selected in the combo box
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public abstract class ComboWithInputParameter<EnumType, ValueType extends ComboWithInputValue<EnumType, ?>, EmbeddedParameterType extends UserParameter<?, ?>> extends
+public abstract class ComboWithInputParameter<EnumType extends UniqueIdSupplier, ValueType extends ComboWithInputValue<EnumType, ?>, EmbeddedParameterType extends UserParameter<?, ?>> extends
     EmbeddedParameter<ValueType, EmbeddedParameterType, ComboWithInputComponent<EnumType>> {
 
   private static final Logger logger = Logger.getLogger(ComboWithInputParameter.class.getName());
