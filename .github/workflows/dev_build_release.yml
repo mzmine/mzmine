@@ -19,7 +19,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '23.0.2'
-#          cache: 'gradle'  # now done with gradle
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -83,15 +82,13 @@ jobs:
           path: mzmine-community/build/jpackage/mzmine_Linux_portable.zip
           retention-days: 7  # store for 7 days
 
-
-
       # for macOS:
-      # Build, sign, zip portable version happens in build.gradle
+      # Build, sign, notarize DMG, and create portable ZIP all happen in build.gradle
       - name: Setup node for macOS packaging
         if: runner.os == 'macOS'
-        uses: actions/setup-node@v3  # To install appdmg
+        uses: actions/setup-node@v3  # Required for appdmg in Gradle build
 
-      - name: Execute Gradle build on macOS (signed)
+      - name: Execute Gradle build on macOS (signed and notarized)
         if: runner.os == 'macOS'
         run: |
           echo "$MACOS_DEVELOPER_CERTIFICATE" | base64 --decode > certificate.p12
@@ -109,12 +106,7 @@ jobs:
           MACOS_APP_IDENTITY_TEAM_ID: ${{ secrets.MACOS_APP_IDENTITY_TEAM_ID }}
           TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
 
-      - name: Pack macOS .app to .dmg
-        if: runner.os == 'macOS'
-        run: |
-          npm install --python=python3.11 -g appdmg
-          appdmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer_academia.dmg
-
+      # DMG is now created, signed, and notarized in Gradle - just upload it
       - name: Upload macOS installer
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
@@ -123,22 +115,6 @@ jobs:
           path: mzmine-community/build/jpackage/mzmine_macOS_installer_academia.dmg
           retention-days: 7  # store for 7 days
 
-      # 1. upload the dmg installer
-      # 2. remove the dmg installer from path
-      # 3. zip and upload the jpackage directory
-      # This is needed because zipping of the /jpackage/mzmine.app portable version zips the content
-      # of the folder not the folder itself
-      #      - name: Remove dmg File and Make .app executable
-      #        if: runner.os == 'macOS'
-      #        run: |
-      #          find ./build/jpackage/ -name '*.dmg' -delete
-      #          chmod a+x build/jpackage/mzmine.app/Contents/MacOS/mzmine
-      #      - name: Zip portable macos
-      #        if: runner.os == 'macOS'
-      #        uses: vimtor/action-zip@v1.2
-      #        with:
-      #          files: build/jpackage/
-      #          dest: build/jpackage/mzmine_macOS_portable_academia.zip
       - name: Upload macOS portable builds
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
@@ -146,7 +122,6 @@ jobs:
           name: mzmine_macos_portable_academia
           path: mzmine-community/build/jpackage/mzmine_macOS_portable_academia.zip
           retention-days: 7  # store for 7 days
-
 
   # release dev version
   release_dev:
