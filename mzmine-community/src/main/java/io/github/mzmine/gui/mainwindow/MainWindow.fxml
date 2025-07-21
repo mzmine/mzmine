@@ -192,6 +192,8 @@
                                 text="Sort alphabetically"/>
                               <MenuItem onAction="#handleSpectralLibraryRemove"
                                 text="Remove library" fx:id="spectralLibraryRemoveMenuItem"/>
+                              <MenuItem onAction="#handleMergeLibraries"
+                                text="Merge libraries" fx:id="mergeLibrariesMenuItem"/>
                             </items>
                           </ContextMenu>
                         </contextMenu>
