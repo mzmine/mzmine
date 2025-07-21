@@ -57,6 +57,15 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
   private SpectralLibrary library;
   private @Nullable MolecularStructure structure;
 
+  /**
+   * Copy constructor
+   * @param entry
+   */
+  public SpectralDBEntry(SpectralDBEntry entry) {
+    super(entry.mzValues, entry.intensityValues);
+    this.fields = new HashMap<>(entry.fields);
+  }
+
   public SpectralDBEntry(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
       @NotNull double[] intensityValues, @Nullable Map<DBEntryField, Object> fields,
       @Nullable SpectralLibrary library) {
