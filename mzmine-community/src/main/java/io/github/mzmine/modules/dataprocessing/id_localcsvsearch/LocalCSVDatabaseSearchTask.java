@@ -107,8 +107,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     fieldSeparator = parameters.getParameter(LocalCSVDatabaseSearchParameters.fieldSeparator)
         .getValue();
     importTypes = parameters.getParameter(LocalCSVDatabaseSearchParameters.columns).getValue();
-    mzTolerance = parameters.getEmbeddedParameterValueIfSelectedOrElse(
-        LocalCSVDatabaseSearchParameters.mzTolerance, null);
+    mzTolerance = parameters.getValue(LocalCSVDatabaseSearchParameters.mzTolerance);
     rtTolerance = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         LocalCSVDatabaseSearchParameters.rtTolerance, null);
     mobTolerance = parameters.getEmbeddedParameterValueIfSelectedOrElse(
@@ -335,8 +334,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       final @NotNull List<ImportType<?>> linesWithIndices, @NotNull String[] headerValues,
       @NotNull final ExtraColumnHandler extraColumnHandler,
       @Nullable final IonNetworkLibrary ionLibrary) {
-    final CompoundDBAnnotation baseAnnotation = CSVParsingUtils.getCompoundFromLine(headerValues, values,
-        linesWithIndices, extraColumnHandler);
+    final CompoundDBAnnotation baseAnnotation = CSVParsingUtils.getCompoundFromLine(headerValues,
+        values, linesWithIndices, extraColumnHandler);
     baseAnnotation.put(databaseType, dataBaseFile.getName());
     final List<CompoundDBAnnotation> annotations = new ArrayList<>();
     if (ionLibrary != null) {
