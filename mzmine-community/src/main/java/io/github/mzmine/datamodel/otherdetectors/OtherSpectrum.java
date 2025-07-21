@@ -27,6 +27,8 @@ package io.github.mzmine.datamodel.otherdetectors;
 
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 
 /**
  * Basic interface of spectral data. Does not have to be mass spectral data.
@@ -68,4 +70,9 @@ public interface OtherSpectrum {
   }
 
   OtherSpectralData getOtherSpectralData();
+
+  default int binarySearch(double domainValue) {
+    return BinarySearch.binarySearch(domainValue, DefaultTo.CLOSEST_VALUE, getNumberOfValues(),
+        this::getDomainValue);
+  }
 }
