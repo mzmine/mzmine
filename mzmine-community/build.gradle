@@ -467,7 +467,7 @@ task signApp(dependsOn: jpackage) {
             // Find all JAR files in the app directory
             jarsDir.toFile().listFiles().findAll { it.name.endsWith('.jar') }.each { jarFile ->
                 getLogger().lifecycle("Processing jar for native libraries: ${jarFile.name}")
-                try (FileSystem jarFs = FileSystems.newFileSystem(jarFile.toPath(), [:])) {
+                try (java.nio.file.FileSystem jarFs = FileSystems.newFileSystem(jarFile.toPath(), [:])) {
                     // Find all native libraries in this JAR
                     Files.walk(jarFs.getPath("/")).each { path ->
                         if (path.getFileName().toString().matches(".*\\.(dylib|jnilib|so|dll)")) {
