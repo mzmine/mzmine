@@ -1394,12 +1394,11 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(LocalCSVDatabaseSearchParameters.dataBaseFile, csvLibraryFile);
     param.setParameter(LocalCSVDatabaseSearchParameters.fieldSeparator,
         csvLibraryFile.getName().toLowerCase().endsWith(".csv") ? "," : "\\t");
-    param.setParameter(LocalCSVDatabaseSearchParameters.extraColumns, new ComboWithStringInputValue<>(
-        HandleExtraColumnsOptions.IGNORE, null));
+    param.setParameter(LocalCSVDatabaseSearchParameters.extraColumns,
+        new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IGNORE, null));
     param.setParameter(LocalCSVDatabaseSearchParameters.filterSamples,
         !csvFilterSamplesColumn.isBlank(), csvFilterSamplesColumn.trim());
-    param.setParameter(LocalCSVDatabaseSearchParameters.mzTolerance,
-        ImportType.isDataTypeSelectedInImportTypes(csvColumns, MZType.class), mzTolInterSample);
+    param.setParameter(LocalCSVDatabaseSearchParameters.mzTolerance, mzTolInterSample);
     param.setParameter(LocalCSVDatabaseSearchParameters.rtTolerance,
         ImportType.isDataTypeSelectedInImportTypes(csvColumns, RTType.class),
         Objects.requireNonNullElse(rtTol, new RTTolerance(9999999, Unit.MINUTES)));

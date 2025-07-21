@@ -107,8 +107,7 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
           "Column header to filter matches to only occur in the given sample. Used for library generation workflows.",
           "raw_filename"), false);
 
-  public static final OptionalParameter<MZToleranceParameter> mzTolerance = new OptionalParameter<>(
-      new MZToleranceParameter(), true);
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
   public static final OptionalParameter<RTToleranceParameter> rtTolerance = new OptionalParameter<>(
       new RTToleranceParameter(), false);
@@ -266,8 +265,6 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
     if (loadedVersion == 1) {
       // before version 2, the parameters were not optional, if we imported rt, mob, or ccs, we always matched against those.
       final List<ImportType<?>> importTypes = getValue(columns);
-      // mz was always enabled, the only possibility is that a large tolerance was used
-      setParameter(mzTolerance, true);
 
       final boolean rtFilterEnabled = ImportType.isDataTypeSelectedInImportTypes(importTypes,
           RTType.class);
@@ -292,7 +289,7 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
 
     if (loadedParams.containsKey(commentFields.getName())) {
       final String commentFieldValues = commentFields.getValue();
-      if(!commentFieldValues.isBlank()) {
+      if (!commentFieldValues.isBlank()) {
         setParameter(extraColumns,
             new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IMPORT_SPECIFIC,
                 commentFieldValues));
@@ -308,8 +305,11 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   @Override
   public @Nullable String getVersionMessage(int version) {
     return switch (version) {
-      case 2 ->
-          "m/z, RT, mobility, and CCS tolerances were made optional. The parameters were enabled/disabled based on the types imported from the csv database.";
+      case 2 -> """
+          RT, mobility, and CCS tolerances were made optional. The parameters were enabled/disabled based on the types imported from the csv database.
+          The parameter "Append comment fields" was replaced by the "Additional columns" parameter, which allows import of all or specific columns
+          from the database and also maps those into a generated spectral library as JSON.
+          """;
       default -> null;
     };
   }
