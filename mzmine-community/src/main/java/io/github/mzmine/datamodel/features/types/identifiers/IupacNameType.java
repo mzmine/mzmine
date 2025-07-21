@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,26 +22,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.datamodel.features.types.identifiers;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ListAsJsonDataType;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Universal spectrum identifier for all source spectra of this spectrum. Simple scan has one and
- * merged spectrum multiple.
- */
-public class SourceScanUsiType extends ListAsJsonDataType<String> {
+public class IupacNameType extends StringType {
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return "iupac_name";
+  }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Source USI";
-  }
-
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "source_scan_usi";
+    return "IUPAC";
   }
 }

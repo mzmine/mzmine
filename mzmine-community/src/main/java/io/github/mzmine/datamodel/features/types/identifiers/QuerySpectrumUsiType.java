@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,27 +22,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.combowithinput;
+package io.github.mzmine.datamodel.features.types.identifiers;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import org.jetbrains.annotations.NotNull;
 
-public enum FeatureLimitOptions implements UniqueIdSupplier {
-  USE_FEATURE_EDGES, USE_TOLERANCE;
-
-  @Override
-  public String toString() {
-    return switch (this) {
-      case USE_FEATURE_EDGES -> "Use feature edges";
-      case USE_TOLERANCE -> "Use tolerance";
-    };
-  }
+/**
+ * References the spectrum from the measurement data that was used to query a library or similar.
+ */
+public class QuerySpectrumUsiType extends StringType implements NullColumnType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return switch (this) {
-      case USE_FEATURE_EDGES -> "Use feature edges";
-      case USE_TOLERANCE -> "Use tolerance";
-    };
+    return "query_spectrum_usi";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Query spectrum";
   }
 }
