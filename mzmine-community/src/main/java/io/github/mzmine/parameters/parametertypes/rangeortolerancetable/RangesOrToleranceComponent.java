@@ -88,7 +88,7 @@ public abstract class RangesOrToleranceComponent<T extends Number & Comparable<T
         final RangeOrValue<T> last = ranges.getLast();
         ranges.add(new RangeOrValue<>(last.getLower(), last.getUpper()));
       } else {
-        ranges.add(new RangeOrValue<>());
+        ranges.add(createNewDefaultValue());
       }
     });
 
@@ -105,6 +105,9 @@ public abstract class RangesOrToleranceComponent<T extends Number & Comparable<T
 
     setLeft(buttons);
   }
+
+  @NotNull
+  protected abstract RangeOrValue<T> createNewDefaultValue();
 
   protected abstract <T extends Number & Comparable<T>> @NotNull TableColumn<RangeOrValue<T>, T> createLowerEditableFormattedColumn(
       String name, NumberFormat numberFormat);

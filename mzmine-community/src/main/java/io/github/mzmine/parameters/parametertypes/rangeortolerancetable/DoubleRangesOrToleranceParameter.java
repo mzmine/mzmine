@@ -26,6 +26,7 @@ package io.github.mzmine.parameters.parametertypes.rangeortolerancetable;
 
 import io.github.mzmine.parameters.UserParameter;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import javafx.scene.Node;
@@ -54,21 +55,24 @@ public class DoubleRangesOrToleranceParameter<TolType extends Tolerance<Double>,
   }
 
   @Override
-  public void loadValueFromXML(Element xmlElement) {
-
-  }
-
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-
-  }
-
-  @Override
   public UserParameter<RangeOrValueResult<Double>, RangesOrToleranceComponent<Double, ToleranceComponent>> cloneParameter() {
     final var clone = new DoubleRangesOrToleranceParameter<>(name, description, unit, numberFormat,
         toleranceParameter.cloneParameter());
     final RangeOrValueResult<Double> value = this.value.copy();
     clone.setValue(value);
     return clone;
+  }
+
+  @Override
+  protected Double parseFromString(@Nullable String string) {
+    if (string == null) {
+      return null;
+    }
+
+    try {
+      return numberFormat.parse(string).doubleValue();
+    } catch (NumberFormatException | ParseException e) {
+      return null;
+    }
   }
 }

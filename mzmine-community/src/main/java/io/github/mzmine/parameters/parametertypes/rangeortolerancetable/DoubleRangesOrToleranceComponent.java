@@ -58,6 +58,11 @@ public class DoubleRangesOrToleranceComponent<C extends Node> extends RangesOrTo
   }
 
   @Override
+  protected @NotNull RangeOrValue<Double> createNewDefaultValue() {
+    return new RangeOrValue<>(300d, 301d);
+  }
+
+  @Override
   protected @NotNull TableColumn<RangeOrValue<Double>, Double> createLowerEditableFormattedColumn(
       String name, NumberFormat numberFormat) {
     final TableColumn<RangeOrValue<Double>, Double> lowerCol = TableColumns.createColumn(name, 120,

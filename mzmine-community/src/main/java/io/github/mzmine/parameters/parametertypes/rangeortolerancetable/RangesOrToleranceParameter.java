@@ -24,13 +24,20 @@
 
 package io.github.mzmine.parameters.parametertypes.rangeortolerancetable;
 
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.util.ParsingUtils;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 import javafx.scene.Node;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * @param <T>
@@ -112,4 +119,60 @@ public abstract class RangesOrToleranceParameter<T extends Number & Comparable<T
     }
     return !failed;
   }
+
+  @Override
+  public void loadValueFromXML(Element xmlElement) {
+    final Element toleranceParam = (Element) xmlElement.getElementsByTagName(
+        SimpleParameterSet.parameterElement).item(0);
+    assert toleranceParam.getAttribute(SimpleParameterSet.nameAttribute)
+        .equals(toleranceParameter.getName());
+    toleranceParameter.loadValueFromXML(toleranceParam);
+
+    final Element rovListElement = (Element) xmlElement.getElementsByTagName("rangesorvalues")
+        .item(0);
+    final NodeList rovList = rovListElement.getElementsByTagName("rangeorvalue");
+
+    List<RangeOrValue<T>> ranges = new ArrayList<>();
+    for (int i = 0; i < rovList.getLength(); i++) {
+      final Element rov = (Element) rovList.item(i);
+      String strLower = rov.getAttribute("lower");
+      String strUpper = rov.getAttribute("upper");
+
+      if(CONST.XML_NULL_VALUE.equals(strLower)) {
+        strLower = null;
+      }
+      if(CONST.XML_NULL_VALUE.equals(strUpper)) {
+        strUpper = null;
+      }
+
+      ranges.add(new RangeOrValue<>(parseFromString(strLower), parseFromString(strUpper)));
+    }
+
+    value = new RangeOrValueResult<>(ranges, toleranceParameter.getValue());
+  }
+
+  @Override
+  public void saveValueToXML(Element xmlElement) {
+    final Document doc = xmlElement.getOwnerDocument();
+
+    final Element toleranceElement = doc.createElement(SimpleParameterSet.parameterElement);
+    toleranceElement.setAttribute(SimpleParameterSet.nameAttribute, toleranceParameter.getName());
+    toleranceParameter.saveValueToXML(toleranceElement);
+
+    final Element rovList = doc.createElement("rangesorvalues");
+
+    xmlElement.appendChild(toleranceElement);
+    xmlElement.appendChild(rovList);
+
+    for (RangeOrValue<T> range : value.ranges()) {
+      final Element element = doc.createElement("rangeorvalue");
+      element.setAttribute("lower", ParsingUtils.parseNullableString(
+          range.getLower() != null ? numberFormat.format(range.getLower()) : null));
+      element.setAttribute("upper", ParsingUtils.parseNullableString(
+          range.getUpper() != null ? numberFormat.format(range.getUpper()) : null));
+      rovList.appendChild(element);
+    }
+  }
+
+  protected abstract T parseFromString(@Nullable String string);
 }

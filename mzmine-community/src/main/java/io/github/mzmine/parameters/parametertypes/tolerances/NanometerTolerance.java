@@ -42,7 +42,7 @@ public class NanometerTolerance implements Tolerance<Double> {
   }
 
   public Range<Double> getToleranceRange(double value) {
-    return Range.closed(tolerance - value, tolerance + value);
+    return Range.closed(value-tolerance, tolerance + value);
   }
 
   @Override
