@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
@@ -48,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.NamedArg;
 import javafx.beans.property.BooleanProperty;
@@ -94,7 +96,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   private static final Logger logger = Logger.getLogger(SimpleXYChart.class.getName());
 
   protected final JFreeChart chart;
-  protected final ObjectProperty<XYItemRenderer> defaultRenderer;
+  protected final ObjectProperty<XYItemRenderer> defaultRenderer = new SimpleObjectProperty<>();
   protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(true);
   protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
 
@@ -107,9 +109,9 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   private final List<DatasetChangeListener> datasetListeners;
   protected EStandardChartTheme theme;
   protected SimpleXYLabelGenerator defaultLabelGenerator;
-  protected SimpleToolTipGenerator defaultToolTipGenerator;
-  protected ColoredXYLineRenderer defaultLineRenderer;
-  protected ColoredAreaShapeRenderer defaultShapeRenderer;
+  protected SimpleToolTipGenerator defaultToolTipGenerator = new SimpleToolTipGenerator();
+  protected ColoredXYLineRenderer defaultLineRenderer = new ColoredXYLineRenderer();
+  protected ColoredAreaShapeRenderer defaultShapeRenderer = new ColoredAreaShapeRenderer();
 
   private int nextDataSetNum;
 
@@ -163,10 +165,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     }
 
     defaultLabelGenerator = new SimpleXYLabelGenerator(this);
-    defaultToolTipGenerator = new SimpleToolTipGenerator();
-    defaultShapeRenderer = new ColoredAreaShapeRenderer();
-    defaultLineRenderer = new ColoredXYLineRenderer();
-    defaultRenderer = new SimpleObjectProperty<>();
     defaultRenderer.addListener((obs, old, newValue) -> {
       newValue.setDefaultItemLabelsVisible(true);
       newValue.setDefaultToolTipGenerator(defaultToolTipGenerator);
@@ -180,6 +178,16 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     defaultShapeRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
 
     datasetListeners = new ArrayList<>();
+
+    // equals check is done internally
+    cursorPositionProperty.addListener((_, _, newPosition) -> {
+      if (newPosition != null) {
+        // notify only for second change and only if notification is not disabled
+        chart.getXYPlot().setDomainCrosshairValue(newPosition.getDomainValue(), false);
+        chart.getXYPlot()
+            .setRangeCrosshairValue(newPosition.getRangeValue(), chart.getXYPlot().isNotify());
+      }
+    });
   }
 
   private void initLabelListeners() {
@@ -411,7 +419,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
 
   @Override
   public void setCursorPosition(PlotCursorPosition cursorPosition) {
-    if (cursorPosition.equals(cursorPositionProperty().get())) {
+    if (Objects.equals(cursorPosition, cursorPositionProperty().get())) {
       return;
     }
     this.cursorPositionProperty.set(cursorPosition);
@@ -513,4 +521,5 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
 
     addDataset(new XYSeriesCollection(trend), regressionRenderer);
   }
+
 }

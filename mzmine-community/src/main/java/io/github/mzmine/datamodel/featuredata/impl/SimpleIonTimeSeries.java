@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.featuredata.impl;
 
+import static io.github.mzmine.datamodel.featuredata.impl.StorageUtils.numDoubles;
+
 import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -32,13 +34,14 @@ import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MzSeries;
+import io.github.mzmine.datamodel.featuredata.TimeSeries;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
 import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -85,6 +88,27 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
     this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzValues);
     this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
+  }
+
+  /**
+   * may reuse memory segments
+   */
+  public SimpleIonTimeSeries(@NotNull MemorySegment mzValues,
+      @NotNull MemorySegment intensityValues, @NotNull List<? extends Scan> scans) {
+    long values = numDoubles(mzValues);
+    if (values != numDoubles(intensityValues) || values != scans.size()) {
+      throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
+    }
+    for (int i = 1; i < scans.size(); i++) {
+      if (scans.get(i).getRetentionTime() < scans.get(i - 1).getRetentionTime()) {
+        throw new IllegalArgumentException(
+            "Scans not sorted in retention time dimension! Cannot create chromatogram.");
+      }
+    }
+
+    this.scans = scans;
+    this.mzValues = mzValues;
+    this.intensityValues = intensityValues;
   }
 
   public static SimpleIonTimeSeries loadFromXML(XMLStreamReader reader, MemoryMapStorage storage,
@@ -161,6 +185,19 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   }
 
   @Override
+  public IonTimeSeries<Scan> subSeries(MemoryMapStorage storage, int startIndexInclusive,
+      int endIndexExclusive) {
+
+    // better create copy - sublist keeps original list alive
+    List<? extends Scan> sublist = new ArrayList<>(
+        scans.subList(startIndexInclusive, endIndexExclusive));
+    return new SimpleIonTimeSeries(
+        StorageUtils.sliceDoubles(mzValues, startIndexInclusive, endIndexExclusive),
+        StorageUtils.sliceDoubles(intensityValues, startIndexInclusive, endIndexExclusive),
+        sublist);
+  }
+
+  @Override
   public MemorySegment getIntensityValueBuffer() {
     return intensityValues;
   }
@@ -189,6 +226,15 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   }
 
   @Override
+  public IonTimeSeries<Scan> copyAndReplace(@Nullable final MemoryMapStorage storage,
+      @NotNull final double[] newIntensityValues) {
+    var intensities = StorageUtils.storeValuesToDoubleBuffer(storage, newIntensityValues);
+    // reuse mz memory segment
+    return new SimpleIonTimeSeries(mzValues, intensities, scans);
+  }
+
+
+  @Override
   public IonTimeSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
 
@@ -198,11 +244,20 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   @Override
   public void saveValueToXML(XMLStreamWriter writer, List<Scan> allScans)
       throws XMLStreamException {
+    saveValueToXML(writer, allScans, true);
+  }
+
+  @Override
+  public void saveValueToXML(XMLStreamWriter writer, List<Scan> allScans, boolean includeRt)
+      throws XMLStreamException {
     writer.writeStartElement(SimpleIonTimeSeries.XML_ELEMENT);
 
     IonSpectrumSeries.saveSpectraIndicesToXML(writer, this, allScans); // use all scans
     IntensitySeries.saveIntensityValuesToXML(writer, this);
     MzSeries.saveMzValuesToXML(writer, this);
+    if (includeRt) {
+      TimeSeries.saveValuesToXML(writer, this);
+    }
 
     writer.writeEndElement();
   }
@@ -216,11 +271,21 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
       return false;
     }
     return Objects.equals(scans, that.scans) && IntensitySeries.seriesSubsetEqual(this, that)
-        && MzSeries.seriesSubsetEqual(this, that);
+           && MzSeries.seriesSubsetEqual(this, that);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(scans, intensityValues.byteSize(), mzValues.byteSize());
+  }
+
+  @Override
+  public IonTimeSeries<Scan> emptySeries() {
+    return IonTimeSeries.EMPTY;
+  }
+
+  @Override
+  public List<Scan> getSpectraModifiable() {
+    return (List<Scan>) scans;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -108,10 +108,14 @@ public class FeatureListsParameter implements
 
   @Override
   public FeatureListsParameter cloneParameter() {
+    return cloneParameter(true);
+  }
+
+  public FeatureListsParameter cloneParameter(boolean keepSelection) {
     FeatureListsParameter copy = new FeatureListsParameter(name, description, minCount, maxCount,
         onlyAligned);
     if (value != null) {
-      copy.value = value.clone();
+      copy.value = value.clone(keepSelection);
     }
     return copy;
   }
@@ -136,18 +140,18 @@ public class FeatureListsParameter implements
     }
 
     if (matchingPeakLists.length < minCount) {
-      errorMessages.add(STR."At least \{minCount} feature lists  must be selected");
+      errorMessages.add("At least " + minCount + " feature lists  must be selected");
       return false;
     }
     if (matchingPeakLists.length > maxCount) {
-      errorMessages.add(STR."Maximum \{maxCount} feature lists may be selected");
+      errorMessages.add("Maximum " + maxCount + " feature lists may be selected");
       return false;
     }
     if (onlyAligned) {
       for (FeatureList matchingPeakList : matchingPeakLists) {
         if (matchingPeakList.getNumberOfRawDataFiles() < 2) {
-          errorMessages.add(
-              STR."Selected feature list (\{matchingPeakList.getName()}) is not an aligned feature list.");
+          errorMessages.add("Selected feature list (" + matchingPeakList.getName()
+              + ") is not an aligned feature list.");
         }
       }
       if (!errorMessages.isEmpty()) {

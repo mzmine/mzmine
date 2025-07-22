@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,6 +53,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JMenuItem;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
@@ -75,8 +77,19 @@ import org.w3c.dom.DOMImplementation;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ChartExportUtil {
+
   // ######################################################################################
   // VECTORS: PDF uses ITextpdf lib
+  private static final Logger logger = Logger.getLogger(ChartExportUtil.class.getName());
+
+  /**
+   * Maximum pixel width or height
+   */
+  public static int MAX_PIXEL_IN_GUI = 10_000;
+  /**
+   * After applying DPI
+   */
+  public static int MAX_PIXEL_IN_EXPORT = 16_000;
 
   /**
    * Add export dialog to popup menu of a chartpanel
@@ -106,11 +119,18 @@ public class ChartExportUtil {
    */
   public static void writeChartToImage(ChartPanel chart, GraphicsExportParameters sett)
       throws Exception {
-    boolean repaint = false;
     FixedSize fixed = sett.getFixedSize();
 
     double oldW = sett.getWidthPixel();
     double oldH = sett.getHeightPixel();
+
+    // todo make this a method in parameters and properly set the constraints also with dpi
+    if (oldW > MAX_PIXEL_IN_GUI) {
+      oldW = MAX_PIXEL_IN_GUI;
+    }
+    if (oldH > MAX_PIXEL_IN_GUI) {
+      oldH = MAX_PIXEL_IN_GUI;
+    }
 
     // Size only by width?
     if (sett.isUseOnlyWidth()) {
@@ -127,34 +147,30 @@ public class ChartExportUtil {
     }
 
     Dimension size = sett.getPixelSize();
+
+    // todo make this a method in parameters and properly set the constraints also with dpi
+    if (Math.max(size.getWidth(), size.getHeight()) > MAX_PIXEL_IN_GUI) {
+      double factor = MAX_PIXEL_IN_GUI / Math.max(size.getWidth(), size.getHeight());
+      size = new Dimension((int) (size.getWidth() * factor), (int) (size.getHeight() * factor));
+    }
     // resize
     chart.setPreferredSize(size);
     chart.setMaximumSize(size);
     chart.setMinimumSize(size);
-    // repaint
-    if (repaint) {
-      chart.revalidate();
-      chart.repaint();
-    }
+
     writeChartToImage(chart.getChart(), sett, chart.getChartRenderingInfo());
     // reset size
     sett.setPixelSize(oldW, oldH);
   }
 
-  /**
-   * takes Only Width in account
-   *
-   * @param chart
-   * @param sett
-   * @throws Exception
-   */
-  public static void writeChartToImageFX(EChartViewer chart, GraphicsExportParameters sett)
-      throws Exception {
-    boolean repaint = false;
+  public static void writeChartToImageFX(EChartViewer chart, GraphicsExportParameters sett) {
     FixedSize fixed = sett.getFixedSize();
 
     double oldW = sett.getWidthPixel();
     double oldH = sett.getHeightPixel();
+
+    // set maximum size already so that chart may be created in appropriate size
+    sett.applyMaxPixels(MAX_PIXEL_IN_GUI, MAX_PIXEL_IN_EXPORT);
 
     // Size only by width?
     if (sett.isUseOnlyWidth()) {
@@ -169,19 +185,20 @@ public class ChartExportUtil {
       // fixed plot size - width and height are given
       sett.setPixelSize(ChartLogicsFX.calcSizeForPlotSize(chart, oldW, oldH));
     }
+    // make sure to check again because size may have changed in between checks
+    sett.applyMaxPixels(MAX_PIXEL_IN_GUI, MAX_PIXEL_IN_EXPORT);
 
     Dimension size = sett.getPixelSize();
     // resize
     chart.setPrefSize(size.getWidth(), size.getHeight());
     chart.setMaxSize(size.getWidth(), size.getHeight());
     chart.setMinSize(size.getWidth(), size.getHeight());
-    // repaint TODO:
-//    if (repaint) {
-//      chart.revalidate();
-//      chart.repaint();
-//    }
-    writeChartToImage(chart.getChart(), sett, chart.getRenderingInfo());
-    // reset size
+    try {
+      writeChartToImage(chart.getChart(), sett, chart.getRenderingInfo());
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Cannot export graphics" + ex.getMessage(), ex);
+    }
+    // definitely reset size otherwise the text box will show different value
     sett.setPixelSize(oldW, oldH);
   }
 
@@ -222,21 +239,11 @@ public class ChartExportUtil {
     Dimension size = sett.getPixelSize();
     // Format
     switch (sett.getFormat()) {
-      case "PDF":
-        writeChartToPDF(chart, size.width, size.height, f);
-        break;
-      case "PNG":
-        writeChartToPNG(chart, info, size.width, size.height, f, (int) sett.getDPI());
-        break;
-      case "JPG":
-        writeChartToJPEG(chart, info, size.width, size.height, f, (int) sett.getDPI());
-        break;
-      case "SVG":
-        writeChartToSVG(chart, size.width, size.height, f);
-        break;
-      case "EMF":
-        writeChartToEMF(chart, size.width, size.height, f);
-        break;
+      case PDF -> writeChartToPDF(chart, size.width, size.height, f);
+      case PNG -> writeChartToPNG(chart, info, size.width, size.height, f, (int) sett.getDPI());
+      case JPG -> writeChartToJPEG(chart, info, size.width, size.height, f, (int) sett.getDPI());
+      case SVG -> writeChartToSVG(chart, size.width, size.height, f);
+      case EMF -> writeChartToEMF(chart, size.width, size.height, f);
     }
     //
     chart.setBackgroundPaint(saved);

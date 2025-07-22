@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,19 +28,20 @@ package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
 
 public class AbstractBaselineCorrectorParameters extends SimpleParameterSet {
 
   public static final BooleanParameter applyPeakRemoval = new BooleanParameter("Exclude peaks",
       "Attempts to remove peaks prior to baseline correction.");
 
-  public static final IntegerParameter numSamples = new IntegerParameter(
-      "Number of baseline samples", """
-      The number of samples taken from the chromatogram to fit the baseline.
-      Too low values may fail to approximate the baseline correctly, too high values may put 
-      too much weight on chromatographic signals and distort the baseline. Default: 50.
-      """, 50, 2, Integer.MAX_VALUE);
+  public static final PercentParameter samplePercentage = new PercentParameter(
+      "Percentage of baseline samples", """
+      The approximate number of samples taken from the chromatogram to fit the baseline.
+      The actual number might be slightly different for each chromatogram, depending if peak removal is activated.
+      Too low values may fail to approximate the baseline correctly, too high values may put
+      too much weight on chromatographic signals and distort the baseline. Default: 5%.
+      """, 0.05);
 
   public AbstractBaselineCorrectorParameters() {
     super();
@@ -57,4 +58,5 @@ public class AbstractBaselineCorrectorParameters extends SimpleParameterSet {
   public AbstractBaselineCorrectorParameters(Parameter<?>[] parameters, String onlineHelpUrl) {
     super(onlineHelpUrl, parameters);
   }
+
 }

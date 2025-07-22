@@ -28,42 +28,35 @@ package io.github.mzmine.modules.io.import_rawdata_thermo_raw;
 import com.sun.jna.Platform;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.gui.preferences.ThermoImportOptions;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.io.download.ExternalAsset;
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
+import io.github.mzmine.modules.io.download.AssetGroup;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
-import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvert;
-import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.ZipUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
-import java.util.zip.ZipInputStream;
-import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,7 +65,7 @@ import org.jetbrains.annotations.Nullable;
  * This module binds spawns a separate process that dumps the native format's data in a text+binary
  * form into its standard output. This class then reads the output of that process.
  */
-public class ThermoRawImportTask extends AbstractTask {
+public class ThermoRawImportTask extends AbstractTask implements RawDataImportTask {
 
   public static final String THERMO_RAW_PARSER_DIR = "mzmine_thermo_raw_parser";
 
@@ -92,16 +85,18 @@ public class ThermoRawImportTask extends AbstractTask {
   private MSDKmzMLImportTask msdkTask;
   private int convertedScans;
 
-  protected ThermoRawImportTask(MZmineProject project, File fileToOpen,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Instant moduleCallDate, @NotNull ScanImportProcessorConfig scanProcessorConfig) {
-    super(null, moduleCallDate); // storage in raw data file
+  protected ThermoRawImportTask(final @Nullable MemoryMapStorage storage, MZmineProject project,
+      File fileToOpen, @NotNull final Class<? extends MZmineModule> module,
+      @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate,
+      @NotNull ScanImportProcessorConfig scanProcessorConfig) {
+    super(storage, moduleCallDate); // storage in raw data file
     this.project = project;
     this.fileToOpen = fileToOpen;
     taskDescription = "Opening file " + fileToOpen;
     this.parameters = parameters;
     this.module = module;
     this.scanProcessorConfig = scanProcessorConfig;
+    assert parameters instanceof AllSpectralDataImportParameters;
   }
 
   @Override
@@ -177,7 +172,8 @@ public class ThermoRawImportTask extends AbstractTask {
     }
 
     logger.info(
-        STR."Finished parsing \{fileToOpen}, parsed \{parsedScans} scans and after filtering remained \{convertedScans}");
+        "Finished parsing %s, parsed %d scans and after filtering remained %d".formatted(fileToOpen,
+            parsedScans, convertedScans));
     setStatus(TaskStatus.FINISHED);
 
   }
@@ -211,15 +207,17 @@ public class ThermoRawImportTask extends AbstractTask {
       return null;
     }
 
-    final String cmdLine[] = new String[]{ //
-        thermoRawFileParserCommand, // program to run
-        "-s", // output mzML to stdout
-        "-p", // no peak picking
-        "-z", // no zlib compression (higher speed)
-        "-f=1", // no index, https://github.com/compomics/ThermoRawFileParser/issues/118
-        "-i", // input RAW file name coming next
-        fileToOpen.getPath() // input RAW file name
-    };
+    final List<String> cmdLine = new ArrayList<>(); //
+    cmdLine.add(thermoRawFileParserCommand); // program to run
+    cmdLine.add("-s"); // output mzML to stdout
+    if(!parameters.getValue(AllSpectralDataImportParameters.applyVendorCentroiding)) {
+      cmdLine.add("-p"); // no peak picking
+    }
+    cmdLine.add("-z"); // no zlib compression (higher speed)
+    cmdLine.add("-f=1"); // no index, https://github.com/compomics/ThermoRawFileParser/issues/118
+    cmdLine.add("--allDetectors"); // include all detector data
+    cmdLine.add("-i"); // input RAW file name coming next
+    cmdLine.add(fileToOpen.getPath()); // input RAW file name
 
     // Create a separate process and execute ThermoRawFileParser.
     // Use thermoRawFileParserDir as working directory; this is essential, otherwise the process will fail.
@@ -261,7 +259,7 @@ public class ThermoRawImportTask extends AbstractTask {
         if (DesktopService.isHeadLess()) {
           logger.severe(
               "Cannot find thermo raw file parser. Download the parser from %s and unzip the content into %s or edit the mzmine config file (parameter %s).".formatted(
-                  StringUtils.inQuotes(ExternalAsset.ThermoRawFileParser.getDownloadInfoPage()),
+                  StringUtils.inQuotes(AssetGroup.ThermoRawFileParser.getDownloadInfoPage()),
                   StringUtils.inQuotes(DEFAULT_PARSER_DIR.toString()),
                   StringUtils.inQuotes(MZminePreferences.thermoRawFileParserPath.getName())));
           return false;
@@ -315,12 +313,13 @@ public class ThermoRawImportTask extends AbstractTask {
       return thermoRawFileParserExe;
     }
 
-    logger.finest(STR."Unpacking ThermoRawFileParser to folder \{thermoRawFileParserFolder}");
+    logger.finest(
+        "Unpacking ThermoRawFileParser to folder %s".formatted(thermoRawFileParserFolder));
     taskDescription = "Unpacking thermo raw file parser.";
 
     ZipUtils.unzipFile(zipPath, thermoRawFileParserFolder);
     logger.finest(
-        STR."Finished unpacking ThermoRawFileParser to folder \{thermoRawFileParserFolder}");
+        "Finished unpacking ThermoRawFileParser to folder %s".formatted(thermoRawFileParserFolder));
 
     return thermoRawFileParserExe;
   }
@@ -362,5 +361,10 @@ public class ThermoRawImportTask extends AbstractTask {
       return true;
     }
     return false;
+  }
+
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFile() : null;
   }
 }

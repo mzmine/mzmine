@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,8 +28,6 @@ package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -46,8 +44,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.project.ProjectService;
-import io.github.mzmine.util.ExitCode;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class RowsFilterParameters extends SimpleParameterSet {
@@ -100,9 +97,6 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final OptionalModuleParameter<KendrickMassDefectFilterParameters> KENDRICK_MASS_DEFECT = new OptionalModuleParameter<>(
       "Kendrick mass defect", "Permissible range of a Kendrick mass defect per row",
       new KendrickMassDefectFilterParameters(), false);
-  public static final ComboParameter<Object> GROUPSPARAMETER = new ComboParameter<Object>(
-      "Parameter", "Paremeter defining the group of each sample.", new Object[]{defaultGrouping},
-      defaultGrouping);
 
   public static final BooleanParameter HAS_IDENTITIES = new BooleanParameter("Only identified?",
       "Select to filter only identified compounds", false);
@@ -120,12 +114,17 @@ public class RowsFilterParameters extends SimpleParameterSet {
       "Keep or remove rows", "If selected, rows will be removed based on criteria instead of kept",
       RowsFilterChoices.values(), RowsFilterChoices.KEEP_MATCHING);
 
+  public static final OptionalModuleParameter<RsdFilterParameters> cvFilter = new OptionalModuleParameter<>(
+      "RSD filter",
+      "Filter rows based on relative standard deviation (coefficient of variation, CV) in a specific sample group.",
+      (RsdFilterParameters) new RsdFilterParameters().cloneParameterSet(), false);
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
       true);
 
   public static final BooleanParameter MS2_Filter = new BooleanParameter("Feature with MS2 scan",
       "If checked, the rows that don't contain MS2 scan will be removed.", false);
+
   public static final BooleanParameter KEEP_ALL_MS2 = new BooleanParameter(
       "Never remove feature with MS2",
       "If checked, all rows with MS2 are retained without applying any further filters on them.",
@@ -140,43 +139,23 @@ public class RowsFilterParameters extends SimpleParameterSet {
       "Reset the feature number ID",
       "If checked, the row number of original feature list will be reset.", false);
 
-
   public static final OptionalParameter<MassDefectParameter> massDefect = new OptionalParameter<>(
       new MassDefectParameter("Mass defect",
           "Filters for mass defects of features.\nValid inputs: 0.314-0.5 or 0.90-0.15",
           MZmineCore.getConfiguration().getMZFormat()));
 
+  public static final BooleanParameter onlyCorrelatedWithOtherDetectors = new BooleanParameter(
+      "Require other detector correlation",
+      "If checked, the rows that do not have at least one feature that is correlated to a signal of another detector will be removed.",
+      false);
+
   public RowsFilterParameters() {
     super(new Parameter[]{FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,
             ISOTOPE_FILTER_13C, removeRedundantRows, MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
-            KENDRICK_MASS_DEFECT, GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT,
-            REMOVE_ROW, MS2_Filter, KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID, massDefect,
-            handleOriginal},
+            KENDRICK_MASS_DEFECT, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, cvFilter, REMOVE_ROW,
+            MS2_Filter, onlyCorrelatedWithOtherDetectors, KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID,
+            massDefect, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
-  }
-
-  @Override
-  public ExitCode showSetupDialog(boolean valueCheckRequired) {
-
-    // Update the parameter choices
-    UserParameter<?, ?>[] newChoices = ProjectService.getProjectManager().getCurrentProject()
-        .getParameters();
-    String[] choices;
-    if (newChoices == null || newChoices.length == 0) {
-      choices = new String[1];
-      choices[0] = defaultGrouping;
-    } else {
-      choices = new String[newChoices.length + 1];
-      choices[0] = "Ignore groups";
-      for (int i = 0; i < newChoices.length; i++) {
-        choices[i + 1] = "Filtering by " + newChoices[i].getName();
-      }
-    }
-
-    getParameter(RowsFilterParameters.GROUPSPARAMETER).setChoices(choices);
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
-    dialog.showAndWait();
-    return dialog.getExitCode();
   }
 
   @Override
@@ -187,5 +166,12 @@ public class RowsFilterParameters extends SimpleParameterSet {
   @Override
   public int getVersion() {
     return 2;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var map = super.getNameParameterMap();
+    map.put("Only other detector correlated", getParameter(onlyCorrelatedWithOtherDetectors));
+    return map;
   }
 }

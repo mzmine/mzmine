@@ -145,7 +145,7 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("m/z tolerance", MZ_TOLERANCE);
+    nameParameterMap.put("m/z tolerance", getParameter(MZ_TOLERANCE));
     return nameParameterMap;
   }
 }

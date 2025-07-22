@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -213,8 +213,22 @@ public class MzMLCV {
   public static final String cvActivationCID = "MS:1000133";
   /// activation energies
   public static final String cvElectronCaptureDissociation = "MS:1000250";
-  public static final String cvHighEnergyCID = "MS:1000422";
+  public static final String cvHighEnergyCID = "MS:1000422"; // HCD
   public static final String cvLowEnergyCID = "MS:1000433";
+
+  /**
+   * EAD electron activated dissociation
+   * <pre>
+   *               <activation>
+   *                 <cvParam cvRef="MS" accession="MS:1003294" name="electron activated dissociation" value=""/>
+   *                 <cvParam cvRef="MS" accession="MS:1003410" name="electron beam energy" value="10.0" unitCvRef="UO" unitAccession="UO:0000266" unitName="electronvolt"/>
+   *                 <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="12.0" unitCvRef="UO" unitAccession="UO:0000266" unitName="electronvolt"/>
+   *               </activation>
+   * </pre>
+   */
+  public static final String cvActivationModeEAD = "MS:1003294"; // the method
+  public static final String cvElectronBeamEnergyEAD = "MS:1003410"; // the energy
+
   /**
    * Constant <code>cvIsolationWindowTarget="MS:1000827"</code>
    */

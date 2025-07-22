@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
@@ -36,8 +38,11 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import javafx.scene.layout.Priority;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -49,28 +54,59 @@ import org.w3c.dom.NodeList;
 public class FileNamesParameter implements UserParameter<File[], FileNamesComponent> {
 
   public static final String XML_RELATIVE_PATH_ATTRIBUTE = "relative_path";
+  public static final Function<File[], File[]> DEFAULT_ALL_FILES_MAPPER = files -> Arrays.stream(
+      files).filter(Predicate.not(File::isDirectory)).toArray(File[]::new);
+  ;
 
   private final String name;
   private final String description;
   private final Path defaultDir;
   private File[] value;
   private final List<ExtensionFilter> filters;
+  // this mapper is applied when all * files button is clicked. Input is all files and directories
+  // matching the filter and the function may apply transformation like Bruker path validation
+  // Default just filters out directories
+  protected final @NotNull Function<File[], File[]> allFilesMapper;
+
+  @Nullable
+  protected final String dragPrompt;
 
   public FileNamesParameter(String name) {
-    this(name, "", List.of());
+    this(name, "", List.of(), null);
   }
 
   public FileNamesParameter(String name, String description, List<ExtensionFilter> filters) {
-    this(name, description, filters, null, null);
+    this(name, description, filters, null, null, null, DEFAULT_ALL_FILES_MAPPER);
   }
 
   public FileNamesParameter(String name, String description, List<ExtensionFilter> filters,
-      Path defaultDir, File[] defaultFiles) {
+      @Nullable String dragPrompt) {
+    this(name, description, filters, dragPrompt, DEFAULT_ALL_FILES_MAPPER);
+  }
+
+  public FileNamesParameter(String name, String description, List<ExtensionFilter> filters,
+      @Nullable String dragPrompt, @NotNull Function<File[], File[]> allFilesMapper) {
+    this(name, description, filters, null, null, dragPrompt, allFilesMapper);
+  }
+
+  public FileNamesParameter(String name, String description, List<ExtensionFilter> filters,
+      Path defaultDir, @Nullable File[] defaultFiles, @Nullable String dragPrompt,
+      @NotNull Function<File[], File[]> allFilesMapper) {
     this.name = name;
     this.description = description;
     this.filters = ImmutableList.copyOf(filters);
     this.defaultDir = defaultDir;
-    value = defaultFiles;
+    this.dragPrompt = dragPrompt;
+    this.allFilesMapper = allFilesMapper;
+    setValue(defaultFiles);
+  }
+
+  public Path getDefaultDir() {
+    return defaultDir;
+  }
+
+  public List<ExtensionFilter> getFilters() {
+    return filters;
   }
 
   /**
@@ -91,22 +127,24 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
 
   @Override
   public FileNamesComponent createEditingComponent() {
-    return new FileNamesComponent(filters, defaultDir);
+    return new FileNamesComponent(filters, defaultDir, dragPrompt, allFilesMapper);
   }
 
   @Override
+  @NotNull
   public File[] getValue() {
     return value;
   }
 
   @Override
-  public void setValue(File[] value) {
-    this.value = value;
+  public void setValue(@Nullable File[] value) {
+    this.value = requireNonNullElse(value, new File[0]);
   }
 
   @Override
   public FileNamesParameter cloneParameter() {
-    FileNamesParameter copy = new FileNamesParameter(name, description, filters);
+    FileNamesParameter copy = new FileNamesParameter(name, description, filters, defaultDir,
+        getValue(), dragPrompt, allFilesMapper);
     copy.setValue(this.getValue());
     return copy;
   }
@@ -190,5 +228,9 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   @Override
   public Priority getComponentVgrowPriority() {
     return Priority.SOMETIMES;
+  }
+
+  public int numFiles() {
+    return value != null ? value.length : 0;
   }
 }

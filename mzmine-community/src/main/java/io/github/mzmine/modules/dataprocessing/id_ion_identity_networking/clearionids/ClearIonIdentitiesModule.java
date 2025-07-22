@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,13 +39,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class ClearIonIdentitiesModule implements MZmineProcessingModule {
 
-  private static final String NAME = "Clear ion identites";
+  private static final String NAME = "Clear ion identities";
 
   private static final String DESCRIPTION = "Deletes all ion identities and networks of all rows";
 
   @Override
-  public @NotNull
-  String getName() {
+  public @NotNull String getName() {
 
     return NAME;
   }
@@ -57,8 +56,7 @@ public class ClearIonIdentitiesModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @NotNull
-  MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.ION_IDENTITY_NETWORKS;
   }
 
@@ -72,9 +70,11 @@ public class ClearIonIdentitiesModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    ModularFeatureList[] pkl = parameters.getParameter(ClearIonIdentitiesParameters.PEAK_LISTS).getValue().getMatchingFeatureLists();
-    for (ModularFeatureList p : pkl)
+    ModularFeatureList[] pkl = parameters.getParameter(ClearIonIdentitiesParameters.PEAK_LISTS)
+        .getValue().getMatchingFeatureLists();
+    for (ModularFeatureList p : pkl) {
       tasks.add(new ClearIonIdentitiesTask(project, parameters, p, moduleCallDate));
+    }
 
     return ExitCode.OK;
   }

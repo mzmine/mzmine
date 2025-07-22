@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,28 +27,35 @@ package io.github.mzmine.javafx.util;
 
 public enum FxIcons implements IconCodeSupplier {
   // status
-  CHECK_CIRCLE, X, X_CIRCLE, EXCLAMATION_TRIANGLE,
+  CHECK_CIRCLE, X, X_CIRCLE, EXCLAMATION_TRIANGLE, EXCLAMATION_CIRCLE, INFO_CIRCLE, QUESTION_CIRCLE,
 
   // control flow
-  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, PLUS, ADD, EDIT,
+  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, PLUS, ADD, EDIT, QUESTIONMARK, ARROW_IN_RIGHT,
+
+  // icons
+  FILE,
 
   // UI
   DARK_MODE_SWITCH, BATCH,
 
   //
-  USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, TOOL, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, ROCKET,
+  USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, TOOL, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, //
+  ROCKET, LIGHTBULB, METADATA_TABLE, TABLE, SPREADSHEET,
 
   // ACTIONS
-  SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD;
+  SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD, SEARCH;
 
 
   @Override
   public String getIconCode() {
     return switch (this) {
+      case QUESTION_CIRCLE -> "bi-question-circle";
       case CHECK_CIRCLE -> "bi-check2-circle";
       case X -> "bi-x";
       case X_CIRCLE -> "bi-x-circle";
+      case INFO_CIRCLE -> "bi-info-circle";
       case EXCLAMATION_TRIANGLE -> "bi-exclamation-triangle";
+      case EXCLAMATION_CIRCLE -> "bi-exclamation-circle";
       case DARK_MODE_SWITCH -> "bi-mask";
       case USER -> "bi-person-circle";
       case BUG -> "bi-bug";
@@ -65,6 +72,9 @@ public enum FxIcons implements IconCodeSupplier {
       case BOOK -> "bi-book";
       case DOCUMENTATION -> "bi-book";
       case ROCKET -> "las-rocket";
+      case METADATA_TABLE -> "bi-grid-3x2-gap";
+      case SPREADSHEET -> "bi-file-spreadsheet"; // or bi-file-earmark-spreadsheet
+      case TABLE -> "bi-grid-3x2"; // maybe bi-grid-3x3  or  bi-table
       case SAVE -> "bi-box-arrow-down";
       case LOAD -> "bi-box-arrow-in-up";
       case CANCEL -> "bi-x-circle";
@@ -78,6 +88,11 @@ public enum FxIcons implements IconCodeSupplier {
       case EDIT -> "bi-pencil-square";
       case DOWNLOAD -> "bi-download";
       case PLUS -> "bi-plus";
+      case LIGHTBULB -> "bi-lightbulb";
+      case QUESTIONMARK -> "bi-question-circle";
+      case ARROW_IN_RIGHT -> "bi-box-arrow-in-right";
+      case FILE -> "bi-file-earmark-text";
+      case SEARCH -> "bi-search";
     };
   }
 }

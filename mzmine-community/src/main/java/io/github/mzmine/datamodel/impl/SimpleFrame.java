@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,14 +34,13 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -59,7 +58,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   private final MobilityType mobilityType;
 
   @NotNull
-  private Set<PasefMsMsInfo> precursorInfos;
+  private Set<IonMobilityMsMsInfo> precursorInfos;
   private Range<Double> mobilityRange;
 
   private int mobilitySegment = -1;
@@ -68,8 +67,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
   public SimpleFrame(@NotNull RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, @Nullable double[] mzValues, @Nullable double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
-      @NotNull Range<Double> scanMZRange, MobilityType mobilityType,
-      @Nullable Set<PasefMsMsInfo> precursorInfos, Float accumulationTime) {
+      @Nullable Range<Double> scanMZRange, MobilityType mobilityType,
+      @Nullable Set<IonMobilityMsMsInfo> precursorInfos, Float accumulationTime) {
     super(dataFile, scanNumber, msLevel, retentionTime, null, /*
          * fragmentScans,
          */
@@ -78,7 +77,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
-    this.precursorInfos = Objects.requireNonNullElse(precursorInfos, new HashSet<>(0));
+    setPrecursorInfos(precursorInfos);
   }
 
   public void setDataPoints(double[] newMzValues, double[] newIntensityValues) {
@@ -170,17 +169,17 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   @NotNull
   @Override
-  public Set<PasefMsMsInfo> getImsMsMsInfos() {
+  public Set<IonMobilityMsMsInfo> getImsMsMsInfos() {
     return precursorInfos;
   }
 
   @Nullable
   @Override
-  public PasefMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
+  public IonMobilityMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
     if (precursorInfos == null) {
       return null;
     }
-    Optional<PasefMsMsInfo> pcInfo = precursorInfos.stream()
+    Optional<IonMobilityMsMsInfo> pcInfo = precursorInfos.stream()
         .filter(info -> info.getSpectrumNumberRange().contains(mobilityScanNumber)).findFirst();
     return pcInfo.orElse(null);
   }
@@ -207,8 +206,10 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return mobilitySegment;
   }
 
-  public void setPrecursorInfos(@Nullable Set<PasefMsMsInfo> precursorInfos) {
-    this.precursorInfos = precursorInfos != null ? precursorInfos : new HashSet<>();
+  public void setPrecursorInfos(@Nullable Set<IonMobilityMsMsInfo> precursorInfos) {
+    // precursorInfos needs to be modifiable
+    this.precursorInfos = precursorInfos != null ? precursorInfos : new HashSet<>(0);
+    this.precursorInfos.forEach(i -> i.setMsMsScan(this));
   }
 
   /**

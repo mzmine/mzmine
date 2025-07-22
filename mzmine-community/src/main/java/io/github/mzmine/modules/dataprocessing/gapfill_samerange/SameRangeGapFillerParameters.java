@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.gapfill_samerange;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -33,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public class SameRangeGapFillerParameters extends SimpleParameterSet {
 
@@ -57,8 +59,12 @@ public class SameRangeGapFillerParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("m/z tolerance", mzTolerance);
+    nameParameterMap.put("m/z tolerance", getParameter(mzTolerance));
     return nameParameterMap;
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.UNSUPPORTED;
+  }
 }

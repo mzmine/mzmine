@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,6 +50,8 @@ import io.github.mzmine.datamodel.impl.SimpleMergedMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -77,11 +79,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods to merge multiple spectra. Data points are sorted by intensity and grouped,
- * similar to ADAP chromatogram building
- * {@link
- * io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask}.
- * Merging of data points from the same spectrum is prevented by indexing the data points prior to
- * sorting.
+ * similar to ADAP chromatogram building {@link ModularADAPChromatogramBuilderTask}. Merging of data
+ * points from the same spectrum is prevented by indexing the data points prior to sorting.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -502,6 +501,12 @@ public class SpectraMerging {
           frame.getScanningMZRange())) {
         scanMzRange = scanMzRange.span(frame.getScanningMZRange());
       }
+//      if (scanMzRange == null) {
+//        scanMzRange = frame.getScanningMZRange();
+//      } else if (frame.getScanningMZRange() != null && !scanMzRange.equals(
+//          frame.getScanningMZRange()) && !scanMzRange.encloses(frame.getScanningMZRange())) {
+//        scanMzRange = scanMzRange.span(frame.getScanningMZRange());
+//      }
 
       if (msLevel != frame.getMSLevel()) {
         throw new AssertionError("Cannot merge frames of different MS levels");
@@ -558,13 +563,13 @@ public class SpectraMerging {
 
     frame.setMobilityScans(buildingMobilityScans, true);
     frame.setMobilities(mobilities);
-    double[][] mergedSpectrum = calculatedMergedMzsAndIntensities(buildingMobilityScans, tolerance,
+    double[][] mergedSpectrum = calculatedMergedMzsAndIntensities(frames, tolerance,
         intensityMergingType, cf, null, null, null);
     frame.setDataPoints(mergedSpectrum[0], mergedSpectrum[1]);
     return frame;
   }
 
-  public enum IntensityMergingType {
+  public enum IntensityMergingType implements UniqueIdSupplier {
     SUMMED("Summed"), MAXIMUM("Maximum value"), AVERAGE("Average value");
 
     private final String label;
@@ -573,9 +578,31 @@ public class SpectraMerging {
       this.label = label;
     }
 
+    public static IntensityMergingType parseOrElse(final String value,
+        @Nullable final IntensityMergingType defaultValue) {
+      return UniqueIdSupplier.parseOrElse(value, values(), defaultValue);
+    }
+
     @Override
     public String toString() {
       return this.label;
+    }
+
+    public String getDescription() {
+      return label + switch (this) {
+        case SUMMED, AVERAGE ->
+            " decreases the impact of random noise signals that are only present in some scans, however, it may over represent intense signals, because smaller signals may fall under the noise level in some scans, especially when acquiring scans with different fragmentation energies.";
+        case MAXIMUM -> " retains the general amplitude of spectral data.";
+      };
+    }
+
+    @Override
+    public @NotNull String getUniqueID() {
+      return switch (this) {
+        case SUMMED -> "SUMMED";
+        case MAXIMUM -> "MAXIMUM";
+        case AVERAGE -> "AVERAGE";
+      };
     }
   }
 }

@@ -43,4 +43,25 @@ public class ObjectUtils {
   public static boolean anyIsNull(Object... objs) {
     return Arrays.stream(objs).anyMatch(Objects::isNull);
   }
+
+  /**
+   * @return number of null objects
+   */
+  public static int countNull(final Object... objs) {
+    return objs.length - countNonNull(objs);
+  }
+
+  /**
+   * @return number of non-null objects
+   */
+  public static int countNonNull(final Object... objs) {
+    int count = 0;
+    for (Object obj : objs) {
+      if (obj != null) {
+        count++;
+      }
+    }
+    return count;
+  }
+
 }

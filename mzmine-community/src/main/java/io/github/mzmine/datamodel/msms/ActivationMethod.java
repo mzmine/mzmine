@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,19 @@
 
 package io.github.mzmine.datamodel.msms;
 
+import io.github.msdk.datamodel.ActivationType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public enum ActivationMethod {
 
   CID("CID", "collision induced dissociation", "eV"), //
   HCD("HCD", "higher-energy C-trap dissociation", "a.u."), //
   ECD("ECD", "electron capture dissociation", ""), //
-  ETD("ETD", "electron transfer dissociation", ""),
+  ETD("ETD", "electron transfer dissociation", ""), //
+  ETHCD("ETHCD", "Electron-transfer and higher-energy collision dissociation", ""), //
+  EAD("EAD", "electron activated dissociation", "eV"), //
+  UVPD("UVPD", "Ultraviolet photodissociation", ""), //
   UNKNOWN("N.A.", "Unknown", "");
 
   private final String abbreviation;
@@ -53,5 +60,25 @@ public enum ActivationMethod {
 
   public String getUnit() {
     return unit;
+  }
+
+
+  @Override
+  public String toString() {
+    return getAbbreviation();
+  }
+
+  @NotNull
+  public static ActivationMethod fromActivationType(@Nullable ActivationType type) {
+    return switch (type) {
+      case null -> ActivationMethod.UNKNOWN;
+      case CID -> CID;
+      case HCD -> HCD;
+      case ECD -> ECD;
+      case ETD -> ETD;
+      case ETHCD -> ETHCD;
+      case UVPD -> UVPD;
+      case UNKNOWN -> UNKNOWN;
+    };
   }
 }

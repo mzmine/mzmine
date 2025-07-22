@@ -148,8 +148,7 @@ public interface FeatureAnnotation {
   void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
 
-  @Nullable
-  Double getPrecursorMZ();
+  @Nullable Double getPrecursorMZ();
 
   /**
    * This should be usually recalculated on demand from smiles or inchi. Also if smiles or inchi
@@ -157,38 +156,39 @@ public interface FeatureAnnotation {
    *
    * @return the structure parsed from smiles or inchi
    */
-  @Nullable
-  MolecularStructure getStructure();
+  @Nullable MolecularStructure getStructure();
 
-  @Nullable
-  String getSmiles();
+  @Nullable String getSmiles();
 
-  @Nullable
-  String getInChI();
+  @Nullable String getInChI();
 
-  @Nullable
-  String getInChIKey();
+  @Nullable String getInChIKey();
 
-  @Nullable
-  String getCompoundName();
+  @Nullable String getCompoundName();
 
-  @Nullable
-  String getFormula();
+  @Nullable String getIupacName();
 
-  @Nullable
-  IonType getAdductType();
+  /**
+   * @see {@link io.github.mzmine.datamodel.features.types.identifiers.CASType}
+   */
+  @Nullable String getCAS();
 
-  @Nullable
-  Float getMobility();
+  /**
+   * @see {@link io.github.mzmine.datamodel.features.types.identifiers.InternalIdType}
+   */
+  @Nullable String getInternalId();
 
-  @Nullable
-  Float getCCS();
+  @Nullable String getFormula();
 
-  @Nullable
-  Float getRT();
+  @Nullable IonType getAdductType();
 
-  @Nullable
-  Float getScore();
+  @Nullable Float getMobility();
+
+  @Nullable Float getCCS();
+
+  @Nullable Float getRT();
+
+  @Nullable Float getScore();
 
   @Nullable
   default String getScoreString() {
@@ -199,8 +199,33 @@ public interface FeatureAnnotation {
     return MZmineCore.getConfiguration().getScoreFormat().format(score);
   }
 
+  @Nullable String getDatabase();
+
+  /**
+   *
+   * @return the best name identifier in order of {@link CompoundNameIdentifier}
+   */
   @Nullable
-  String getDatabase();
+  default String getBestNameIdentifier() {
+    for (CompoundNameIdentifier id : CompoundNameIdentifier.values()) {
+      final String name = switch (id) {
+        case COMPOUND_NAME -> getCompoundName();
+        case IUPAC_NAME -> getIupacName();
+        case INTERNAL_ID -> getInternalId();
+        case FORMULA -> getFormula();
+        case SMILES -> getSmiles();
+        case INCHI_KEY -> getInChIKey();
+        case INCHI -> getInChI();
+        case CAS -> getCAS();
+      };
+
+      if (name != null) {
+        return name;
+      }
+    }
+    return null;
+  }
+
 
   /**
    * Keep stable as its exported to tools. often the xml key but not always
@@ -214,8 +239,7 @@ public interface FeatureAnnotation {
   /**
    * @return A unique identifier for saving any sub-class of this interface to XML.
    */
-  @NotNull
-  String getXmlAttributeKey();
+  @NotNull String getXmlAttributeKey();
 
   /**
    * Writes an opening tag that conforms with the

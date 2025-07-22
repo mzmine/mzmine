@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,14 @@
 
 package io.github.mzmine.parameters.impl;
 
+import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
@@ -40,9 +42,11 @@ import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -81,8 +85,7 @@ public class SimpleParameterSet implements ParameterSet {
   }
 
   public SimpleParameterSet(String onlineHelpUrl, Parameter<?>... parameters) {
-    this.helpUrl = onlineHelpUrl;
-    this.parameters = parameters;
+    this(parameters, onlineHelpUrl);
   }
 
   public SimpleParameterSet(Parameter<?>[] parameters, String onlineHelpUrl) {
@@ -106,11 +109,18 @@ public class SimpleParameterSet implements ParameterSet {
   }
 
   @Override
-  public void loadValuesFromXML(Element xmlElement) {
+  public Map<String, Parameter<?>> loadValuesFromXML(Element xmlElement) {
     var nameParameterMap = getNameParameterMap();
     // cannot use getElementsByTagName, this goes recursively through all levels
     // finding nested ParameterSets
 //    NodeList list = xmlElement.getElementsByTagName(parameterElement);
+
+    final int loadedVersion = switch (xmlElement.hasAttribute(BatchQueue.MODULE_VERSION_ATTR)) {
+      case true -> Integer.parseInt(xmlElement.getAttribute(BatchQueue.MODULE_VERSION_ATTR));
+      case false -> 1;
+    };
+
+    Map<String, Parameter<?>> loadedParameters = HashMap.newHashMap(nameParameterMap.size());
 
     var childNodes = xmlElement.getChildNodes();
     for (int i = 0; i < childNodes.getLength(); i++) {
@@ -124,6 +134,8 @@ public class SimpleParameterSet implements ParameterSet {
       if (param != null) {
         try {
           param.loadValueFromXML(nextElement);
+          // keep track of all parameters that were actually loaded - this means that some may be missing
+          loadedParameters.put(param.getName(), param);
         } catch (Exception e) {
           logger.log(Level.WARNING, "Error while loading parameter values for " + param.getName(),
               e);
@@ -138,6 +150,8 @@ public class SimpleParameterSet implements ParameterSet {
         }
       }
     }
+    handleLoadedParameters(loadedParameters, loadedVersion);
+    return loadedParameters;
   }
 
   @Override
@@ -199,8 +213,10 @@ public class SimpleParameterSet implements ParameterSet {
     // Make a deep copy of the parameters
     Parameter<?>[] newParameters = new Parameter[parameters.length];
     for (int i = 0; i < parameters.length; i++) {
-      if (keepSelection && parameters[i] instanceof RawDataFilesParameter rfp) {
+      if (parameters[i] instanceof RawDataFilesParameter rfp) {
         newParameters[i] = rfp.cloneParameter(keepSelection);
+      } else if (parameters[i] instanceof FeatureListsParameter flp) {
+        newParameters[i] = flp.cloneParameter(keepSelection);
       } else {
         newParameters[i] = parameters[i].cloneParameter();
       }
@@ -244,7 +260,8 @@ public class SimpleParameterSet implements ParameterSet {
     if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, null);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this,
+        this.getMessage());
     dialog.showAndWait();
     return dialog.getExitCode();
   }
@@ -256,7 +273,7 @@ public class SimpleParameterSet implements ParameterSet {
     for (Parameter<?> p : parameters) {
       // this is done in batch mode where no data is loaded when the parameters are checked
       if (skipRawDataAndFeatureListParameters && (p instanceof RawDataFilesParameter
-                                                  || p instanceof FeatureListsParameter)) {
+          || p instanceof FeatureListsParameter)) {
         continue;
       }
 
@@ -311,24 +328,21 @@ public class SimpleParameterSet implements ParameterSet {
           "This module has not been tested with ion mobility data files. This could lead to unexpected results.");
       if (showMsg) {
         return MZmineCore.getDesktop()
-                   .createAlertWithOptOut("Compatibility warning", "Untested compatibility",
-                       "This module has not been tested with ion mobility data files. This could lead "
-                       + "to unexpected results. Do you want to continue anyway?",
-                       "Do not show again",
-                       optOut -> showMsgMap.put(this.getClass().getName(), !optOut))
-               == ButtonType.YES;
+            .createAlertWithOptOut("Compatibility warning", "Untested compatibility",
+                "This module has not been tested with ion mobility data files. This could lead "
+                    + "to unexpected results. Do you want to continue anyway?", "Do not show again",
+                optOut -> showMsgMap.put(this.getClass().getName(), !optOut)) == ButtonType.YES;
       }
       return true;
     } else if (containsImsFile && getIonMobilitySupport() == IonMobilitySupport.RESTRICTED) {
       logger.warning(
           "This module has certain restrictions when processing ion mobility data files. This"
-          + " could lead to unexpected results");
+              + " could lead to unexpected results");
       if (showMsg) {
         return MZmineCore.getDesktop()
-                   .createAlertWithOptOut("Compatibility warning", "Restricted compatibility",
-                       getRestrictedIonMobilitySupportMessage(), "Do not show again",
-                       optOut -> showMsgMap.put(this.getClass().getName(), !optOut))
-               == ButtonType.YES;
+            .createAlertWithOptOut("Compatibility warning", "Restricted compatibility",
+                getRestrictedIonMobilitySupportMessage(), "Do not show again",
+                optOut -> showMsgMap.put(this.getClass().getName(), !optOut)) == ButtonType.YES;
       }
     } else if (!onlyImsFiles && getIonMobilitySupport() == IonMobilitySupport.ONLY) {
       logger.warning(
@@ -343,7 +357,7 @@ public class SimpleParameterSet implements ParameterSet {
 
       boolean returnVal = DialogLoggerUtil.showDialogYesNo("Untested IMS support",
           "This module does not support ion mobility data. This will lead to unexpected "
-          + "results. Do you want to continue anyway?");
+              + "results. Do you want to continue anyway?");
       if (!returnVal) {
         errorMessages.addAll(nonImsFilesList);
       }
@@ -362,7 +376,7 @@ public class SimpleParameterSet implements ParameterSet {
    */
   public String getRestrictedIonMobilitySupportMessage() {
     return "This module has certain restrictions when processing ion mobility data files. This "
-           + "could lead to unexpected results. Do you want to continue anyway?";
+        + "could lead to unexpected results. Do you want to continue anyway?";
   }
 
   /**

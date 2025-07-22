@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,16 +25,52 @@
 
 package io.github.mzmine.javafx.util;
 
+import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
+import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
+import static io.github.mzmine.javafx.components.util.FxLayout.newStackPane;
+import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
+
 import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder;
+import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder.EventHandling;
+import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
+import javafx.beans.binding.DoubleBinding;
+import javafx.beans.binding.DoubleExpression;
+import javafx.beans.property.DoubleProperty;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.ButtonBase;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
+import javafx.scene.input.DragEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,6 +80,7 @@ public class FxIconUtil {
 
   private static final Logger logger = Logger.getLogger(FxIconUtil.class.getName());
   public static final int DEFAULT_ICON_SIZE = 18;
+
 
   @NotNull
   public static Image loadImageFromResources(final @NotNull String resourcePath) {
@@ -113,7 +150,7 @@ public class FxIconUtil {
    * <a href="https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html">Icon list</a>
    *
    * @param iconCode icon code supplier
-   * @param size the size of the icon (default = {@link FxIconUtil#DEFAULT_ICON_SIZE}.
+   * @param size     the size of the icon (default = {@link FxIconUtil#DEFAULT_ICON_SIZE}.
    * @return Icon in color and size
    */
   public static FontIcon getFontIcon(IconCodeSupplier iconCode, int size) {
@@ -163,9 +200,24 @@ public class FxIconUtil {
   public static FontIcon getFontIcon(String iconCode, int size, Color color) {
     FontIcon icon = new FontIcon();
     String b = "-fx-icon-color:" + FxColorUtil.colorToHex(color) + ";-fx-icon-code:" + iconCode
-               + ";-fx-icon-size:" + size + ";";
+        + ";-fx-icon-size:" + size + ";";
     icon.setStyle(b);
     return icon;
+  }
+
+  public static Image fontIconToImage(FontIcon icon) {
+    SnapshotParameters params = new SnapshotParameters();
+    params.setFill(Color.TRANSPARENT);
+    WritableImage image = icon.snapshot(params, null); // Let snapshot determine size
+    return image;
+  }
+
+  public static BackgroundImage imageToBackground(Image image) {
+    BackgroundImage backgroundImage = new BackgroundImage(image, BackgroundRepeat.NO_REPEAT,
+        // Don't repeat the image
+        BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,        // Position in the center
+        new BackgroundSize(0.5, BackgroundSize.AUTO, true, false, false, false));
+    return backgroundImage;
   }
 
 
@@ -183,15 +235,63 @@ public class FxIconUtil {
     return newIconButton(fxIcons, DEFAULT_ICON_SIZE, tooltip, onAction);
   }
 
-  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
-      @Nullable String tooltip, @Nullable Runnable onAction) {
-    return FxIconButtonBuilder.ofIconButton(fxIcons).size(size).tooltip(tooltip).onAction(onAction)
-        .build();
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, @Nullable String tooltip,
+      @NotNull EventHandling eventHandling, @Nullable Runnable onAction) {
+    return newIconButton(fxIcons, DEFAULT_ICON_SIZE, tooltip, eventHandling, onAction);
   }
 
-  public static ButtonBase newFlashableIconButton(final FxIcons fxIcons, final int size, final BooleanExpression flashingProperty,
-      final String tooltip, final Runnable onAction) {
-    return FxIconButtonBuilder.ofIconButton(fxIcons).size(size).tooltip(tooltip).onAction(onAction).flashingProperty(flashingProperty)
-        .build();
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
+      @Nullable String tooltip, @Nullable Runnable onAction) {
+    return newIconButton(fxIcons, size, tooltip, EventHandling.DEFAULT_PASS, onAction);
+  }
+
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
+      @Nullable String tooltip, @NotNull EventHandling eventHandling, @Nullable Runnable onAction) {
+    return FxIconButtonBuilder.ofIconButton(fxIcons, eventHandling).size(size).tooltip(tooltip)
+        .onAction(onAction).build();
+  }
+
+  public static ButtonBase newFlashableIconButton(final FxIcons fxIcons, final int size,
+      final BooleanExpression flashingProperty, final String tooltip, final Runnable onAction) {
+    return FxIconButtonBuilder.ofIconButton(fxIcons).size(size).tooltip(tooltip).onAction(onAction)
+        .flashingProperty(flashingProperty).build();
+  }
+
+  public static @NotNull StackPane createDragAndDropWrapper(Region node, BooleanExpression visible,
+      @Nullable String text) {
+    return createDragAndDropWrapper(node, visible, text, null);
+  }
+
+  public static @NotNull StackPane createDragAndDropWrapper(@NotNull Region node,
+      @NotNull final BooleanExpression visible, @Nullable final String text,
+      @Nullable final DoubleExpression opacity) {
+    final FontIcon file = getFontIcon(FxIcons.FILE, 50);
+    file.setMouseTransparent(true);
+    final FontIcon arrow = getFontIcon(FxIcons.ARROW_IN_RIGHT, 60);
+    arrow.setMouseTransparent(true);
+    final HBox imageWrapper = newHBox(Pos.CENTER, Insets.EMPTY, file, arrow);
+    imageWrapper.setSpacing(0);
+    imageWrapper.setMouseTransparent(true);
+
+    final VBox withText = newVBox(Pos.CENTER, Insets.EMPTY, imageWrapper);
+    if (text != null) {
+      final Label label = newLabel(text);
+      label.setAlignment(Pos.CENTER);
+      label.setWrapText(true);
+      withText.getChildren().add(label);
+      label.maxWidthProperty().bind(withText.widthProperty());
+    }
+    withText.setOpacity(0.3);
+    withText.setMouseTransparent(true);
+    withText.visibleProperty().bind(visible);
+
+    if (opacity != null) {
+      opacity.subscribe(val -> withText.setOpacity(val.doubleValue()));
+    }
+
+    final StackPane stack = newStackPane(Insets.EMPTY, node, withText);
+    stack.setMinHeight(Region.USE_COMPUTED_SIZE);
+    stack.setPrefHeight(Region.USE_PREF_SIZE);
+    return stack;
   }
 }

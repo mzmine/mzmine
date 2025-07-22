@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -57,6 +56,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javafx.collections.ObservableList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -143,10 +143,10 @@ public class FeatureListSaveTask extends AbstractTask {
       appendMetadata(document, root, flist);
 
       XMLUtils.saveToFile(tempFile, document);
-      zos.putNextEntry(new ZipEntry(getMetadataFileName(flist.getName())));
+        zos.putNextEntry(new ZipEntry(getMetadataFileName(flist.getName())));
 
-      try (InputStream is = new FileInputStream(tempFile)) {
-        copy.copy(is, zos);
+        try (InputStream is = new FileInputStream(tempFile)) {
+          copy.copy(is, zos);
       }
 
       tempFile.delete();
@@ -176,10 +176,18 @@ public class FeatureListSaveTask extends AbstractTask {
 
     // write applied methods
     appliedMethodsList.setAttribute(CONST.XML_FLIST_NAME_ATTR, flist.getName());
-    for (FeatureListAppliedMethod appliedMethod : flist.getAppliedMethods()) {
-      Element methodElement = document.createElement(CONST.XML_FLIST_APPLIED_METHOD_ELEMENT);
-      appliedMethod.saveValueToXML(methodElement);
-      appliedMethodsList.appendChild(methodElement);
+    ObservableList<FeatureListAppliedMethod> appliedMethods = flist.getAppliedMethods();
+    for (int i = 0; i < appliedMethods.size(); i++) {
+      FeatureListAppliedMethod appliedMethod = appliedMethods.get(i);
+      if (appliedMethod != null) {
+        Element methodElement = document.createElement(CONST.XML_FLIST_APPLIED_METHOD_ELEMENT);
+        appliedMethod.saveValueToXML(methodElement);
+        appliedMethodsList.appendChild(methodElement);
+      } else {
+        logger.severe(
+            "Cannot save applied %d method of feature list %s because it is null.".formatted(i,
+                flist.getName()));
+      }
     }
 
     // write selected files
@@ -235,7 +243,7 @@ public class FeatureListSaveTask extends AbstractTask {
         }
 
         ModularFeatureListRow row = (ModularFeatureListRow) r;
-        writeRow(writer, row);
+        writeRow(writer, flist, row);
 
         processedRows++;
       }
@@ -254,42 +262,41 @@ public class FeatureListSaveTask extends AbstractTask {
       return false;
     }
 
-    try (FileInputStream is = new FileInputStream(tempFile)) {
-      zos.putNextEntry(new ZipEntry(getDataFileName(flist.getName())));
-      copy.copy(is, zos);
-    } catch (IOException e) {
-      logger.log(Level.SEVERE, e.getMessage(), e);
-      setStatus(TaskStatus.ERROR);
-      return false;
+      try (FileInputStream is = new FileInputStream(tempFile)) {
+        zos.putNextEntry(new ZipEntry(getDataFileName(flist.getName())));
+        copy.copy(is, zos);
+      } catch (IOException e) {
+        logger.log(Level.SEVERE, e.getMessage(), e);
+        setStatus(TaskStatus.ERROR);
+        return false;
     }
 
 //    tempFile.delete();
     return true;
   }
 
-  private void writeRow(XMLStreamWriter writer, ModularFeatureListRow row)
+  public static void writeRow(XMLStreamWriter writer, ModularFeatureList flist,
+      ModularFeatureListRow row)
       throws XMLStreamException {
 
     writer.writeStartElement(CONST.XML_ROW_ELEMENT);
     writer.writeAttribute(idType.getUniqueID(), String.valueOf(row.getID()));
 
-    for (Entry<DataType, Object> entry : row.getMap().entrySet()) {
+    final List<Entry<DataType, Object>> entries = row.stream().toList();
+    for (Entry<DataType, Object> entry : entries) {
       DataType dataType = entry.getKey();
       Object value = entry.getValue();
-      if (dataType instanceof FeaturesType) {
-        continue;
-      }
       writeDataType(writer, dataType, value, flist, row, null, null);
     }
 
     for (ModularFeature feature : row.getFeatures()) {
-      writeFeature(writer, row, feature);
+      writeFeature(writer, flist, row, feature);
     }
 
     writer.writeEndElement();
   }
 
-  private void writeDataType(XMLStreamWriter writer, DataType<?> dataType,
+  public static void writeDataType(XMLStreamWriter writer, DataType<?> dataType,
       @Nullable final Object value, @NotNull final ModularFeatureList flist,
       @NotNull final ModularFeatureListRow row, @Nullable final ModularFeature feature,
       @Nullable final RawDataFile file) throws XMLStreamException {
@@ -300,14 +307,15 @@ public class FeatureListSaveTask extends AbstractTask {
     try { // catch here, so we can easily debug and don't destroy the flist while saving in case an unexpected exception happens
       dataType.saveToXML(writer, value, flist, row, feature, file);
     } catch (XMLStreamException e) {
-      logger.warning(() -> "Error while writing data type " + dataType.getClass().getSimpleName()
-          + " with value " + value + " to xml.");
-      e.printStackTrace();
+      logger.log(Level.WARNING,
+          "Error while writing data type " + dataType.getClass().getSimpleName() + " with value "
+              + value + " to xml.", e);
     }
     writer.writeEndElement();
   }
 
-  private void writeFeature(XMLStreamWriter writer, ModularFeatureListRow row,
+  public static void writeFeature(XMLStreamWriter writer, ModularFeatureList flist,
+      ModularFeatureListRow row,
       ModularFeature feature) throws XMLStreamException {
     final RawDataFile rawDataFile = feature.getRawDataFile();
     if (rawDataFile == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
@@ -317,7 +325,8 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeStartElement(CONST.XML_FEATURE_ELEMENT);
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, rawDataFile.getName());
 
-    for (Entry<DataType, Object> entry : feature.getMap().entrySet()) {
+    final List<Entry<DataType, Object>> entries = feature.stream().toList();
+    for (Entry<DataType, Object> entry : entries) {
       writeDataType(writer, entry.getKey(), entry.getValue(), flist, row, feature, rawDataFile);
     }
 

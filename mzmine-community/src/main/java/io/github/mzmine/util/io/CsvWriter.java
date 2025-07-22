@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util.io;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
@@ -33,14 +35,18 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class CsvWriter {
 
+  private static final Logger logger = Logger.getLogger(CsvWriter.class.getName());
+
   /**
    * Write a list of objects to a CSV file using Jackson. Great in combination with record classes.
-   * Use annotations on the class or field level to define naming, order, and other output
-   * behavior. Replaces and auto detects separator from tsv or csv ending.
+   * Use annotations on the class or field level to define naming, order, and other output behavior.
+   * Replaces and auto detects separator from tsv or csv ending.
    *
    * @param outFile   file to write to
    * @param items     items to write to like a List<pojo class>
@@ -98,6 +104,32 @@ public class CsvWriter {
       for (final T item : items) {
         sequenceWriter.write(item);
       }
+    }
+  }
+
+  /**
+   * Write a list of objects to a CSV file using Jackson. Great in combination with record classes.
+   * Use annotations on the class or field level to define naming, order, and other output
+   * behavior.
+   *
+   * @param items     items to write to like a List<pojo class>
+   * @param pojoClass the pojo class, often a record class
+   * @param <T>       the type of the pojo objects to be written
+   * @throws IOException may create io exception if write fails
+   */
+  @NotNull
+  public static <T> String writeToString(Iterable<T> items, Class<T> pojoClass, char separator,
+      boolean createHeader) {
+    CsvMapper tsvMapper = CsvMapper.builder().disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        .build();
+    CsvSchema schema = tsvMapper.schemaFor(pojoClass).withUseHeader(createHeader)
+        .withColumnSeparator(separator);
+
+    try {
+      return tsvMapper.writer(schema).writeValueAsString(items);
+    } catch (JsonProcessingException ex) {
+      logger.log(Level.WARNING, "Cannot write csv:" + ex.getMessage(), ex);
+      return "";
     }
   }
 }

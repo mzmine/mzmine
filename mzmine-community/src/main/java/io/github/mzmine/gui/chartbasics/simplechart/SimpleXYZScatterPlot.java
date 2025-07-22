@@ -98,7 +98,7 @@ import org.jfree.fx.FXHints;
  * @author https://github.com/SteffenHeu & https://github.com/Annexhc
  */
 public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartViewer implements
-    SimpleChart<T>, AllowsRegionSelection {
+    SimpleChart<T> {
 
   protected static final Logger logger = Logger.getLogger(SimpleXYZScatterPlot.class.getName());
 
@@ -115,7 +115,6 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
-  private final BooleanProperty isDrawingRegion = new SimpleBooleanProperty(false);
   /**
    * May contain null value. Only used if paintscale different to the paintscale of dataset 0 shall
    * be used as legend.
@@ -126,8 +125,6 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   private int nextDataSetNum;
   private Canvas legendCanvas;
   private String legendLabel = null;
-  private RegionSelectionListener currentRegionListener = null;
-  private XYShapeAnnotation currentRegionAnnotation;
   /**
    * Needs to be stored in case a separate legend canvas is used, so we can redraw the legend when
    * the canvas is resized.
@@ -698,52 +695,6 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
 
   public BooleanProperty legendItemsVisibleProperty() {
     return legendItemsVisible;
-  }
-
-  /**
-   * Initializes a {@link RegionSelectionListener} and adds it to the plot. Following clicks will be
-   * added to a region. Region selection can be finished by
-   * {@link SimpleXYZScatterPlot#finishPath()}.
-   */
-  @Override
-  public void startRegion() {
-    isDrawingRegion.set(true);
-
-    if (currentRegionListener != null) {
-      removeChartMouseListener(currentRegionListener);
-    }
-    currentRegionListener = new RegionSelectionListener(this);
-    currentRegionListener.pathProperty().addListener(((observable, oldValue, newValue) -> {
-      if (currentRegionAnnotation != null) {
-        getXYPlot().removeAnnotation(currentRegionAnnotation, false);
-      }
-      Color regionColor = new Color(0.6f, 0.6f, 0.6f, 0.4f);
-      currentRegionAnnotation = new XYShapeAnnotation(newValue, new BasicStroke(1f), regionColor,
-          regionColor);
-      getXYPlot().addAnnotation(currentRegionAnnotation, true);
-    }));
-    addChartMouseListener(currentRegionListener);
-  }
-
-  /**
-   * The {@link RegionSelectionListener} of the current selection. The path/points can be retrieved
-   * from the listener object.
-   *
-   * @return The finished listener
-   */
-  @Override
-  public RegionSelectionListener finishPath() {
-    if (!isDrawingRegion.get()) {
-      return null;
-    }
-    if (currentRegionAnnotation != null) {
-      getXYPlot().removeAnnotation(currentRegionAnnotation);
-    }
-    isDrawingRegion.set(false);
-    removeChartMouseListener(currentRegionListener);
-    RegionSelectionListener tempRegionListener = currentRegionListener;
-    currentRegionListener = null;
-    return tempRegionListener;
   }
 
   public boolean isLegendVisible() {

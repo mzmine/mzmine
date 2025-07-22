@@ -35,12 +35,13 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
-import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineModule;
@@ -97,7 +98,7 @@ import org.jetbrains.annotations.Nullable;
  * href="http://code.google.com/p/jmzml/">http://code.google.com/p/jmzml/</a>).
  */
 @SuppressWarnings("UnstableApiUsage")
-public class MSDKmzMLImportTask extends AbstractTask {
+public class MSDKmzMLImportTask extends AbstractTask implements RawDataImportTask {
 
   public static final Pattern watersPattern = Pattern.compile(
       "function=([1-9]+) process=([0-9]+) scan=([0-9]+)");
@@ -115,6 +116,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
   private String description;
 
   private MzMLParser parser;
+  private RawDataFileImpl newMZmineFile;
 
   /**
    * Create for file
@@ -168,7 +170,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
     addAppliedMethodAndAddToProject(dataFile);
 
-    if (convertedScansAfterFilter == 0) {
+    if (convertedScansAfterFilter == 0 && dataFile.getOtherDataFiles().isEmpty()) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("No scans found");
       return;
@@ -208,7 +210,6 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
       final boolean isIms = !msdkTaskRes.getMobilityScanData().isEmpty();
 
-      final RawDataFileImpl newMZmineFile;
       if (isIms) {
         totalScansAfterFilter = msdkTaskRes.getMobilityScanData().size();
         newMZmineFile = buildIonMobilityFile(msdkTaskRes);
@@ -230,14 +231,14 @@ public class MSDKmzMLImportTask extends AbstractTask {
       newMZmineFile.setStartTimeStamp(startTimeStamp);
       logger.info("Finished parsing " + file + ", parsed " + convertedScansAfterFilter + " scans");
 
-      if (totalScansAfterFilter == 0) {
+      if (totalScansAfterFilter == 0 && newMZmineFile.getOtherDataFiles().isEmpty()) {
         var activeFilter = scanProcessorConfig.scanFilter().isActiveFilter();
-        String filter = activeFilter ? STR."""
-            \nScan filters were active in import and filtered out \{getTotalScansInMzML()} scans, either deactivate the filters or remove this file from the import list"""
-            : "Scan filters were off.";
+        String filter = activeFilter ? """
+            Scan filters were active in import and filtered out %d scans,
+            either deactivate the filters or remove this file from the import list""".formatted(
+            getTotalScansInMzML()) : "Scan filters were off.";
 
-        String msg = STR."""
-            \{file.getName()} had 0 scans after import. \{filter}""";
+        String msg = "%s had 0 scans after import. %s".formatted(file.getName(), filter);
         DialogLoggerUtil.showMessageDialogForTime("Empty file", msg);
       }
 
@@ -361,7 +362,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     var scans = frameStorage.getMobilityScans();
 
     final List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
-    Set<PasefMsMsInfo> finishedImsMsMsInfos;
+    Set<IonMobilityMsMsInfo> finishedImsMsMsInfos;
     int mobilityScanNumberCounter = 0;
 
     int[] storageOffsets = new int[mobilities.length];
@@ -371,6 +372,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
       final BuildingMzMLMobilityScan mzMLScan = scans.get(scanIndex);
       int storageOffset = frameStorage.getStorageOffset(scanIndex);
       int basePeakIndex = frameStorage.getBasePeakIndex(scanIndex);
+
+      // start msms info construction here in case there are missing scans
+      ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos,
+          frameNumber, mobilityScanNumberCounter);
 
       // fill in missing scans
       // I'm not proud of this piece of code, but some manufactures or conversion tools leave out
@@ -383,10 +388,12 @@ public class MSDKmzMLImportTask extends AbstractTask {
         storageOffsets[mobilityScanNumberCounter] = storageOffset;
         basePeakIndices[mobilityScanNumberCounter] = -1;
         mobilityScanNumberCounter++;
+
+        // keep incrementing msms info construction here for missing scans
+        ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos,
+            frameNumber, mobilityScanNumberCounter);
       }
 
-      ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos,
-          frameNumber, mobilityScanNumberCounter);
       storageOffsets[mobilityScanNumberCounter] = storageOffset;
       basePeakIndices[mobilityScanNumberCounter] = basePeakIndex;
       mobilityScanNumberCounter++;
@@ -398,6 +405,9 @@ public class MSDKmzMLImportTask extends AbstractTask {
 //          new BuildingMobilityScan(mobilityScanNumberCounter, MassDetector.EMPTY_DATA));
       storageOffsets[mobilityScanNumberCounter] = storageOffsets[mobilityScanNumberCounter - 1];
       basePeakIndices[mobilityScanNumberCounter] = -1;
+      if (!buildingImsMsMsInfos.isEmpty()) {
+        buildingImsMsMsInfos.getLast().setLastSpectrumNumber(mobilityScanNumberCounter);
+      }
     }
 
     SimpleFrame finishedFrame = frameStorage.createFrame(newImsFile, frameNumber);
@@ -616,5 +626,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
   public File getMzMLFile() {
     return file;
+  }
+
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
   }
 }

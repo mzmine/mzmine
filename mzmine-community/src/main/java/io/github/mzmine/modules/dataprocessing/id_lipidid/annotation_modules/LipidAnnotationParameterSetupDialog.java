@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Region;
 
 /**
  * Parameter setup dialog for lipid annotation module
@@ -61,8 +62,9 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
   private static final Logger logger = Logger.getLogger(
       LipidAnnotationParameterSetupDialog.class.getName());
 
-  public LipidAnnotationParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
-    super(valueCheckRequired, parameters);
+  public LipidAnnotationParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
+      Region message) {
+    super(valueCheckRequired, parameters, message);
 
     // Add buttons
     Button showDatabaseTable = new Button("Show database");
@@ -74,11 +76,11 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
         updateParameterSetFromComponents();
         LipidDatabaseTableController controller = null;
         tableData.clear();
-        selectedObjects = LipidAnnotationParameters.lipidClasses.getValue();
+        selectedObjects = parameters.getValue(LipidAnnotationParameters.lipidClasses);
         this.selectedCustomLipidClasses = null;
-        if (parameters.getParameter(LipidAnnotationParameters.customLipidClasses).getValue()) {
-          this.selectedCustomLipidClasses = LipidAnnotationParameters.customLipidClasses.getEmbeddedParameters()
-              .getParameter(CustomLipidClassParameters.customLipidClassChoices).getChoices();
+        if (parameters.getValue(LipidAnnotationParameters.customLipidClasses)) {
+          this.selectedCustomLipidClasses = parameters.getEmbeddedParameterValue(LipidAnnotationParameters.customLipidClasses)
+              .getValue(CustomLipidClassParameters.customLipidClassChoices);
         }
 
         Stream<ILipidClass> selectedObjectsStream = Arrays.stream(selectedObjects)
@@ -93,8 +95,7 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
 
         LipidDatabaseCalculator lipidDatabaseCalculator = new LipidDatabaseCalculator(parameters,
             selectedLipids);
-        FXMLLoader loader = new FXMLLoader(
-            (getClass().getResource("../annotation_modules/LipidDatabaseTable.fxml")));
+        FXMLLoader loader = new FXMLLoader((getClass().getResource("LipidDatabaseTable.fxml")));
         try {
           BorderPane root = loader.load();
           LipidDatabaseTab tab = new LipidDatabaseTab("Lipid database");

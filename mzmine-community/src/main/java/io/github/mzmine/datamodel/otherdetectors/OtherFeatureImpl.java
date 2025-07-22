@@ -25,28 +25,83 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.features.ModularDataModelMap;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
+import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
+import io.github.mzmine.main.ConfigService;
+import java.util.HashMap;
+import java.util.Map;
 
-public class OtherFeatureImpl implements OtherFeature {
+public class OtherFeatureImpl extends ModularDataModelMap implements OtherFeature {
 
-  public final ObservableMap<DataType, Object> map = FXCollections.observableHashMap();
+  public final Map<DataType, Object> map = new HashMap<>();
 
   public OtherFeatureImpl() {
   }
 
   public OtherFeatureImpl(OtherTimeSeries series) {
-    set(OtherFileType.class, series.getOtherDataFile());
     set(OtherFeatureDataType.class, series);
-    set(ChromatogramTypeType.class, series.getChromatoogramType());
+    FeatureDataUtils.recalculateIntensityTimeSeriesDependingTypes(this);
   }
 
   @Override
-  public ObservableMap<DataType, Object> getMap() {
+  public Map<DataType, Object> getMap() {
     return map;
+  }
+
+  @Override
+  public OtherFeature createSubFeature() {
+    final OtherFeatureImpl newFeature = new OtherFeatureImpl();
+
+    //copy everything except the OtherFeatureDataType and the RawTraceType
+    getMap().entrySet().stream().filter(
+            e -> !(e.getValue() instanceof OtherTimeSeries || e.getValue() instanceof OtherFeature))
+        .forEach(e -> newFeature.set(e.getKey(), e.getValue()));
+
+    // either this is already a sub feature, or this is the original one
+    final OtherFeature raw = get(RawTraceType.class) != null ? get(RawTraceType.class) : this;
+    if (raw != null) {
+      newFeature.set(RawTraceType.class, raw);
+    }
+    return newFeature;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+
+//    if (getFeatureData() != null) {
+//      sb.append(getFeatureData().getName()).append(" ");
+//    }
+    if (getWavelength() != null) {
+      sb.append(getWavelength()).append(" nm ");
+    }
+    if (getChromatogramType() != null) {
+      sb.append(getChromatogramType().getDescription()).append(" ");
+    }
+    if (getRT() != null && get(RawTraceType.class) != null) {
+      sb.append(ConfigService.getGuiFormats().rt(getRT())).append(" min ");
+    }
+
+    return sb.toString().trim();
+  }
+
+  @Override
+  public final boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof OtherFeatureImpl that)) {
+      return false;
+    }
+
+    return getMap().equals(that.getMap());
+  }
+
+  @Override
+  public int hashCode() {
+    return getMap().hashCode();
   }
 }

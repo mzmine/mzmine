@@ -26,7 +26,9 @@
 package io.github.mzmine.gui.chartbasics.chartutils;
 
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYDataset;
+import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYZDataset;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -91,6 +93,8 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
 
   /** The paint scale. */
   private PaintScale paintScale;
+
+  private boolean highlightAnnotated = false;
 
   /**
    * Creates a new {@code XYCircleRenderer} instance with default attributes.
@@ -323,14 +327,15 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
     double minBubbleSize;
     double maxBubbleSize;
     Color specificDatasetColor = null;
-    if (dataset instanceof KendrickMassPlotXYDataset) {
-      double[] bubbleSizeValues = ((KendrickMassPlotXYDataset) dataset).getBubbleSizeValues();
+    boolean annotated = false;
+    if (dataset instanceof KendrickMassPlotXYDataset kds) {
+      double[] bubbleSizeValues = kds.getBubbleSizeValues();
       minBubbleSize = Arrays.stream(bubbleSizeValues).min().getAsDouble();
       maxBubbleSize = Arrays.stream(bubbleSizeValues).max().getAsDouble();
       bubbleSize = scaleBubbeSize(minBubbleSize, maxBubbleSize,
-          ((KendrickMassPlotXYDataset) dataset).getBubbleSize(series, item));
-      if (((KendrickMassPlotXYDataset) dataset).getColor() != null) {
-        specificDatasetColor = ((KendrickMassPlotXYDataset) dataset).getColor();
+          kds.getBubbleSize(series, item));
+      if (kds.getColor() != null) {
+        specificDatasetColor = kds.getColor();
       }
     }
     if (dataset instanceof XYZBubbleDataset bubbleDataset) {
@@ -340,6 +345,9 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
       maxBubbleSize = Arrays.stream(bubbleSizeValues).max().getAsDouble();
       bubbleSize = scaleBubbeSize(minBubbleSize, maxBubbleSize,
           bubbleDataset.getBubbleSizeValue(series, item));
+    }
+    if(dataset instanceof KendrickMassPlotXYZDataset xyz) {
+      annotated = xyz.isAnnotated(item);
     }
 
     // create new color with alpha
@@ -365,11 +373,16 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
     g2.setPaint(p);
     g2.fill(circle);
     g2.setStroke(new BasicStroke(1.0f));
+    if(annotated && highlightAnnotated) {
+      g2.setPaint(ConfigService.getDefaultColorPalette().getNegativeColorAWT());
+    }
     g2.draw(circle);
     if (isItemLabelVisible(series, item)) {
       drawItemLabel(g2, orientation, dataset, series, item, circle.getCenterX(),
           circle.getCenterY(), y < 0.0);
     }
+
+
 
     int datasetIndex = plot.indexOf(dataset);
     double transX = domainAxis.valueToJava2D(x, dataArea, plot.getDomainAxisEdge());
@@ -448,4 +461,11 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
     }
   }
 
+  public boolean isHighlightAnnotated() {
+    return highlightAnnotated;
+  }
+
+  public void setHighlightAnnotated(boolean highlightAnnotated) {
+    this.highlightAnnotated = highlightAnnotated;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.javafx.util.FxColorUtil;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +38,8 @@ import org.jetbrains.annotations.Nullable;
 public class FxLabels {
 
   public enum Styles {
-    REGULAR, BOLD_TITLE, BOLD, ITALIC;
+    REGULAR, BOLD_TITLE, BOLD, ITALIC, // colored
+    WARNING, ERROR;
 
     public void addStyleClass(Label label) {
       var style = getStyleClass();
@@ -49,12 +51,18 @@ public class FxLabels {
     @Nullable
     public String getStyleClass() {
       return switch (this) {
+        case WARNING -> "warning-label";
+        case ERROR -> "error-label";
         case REGULAR -> null;
         case BOLD_TITLE -> "bold-title-label";
         case BOLD -> "bold-label";
         case ITALIC -> "italic-label";
       };
     }
+  }
+
+  public static Label styled(String name, Styles styleClass) {
+    return styled(name, styleClass.getStyleClass());
   }
 
   public static Label styled(String name, String styleClass) {
@@ -130,6 +138,13 @@ public class FxLabels {
 
   public static Label newLabel(String text) {
     return newLabel(Styles.REGULAR, text);
+  }
+
+  public static Label newLabelNoWrap(String text) {
+    final Label label = newLabel(Styles.REGULAR, text);
+    label.setWrapText(false);
+    label.setMinWidth(Region.USE_PREF_SIZE);
+    return label;
   }
 
   public static Label newLabel(ObservableValue<? extends String> binding) {

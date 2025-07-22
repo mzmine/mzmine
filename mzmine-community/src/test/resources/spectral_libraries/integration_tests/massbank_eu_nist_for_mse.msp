@@ -1,0 +1,121 @@
+Name: Caffeine
+Synon: 1,3,7-trimethyl-3,7-dihydro-1H-purine-2,6-dione
+Synon: 1,3,7-trimethylpurine-2,6-dione
+DB#: MSBNK-Eawag-EA030311
+InChIKey: RYYVLZVUVIJVGH-UHFFFAOYSA-N
+InChI: InChI=1S/C8H10N4O2/c1-10-4-9-6-5(10)7(13)12(3)8(14)11(6)2/h4H,1-3H3
+SMILES: c12c(n(c(=O)n(c1=O)C)C)ncn2C
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 195.0877
+Instrument_type: LC-ESI-ITFT
+Instrument: LTQ Orbitrap XL Thermo Scientific
+Ion_mode: POSITIVE
+Collision_energy: 60 % (nominal)
+Formula: C8H10N4O2
+MW: 194
+ExactMass: 194.0804
+Comments: Parent=195.0877
+Splash: splash10-000i-0900000000-9af60e39c843cb715435
+Num Peaks: 9
+56.0494 4
+69.0447 25
+83.0603 24
+109.0395 5
+110.0712 89
+111.0551 5
+123.0429 9
+138.0662 999
+195.0876 409
+
+Name: Taurochenodeoxycholate
+Synon: TAUROCHENODEOXYCHOLIC ACID
+Synon: 2-[[(4R)-4-[(3R,5S,7R,8R,9S,10S,13R,14S,17R)-3,7-dihydroxy-10,13-dimethyl-2,3,4,5,6,7,8,9,11,12,14,15,16,17-tetradecahydro-1H-cyclopenta[a]phenanthren-17-yl]pentanoyl]amino]ethanesulfonic acid
+DB#: MSBNK-BGC_Munich-RP005802
+InChIKey: BHTRKEVKTKCXOH-BJLOMENOSA-N
+InChI: InChI=1S/C26H45NO6S/c1-16(4-7-23(30)27-12-13-34(31,32)33)19-5-6-20-24-21(9-11-26(19,20)3)25(2)10-8-18(28)14-17(25)15-22(24)29/h16-22,24,28-29H,4-15H2,1-3H3,(H,27,30)(H,31,32,33)/t16-,17+,18-,19-,20+,21+,22-,24+,25+,26-/m1/s1
+SMILES: C[C@H](CC/C(=N/CCS(=O)(=O)O)/O)[C@H]1CC[C@@H]2[C@@]1(CC[C@H]3[C@H]2[C@@H](C[C@H]4[C@@]3(CC[C@H](C4)O)C)O)C
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 500.304
+Instrument_type: LC-ESI-QTOF
+Instrument: maXis plus UHR-ToF-MS, Bruker Daltonics
+Ion_mode: POSITIVE
+Collision_energy: 20
+Formula: C26H45NO6S
+MW: 499
+ExactMass: 499.2968
+Comments: Parent=500.304
+Splash: splash10-03di-0000900000-8d43b49971d776eb02e7
+Num Peaks: 36
+126.0207 1
+161.132 1
+189.1629 1
+190.169 1
+200.3165 1
+201.1625 3
+208.0626 2
+215.1771 2
+274.1109 1
+276.1259 1
+287.2484 1
+288.1271 3
+300.1264 1
+302.1412 2
+314.1418 2
+316.1537 1
+321.2595 3
+328.1578 1
+339.2679 17
+340.2734 3
+341.2683 1
+342.1789 1
+354.1765 2
+368.1871 1
+382.2071 3
+463.035 1
+463.2777 1
+463.2927 1
+463.3362 1
+464.2825 999
+465.2859 340
+466.2854 71
+467.2827 8
+482.2927 41
+483.2966 13
+484.2937 2
+
+Name: Triphenylphosphine oxide
+DB#: MSBNK-BAFG-CSL2311096145
+InChIKey: FIQMHBFVRAXMOP-UHFFFAOYSA-N
+InChI: InChI=1S/C18H15OP/c19-20(16-10-4-1-5-11-16,17-12-6-2-7-13-17)18-14-8-3-9-15-18/h1-15H
+SMILES: O=[P](c1ccccc1)(c2ccccc2)c3ccccc3
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 279.0933
+Instrument_type: LC-ESI-QTOF
+Instrument: TripleTOF 5600 SCIEX
+Ion_mode: POSITIVE
+Collision_energy: 40
+Formula: C18H15OP
+MW: 278
+ExactMass: 278.0861
+Comments: Parent=279.0933
+Splash: splash10-0ufr-1390000000-4745572364d8b9b062e3
+Num Peaks: 15
+77.042 161
+95.0058 57
+122.9998 40
+128.0629 46
+129.0699 40
+133.0207 28
+141.069 11
+147.0364 10
+153.0692 16
+154.0781 45
+171.0354 106
+173.0516 194
+183.0358 72
+201.0464 999
+279.0942 386
+

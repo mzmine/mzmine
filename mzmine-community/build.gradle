@@ -45,7 +45,6 @@ plugins {
     // https://github.com/ethauvin/semver-gradle
     alias(libs.plugins.semver)
     alias(libs.plugins.licensereport)
-
 }
 
 // save version to main resources
@@ -233,7 +232,11 @@ dependencies {
 
     implementation "org.slf4j:slf4j-api:$slf4jVersion"  // SLF4J API
     implementation "org.slf4j:slf4j-simple:$slf4jVersion"  // SLF4J Simple Logger
+
+    // test only
+    testImplementation(libs.bundles.mzio.test)
 }
+
 /*
  * Remove the xml-apis dependencies to avoid a compilation error in Eclipse.
  * The org.w3c.dom package is present in the java.xml module as well as in these dependencies.
@@ -260,7 +263,8 @@ tasks.withType(JavaCompile) {
 
 tasks.withType(Test) {
     jvmArgs = [
-            "--enable-preview"
+            "--enable-preview",
+            "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
     ]
     useJUnitPlatform()
 
@@ -297,11 +301,25 @@ application {
             "--add-exports=javafx.graphics/com.sun.javafx.scene=org.controlsfx.controls",
             "--add-exports=javafx.graphics/com.sun.javafx.scene.traversal=org.controlsfx.controls",
             "--add-opens=javafx.controls/javafx.scene.control.skin=org.controlsfx.controls",
+            // required for getting log file
+            '--add-opens=java.logging/java.util.logging=ALL-UNNAMED',
 
             // logging
             "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
     ]
 }
+
+def EXTERNAL_TOOLS_DESTINATION =
+        !OperatingSystem.current().isMacOsX() ? getLayout().getBuildDirectory().dir("jpackage/mzmine/external_tools").get()
+                : getLayout().getBuildDirectory().dir("jpackage/mzmine.app/Contents/external_tools").get()
+def EXTERNAL_TOOLS_SRC = getLayout().getProjectDirectory().dir("../external_tools")
+tasks.jpackage.doFirst {
+    copy {
+        from EXTERNAL_TOOLS_SRC
+        into EXTERNAL_TOOLS_DESTINATION
+    }
+}
+
 /*
  * Build the JVM runtime using jlink
  */
@@ -610,3 +628,35 @@ tasks.compileJava.dependsOn(checkLicense, copyLicenseInformationToResources, cop
 tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
 tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
 
+
+// make sure the publish action is run after the semver plugin has been evaluated,
+// otherwise the version will always be 1.0.0
+afterEvaluate {
+    publishing {
+        publications {
+            register("mzmine-community-package", MavenPublication) {
+                from(components["java"])
+                pom {
+                    name = "mzmine-community"
+                    description = "mzmine-community"
+                    artifactId = "mzmine-community"
+                    url = "https://github.com/mzmine/mzmine"
+                    version = semver.version
+                    developers {
+                        developer {
+                            id = "mzmine"
+                            name = "mzmine"
+                        }
+                    }
+                }
+            }
+
+            register("versionCatalog", MavenPublication) {
+                from(components["versionCatalog"])
+                version = semver.version
+                artifactId = 'mzmine-community-version-catalog'
+                // This is important so the published artifact registers as a .toml file, rather than a library
+            }
+        }
+    }
+}

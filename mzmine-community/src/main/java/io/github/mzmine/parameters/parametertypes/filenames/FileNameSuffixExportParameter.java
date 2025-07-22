@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -78,7 +78,7 @@ public class FileNameSuffixExportParameter extends FileNameParameter {
   public FileNameSuffixExportParameter(String name, String description,
       List<ExtensionFilter> filters, @Nullable String suffix, boolean allowEmptyString) {
     super(name,
-        description + (StringUtils.hasValue(suffix) ? STR."\n(default suffix=\{suffix})" : ""),
+        description + (StringUtils.hasValue(suffix) ? "\n(default suffix=" + suffix + ")" : ""),
         filters, FileSelectionType.SAVE, allowEmptyString);
     this.suffix = suffix;
   }
@@ -93,10 +93,14 @@ public class FileNameSuffixExportParameter extends FileNameParameter {
    *
    * @return filename with the suffix.
    */
-  public File setValueAppendSuffix(File file) {
+  public File setValueAppendSuffix(File file, final @Nullable String duplicateSuffix) {
     file = FileAndPathUtil.eraseFormat(file);
     if (StringUtils.hasValue(suffix)) {
       file = FileAndPathUtil.getRealFilePathWithSuffix(file, "_" + suffix);
+    }
+    // may add another suffix fur duplicate files
+    if (StringUtils.hasValue(duplicateSuffix)) {
+      file = FileAndPathUtil.getRealFilePathWithSuffix(file, duplicateSuffix);
     }
     setValue(file);
     return file;

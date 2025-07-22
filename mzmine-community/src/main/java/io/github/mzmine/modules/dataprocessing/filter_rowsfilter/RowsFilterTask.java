@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,37 +27,34 @@ package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectFilter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Objects;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -80,7 +77,6 @@ public class RowsFilterTask extends AbstractTask {
   private final boolean onlyIdentified;
   private final boolean filterByIdentityText;
   private final boolean filterByCommentText;
-  private final String groupingParameter;
   private final boolean filterByMinFeatureCount;
   private final boolean filterByMinIsotopePatternSize;
   private final boolean filterByMzRange;
@@ -90,6 +86,8 @@ public class RowsFilterTask extends AbstractTask {
   private final boolean filterByCharge;
   private final boolean filterByKMD;
   private final boolean filterByMS2;
+  private final boolean filterByCv;
+  private final boolean onlyWithOtherCorrelated;
   private final RowsFilterChoices filterOption;
   private final boolean renumber;
   private final boolean filterByMassDefect;
@@ -110,9 +108,11 @@ public class RowsFilterTask extends AbstractTask {
   private final Range<Float> rtRange;
   private final Range<Float> fwhmRange;
   private final Isotope13CFilter isotope13CFilter;
-  private final AbsoluteAndRelativeInt minSamples;
+  @Nullable
+  private final RsdFilter cvFilter;
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
+  private AbsoluteAndRelativeInt minSamples;
   private FeatureList filteredFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
@@ -144,7 +144,6 @@ public class RowsFilterTask extends AbstractTask {
     onlyIdentified = parameters.getValue(RowsFilterParameters.HAS_IDENTITIES);
     filterByIdentityText = parameters.getValue(RowsFilterParameters.IDENTITY_TEXT);
     filterByCommentText = parameters.getValue(RowsFilterParameters.COMMENT_TEXT);
-    groupingParameter = (String) parameters.getValue(RowsFilterParameters.GROUPSPARAMETER);
     filterByMinFeatureCount = parameters.getValue(RowsFilterParameters.MIN_FEATURE_COUNT);
     filterByMinIsotopePatternSize = parameters.getValue(
         RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT);
@@ -156,6 +155,9 @@ public class RowsFilterTask extends AbstractTask {
     filterByKMD = parameters.getValue(RowsFilterParameters.KENDRICK_MASS_DEFECT);
     filterByMS2 = parameters.getValue(RowsFilterParameters.MS2_Filter);
     filterOption = parameters.getValue(RowsFilterParameters.REMOVE_ROW);
+    filterByCv = parameters.getValue(RowsFilterParameters.cvFilter);
+    onlyWithOtherCorrelated = parameters.getValue(
+        RowsFilterParameters.onlyCorrelatedWithOtherDetectors);
     minSamples = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         RowsFilterParameters.MIN_FEATURE_COUNT, null);
     renumber = parameters.getValue(RowsFilterParameters.Reset_ID);
@@ -196,6 +198,9 @@ public class RowsFilterTask extends AbstractTask {
     fwhmRange = filterByFWHM ? RangeUtils.toFloatRange(
         parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter().getValue())
         : null;
+    cvFilter = filterByCv ? RsdFilter.of(
+        (RsdFilterParameters) parameters.getEmbeddedParameterValue(RowsFilterParameters.cvFilter),
+        origFeatureList) : null;
 
     // isotope filter
     filter13CIsotopes = parameters.getParameter(RowsFilterParameters.ISOTOPE_FILTER_13C).getValue();
@@ -246,10 +251,9 @@ public class RowsFilterTask extends AbstractTask {
           logger.info("Finished feature list rows filter");
         }
       } catch (Throwable t) {
-
-        setErrorMessage(t.getMessage());
-        setStatus(TaskStatus.ERROR);
+        error(t.getMessage());
         logger.log(Level.SEVERE, "Feature list row filter error", t);
+        return;
       }
     }
   }
@@ -263,47 +267,39 @@ public class RowsFilterTask extends AbstractTask {
    */
   private FeatureList filterFeatureListRows(final FeatureList featureList,
       boolean processInCurrentList) {
-
-    // Create new feature list.
-
-    final ModularFeatureList newFeatureList;
-    if (processInCurrentList) {
-      newFeatureList = (ModularFeatureList) featureList;
-    } else {
-      newFeatureList = new ModularFeatureList(
-          featureList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX)
-              .getValue(), getMemoryMapStorage(), featureList.getRawDataFiles());
-      // Copy previous applied methods.
-      for (final FeatureListAppliedMethod method : featureList.getAppliedMethods()) {
-        newFeatureList.addDescriptionOfAppliedTask(method);
-      }
-
-      featureList.getRawDataFiles().forEach(
-          file -> newFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
-    }
-
-    // Add task description to featureList.
-    newFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(getTaskDescription(), RowsFilterModule.class, parameters,
-            getModuleCallDate()));
-
-    int rowsCount = 0;
     // if keep is selected we remove rows on failed criteria
     // otherwise we remove those that match all criteria
     boolean removeFailed = RowsFilterChoices.KEEP_MATCHING == filterOption;
 
     final int totalSamples = featureList.getRawDataFiles().size();
+    // check if min samples filter is valid
+    if (filterByMinFeatureCount) {
+      int numMinSamples = minSamples.getMaximumValue(totalSamples);
+      if (numMinSamples > totalSamples) {
+        var filterName = RowsFilterParameters.MIN_FEATURE_COUNT.getName();
+        var errorMessage = """
+            The "%s" parameter in the feature list rows filter step requires %d samples, but \
+            the processed feature list %s only contains %d samples. Check the feature list rows \
+            filter and adjust the minimum number of samples. Relative percentages help to scale this parameter automatically from small to large datasets.
+            The current processing step and all following will be cancelled.""".formatted(
+            filterName, numMinSamples, featureList, totalSamples);
+
+        // kill the job this is a misconfiguration that needs to be handled
+        error(errorMessage);
+        return null;
+      }
+    }
 
     // Filter rows.
     totalRows = featureList.getNumberOfRows();
     processedRows = 0;
-    final ListIterator<FeatureListRow> iterator = featureList.getRows().listIterator();
-    while (iterator.hasNext()) {
+    // requires copy of rows as there is no efficient way to remove rows from the list
+    // the use setAll
+    final ArrayList<FeatureListRow> rowsToAdd = new ArrayList<>((int) (totalRows * 0.75));
+    for (final FeatureListRow row : featureList.getRows()) {
       if (isCanceled()) {
         return null;
       }
-
-      final FeatureListRow row = iterator.next();
 
       final boolean hasMS2 = row.hasMs2Fragmentation();
       final boolean annotated = row.isIdentified();
@@ -313,24 +309,44 @@ public class RowsFilterTask extends AbstractTask {
       // Only add the row if none of the criteria have failed.
       boolean keepRow = (keepAllWithMS2 && hasMS2) || (keepAnnotated && annotated)
           || isFilterRowCriteriaFailed(totalSamples, row, hasMS2) != removeFailed;
-      if (processInCurrentList) {
-        if (keepRow) {
-          rowsCount++;
-          if (renumber) {
-            row.set(IDType.class, rowsCount);
-          }
-        } else {
-          iterator.remove();
-        }
-      } else if (keepRow) {
-        rowsCount++;
-        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
-            renumber ? rowsCount : row.getID(), (ModularFeatureListRow) row, true);
-        newFeatureList.addRow(resetRow);
+      if (keepRow) {
+        rowsToAdd.add(row);
       }
 
       processedRows++;
     }
+
+    final ModularFeatureList newFeatureList;
+    if (processInCurrentList) {
+      newFeatureList = (ModularFeatureList) featureList;
+      rowsToAdd.trimToSize();
+      newFeatureList.setRowsApplySort(rowsToAdd);
+      if (renumber) {
+        for (int i = 0; i < rowsToAdd.size(); i++) {
+          rowsToAdd.get(i).set(IDType.class, i + 1);
+        }
+      }
+    } else {
+      final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
+      // exact number of needed features and rows
+      int totalRows = rowsToAdd.size();
+      int totalFeatures = rowsToAdd.stream().mapToInt(FeatureListRow::getNumberOfFeatures).sum();
+
+      newFeatureList = FeatureListUtils.createCopyWithoutRows(featureList, suffix,
+          getMemoryMapStorage(), totalRows, totalFeatures);
+      // add rows to new list
+      for (int i = 0; i < rowsToAdd.size(); i++) {
+        var row = rowsToAdd.get(i);
+        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
+            renumber ? i + 1 : row.getID(), (ModularFeatureListRow) row, true);
+        newFeatureList.addRow(resetRow);
+      }
+    }
+
+    // Add task description to featureList.
+    newFeatureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod(getTaskDescription(), RowsFilterModule.class, parameters,
+            getModuleCallDate()));
 
     return newFeatureList;
   }
@@ -344,7 +360,7 @@ public class RowsFilterTask extends AbstractTask {
     }
 
     // Check number of features.
-    final int featureCount = getFeatureCount(row, groupingParameter);
+    final int featureCount = row.getNumberOfFeatures();
     if (filterByMinFeatureCount) {
       if (!minSamples.checkGreaterEqualMax(totalSamples, featureCount)) {
         return true;
@@ -373,30 +389,11 @@ public class RowsFilterTask extends AbstractTask {
     // Search feature identity text.
     if (filterByIdentityText) {
       boolean foundText = false;
-      if (row.getPeakIdentities() != null) {
-        for (var id : row.getPeakIdentities()) {
-          if (id != null && id.getName().toLowerCase().trim().contains(searchText)) {
-            foundText = true;
-            break;
-          }
-        }
-      }
-      List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
-      if (matchedLipids != null && !foundText) {
-        for (var id : matchedLipids) {
-          if (id != null && id.getLipidAnnotation().getAnnotation().toLowerCase().trim()
-              .contains(searchText)) {
-            foundText = true;
-            break;
-          }
-        }
-      }
-      if (!foundText) {
-        for (var id : row.getSpectralLibraryMatches()) {
-          if (id != null && id.getCompoundName().toLowerCase().trim().contains(searchText)) {
-            foundText = true;
-            break;
-          }
+      if (!foundText && !row.getCompoundAnnotations().isEmpty()) {
+        if (CompoundAnnotationUtils.streamFeatureAnnotations(row)
+            .map(FeatureAnnotation::getCompoundName).filter(Objects::nonNull)
+            .anyMatch(name -> name.toLowerCase().trim().contains(searchText))) {
+          foundText = true;
         }
       }
       if (!foundText && row.get(GNPSSpectralLibraryMatchesType.class) != null) {
@@ -485,6 +482,20 @@ public class RowsFilterTask extends AbstractTask {
       }
     }
 
+    // filter by correlated traces
+    if (onlyWithOtherCorrelated) {
+      boolean foundCorrelation = false;
+      for (ModularFeature feature : row.getFeatures()) {
+        if (feature.get(MsOtherCorrelationResultType.class) != null) {
+          foundCorrelation = true;
+          break;
+        }
+      }
+      if (!foundCorrelation) {
+        return true;
+      }
+    }
+
     // Filter by KMD or RKM range
     if (filterByKMD) {
       // get m/z
@@ -528,47 +539,12 @@ public class RowsFilterTask extends AbstractTask {
       return true;
     }
 
+    if (filterByCv && cvFilter != null && !cvFilter.matches(row)) {
+      return true;
+    }
+
     return removeRedundantIsotopeRows && isRowRedundantDueToIsotopePattern(row,
         row.getBestIsotopePattern());
-  }
-
-  private int getFeatureCount(FeatureListRow row, String groupingParameter) {
-    if (groupingParameter.contains("Filtering by ")) {
-      HashMap<String, Integer> groups = new HashMap<>();
-      for (RawDataFile file : project.getDataFiles()) {
-        UserParameter<?, ?>[] params = project.getParameters();
-        for (UserParameter<?, ?> p : params) {
-          groupingParameter = groupingParameter.replace("Filtering by ", "");
-          if (groupingParameter.equals(p.getName())) {
-            String parameterValue = String.valueOf(project.getParameterValue(p, file));
-            if (row.hasFeature(file)) {
-              if (groups.containsKey(parameterValue)) {
-                groups.put(parameterValue, groups.get(parameterValue) + 1);
-              } else {
-                groups.put(parameterValue, 1);
-              }
-            } else {
-              groups.put(parameterValue, 0);
-            }
-          }
-        }
-      }
-
-      Set<String> ref = groups.keySet();
-      Iterator<String> it = ref.iterator();
-      int min = Integer.MAX_VALUE;
-      while (it.hasNext()) {
-        String name = it.next();
-        int val = groups.get(name);
-        if (val < min) {
-          min = val;
-        }
-      }
-      return min;
-
-    } else {
-      return row.getNumberOfFeatures();
-    }
   }
 
   /**

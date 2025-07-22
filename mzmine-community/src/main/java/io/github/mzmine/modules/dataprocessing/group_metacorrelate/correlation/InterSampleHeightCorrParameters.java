@@ -100,7 +100,7 @@ public class InterSampleHeightCorrParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("Min data points", MIN_DP);
+    nameParameterMap.put("Min data points", getParameter(MIN_DP));
     return nameParameterMap;
   }
 }

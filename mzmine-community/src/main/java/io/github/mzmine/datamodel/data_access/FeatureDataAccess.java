@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,22 +25,25 @@
 
 package io.github.mzmine.datamodel.data_access;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonSeries;
-import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
 import java.lang.foreign.MemorySegment;
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -68,6 +71,9 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   protected Feature feature;
   protected IonTimeSeries<Scan> featureData;
 
+  // mobilogram binning - only present for mobility data
+  protected final @Nullable BinningMobilogramDataAccess mobilogramBinning;
+
   protected int currentFeatureIndex = -1;
   protected int currentRowIndex = -1;
   protected int currentRawFileIndex = -1;
@@ -91,8 +97,23 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
    * @param dataFile define the data file in an aligned feature list
    */
   protected FeatureDataAccess(FeatureList flist, @Nullable RawDataFile dataFile) {
+    this(flist, dataFile, null);
+  }
+
+  /**
+   * Access the chromatographic data of features in a feature list sorted by scan ID (usually sorted
+   * by retention time)
+   *
+   * @param flist             target feature list. Loops through all features in dataFile
+   * @param dataFile          define the data file in an aligned feature list
+   * @param mobilogramBinning access mobilogram data, only present for mobility data, null
+   *                          otherwise
+   */
+  protected FeatureDataAccess(FeatureList flist, @Nullable RawDataFile dataFile,
+      @Nullable BinningMobilogramDataAccess mobilogramBinning) {
     this.flist = flist;
     this.dataFile = dataFile;
+    this.mobilogramBinning = mobilogramBinning;
 
     // set rows and number of features
     int totalFeatures = 0;
@@ -161,8 +182,8 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
 
   /**
    * Set the data to the next feature, if available. Returns the feature for additional data access.
-   * retention time and intensity values should be accessed from this data class via {@link
-   * #getRetentionTime(int)} and {@link #getIntensity(int)}
+   * retention time and intensity values should be accessed from this data class via
+   * {@link #getRetentionTime(int)} and {@link #getIntensity(int)}
    *
    * @return the feature or null
    */
@@ -185,8 +206,8 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
       } else {
         currentRowIndex++;
         // single data file
-        feature = getRow()
-            .getFeature(dataFile != null ? dataFile : getRow().getRawDataFiles().get(0));
+        feature = getRow().getFeature(
+            dataFile != null ? dataFile : getRow().getRawDataFiles().get(0));
       }
 
       featureData = (IonTimeSeries<Scan>) feature.getFeatureData();
@@ -224,9 +245,9 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   }
 
   /**
-   * For feature lists of one RawDataFile, num of features equals to {@link
-   * #getNumOfFeatureListRows()}. For aligned feature lists two options are available: Either all
-   * features or all features of a selected RawDataFile
+   * For feature lists of one RawDataFile, num of features equals to
+   * {@link #getNumOfFeatureListRows()}. For aligned feature lists two options are available: Either
+   * all features or all features of a selected RawDataFile
    *
    * @return number of features
    */
@@ -242,6 +263,11 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
     return currentNumberOfDataPoints;
   }
 
+  /**
+   * @return the maximum number of values
+   */
+  public abstract int getMaxNumberOfValues();
+
   //#######################################
   // Unsupported methods due to different intended use
   @Override
@@ -251,11 +277,98 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
 
+  /**
+   * Method to create subseries from this FeatureDataAccess or its underlying original series.
+   * {@link FeatureFullDataAccess} uses this for optimizations in reusing scan lists that are kept
+   * alive already as sublist. Base implementation just calls the original series.
+   *
+   * @param startIndex         the start index in {@link FeatureDataAccess}
+   * @param endIndexExclusive  the end index in {@link FeatureDataAccess}
+   * @param originalIndexRange the index range in the original series used internally of access
+   * @return a subseries
+   */
+  protected IonTimeSeries<Scan> subSeries(final MemoryMapStorage storage, final int startIndex,
+      final int endIndexExclusive, final IndexRange originalIndexRange) {
+    // default is to just apply to original series
+    final IonTimeSeries<? extends Scan> originalSeries = getOriginalSeries();
+    return (IonTimeSeries<Scan>) FeatureDataUtils.subSeries(storage, originalSeries,
+        originalIndexRange.min(), originalIndexRange.maxExclusive(), mobilogramBinning);
+  }
+
   @Override
-  public IonSpectrumSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
+  public IonTimeSeries<Scan> subSeries(final MemoryMapStorage storage, final int startIndex,
+      final int endIndexExclusive) {
+    if (endIndexExclusive - startIndex <= 0) {
+      return emptySeries();
+    }
+    // the default implementation will redirect to either the ion mobility data or other ion time series
+    // this usually creates not sublist views of scans but new lists
+    // When working on {@link FeatureFullDataAccess} - sublists are okay to save memory. See implementation there
+
+    // find indices in original data - feature data access may use other data points as well
+    final List<Scan> allSpectra = getSpectraModifiable();
+    List<Scan> subFromAll = allSpectra.subList(startIndex, endIndexExclusive);
+    final float startNumber = subFromAll.getFirst().getScanNumber();
+    final float endNumber = subFromAll.getLast().getScanNumber();
+
+    // from original series - different indices - use RT
+    final IonTimeSeries<? extends Scan> original = getOriginalSeries();
+    final List<? extends Scan> originalSpectra = original.getSpectraModifiable();
+    final IndexRange indexRangeOriginal = BinarySearch.indexRange(Range.closed(startNumber, endNumber),
+        originalSpectra, Scan::getScanNumber);
+
+    return subSeries(storage, startIndex, endIndexExclusive, indexRangeOriginal);
+  }
+
+
+  public IonTimeSeries<? extends Scan> getOriginalSeries() {
+    return getFeature().getFeatureData();
+  }
+
+  /**
+   * Keeps mzs and scans and replaces intensities
+   *
+   * @param storage
+   * @param newIntensityValues
+   * @return
+   */
+  @Override
+  public IonTimeSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
+      @NotNull double[] newIntensityValues) {
+    return copyAndReplace(storage, getMzValuesCopy(), newIntensityValues);
+  }
+
+  @Override
+  public IonTimeSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
-    throw new UnsupportedOperationException(
-        "The intended use of this class is to loop over all features and data points in a feature list");
+    IonTimeSeries<Scan> oldData = (IonTimeSeries<Scan>) getFeature().getFeatureData();
+    int numValues = oldData.getNumberOfValues();
+    if (numValues < newIntensityValues.length) {
+      // need to transfer data points to actual scans with detections.
+      // this is the case when a {@link io.github.mzmine.datamodel.data_access.FeatureFullDataAccess} is used
+      double[] actualMzs = new double[numValues];
+      double[] actualIntensities = new double[numValues];
+
+      int newDataIndex = -1;
+      Scan newScan = null;
+      for (int i = 0; i < numValues; i++) {
+        Scan scan = oldData.getSpectrum(i);
+        while (!Objects.equals(scan, newScan)) {
+          // find matching scan in full data access
+          newDataIndex++;
+          if (newDataIndex >= newIntensityValues.length) {
+            throw new IllegalStateException("Cannot find matching scan in " + this);
+          }
+          newScan = this.getSpectrum(newDataIndex);
+        }
+        actualMzs[i] = newMzValues[newDataIndex];
+        actualIntensities[i] = newIntensityValues[newDataIndex];
+      }
+
+      return (IonTimeSeries<Scan>) oldData.copyAndReplace(storage, actualMzs, actualIntensities);
+    } else {
+      return (IonTimeSeries<Scan>) oldData.copyAndReplace(storage, newMzValues, newIntensityValues);
+    }
   }
 
   @Override
@@ -330,4 +443,65 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
+
+  @Override
+  public void saveValueToXML(XMLStreamWriter writer, List<Scan> allScans, boolean includeRt)
+      throws XMLStreamException {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all features and data points in a feature list");
+  }
+
+  /**
+   * Usage of this method is strongly discouraged because it returns the internal buffer of this
+   * data access. However, in exceptional use-cases such as resolving or smoothing XICs, a direct
+   * access might be necessary to avoid copying arrays. Since the chromatograms might originate from
+   * different raw data files, the number of data points in that raw file might be different from
+   * the length of this buffer, which is set to the longest XIC. The current number of data points
+   * can be accessed via {@link FeatureDataAccess#getNumberOfValues()}.
+   * <p></p>
+   * <b>NOTE:</b> In most cases, the use of  {@link FeatureDataAccess#getIntensity(int)} (int)} is
+   * more appropriate.
+   *
+   * @return The intensity buffer of this data access.
+   */
+  public abstract double[] getIntensityValues();
+
+  /**
+   * Usage of this method is strongly discouraged because it returns the internal buffer of this
+   * data access. However, in exceptional use-cases such as resolving or smoothing XICs, a direct
+   * access might be necessary to avoid copying arrays. Since the chromatograms might originate from
+   * different raw data files, the number of data points in that raw file might be different from
+   * the length of this buffer, which is set to the longest XIC. The current number of data points
+   * can be accessed via {@link FeatureDataAccess#getNumberOfValues()}.
+   * <p></p>
+   * <b>NOTE:</b> In most cases, the use of  {@link FeatureDataAccess#getMZ(int)} is more
+   * appropriate.
+   * <p>
+   * If a copy of the active data range is required see {@link #getMzValuesCopy()}
+   *
+   * @return The m/z buffer of this data access.
+   */
+  public abstract double[] getMzValues();
+
+
+  /**
+   * @return copy of mz values array limited to actual number of values
+   */
+  public double[] getMzValuesCopy() {
+    double[] mzs = getMzValues();
+    double[] copy = new double[getNumberOfValues()];
+    System.arraycopy(mzs, 0, copy, 0, copy.length);
+    return copy;
+  }
+
+  /**
+   * @return copy of intensity values array limited to actual number of values
+   */
+  public double[] getIntensityValuesCopy() {
+    double[] intensities = getIntensityValues();
+    double[] copy = new double[getNumberOfValues()];
+    System.arraycopy(intensities, 0, copy, 0, copy.length);
+    return copy;
+  }
+
 }

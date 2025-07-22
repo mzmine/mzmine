@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.preferences.ImageNormalization;
+import io.github.mzmine.gui.preferences.ImsOptimization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.Themes;
@@ -46,6 +47,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentPa
 import io.github.mzmine.util.StringCrypter;
 import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.logging.LoggerUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -63,6 +65,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -74,9 +77,13 @@ import org.w3c.dom.NodeList;
  */
 public class MZmineConfigurationImpl implements MZmineConfiguration {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MZmineConfigurationImpl.class.getName());
 
   private final MZminePreferences preferences;
+
+  // logging file - first is null but can be extracted from Logger.parent.handlers by reflection
+  // if this fails then resort to finding the log file in user folder
+  private @Nullable File logFile;
 
   // list of last used projects
   private final @NotNull FileNameListSilentParameter lastProjects;
@@ -89,6 +96,9 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   private final Map<String, ParameterSet> moduleParameters;
 
   private final EStandardChartTheme standardChartTheme;
+
+  @NotNull
+  private ImsOptimization cachedImsOptimization = ImsOptimization.MEMORY_EFFICIENCY;
 
   public MZmineConfigurationImpl() {
     moduleParameters = new Hashtable<>();
@@ -275,6 +285,8 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
           Element lastProjectsElement = (Element) nodes.item(0);
           lastProjects.loadValueFromXML(lastProjectsElement);
         }
+        // apply preferences to all parts of mzmine
+        preferences.applyConfig();
       }
 
       logger.finest("Loading modules configuration");
@@ -364,7 +376,8 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
           moduleElement.appendChild(paramElement);
         } catch (Exception ex) {
           logger.log(Level.WARNING,
-              STR."Error while saving module parameters to config. Skipping class \{className}");
+              "Error while saving module parameters to config. Skipping class %s".formatted(
+                  className));
         }
       }
 
@@ -502,5 +515,32 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
       }
       return path;
     }
+  }
+
+  @Override
+  public synchronized @NotNull File getLogFile() {
+    if (logFile != null) {
+      return logFile;
+    }
+
+    logFile = LoggerUtils.getLogFile();
+    if (logFile != null) {
+      logger.fine("Found log file: " + logFile.getAbsolutePath());
+      return logFile;
+    }
+    // just use the first log file? Or maybe evaluate the log files based on creation date
+    logger.finest("No log file found. Using default log file.");
+    logFile = new File(FileUtils.getUserDirectory(), "mzmine_0_0.log");
+    return logFile;
+  }
+
+  @Override
+  public @NotNull ImsOptimization getCachedImsOptimization() {
+    return cachedImsOptimization;
+  }
+
+  @Override
+  public void setCachedImsOptimization(@NotNull ImsOptimization optimization) {
+    this.cachedImsOptimization = optimization;
   }
 }

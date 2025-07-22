@@ -30,10 +30,15 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidParsingUtils;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
+import static io.github.mzmine.util.StringUtils.inQuotes;
+import io.mzio.general.Result;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class LipidFragmentationRule {
 
@@ -171,8 +176,8 @@ public class LipidFragmentationRule {
     LipidFragmentationRuleRating lipidFragmentationRuleRating = null;
     LipidAnnotationLevel lipidFragmentInformationLevelType = null;
     String molecularFormula = null;
-    while (reader.hasNext()
-        && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(XML_ELEMENT))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
@@ -227,5 +232,43 @@ public class LipidFragmentationRule {
     } else {
       return null;
     }
+  }
+
+  public static Result validate(@Nullable LipidFragmentationRule rule) {
+    StringBuilder errors = new StringBuilder();
+    if (rule == null) {
+      errors.append("Rule is null\n");
+      return Result.error(errors.toString());
+    }
+
+    return validate(rule.getLipidFragmentationRuleType(), rule.getMolecularFormula());
+  }
+
+  public static Result validate(@Nullable LipidFragmentationRuleType ruleType,
+      @Nullable String formula) {
+    StringBuilder errors = new StringBuilder();
+    if (ruleType == null) {
+      errors.append("Fragmentation rule type is null, but may not be null.\n");
+      return Result.error(errors.toString());
+    }
+
+    if (ruleType.requiresFromulaFragment()) {
+      if ((formula == null || formula.isBlank())) {
+        errors.append("Formula is empty but requires a value for rule type ")
+            .append(inQuotes(ruleType.toString()));
+      } else {
+        try {
+          final IMolecularFormula molFormula = FormulaUtils.createMajorIsotopeMolFormula(formula);
+          if (molFormula == null) {
+            errors.append("Invalid custom lipid fragment rule formula: ").append(formula)
+                .append(" -> ").append(" could not parse.\n");
+          }
+        } catch (final RuntimeException e) {
+          errors.append("Invalid custom lipid fragment rule formula: ").append(formula)
+              .append(" -> ").append(" could not parse.\n");
+        }
+      }
+    }
+    return !errors.isEmpty() ? Result.error(errors.toString()) : Result.ok();
   }
 }

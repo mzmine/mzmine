@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,7 +50,8 @@ import io.github.mzmine.parameters.ParameterSet;
  *
  */
 public class LibrarySubmitModule implements MZmineModule {
-  private final Logger logger = Logger.getLogger(getClass().getName());
+
+  private static final Logger logger = Logger.getLogger(LibrarySubmitModule.class.getName());
 
   private static final String MODULE_NAME = "Export spectral library entries (submit to GNPS)";
 

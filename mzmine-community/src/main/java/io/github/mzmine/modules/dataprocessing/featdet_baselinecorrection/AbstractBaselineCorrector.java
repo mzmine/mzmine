@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,16 +25,13 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
-import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
-import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.collections.IndexRange;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,89 +40,55 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractBaselineCorrector implements BaselineCorrector {
 
-  protected final MinimumSearchFeatureResolver resolver;
-  protected final int numSamples;
+  protected final double samplePercentage;
   protected final MemoryMapStorage storage;
   protected final String suffix;
   protected final List<PlotXYDataProvider> additionalData = new ArrayList<>();
-  protected double[] xBuffer = new double[0];
-  protected double[] yBuffer = new double[0];
-  protected double[] xBufferRemovedPeaks = new double[0];
-  protected double[] yBufferRemovedPeaks = new double[0];
+  protected final BaselineDataBuffer buffer = new BaselineDataBuffer();
   boolean preview = false;
 
-  public AbstractBaselineCorrector(@Nullable MemoryMapStorage storage, int numSamples,
-      @NotNull String suffix, @Nullable MinimumSearchFeatureResolver resolver) {
+
+  public AbstractBaselineCorrector(@Nullable MemoryMapStorage storage, double samplePercentage,
+      @NotNull String suffix) {
 
     this.storage = storage;
-    this.numSamples = numSamples;
+    this.samplePercentage = samplePercentage;
     this.suffix = suffix;
-    this.resolver = resolver;
   }
 
-  /**
-   * Removes the given list of index ranges from the array, always keeping the first and last value
-   * even if they are contained in one of the ranges. This may be needed for
-   * {@link org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction}, because it will
-   * not extrapolate beyond the sides.
-   *
-   * @param indices   The list of index ranges. May be empty.
-   * @param numValues the number of values in the array. Can be used to limit the search if
-   *                  {@param src} is a buffer.
-   * @param src       The source to copy values frm
-   * @param dst       The destination to write the new array to.
-   * @return The number of values written to the array.
-   */
-  public static int removeRangesFromArray(List<IndexRange> indices, int numValues, double[] src,
-      double[] dst) {
-    int startInRemovedArray = 0;
-    int lastEndPointInOriginalArray = 0;
+  protected XYDataArrays subSampleData(final IntList subsampleIndices, final double[] xDataFiltered,
+      final double[] yDataFiltered, final int numValuesFiltered) {
 
-    if (indices.isEmpty()) {
-      System.arraycopy(src, 0, dst, 0, numValues);
-      startInRemovedArray = numValues;
-      return startInRemovedArray;
-    } else {
-      if (indices.getFirst().min() == 0) {
-        dst[0] = src[0];
-        startInRemovedArray++;
-        lastEndPointInOriginalArray++;
-      }
+    final double[] subsampleX = BaselineCorrector.subsample(xDataFiltered, numValuesFiltered,
+        subsampleIndices, true);
+    final double[] subsampleY = BaselineCorrector.subsample(yDataFiltered, numValuesFiltered,
+        subsampleIndices, false);
 
-      for (int i = 0; i < indices.size(); i++) {
-        final IndexRange range = indices.get(i);
-        final int numPoints = range.min() - lastEndPointInOriginalArray;
-
-        // in case the first range starts at 0 and the first point was copied manually, this condition is not met.
-        if (numPoints > 0) {
-          System.arraycopy(src, lastEndPointInOriginalArray, dst, startInRemovedArray, numPoints);
-          startInRemovedArray += numPoints;
+    // somehow first and last data point are often 0 - maybe because MS switches to early/late?
+    // adjust subsampleY to nearest non 0 value max 2 indices away
+    if (Double.compare(subsampleY[0], 0d) == 0) {
+      int index = subsampleIndices.getInt(0);
+      for (int next = 1; next <= 2 && index + next < numValuesFiltered; next++) {
+        double intensity = yDataFiltered[index + next];
+        if (intensity > 0) {
+          subsampleY[0] = intensity;
+          break;
         }
-        lastEndPointInOriginalArray = range.maxExclusive();
       }
     }
-
-    // add last value
-    if (indices.getLast().maxExclusive() >= numValues) {
-      dst[startInRemovedArray] = src[numValues - 1];
-      startInRemovedArray++;
-    } else {
-      // add values until the end
-      System.arraycopy(src, lastEndPointInOriginalArray, dst, startInRemovedArray,
-          numValues - lastEndPointInOriginalArray);
-      startInRemovedArray += numValues - lastEndPointInOriginalArray;
+    if (Double.compare(subsampleY[subsampleY.length - 1], 0d) == 0) {
+      int index = subsampleIndices.getLast();
+      for (int next = 1; next <= 2 && index - next >= 0; next++) {
+        double intensity = yDataFiltered[index - next];
+        if (intensity > 0) {
+          subsampleY[subsampleY.length - 1] = intensity;
+          break;
+        }
+      }
     }
-    return startInRemovedArray;
+    return new XYDataArrays(subsampleX, subsampleY);
   }
 
-  protected static @NotNull MinimumSearchFeatureResolver initializeLocalMinResolver(
-      ModularFeatureList flist) {
-
-    final MinimumSearchFeatureResolver resolver = new MinimumSearchFeatureResolver(flist,
-        ResolvingDimension.RETENTION_TIME, 0.5, 0.04, 0, 0, 2.5, Range.closed(0d, 5d), 5);
-
-    return resolver;
-  }
 
   /**
    * @param timeSeries     The original time series
@@ -137,13 +100,14 @@ public abstract class AbstractBaselineCorrector implements BaselineCorrector {
    */
   protected <T extends IntensityTimeSeries> T createNewTimeSeries(T timeSeries, int numValues,
       double[] newIntensities) {
+    final double[] newIntensityValues = Arrays.copyOfRange(newIntensities, 0, numValues);
     return switch (timeSeries) {
-      case IonSpectrumSeries<?> s -> (T) s.copyAndReplace(storage, s.getMzValues(new double[0]),
-          Arrays.copyOfRange(newIntensities, 0, numValues));
+      case FeatureDataAccess da -> (T) da.copyAndReplace(storage, newIntensityValues);
+      case IonTimeSeries<?> s ->
+          (T) s.copyAndReplace(storage, s.getMzValues(new double[0]), newIntensityValues);
       case OtherTimeSeries o -> (T) o.copyAndReplace(
           o.getTimeSeriesData().getOtherDataFile().getCorrespondingRawDataFile()
-              .getMemoryMapStorage(), Arrays.copyOfRange(newIntensities, 0, numValues),
-          o.getName() + " " + suffix);
+              .getMemoryMapStorage(), newIntensityValues, o.getName() + " " + suffix);
       default -> throw new IllegalStateException(
           "Unexpected time series: " + timeSeries.getClass().getName());
     };
@@ -161,4 +125,5 @@ public abstract class AbstractBaselineCorrector implements BaselineCorrector {
   public List<PlotXYDataProvider> getAdditionalPreviewData() {
     return additionalData;
   }
+
 }

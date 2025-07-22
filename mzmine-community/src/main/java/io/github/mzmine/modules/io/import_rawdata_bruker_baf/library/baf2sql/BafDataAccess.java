@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2
 import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafLib.baf2sql_get_last_error_string;
 import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafLib.baf2sql_get_sqlite_cache_filename_v2;
 
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.BafPropertiesTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.Ms2Table;
@@ -51,27 +52,50 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.sqlite.JDBC;
 
-public class BafDataAccess {
+public class BafDataAccess implements AutoCloseable {
 
   private static final Logger logger = Logger.getLogger(BafDataAccess.class.getName());
-  private long handle;
-  private final SpectraAcquisitionStepsTable spectraTable = new SpectraAcquisitionStepsTable();
+  private final SpectraAcquisitionStepsTable spectraTable;
   private final BafPropertiesTable metadata = new BafPropertiesTable();
   private final Ms2Table ms2Table = new Ms2Table();
-
+  @NotNull
   private final Arena arena;
   private final MemorySegment mzSizeBuffer;
   private final MemorySegment intensitySizeBuffer;
-
+  private long handle;
   private MemorySegment mzBufferSegment;
   private MemorySegment intensityBufferSegment;
 
-  public BafDataAccess(Arena arena) {
-    this.arena = arena;
+  public BafDataAccess(final boolean importProfileIfPossible) {
+    spectraTable = new SpectraAcquisitionStepsTable(importProfileIfPossible);
+    this.arena = Arena.ofConfined();
     mzSizeBuffer = arena.allocate(BafLib.uint64_t);
     intensitySizeBuffer = arena.allocate(BafLib.uint64_t);
     mzBufferSegment = arena.allocate(0);
     intensityBufferSegment = arena.allocate(0);
+  }
+
+  public static @Nullable File getBafFromFolderOrFile(@NotNull File folderOrBaf) {
+    if (!folderOrBaf.exists() || !folderOrBaf.canRead()) {
+      logger.info(
+          () -> "Baf file with path %s does not exist.".formatted(folderOrBaf.getAbsolutePath()));
+      return null;
+    }
+
+    final File bafFile;
+    if (folderOrBaf.isDirectory() && folderOrBaf.getName().endsWith(".d")) {
+      logger.fine("Folder path detected, defaulting to analysis.baf file.");
+      bafFile = new File(folderOrBaf, "analysis.baf");
+    } else {
+      bafFile = folderOrBaf;
+    }
+
+    if (!bafFile.getName().endsWith(".baf") || !bafFile.exists() || !bafFile.canRead()) {
+      logger.info(
+          () -> "Baf file with path %s does not exist.".formatted(bafFile.getAbsolutePath()));
+      return null;
+    }
+    return bafFile;
   }
 
   public String getLastErrorString() {
@@ -115,29 +139,6 @@ public class BafDataAccess {
     }
 
     return new File(String.valueOf(outputBuffer.getString(0, StandardCharsets.UTF_8)));
-  }
-
-  public static @Nullable File getBafFromFolderOrFile(@NotNull File folderOrBaf) {
-    if (!folderOrBaf.exists() || !folderOrBaf.canRead()) {
-      logger.info(
-          () -> "Baf file with path %s does not exist.".formatted(folderOrBaf.getAbsolutePath()));
-      return null;
-    }
-
-    final File bafFile;
-    if (folderOrBaf.isDirectory() && folderOrBaf.getName().endsWith(".d")) {
-      logger.fine("Folder path detected, defaulting to analysis.baf file.");
-      bafFile = new File(folderOrBaf, "analysis.baf");
-    } else {
-      bafFile = folderOrBaf;
-    }
-
-    if (!bafFile.getName().endsWith(".baf") || !bafFile.exists() || !bafFile.canRead()) {
-      logger.info(
-          () -> "Baf file with path %s does not exist.".formatted(bafFile.getAbsolutePath()));
-      return null;
-    }
-    return bafFile;
   }
 
   public boolean openBafFile(File path) {
@@ -186,11 +187,11 @@ public class BafDataAccess {
     return handle != 0;
   }
 
-  public SimpleSpectralArrays loadPeakData(int index) {
+  public SimpleSpectralArrays loadPeakData(int index, MassSpectrumType spectrumType) {
     assert valid();
 
-    final long mzIds = spectraTable.getMzIds(index);
-    final long intensityIds = spectraTable.getIntensityIds(index);
+    final long mzIds = spectraTable.getMzIds(index, spectrumType);
+    final long intensityIds = spectraTable.getIntensityIds(index, spectrumType);
 
     long success = baf2sql_array_get_num_elements(handle, mzIds, mzSizeBuffer);
     if (success == 0) {
@@ -241,7 +242,7 @@ public class BafDataAccess {
     return metadata;
   }
 
-  public void closeHandle() {
+  private void closeHandle() {
     if (handle == 0L) {
       return;
     }
@@ -250,5 +251,11 @@ public class BafDataAccess {
 
   public Ms2Table getMs2Table() {
     return ms2Table;
+  }
+
+  @Override
+  public void close() throws Exception {
+    closeHandle();
+    arena.close();
   }
 }

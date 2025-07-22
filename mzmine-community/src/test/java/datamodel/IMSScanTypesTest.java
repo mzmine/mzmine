@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -59,7 +59,7 @@ import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpec
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
-import java.io.IOException;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -82,7 +82,7 @@ public class IMSScanTypesTest {
 
   MZmineProject project;
 
-  private static void compareMergedMsMs(MergedMsMsSpectrum value, MergedMsMsSpectrum loaded) {
+  public static void compareMergedMsMs(MergedMsMsSpectrum value, MergedMsMsSpectrum loaded) {
     Assertions.assertEquals(value.getCollisionEnergy(), loaded.getCollisionEnergy());
     Assertions.assertEquals(value.getBasePeakIndex(), loaded.getBasePeakIndex());
     Assertions.assertEquals(value.getBasePeakMz(), loaded.getBasePeakMz());
@@ -137,11 +137,7 @@ public class IMSScanTypesTest {
 
       frame.setMobilities(new double[]{5d, 4d, 3d, 2d, 1d});
       frame.setMobilityScans(scans, true);
-      try {
-        file.addScan(frame);
-      } catch (IOException e) {
-        Assertions.fail();
-      }
+      file.addScan(frame);
     }
 
     // generate ms2 frames
@@ -157,11 +153,7 @@ public class IMSScanTypesTest {
       frame.setMobilities(new double[]{5d, 4d, 3d, 2d, 1d});
       frame.setMobilityScans(scans, true);
 
-      try {
-        file.addScan(frame);
-      } catch (IOException e) {
-        Assertions.fail();
-      }
+      file.addScan(frame);
     }
 
     flist.setSelectedScans(file, file.getFrames().subList(0, 4));
@@ -263,7 +255,7 @@ public class IMSScanTypesTest {
     Map<DBEntryField, Object> map = Map.of(DBEntryField.ENTRY_ID, "123swd", DBEntryField.CAS,
         "468-531-21", DBEntryField.DATA_COLLECTOR, "Dr. Xy", DBEntryField.CHARGE, 1);
 
-    SpectralLibraryEntry entry = SpectralLibraryEntry.create(null, map,
+    SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(null, map,
         ScanUtils.extractDataPoints(library));
 
     SpectralSimilarity similarity = simFunc.getSimilarity(new MZTolerance(0.005, 15), 0,

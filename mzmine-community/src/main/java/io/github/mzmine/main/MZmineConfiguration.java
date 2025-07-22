@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.preferences.ImageNormalization;
+import io.github.mzmine.gui.preferences.ImsOptimization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.Themes;
@@ -113,6 +114,7 @@ public interface MZmineConfiguration {
   default NumberFormats getFormats(boolean export) {
     return export ? getExportFormats() : getGuiFormats();
   }
+
   NumberFormats getGuiFormats();
 
   NumberFormats getExportFormats();
@@ -142,4 +144,35 @@ public interface MZmineConfiguration {
   PaintScaleTransform getImageTransformation();
 
   File getMsConvertPath();
+
+  @NotNull File getLogFile();
+
+  @NotNull ImsOptimization getCachedImsOptimization();
+
+  void setCachedImsOptimization(@NotNull ImsOptimization optimization);
+
+  /**
+   * The current hold total memory. Consider using {@link #getMaxMemoryGB()}
+   */
+  default double getTotalMemoryGB() {
+    final double GB = 1 << 30; // 1 GB
+    return Runtime.getRuntime().totalMemory() / GB;
+  }
+
+  /**
+   * @return the maximum memory the JVM will attempt to use
+   */
+  default double getMaxMemoryGB() {
+    final double GB = 1 << 30; // 1 GB
+    return Runtime.getRuntime().maxMemory() / GB; // shift by 30 bits to convert bytes to GB
+  }
+
+  /**
+   * @return the current used memory in GB
+   */
+  default double getUsedMemoryGB() {
+    final double GB = 1 << 30; // 1 GB
+    final double totalMemGB = Runtime.getRuntime().totalMemory() / GB;
+    return totalMemGB - Runtime.getRuntime().freeMemory() / GB;
+  }
 }

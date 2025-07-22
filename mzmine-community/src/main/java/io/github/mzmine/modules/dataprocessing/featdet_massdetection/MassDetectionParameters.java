@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -74,7 +74,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
       This reduces the intensity differences between spectra acquired with different injection times
       and reverts to "raw" intensities.""", false);
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MassDetectionParameters.class.getName());
 
   public MassDetectionParameters() {
     super(new Parameter[]{dataFiles, scanSelection, scanTypes, denormalizeMSnScans, massDetector},
@@ -82,8 +82,10 @@ public class MassDetectionParameters extends SimpleParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    final boolean superCheck = super.checkParameterValues(errorMessages);
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(errorMessages,
+        skipRawDataAndFeatureListParameters);
     // Check the selected mass detector
     MassDetectors detector = getValue(massDetector);
 
@@ -93,8 +95,12 @@ public class MassDetectionParameters extends SimpleParameterSet {
         denorm && !(detector == MassDetectors.FACTOR_OF_LOWEST);
     if (illegalDenormalizeMassDetectorCombo) {
       errorMessages.add("Spectral denormalization is currently only supported by the "
-                        + "Factor of the lowest mass detector; selected: " + detector);
+          + "Factor of the lowest mass detector; selected: " + detector);
       return false;
+    }
+
+    if (skipRawDataAndFeatureListParameters) {
+      return superCheck;
     }
 
     // check files
@@ -178,7 +184,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("Scans", scanSelection);
+    nameParameterMap.put("Scans", getParameter(scanSelection));
     return nameParameterMap;
   }
 

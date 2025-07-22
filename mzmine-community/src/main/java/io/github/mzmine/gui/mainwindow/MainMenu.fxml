@@ -268,8 +268,6 @@
         userData="io.github.mzmine.modules.io.export_features_venn.VennExportModule"/>
       <MenuItem text="Statistics export (MetaboAnalyst)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule"/>
-      <MenuItem text="mzTab-m" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule"/>
       <MenuItem text="SQL Database" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_sql.SQLExportModule"/>
       <MenuItem text="MSP file (ADAP)" onAction="#runModule"
@@ -395,6 +393,8 @@
       <SeparatorMenuItem/>
       <MenuItem text="Feature list blank subtraction" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule"/>
+      <MenuItem text="Chromatogram blank subtraction" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms.ChromatogramBlankSubtractionModule"/>
       <!--      <MenuItem text="Peak comparison rows filter" documentation lacking -->
       <!--        onAction="#runModule"-->
       <!--        userData="io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter.PeakComparisonRowFilterModule"/>-->
@@ -440,6 +440,9 @@
       <MenuItem text="Standard compound normalizer"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule"/>
+      <MenuItem text="Retention index calculation"
+                onAction="#runModule"
+                userData="io.github.mzmine.modules.dataprocessing.norm_ri.RICalculationModule"/>
     </Menu>
 
     <Menu text="Annotation">
@@ -512,9 +515,6 @@
         userData="io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule"/>
       <MenuItem onAction="#runModule" text="Image viewer"
         userData="io.github.mzmine.modules.visualization.image.ImageVisualizerModule"/>
-      <MenuItem onAction="#runModule" text="Multi detector visualizer"
-        userData="io.github.mzmine.modules.visualization.otherdetectors.multidetector.MultidetectorVisualizerModule"/>
-
 
       <SeparatorMenuItem/>
 
@@ -573,6 +573,14 @@
         userData="io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule"/>
       <MenuItem text="Massvoltammogram (feature list)" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule"/>
+
+      <SeparatorMenuItem/>
+
+      <MenuItem text="ECN (Equivalent Carbon Number) plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule"/>
+      <MenuItem text="Lipid annotation summary" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSummaryModule"/>
+
     </Menu>
 
     <MenuItem onAction="#showMSnTreeTab" text="MS(n) spectra tree"

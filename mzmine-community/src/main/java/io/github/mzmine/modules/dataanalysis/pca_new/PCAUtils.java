@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,7 +52,7 @@ public class PCAUtils {
   public static PCAResult quickPCA(RealMatrix data, ScalingFunction scalingFunction) {
 
     logger.finest(() -> "Performing scaling and centering");
-    final RealMatrix centeredMatrix = StatisticUtils.centerAndScale(data, scalingFunction, false);
+    final RealMatrix centeredMatrix = StatisticUtils.scaleAndCenter(data, scalingFunction, false);
 
     logger.finest(() -> "Performing singular value decomposition. This may take a while");
     SingularValueDecomposition svd = new SingularValueDecomposition(centeredMatrix);
@@ -75,8 +75,8 @@ public class PCAUtils {
   /**
    * Performs a PCA on a list of feature list rows. Imputes missing values as 0s.
    *
-   * @param rows               The rows.
-   * @param measure            The abundance to use.
+   * @param rows    The rows.
+   * @param measure The abundance to use.
    * @return A pca result that can be mapped to the used rows.
    */
   public static PCARowsResult performPCAOnRows(List<FeatureListRow> rows, AbundanceMeasure measure,
@@ -97,6 +97,11 @@ public class PCAUtils {
       SampleTypeFilter sampleTypeFilter) {
     final List<RawDataFile> files = rows.stream().flatMap(row -> row.getRawDataFiles().stream())
         .distinct().filter(sampleTypeFilter::matches).toList();
+
+    if (files.isEmpty()) {
+      return null;
+    }
+
     final RealMatrix data = StatisticUtils.createDatasetFromRows(rows, files, measure);
     StatisticUtils.imputeMissingValues(data, true, imputationFunction);
     final PCAResult pcaResult = quickPCA(data, scalingFunction);

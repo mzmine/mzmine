@@ -33,6 +33,8 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFDa
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
 
@@ -76,26 +78,31 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
   private final TDFDataColumn<Long> msLevelCol = new TDFDataColumn<>(
       BafAcqusitionKeysTable.MsLevelCol);
 
-  private MassSpectrumType spectrumType = MassSpectrumType.CENTROIDED;
+  // in isCid/bbCID data, there is no steps table. So we cannot get the ce from there, but we can
+  // extract it from the variables table.
+  private final TDFDataColumn<Double> fallbackCeColumn = new TDFDataColumn<>("fallbackCE");
+
+  private final boolean importProfile;
+  private MassSpectrumType preferredSpectrumType = MassSpectrumType.CENTROIDED;
 
 
-  public SpectraAcquisitionStepsTable() {
-
+  public SpectraAcquisitionStepsTable(boolean importProfileIfPossible) {
     super(spectraAcquisitionTable, BafSpectraTable.ID_COL);
+    this.importProfile = importProfileIfPossible;
 
     idCol = (TDFDataColumn<Long>) getColumn(BafSpectraTable.ID_COL);
     columns.addAll(
         Arrays.asList(rtCol, segment, acquisitionKey, mzAcqRangeLowerCol, mzAcqRangeUpper,
             sumIntensityCol, maxIntensityCol, profileMzIdCol, profileIntensityCol, lineMzIdCol,
             lineIntensityCol, lineAreaIdCol, polarityCol, scanModeCol, acquisitionModeCol,
-            msLevelCol));
+            msLevelCol, fallbackCeColumn));
   }
 
   @Override
   protected String getColumnHeadersForQuery() {
     final String spectraTable = BafSpectraTable.NAME;
     final String acqTable = BafAcqusitionKeysTable.NAME;
-    final String stepsTableStr = BafStepsTable.NAME;
+    final String variableTable = BafVariables.NAME;
 
     final String spectraString = new BafSpectraTable().columns().stream()
         .map(col -> "%s.%s".formatted(spectraTable, col.getCoulumnName()))
@@ -104,14 +111,10 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
         .filter(col -> !col.getCoulumnName().equals(BafAcqusitionKeysTable.ID_COL))
         .map(col -> "%s.%s".formatted(acqTable, col.getCoulumnName()))
         .collect(Collectors.joining(", "));
-    /*final String stepsString = stepsTable.columns().stream()
-        .filter(col -> !col.getCoulumnName().equals(BafStepsTable.MS_LEVEL_COL)) // duplicate
-        .map(col -> "%s.%s".formatted(stepsTableStr, col.getCoulumnName()))
-        .collect(Collectors.joining(", "));
-    final String collisionEnergyCol =
-        BafVariables.NAME + "." + BafVariables.VALUE_COL + " AS CollisionEnergy";*/
+    final String variableTableString =
+        variableTable + "." + BafVariables.VALUE_COL + " AS " + fallbackCeColumn.getCoulumnName();
 
-    return String.join(", ", spectraString, acqString);
+    return String.join(", ", spectraString, acqString, variableTableString);
   }
 
   @Override
@@ -122,9 +125,10 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
     return "SELECT " + columnHeadersForQuery + " FROM " + spectraTable + //
         " LEFT JOIN " + acqTable + " ON " + spectraTable + "." + BafSpectraTable.AQUISITION_KEY_COL
         + "=" + acqTable + "." + BafAcqusitionKeysTable.ID_COL + //
-//        " LEFT JOIN " + BafStepsTable.NAME + " ON " + spectraTable + "." + BafSpectraTable.ID_COL
-//        + "=" + BafStepsTable.NAME + "." + BafStepsTable.TARGET_SPECTRUM_COL + //
         // documentation says 5 is a constant value. could also get it from the SupportedVariables table otherwise.
+        " LEFT JOIN " + BafVariables.NAME + " ON " + spectraTable + "." + BafSpectraTable.ID_COL
+        + "=" + BafVariables.NAME + "." + BafVariables.SPECTRUM_COL + " AND " + BafVariables.NAME
+        + "." + BafVariables.VARIABLE_COL + "=5" + //
         " ORDER BY " + spectraTable + "." + BafSpectraTable.ID_COL;
   }
 
@@ -133,10 +137,12 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
     final boolean b = super.executeQuery(connection);
 
     if (b) {
-      if (containsCentroidData()) {
-        spectrumType = MassSpectrumType.CENTROIDED;
+      if (containsProfileData() && importProfile) {
+        preferredSpectrumType = MassSpectrumType.PROFILE;
+      } else if (containsCentroidData()) {
+        preferredSpectrumType = MassSpectrumType.CENTROIDED;
       } else if (containsProfileData()) {
-        spectrumType = MassSpectrumType.PROFILE;
+        preferredSpectrumType = MassSpectrumType.PROFILE;
       } else {
         throw new RuntimeException(
             "No valid spectrum type found. (File contains neither centroid nor profile data.)");
@@ -146,13 +152,13 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
   }
 
   public boolean containsCentroidData() {
-    return lineMzIdCol.stream().noneMatch(id -> id == null || id == 0) && lineIntensityCol.stream()
-        .noneMatch(id -> id == null || id == 0);
+    return lineMzIdCol.stream().anyMatch(id -> id != null && id != 0) && lineIntensityCol.stream()
+        .anyMatch(id -> id != null && id != 0);
   }
 
   public boolean containsProfileData() {
-    return profileMzIdCol.stream().noneMatch(id -> id == null || id == 0)
-        && profileIntensityCol.stream().noneMatch(id -> id == null || id == 0);
+    return profileMzIdCol.stream().anyMatch(id -> id != null && id != 0)
+        && profileIntensityCol.stream().anyMatch(id -> id != null && id != 0);
   }
 
   public int getId(int index) {
@@ -171,7 +177,7 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
     return mzAcqRangeUpper.get(index);
   }
 
-  public long getMzIds(int index) {
+  public long getMzIds(int index, @NotNull final MassSpectrumType spectrumType) {
     return switch (spectrumType) {
       case CENTROIDED -> lineMzIdCol.get(index);
       case PROFILE -> profileMzIdCol.get(index);
@@ -179,7 +185,7 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
     };
   }
 
-  public long getIntensityIds(int index) {
+  public long getIntensityIds(int index, @NotNull final MassSpectrumType spectrumType) {
     return switch (spectrumType) {
       case CENTROIDED -> lineIntensityCol.get(index);
       case PROFILE -> profileIntensityCol.get(index);
@@ -208,9 +214,17 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
    */
   public int getMsLevel(int index) {
     return switch (msLevelCol.get(index).intValue()) {
-      case 0 -> 1;
+      case 0 -> {
+        yield switch (getScanMode(index)) {
+          case 0 -> 1;
+          case 2 -> 2;
+          case 4 -> 2;
+          case 5 -> 2;
+          default -> throw new RuntimeException("Unknown scan mode.");
+        };
+      }
       case 1 -> 2;
-      default -> throw new IllegalStateException("Unknown scan mode.");
+      default -> throw new IllegalStateException("Unknown ms level.");
     };
   }
 
@@ -218,7 +232,38 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
     return idCol.size();
   }
 
-  public MassSpectrumType getSpectrumType() {
-    return spectrumType;
+  public MassSpectrumType getPreferredSpectrumType() {
+    return preferredSpectrumType;
+  }
+
+  private boolean scanHasData(int index) {
+    final Long lineMzId = lineMzIdCol.get(index);
+    final Long profileMzId = profileMzIdCol.get(index);
+
+    return (lineMzId != null && lineMzId != 0) || (profileMzId != null && profileMzId != 0);
+  }
+
+  /**
+   * @return The spectrum type to read for the requested scan index. Null if no data is available
+   * for the scan (=no data saved). The return may differ from {@link #getPreferredSpectrumType()}
+   * in case the preferred data type is not available.
+   */
+  @Nullable
+  public MassSpectrumType getSpectrumType(int index) {
+    if (!scanHasData(index)) {
+      return null;
+    }
+
+    return switch (getPreferredSpectrumType()) {
+      case CENTROIDED ->
+          lineMzIdCol.get(index) != null ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
+      case PROFILE -> profileMzIdCol.get(index) != null ? MassSpectrumType.PROFILE
+          : MassSpectrumType.CENTROIDED;
+      default -> throw new RuntimeException("Invalid spectrum type: " + getPreferredSpectrumType());
+    };
+  }
+
+  public Double getFallbackCe(int index) {
+    return fallbackCeColumn.get(index);
   }
 }

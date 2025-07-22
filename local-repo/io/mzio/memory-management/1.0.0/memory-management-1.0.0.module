@@ -19,7 +19,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 22,
+        "org.gradle.jvm.version": 23,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
@@ -27,11 +27,11 @@
         {
           "name": "memory-management-1.0.0.jar",
           "url": "memory-management-1.0.0.jar",
-          "size": 5030,
-          "sha512": "d1eb0736d415ad62ddf7a0cf03b9366d39b8bb63200d2be875b0162c4c5d5b3162cbeff36a35aced927d55343656f5466fbdfadbdff71bbd664efc71561b58c9",
-          "sha256": "b02bdaa4ce9df9c9acad756bdb4649591248f06b87ef16776405f689594c07ed",
-          "sha1": "6421e0e1761e6f3fb27f936cd2a9627622c46c7e",
-          "md5": "43d3056af34f4723615c5c7cf1042a40"
+          "size": 4801,
+          "sha512": "9fd909d34ad48d0044159b1f237b0cbf097cf3f994b8122c7e540feef474694c627a00734061156b09e9ea2fdcdd91a524757e54ca1c50ee7293dbf1a44cc81d",
+          "sha256": "fc6378afc7abaf334e07ed3dc677c073d6e340b3145fa4235452f01c312afca5",
+          "sha1": "1907403bc761a08c1ba79d84e402c7a7d2f4478f",
+          "md5": "fcdda7d64e05deb7cb9cffd690235e79"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 22,
+        "org.gradle.jvm.version": 23,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -61,11 +61,11 @@
         {
           "name": "memory-management-1.0.0.jar",
           "url": "memory-management-1.0.0.jar",
-          "size": 5030,
-          "sha512": "d1eb0736d415ad62ddf7a0cf03b9366d39b8bb63200d2be875b0162c4c5d5b3162cbeff36a35aced927d55343656f5466fbdfadbdff71bbd664efc71561b58c9",
-          "sha256": "b02bdaa4ce9df9c9acad756bdb4649591248f06b87ef16776405f689594c07ed",
-          "sha1": "6421e0e1761e6f3fb27f936cd2a9627622c46c7e",
-          "md5": "43d3056af34f4723615c5c7cf1042a40"
+          "size": 4801,
+          "sha512": "9fd909d34ad48d0044159b1f237b0cbf097cf3f994b8122c7e540feef474694c627a00734061156b09e9ea2fdcdd91a524757e54ca1c50ee7293dbf1a44cc81d",
+          "sha256": "fc6378afc7abaf334e07ed3dc677c073d6e340b3145fa4235452f01c312afca5",
+          "sha1": "1907403bc761a08c1ba79d84e402c7a7d2f4478f",
+          "md5": "fcdda7d64e05deb7cb9cffd690235e79"
         }
       ]
     }

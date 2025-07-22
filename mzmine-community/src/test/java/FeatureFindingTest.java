@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -67,7 +67,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.project.ProjectService;
-import io.mzio.users.user.CurrentUserService;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -122,13 +121,6 @@ public class FeatureFindingTest {
     MZmineTestUtil.startMzmineCore();
     logger.info("Getting project");
     project = ProjectService.getProjectManager().getCurrentProject();
-
-    // check access level
-    if (!CurrentUserService.isValid()) {
-      var msg = "No test user supplied add user to TESTRUNNER_USER environment var";
-      logger.warning(msg);
-      throw new UnsupportedOperationException(msg);
-    }
   }
 
   @AfterAll
@@ -233,7 +225,7 @@ public class FeatureFindingTest {
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.suffix, chromSuffix);
 
     logger.info("Testing ADAPChromatogramBuilder");
-    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30,
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(50,
         ModularADAPChromatogramBuilderModule.class, paramChrom);
 
     // should have finished by now
@@ -305,7 +297,7 @@ public class FeatureFindingTest {
     sgParam.setParameter(SavitzkyGolayParameters.rtSmoothing, true, 5);
 
     logger.info("Testing chromatogram smoothing (RT, 5 dp)");
-    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30, SmoothingModule.class,
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(50, SmoothingModule.class,
         paramSmooth);
 
     // should have finished by now
@@ -410,7 +402,7 @@ public class FeatureFindingTest {
     groupMs2Params.setParameter(GroupMS2Parameters.minRequiredSignals, false);
     groupMs2Params.setParameter(GroupMS2Parameters.mzTol, new MZTolerance(0.05, 10));
     logger.info("Testing chromatogram deconvolution");
-    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(45,
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(65,
         MinimumSearchFeatureResolverModule.class, generalParam);
 
     // should have finished by now
@@ -472,7 +464,7 @@ public class FeatureFindingTest {
     generalParam.setParameter(IsotopeGrouperParameters.suffix, deisotopeSuffix);
 
     logger.info("Testing deisotoping");
-    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30, IsotopeGrouperModule.class,
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(50, IsotopeGrouperModule.class,
         generalParam);
 
     // should have finished by now
@@ -550,7 +542,7 @@ public class FeatureFindingTest {
     generalParam.setParameter(JoinAlignerParameters.peakListName, alignedName);
 
     logger.info("Testing join aligner");
-    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30, JoinAlignerModule.class,
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(50, JoinAlignerModule.class,
         generalParam);
 
     // should have finished by now

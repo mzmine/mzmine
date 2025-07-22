@@ -75,6 +75,7 @@ public class EditComboCellFactory implements
 
       Label textValue = new Label();
       VBox textWrapper = new VBox(textValue);
+
       {
         textValue.setWrapText(true);
         textWrapper.setMaxHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
@@ -104,6 +105,9 @@ public class EditComboCellFactory implements
 
       @Override
       public void commitEdit(Object newValue) {
+        // sometimes this method seems to be called with a wrapped value
+        // (ArrayList with the selected value). Did not find a way to resolve this here or before,
+        // so this is handled in DataType#createStandardColumn
         super.commitEdit(newValue);
       }
 
@@ -179,8 +183,8 @@ public class EditComboCellFactory implements
         } else if (value == null) {
           return null;
         } else {
-          throw new UnsupportedOperationException("Unhandled data type in edit combo CellFactory: "
-                                                  + type.getHeaderString());
+          throw new UnsupportedOperationException(
+              "Unhandled data type in edit combo CellFactory: " + type.getHeaderString());
         }
       }
     };

@@ -39,7 +39,7 @@ public enum MzMLUnits {
       "°K", "Temperature"), DIMENSIONLESS(MzMLCV.cvUnitsDimensionlessUnit, "",
       "Dimension less"), ELECTRON_VOLT(MzMLCV.cvUnitsElectronVolt, "eV", "Energy"), GRAM(
       MzMLCV.cvUnitsGram, "g", "Mass"), GRAM_PER_LITER(MzMLCV.cvUnitsGramsPerLiter, "(g/L)",
-      "Concentraion"), HERTZ(MzMLCV.cvUnitsHertz, "Hz", "Frequency"), COUNTS(
+      "Concentration"), HERTZ(MzMLCV.cvUnitsHertz, "Hz", "Frequency"), COUNTS(
       MzMLCV.cvUnitsIntensity1, "counts", "Intensity"), COUNTS_PER_SECOND(MzMLCV.cvUnitsIntensity2,
       "cps", "Intensity"), JOULE(MzMLCV.cvUnitsJoule, "J", "Energy"), KILO_DALTON(
       MzMLCV.cvUnitsKiloDalton, "kDa", "Mass"), METER(MzMLCV.cvUnitsMeter, "m",
@@ -54,7 +54,7 @@ public enum MzMLUnits {
       MzMLCV.cvUnitsSquareAngstrom, "\u212B\u00B2", "Surface area"), TESLA(MzMLCV.cvUnitsTesla, "T",
       "Magnetic flux density"), VOLT(MzMLCV.cvUnitsVolt, "V", "Voltage"), VOLT_PER_METER(
       MzMLCV.cvUnitsVoltPerMeter, "(V/m)", "Electromagnetic field strength"), UNKNOWN("unknown", "",
-      "Unknown");
+      "Unknown"), MILLISECONDS(MzMLCV.cvMobilityDriftTimeUnit, "ms", "Time");
 
   private static final Map<String, MzMLUnits> map = Arrays.stream(values())
       .collect(Collectors.toMap(MzMLUnits::getAccession, cv -> cv));

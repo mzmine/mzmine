@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.export_features_csv_legacy;
 
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -35,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExport
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class LegacyCSVExportParameters extends SimpleParameterSet {
 
@@ -76,4 +78,8 @@ public class LegacyCSVExportParameters extends SimpleParameterSet {
         exportAllFeatureInfo, idSeparator, filter);
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

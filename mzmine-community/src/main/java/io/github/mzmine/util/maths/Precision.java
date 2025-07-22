@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import org.jetbrains.annotations.Nullable;
 
 public class Precision {
 
@@ -167,4 +168,56 @@ public class Precision {
     }
   }
 
+  public static boolean equalDoubleSignificance(final double a, final double b) {
+    return equalSignificance(a, b, 14); // double significance is 15 - 17 digits
+  }
+
+  public static boolean equalSignificance(final double a, final double b, final int sigDigits) {
+    if(Double.isNaN(a) && Double.isNaN(b)) {
+      return true;
+    }
+
+    if(Double.isNaN(a) || Double.isNaN(b)) {
+      return false;
+    }
+
+    if (a == b) {
+      return true;
+    }
+    return round(a, sigDigits).equals(round(b, sigDigits));
+    // below is an alternative but this may overflow the double/float so maybe a bad idea
+//    double diff = Math.abs(a - b);
+//    double larger = Math.max(Math.abs(a), Math.abs(b));
+//    return diff <= larger / sigDigits;
+  }
+
+
+  public static boolean equalFloatSignificance(final float a, final float b) {
+    return equalSignificance(a, b, 6); // float significance is 6 - 7 digits
+  }
+
+  public static boolean equalFloatSignificance(final @Nullable Float a, final @Nullable Float b) {
+    if(a == null && b == null) {
+      return true;
+    }
+    if(a == null || b == null) {
+      return false;
+    }
+    return equalFloatSignificance(a.floatValue(), b.floatValue());
+  }
+
+  public static boolean equalSignificance(final float a, final float b, final int sigDigits) {
+    if(Float.isNaN(a) && Float.isNaN(b)) {
+      return true;
+    }
+
+    if(Float.isNaN(a) || Float.isNaN(b)) {
+      return false;
+    }
+
+    if (a == b) {
+      return true;
+    }
+    return round(a, sigDigits).equals(round(b, sigDigits));
+  }
 }

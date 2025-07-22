@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents the polarity of ionization.
  */
-public enum PolarityType {
+public enum PolarityType implements UniqueIdSupplier {
 
   POSITIVE(+1, "+"), //
   NEGATIVE(-1, "-"), //
@@ -64,7 +65,9 @@ public enum PolarityType {
     return switch (str.toLowerCase()) {
       case "+", "positive", "pos", "+1", "1+", "1" -> PolarityType.POSITIVE;
       case "-", "negative", "neg", "-1", "1-" -> PolarityType.NEGATIVE;
-      case "any polarity" -> PolarityType.ANY; // sometimes used as filter option
+      case "any polarity", "any" -> PolarityType.ANY; // sometimes used as filter option
+      case "neutral", "n" -> PolarityType.NEUTRAL;
+      case "unknown" -> PolarityType.UNKNOWN;
       default -> UNKNOWN;
     };
   }
@@ -78,8 +81,8 @@ public enum PolarityType {
     return UNKNOWN;
   }
 
-  public static PolarityType fromInt(int i) {
-    if (i == 0) {
+  public static PolarityType fromInt(@Nullable Integer i) {
+    if (i == null || i == 0) {
       return UNKNOWN;
     } else if (i < 0) {
       return NEGATIVE;
@@ -115,6 +118,13 @@ public enum PolarityType {
   /**
    * @return true if positive or negative
    */
+  public static boolean isDefined(@Nullable PolarityType polarity) {
+    return polarity != null && polarity.isDefined();
+  }
+
+  /**
+   * @return true if positive or negative
+   */
   public boolean isDefined() {
     return this == POSITIVE || this == NEGATIVE;
   }
@@ -132,5 +142,16 @@ public enum PolarityType {
    */
   public boolean includesCharge(final int charge) {
     return this == ANY || (this == NEGATIVE && charge < 0) || (this == POSITIVE && charge > 0);
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case ANY -> "ANY";
+      case NEGATIVE -> "NEGATIVE";
+      case POSITIVE -> "POSITIVE";
+      case NEUTRAL -> "NEUTRAL";
+      case UNKNOWN -> "UNKNOWN";
+    };
   }
 }

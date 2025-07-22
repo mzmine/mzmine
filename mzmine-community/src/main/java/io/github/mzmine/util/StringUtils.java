@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,9 @@
 
 package io.github.mzmine.util;
 
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -255,5 +258,39 @@ public class StringUtils {
 //    }
     // first split at , AND space combination then split at each , space or tab
     return s.split(", |[\\t, ]");
+  }
+
+  public static <T> String join(final List<T> values, @NotNull String delimiter,
+      @NotNull final Function<T, String> mapper) {
+    return values.stream().map(mapper::apply).collect(Collectors.joining(delimiter));
+  }
+
+  @Nullable
+  public static Double parseDoubleOrElse(final @Nullable String s,
+      final @Nullable Double defaultValue) {
+    if (s == null) {
+      return defaultValue;
+    }
+    try {
+      return Double.parseDouble(s);
+    } catch (Exception ex) {
+      return defaultValue;
+    }
+  }
+
+  public static boolean anyBlank(String... values) {
+    return !hasValues(values);
+  }
+
+  /**
+   * All require non blank value
+   */
+  public static boolean hasValues(String... values) {
+    for (String value : values) {
+      if (isBlank(value)) {
+        return false;
+      }
+    }
+    return true;
   }
 }
