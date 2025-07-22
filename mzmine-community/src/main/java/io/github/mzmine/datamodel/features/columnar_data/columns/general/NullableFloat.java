@@ -23,38 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.columns;
+package io.github.mzmine.datamodel.features.columnar_data.columns.general;
 
-import io.github.mzmine.datamodel.features.columnar_data.columns.general.NullableInteger;
 import org.jetbrains.annotations.Nullable;
 
-public non-sealed interface NullableIntDataColumn extends DataColumn<Integer>, NullableInteger {
+public interface NullableFloat {
+
+  float NULL_VALUE = Float.NaN;
 
   /**
-   * @param index row index
-   * @return the primitive double value or {@link #nullValue()} for null
+   * @return Float.NaN used as null representative
    */
-  int getInt(final int index);
+  default float nullValue() {
+    return NULL_VALUE;
+  }
 
   /**
-   * @param index row index
-   * @param value the primitive value or {@link #nullValue()} for null
+   * @return true if value represents null
    */
-  int setInt(final int index, final int value);
-
-  default void clear(final int index) {
-    setInt(index, nullValue());
+  default boolean isNull(final @Nullable Float value) {
+    return value == null || isNull(value.floatValue());
   }
 
-  @Override
-  default @Nullable Integer set(final int index, final @Nullable Integer value) {
-    return setInt(index, value == null ? nullValue() : value);
+  /**
+   * @return true if value represents null
+   */
+  default boolean isNull(final float value) {
+    return Float.isNaN(value);
   }
-
-  @Override
-  default @Nullable Integer get(final int index) {
-    var value = getInt(index);
-    return isNull(value) ? null : value;
-  }
-
 }

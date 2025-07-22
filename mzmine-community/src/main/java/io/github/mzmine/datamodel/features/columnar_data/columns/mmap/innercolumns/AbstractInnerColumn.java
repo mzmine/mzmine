@@ -23,38 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.columns;
+package io.github.mzmine.datamodel.features.columnar_data.columns.mmap.innercolumns;
 
-import io.github.mzmine.datamodel.features.columnar_data.columns.general.NullableInteger;
-import org.jetbrains.annotations.Nullable;
+import java.lang.foreign.MemoryLayout.PathElement;
+import java.lang.foreign.StructLayout;
+import java.lang.invoke.VarHandle;
+import org.jetbrains.annotations.NotNull;
 
-public non-sealed interface NullableIntDataColumn extends DataColumn<Integer>, NullableInteger {
+public abstract class AbstractInnerColumn<T> implements InnerColumn<T> {
 
-  /**
-   * @param index row index
-   * @return the primitive double value or {@link #nullValue()} for null
-   */
-  int getInt(final int index);
+  protected final VarHandle varHandle;
 
-  /**
-   * @param index row index
-   * @param value the primitive value or {@link #nullValue()} for null
-   */
-  int setInt(final int index, final int value);
-
-  default void clear(final int index) {
-    setInt(index, nullValue());
-  }
-
-  @Override
-  default @Nullable Integer set(final int index, final @Nullable Integer value) {
-    return setInt(index, value == null ? nullValue() : value);
-  }
-
-  @Override
-  default @Nullable Integer get(final int index) {
-    var value = getInt(index);
-    return isNull(value) ? null : value;
+  public AbstractInnerColumn(@NotNull StructLayout layout, @NotNull String varHandleName) {
+    varHandle = layout.arrayElementVarHandle(PathElement.groupElement(varHandleName));
   }
 
 }
