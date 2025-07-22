@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -25,25 +24,18 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public enum FeatureLimitOptions implements UniqueIdSupplier {
-  USE_FEATURE_EDGES, USE_TOLERANCE;
+public record ComboWithStringInputValue<EnumType>(EnumType value, String embeddedValue) implements
+    ComboWithInputValue<EnumType, String> {
 
   @Override
-  public String toString() {
-    return switch (this) {
-      case USE_FEATURE_EDGES -> "Use feature edges";
-      case USE_TOLERANCE -> "Use tolerance";
-    };
+  public EnumType getSelectedOption() {
+    return value();
   }
 
   @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case USE_FEATURE_EDGES -> "Use feature edges";
-      case USE_TOLERANCE -> "Use tolerance";
-    };
+  public @Nullable String getEmbeddedValue() {
+    return embeddedValue();
   }
 }

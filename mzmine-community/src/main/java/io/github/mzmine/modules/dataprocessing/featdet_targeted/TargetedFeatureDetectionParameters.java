@@ -88,19 +88,19 @@ public class TargetedFeatureDetectionParameters extends SimpleParameterSet {
       "Ion types to search for. Either neutral mass, formula or smiles must be imported for every compound.",
       new IonLibraryParameterSet());
 
-  private static final List<ImportType> importTypes = List.of(
-      new ImportType(true, "neutral mass", new NeutralMassType()),
-      new ImportType(true, "mz", new PrecursorMZType()), //
-      new ImportType(true, "rt", new RTType()), //
-      new ImportType(true, "formula", new FormulaType()),
-      new ImportType(true, "smiles", new SmilesStructureType()),
-      new ImportType(false, "adduct", new IonAdductType()),
-      new ImportType(false, "inchi", new InChIStructureType()),
-      new ImportType(false, "inchi key", new InChIKeyStructureType()),
-      new ImportType(false, "name", new CompoundNameType()),
-      new ImportType(false, "CCS", new CCSType()),
-      new ImportType(false, "mobility", new MobilityType()),
-      new ImportType(true, "comment", new CommentType()));
+  private static final List<ImportType<?>> importTypes = List.of(
+      new ImportType<>(true, "neutral mass", new NeutralMassType()),
+      new ImportType<>(true, "mz", new PrecursorMZType()), //
+      new ImportType<>(true, "rt", new RTType()), //
+      new ImportType<>(true, "formula", new FormulaType()),
+      new ImportType<>(true, "smiles", new SmilesStructureType()),
+      new ImportType<>(false, "adduct", new IonAdductType()),
+      new ImportType<>(false, "inchi", new InChIStructureType()),
+      new ImportType<>(false, "inchi key", new InChIKeyStructureType()),
+      new ImportType<>(false, "name", new CompoundNameType()),
+      new ImportType<>(false, "CCS", new CCSType()),
+      new ImportType<>(false, "mobility", new MobilityType()),
+      new ImportType<>(true, "comment", new CommentType()));
 
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);

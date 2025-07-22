@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,27 +22,41 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.combowithinput;
+package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-public enum FeatureLimitOptions implements UniqueIdSupplier {
-  USE_FEATURE_EDGES, USE_TOLERANCE;
+public enum HandleExtraColumnsOptions implements UniqueIdSupplier {
+  IGNORE, IMPORT_SPECIFIC, IMPORT_ALL;
 
-  @Override
-  public String toString() {
+  public String getDescription() {
     return switch (this) {
-      case USE_FEATURE_EDGES -> "Use feature edges";
-      case USE_TOLERANCE -> "Use tolerance";
+      case IGNORE -> "Ignore all columns that are not selected and specified in the %s.".formatted(
+          StringUtils.inQuotes("Columns"));
+      case IMPORT_SPECIFIC -> """
+          Import columns with specific headers as specified in the text field as a JSON string.
+          Multiple columns can be specified by comma separation.""";
+      case IMPORT_ALL -> "All additional columns will be imported as a JSON string.";
     };
   }
 
   @Override
   public @NotNull String getUniqueID() {
     return switch (this) {
-      case USE_FEATURE_EDGES -> "Use feature edges";
-      case USE_TOLERANCE -> "Use tolerance";
+      case IGNORE -> "ignore";
+      case IMPORT_SPECIFIC -> "import_specific";
+      case IMPORT_ALL -> "import_all";
+    };
+  }
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case IGNORE -> "Ignore all";
+      case IMPORT_SPECIFIC -> "Import specific";
+      case IMPORT_ALL -> "Import all";
     };
   }
 }
