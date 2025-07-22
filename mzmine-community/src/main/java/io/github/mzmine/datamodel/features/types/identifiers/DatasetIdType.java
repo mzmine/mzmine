@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,27 +22,43 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.combowithinput;
+package io.github.mzmine.datamodel.features.types.identifiers;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
+import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
+import javafx.util.StringConverter;
+import javafx.util.converter.DefaultStringConverter;
 import org.jetbrains.annotations.NotNull;
 
-public enum FeatureLimitOptions implements UniqueIdSupplier {
-  USE_FEATURE_EDGES, USE_TOLERANCE;
+/**
+ * Universal spectrum identifier for a spectrum in the public domaine
+ */
+public class DatasetIdType extends StringType implements EditableColumnType, StringParser<String>,
+    AnnotationType {
+
+  private final StringConverter<String> converter = new DefaultStringConverter();
 
   @Override
-  public String toString() {
-    return switch (this) {
-      case USE_FEATURE_EDGES -> "Use feature edges";
-      case USE_TOLERANCE -> "Use tolerance";
-    };
+  public @NotNull String getHeaderString() {
+    return "Dataset ID";
   }
 
   @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case USE_FEATURE_EDGES -> "Use feature edges";
-      case USE_TOLERANCE -> "Use tolerance";
-    };
+  public String fromString(String s) {
+    return s;
+  }
+
+  @Override
+  public StringConverter<String> getStringConverter() {
+    return converter;
+  }
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "dataset_id";
   }
 }

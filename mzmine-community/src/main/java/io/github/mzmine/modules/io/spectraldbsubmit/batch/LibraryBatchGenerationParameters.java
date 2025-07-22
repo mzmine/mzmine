@@ -158,7 +158,8 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
   }
 
   @Override
-  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
     if (loadedParams.containsKey(mergeMzTolerance.getName())) {
       boolean merge = mergeMzTolerance.getValue();
       if (!merge) {
