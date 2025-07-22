@@ -16,7 +16,7 @@ when
 then
     
     lipid.setScore(1);
-    lipid.setDescrCorrect("Contains [M-H]-, ");
+    lipid.setDescrCorrect("Contains [M-H]-; ");
 end
 rule "No presence [M-H]-"
 when
@@ -24,7 +24,7 @@ when
 then
 
     lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M-H]-, ");
+    lipid.setDescrIncorrect("Missing [M-H]-; ");
 end
 
 rule "Presence [M-H+(CH3COONa)]-"
@@ -35,7 +35,7 @@ when
 then
     
     lipid.setScore(1);
-    lipid.setDescrCorrect("Contains [M-H+(CH3COONa)]-, ");
+    lipid.setDescrCorrect("Contains [M-H+(CH3COONa)]-; ");
 end
 
 
@@ -50,7 +50,7 @@ when
 then
     
     lipid.setScore(2);
-    lipid.setDescrCorrect("Intensity OK [M-H]- > [M+CH3COO+(CH3COONa)]-, ");
+    lipid.setDescrCorrect("Intensity OK [M-H]- > [M+CH3COO+(CH3COONa)]-; ");
 end
 
 
@@ -64,5 +64,5 @@ when
 then
     
     lipid.setScore(-2);
-    lipid.setDescrIncorrect("Intensity NOT OK [M-H]- < [M+CH3COO+(CH3COONa)]-, ");
+    lipid.setDescrIncorrect("Intensity NOT OK [M-H]- < [M+CH3COO+(CH3COONa)]-; ");
 end

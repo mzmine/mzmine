@@ -15,12 +15,12 @@ when
     $adduct: FoundAdduct(adductName == "[M+H]+")
 then
     lipid.setScore(1);
-    lipid.setDescrCorrect("Contains [M+H]+, ");
+    lipid.setDescrCorrect("Contains [M+H]+; ");
 end
 rule "No presence [M+H]+"
 when
     not FoundAdduct(adductName == "[M+H]+")
 then
     lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+H]+, ");
+    lipid.setDescrIncorrect("Missing [M+H]+; ");
 end

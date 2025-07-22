@@ -18,7 +18,7 @@ global List mobilePhases;
  then
      
      lipid.setScore(1);
-     lipid.setDescrCorrect("Contains [M+CH3COO]-, ");
+     lipid.setDescrCorrect("Contains [M+CH3COO]-; ");
  end
   rule "No presence [M+CH3COO]-"
   when
@@ -28,7 +28,7 @@ global List mobilePhases;
   then
 
       lipid.setScore(-1);
-      lipid.setDescrIncorrect("Missing [M+CH3COO]-, ");
+      lipid.setDescrIncorrect("Missing [M+CH3COO]-; ");
   end
 
  rule "Presence [M+HCOO]-"
@@ -39,7 +39,7 @@ global List mobilePhases;
  then
      
      lipid.setScore(1);
-     lipid.setDescrCorrect("Contains [M+HCOO]-, ");
+     lipid.setDescrCorrect("Contains [M+HCOO]-; ");
  end
 
 rule "Presence [M+Cl]-"
@@ -48,7 +48,7 @@ rule "Presence [M+Cl]-"
  then
      
      lipid.setScore(1);
-     lipid.setDescrCorrect("Contains [M+Cl]-, ");
+     lipid.setDescrCorrect("Contains [M+Cl]-; ");
  end
 
 
@@ -64,7 +64,7 @@ when
 then
     
     lipid.setScore(2);
-    lipid.setDescrCorrect("Intensity OK [M+CH3COO]- > [M+Cl]-, ");
+    lipid.setDescrCorrect("Intensity OK [M+CH3COO]- > [M+Cl]-; ");
 end
 
 rule "Intensity [M+Cl]- > [M+HCOO]-"
@@ -77,7 +77,7 @@ when
 then
     
     lipid.setScore(2);
-    lipid.setDescrCorrect("Intensity OK [M+CH3COO]- > [M+HCOO]-, ");
+    lipid.setDescrCorrect("Intensity OK [M+CH3COO]- > [M+HCOO]-; ");
 end
 
 rule "Intensity [M+CH3COO]- < [M+Cl]-"
@@ -90,7 +90,7 @@ when
 then
     
     lipid.setScore(-2);
-    lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO]- < [M+Cl]-, ");
+    lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO]- < [M+Cl]-; ");
 end
 
 rule "Intensity [M+Cl]- < [M+HCOO]-"
@@ -103,7 +103,7 @@ when
 then
     
     lipid.setScore(-2);
-    lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO]- < [M+HCOO]-, ");
+    lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO]- < [M+HCOO]-; ");
 end
 
 rule "Intensity [M+HCOO]- > [M+CH3COO]-"
@@ -118,5 +118,5 @@ when
 then
 
     lipid.setScore(-2);
-    lipid.setDescrIncorrect("Intensity NOT OK [M+HCOO]- > [M+CH3COO]-, ");
+    lipid.setDescrIncorrect("Intensity NOT OK [M+HCOO]- > [M+CH3COO]-; ");
 end

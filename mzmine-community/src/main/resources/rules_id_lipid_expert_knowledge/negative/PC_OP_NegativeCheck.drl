@@ -18,7 +18,7 @@ package rules_id_lipid_expert_knowledge.negative;
        then
            
            lipid.setScore(1);
-           lipid.setDescrCorrect("Contains [M+CH3COO]-, ");
+           lipid.setDescrCorrect("Contains [M+CH3COO]-; ");
        end
        rule "No presence [M+CH3COO]-"
               when
@@ -28,7 +28,7 @@ package rules_id_lipid_expert_knowledge.negative;
               then
 
                   lipid.setScore(-1);
-                  lipid.setDescrIncorrect("Missing [M+CH3COO]-, ");
+                  lipid.setDescrIncorrect("Missing [M+CH3COO]-; ");
               end
 
        rule "Presence [M+CH3COO+(CH3COONa)]-"
@@ -39,7 +39,7 @@ package rules_id_lipid_expert_knowledge.negative;
        then
            
            lipid.setScore(1);
-           lipid.setDescrCorrect("Contains [M+CH3COO+(CH3COONa)]-, ");
+           lipid.setDescrCorrect("Contains [M+CH3COO+(CH3COONa)]-; ");
        end
 
        rule "Presence [M+CH3COO+(CH3COONa)2]-"
@@ -50,7 +50,7 @@ package rules_id_lipid_expert_knowledge.negative;
        then
            
            lipid.setScore(1);
-           lipid.setDescrCorrect("Contains [M+CH3COO+(CH3COONa)2]-, ");
+           lipid.setDescrCorrect("Contains [M+CH3COO+(CH3COONa)2]-; ");
        end
 
 
@@ -62,7 +62,7 @@ package rules_id_lipid_expert_knowledge.negative;
        then
            
            lipid.setScore(1);
-           lipid.setDescrCorrect("Contains [M+CH3COO+(CH3COONa)3]-, ");
+           lipid.setDescrCorrect("Contains [M+CH3COO+(CH3COONa)3]-; ");
        end
 
 
@@ -74,7 +74,7 @@ package rules_id_lipid_expert_knowledge.negative;
        then
            
            lipid.setScore(1);
-           lipid.setDescrCorrect("Contains [M+HCOO]-, ");
+           lipid.setDescrCorrect("Contains [M+HCOO]-; ");
        end
 
 
@@ -88,7 +88,7 @@ package rules_id_lipid_expert_knowledge.negative;
        then
            
            lipid.setScore(1);
-           lipid.setDescrCorrect("Contains [M+HCOO+(CH3COONa)]-, ");
+           lipid.setDescrCorrect("Contains [M+HCOO+(CH3COONa)]-; ");
        end
 
 
@@ -98,7 +98,7 @@ package rules_id_lipid_expert_knowledge.negative;
        then
            
            lipid.setScore(1);
-           lipid.setDescrCorrect("Contains [M+Cl]-, ");
+           lipid.setDescrCorrect("Contains [M+Cl]-; ");
        end
 
 
@@ -110,7 +110,7 @@ package rules_id_lipid_expert_knowledge.negative;
        then
            
            lipid.setScore(1);
-           lipid.setDescrCorrect("Contains [M+CH3COO-CH3COOCH3]-, ");
+           lipid.setDescrCorrect("Contains [M+CH3COO-CH3COOCH3]-; ");
        end
 
 
@@ -127,7 +127,7 @@ package rules_id_lipid_expert_knowledge.negative;
        then
            
            lipid.setScore(2);
-           lipid.setDescrCorrect("Intensity OK [M+CH3COO]- > [M+CH3COO+(CH3COONa)]-, ");
+           lipid.setDescrCorrect("Intensity OK [M+CH3COO]- > [M+CH3COO+(CH3COONa)]-; ");
        end
 
        rule "Intensity [M+CH3COO+(CH3COONa)]- > [M+CH3COO+(CH3COONa)2]-"
@@ -141,7 +141,7 @@ package rules_id_lipid_expert_knowledge.negative;
        then
            
            lipid.setScore(2);
-           lipid.setDescrCorrect("Intensity OK [M+CH3COO+(CH3COONa)]- > [M+CH3COO+(CH3COONa)2]-, ");
+           lipid.setDescrCorrect("Intensity OK [M+CH3COO+(CH3COONa)]- > [M+CH3COO+(CH3COONa)2]-; ");
        end
 
        rule "Intensity [M+CH3COO+(CH3COONa)]- > [M+CH3COO+(CH3COONa)3]-"
@@ -155,7 +155,7 @@ package rules_id_lipid_expert_knowledge.negative;
        then
            
            lipid.setScore(2);
-           lipid.setDescrCorrect("Intensity OK [M+CH3COO+(CH3COONa)]- > [M+CH3COO+(CH3COONa)3]-, ");
+           lipid.setDescrCorrect("Intensity OK [M+CH3COO+(CH3COONa)]- > [M+CH3COO+(CH3COONa)3]-; ");
        end
 
        rule "Intensity [M+CH3COO]- < [M+CH3COO+(CH3COONa)]-"
@@ -169,7 +169,7 @@ package rules_id_lipid_expert_knowledge.negative;
               then
                   
                   lipid.setScore(-2);
-                  lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO]- < [M+CH3COO+(CH3COONa)]-, ");
+                  lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO]- < [M+CH3COO+(CH3COONa)]-; ");
               end
 
        rule "Intensity [M+CH3COO+(CH3COONa)]- < [M+CH3COO+(CH3COONa)2]-"
@@ -183,7 +183,7 @@ package rules_id_lipid_expert_knowledge.negative;
            then
                   
               lipid.setScore(-2);
-              lipid.setDescrIncorrect("Intensity OK [M+CH3COO+(CH3COONa)]- < [M+CH3COO+(CH3COONa)2]-, ");
+              lipid.setDescrIncorrect("Intensity OK [M+CH3COO+(CH3COONa)]- < [M+CH3COO+(CH3COONa)2]-; ");
            end
 
        rule "Intensity [M+CH3COO+(CH3COONa)]- < [M+CH3COO+(CH3COONa)3]-"
@@ -197,7 +197,7 @@ package rules_id_lipid_expert_knowledge.negative;
            then
                   
                lipid.setScore(-2);
-               lipid.setDescrIncorrect("Intensity OK [M+CH3COO+(CH3COONa)]- < [M+CH3COO+(CH3COONa)3]-, ");
+               lipid.setDescrIncorrect("Intensity OK [M+CH3COO+(CH3COONa)]- < [M+CH3COO+(CH3COONa)3]-; ");
            end
        rule "Intensity [M+CH3COO+(CH3COONa)2]- > [M+CH3COO]-"
        when
@@ -210,7 +210,7 @@ package rules_id_lipid_expert_knowledge.negative;
        then
 
            lipid.setScore(-2);
-           lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO+(CH3COONa)2]- > [M+CH3COO]-, ");
+           lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO+(CH3COONa)2]- > [M+CH3COO]-; ");
        end
        rule "Intensity [M+CH3COO+(CH3COONa)3]- > [M+CH3COO]-"
        when
@@ -222,5 +222,5 @@ package rules_id_lipid_expert_knowledge.negative;
        then
 
            lipid.setScore(-2);
-           lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO+(CH3COONa)3]- > [M+CH3COO]-, ");
+           lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO+(CH3COONa)3]- > [M+CH3COO]-; ");
        end
