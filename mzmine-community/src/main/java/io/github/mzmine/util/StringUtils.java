@@ -293,4 +293,38 @@ public class StringUtils {
     }
     return true;
   }
+
+  /**
+   * @return true if all values are blank or null
+   */
+  public static boolean allBlank(String... values) {
+    for (String value : values) {
+      if (hasValue(value)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * @return true if the content is equal, this means that blank or null strings will be always
+   * false
+   */
+  public static boolean equalContent(@Nullable String a, @Nullable String b) {
+    if (isBlank(a) || isBlank(b)) {
+      return false;
+    }
+    return a.equals(b);
+  }
+
+  /**
+   * @return true if the content is equal (ignoring case), this means that blank or null strings
+   * will be always false
+   */
+  public static boolean equalContentIgnoreCase(@Nullable String a, @Nullable String b) {
+    if (isBlank(a) || isBlank(b)) {
+      return false;
+    }
+    return a.equalsIgnoreCase(b);
+  }
 }
