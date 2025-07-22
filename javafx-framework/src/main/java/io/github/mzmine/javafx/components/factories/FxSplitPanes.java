@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,23 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.volcanoplot;
+package io.github.mzmine.javafx.components.factories;
 
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import org.jetbrains.annotations.NotNull;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
+import javafx.scene.control.SplitPane;
 
-public class VolcanoPlotParameters extends SimpleParameterSet {
+public class FxSplitPanes {
 
-  public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1, true);
-
-  public VolcanoPlotParameters() {
-    super("https://mzmine.github.io/mzmine_documentation/visualization_modules/statistics_dashboard/statistics_dashboard.html#volcano-plot", flist);
+  public static SplitPane newSplitPane(Node... nodes) {
+    return newSplitPane(0.5, Orientation.HORIZONTAL, nodes);
   }
 
-  @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
+  public static SplitPane newSplitPane(double dividerPosition, Orientation orientation,
+      Node... nodes) {
+    SplitPane splitPane = new SplitPane(nodes);
+    splitPane.setDividerPositions(dividerPosition);
+    splitPane.setOrientation(orientation);
+    return splitPane;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,23 +22,43 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.volcanoplot;
+package io.github.mzmine.parameters.parametertypes.combowithinput;
 
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.parameters.parametertypes.combowithinput.IntOrAutoValue.IntOrAuto;
 import org.jetbrains.annotations.NotNull;
 
-public class VolcanoPlotParameters extends SimpleParameterSet {
+public record IntOrAutoValue(IntOrAuto value, int manual) implements ComboWithInputValue<IntOrAuto, Integer> {
 
-  public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1, true);
-
-  public VolcanoPlotParameters() {
-    super("https://mzmine.github.io/mzmine_documentation/visualization_modules/statistics_dashboard/statistics_dashboard.html#volcano-plot", flist);
+  @Override
+  public IntOrAuto getSelectedOption() {
+    return value;
   }
 
   @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
+  public Integer getEmbeddedValue() {
+    return manual;
   }
+
+  public enum IntOrAuto implements UniqueIdSupplier {
+    AUTO, MANUAL;
+
+    @Override
+    public @NotNull String getUniqueID() {
+      return switch (this) {
+        case AUTO -> "auto";
+        case MANUAL -> "manual";
+      };
+    }
+
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case AUTO -> "auto";
+        case MANUAL -> "manual";
+      };
+    }
+  }
+
 }

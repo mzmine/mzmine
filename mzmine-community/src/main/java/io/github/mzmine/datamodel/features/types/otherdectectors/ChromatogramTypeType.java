@@ -63,32 +63,4 @@ public class ChromatogramTypeType extends EnumDataType<ChromatogramType> {
     return ChromatogramType.class;
   }
 
-  @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (value == null) {
-      return;
-    }
-
-    if (value instanceof ChromatogramType type) {
-      writer.writeCharacters(type.name());
-    }
-  }
-
-  @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
-        && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
-      throw new IllegalStateException("Wrong element");
-    }
-
-    final String text = reader.getElementText();
-    if (text == null || text.isBlank()) {
-      return null;
-    }
-    return ChromatogramType.valueOf(text);
-  }
 }

@@ -46,6 +46,7 @@ import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.Q3QuantMzType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -118,7 +119,7 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType(true, "smiles", new SmilesStructureType()),
       new ImportType(false, "inchi", new InChIStructureType()),
       new ImportType(false, "inchi_key", new InChIKeyStructureType()),
-      new ImportType(false, "name", new CompoundNameType()),
+      new ImportType(true, "name", new CompoundNameType()),
       new ImportType(false, "CCS", new CCSType()),
       new ImportType(false, "mobility", new MobilityType()),
       new ImportType(true, "comment", new CommentType()),
@@ -131,7 +132,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType(false, "classyfire_direct_parent", new ClassyFireParentType()),
       new ImportType(false, "npclassifier_superclass", new NPClassifierSuperclassType()),
       new ImportType(false, "npclassifier_class", new NPClassifierClassType()),
-      new ImportType(false, "npclassifier_pathway", new NPClassifierPathwayType()));
+      new ImportType(false, "npclassifier_pathway", new NPClassifierPathwayType()),
+      new ImportType(false, new Q3QuantMzType().getUniqueID(), new Q3QuantMzType()));
 
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);

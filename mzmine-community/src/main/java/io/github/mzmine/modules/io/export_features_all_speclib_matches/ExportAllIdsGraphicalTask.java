@@ -275,7 +275,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
         dialog.setParameterValuesToComponents();
         dialog.export();
       }
-    });
+    }, true);
   }
 
   private void exportSpectralLibraryMatches(File flistFolder, FeatureListRow row) {
@@ -420,7 +420,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
           dialog.setParameterValuesToComponents();
           dialog.export();
         }
-      });
+      }, true);
     }
   }
 }

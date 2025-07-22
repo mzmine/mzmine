@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents the polarity of ionization.
  */
-public enum PolarityType {
+public enum PolarityType implements UniqueIdSupplier {
 
   POSITIVE(+1, "+"), //
   NEGATIVE(-1, "-"), //
@@ -64,7 +65,9 @@ public enum PolarityType {
     return switch (str.toLowerCase()) {
       case "+", "positive", "pos", "+1", "1+", "1" -> PolarityType.POSITIVE;
       case "-", "negative", "neg", "-1", "1-" -> PolarityType.NEGATIVE;
-      case "any polarity" -> PolarityType.ANY; // sometimes used as filter option
+      case "any polarity", "any" -> PolarityType.ANY; // sometimes used as filter option
+      case "neutral", "n" -> PolarityType.NEUTRAL;
+      case "unknown" -> PolarityType.UNKNOWN;
       default -> UNKNOWN;
     };
   }
@@ -139,5 +142,16 @@ public enum PolarityType {
    */
   public boolean includesCharge(final int charge) {
     return this == ANY || (this == NEGATIVE && charge < 0) || (this == POSITIVE && charge > 0);
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case ANY -> "ANY";
+      case NEGATIVE -> "NEGATIVE";
+      case POSITIVE -> "POSITIVE";
+      case NEUTRAL -> "NEUTRAL";
+      case UNKNOWN -> "UNKNOWN";
+    };
   }
 }

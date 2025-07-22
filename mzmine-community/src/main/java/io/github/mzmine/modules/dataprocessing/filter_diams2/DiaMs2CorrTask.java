@@ -393,9 +393,10 @@ public class DiaMs2CorrTask extends AbstractTask {
       for (int i = 0; i < subSeries.getNumberOfValues(); i++) {
         rts[i] = subSeries.getRetentionTime(i);
       }
+      final double[] ms2Intensity = subSeries.getIntensityValueBuffer().toArray(ValueLayout.JAVA_DOUBLE);
 
       final CorrelationData correlationData = DIA.corrFeatureShape(ms1Rts, ms1Intensities, rts,
-          subSeries.getIntensityValueBuffer().toArray(ValueLayout.JAVA_DOUBLE), minCorrPoints, 2,
+          ms2Intensity, minCorrPoints, 2,
           minMs2Intensity / 5);
       if (correlationData == null || !correlationData.isValid()
           || correlationData.getPearsonR() < minPearson) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,6 +37,7 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
@@ -607,8 +608,18 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     getXYPlot().getRangeAxis().setLabel(yAxisLabel);
   }
 
+  public synchronized int addDataSetAndRenderer(final DatasetAndRenderer dataset,
+      final boolean updateAfter) {
+    return addDataSetAndRenderer(dataset.dataset(), dataset.renderer(), updateAfter);
+  }
+
   public synchronized int addDataSetAndRenderer(final XYDataset dataSet,
       final XYItemRenderer renderer) {
+    return addDataSetAndRenderer(dataSet, renderer, true);
+  }
+
+  public synchronized int addDataSetAndRenderer(final XYDataset dataSet,
+      final XYItemRenderer renderer, final boolean updateAfter) {
     int nextDatasetId = JFreeChartUtils.getNextDatasetIndex(plot);
 
     applyWithNotifyChanges(false, () -> {
@@ -619,11 +630,30 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
             ((FeatureDataSet) dataSet).getFeature().getRawDataFile().getColorAWT());
       }
 
+      final boolean previousNotify = plot.isNotify();
+      plot.setNotify(updateAfter);
       plot.setRenderer(nextDatasetId, renderer, false); // notify on dataset change
       plot.setDataset(nextDatasetId, dataSet);
+      plot.setNotify(previousNotify);
     });
 
     return nextDatasetId;
+  }
+
+  /**
+   * Batch update datasets and renderers for better performance
+   */
+  public synchronized void addDataSetAndRenderers(Collection<DatasetAndRenderer> dataSets) {
+    final boolean oldNotify = plot.isNotify();
+    plot.setNotify(false);
+
+    // optimize updateAfter to false so that no updates are triggered
+    dataSets.forEach(data -> addDataSetAndRenderer(data, false));
+
+    plot.setNotify(oldNotify);
+    if (oldNotify) {
+      chart.fireChartChanged();
+    }
   }
 
 
