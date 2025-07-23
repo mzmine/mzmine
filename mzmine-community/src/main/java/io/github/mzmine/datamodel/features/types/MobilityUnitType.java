@@ -25,22 +25,15 @@
 
 package io.github.mzmine.datamodel.features.types;
 
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.abstr.EnumDataType;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import java.util.List;
+import java.util.function.Function;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,32 +68,6 @@ public class MobilityUnitType extends EnumDataType<MobilityType> {
   }
 
   @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (value == null) {
-      return;
-    }
-    if (!(value instanceof MobilityType mt)) {
-      throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
-    }
-    writer.writeCharacters(mt.name());
-  }
-
-  @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    String name = reader.getElementText();
-    if (name.isEmpty()) {
-      return null;
-    }
-    return MobilityType.valueOf(name);
-  }
-
-  @Override
   public @NotNull List<RowBinding> createDefaultRowBindings() {
     return List.of(new SimpleRowBinding(this, BindingsType.CONSENSUS));
   }
@@ -123,5 +90,13 @@ public class MobilityUnitType extends EnumDataType<MobilityType> {
     } else {
       return super.evaluateBindings(bindingType, models);
     }
+  }
+
+  @Override
+  public @Nullable Function<@Nullable String, @Nullable MobilityType> getMapper() {
+    /**
+     * The unit is not unique, cannot map back from {@link MobilityType#getUnit()}
+     */
+    return null;
   }
 }
