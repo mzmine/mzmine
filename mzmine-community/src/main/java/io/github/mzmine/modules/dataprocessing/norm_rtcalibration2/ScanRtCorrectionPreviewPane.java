@@ -57,7 +57,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -147,11 +146,6 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
     // use different shapes to make it more obvious which belong together
     final DefaultDrawingSupplier drawingSupplier = JFreeChartUtils.DEFAULT_DRAWING_SUPPLIER;
     final SimpleColorPalette palette = ConfigService.getDefaultColorPalette().clone(true);
-    // jump to random shape
-    int jump = new Random(System.nanoTime()).nextInt(8);
-    for (int i = 0; i < jump; i++) {
-      drawingSupplier.getNextShape();
-    }
 
     final List<DatasetAndRenderer> datasets = new ArrayList<>();
 
