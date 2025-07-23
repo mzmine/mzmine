@@ -269,7 +269,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
   @NotNull
   public static List<FeatureList> getSelectedFeatureLists() {
     final GroupableListView<FeatureList> featureListView = mainWindowController.getFeatureListsList();
-    return ImmutableList.copyOf(featureListView.getSelectedValues());
+    return ImmutableList.copyOf(featureListView.getSelectedValues().stream().distinct().toList());
   }
 
   @NotNull

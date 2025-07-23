@@ -95,8 +95,8 @@ public class RawDataFilePlaceholder implements RawDataFile {
   }
 
   public boolean matches(@Nullable final RawDataFile file) {
-    return file != null && file.getName().equals(name) && Objects.equals(absPath,
-        file.getAbsolutePath()) && (fileHashCode == null || Objects.equals(fileHashCode,
+    return file != null && file.getName().equals(name) && (absPath == null || Objects.equals(
+        absPath, file.getAbsolutePath())) && (fileHashCode == null || Objects.equals(fileHashCode,
         file.hashCode()));
   }
 
