@@ -64,6 +64,7 @@ public abstract class RangesOrToleranceParameter<T extends Number & Comparable<T
     this.toleranceParameter = toleranceParameter;
     this.unit = unit;
     this.numberFormat = format;
+//    value = new
   }
 
   @Override
@@ -99,9 +100,9 @@ public abstract class RangesOrToleranceParameter<T extends Number & Comparable<T
   }
 
   @Override
-  public void setValue(RangeOrValueResult<T> newValue) {
+  public void setValue(@Nullable RangeOrValueResult<T> newValue) {
     this.value = newValue;
-    toleranceParameter.setValue((TolType) newValue.tolerance());
+    toleranceParameter.setValue(newValue != null ? (TolType) newValue.tolerance() : null);
   }
 
   @Override

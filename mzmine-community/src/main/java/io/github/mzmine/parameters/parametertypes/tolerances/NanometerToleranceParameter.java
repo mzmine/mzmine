@@ -36,13 +36,13 @@ public class NanometerToleranceParameter implements
 
   private final String name;
   private final String description;
-  private NanometerTolerance value;
+  private @Nullable NanometerTolerance value;
 
   public NanometerToleranceParameter() {
     this("Nanometer tolerance", "Maximum allowed difference between two mobility values");
   }
 
-  public NanometerToleranceParameter(NanometerTolerance defaultValue) {
+  public NanometerToleranceParameter(@Nullable NanometerTolerance defaultValue) {
     this();
     value = defaultValue;
   }
@@ -53,7 +53,7 @@ public class NanometerToleranceParameter implements
   }
 
   public NanometerToleranceParameter(String name, String description,
-      NanometerTolerance defaultValue) {
+      @Nullable NanometerTolerance defaultValue) {
     this.name = name;
     this.description = description;
     this.value = defaultValue;
@@ -93,19 +93,19 @@ public class NanometerToleranceParameter implements
   }
 
   @Override
-  public NanometerTolerance getValue() {
+  public @Nullable NanometerTolerance getValue() {
     return value;
   }
 
   @Override
-  public void setValue(NanometerTolerance newValue) {
+  public void setValue(@Nullable NanometerTolerance newValue) {
     this.value = newValue;
   }
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
     String toleranceNum = xmlElement.getTextContent();
-    if (toleranceNum.length() == 0) {
+    if (toleranceNum.isEmpty()) {
       return;
     }
     double tolerance = Double.parseDouble(toleranceNum);

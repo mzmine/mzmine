@@ -58,7 +58,7 @@ public class DoubleRangesOrToleranceParameter<TolType extends Tolerance<Double>,
   public UserParameter<RangeOrValueResult<Double>, RangesOrToleranceComponent<Double, ToleranceComponent>> cloneParameter() {
     final var clone = new DoubleRangesOrToleranceParameter<>(name, description, unit, numberFormat,
         toleranceParameter.cloneParameter());
-    final RangeOrValueResult<Double> value = this.value.copy();
+    final RangeOrValueResult<Double> value = this.value != null ? this.value.copy() : null;
     clone.setValue(value);
     return clone;
   }
