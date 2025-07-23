@@ -45,7 +45,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,6 +67,7 @@ public class MergeLibrariesTask extends AbstractTask {
   private final MZmineProject project;
   private final List<SpectralLibrary> libs;
   private final boolean removeAndImport;
+  private final IdHandlingOption idHandling;
   private SpectralLibraryImportTask importTask;
   private long totalEntries = 0;
   private long exportedEntries = 0;
@@ -74,6 +81,7 @@ public class MergeLibrariesTask extends AbstractTask {
     libs = params.getValue(MergeLibrariesParameters.speclibs).getMatchingLibraries();
     totalEntries = libs.stream().mapToLong(SpectralLibrary::getNumEntries).sum();
     removeAndImport = params.getValue(MergeLibrariesParameters.removeAndImport);
+    idHandling = params.getValue(MergeLibrariesParameters.idHandling);
   }
 
   @Override
@@ -107,20 +115,27 @@ public class MergeLibrariesTask extends AbstractTask {
       return;
     }
 
-    try {
-      newFile.getParentFile().mkdirs();
-    } catch (final Exception e) {
-      logger.log(Level.SEVERE, "Failed to create directory", e);
-      error(e.getMessage());
+    if (!FileAndPathUtil.createDirectory(newFile.getParentFile())) {
+      error("Cannot create directory %s.".formatted(newFile.getParentFile().getAbsolutePath()));
       return;
     }
 
     final AtomicInteger entryId = new AtomicInteger(0);
+
+    final Set<String> duplicateIds = getDuplicateIds(libs);
+
     try (var w = Files.newBufferedWriter(newFile.toPath(), WriterOptions.REPLACE.toOpenOption())) {
       for (final SpectralLibrary lib : libs) {
         for (SpectralLibraryEntry entry : lib.getEntries()) {
+
+          final String currentId = entry.getOrElse(DBEntryField.ENTRY_ID, null);
+          final boolean isDuplicate = currentId == null || duplicateIds.contains(currentId);
+
+          final String newEntryId = idHandling.getNewEntryId(entry, isDuplicate,
+              () -> String.valueOf(entryId.incrementAndGet()));
+
           final SpectralDBEntry copy = new SpectralDBEntry((SpectralDBEntry) entry);
-          copy.putIfNotNull(DBEntryField.ENTRY_ID, entryId.incrementAndGet());
+          copy.putIfNotNull(DBEntryField.ENTRY_ID, newEntryId);
           ExportScansFeatureTask.exportEntry(w, copy, format, intensityNormalizer);
           exportedEntries++;
         }
@@ -131,10 +146,30 @@ public class MergeLibrariesTask extends AbstractTask {
 
     if (removeAndImport) {
       FxThread.runLater(() -> ProjectService.getProject()
-          .removeSpectralLibrary(libs.stream().toArray(SpectralLibrary[]::new)));
+          .removeSpectralLibrary(libs.toArray(SpectralLibrary[]::new)));
       importTask = new SpectralLibraryImportTask(project, newFile, getModuleCallDate());
       importTask.run();
     }
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private Set<String> getDuplicateIds(List<SpectralLibrary> libs) {
+
+    // hash map supports null key
+    final Map<String, Boolean> allIds = new HashMap<>();
+
+    for (final SpectralLibrary lib : libs) {
+      for (final SpectralLibraryEntry entry : lib.getEntries()) {
+        final String id = entry.getOrElse(DBEntryField.ENTRY_ID, null);
+        if (allIds.containsKey(id)) {
+          allIds.put(id, true);
+        } else {
+          allIds.put(id, false);
+        }
+      }
+    }
+
+    return allIds.entrySet().stream().filter(Entry::getValue).map(Entry::getKey)
+        .filter(Objects::nonNull).collect(Collectors.toSet());
   }
 }

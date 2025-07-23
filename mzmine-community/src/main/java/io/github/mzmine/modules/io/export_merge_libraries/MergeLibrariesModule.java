@@ -30,16 +30,14 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
-import javax.print.attribute.standard.MediaSize.NA;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MergeLibrariesModule implements MZmineProcessingModule {
 
-  public static final String NAME = "Merge spectral libraries";
+  public static final String NAME = "Merge & export spectral libraries";
   public static final String DESCRIPTION = "Merges selected spectral libraries and exports to a new file.";
 
 

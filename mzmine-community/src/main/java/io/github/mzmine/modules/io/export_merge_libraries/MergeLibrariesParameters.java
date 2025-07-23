@@ -39,7 +39,8 @@ import java.util.List;
 public class MergeLibrariesParameters extends SimpleParameterSet {
 
   public static final SpectralLibrarySelectionParameter speclibs = new SpectralLibrarySelectionParameter(
-      new SpectralLibrarySelection(SpectralLibrarySelectionType.AS_SELECTED_IN_MAIN_WINDOW, List.of()));
+      new SpectralLibrarySelection(SpectralLibrarySelectionType.AS_SELECTED_IN_MAIN_WINDOW,
+          List.of()));
 
   public static final FileNameParameter newLibraryFile = new FileNameParameter(
       "Merged library file", "Specify the file the libraries shall be merged into.",
@@ -54,9 +55,12 @@ public class MergeLibrariesParameters extends SimpleParameterSet {
       "If selected, the merged library will be imported and the selected libraries will be removed from the project (library files will not be deleted).",
       false);
 
+  public static final ComboParameter<IdHandlingOption> idHandling = new ComboParameter<>(
+      "Entry IDs", "", IdHandlingOption.values());
+
   public static final IntensityNormalizerComboParameter normalizer = IntensityNormalizerComboParameter.createWithoutScientific();
 
   public MergeLibrariesParameters() {
-    super(speclibs, newLibraryFile, exportFormat, removeAndImport, normalizer);
+    super(speclibs, newLibraryFile, exportFormat, idHandling, removeAndImport, normalizer);
   }
 }

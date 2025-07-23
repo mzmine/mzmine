@@ -48,8 +48,8 @@ public enum SpectralLibrarySelectionType implements UniqueIdSupplier {
   @Override
   public @NotNull String getUniqueID() {
     return switch (this) {
-      case ALL_IMPORTED -> "All imported libraries";
-      case SPECIFIC -> "Specific libraries";
+      case ALL_IMPORTED -> "ALL_IMPORTED";
+      case SPECIFIC -> "SPECIFIC";
       case AS_SELECTED_IN_MAIN_WINDOW -> "selected_in_main_window";
     };
   }

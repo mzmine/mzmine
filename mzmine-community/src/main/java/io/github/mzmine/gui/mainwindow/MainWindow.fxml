@@ -193,7 +193,7 @@
                               <MenuItem onAction="#handleSpectralLibraryRemove"
                                 text="Remove library" fx:id="spectralLibraryRemoveMenuItem"/>
                               <MenuItem onAction="#handleMergeLibraries"
-                                text="Merge libraries" fx:id="mergeLibrariesMenuItem"/>
+                                text="Merge and export libraries" fx:id="mergeLibrariesMenuItem"/>
                             </items>
                           </ContextMenu>
                         </contextMenu>
