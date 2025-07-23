@@ -613,6 +613,11 @@ public class FeatureCorrelationUtil {
         return null;
       }
 
+      // looks like we have exactly the same values, then we do not need to interpolate
+      if(mainX.length == otherX.length && mainRange.equals(otherRange) && Arrays.equals(mainX, otherX)) {
+        return new double[][]{otherX, otherY};
+      }
+
       // find indices for the overlapping range
       final int[] otherIndicesEndExclusive = getAllowedRange(otherX, overlap);
       final int[] mainIndicesEndExclusive = getAllowedRange(mainX, overlap);

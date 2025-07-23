@@ -30,12 +30,14 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -85,6 +87,7 @@ public class RowsFilterTask extends AbstractTask {
   private final boolean filterByKMD;
   private final boolean filterByMS2;
   private final boolean filterByCv;
+  private final boolean onlyWithOtherCorrelated;
   private final RowsFilterChoices filterOption;
   private final boolean renumber;
   private final boolean filterByMassDefect;
@@ -107,9 +110,9 @@ public class RowsFilterTask extends AbstractTask {
   private final Isotope13CFilter isotope13CFilter;
   @Nullable
   private final RsdFilter cvFilter;
-  private AbsoluteAndRelativeInt minSamples;
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
+  private AbsoluteAndRelativeInt minSamples;
   private FeatureList filteredFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
@@ -153,6 +156,8 @@ public class RowsFilterTask extends AbstractTask {
     filterByMS2 = parameters.getValue(RowsFilterParameters.MS2_Filter);
     filterOption = parameters.getValue(RowsFilterParameters.REMOVE_ROW);
     filterByCv = parameters.getValue(RowsFilterParameters.cvFilter);
+    onlyWithOtherCorrelated = parameters.getValue(
+        RowsFilterParameters.onlyCorrelatedWithOtherDetectors);
     minSamples = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         RowsFilterParameters.MIN_FEATURE_COUNT, null);
     renumber = parameters.getValue(RowsFilterParameters.Reset_ID);
@@ -473,6 +478,20 @@ public class RowsFilterTask extends AbstractTask {
     if (filterByCharge) {
       int charge = row.getBestFeature().getCharge();
       if (charge == 0 || !chargeRange.contains(charge)) {
+        return true;
+      }
+    }
+
+    // filter by correlated traces
+    if (onlyWithOtherCorrelated) {
+      boolean foundCorrelation = false;
+      for (ModularFeature feature : row.getFeatures()) {
+        if (feature.get(MsOtherCorrelationResultType.class) != null) {
+          foundCorrelation = true;
+          break;
+        }
+      }
+      if (!foundCorrelation) {
         return true;
       }
     }
