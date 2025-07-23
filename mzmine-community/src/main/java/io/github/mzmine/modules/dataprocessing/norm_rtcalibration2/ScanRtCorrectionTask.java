@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -127,6 +127,10 @@ class ScanRtCorrectionTask extends AbstractTask {
       List<FeatureList> referenceFlists, List<FeatureList> allFeatureLists, MetadataTable metadata,
       List<RtStandard> monotonousStandards, RawFileRtCorrectionModule correctionModule,
       @NotNull final RTMeasure rtMeasure, ParameterSet correctionModuleParameters) {
+    if (monotonousStandards.isEmpty()) {
+      return List.of();
+    }
+
     final Map<RawDataFile, AbstractRtCorrectionFunction> referenceCalibrations = referenceFlists.stream()
         .map(flist -> correctionModule.createFromStandards(flist, monotonousStandards, rtMeasure,
             correctionModuleParameters))
@@ -390,6 +394,14 @@ class ScanRtCorrectionTask extends AbstractTask {
     goodStandards.sort(Comparator.comparingDouble(rtMeasure::getRt));
     final List<RtStandard> monotonousStandards = removeNonMonotonousStandards(goodStandards,
         referenceFlistsByNumRows, rtMeasure);
+
+    if (monotonousStandards.isEmpty()) {
+      logger.warning(
+          "No monotonous standards found. No retention time correction will be appplied. The task finishes with success to not break batch processing.");
+      setStatus(TaskStatus.FINISHED);
+      return;
+    }
+
     final List<AbstractRtCorrectionFunction> allCalibrations = interpolateMissingCalibrations(
         referenceFlistsByNumRows, flists, project.getProjectMetadata(), monotonousStandards,
         calibrationModule, rtMeasure, calibrationModuleParameters);
