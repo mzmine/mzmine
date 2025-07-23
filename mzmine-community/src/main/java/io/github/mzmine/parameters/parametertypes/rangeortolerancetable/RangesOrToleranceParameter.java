@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import javafx.scene.Node;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -58,13 +59,13 @@ public abstract class RangesOrToleranceParameter<T extends Number & Comparable<T
   protected @Nullable RangeOrValueResult<T> value;
 
   public RangesOrToleranceParameter(String name, String description, String unit,
-      NumberFormat format, ToleranceParam toleranceParameter) {
+      NumberFormat format, @NotNull ToleranceParam toleranceParameter) {
     this.name = name;
     this.description = description;
     this.toleranceParameter = toleranceParameter;
     this.unit = unit;
     this.numberFormat = format;
-//    value = new
+    value = new RangeOrValueResult<>(List.of(), toleranceParameter.getValue());
   }
 
   @Override

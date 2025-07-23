@@ -80,6 +80,11 @@ public abstract class RangesOrToleranceComponent<T extends Number & Comparable<T
 
     table.setEditable(true);
     setCenter(table);
+    BorderPane.setAlignment(table, Pos.TOP_LEFT);
+    table.setMinHeight(150);
+    table.setPrefHeight(USE_COMPUTED_SIZE);
+    table.setMaxHeight(600);
+    TableColumns.autoFitLastColumn(table);
 
     ranges.subscribe(list -> updateValue(toleranceParameter, list));
 
@@ -103,18 +108,17 @@ public abstract class RangesOrToleranceComponent<T extends Number & Comparable<T
     add.minWidthProperty().bind(remove.widthProperty());
     add.maxWidthProperty().bind(remove.widthProperty());
 
-    setLeft(buttons);
+    setRight(buttons);
   }
 
   @NotNull
   protected abstract RangeOrValue<T> createNewDefaultValue();
 
-  protected abstract <T extends Number & Comparable<T>> @NotNull TableColumn<RangeOrValue<T>, T> createLowerEditableFormattedColumn(
+  protected abstract @NotNull TableColumn<RangeOrValue<T>, T> createLowerEditableFormattedColumn(
       String name, NumberFormat numberFormat);
 
-  protected abstract <T extends Number & Comparable<T>> @NotNull TableColumn<RangeOrValue<T>, T> createUpperEditableFormattedColumn(
+  protected abstract @NotNull TableColumn<RangeOrValue<T>, T> createUpperEditableFormattedColumn(
       String name, NumberFormat numberFormat);
-
 
   private void updateValue(UserParameter<? extends Tolerance<T>, C> toleranceParameter,
       ObservableList<RangeOrValue<T>> list) {
