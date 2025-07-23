@@ -207,20 +207,19 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
     final DoubleSummaryStatistics rtSummary = detected.stream().filter(f -> f.getRT() != null)
         .mapToDouble(ModularFeature::getRT).summaryStatistics();
     Float maxRtDelta =
-        rtSummary.getCount() == 0 ? null : (float) (rtSummary.getMax() - rtSummary.getMin());
+        rtSummary.getCount() == 0 ? 0f : (float) (rtSummary.getMax() - rtSummary.getMin());
 
     final DoubleSummaryStatistics mobilitySummary = detected.stream()
         .map(ModularFeature::getMobility).filter(Objects::nonNull).mapToDouble(Float::doubleValue)
         .summaryStatistics();
-    final Float maxMobilityDelta = mobilitySummary.getCount() == 0 ? null
+    final Float maxMobilityDelta = mobilitySummary.getCount() == 0 ? 0f
         : (float) (mobilitySummary.getMax() - mobilitySummary.getMin());
 
     final DoubleSummaryStatistics mzSummary = detected.stream().filter(f -> f.getMZ() != null)
         .mapToDouble(ModularFeature::getMZ).summaryStatistics();
-    final Double maxMzDelta =
-        mzSummary.getCount() == 0 ? null : (mzSummary.getMax() - mzSummary.getMin());
-    final Float ppmMzDelta =
-        maxMzDelta == null ? null : (float) (maxMzDelta / row.getAverageMZ() * 1_000_000f);
+    final double maxMzDelta =
+        mzSummary.getCount() == 0 ? 0d : (mzSummary.getMax() - mzSummary.getMin());
+    final Float ppmMzDelta = (float) (maxMzDelta / row.getAverageMZ() * 1_000_000f);
 
     if (otherScore != null) {
       maxExtraFeatures = Math.max(maxExtraFeatures, otherScore.extraFeatures());
