@@ -38,7 +38,7 @@ import org.jfree.data.xy.XYDataset;
 
 public class JFreeChartUtils {
 
-  public enum TriangleDirection {
+  private enum TriangleDirection {
     UP, DOWN, LEFT, RIGHT
   }
 
@@ -58,9 +58,9 @@ public class JFreeChartUtils {
 
     return List.of(
         // circle
-        new Ellipse2D.Double(-delta, -delta, size, size),
+        createCircle(size),
         // square
-        new Rectangle2D.Double(-delta, -delta, size, size),
+        createSquare(size),
         // up-pointing triangle
         createTriangle(size, TriangleDirection.UP),
         // diamond
@@ -91,6 +91,18 @@ public class JFreeChartUtils {
         createPentagon(size),
         // hexagon
         createHexagon(size)).toArray(Shape[]::new);
+  }
+
+  private static Ellipse2D.@NotNull Double createCircle(double size) {
+    size *= 0.92; // needs a bit smaller size
+    final double delta = size / 2;
+    return new Ellipse2D.Double(-delta, -delta, size, size);
+  }
+
+  private static Rectangle2D.@NotNull Double createSquare(double size) {
+    size *= 0.9; // needs a bit smaller size
+    final double delta = size / 2;
+    return new Rectangle2D.Double(-delta, -delta, size, size);
   }
 
   private static @NotNull Path2D createHexagon(double size) {
@@ -203,6 +215,7 @@ public class JFreeChartUtils {
   }
 
   private static Shape createDiamond(double size) {
+    size *= 1.1; // needs a bit bigger size
     double delta = size / 2.0;
     Path2D.Double path = new Path2D.Double();
     path.moveTo(0, -delta);

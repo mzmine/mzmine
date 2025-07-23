@@ -83,6 +83,9 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
     final NumberFormats formats = ConfigService.getGuiFormats();
     final SimpleXYChart<PlotXYDataProvider> chart = new SimpleXYChart<>(
         formats.unit("Original RT", "min"), formats.unit("RT shift", "min"));
+    // add some minimum width to force the layout to get a bit bigger when preview is shown
+    chart.setMinWidth(200);
+    chart.setMinHeight(200);
     chart.setStickyZeroRangeAxis(false);
     return chart;
   }
