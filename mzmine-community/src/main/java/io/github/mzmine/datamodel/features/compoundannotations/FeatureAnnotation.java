@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -202,28 +202,36 @@ public interface FeatureAnnotation {
   @Nullable String getDatabase();
 
   /**
-   *
    * @return the best name identifier in order of {@link CompoundNameIdentifier}
    */
   @Nullable
   default String getBestNameIdentifier() {
     for (CompoundNameIdentifier id : CompoundNameIdentifier.values()) {
-      final String name = switch (id) {
-        case COMPOUND_NAME -> getCompoundName();
-        case IUPAC_NAME -> getIupacName();
-        case INTERNAL_ID -> getInternalId();
-        case FORMULA -> getFormula();
-        case SMILES -> getSmiles();
-        case INCHI_KEY -> getInChIKey();
-        case INCHI -> getInChI();
-        case CAS -> getCAS();
-      };
+      final String name = getNameIdentifier(id);
 
       if (name != null) {
         return name;
       }
     }
     return null;
+  }
+
+  /**
+   * @param id identifier for name
+   * @return the mapped identifier or null
+   */
+  default @Nullable String getNameIdentifier(@Nullable CompoundNameIdentifier id) {
+    return switch (id) {
+      case null -> null;
+      case COMPOUND_NAME -> getCompoundName();
+      case IUPAC_NAME -> getIupacName();
+      case INTERNAL_ID -> getInternalId();
+      case FORMULA -> getFormula();
+      case SMILES -> getSmiles();
+      case INCHI_KEY -> getInChIKey();
+      case INCHI -> getInChI();
+      case CAS -> getCAS();
+    };
   }
 
 
