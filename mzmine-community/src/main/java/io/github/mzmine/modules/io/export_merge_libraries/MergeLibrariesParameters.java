@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
@@ -42,9 +43,9 @@ public class MergeLibrariesParameters extends SimpleParameterSet {
       new SpectralLibrarySelection(SpectralLibrarySelectionType.AS_SELECTED_IN_MAIN_WINDOW,
           List.of()));
 
-  public static final FileNameParameter newLibraryFile = new FileNameParameter(
+  public static final FileNameSuffixExportParameter newLibraryFile = new FileNameSuffixExportParameter(
       "Merged library file", "Specify the file the libraries shall be merged into.",
-      FileSelectionType.SAVE);
+      "merged_library");
 
   public static final ComboParameter<SpectralLibraryExportFormats> exportFormat = new ComboParameter<>(
       "Export format", "format to export", SpectralLibraryExportFormats.values(),
@@ -56,7 +57,14 @@ public class MergeLibrariesParameters extends SimpleParameterSet {
       false);
 
   public static final ComboParameter<IdHandlingOption> idHandling = new ComboParameter<>(
-      "Entry IDs", "", IdHandlingOption.values());
+      "Entry IDs", """
+      Specify how entry IDs of the existing entries shall be handled during export.
+      In case an entry currently has no ID, a new ID will be generated. (same as "New IDs with old library name" option)
+      "Keep existing IDs": Existing IDs will be retained, even if the new library then contains duplicate IDs.
+      "Avoid duplicates": Existing IDs will be retained, duplicate IDs will be renamed to <old library file name>_<old id>.
+                          (both entry will be renamed)
+      "New IDs with old library name": New ids will be created in any case with the pattern: <old library file name>_<number>.
+      """, IdHandlingOption.values(), IdHandlingOption.AVOID_DUPLICATES);
 
   public static final IntensityNormalizerComboParameter normalizer = IntensityNormalizerComboParameter.createWithoutScientific();
 

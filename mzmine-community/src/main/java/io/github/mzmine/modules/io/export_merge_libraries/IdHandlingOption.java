@@ -66,4 +66,14 @@ public enum IdHandlingOption implements UniqueIdSupplier {
           entry.getAsString(DBEntryField.ENTRY_ID).orElseGet(fallbackId));
     };
   }
+
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case KEEP_ALL -> "Keep existing IDs";
+      case AVOID_DUPLICATES -> "Avoid duplicates";
+      case NEW_ID_WITH_LIBRARY_NAME -> "New IDs with old library name";
+    };
+  }
 }

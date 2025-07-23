@@ -53,6 +53,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -120,7 +121,7 @@ public class MergeLibrariesTask extends AbstractTask {
       return;
     }
 
-    final AtomicInteger entryId = new AtomicInteger(0);
+    final AtomicLong entryId = new AtomicLong(0);
 
     final Set<String> duplicateIds = getDuplicateIds(libs);
 
@@ -131,8 +132,13 @@ public class MergeLibrariesTask extends AbstractTask {
           final String currentId = entry.getOrElse(DBEntryField.ENTRY_ID, null);
           final boolean isDuplicate = currentId == null || duplicateIds.contains(currentId);
 
-          final String newEntryId = idHandling.getNewEntryId(entry, isDuplicate,
-              () -> String.valueOf(entryId.incrementAndGet()));
+          final String newEntryId = idHandling.getNewEntryId(entry, isDuplicate, () -> {
+            String potentialId;
+            do {
+              potentialId = String.valueOf(entryId.incrementAndGet());
+            } while (duplicateIds.contains(potentialId));
+            return potentialId;
+          });
 
           final SpectralDBEntry copy = new SpectralDBEntry((SpectralDBEntry) entry);
           copy.putIfNotNull(DBEntryField.ENTRY_ID, newEntryId);
@@ -160,7 +166,7 @@ public class MergeLibrariesTask extends AbstractTask {
 
     for (final SpectralLibrary lib : libs) {
       for (final SpectralLibraryEntry entry : lib.getEntries()) {
-        final String id = entry.getOrElse(DBEntryField.ENTRY_ID, null);
+        final String id = entry.getAsString(DBEntryField.ENTRY_ID).orElse(null);
         if (allIds.containsKey(id)) {
           allIds.put(id, true);
         } else {
