@@ -337,11 +337,12 @@ public class MassLynxLib {
   private static final long SIZE_MAX = -1L;
   private static final int SIG_ATOMIC_MIN = (int) -2147483648L;
   private static final int SIG_ATOMIC_MAX = (int) 2147483647L;
+
   MassLynxLib() {
     // Should not be called directly
   }
 
-  private static SymbolLookup getSymbolLookup() {
+  private static synchronized SymbolLookup getSymbolLookup() {
     // load mass lynx base library before
     System.load(Path.of("external_tools\\waters_raw\\MassLynxRaw.dll").toAbsolutePath().toString());
     return SymbolLookup.libraryLookup(
