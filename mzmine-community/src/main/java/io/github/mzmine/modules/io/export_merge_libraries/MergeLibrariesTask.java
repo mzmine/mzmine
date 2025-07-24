@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -34,7 +35,6 @@ import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.WriterOptions;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -46,19 +46,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MergeLibrariesTask extends AbstractTask {
 
@@ -121,8 +117,12 @@ public class MergeLibrariesTask extends AbstractTask {
       return;
     }
 
+    // maybe used for renumbering IDs
+    final String libraryName = FileAndPathUtil.eraseFormat(newFile.getName());
+
     final AtomicLong entryId = new AtomicLong(0);
 
+    // always add the used IDs to duplicate IDs so that other ids will never have the same value
     final Set<String> duplicateIds = getDuplicateIds(libs);
 
     try (var w = Files.newBufferedWriter(newFile.toPath(), WriterOptions.REPLACE.toOpenOption())) {
@@ -132,15 +132,15 @@ public class MergeLibrariesTask extends AbstractTask {
           final String currentId = entry.getOrElse(DBEntryField.ENTRY_ID, null);
           final boolean isDuplicate = currentId == null || duplicateIds.contains(currentId);
 
-          final String newEntryId = idHandling.getNewEntryId(entry, isDuplicate, () -> {
-            String potentialId;
-            do {
-              potentialId = String.valueOf(entryId.incrementAndGet());
-            } while (duplicateIds.contains(potentialId));
-            return potentialId;
-          });
+          // loop until a new ID is found that is not yet used
+          String newEntryId = null;
+          do {
+            newEntryId = idHandling.getNewEntryId(libraryName, entry, isDuplicate,
+                () -> entryId.incrementAndGet() + "_id"); // add suffix to not end with number
+          } while (duplicateIds.contains(newEntryId));
 
           final SpectralDBEntry copy = new SpectralDBEntry((SpectralDBEntry) entry);
+          duplicateIds.add(newEntryId); // add to duplicates to avoid another one
           copy.putIfNotNull(DBEntryField.ENTRY_ID, newEntryId);
           ExportScansFeatureTask.exportEntry(w, copy, format, intensityNormalizer);
           exportedEntries++;
