@@ -63,6 +63,12 @@ public class DataTableTest {
 
     assertEquals(8d, table.getValue(1, 3), 1E-6);
     assertEquals(10d, table.getValue(1, 4), 1E-6);
+
+    assertEquals(10d, table.getSampleData(4)[1], 1E-6);
+    assertEquals(10d, table.getFeatureData(1, false)[4], 1E-6);
+    assertEquals(10d, table.getFeatureData(1, true)[4], 1E-6);
+
+
   }
 
   @Test
