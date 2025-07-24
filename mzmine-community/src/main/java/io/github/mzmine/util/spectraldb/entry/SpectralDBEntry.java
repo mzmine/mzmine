@@ -127,8 +127,9 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     assert mzs.length == intensities.length;
 
     if (libraryFileName != null) {
+      // library.name used to contain the size as well, therefore match for both name with size and without
       final SpectralLibrary library = project.getCurrentSpectralLibraries().stream().filter(
-              l -> l.getName().equals(libraryFileName) || l.getSimpleName().equals(libraryFileName))
+              l -> l.getName().equals(libraryFileName) || l.getNameWithSize().equals(libraryFileName))
           .findFirst().orElse(null);
       return new SpectralDBEntry(null, mzs, intensities, fields, library);
     } else {
@@ -273,7 +274,8 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   @Nullable
   public String getLibraryName() {
-    return library != null ? library.getSimpleName() : null;
+    // used to return library name with size but better to use the library name without size by default
+    return library != null ? library.getName() : null;
   }
 
   @Override

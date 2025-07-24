@@ -80,7 +80,7 @@ public class MergeLibrariesTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Merging spectral libraries " + libs.stream().map(SpectralLibrary::getName)
+    return "Merging spectral libraries " + libs.stream().map(SpectralLibrary::getNameWithSize)
         .collect(Collectors.joining(", "));
   }
 
