@@ -246,6 +246,21 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
   }
 
   @Override
+  public @Nullable String getIupacName() {
+    return entry.getOrElse(DBEntryField.IUPAC_NAME, null);
+  }
+
+  @Override
+  public @Nullable String getCAS() {
+    return entry.getOrElse(DBEntryField.CAS, null);
+  }
+
+  @Override
+  public @Nullable String getInternalId() {
+    return entry.getOrElse(DBEntryField.INTERNAL_ID, null);
+  }
+
+  @Override
   public @Nullable Float getMobility() {
     return null;
   }

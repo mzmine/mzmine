@@ -223,19 +223,61 @@ public class FeatureUtils {
   }
 
   /**
+   * Check all {@link FeatureAnnotation} on both rows if they have the same name or same smiles /
+   * inchi/ inchikey
+   * <p>
+   * Previous behavior was:
+   * <p>
    * Compares identities of two feature list rows. 1) if preferred identities are available, they
    * must be same 2) if no identities are available on both rows, return true 3) otherwise all
    * identities on both rows must be same
    *
    * @return True if identities match between rows
    */
-  @Deprecated
   public static boolean compareIdentities(FeatureListRow row1, FeatureListRow row2) {
 
     if ((row1 == null) || (row2 == null)) {
       return false;
     }
 
+    final List<FeatureAnnotation> matches1 = CompoundAnnotationUtils.streamFeatureAnnotations(row1)
+        .toList();
+    final List<FeatureAnnotation> matches2 = CompoundAnnotationUtils.streamFeatureAnnotations(row2)
+        .toList();
+
+    if (matches1.isEmpty() && matches2.isEmpty()) {
+      // no annotations available is still true
+      return true;
+    }
+
+    for (FeatureAnnotation match1 : matches1) {
+      // do not use formula or bestNameIdentifier as this contains the formula
+      // this does not fully qualify an ID and isomers usually elute close enough
+      final String name = match1.getCompoundName();
+      final String iupac = match1.getIupacName();
+      final String internalId = match1.getInternalId();
+      final String smiles = match1.getSmiles();
+      final String inChI = match1.getInChI();
+      final String inChIKey = match1.getInChIKey();
+      if (StringUtils.allBlank(name, iupac, internalId, smiles, inChI, inChIKey)) {
+        continue;
+      }
+
+      // if any of the matches metadata matches then return true
+      for (FeatureAnnotation match2 : matches2) {
+        if (StringUtils.equalContentIgnoreCase(name, match2.getCompoundName()) || //
+            StringUtils.equalContentIgnoreCase(iupac, match2.getIupacName()) || //
+            StringUtils.equalContent(smiles, match2.getSmiles()) || //
+            StringUtils.equalContent(inChI, match2.getInChI()) || //
+            StringUtils.equalContent(inChIKey, match2.getInChIKey()) || //
+            StringUtils.equalContent(internalId, match2.getInternalId()) //
+        ) {
+          return true;
+        }
+      }
+    }
+
+    // TODO remove old identity based matches
     // If both have preferred identity available, then compare only those
     FeatureIdentity row1PreferredIdentity = row1.getPreferredFeatureIdentity();
     FeatureIdentity row2PreferredIdentity = row2.getPreferredFeatureIdentity();
@@ -548,8 +590,7 @@ public class FeatureUtils {
   /**
    * Loops over all {@link DataType}s in a {@link FeatureListRow}. Extracts all annotations derived
    * from a {@link CompoundDBAnnotation} in all {@link AnnotationType}s derived from the
-   * {@link ListWithSubsType} within the {@link FeatureListRow}'s
-   * {@link ModularDataModel}.
+   * {@link ListWithSubsType} within the {@link FeatureListRow}'s {@link ModularDataModel}.
    *
    * @param selectedRow The row
    * @return List of all annotations.
