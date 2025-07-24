@@ -66,10 +66,10 @@ public interface DataTable extends Iterable<double[]> {
    * @return a new array of the sample data
    */
   default double[] getSampleData(int index) {
-    final int numSamples = getNumberOfSamples();
-    final double[] data = new double[numSamples];
-    for (int i = 0; i < numSamples; i++) {
-      data[i] = getValue(index, i);
+    final int numFeatures = getNumberOfFeatures();
+    final double[] data = new double[numFeatures];
+    for (int featureIndex = 0; featureIndex < numFeatures; featureIndex++) {
+      data[featureIndex] = getValue(featureIndex, index);
     }
     return data;
   }

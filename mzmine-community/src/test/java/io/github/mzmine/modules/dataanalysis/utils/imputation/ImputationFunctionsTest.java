@@ -29,9 +29,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import io.github.mzmine.datamodel.statistics.DataTableTest;
 import io.github.mzmine.datamodel.statistics.DataTableUtils;
 import io.github.mzmine.datamodel.statistics.SimpleArrayDataTable;
-import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctionsTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -70,7 +70,7 @@ class ImputationFunctionsTest {
 
     final SimpleArrayDataTable resultInplace = function.getImputer().processInPlace(table);
     assertEquals(table, resultInplace);
-    ScalingFunctionsTest.assertEqualContent(result, resultInplace);
+    DataTableTest.assertEqualContent(result, resultInplace);
   }
 
   @Test
@@ -91,7 +91,7 @@ class ImputationFunctionsTest {
 
     final SimpleArrayDataTable resultInplace = function.getImputer().processInPlace(table);
     assertEquals(table, resultInplace);
-    ScalingFunctionsTest.assertEqualContent(result, resultInplace);
+    DataTableTest.assertEqualContent(result, resultInplace);
   }
 
   @Test
@@ -114,6 +114,6 @@ class ImputationFunctionsTest {
 
     final SimpleArrayDataTable resultInplace = function.getImputer().processInPlace(table);
     assertEquals(table, resultInplace);
-    ScalingFunctionsTest.assertEqualContent(result, resultInplace);
+    DataTableTest.assertEqualContent(result, resultInplace);
   }
 }

@@ -607,6 +607,7 @@ public class FeatureFindingTest {
     assertEquals(2, DataTableUtils.extractRowData(table, 10, table.getRawDataFiles()).length);
     assertEquals(155, table.getNumberOfFeatures());
     assertEquals(155, table.getSampleData(1).length);
+    assertEquals(2, table.getFeatureData(1, false).length);
     final double minimum = DataTableUtils.getMinimum(table, true).getAsDouble();
     assertEquals(17318.857421875, minimum);
     assertEquals(29874.3515625d, table.getValue(10, 1));

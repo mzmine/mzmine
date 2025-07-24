@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
-import io.github.mzmine.datamodel.statistics.DataTable;
+import io.github.mzmine.datamodel.statistics.DataTableTest;
 import io.github.mzmine.datamodel.statistics.SimpleArrayDataTable;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.MathUtils;
@@ -90,7 +90,7 @@ public class ScalingFunctionsTest {
 
     final SimpleArrayDataTable resultInplace = function.getScalingFunction().processInPlace(table);
     assertEquals(table, resultInplace);
-    assertEqualContent(result, resultInplace);
+    DataTableTest.assertEqualContent(result, resultInplace);
   }
 
 
@@ -111,7 +111,7 @@ public class ScalingFunctionsTest {
 
     final SimpleArrayDataTable resultInplace = function.getScalingFunction().processInPlace(table);
     assertEquals(table, resultInplace);
-    assertEqualContent(result, resultInplace);
+    DataTableTest.assertEqualContent(result, resultInplace);
   }
 
 
@@ -146,21 +146,8 @@ public class ScalingFunctionsTest {
 
     final SimpleArrayDataTable resultInplace = function.getScalingFunction().processInPlace(table);
     assertEquals(table, resultInplace);
-    assertEqualContent(result, resultInplace);
+    DataTableTest.assertEqualContent(result, resultInplace);
   }
 
 
-  public static void assertEqualContent(DataTable expected, DataTable actual) {
-    assertEquals(expected.getNumberOfSamples(), actual.getNumberOfSamples());
-    assertEquals(expected.getNumberOfFeatures(), actual.getNumberOfFeatures());
-    for (int featureIndex = 0; featureIndex < expected.getNumberOfFeatures(); featureIndex++) {
-      for (int sampleIndex = 0; sampleIndex < expected.getNumberOfSamples(); sampleIndex++) {
-        final double exValue = expected.getValue(featureIndex, sampleIndex);
-        final double acValue = actual.getValue(featureIndex, sampleIndex);
-        assertEquals(exValue, acValue, 1E-6,
-            "Wrong value feature=%d sample=%d (%f!=%f)".formatted(featureIndex, sampleIndex,
-                exValue, acValue));
-      }
-    }
-  }
 }
