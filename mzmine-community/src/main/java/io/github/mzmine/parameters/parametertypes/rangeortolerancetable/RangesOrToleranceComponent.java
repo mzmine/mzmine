@@ -24,8 +24,13 @@
 
 package io.github.mzmine.parameters.parametertypes.rangeortolerancetable;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.javafx.components.factories.TableColumns.ColumnAlignment;
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -39,15 +44,20 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
+import javafx.scene.text.TextFlow;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jmol.util.C;
 
 public abstract class RangesOrToleranceComponent<T extends Number & Comparable<T>, C extends Node> extends
@@ -60,15 +70,21 @@ public abstract class RangesOrToleranceComponent<T extends Number & Comparable<T
   protected final TableView<RangeOrValue<T>> table = new TableView<>(ranges.getValue());
   protected final C toleranceComponent;
 
-  protected final ObjectProperty<RangeOrValueResult<T>> value = new SimpleObjectProperty<>();
+  protected final ObjectProperty<@NotNull RangeOrValueResult<T>> value = new SimpleObjectProperty<>();
 
   public RangesOrToleranceComponent(UserParameter<? extends Tolerance<T>, C> toleranceParameter,
       String unit, NumberFormat numberFormat) {
     this.toleranceParameter = (UserParameter<Tolerance<T>, C>) toleranceParameter;
     toleranceComponent = toleranceParameter.createEditingComponent();
     final Label tolLabel = FxLabels.newBoldLabel(toleranceParameter.getName());
+    Tooltip.install(tolLabel, new Tooltip(toleranceParameter.getDescription()));
 
-    setTop(FxLayout.newHBox(tolLabel, toleranceComponent));
+    final TextFlow textFlow = FxTextFlows.newTextFlow(TextAlignment.LEFT,
+        text("Specify a range by lower "), boldText("and"), text(" upper limit "), boldText("or"),
+        text(" by a single number "), boldText("and"), text(" a tolerance "), boldText("around"),
+        text(" that number."));
+
+    setTop(FxLayout.newVBox(new Insets(0, 0, FxLayout.DEFAULT_SPACE, 0), textFlow, FxLayout.newHBox(Insets.EMPTY, tolLabel, toleranceComponent)));
 
     final TableColumn<RangeOrValue<T>, T> lowerCol = createLowerEditableFormattedColumn(
         "lower " + unit, numberFormat);
@@ -129,11 +145,12 @@ public abstract class RangesOrToleranceComponent<T extends Number & Comparable<T
     value.set(new RangeOrValueResult<>(rangesOrValues, tolerance));
   }
 
+  @NotNull
   public RangeOrValueResult<T> getValue() {
     return value.get();
   }
 
-  public void setValue(RangeOrValueResult<T> values) {
+  public void setValue(@NotNull RangeOrValueResult<T> values) {
     toleranceParameter.setValue(values.tolerance());
     toleranceParameter.setValueToComponent(toleranceComponent, values.tolerance());
     table.getItems().setAll(values.ranges());

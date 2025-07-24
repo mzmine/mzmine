@@ -25,12 +25,17 @@
 package io.github.mzmine.parameters.parametertypes.rangeortolerancetable;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.parameters.parametertypes.tolerances.NanometerTolerance;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record RangeOrValueResult<T extends Number & Comparable<T>>(
     @NotNull List<RangeOrValue<T>> ranges, @Nullable Tolerance<T> tolerance) {
+
+  public static RangeOrValueResult<Double> emptyNanometer() {
+    return new RangeOrValueResult<>(List.of(), new NanometerTolerance(1d));
+  }
 
   public RangeOrValueResult<T> copy() {
     final List<RangeOrValue<T>> copy = ranges.stream()

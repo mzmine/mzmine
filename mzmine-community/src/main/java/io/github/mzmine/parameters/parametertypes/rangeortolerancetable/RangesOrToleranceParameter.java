@@ -56,7 +56,7 @@ public abstract class RangesOrToleranceParameter<T extends Number & Comparable<T
   protected final ToleranceParam toleranceParameter;
   protected final NumberFormat numberFormat;
   protected final String unit;
-  protected @Nullable RangeOrValueResult<T> value;
+  protected @NotNull RangeOrValueResult<T> value;
 
   public RangesOrToleranceParameter(String name, String description, String unit,
       NumberFormat format, @NotNull ToleranceParam toleranceParameter) {
@@ -76,8 +76,8 @@ public abstract class RangesOrToleranceParameter<T extends Number & Comparable<T
   @Override
   public void setValueFromComponent(
       RangesOrToleranceComponent<T, ToleranceComponent> rangesOrToleranceComponent) {
-    value = rangesOrToleranceComponent.getValue();
     toleranceParameter.setValueFromComponent(rangesOrToleranceComponent.toleranceComponent);
+    value = rangesOrToleranceComponent.getValue();
   }
 
   @Override
@@ -85,9 +85,6 @@ public abstract class RangesOrToleranceParameter<T extends Number & Comparable<T
       RangesOrToleranceComponent<T, ToleranceComponent> rangesOrToleranceComponent,
       @Nullable RangeOrValueResult<T> newValue) {
     rangesOrToleranceComponent.setValue(newValue);
-    toleranceParameter.setValue((TolType) newValue.tolerance());
-    toleranceParameter.setValueToComponent(rangesOrToleranceComponent.toleranceComponent,
-        toleranceParameter.getValue());
   }
 
   @Override
@@ -96,23 +93,25 @@ public abstract class RangesOrToleranceParameter<T extends Number & Comparable<T
   }
 
   @Override
-  public RangeOrValueResult<T> getValue() {
+  public @NotNull RangeOrValueResult<T> getValue() {
     return value;
   }
 
   @Override
   public void setValue(@Nullable RangeOrValueResult<T> newValue) {
-    this.value = newValue;
-    toleranceParameter.setValue(newValue != null ? (TolType) newValue.tolerance() : null);
+    if (newValue != null) {
+      this.value = newValue;
+      toleranceParameter.setValue((TolType) this.value.tolerance());
+    } else {
+      // keep the tolerance if new value is null
+      this.value = new RangeOrValueResult<>(List.of(), this.value.tolerance());
+      toleranceParameter.setValue((TolType) value.tolerance());
+    }
   }
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
     boolean failed = !toleranceParameter.checkValue(errorMessages);
-    if (value == null) {
-      errorMessages.add("Parameter %s has no value.".formatted(name));
-      failed = true;
-    }
     String invalid = value.ranges().stream().filter(v -> !v.isValid()).map(RangeOrValue::toString)
         .collect(Collectors.joining(", "));
     if (!invalid.isBlank()) {
@@ -140,10 +139,10 @@ public abstract class RangesOrToleranceParameter<T extends Number & Comparable<T
       String strLower = rov.getAttribute("lower");
       String strUpper = rov.getAttribute("upper");
 
-      if(CONST.XML_NULL_VALUE.equals(strLower)) {
+      if (CONST.XML_NULL_VALUE.equals(strLower)) {
         strLower = null;
       }
-      if(CONST.XML_NULL_VALUE.equals(strUpper)) {
+      if (CONST.XML_NULL_VALUE.equals(strUpper)) {
         strUpper = null;
       }
 
