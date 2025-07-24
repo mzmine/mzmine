@@ -49,17 +49,16 @@ public class MeanCenterScalingFunction implements ScalingFunction {
 
   @Override
   public <T extends DataTable> T processInPlace(T data) {
-    for (double[] feature : data) {
-      if (feature == null || feature.length == 0) {
-        continue;
-      }
+    // do not use data array directly as it is not given that all tables.featureArray will reflect the changes
+    for (int featureIndex = 0; featureIndex < data.getNumberOfFeatures(); featureIndex++) {
+      final double mean = MathUtils.calcAvg(data.getFeatureData(featureIndex, false));
 
-      final double mean = MathUtils.calcAvg(feature);
-
-      for (int i = 0; i < feature.length; i++) {
-        feature[i] -= mean;
+      for (int i = 0; i < data.getNumberOfSamples(); i++) {
+        final double scaled = data.getValue(featureIndex, i) - mean;
+        data.setValue(featureIndex, i, scaled);
       }
     }
     return data;
   }
+
 }

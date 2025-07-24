@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataanalysis.utils.imputation;
 
 import io.github.mzmine.datamodel.statistics.DataTable;
 import io.github.mzmine.datamodel.statistics.DataTableUtils;
-import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 
 public class GlobalLimitOfDetectionImputer implements ImputationFunction {
 
@@ -36,12 +35,15 @@ public class GlobalLimitOfDetectionImputer implements ImputationFunction {
   public GlobalLimitOfDetectionImputer() {
   }
 
+
   @Override
   public <T extends DataTable> T processInPlace(T data) {
     // calculate minimum
     final double globalMinimum = DataTableUtils.getMinimum(data, true).orElse(1d) / DEVISOR;
-    for (double[] feature : data) {
-      StatisticUtils.replaceNaN(feature, globalMinimum, true);
+
+    // do not use data array directly as it is not given that all tables.featureArray will reflect the changes
+    for (int featureIndex = 0; featureIndex < data.getNumberOfFeatures(); featureIndex++) {
+      DataTableUtils.replaceNaN(data, featureIndex, globalMinimum, true);
     }
 
     return data;

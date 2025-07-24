@@ -34,26 +34,26 @@ import org.jetbrains.annotations.NotNull;
 public interface FeatureListRowAbundances {
 
   /**
-   * @param values             is the feature values for all samples in the order of the samples
+   * @param abundances         is the feature abundances for all samples in the order of the samples
    *                           {@link RawDataFile} list of the parent {@link DataTable}
    * @param trackMissingValues creates a {@link MissingValuesImputedFeatureListRowAbundances} to
    *                           track the original missing values so that if zero values are imputed
    *                           later the original missing values ratio is kept
    */
-  static FeatureListRowAbundances of(FeatureListRow row, double[] values,
+  static FeatureListRowAbundances of(FeatureListRow row, double[] abundances,
       boolean trackMissingValues) {
     if (trackMissingValues) {
-      return new SimpleFeatureListRowAbundances(row, values);
+      return new SimpleFeatureListRowAbundances(row, abundances);
     } else {
       int nMissingValues = 0;
-      BitSet missingValues = new BitSet(values.length);
-      for (int i = 0; i < values.length; i++) {
-        if (Double.isNaN(values[i])) {
+      BitSet missingValues = new BitSet(abundances.length);
+      for (int i = 0; i < abundances.length; i++) {
+        if (Double.isNaN(abundances[i])) {
           missingValues.set(i);
           nMissingValues++;
         }
       }
-      return new MissingValuesImputedFeatureListRowAbundances(row, values, missingValues,
+      return new MissingValuesImputedFeatureListRowAbundances(row, abundances, missingValues,
           nMissingValues);
     }
   }

@@ -38,8 +38,18 @@ import org.jetbrains.annotations.NotNull;
 public interface DataTable extends Iterable<double[]> {
 
 
+  /**
+   * Some tables may represent samples as columns or as rows
+   *
+   * @return the number of samples
+   */
   int getNumberOfSamples();
 
+  /**
+   * Some tables may represent features as columns or as rows
+   *
+   * @return the number of features
+   */
   int getNumberOfFeatures();
 
   /**
@@ -55,7 +65,14 @@ public interface DataTable extends Iterable<double[]> {
    * @param index sample index
    * @return a new array of the sample data
    */
-  double[] getSampleData(int index);
+  default double[] getSampleData(int index) {
+    final int numSamples = getNumberOfSamples();
+    final double[] data = new double[numSamples];
+    for (int i = 0; i < numSamples; i++) {
+      data[i] = getValue(index, i);
+    }
+    return data;
+  }
 
 
   /**
@@ -70,6 +87,13 @@ public interface DataTable extends Iterable<double[]> {
   default double getValue(int featureIndex, int sampleIndex) {
     return getFeatureData(featureIndex, false)[sampleIndex];
   }
+
+
+  void setFeatureData(int index, double[] data);
+
+  void setSampleData(int index, double[] data);
+
+  void setValue(int featureIndex, int sampleIndex, double value);
 
   /**
    * Iterator for the features

@@ -23,21 +23,47 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.utils.imputation;
+package io.github.mzmine.datamodel.statistics;
 
-import io.github.mzmine.datamodel.statistics.DataTable;
-import io.github.mzmine.datamodel.statistics.DataTableUtils;
+/**
+ * Just an array data table
+ */
+public class SimpleArrayDataTable extends AbstractRowArrayDataTable {
 
-public class ZeroImputer implements ImputationFunction {
+  /**
+   * data array as [rows=features][columns=samples]
+   */
+  protected final double[][] data;
 
-  @Override
-  public <T extends DataTable> T processInPlace(T data) {
-    // do not use data array directly as it is not given that all tables.featureArray will reflect the changes
-    for (int featureIndex = 0; featureIndex < data.getNumberOfFeatures(); featureIndex++) {
-      DataTableUtils.replaceNaN(data, featureIndex, 0d, true);
-    }
-
-    return data;
+  /**
+   * @param data data array as [rows][columns]
+   */
+  public SimpleArrayDataTable(double[][] data) {
+    this.data = data;
   }
 
+
+  @Override
+  public int getNumberOfSamples() {
+    return getNumberOfFeatures() == 0 ? 0 : data[0].length;
+  }
+
+  @Override
+  public int getNumberOfFeatures() {
+    return data.length;
+  }
+
+  @Override
+  public double[] getFeatureData(int index, boolean copy) {
+    return copy ? data[index].clone() : data[index];
+  }
+
+  @Override
+  public SimpleArrayDataTable copy() {
+    final double[][] copyData = new double[data.length][];
+    for (int i = 0; i < data.length; i++) {
+      copyData[i] = data[i].clone();
+    }
+    return new SimpleArrayDataTable(copyData);
+  }
 }

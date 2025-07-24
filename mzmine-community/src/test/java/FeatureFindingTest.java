@@ -595,7 +595,7 @@ public class FeatureFindingTest {
   @Test
   @Order(7)
   @DisplayName("Test FeatureDataTable")
-  void featureDataTableTest() throws InterruptedException {
+  void featureDataTableTest() {
     final AbundanceDataTablePreparationConfig config = new AbundanceDataTablePreparationConfig(
         AbundanceMeasure.Area, ImputationFunctions.None, ScalingFunctions.None,
         ScalingFunctions.None);

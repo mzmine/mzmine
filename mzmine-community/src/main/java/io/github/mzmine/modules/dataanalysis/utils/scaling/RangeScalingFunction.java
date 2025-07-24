@@ -25,8 +25,10 @@
 
 package io.github.mzmine.modules.dataanalysis.utils.scaling;
 
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.statistics.DataTable;
-import java.util.Arrays;
+import io.github.mzmine.datamodel.statistics.DataTableUtils;
+import io.github.mzmine.util.ArrayUtils;
 import org.apache.commons.math3.linear.RealVector;
 
 public class RangeScalingFunction implements ScalingFunction {
@@ -57,35 +59,29 @@ public class RangeScalingFunction implements ScalingFunction {
 
   @Override
   public <T extends DataTable> T processInPlace(T data) {
-    for (double[] feature : data) {
-      if (feature == null || feature.length == 0) {
-        continue;
-      }
+    // do not use data array directly as it is not given that all tables.featureArray will reflect the changes
+    for (int featureIndex = 0; featureIndex < data.getNumberOfFeatures(); featureIndex++) {
+      // scale within value range
+      final var optionalRange = ArrayUtils.rangeOf(data.getFeatureData(featureIndex, false));
+      if (optionalRange.isPresent()) {
+        final SimpleDoubleRange range = optionalRange.get();
+        final double valueDistance = range.length();
 
-      // Find min and max
-      double min = feature[0];
-      double max = feature[0];
-      for (double value : feature) {
-        if (value > max) {
-          max = value;
-        }
-        if (value < min) {
-          min = value;
-        }
-      }
+        // single value = scale to 0.5
+        if (Double.compare(valueDistance, 0d) == 0) {
+          DataTableUtils.fillFeatureData(data, featureIndex, maxValue / 2d);
+        } else {
+          // Scale values between 0 and maxValue
+          final double scale = maxValue / valueDistance;
 
-      // Scale values between 0 and maxValue
-      final double range = max - min;
-      final double scale = maxValue / range;
-      if (range == 0) {
-        // If all values are identical, set them to maxValue/2
-        Arrays.fill(feature, maxValue / 2d);
-      } else {
-        for (int i = 0; i < feature.length; i++) {
-          feature[i] = (feature[i] - min) * scale;
+          for (int i = 0; i < data.getNumberOfSamples(); i++) {
+            final double value = data.getValue(featureIndex, i);
+            data.setValue(featureIndex, i, (value - range.lowerBound()) * scale);
+          }
         }
       }
     }
+
     return data;
   }
 }
