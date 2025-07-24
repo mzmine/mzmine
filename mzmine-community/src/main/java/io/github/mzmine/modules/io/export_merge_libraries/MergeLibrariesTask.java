@@ -45,11 +45,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
@@ -122,25 +119,19 @@ public class MergeLibrariesTask extends AbstractTask {
 
     final AtomicLong entryId = new AtomicLong(0);
 
-    // always add the used IDs to duplicate IDs so that other ids will never have the same value
-    final Set<String> duplicateIds = getDuplicateIds(libs);
+    // always add the used IDs so they will never have the same value
+    final Set<String> usedIds = new HashSet<>();
 
     try (var w = Files.newBufferedWriter(newFile.toPath(), WriterOptions.REPLACE.toOpenOption())) {
       for (final SpectralLibrary lib : libs) {
         for (SpectralLibraryEntry entry : lib.getEntries()) {
 
-          final String currentId = entry.getOrElse(DBEntryField.ENTRY_ID, null);
-          final boolean isDuplicate = currentId == null || duplicateIds.contains(currentId);
-
           // loop until a new ID is found that is not yet used
-          String newEntryId = null;
-          do {
-            newEntryId = idHandling.getNewEntryId(libraryName, entry, isDuplicate,
-                () -> entryId.incrementAndGet() + "_id"); // add suffix to not end with number
-          } while (duplicateIds.contains(newEntryId));
+          final String newEntryId = idHandling.getNewEntryId(libraryName, entry, usedIds,
+              () -> entryId.incrementAndGet() + "_id"); // add suffix to not end with number
 
           final SpectralDBEntry copy = new SpectralDBEntry((SpectralDBEntry) entry);
-          duplicateIds.add(newEntryId); // add to duplicates to avoid another one
+          usedIds.add(newEntryId); // add to duplicates to avoid another one
           copy.putIfNotNull(DBEntryField.ENTRY_ID, newEntryId);
           ExportScansFeatureTask.exportEntry(w, copy, format, intensityNormalizer);
           exportedEntries++;
@@ -159,23 +150,4 @@ public class MergeLibrariesTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private Set<String> getDuplicateIds(List<SpectralLibrary> libs) {
-
-    // hash map supports null key
-    final Map<String, Boolean> allIds = new HashMap<>();
-
-    for (final SpectralLibrary lib : libs) {
-      for (final SpectralLibraryEntry entry : lib.getEntries()) {
-        final String id = entry.getAsString(DBEntryField.ENTRY_ID).orElse(null);
-        if (allIds.containsKey(id)) {
-          allIds.put(id, true);
-        } else {
-          allIds.put(id, false);
-        }
-      }
-    }
-
-    return allIds.entrySet().stream().filter(Entry::getValue).map(Entry::getKey)
-        .filter(Objects::nonNull).collect(Collectors.toSet());
-  }
 }

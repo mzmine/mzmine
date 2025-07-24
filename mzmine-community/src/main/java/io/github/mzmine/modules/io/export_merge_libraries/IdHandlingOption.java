@@ -26,12 +26,15 @@
 package io.github.mzmine.modules.io.export_merge_libraries;
 
 import static java.util.Objects.requireNonNullElse;
+import static java.util.Objects.requireNonNullElseGet;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import java.util.Set;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public enum IdHandlingOption implements UniqueIdSupplier {
   KEEP_ALL, RENUMBERED_WITH_FILENAME, RENUMBER_WITH_DATASET_ID, AVOID_DUPLICATES, NEW_ID_WITH_LIBRARY_NAME;
@@ -51,32 +54,38 @@ public enum IdHandlingOption implements UniqueIdSupplier {
 
   /**
    * @param libraryName the new library name (usually filename without extension)
-   * @param isDuplicate if the entry is a duplicate (id appears in another library)
+   * @param usedIds     all IDs already used in the library
    * @param fallbackId  a fallback id in case {@link DBEntryField#ENTRY_ID} is empty
    * @return the new id
    */
   public @NotNull String getNewEntryId(@NotNull String libraryName,
-      @NotNull SpectralLibraryEntry entry, boolean isDuplicate,
+      @NotNull SpectralLibraryEntry entry, Set<String> usedIds,
       @NotNull final Supplier<@NotNull String> fallbackId) {
     // library is nullable so fallback to a default name
     final String oldLibName = requireNonNullElse(entry.getLibraryName(), "speclib");
+    final @Nullable String originalID = entry.getAsString(DBEntryField.ENTRY_ID).orElse(null);
+
     return switch (this) {
-      case KEEP_ALL -> entry.getAsString(DBEntryField.ENTRY_ID).orElseGet(fallbackId);
+      case KEEP_ALL -> requireNonNullElseGet(originalID, fallbackId);
       case AVOID_DUPLICATES -> {
-        if (isDuplicate) {
-          yield remappingPattern.formatted(oldLibName, fallbackId);
-        } else {
-          yield entry.getAsString(DBEntryField.ENTRY_ID).orElseGet(fallbackId);
+        // first try with the originalID or fallback
+        String entryID = requireNonNullElseGet(originalID, fallbackId);
+        String fullId = remappingPattern.formatted(oldLibName, entryID);
+        while (usedIds.contains(fullId)) {
+          // keep incrementing the fallbackId
+          entryID = fallbackId.get();
+          fullId = remappingPattern.formatted(oldLibName, entryID);
         }
+        yield fullId;
       }
-      case NEW_ID_WITH_LIBRARY_NAME -> remappingPattern.formatted(oldLibName, fallbackId);
+      case NEW_ID_WITH_LIBRARY_NAME -> remappingPattern.formatted(oldLibName, fallbackId.get());
       case RENUMBER_WITH_DATASET_ID -> {
         // useful to add the DATASET_ID of the original entry
         final String libName = entry.getAsString(DBEntryField.DATASET_ID).orElse("speclib");
-        yield remappingPattern.formatted(libName, fallbackId);
+        yield remappingPattern.formatted(libName, fallbackId.get());
       }
       // most useful for libraries that want the same ID pattern with a common filename prefix and then the scan number from fallbackID
-      case RENUMBERED_WITH_FILENAME -> remappingPattern.formatted(libraryName, fallbackId);
+      case RENUMBERED_WITH_FILENAME -> remappingPattern.formatted(libraryName, fallbackId.get());
     };
   }
 
