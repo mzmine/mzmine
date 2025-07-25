@@ -26,6 +26,7 @@
 package io.github.mzmine.javafx.components.factories;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.javafx.components.formatters.FormatDoubleStringConverter;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -36,6 +37,8 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.util.converter.FormatStringConverter;
+import org.controlsfx.control.tableview2.cell.TextField2TableCell;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -99,6 +102,26 @@ public class TableColumns {
 
       @Override
       public void updateItem(S value, boolean empty) {
+        super.updateItem(value, empty);
+        if (empty || value == null) {
+          setText(null);
+          return;
+        }
+        try {
+          setText(format.format(value));
+        } catch (Exception ex) {
+          logger.warning("Cannot format number " + value);
+        }
+      }
+    });
+  }
+
+  public static <T> void setFormattedEditableCellFactory(TableColumn<T, Double> col,
+      NumberFormat format) {
+    col.setCellFactory(__ -> new TextField2TableCell<>(new FormatDoubleStringConverter(format)) {
+
+      @Override
+      public void updateItem(Double value, boolean empty) {
         super.updateItem(value, empty);
         if (empty || value == null) {
           setText(null);

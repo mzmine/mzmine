@@ -68,7 +68,7 @@ import org.w3c.dom.Element;
 public class SimpleParameterSet implements ParameterSet {
 
   public static final String parameterElement = "parameter";
-  private static final String nameAttribute = "name";
+  public static final String nameAttribute = "name";
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
   private final BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
   protected Parameter<?>[] parameters;
