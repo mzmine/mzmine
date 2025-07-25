@@ -25,10 +25,14 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-public enum SpectralLibrarySelectionType {
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import org.jetbrains.annotations.NotNull;
+
+public enum SpectralLibrarySelectionType implements UniqueIdSupplier {
 
   ALL_IMPORTED("All imported libraries"), //
-  SPECIFIC("Specific libraries");
+  SPECIFIC("Specific libraries"),
+  AS_SELECTED_IN_MAIN_WINDOW("As selected in main window");
 
   private final String stringValue;
 
@@ -41,4 +45,12 @@ public enum SpectralLibrarySelectionType {
     return stringValue;
   }
 
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case ALL_IMPORTED -> "ALL_IMPORTED";
+      case SPECIFIC -> "SPECIFIC";
+      case AS_SELECTED_IN_MAIN_WINDOW -> "selected_in_main_window";
+    };
+  }
 }
