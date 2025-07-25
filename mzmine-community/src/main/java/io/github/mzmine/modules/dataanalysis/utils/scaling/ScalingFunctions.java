@@ -34,6 +34,9 @@ public enum ScalingFunctions implements UniqueIdSupplier {
   public final static ScalingFunctions[] valuesExcludeNone = new ScalingFunctions[]{AutoScaling,
       ParetoScaling, RangeScaling, MeanCentering};
 
+  public final static ScalingFunctions[] valuesPCAOptions = new ScalingFunctions[]{AutoScaling,
+      ParetoScaling, RangeScaling};
+
   public ScalingFunction getScalingFunction() {
     return switch (this) {
       case AutoScaling -> new AutoScalingFunction();

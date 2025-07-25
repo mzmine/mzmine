@@ -134,8 +134,8 @@ public class VolcanoPlotRegionExtractionParameters extends SimpleParameterSet {
   }
 
   @Override
-  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams) {
-    super.handleLoadedParameters(loadedParams);
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int version) {
+    super.handleLoadedParameters(loadedParams, version);
     if (!loadedParams.containsKey(dataPreparationConfig.getName())) {
       // old parameterset only used abundance measure directly
       // set default to zero value imputation

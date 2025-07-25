@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,26 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.datamodel.features.columnar_data.columns.general;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ListAsJsonDataType;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * Universal spectrum identifier for all source spectra of this spectrum. Simple scan has one and
- * merged spectrum multiple.
- */
-public class SourceScanUsiType extends ListAsJsonDataType<String> {
+public interface NullableInteger {
 
-  @Override
-  public @NotNull String getHeaderString() {
-    return "Source USI";
+  int NULL_VALUE = Integer.MIN_VALUE + 1;
+
+  /**
+   * @return {@link #NULL_VALUE} used as null representative
+   */
+  default int nullValue() {
+    return NULL_VALUE;
   }
 
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "source_scan_usi";
+  /**
+   * @return true if value represents null
+   */
+  default boolean isNull(final @Nullable Integer value) {
+    return value == null || isNull(value.intValue());
+  }
+
+  /**
+   * @return true if value represents null
+   */
+  default boolean isNull(final int value) {
+    return value == NULL_VALUE;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,30 +22,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods;
 
-import io.github.mzmine.datamodel.features.types.abstr.UrlType;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 
-/**
- * URL to MASST job on GNPS. MASST is the mass spectrometry search tool. e.g. <a
- * href="https://gnps.ucsd.edu/ProteoSAFe/status.jsp?task=fa0437e82d0a4a4493c8c2dcb4977c07">https://gnps.ucsd.edu/ProteoSAFe/status.jsp?task=fa0437e82d0a4a4493c8c2dcb4977c07</a>
- *
- * @author Robin Schmid (<a
- * href="https://github.com/robinschmid">https://github.com/robinschmid</a>)
- */
-public class MasstUrlType extends UrlType {
+public enum RtCorrectionFunctions implements ModuleOptionsEnum<RawFileRtCorrectionModule> {
+  MultiLinearCorrection;
 
-  @NotNull
   @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "masst_url";
+  public Class<? extends RawFileRtCorrectionModule> getModuleClass() {
+    return switch (this) {
+      case MultiLinearCorrection -> MultilinearRawFileRtCorrectionModule.class;
+    };
   }
 
-  @NotNull
   @Override
-  public String getHeaderString() {
-    return "MASST";
+  public String getStableId() {
+    return getModuleInstance().getUniqueID();
   }
 }

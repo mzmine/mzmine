@@ -48,7 +48,7 @@ public class PCALoadingsExtractionParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flist = new FeatureListsParameter();
   public static final ComboParameter<ScalingFunctions> scaling = new ComboParameter<>(
-      "Scaling function", "Select the scaling function.", ScalingFunctions.valuesExcludeNone);
+      "Scaling function", "Select the scaling function.", ScalingFunctions.valuesPCAOptions);
   public static final ComboParameter<ImputationFunctions> imputations = new ComboParameter<>(
       "Imputation function", "Select the imputation function.",
       ImputationFunctions.valuesExcludeNone);

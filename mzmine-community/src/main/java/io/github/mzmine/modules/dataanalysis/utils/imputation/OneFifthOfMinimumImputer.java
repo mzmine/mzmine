@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataanalysis.utils.imputation;
 
 import io.github.mzmine.datamodel.statistics.DataTable;
 import io.github.mzmine.datamodel.statistics.DataTableUtils;
-import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import org.apache.commons.math3.linear.RealVector;
 
 /**
@@ -35,19 +34,24 @@ import org.apache.commons.math3.linear.RealVector;
  */
 public class OneFifthOfMinimumImputer implements ImputationFunction {
 
+  public static final double DEVISOR = 5;
+
   @Override
   public <T extends DataTable> T processInPlace(T data) {
-    for (double[] feature : data) {
-      // calculate minimum
-      final double minValue = DataTableUtils.getMinimum(feature, true).orElse(1d) / 3d;
-      StatisticUtils.replaceNaN(feature, minValue, true);
+    // do not use data array directly as it is not given that all tables.featureArray will reflect the changes
+    for (int featureIndex = 0; featureIndex < data.getNumberOfFeatures(); featureIndex++) {
+      final double minValue =
+          DataTableUtils.getMinimum(data.getFeatureData(featureIndex, false), true).orElse(1d)
+              / DEVISOR;
+      DataTableUtils.replaceNaN(data, featureIndex, minValue, true);
     }
 
     return data;
   }
 
+
   public Double apply(RealVector realVector) {
     final double minValue = realVector.getMinValue();
-    return minValue * 1 / 5;
+    return minValue / DEVISOR;
   }
 }

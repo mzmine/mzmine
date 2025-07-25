@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class FeaturesDataTable implements ModifiableDataTable {
+public final class FeaturesDataTable extends AbstractRowArrayDataTable {
 
   public static final FeaturesDataTable EMPTY = new FeaturesDataTable(List.of(),
       new FeatureListRowAbundances[0]);
@@ -184,15 +184,6 @@ public final class FeaturesDataTable implements ModifiableDataTable {
 
   public double[] getSampleData(RawDataFile raw) {
     return getSampleData(getSampleIndex(raw));
-  }
-
-  @Override
-  public double[] getSampleData(int index) {
-    final double[] data = new double[dataRows.length];
-    for (int i = 0; i < dataRows.length; i++) {
-      data[i] = dataRows[i].abundances()[index];
-    }
-    return data;
   }
 
   @Override

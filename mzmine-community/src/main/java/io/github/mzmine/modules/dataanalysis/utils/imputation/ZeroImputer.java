@@ -26,14 +26,15 @@
 package io.github.mzmine.modules.dataanalysis.utils.imputation;
 
 import io.github.mzmine.datamodel.statistics.DataTable;
-import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
+import io.github.mzmine.datamodel.statistics.DataTableUtils;
 
 public class ZeroImputer implements ImputationFunction {
 
   @Override
   public <T extends DataTable> T processInPlace(T data) {
-    for (double[] feature : data) {
-      StatisticUtils.replaceNaN(feature, 0d, false);
+    // do not use data array directly as it is not given that all tables.featureArray will reflect the changes
+    for (int featureIndex = 0; featureIndex < data.getNumberOfFeatures(); featureIndex++) {
+      DataTableUtils.replaceNaN(data, featureIndex, 0d, true);
     }
 
     return data;

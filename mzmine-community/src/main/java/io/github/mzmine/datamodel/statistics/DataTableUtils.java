@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class DataTableUtils {
 
+
   public static OptionalDouble getMinimum(double[] feature, boolean excludeZero) {
     double min = Double.MAX_VALUE;
     for (double value : feature) {
@@ -87,6 +88,25 @@ public class DataTableUtils {
       return OptionalDouble.empty();
     }
     return OptionalDouble.of(max);
+  }
+
+
+  /**
+   * replace all NaN and optionally 0 values with an imputed value
+   *
+   * @param data         the data table
+   * @param featureIndex the row index
+   * @param imputedValue the replacement value
+   * @param replaceZero  also replace 0 values
+   */
+  public static void replaceNaN(DataTable data, int featureIndex, double imputedValue,
+      boolean replaceZero) {
+    for (int sampleIndex = 0; sampleIndex < data.getNumberOfSamples(); sampleIndex++) {
+      final double value = data.getValue(featureIndex, sampleIndex);
+      if (Double.isNaN(value) || (replaceZero && Double.compare(value, 0d) == 0)) {
+        data.setValue(featureIndex, sampleIndex, imputedValue);
+      }
+    }
   }
 
   /**
@@ -191,4 +211,17 @@ public class DataTableUtils {
     }
     return data;
   }
+
+  public static <T extends DataTable> void fillFeatureData(T data, int featureIndex, double value) {
+    for (int sampleIndex = 0; sampleIndex < data.getNumberOfSamples(); sampleIndex++) {
+      data.setValue(featureIndex, sampleIndex, value);
+    }
+  }
+
+  public static <T extends DataTable> void fillSampleData(T data, int sampleIndex, double value) {
+    for (int rowIndex = 0; rowIndex < data.getNumberOfSamples(); rowIndex++) {
+      data.setValue(rowIndex, sampleIndex, value);
+    }
+  }
+
 }

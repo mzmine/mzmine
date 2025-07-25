@@ -42,6 +42,9 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structur
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure3dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.identifiers.CASType;
+import io.github.mzmine.datamodel.features.types.identifiers.InternalIdType;
+import io.github.mzmine.datamodel.features.types.identifiers.IupacNameType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityAbsoluteDifferenceType;
@@ -87,6 +90,9 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
   Logger logger = Logger.getLogger(CompoundDBAnnotation.class.getName());
 
+  /**
+   * List of valid "identifiers" (in order). One of these must be present
+   */
   String XML_ELEMENT_OLD = "compound_db_annotation";
   String XML_TYPE_ATTRIBUTE_OLD = "annotationtype";
   String XML_NUM_ENTRIES_ATTR = "entries";
@@ -124,8 +130,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
       return true;
     } else {
       return useIonLibrary && (baseAnnotation.get(NeutralMassType.class) != null
-                               || baseAnnotation.getFormula() != null
-                               || baseAnnotation.getSmiles() != null);
+          || baseAnnotation.getFormula() != null || baseAnnotation.getSmiles() != null);
     }
   }
 
@@ -324,6 +329,24 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
   default void setScore(Float score) {
     put(CompoundAnnotationScoreType.class, score);
+  }
+
+  @Override
+  @Nullable
+  default String getIupacName() {
+    return get(IupacNameType.class);
+  }
+
+  @Override
+  @Nullable
+  default String getCAS() {
+    return get(CASType.class);
+  }
+
+  @Override
+  @Nullable
+  default String getInternalId() {
+    return get(InternalIdType.class);
   }
 
   @Override

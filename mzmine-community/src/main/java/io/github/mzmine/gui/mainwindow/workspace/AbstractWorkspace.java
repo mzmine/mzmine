@@ -92,6 +92,7 @@ import io.github.mzmine.modules.io.export_features_venn.VennExportModule;
 import io.github.mzmine.modules.io.export_features_xml.ExportFeaturesDataModule;
 import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
 import io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule;
+import io.github.mzmine.modules.io.export_merge_libraries.MergeLibrariesModule;
 import io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule;
 import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportModule;
 import io.github.mzmine.modules.io.export_scans_modular.ExportScansFeatureModule;
@@ -353,7 +354,7 @@ public abstract class AbstractWorkspace implements Workspace {
         KeyCombination.SHORTCUT_DOWN);
     addModuleMenuItems(menu, IsotopePatternPreviewModule.class, QualityParametersModule.class);
     addModuleMenuItems(menu, "Libraries", LibraryAnalysisCSVExportModule.class,
-        MsMsQualityExportModule.class);
+        MsMsQualityExportModule.class, MergeLibrariesModule.class);
     addModuleMenuItems(menu, "timsTOF fleX", TimsTOFMaldiAcquisitionModule.class,
         SimsefImagingSchedulerModule.class);
     return menu;

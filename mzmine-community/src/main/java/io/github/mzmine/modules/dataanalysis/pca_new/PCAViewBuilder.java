@@ -123,7 +123,7 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
 
   private @NotNull Accordion buildControlsAccordion() {
     final HBox scaling = FxComboBox.createLabeledComboBox("Scaling",
-        FXCollections.observableArrayList(ScalingFunctions.valuesExcludeNone),
+        FXCollections.observableArrayList(ScalingFunctions.valuesPCAOptions),
         model.scalingFunctionProperty());
     final HBox imputation = FxComboBox.createLabeledComboBox("Missing value imputation",
         FXCollections.observableArrayList(ImputationFunctions.valuesExcludeNone),

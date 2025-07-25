@@ -186,7 +186,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public @Nullable String getVersionMessage(int version) {
     return switch (version) {
       case 3 -> """
-          "%s" has changed internally. Missing value imputation was added
+          "%s" has changed internally. Missing value imputation was added.
           "%s" was added as an additional filtering option.""".formatted(cvFilter.getName(),
           foldChangeFilter.getName());
       default -> null;

@@ -25,21 +25,29 @@
 
 package io.github.mzmine.datamodel.statistics;
 
-public interface ModifiableDataTable extends DataTable {
+/**
+ * rows are represented by arrays that are mutable. This requires the
+ * {@link #getFeatureData(int, boolean)} function to return a mutable array that reflects the
+ * state.
+ */
+public abstract class AbstractRowArrayDataTable implements DataTable {
 
-  default void setFeatureData(int index, double[] data) {
+  @Override
+  public void setFeatureData(int index, double[] data) {
     double[] oldData = getFeatureData(index, false);
     System.arraycopy(data, 0, oldData, 0, data.length);
   }
 
-  default void setSampleData(int index, double[] data) {
+  @Override
+  public void setSampleData(int index, double[] data) {
     final int features = getNumberOfFeatures();
     for (int row = 0; row < features; row++) {
       setValue(row, index, data[index]);
     }
   }
 
-  default void setValue(int featureIndex, int sampleIndex, double value) {
+  @Override
+  public void setValue(int featureIndex, int sampleIndex, double value) {
     double[] data = getFeatureData(featureIndex, false);
     data[sampleIndex] = value;
   }

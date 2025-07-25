@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.dataanalysis.utils.scaling;
 
 import io.github.mzmine.datamodel.statistics.DataTable;
-import java.util.Arrays;
+import io.github.mzmine.datamodel.statistics.DataTableUtils;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
@@ -47,18 +47,22 @@ public class AutoScalingFunction implements ScalingFunction {
     return input.mapDivide(sd).mapToSelf(scalingResultChecker);
   }
 
+
   @Override
   public <T extends DataTable> T processInPlace(T data) {
-    for (double[] feature : data) {
-      final double sd = dev.evaluate(feature);
+    // do not use data array directly as it is not given that all tables.featureArray will reflect the changes
+    for (int featureIndex = 0; featureIndex < data.getNumberOfFeatures(); featureIndex++) {
+      final double sd = dev.evaluate(data.getFeatureData(featureIndex, false));
       if (Double.compare(sd, 0d) == 0) {
-        Arrays.fill(feature, 0d);
+        DataTableUtils.fillFeatureData(data, featureIndex, 0d);
       } else {
-        for (int i = 0; i < feature.length; i++) {
-          feature[i] = scalingResultChecker.value(feature[i] / sd);
+        for (int i = 0; i < data.getNumberOfSamples(); i++) {
+          final double scaled = scalingResultChecker.value(data.getValue(featureIndex, i) / sd);
+          data.setValue(featureIndex, i, scaled);
         }
       }
     }
     return data;
   }
+
 }
