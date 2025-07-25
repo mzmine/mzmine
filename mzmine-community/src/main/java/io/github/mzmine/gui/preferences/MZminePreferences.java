@@ -213,8 +213,8 @@ public class MZminePreferences extends SimpleParameterSet {
       "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
       true);
 
-  public static final BooleanParameter showTempFolderAlert = new BooleanParameter("Show temp alert",
-      "Show temp folder alert", true);
+  public static final HiddenParameter<Boolean> showTempFolderAlert = new HiddenParameter<>(
+      new BooleanParameter("Show temp alert", "Show temp folder alert", true));
 
   public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<ImageNormalization>(
       "Normalize images",
@@ -323,13 +323,14 @@ public class MZminePreferences extends SimpleParameterSet {
     assert Platform.isFxApplicationThread();
     final Themes previousTheme = getValue(MZminePreferences.theme);
     GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this);
+    dialog.setTitle("mzmine preferences");
 
     // add groups
     dialog.addParameterGroup("General", numOfThreads, memoryOption, imsOptimization, tempDirectory,
         runGCafterBatchStep, deleteTempFiles, proxySettings
         /*, applyTimsPressureCompensation*/);
     dialog.addParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
-        intensityFormat, ppmFormat, scoreFormat, unitFormat);
+        intensityFormat, ppmFormat, scoreFormat, percentFormat, unitFormat);
     dialog.addParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
         chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
         imageNormalization);

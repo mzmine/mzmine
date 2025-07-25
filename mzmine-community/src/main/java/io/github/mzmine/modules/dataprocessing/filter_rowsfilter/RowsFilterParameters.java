@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -45,7 +46,9 @@ import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.util.ExitCode;
 import java.util.Map;
+import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -159,7 +162,6 @@ public class RowsFilterParameters extends SimpleParameterSet {
       false);
 
   // resorted parameters to be more grouped
-  // TODO maybe make the dialog similar to the preferences by grouping up parameters
   public RowsFilterParameters() {
     super(new Parameter[]{
             // general parameters
@@ -176,6 +178,41 @@ public class RowsFilterParameters extends SimpleParameterSet {
             KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
   }
+
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    return showSetupDialog(valueCheckRequired, "");
+  }
+
+  public ExitCode showSetupDialog(boolean valueCheckRequired, String filterParameters) {
+    assert Platform.isFxApplicationThread();
+    GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this);
+
+    dialog.setFixedTopGroup(FEATURE_LISTS, SUFFIX, REMOVE_ROW, handleOriginal);
+
+    dialog.showSummaryOfSelectedParameters(true);
+
+    // add groups
+    dialog.addParameterGroup("Sample-based filters", MIN_FEATURE_COUNT, MIN_FEATURE_IN_GROUP_COUNT,
+        cvFilter, foldChangeFilter);
+    dialog.addParameterGroup("Isotope filters", MIN_ISOTOPE_PATTERN_COUNT, ISOTOPE_FILTER_13C,
+        removeRedundantRows);
+    dialog.addParameterGroup("Feature properties", MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM,
+        CHARGE, massDefect, KENDRICK_MASS_DEFECT);
+    dialog.addParameterGroup("Annotations & MS2 filter", KEEP_ALL_MS2, MS2_Filter,
+        KEEP_ALL_ANNOTATED, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT);
+    dialog.addParameterGroup("Other options", onlyCorrelatedWithOtherDetectors, Reset_ID);
+    dialog.setFilterText(filterParameters);
+
+    dialog.setMinWidth(600);
+    dialog.setMinHeight(800);
+
+    // check
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
+
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
