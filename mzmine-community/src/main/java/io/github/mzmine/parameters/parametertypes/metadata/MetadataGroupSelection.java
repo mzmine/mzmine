@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,9 +29,10 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.util.StringUtils;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,8 +45,7 @@ public record MetadataGroupSelection(@NotNull String columnName, @NotNull String
    * value. Case sensitive.
    */
   public boolean isValid() {
-    if (columnName == null || columnName.isBlank() || groupStr == null
-        || groupStr.isBlank()) {
+    if (columnName == null || columnName.isBlank() || groupStr == null || groupStr.isBlank()) {
       return false;
     }
 
@@ -57,8 +57,8 @@ public record MetadataGroupSelection(@NotNull String columnName, @NotNull String
     }
 
     final Map<RawDataFile, Object> columnValues = metadata.getData().get(column);
-    return columnValues.values().stream().map(Object::toString)
-        .anyMatch(str -> str.equals(groupStr()));
+    return columnValues.values().stream()
+        .anyMatch(str -> StringUtils.isEqualToString(str, groupStr));
   }
 
   /**
@@ -66,7 +66,7 @@ public record MetadataGroupSelection(@NotNull String columnName, @NotNull String
    */
   @Nullable
   public MetadataColumn<?> getColumn() {
-    return MZmineCore.getProjectMetadata().getColumnByName(columnName());
+    return ProjectService.getMetadata().getColumnByName(columnName());
   }
 
   /**
@@ -75,14 +75,22 @@ public record MetadataGroupSelection(@NotNull String columnName, @NotNull String
    * does not contain the value.
    */
   public List<RawDataFile> getMatchingFiles() {
+    return getMatchingFiles(ProjectService.getProject().getCurrentRawDataFiles());
+  }
+
+  /**
+   * @return A list of files that match have the same value as {@link #groupStr()} in the specified
+   * {@link #columnName} in the {@link MetadataTable}. Empty list if the column does not exist or it
+   * does not contain the value.
+   */
+  public List<RawDataFile> getMatchingFiles(@NotNull List<RawDataFile> dataFiles) {
     if (!isValid()) {
       return List.of();
     }
 
-    final Map<RawDataFile, Object> column = MZmineCore.getProjectMetadata().getData()
-        .get(getColumn());
-    return column.entrySet().stream()
-        .filter(entry -> entry.getValue().toString().equals(groupStr())).map(Entry::getKey)
+    final Map<RawDataFile, Object> column = ProjectService.getMetadata().getData().get(getColumn());
+
+    return dataFiles.stream().filter(raw -> StringUtils.isEqualToString(groupStr, column.get(raw)))
         .toList();
   }
 }

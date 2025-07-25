@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -32,7 +33,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Lightweight alternative to {@link Range} without cut values. Always a closed range.
+ * Lightweight alternative to {@link Range} without cut values, which bloat RAM usage drastically.
+ * Guava Range is a good option for computation tasks but never to keep in memory.
+ * {@link SimpleRange} is always a closed range.
  *
  * @param <T>
  */
@@ -47,6 +50,11 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
   @NotNull T lowerBound();
 
   @NotNull T upperBound();
+
+  /**
+   * @return upper - lower
+   */
+  @NotNull T length();
 
   /**
    * Convenience method to convert a simple range to a guava range. Equivalent to
@@ -127,6 +135,11 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
     }
 
     @Override
+    public @NotNull Integer length() {
+      return upper - lower;
+    }
+
+    @Override
     public boolean contains(@NotNull Integer value) {
       return lower <= value && value <= upper;
     }
@@ -151,6 +164,11 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
     @Override
     public @NotNull Double upperBound() {
       return upper;
+    }
+
+    @Override
+    public @NotNull Double length() {
+      return upper - lower;
     }
 
     @Override
