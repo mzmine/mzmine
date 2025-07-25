@@ -199,10 +199,26 @@ public class RowsFilterParameters extends SimpleParameterSet {
   }
 
   @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+
+    // deactivate new parameter that may not be available
+    if (!loadedParams.containsKey(MIN_FEATURE_IN_GROUP_COUNT.getName())) {
+      setParameter(MIN_FEATURE_IN_GROUP_COUNT, false);
+    }
+    if (!loadedParams.containsKey(cvFilter.getName())) {
+      setParameter(cvFilter, false);
+    }
+    if (!loadedParams.containsKey(foldChangeFilter.getName())) {
+      setParameter(foldChangeFilter, false);
+    }
+  }
+
+  @Override
   public Map<String, Parameter<?>> getNameParameterMap() {
     var map = super.getNameParameterMap();
     map.put("Only other detector correlated", getParameter(onlyCorrelatedWithOtherDetectors));
-    map.put("Minimum aligned features (samples)", MIN_FEATURE_COUNT);
+    map.put("Minimum aligned features (samples)", getParameter(MIN_FEATURE_COUNT));
     return map;
   }
 }
