@@ -56,6 +56,10 @@ public class RangeOrValue<T extends Number & Comparable<T>> {
       if (lower.get() == null && upper.get() == null) {
         return false;
       }
+      if (lower.get() != null && upper.get() != null && lower.get().compareTo(upper.get()) >= 0) {
+        return false;
+      }
+      // either one null or both not null and lower < upper
       return true;
     }, lower, upper));
 
@@ -100,7 +104,7 @@ public class RangeOrValue<T extends Number & Comparable<T>> {
     return new RangeOrValue<>(lower.get(), upper.get());
   }
 
-  public Range<T> getRange(Tolerance<T> tolerance) {
+  public @Nullable Range<T> getRange(Tolerance<T> tolerance) {
     if (!isValid()) {
       return null;
     }
@@ -113,5 +117,16 @@ public class RangeOrValue<T extends Number & Comparable<T>> {
       return tolerance.getToleranceRange(lower.get());
     }
     return tolerance.getToleranceRange(upper.get());
+  }
+
+  @Override
+  public String toString() {
+    if (lower.get() != null && upper.get() != null) {
+      return "%f-%f".formatted(lower.get(), upper.get());
+    }
+    if (lower.get() != null || upper.get() != null) {
+      return "%f".formatted(lower.get() != null ? lower.get() : upper.get());
+    }
+    return "null-null";
   }
 }

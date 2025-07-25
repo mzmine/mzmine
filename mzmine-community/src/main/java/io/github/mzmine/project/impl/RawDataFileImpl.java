@@ -430,6 +430,10 @@ public class RawDataFileImpl implements RawDataFile {
     return ImmutableList.copyOf(otherDataFiles);
   }
 
+  public boolean removeOtherDataFileByName(final @NotNull String fileName) {
+    return otherDataFiles.removeIf(f -> f.getDescription().equals(fileName));
+  }
+
   public void setOtherDataFiles(@NotNull List<@NotNull OtherDataFile> otherDataFiles) {
     this.otherDataFiles.clear();
     this.otherDataFiles.addAll(otherDataFiles);

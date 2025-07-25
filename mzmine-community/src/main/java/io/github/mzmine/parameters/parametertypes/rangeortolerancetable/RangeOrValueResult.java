@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.rangeortolerancetable;
 import com.google.common.collect.Range;
 import io.github.mzmine.parameters.parametertypes.tolerances.NanometerTolerance;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,8 +44,8 @@ public record RangeOrValueResult<T extends Number & Comparable<T>>(
     return new RangeOrValueResult<>(copy, tolerance);
   }
 
-  public List<Range<T>> toGuava() {
-    return ranges.stream().map(r -> r.getRange(tolerance)).toList();
+  public List<@NotNull Range<T>> toGuava() {
+    return ranges.stream().map(r -> r.getRange(tolerance)).filter(Objects::nonNull).toList();
   }
 
   boolean valid() {

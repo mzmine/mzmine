@@ -129,9 +129,9 @@ public abstract class RangesOrToleranceParameter<T extends Number & Comparable<T
         .equals(toleranceParameter.getName());
     toleranceParameter.loadValueFromXML(toleranceParam);
 
-    final Element rovListElement = (Element) xmlElement.getElementsByTagName("rangesorvalues")
+    final Element rovListElement = (Element) xmlElement.getElementsByTagName("ranges_or_values")
         .item(0);
-    final NodeList rovList = rovListElement.getElementsByTagName("rangeorvalue");
+    final NodeList rovList = rovListElement.getElementsByTagName("range_or_value");
 
     List<RangeOrValue<T>> ranges = new ArrayList<>();
     for (int i = 0; i < rovList.getLength(); i++) {
@@ -160,13 +160,13 @@ public abstract class RangesOrToleranceParameter<T extends Number & Comparable<T
     toleranceElement.setAttribute(SimpleParameterSet.nameAttribute, toleranceParameter.getName());
     toleranceParameter.saveValueToXML(toleranceElement);
 
-    final Element rovList = doc.createElement("rangesorvalues");
+    final Element rovList = doc.createElement("ranges_or_values");
 
     xmlElement.appendChild(toleranceElement);
     xmlElement.appendChild(rovList);
 
     for (RangeOrValue<T> range : value.ranges()) {
-      final Element element = doc.createElement("rangeorvalue");
+      final Element element = doc.createElement("range_or_value");
       element.setAttribute("lower", ParsingUtils.parseNullableString(
           range.getLower() != null ? numberFormat.format(range.getLower()) : null));
       element.setAttribute("upper", ParsingUtils.parseNullableString(

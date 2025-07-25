@@ -22,11 +22,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.datamodel.features.types.otherdectectors;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Used in processing of other detectors to hold the area % of a single peak in the whole
+ * {@link OtherTimeSeriesData#getPreProcessedFeatureForTrace(OtherFeature)}. Commonly used metric in
+ * impurity analysis.
+ */
 public class AreaPercentType extends PercentType {
 
   @Override
