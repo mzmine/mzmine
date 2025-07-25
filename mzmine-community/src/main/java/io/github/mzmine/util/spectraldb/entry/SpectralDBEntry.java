@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -59,6 +59,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   /**
    * Copy constructor
+   *
    * @param entry
    */
   public SpectralDBEntry(SpectralDBEntry entry) {
@@ -126,8 +127,10 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     assert mzs.length == intensities.length;
 
     if (libraryFileName != null) {
-      final SpectralLibrary library = project.getCurrentSpectralLibraries().stream()
-          .filter(l -> l.getName().equals(libraryFileName)).findFirst().orElse(null);
+      // library.name used to contain the size as well, therefore match for both name with size and without
+      final SpectralLibrary library = project.getCurrentSpectralLibraries().stream().filter(
+              l -> l.getName().equals(libraryFileName) || l.getNameWithSize().equals(libraryFileName))
+          .findFirst().orElse(null);
       return new SpectralDBEntry(null, mzs, intensities, fields, library);
     } else {
       return new SpectralDBEntry(null, mzs, intensities, fields);
@@ -242,7 +245,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     }
     SpectralDBEntry that = (SpectralDBEntry) o;
     return Objects.equals(fields, that.fields)
-           && getNumberOfDataPoints() == that.getNumberOfDataPoints();
+        && getNumberOfDataPoints() == that.getNumberOfDataPoints();
   }
 
   @Override
@@ -271,6 +274,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   @Nullable
   public String getLibraryName() {
+    // used to return library name with size but better to use the library name without size by default
     return library != null ? library.getName() : null;
   }
 

@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -34,7 +35,6 @@ import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.WriterOptions;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -45,20 +45,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MergeLibrariesTask extends AbstractTask {
 
@@ -87,7 +80,7 @@ public class MergeLibrariesTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Merging spectral libraries " + libs.stream().map(SpectralLibrary::getName)
+    return "Merging spectral libraries " + libs.stream().map(SpectralLibrary::getNameWithSize)
         .collect(Collectors.joining(", "));
   }
 
@@ -121,26 +114,24 @@ public class MergeLibrariesTask extends AbstractTask {
       return;
     }
 
+    // maybe used for renumbering IDs
+    final String libraryName = FileAndPathUtil.eraseFormat(newFile.getName());
+
     final AtomicLong entryId = new AtomicLong(0);
 
-    final Set<String> duplicateIds = getDuplicateIds(libs);
+    // always add the used IDs so they will never have the same value
+    final Set<String> usedIds = new HashSet<>();
 
     try (var w = Files.newBufferedWriter(newFile.toPath(), WriterOptions.REPLACE.toOpenOption())) {
       for (final SpectralLibrary lib : libs) {
         for (SpectralLibraryEntry entry : lib.getEntries()) {
 
-          final String currentId = entry.getOrElse(DBEntryField.ENTRY_ID, null);
-          final boolean isDuplicate = currentId == null || duplicateIds.contains(currentId);
-
-          final String newEntryId = idHandling.getNewEntryId(entry, isDuplicate, () -> {
-            String potentialId;
-            do {
-              potentialId = String.valueOf(entryId.incrementAndGet());
-            } while (duplicateIds.contains(potentialId));
-            return potentialId;
-          });
+          // loop until a new ID is found that is not yet used
+          final String newEntryId = idHandling.getNewEntryId(libraryName, entry, usedIds,
+              () -> entryId.incrementAndGet() + "_id"); // add suffix to not end with number
 
           final SpectralDBEntry copy = new SpectralDBEntry((SpectralDBEntry) entry);
+          usedIds.add(newEntryId); // add to duplicates to avoid another one
           copy.putIfNotNull(DBEntryField.ENTRY_ID, newEntryId);
           ExportScansFeatureTask.exportEntry(w, copy, format, intensityNormalizer);
           exportedEntries++;
@@ -159,23 +150,4 @@ public class MergeLibrariesTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private Set<String> getDuplicateIds(List<SpectralLibrary> libs) {
-
-    // hash map supports null key
-    final Map<String, Boolean> allIds = new HashMap<>();
-
-    for (final SpectralLibrary lib : libs) {
-      for (final SpectralLibraryEntry entry : lib.getEntries()) {
-        final String id = entry.getAsString(DBEntryField.ENTRY_ID).orElse(null);
-        if (allIds.containsKey(id)) {
-          allIds.put(id, true);
-        } else {
-          allIds.put(id, false);
-        }
-      }
-    }
-
-    return allIds.entrySet().stream().filter(Entry::getValue).map(Entry::getKey)
-        .filter(Objects::nonNull).collect(Collectors.toSet());
-  }
 }
