@@ -23,38 +23,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.columns;
+package io.github.mzmine.datamodel.features.columnar_data.columns.mmap.innercolumns;
 
 import io.github.mzmine.datamodel.features.columnar_data.columns.general.NullableInteger;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.StructLayout;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public non-sealed interface NullableIntDataColumn extends DataColumn<Integer>, NullableInteger {
+public class NullableIntegerInnerColumn extends AbstractInnerColumn<Integer> implements
+    NullableInteger {
 
-  /**
-   * @param index row index
-   * @return the primitive double value or {@link #nullValue()} for null
-   */
-  int getInt(final int index);
-
-  /**
-   * @param index row index
-   * @param value the primitive value or {@link #nullValue()} for null
-   */
-  int setInt(final int index, final int value);
-
-  default void clear(final int index) {
-    setInt(index, nullValue());
+  public NullableIntegerInnerColumn(StructLayout layout, String varHandleName) {
+    super(layout, varHandleName);
   }
 
   @Override
-  default @Nullable Integer set(final int index, final @Nullable Integer value) {
-    return setInt(index, value == null ? nullValue() : value);
+  @Nullable
+  public Integer get(MemorySegment data, int index) {
+    final int v = (int) varHandle.get(data, 0L, index);
+    return isNull(v) ? null : v;
   }
 
   @Override
-  default @Nullable Integer get(final int index) {
-    var value = getInt(index);
-    return isNull(value) ? null : value;
+  public void clear(@NotNull MemorySegment data, int index) {
+    set(data, index, nullValue());
   }
 
+  @Override
+  public void set(@NotNull MemorySegment data, int index, @Nullable Integer value) {
+    set(data, index, value == null ? nullValue() : value);
+  }
+
+  public void set(@NotNull MemorySegment data, int index, int value) {
+    varHandle.set(data, 0L, index, value);
+  }
 }

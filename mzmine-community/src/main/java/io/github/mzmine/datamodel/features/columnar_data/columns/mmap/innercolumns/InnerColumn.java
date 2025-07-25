@@ -23,38 +23,42 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.columnar_data.columns;
+package io.github.mzmine.datamodel.features.columnar_data.columns.mmap.innercolumns;
 
-import io.github.mzmine.datamodel.features.columnar_data.columns.general.NullableInteger;
+import java.lang.foreign.MemorySegment;
+import java.lang.invoke.VarHandle;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public non-sealed interface NullableIntDataColumn extends DataColumn<Integer>, NullableInteger {
+/**
+ * An inner column describes columns within a more complex memory mapped object. It holds a
+ * {@link VarHandle} and allows easy set and get of values.
+ *
+ * @param <T> the value type
+ */
+public interface InnerColumn<T> {
 
   /**
+   * @param data  the memory segment
    * @param index row index
-   * @return the primitive double value or {@link #nullValue()} for null
+   * @return value at row index
    */
-  int getInt(final int index);
+  @Nullable T get(MemorySegment data, int index);
 
   /**
+   * Set value at row index
+   *
+   * @param data  the memory segment
    * @param index row index
-   * @param value the primitive value or {@link #nullValue()} for null
+   * @param value the value
    */
-  int setInt(final int index, final int value);
+  void set(@NotNull MemorySegment data, int index, @Nullable T value);
 
-  default void clear(final int index) {
-    setInt(index, nullValue());
-  }
-
-  @Override
-  default @Nullable Integer set(final int index, final @Nullable Integer value) {
-    return setInt(index, value == null ? nullValue() : value);
-  }
-
-  @Override
-  default @Nullable Integer get(final int index) {
-    var value = getInt(index);
-    return isNull(value) ? null : value;
-  }
-
+  /**
+   * Clear data at row index
+   *
+   * @param data  memory segment
+   * @param index row index
+   */
+  void clear(@NotNull MemorySegment data, int index);
 }
