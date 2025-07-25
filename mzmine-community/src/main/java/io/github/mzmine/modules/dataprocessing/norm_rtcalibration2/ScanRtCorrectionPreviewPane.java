@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2025 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
 
 import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionTask.findStandards;
@@ -7,6 +32,7 @@ import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRt
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
@@ -24,6 +50,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.previewpane.AbstractPreviewPane;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -34,6 +61,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.plot.DefaultDrawingSupplier;
 
 public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<FeatureList>> {
 
@@ -54,6 +82,9 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
     final NumberFormats formats = ConfigService.getGuiFormats();
     final SimpleXYChart<PlotXYDataProvider> chart = new SimpleXYChart<>(
         formats.unit("Original RT", "min"), formats.unit("RT shift", "min"));
+    // add some minimum width to force the layout to get a bit bigger when preview is shown
+    chart.setMinWidth(200);
+    chart.setMinHeight(200);
     chart.setStickyZeroRangeAxis(false);
     return chart;
   }
@@ -102,16 +133,27 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
     goodStandards.sort(Comparator.comparingDouble(rtMeasure::getRt));
     final List<RtStandard> monotonousStandards = removeNonMonotonousStandards(goodStandards,
         referenceFlistsByNumRows, rtMeasure);
+
+    if (monotonousStandards.isEmpty()) {
+      logger.warning(
+          "No monotonous standards found. No retention time correction will be appplied. The task finishes with success to not break batch processing.");
+      return List.of();
+    }
     final List<AbstractRtCorrectionFunction> allCalibrations = interpolateMissingCalibrations(
         referenceFlistsByNumRows, flists, ProjectService.getMetadata(), monotonousStandards,
         calibrationModule, rtMeasure, calibrationModuleParameters);
+
+    // use different shapes to make it more obvious which belong together
+    final DefaultDrawingSupplier drawingSupplier = JFreeChartUtils.DEFAULT_DRAWING_SUPPLIER;
+    final SimpleColorPalette palette = ConfigService.getDefaultColorPalette().clone(true);
 
     final List<DatasetAndRenderer> datasets = new ArrayList<>();
 
     for (AbstractRtCorrectionFunction cali : allCalibrations) {
       final RawDataFile file = cali.getRawDataFile();
 
-      final var clr = ConfigService.getDefaultColorPalette().getNextColorAWT();
+      // use default colors, file colors are usually all the same for QC
+      final var clr = palette.getNextColorAWT();
 
       if (sampleTypeFilter.matches(file)) {
         final AnyXYProvider medianVsOriginal = new AnyXYProvider(clr,
@@ -121,10 +163,10 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
                 - rtMeasure.getRt(monotonousStandards.get(i))));
         datasets.add(
             new DatasetAndRenderer(new ColoredXYDataset(medianVsOriginal, RunOption.THIS_THREAD),
-                new ColoredXYShapeRenderer(true)));
+                new ColoredXYShapeRenderer(true, drawingSupplier.getNextShape())));
       }
 
-      final AnyXYProvider avgFitDataset = new AnyXYProvider(/*file.getColorAWT()*/clr,
+      final AnyXYProvider avgFitDataset = new AnyXYProvider(clr,
           file.getName() + " fitted shift at RT vs original RTs".formatted(rtMeasure.toString()),
           file.getNumOfScans(), i -> (double) file.getScan(i).getRetentionTime(),
           i -> (double) -(cali.getCorrectedRt(file.getScan(i).getRetentionTime()) - file.getScan(i)

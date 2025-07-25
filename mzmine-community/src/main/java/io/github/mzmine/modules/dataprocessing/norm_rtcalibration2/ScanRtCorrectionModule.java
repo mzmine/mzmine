@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,11 +41,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class ScanRtCorrectionModule implements MZmineProcessingModule {
 
-  public static final String MODULE_NAME = "Retention time correction (Scan based)";
+  public static final String MODULE_NAME = "Retention time correction on scans (beta)";
   private static final String MODULE_DESCRIPTION = """
-       The retention time correction module attempts to reduce the deviation of retention times between feature lists
-       by searching for common features in these lists and using them as correction standards.
-       It then corrects the scan retention times while ensuring strong monotonicity.""";
+      The retention time correction module attempts to reduce the deviation of retention times between feature lists
+      by searching for common features in these lists and using them as correction standards.
+      It then corrects the scan retention times while ensuring strong monotonicity.
+      The benefit of correcting the scan retention times instead of just the feature retention times, /
+      is that visualizers and other modules can work directly with the corrected retention times.""";
 
   @Override
   public @NotNull String getName() {
