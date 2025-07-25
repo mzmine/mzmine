@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,10 +28,11 @@ package io.github.mzmine.parameters;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
@@ -55,6 +56,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 public class ParameterUtils {
 
@@ -401,6 +404,7 @@ public class ParameterUtils {
     }
     return param.getValue();
   }
+
   /**
    * @param batch A list of {@link MZmineProcessingStep}s, e.g.,
    *              {@link io.github.mzmine.modules.batchmode.BatchQueue} or a pre-filtered batch.
@@ -438,5 +442,62 @@ public class ParameterUtils {
         }).toList();
     return FileAndPathUtil.getMajorityFilePath(
         allImportedFiles.stream().map(File::getParentFile).toList());
+  }
+
+
+  /**
+   * Loads parameters in order. Can be useful to save and load parameters in order when designing
+   * other composite parameters.
+   */
+  public static void loadParametersInOrder(Element xmlElement, Parameter<?>... parameters) {
+    // cannot use getElementsByTagName, this goes recursively through all levels
+    // finding nested ParameterSets
+//    NodeList list = xmlElement.getElementsByTagName(parameterElement);
+    int nextParamToLoad = 0;
+
+    var childNodes = xmlElement.getChildNodes();
+    for (int i = 0; i < childNodes.getLength(); i++) {
+      if (!(childNodes.item(i) instanceof Element nextElement)
+          || !SimpleParameterSet.parameterElement.equals(nextElement.getTagName())) {
+        continue;
+      }
+
+      String paramName = nextElement.getAttribute(SimpleParameterSet.nameAttribute);
+      Parameter<?> param = parameters[nextParamToLoad];
+      // name mismatch? this method should always load the parameters in the same order as they were saved
+      if (!param.getName().equals(paramName)) {
+        throw new IllegalStateException(
+            "Error while loading parameters in order. Name mismatch: reading parameter index=%d name=%s but xml name was=%s from xmlElement=%s".formatted(
+                nextParamToLoad, param.getName(), paramName, xmlElement.getTagName()));
+      }
+
+      try {
+        param.loadValueFromXML(nextElement);
+      } catch (Exception e) {
+        throw new IllegalStateException(
+            "Error while loading parameters in order. Parameter load exception: reading parameter index=%d name=%s from xmlElement=%s".formatted(
+                nextParamToLoad, paramName, xmlElement.getTagName()), e);
+      }
+      nextParamToLoad++;
+    }
+  }
+
+  /**
+   * Saves parameters in order. Can be useful to save and load parameters in order when designing
+   * other composite parameters.
+   */
+  public static void saveInOrder(Element parentElement, Parameter<?>... parameters) {
+    Document parentDocument = parentElement.getOwnerDocument();
+    for (Parameter<?> param : parameters) {
+      if (param.isSensitive()) {
+        throw new IllegalStateException(
+            "Cannot save sensitive parameters in order because this will limit ability to load this parameter. Either just remove from list to save or use a ParameterSet.");
+      }
+
+      Element paramElement = parentDocument.createElement(SimpleParameterSet.parameterElement);
+      paramElement.setAttribute(SimpleParameterSet.nameAttribute, param.getName());
+      parentElement.appendChild(paramElement);
+      param.saveValueToXML(paramElement);
+    }
   }
 }
