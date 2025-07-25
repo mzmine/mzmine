@@ -138,6 +138,10 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
     return paramPane;
   }
 
+  public BooleanProperty selectedProperty() {
+    return checkBox.selectedProperty();
+  }
+
   public boolean isSelected() {
     return checkBox.isSelected();
   }

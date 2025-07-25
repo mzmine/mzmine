@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.absoluterelative;
 
+import io.github.mzmine.javafx.components.factories.FxLabels;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -49,8 +50,8 @@ public class AbsoluteAndRelativeIntComponent extends HBox {
     relField.setPrefColumnCount(4);
     relField.setAlignment(Pos.CENTER_RIGHT);
 
-    getChildren().addAll(new Label("Max of"), absField, new Label(absUnit + "  or "), relField,
-        new Label("%"));
+    getChildren().addAll(new Label("At least"), absField, new Label(absUnit),
+        FxLabels.newBoldLabel("AND"), relField, new Label("%"));
   }
 
   public AbsoluteAndRelativeInt getValue() {
@@ -66,7 +67,7 @@ public class AbsoluteAndRelativeIntComponent extends HBox {
   }
 
   public void setValue(@Nullable AbsoluteAndRelativeInt value) {
-    if(value==null){
+    if (value == null) {
       absField.setText("");
       relField.setText("");
       return;

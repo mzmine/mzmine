@@ -28,11 +28,13 @@ package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesInMetadataParameter;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -44,7 +46,9 @@ import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.util.ExitCode;
 import java.util.Map;
+import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,6 +62,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<MinimumSamplesParameter> MIN_FEATURE_COUNT = new OptionalParameter<>(
       new MinimumSamplesParameter(), false);
+
+  public static final OptionalParameter<MinimumSamplesInMetadataParameter> MIN_FEATURE_IN_GROUP_COUNT = new OptionalParameter<>(
+      new MinimumSamplesInMetadataParameter(), false);
 
   public static final OptionalParameter<IntegerParameter> MIN_ISOTOPE_PATTERN_COUNT = new OptionalParameter<>(
       new IntegerParameter("Minimum features in an isotope pattern",
@@ -155,23 +162,57 @@ public class RowsFilterParameters extends SimpleParameterSet {
       false);
 
   // resorted parameters to be more grouped
-  // TODO maybe make the dialog similar to the preferences by grouping up parameters
   public RowsFilterParameters() {
     super(new Parameter[]{
             // general parameters
             FEATURE_LISTS, SUFFIX, REMOVE_ROW, handleOriginal,
             // sample filtering
-            MIN_FEATURE_COUNT, cvFilter, foldChangeFilter,
+            MIN_FEATURE_COUNT, MIN_FEATURE_IN_GROUP_COUNT, cvFilter, foldChangeFilter,
             // isotopes
             // TODO what does redundant do?
             MIN_ISOTOPE_PATTERN_COUNT, ISOTOPE_FILTER_13C, removeRedundantRows,
             // feature properties
-            MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE, KENDRICK_MASS_DEFECT, massDefect,
+            MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE, massDefect, KENDRICK_MASS_DEFECT,
             // identities / annotations
             HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, MS2_Filter, onlyCorrelatedWithOtherDetectors,
             KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
   }
+
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    return showSetupDialog(valueCheckRequired, "");
+  }
+
+  public ExitCode showSetupDialog(boolean valueCheckRequired, String filterParameters) {
+    assert Platform.isFxApplicationThread();
+    GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this);
+
+    dialog.setFixedTopGroup(FEATURE_LISTS, SUFFIX, REMOVE_ROW, handleOriginal);
+
+    dialog.showSummaryOfSelectedParameters(true);
+
+    // add groups
+    dialog.addParameterGroup("Sample-based filters", MIN_FEATURE_COUNT, MIN_FEATURE_IN_GROUP_COUNT,
+        cvFilter, foldChangeFilter);
+    dialog.addParameterGroup("Isotope filters", MIN_ISOTOPE_PATTERN_COUNT, ISOTOPE_FILTER_13C,
+        removeRedundantRows);
+    dialog.addParameterGroup("Feature properties", MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM,
+        CHARGE, massDefect, KENDRICK_MASS_DEFECT);
+    dialog.addParameterGroup("Annotations & MS2 filter", KEEP_ALL_MS2, MS2_Filter,
+        KEEP_ALL_ANNOTATED, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT);
+    dialog.addParameterGroup("Other options", onlyCorrelatedWithOtherDetectors, Reset_ID);
+    dialog.setFilterText(filterParameters);
+
+    dialog.setMinWidth(600);
+    dialog.setMinHeight(800);
+
+    // check
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
+
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
@@ -195,9 +236,26 @@ public class RowsFilterParameters extends SimpleParameterSet {
   }
 
   @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+
+    // deactivate new parameter that may not be available
+    if (!loadedParams.containsKey(MIN_FEATURE_IN_GROUP_COUNT.getName())) {
+      setParameter(MIN_FEATURE_IN_GROUP_COUNT, false);
+    }
+    if (!loadedParams.containsKey(cvFilter.getName())) {
+      setParameter(cvFilter, false);
+    }
+    if (!loadedParams.containsKey(foldChangeFilter.getName())) {
+      setParameter(foldChangeFilter, false);
+    }
+  }
+
+  @Override
   public Map<String, Parameter<?>> getNameParameterMap() {
     var map = super.getNameParameterMap();
     map.put("Only other detector correlated", getParameter(onlyCorrelatedWithOtherDetectors));
+    map.put("Minimum aligned features (samples)", getParameter(MIN_FEATURE_COUNT));
     return map;
   }
 }

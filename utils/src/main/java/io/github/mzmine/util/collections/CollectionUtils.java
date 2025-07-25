@@ -443,4 +443,10 @@ public class CollectionUtils {
 //    logger.fine("NEED TO USE NEW ARRAYLIST FOR FRAMES");
     return subRegion;
   }
+
+  public static <T> List<T> findDuplicates(List<T> items) {
+    Set<T> uniques = new HashSet<>();
+    return items.stream().filter(item -> !uniques.add(item)).toList();
+  }
+
 }

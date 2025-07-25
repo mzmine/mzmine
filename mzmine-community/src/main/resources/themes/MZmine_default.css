@@ -143,6 +143,11 @@
   -fx-font-weight: bold;
 }
 
+.bold-semititle-label {
+  -fx-font-size: 10.0pt;
+  -fx-font-weight: bold;
+}
+
 .text-label {
   -fx-wrap-text: true;
 }

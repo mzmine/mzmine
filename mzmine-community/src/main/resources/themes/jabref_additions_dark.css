@@ -60,6 +60,11 @@ Text, Text:hover {
   -fx-font-weight: bold;
 }
 
+.bold-semititle-label {
+  -fx-font-size: 10.0pt;
+  -fx-font-weight: bold;
+}
+
 .huge-title-label {
   -fx-font-size: 26.0pt;
   -fx-font-weight: bold;
