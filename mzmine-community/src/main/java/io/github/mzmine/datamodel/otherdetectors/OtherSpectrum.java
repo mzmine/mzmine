@@ -72,7 +72,11 @@ public interface OtherSpectrum {
   OtherSpectralData getOtherSpectralData();
 
   default int binarySearch(double domainValue) {
-    return BinarySearch.binarySearch(domainValue, DefaultTo.CLOSEST_VALUE, getNumberOfValues(),
+    return binarySearch(domainValue, DefaultTo.CLOSEST_VALUE);
+  }
+
+  default int binarySearch(double domainValue, DefaultTo defaultTo) {
+    return BinarySearch.binarySearch(domainValue, defaultTo, getNumberOfValues(),
         this::getDomainValue);
   }
 }
