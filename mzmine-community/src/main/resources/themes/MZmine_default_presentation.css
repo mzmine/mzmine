@@ -43,6 +43,11 @@
   -fx-font-weight: bold;
 }
 
+.bold-semititle-label {
+  -fx-font-size: 12.0pt;
+  -fx-font-weight: bold;
+}
+
 .white-larger-label {
   -fx-font-size: 13.0pt;
   -fx-text-fill: white;
