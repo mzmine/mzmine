@@ -75,7 +75,7 @@ public record ScanInfoWrapper(int msLevel, int polarity, int driftScanCount, int
   }
 
   public PolarityType polarityType() {
-    return polarity() > 0 ? PolarityType.POSITIVE : PolarityType.NEGATIVE;
+    return PolarityType.fromInt(polarity);
   }
 
   public MetadataOnlyScan metadataOnlyScan(MassSpectrumType requestedSpectrumType) {

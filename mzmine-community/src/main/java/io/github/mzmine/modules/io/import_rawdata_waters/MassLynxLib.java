@@ -33,7 +33,7 @@ import java.lang.foreign.ValueLayout.OfShort;
 
 ///
 /// ´´´java
-/// private static SymbolLookup getSymbolLookup() {
+/// private static synchronized SymbolLookup getSymbolLookup() {
 ///    // load mass lynx base library before
 ///    System.load(Path.of("external_tools\\waters_raw\\MassLynxRaw.dll").toAbsolutePath().toString());
 ///    return SymbolLookup.libraryLookup(
@@ -342,6 +342,9 @@ public class MassLynxLib {
     // Should not be called directly
   }
 
+  /**
+   * synchronized, otherwise we saw crashes in kernellib
+   */
   private static synchronized SymbolLookup getSymbolLookup() {
     // load mass lynx base library before
     System.load(Path.of("external_tools\\waters_raw\\MassLynxRaw.dll").toAbsolutePath().toString());
