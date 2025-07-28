@@ -33,6 +33,8 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MinimumSamplesInMetadataComponent extends FlowPane {
 
@@ -52,7 +54,7 @@ public class MinimumSamplesInMetadataComponent extends FlowPane {
     setValue(value);
   }
 
-  public void setValue(MinimumSamplesFilterConfig value) {
+  public void setValue(@Nullable MinimumSamplesFilterConfig value) {
     if (value == null) {
       metadata.setValue("");
       minSamples.setValue(MinimumSamplesFilterConfig.DEFAULT.minSamples());
@@ -62,6 +64,7 @@ public class MinimumSamplesInMetadataComponent extends FlowPane {
     minSamples.setValue(value.minSamples());
   }
 
+  @NotNull
   public MinimumSamplesFilterConfig getValue() {
     return new MinimumSamplesFilterConfig(minSamples.getValue(), metadata.getValue());
   }
