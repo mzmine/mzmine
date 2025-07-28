@@ -43,11 +43,14 @@ public class JFreeChartUtils {
   }
 
   public static final Shape[] DEFAULT_SERIES_SHAPES = createStandardSeriesShapes();
-  public static final DefaultDrawingSupplier DEFAULT_DRAWING_SUPPLIER = new DefaultDrawingSupplier(
-      DefaultDrawingSupplier.DEFAULT_PAINT_SEQUENCE,
-      DefaultDrawingSupplier.DEFAULT_OUTLINE_PAINT_SEQUENCE,
-      DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
-      DefaultDrawingSupplier.DEFAULT_OUTLINE_STROKE_SEQUENCE, DEFAULT_SERIES_SHAPES);
+
+
+  public static DefaultDrawingSupplier createDefaultDrawingSupplier() {
+    return new DefaultDrawingSupplier(DefaultDrawingSupplier.DEFAULT_PAINT_SEQUENCE,
+        DefaultDrawingSupplier.DEFAULT_OUTLINE_PAINT_SEQUENCE,
+        DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
+        DefaultDrawingSupplier.DEFAULT_OUTLINE_STROKE_SEQUENCE, DEFAULT_SERIES_SHAPES);
+  }
 
   /**
    * @return an array of shapes for charts
@@ -83,14 +86,15 @@ public class JFreeChartUtils {
         createTriangle(size, TriangleDirection.RIGHT),
         // left-pointing triangle
         createTriangle(size, TriangleDirection.LEFT),
-        // star shape
-        createDefaultStar(size, 0, 0),
         // cross shape
         createHollowPlus(size),
         // pentagon
         createPentagon(size),
         // hexagon
-        createHexagon(size)).toArray(Shape[]::new);
+        createHexagon(size),
+        // star shape
+        createDefaultStar(size, 0, 0) //
+    ).toArray(Shape[]::new);
   }
 
   private static Ellipse2D.@NotNull Double createCircle(double size) {
@@ -152,7 +156,7 @@ public class JFreeChartUtils {
   }
 
   private static Shape createDefaultStar(double radius, double centerX, double centerY) {
-    radius *= 0.8;
+    radius *= 0.72;
     return createStar(centerX, centerY, radius / 2.63, radius, 5, Math.toRadians(-18));
   }
 

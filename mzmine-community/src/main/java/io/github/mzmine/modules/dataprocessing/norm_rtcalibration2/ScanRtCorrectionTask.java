@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RawFileRtCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
@@ -65,6 +66,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.scene.control.Alert.AlertType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -396,8 +398,9 @@ class ScanRtCorrectionTask extends AbstractTask {
         referenceFlistsByNumRows, rtMeasure);
 
     if (monotonousStandards.isEmpty()) {
-      logger.warning(
-          "No monotonous standards found. No retention time correction will be appplied. The task finishes with success to not break batch processing.");
+      DialogLoggerUtil.showDialogForTime("No RT correction applied",
+          "No monotonous standards found. No retention time correction will be appplied. The task finishes with success to not break batch processing.",
+          AlertType.WARNING);
       setStatus(TaskStatus.FINISHED);
       return;
     }

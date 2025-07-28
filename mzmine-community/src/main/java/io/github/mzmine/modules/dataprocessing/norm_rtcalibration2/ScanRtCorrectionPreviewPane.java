@@ -42,6 +42,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.AnyXYProvider
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
@@ -58,7 +59,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
+import javafx.scene.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
@@ -67,6 +68,8 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
 
   private static final Logger logger = Logger.getLogger(
       ScanRtCorrectionPreviewPane.class.getName());
+
+  private final List<Text> messages = new ArrayList<>();
 
   /**
    * sets chart to the center of this pane.
@@ -92,15 +95,23 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
   @Override
   public void updateChart(@NotNull List<DatasetAndRenderer> datasets,
       @NotNull SimpleXYChart<? extends PlotXYDataProvider> chart) {
-    chart.applyWithNotifyChanges(false, () -> {
-      chart.removeAllDatasets();
-      datasets.forEach(ds -> chart.addDataset(ds.dataset(), ds.renderer()));
-    });
+    chart.setDatasets(datasets);
+
+    getTopTextFlow().getChildren().setAll(messages);
   }
 
   @Override
   public @NotNull List<@NotNull DatasetAndRenderer> calculateNewDatasets(
       @Nullable List<FeatureList> flists) {
+    messages.clear();
+
+    assert flists != null;
+
+    if (flists.isEmpty()) {
+      messages.add(FxTexts.boldText("No feature lists selected, revise parameters. "));
+      return List.of();
+    }
+
     var mzTolerance = parameters.getParameter(RTCorrectionParameters.MZTolerance).getValue();
     var rtTolerance = parameters.getParameter(RTCorrectionParameters.RTTolerance).getValue();
     var rtMeasure = parameters.getParameter(RTCorrectionParameters.rtMeasure).getValue();
@@ -115,13 +126,22 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
 
     final List<String> errorMessages = new ArrayList<>();
     if (!parameters.checkParameterValues(errorMessages)) {
-      logger.info(errorMessages.stream().collect(Collectors.joining(", ")));
+      final String error = String.join(", ", errorMessages);
+      logger.info(error);
+      messages.add(FxTexts.boldText(error));
       return List.of();
     }
 
     final List<FeatureList> referenceFlistsByNumRows = flists.stream()
         .filter(flist -> flist.getRawDataFiles().stream().allMatch(sampleTypeFilter::matches))
         .sorted(Comparator.comparingInt(FeatureList::getNumberOfRows)).toList();
+
+    if (referenceFlistsByNumRows.isEmpty()) {
+      messages.add(FxTexts.boldText(
+          "No feature lists selected, revise parameters like %s. ".formatted(
+              RTCorrectionParameters.sampleTypes.getName())));
+      return List.of();
+    }
 
     final FeatureList baseList = referenceFlistsByNumRows.getFirst();
     final Map<FeatureList, List<FeatureListRow>> mzSortedRows = new HashMap<>();
@@ -135,8 +155,8 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
         referenceFlistsByNumRows, rtMeasure);
 
     if (monotonousStandards.isEmpty()) {
-      logger.warning(
-          "No monotonous standards found. No retention time correction will be appplied. The task finishes with success to not break batch processing.");
+      messages.add(FxTexts.boldText(
+          "No monotonous standards found. Maybe widen the RT tolerance and other parameters. Make sure the feature lists contain features. "));
       return List.of();
     }
     final List<AbstractRtCorrectionFunction> allCalibrations = interpolateMissingCalibrations(
@@ -144,7 +164,7 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
         calibrationModule, rtMeasure, calibrationModuleParameters);
 
     // use different shapes to make it more obvious which belong together
-    final DefaultDrawingSupplier drawingSupplier = JFreeChartUtils.DEFAULT_DRAWING_SUPPLIER;
+    final DefaultDrawingSupplier drawingSupplier = JFreeChartUtils.createDefaultDrawingSupplier();
     final SimpleColorPalette palette = ConfigService.getDefaultColorPalette().clone(true);
 
     final List<DatasetAndRenderer> datasets = new ArrayList<>();
