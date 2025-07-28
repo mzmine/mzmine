@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.parameters.dialogs;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Optional;
 import javafx.beans.value.ObservableValue;
@@ -41,25 +40,25 @@ import org.controlsfx.property.editor.PropertyEditor;
 public class ParameterItem implements PropertySheet.Item {
 
   protected final String category;
-  protected final Parameter parameter;
+  protected final UserParameter clonedParameter;
 
-  public ParameterItem(Parameter parameter, String category) {
-    this.parameter = parameter;
+  public ParameterItem(UserParameter clonedParameter, String category) {
+    this.clonedParameter = clonedParameter.cloneParameter();
     this.category = category;
   }
 
-  public ParameterItem(Parameter parameter) {
-    this(parameter, null);
+  public ParameterItem(UserParameter clonedParameter) {
+    this(clonedParameter, null);
   }
 
-  public Parameter getParameter() {
-    return parameter;
+  public UserParameter getClonedParameter() {
+    return clonedParameter;
   }
 
   @Override
   public Class<?> getType() {
-    final Object value = parameter.getValue();
-    return value == null ? null : parameter.getValue().getClass();
+    final Object value = clonedParameter.getValue();
+    return value == null ? null : clonedParameter.getValue().getClass();
   }
 
   @Override
@@ -69,26 +68,22 @@ public class ParameterItem implements PropertySheet.Item {
 
   @Override
   public String getName() {
-    return parameter.getName();
+    return clonedParameter.getName();
   }
 
   @Override
   public String getDescription() {
-    if (parameter instanceof UserParameter up) {
-      return up.getDescription();
-    } else {
-      return null;
-    }
+    return clonedParameter.getDescription();
   }
 
   @Override
   public Object getValue() {
-    return parameter.getValue();
+    return clonedParameter.getValue();
   }
 
   @Override
   public void setValue(Object value) {
-    parameter.setValue(value);
+    clonedParameter.setValue(value);
   }
 
   @Override

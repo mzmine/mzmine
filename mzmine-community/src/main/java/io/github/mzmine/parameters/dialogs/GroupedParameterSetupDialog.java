@@ -81,8 +81,8 @@ public class GroupedParameterSetupDialog extends EmptyParameterSetupDialogBase {
    * fixed parameters on top
    */
   private Parameter<?>[] fixedParameters;
-  private BorderPane topPane;
-  private TextFlow summary;
+  private final BorderPane topPane;
+  private final TextFlow summary;
 
   public GroupedParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
     this(valueCheckRequired, parameters, null);
@@ -108,17 +108,9 @@ public class GroupedParameterSetupDialog extends EmptyParameterSetupDialogBase {
 
     propertySheet.setPropertyEditorFactory(param -> {
       if (param instanceof ParameterItem pitem
-          && pitem.getParameter() instanceof UserParameter up) {
-        final Node editor = up.createEditingComponent();
-        parametersAndComponents.put(up.getName(), editor);
-
-        // listen to any optional parameter change
-        final BooleanProperty selectedProperty = ParameterUtils.getSelectedProperty(editor);
-        if (selectedProperty != null) {
-          selectedProperty.subscribe((_) -> updateSummary());
-        }
-
-        return new ParameterEditorWrapper(up, editor);
+          && pitem.getClonedParameter() instanceof UserParameter up) {
+        final Node editor = parametersAndComponents.get(up.getName());
+        return new ParameterEditorWrapper(pitem, editor);
       } else {
         return null;
       }
@@ -152,7 +144,7 @@ public class GroupedParameterSetupDialog extends EmptyParameterSetupDialogBase {
 
     for (Item item : items) {
       if (!(item instanceof ParameterItem pitem)
-          || !(pitem.getParameter() instanceof UserParameter up)) {
+          || !(pitem.getClonedParameter() instanceof UserParameter up)) {
         continue;
       }
       final Node comp = getComponentForParameter(up);
@@ -201,8 +193,9 @@ public class GroupedParameterSetupDialog extends EmptyParameterSetupDialogBase {
     if (fixedParameters != null) {
       for (Parameter<?> fixed : fixedParameters) {
         if (!allParametersSet.contains(fixed)) {
-          issues.add("Fixed parameter " + fixed.getName() + " not found in ParameterSet "
-              + getParamPane().getParameterSet());
+          issues.add(
+              "Fixed parameter " + fixed.getName() + " not found in ParameterSet with nparams="
+                  + getParamPane().getNumberOfParameters());
         }
         // already added? = duplicate
         if (!allComponentParameters.add(fixed)) {
@@ -211,13 +204,15 @@ public class GroupedParameterSetupDialog extends EmptyParameterSetupDialogBase {
       }
     }
 
-    final List<Parameter> grouped = items.stream().map(ParameterItem.class::cast)
-        .map(ParameterItem::getParameter).filter(UserParameter.class::isInstance).toList();
+    // need to check the actual parameter here
+    Parameter[] grouped = items.stream().map(ParameterItem.class::cast)
+        .map(ParameterItem::getClonedParameter).toArray(Parameter[]::new);
+    grouped = mapToActualParameters(grouped);
 
     for (Parameter<?> groupedParam : grouped) {
       if (!allParametersSet.contains(groupedParam)) {
-        issues.add("Grouped parameter " + groupedParam.getName() + " not found in ParameterSet "
-            + getParamPane().getParameterSet());
+        issues.add("Grouped parameter " + groupedParam.getName()
+            + " not found in ParameterSet with nparams=" + getParamPane().getNumberOfParameters());
       }
       // already added? = duplicate
       if (!allComponentParameters.add(groupedParam)) {
@@ -266,7 +261,20 @@ public class GroupedParameterSetupDialog extends EmptyParameterSetupDialogBase {
 
     parameters = mapToActualParameters(parameters);
     for (Parameter p : parameters) {
-      items.add(new ParameterItem(p, group));
+      if (!(p instanceof UserParameter up)) {
+        throw new IllegalArgumentException("Parameter " + p + " is not a UserParameter");
+      }
+
+      // create component once
+      final Node editor = up.createEditingComponent();
+      parametersAndComponents.put(up.getName(), editor);
+
+      // listen to any optional parameter change
+      final BooleanProperty selectedProperty = ParameterUtils.getSelectedProperty(editor);
+      if (selectedProperty != null) {
+        selectedProperty.subscribe((_) -> updateSummary());
+      }
+      items.add(new ParameterItem(up, group));
     }
   }
 

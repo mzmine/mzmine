@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,16 +33,17 @@ import org.controlsfx.property.editor.PropertyEditor;
 
 /**
  * Wraps a parameter's component to be used in a {@link PropertySheet} (see ControlsFX). Example
- * usage: {@link GroupedParameterSetupDialog} and {@link MZminePreferences#showSetupDialog(boolean)}
+ * usage: {@link GroupedParameterSetupDialog} and
+ * {@link MZminePreferences#showSetupDialog(boolean)}
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public class ParameterEditorWrapper implements PropertyEditor<Object> {
 
-  private final UserParameter parameter;
+  private final ParameterItem parameter;
   private final Node editor;
 
-  public ParameterEditorWrapper(UserParameter parameter, Node editor) {
+  public ParameterEditorWrapper(ParameterItem parameter, Node editor) {
     this.parameter = parameter;
     this.editor = editor;
   }
@@ -54,12 +55,11 @@ public class ParameterEditorWrapper implements PropertyEditor<Object> {
 
   @Override
   public Object getValue() {
-    // clone the parameter as we do not want to change the value of the original parameter.
-    // its only changed once the user hits OK-button
-    final UserParameter tmp = parameter.cloneParameter();
     try {
-      tmp.setValueFromComponent(editor);
-      return tmp.getValue();
+      // already cloned once within the item
+      final UserParameter clone = parameter.getClonedParameter().cloneParameter();
+      clone.setValueFromComponent(editor);
+      return clone.getValue();
     } catch (Exception ex) {
       return null;
     }
@@ -67,7 +67,7 @@ public class ParameterEditorWrapper implements PropertyEditor<Object> {
 
   @Override
   public void setValue(Object value) {
-    parameter.setValueToComponent(editor, value);
+    parameter.getClonedParameter().setValueToComponent(editor, value);
   }
 
 }
