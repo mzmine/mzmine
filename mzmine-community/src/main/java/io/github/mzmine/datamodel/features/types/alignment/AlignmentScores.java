@@ -27,7 +27,10 @@ package io.github.mzmine.datamodel.features.types.alignment;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataRecord;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.columnar_data.columns.mmap.AlignmentScoreMemorySegmentColumn;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -38,7 +41,10 @@ import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.RateType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.WeightedDistanceScore;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
+import java.util.DoubleSummaryStatistics;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -163,15 +169,67 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
     int otherTotal = Math.round(other.rate * other.alignedFeatures);
     int totalFeatures = total + otherTotal;
 
-    return new AlignmentScores(average(rate, other.rate, total, otherTotal, totalFeatures),
+    return new AlignmentScores(average(rate, other.rate, total, otherTotal),
         alignedFeatures + other.alignedFeatures, extraFeatures + other.extraFeatures,
-        average(weightedDistanceScore, other.weightedDistanceScore, total, otherTotal,
-            totalFeatures), //
-        average(mzPpmDelta, other.mzPpmDelta, total, otherTotal, totalFeatures),
+        average(weightedDistanceScore, other.weightedDistanceScore, total, otherTotal), //
+        average(mzPpmDelta, other.mzPpmDelta, total, otherTotal),
         // maximum distances
         max(maxMzDelta, other.maxMzDelta), //
         max(maxRtDelta, other.maxRtDelta), //
         max(maxMobilityDelta, other.maxMobilityDelta));
+  }
+
+
+  /**
+   * Recalculate alignment. Some fields cannot fully be recalculated like the extra features and the
+   * alignment scores as the alignment parameters are missing. But this can provide better insights
+   * into the final feature list after {@link DuplicateFilterModule}.
+   *
+   * @param row        the row to recalculate
+   * @param rowScore   the row score
+   * @param otherScore an optional other score like when two rows are merged into row and the second
+   *                   alignment score will be used to calculate averages and maxima of properties
+   * @return A merged alignment score
+   */
+  @NotNull
+  public static AlignmentScores recalculateForRow(@NotNull FeatureListRow row,
+      @NotNull AlignmentScores rowScore, @Nullable AlignmentScores otherScore) {
+    final List<ModularFeature> detected = row.streamFeatures()
+        .filter(f -> f.getFeatureStatus() == FeatureStatus.DETECTED).toList();
+
+    final int detectedFeatures = detected.size();
+    final int totalFeatures = row.getNumberOfFeatures();
+
+    final float rate = (float) detectedFeatures / totalFeatures;
+    int maxExtraFeatures = rowScore.extraFeatures();
+    float avgDistanceScore = rowScore.weightedDistanceScore();
+
+    final DoubleSummaryStatistics rtSummary = detected.stream().filter(f -> f.getRT() != null)
+        .mapToDouble(ModularFeature::getRT).summaryStatistics();
+    Float maxRtDelta =
+        rtSummary.getCount() == 0 ? 0f : (float) (rtSummary.getMax() - rtSummary.getMin());
+
+    final DoubleSummaryStatistics mobilitySummary = detected.stream()
+        .map(ModularFeature::getMobility).filter(Objects::nonNull).mapToDouble(Float::doubleValue)
+        .summaryStatistics();
+    final Float maxMobilityDelta = mobilitySummary.getCount() == 0 ? 0f
+        : (float) (mobilitySummary.getMax() - mobilitySummary.getMin());
+
+    final DoubleSummaryStatistics mzSummary = detected.stream().filter(f -> f.getMZ() != null)
+        .mapToDouble(ModularFeature::getMZ).summaryStatistics();
+    final double maxMzDelta =
+        mzSummary.getCount() == 0 ? 0d : (mzSummary.getMax() - mzSummary.getMin());
+    final Float ppmMzDelta = (float) (maxMzDelta / row.getAverageMZ() * 1_000_000f);
+
+    if (otherScore != null) {
+      maxExtraFeatures = Math.max(maxExtraFeatures, otherScore.extraFeatures());
+      // average of distance score
+      avgDistanceScore = average(avgDistanceScore, otherScore.weightedDistanceScore(),
+          rowScore.alignedFeatures, otherScore.alignedFeatures);
+    }
+
+    return new AlignmentScores(rate, detectedFeatures, maxExtraFeatures, avgDistanceScore,
+        ppmMzDelta, maxMzDelta, maxRtDelta, maxMobilityDelta);
   }
 
   public static Double max(final Double a, final Double b) {
@@ -226,8 +284,8 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
     return Math.min(a, b);
   }
 
-  private Double average(final Double a, final Double b, final int total, final int otherTotal,
-      final int totalFeatures) {
+  private static Double average(final Double a, final Double b, final int total,
+      final int otherTotal) {
     if (a == null && b == null) {
       return null;
     }
@@ -237,11 +295,11 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
     if (b == null) {
       return a;
     }
-    return (a * total + b * otherTotal) / totalFeatures;
+    return (a * total + b * otherTotal) / (total + otherTotal);
   }
 
-  private Float average(final Float a, final Float b, final int total, final int otherTotal,
-      final int totalFeatures) {
+  private static Float average(final Float a, final Float b, final int total,
+      final int otherTotal) {
     if (a == null && b == null) {
       return null;
     }
@@ -251,6 +309,6 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
     if (b == null) {
       return a;
     }
-    return (a * total + b * otherTotal) / totalFeatures;
+    return (a * total + b * otherTotal) / (total + otherTotal);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,17 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance.ttest;
+package io.github.mzmine.datamodel.statistics;
 
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.statistics.TTestConfigurationParameter;
+/**
+ * rows are represented by arrays that are mutable. This requires the
+ * {@link #getFeatureData(int, boolean)} function to return a mutable array that reflects the
+ * state.
+ */
+public abstract class AbstractRowArrayDataTable implements DataTable {
 
-public class TTestParameters extends SimpleParameterSet {
+  @Override
+  public void setFeatureData(int index, double[] data) {
+    double[] oldData = getFeatureData(index, false);
+    System.arraycopy(data, 0, oldData, 0, data.length);
+  }
 
-  public static final TTestConfigurationParameter config = new TTestConfigurationParameter(
-      "t-Test configuration", "Configure the t-Test.");
+  @Override
+  public void setSampleData(int index, double[] data) {
+    final int features = getNumberOfFeatures();
+    for (int row = 0; row < features; row++) {
+      setValue(row, index, data[index]);
+    }
+  }
 
-  public TTestParameters() {
-    super("https://mzmine.github.io/mzmine_documentation/visualization_modules/statistics_dashboard/statistics_dashboard.html#controls_1", config);
+  @Override
+  public void setValue(int featureIndex, int sampleIndex, double value) {
+    double[] data = getFeatureData(featureIndex, false);
+    data[sampleIndex] = value;
   }
 }

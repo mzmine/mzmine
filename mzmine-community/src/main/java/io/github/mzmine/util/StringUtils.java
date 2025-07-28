@@ -27,6 +27,7 @@ package io.github.mzmine.util;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -304,6 +305,22 @@ public class StringUtils {
       }
     }
     return true;
+  }
+
+  /**
+   * Checks for equality by string values
+   *
+   * @return true if equal by toString()
+   */
+  public static boolean isEqualToString(@Nullable Object a, @Nullable Object b) {
+    if (a == b) {
+      // also if both are null
+      return true;
+    }
+    if (a == null || b == null) {
+      return false;
+    }
+    return Objects.equals(a.toString(), b.toString());
   }
 
   /**
