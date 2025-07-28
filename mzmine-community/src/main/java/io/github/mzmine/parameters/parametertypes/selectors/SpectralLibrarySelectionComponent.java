@@ -43,6 +43,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
+import org.jetbrains.annotations.Nullable;
 
 public class SpectralLibrarySelectionComponent extends GridPane {
 
@@ -112,7 +113,7 @@ public class SpectralLibrarySelectionComponent extends GridPane {
         specificFiles == null ? List.of() : List.of(specificFiles));
   }
 
-  void setValue(SpectralLibrarySelection newValue) {
+  void setValue(@Nullable SpectralLibrarySelection newValue) {
     if (newValue == null) {
       newValue = new SpectralLibrarySelection();
     }

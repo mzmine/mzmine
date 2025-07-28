@@ -44,6 +44,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class RawDataFilesComponent extends GridPane {
@@ -51,8 +52,8 @@ public class RawDataFilesComponent extends GridPane {
   private final ComboBox<RawDataFilesSelectionType> typeCombo;
   private final Button detailsButton;
   private final Label numFilesLabel;
-  private RawDataFilesSelection currentValue = new RawDataFilesSelection();
   private final ReadOnlyObjectWrapper<List<RawDataFile>> currentlySelected = new ReadOnlyObjectWrapper<>();
+  private @NotNull RawDataFilesSelection currentValue = new RawDataFilesSelection();
 
   public RawDataFilesComponent() {
 
@@ -125,14 +126,8 @@ public class RawDataFilesComponent extends GridPane {
   }
 
   void setValue(@Nullable RawDataFilesSelection newValue) {
-    if (newValue == null) {
-      currentValue = null;
-      typeCombo.getSelectionModel().clearSelection();
-      updateNumFiles();
-      return;
-    }
-    currentValue = newValue.clone();
-    RawDataFilesSelectionType type = newValue.getSelectionType();
+    currentValue = newValue == null ? new RawDataFilesSelection() : newValue.clone();
+    RawDataFilesSelectionType type = currentValue.getSelectionType();
     if (type != null) {
       typeCombo.getSelectionModel().select(type);
     }

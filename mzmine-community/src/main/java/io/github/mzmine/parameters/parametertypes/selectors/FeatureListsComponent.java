@@ -45,6 +45,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureListsComponent extends HBox {
@@ -53,8 +54,8 @@ public class FeatureListsComponent extends HBox {
   private final ComboBox<FeatureListsSelectionType> typeCombo;
   private final Button detailsButton;
   private final Label numPeakListsLabel;
-  private FeatureListsSelection currentValue = new FeatureListsSelection();
   private final ReadOnlyObjectWrapper<List<FeatureList>> currentlySelected = new ReadOnlyObjectWrapper<>();
+  private @NotNull FeatureListsSelection currentValue = new FeatureListsSelection();
 
   public FeatureListsComponent() {
     setSpacing(5);
@@ -127,9 +128,9 @@ public class FeatureListsComponent extends HBox {
   }
 
   void setValue(@Nullable FeatureListsSelection newValue) {
-    currentValue = newValue != null ? newValue.clone() : null;
-    if (newValue != null && newValue.getSelectionType() != null) {
-      typeCombo.getSelectionModel().select(newValue.getSelectionType());
+    currentValue = newValue != null ? newValue.clone() : new FeatureListsSelection();
+    if (currentValue.getSelectionType() != null) {
+      typeCombo.getSelectionModel().select(currentValue.getSelectionType());
     }
     updateNumPeakLists();
   }
