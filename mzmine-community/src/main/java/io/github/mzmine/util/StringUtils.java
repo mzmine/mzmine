@@ -25,9 +25,11 @@
 
 package io.github.mzmine.util;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -260,9 +262,19 @@ public class StringUtils {
     return s.split(", |[\\t, ]");
   }
 
-  public static <T> String join(final List<T> values, @NotNull String delimiter,
+  public static <T> String join(final @NotNull T[] values, @NotNull String delimiter,
       @NotNull final Function<T, String> mapper) {
-    return values.stream().map(mapper::apply).collect(Collectors.joining(delimiter));
+    return join(Arrays.stream(values), delimiter, mapper);
+  }
+
+  public static <T> String join(final @NotNull List<T> values, @NotNull String delimiter,
+      @NotNull final Function<T, String> mapper) {
+    return join(values.stream(), delimiter, mapper);
+  }
+
+  public static <T> String join(final @NotNull Stream<T> stream, @NotNull String delimiter,
+      @NotNull final Function<T, String> mapper) {
+    return stream.map(mapper).collect(Collectors.joining(delimiter));
   }
 
   @Nullable

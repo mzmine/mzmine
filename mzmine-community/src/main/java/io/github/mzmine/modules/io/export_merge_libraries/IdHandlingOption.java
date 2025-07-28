@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public enum IdHandlingOption implements UniqueIdSupplier {
-  KEEP_ALL, RENUMBERED_WITH_FILENAME, RENUMBER_WITH_DATASET_ID, AVOID_DUPLICATES, NEW_ID_WITH_LIBRARY_NAME;
+  KEEP_ALL, NEW_ID_WITH_FILENAME, NEW_ID_WITH_DATASET_ID, AVOID_DUPLICATES, NEW_ID_WITH_OLD_LIBRARY_NAME;
 
   private static final String remappingPattern = "%s_%s";
 
@@ -46,9 +46,23 @@ public enum IdHandlingOption implements UniqueIdSupplier {
     return switch (this) {
       case KEEP_ALL -> "keep_all";
       case AVOID_DUPLICATES -> "avoid_duplicates";
-      case NEW_ID_WITH_LIBRARY_NAME -> "new_id_with_library_name";
-      case RENUMBER_WITH_DATASET_ID -> "renumber_with_dataset_id";
-      case RENUMBERED_WITH_FILENAME -> "renumbered_with_filename";
+      case NEW_ID_WITH_OLD_LIBRARY_NAME -> "new_id_with_library_name";
+      case NEW_ID_WITH_DATASET_ID -> "new_id_with_dataset_id";
+      case NEW_ID_WITH_FILENAME -> "new_id_with_filename";
+    };
+  }
+
+  public @NotNull String getDescription() {
+    return this + ": " + switch (this) {
+      case KEEP_ALL ->
+          "Keeps all existing IDs, may lead to duplicates. All other options avoid duplicates.";
+      case NEW_ID_WITH_FILENAME -> "Create new IDs; Pattern: <new library filename>_<nubmer>_id. ";
+      case NEW_ID_WITH_DATASET_ID -> "Create new IDs; Pattern: <entry.DATASET_ID>_<nubmer>_id";
+      case AVOID_DUPLICATES ->
+          "Keeps existing IDs at their first appearance, then avoids duplicate IDs by replacing them with the pattern defined in: "
+              + NEW_ID_WITH_OLD_LIBRARY_NAME;
+      case NEW_ID_WITH_OLD_LIBRARY_NAME ->
+          "Create new IDs; Pattern: <old library file name>_<number>_id";
     };
   }
 
@@ -78,14 +92,14 @@ public enum IdHandlingOption implements UniqueIdSupplier {
         }
         yield fullId;
       }
-      case NEW_ID_WITH_LIBRARY_NAME -> remappingPattern.formatted(oldLibName, fallbackId.get());
-      case RENUMBER_WITH_DATASET_ID -> {
+      case NEW_ID_WITH_OLD_LIBRARY_NAME -> remappingPattern.formatted(oldLibName, fallbackId.get());
+      case NEW_ID_WITH_DATASET_ID -> {
         // useful to add the DATASET_ID of the original entry
         final String libName = entry.getAsString(DBEntryField.DATASET_ID).orElse("speclib");
         yield remappingPattern.formatted(libName, fallbackId.get());
       }
       // most useful for libraries that want the same ID pattern with a common filename prefix and then the scan number from fallbackID
-      case RENUMBERED_WITH_FILENAME -> remappingPattern.formatted(libraryName, fallbackId.get());
+      case NEW_ID_WITH_FILENAME -> remappingPattern.formatted(libraryName, fallbackId.get());
     };
   }
 
@@ -94,10 +108,10 @@ public enum IdHandlingOption implements UniqueIdSupplier {
   public String toString() {
     return switch (this) {
       case KEEP_ALL -> "Keep existing IDs";
-      case RENUMBERED_WITH_FILENAME -> "Renumbered with filename";
-      case RENUMBER_WITH_DATASET_ID -> "Renumbered with dataset IDs";
+      case NEW_ID_WITH_FILENAME -> "New IDs with filename";
+      case NEW_ID_WITH_DATASET_ID -> "New IDs with dataset IDs";
       case AVOID_DUPLICATES -> "Avoid duplicates";
-      case NEW_ID_WITH_LIBRARY_NAME -> "New IDs with old library name";
+      case NEW_ID_WITH_OLD_LIBRARY_NAME -> "New IDs with old library name";
     };
   }
 }
