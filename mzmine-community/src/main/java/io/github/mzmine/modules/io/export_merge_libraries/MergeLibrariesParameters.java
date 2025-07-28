@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,12 +30,11 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionType;
+import io.github.mzmine.util.StringUtils;
 import java.util.List;
 
 public class MergeLibrariesParameters extends SimpleParameterSet {
@@ -59,12 +59,9 @@ public class MergeLibrariesParameters extends SimpleParameterSet {
   public static final ComboParameter<IdHandlingOption> idHandling = new ComboParameter<>(
       "Entry IDs", """
       Specify how entry IDs of the existing entries shall be handled during export.
-      In case an entry currently has no ID, a new ID will be generated. (same as "New IDs with old library name" option)
-      "Keep existing IDs": Existing IDs will be retained, even if the new library then contains duplicate IDs.
-      "Avoid duplicates": Existing IDs will be retained, duplicate IDs will be renamed to <old library file name>_<old id>.
-                          (both entry will be renamed)
-      "New IDs with old library name": New ids will be created in any case with the pattern: <old library file name>_<number>.
-      """, IdHandlingOption.values(), IdHandlingOption.AVOID_DUPLICATES);
+      %s""".formatted(
+      StringUtils.join(IdHandlingOption.values(), "\n", IdHandlingOption::getDescription)),
+      IdHandlingOption.values(), IdHandlingOption.NEW_ID_WITH_DATASET_ID);
 
   public static final IntensityNormalizerComboParameter normalizer = IntensityNormalizerComboParameter.createWithoutScientific();
 
