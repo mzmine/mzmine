@@ -68,6 +68,9 @@ public final class DateMetadataColumn extends MetadataColumn<LocalDateTime> {
 
   @Override
   public LocalDateTime convertOrThrow(@NotNull final String input) {
+    if (input.isBlank()) {
+      return null;
+    }
     // checks many different formats
     final LocalDateTime parsed = DateTimeUtils.parse(input.trim());
     Assert.assertNotNull(parsed); // need to throw exception if null

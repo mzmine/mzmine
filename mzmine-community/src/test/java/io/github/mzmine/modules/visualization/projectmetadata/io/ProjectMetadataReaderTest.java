@@ -101,8 +101,7 @@ class ProjectMetadataReaderTest {
         table.getValue(table.getColumnByName("date2"), rawA));
     assertEquals(DateTimeUtils.parse("2025-10-30"),
         table.getValue(table.getColumnByName("date2"), rawB));
-    assertEquals(DateTimeUtils.parse("2020-12-30"),
-        table.getValue(table.getColumnByName("date2"), rawC));
+    assertNull(table.getValue(table.getColumnByName("date2"), rawC));
   }
 
   @Test
