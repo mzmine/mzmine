@@ -105,9 +105,18 @@ class ProjectMetadataReaderTest {
   }
 
   @Test
+  void testStringColumn() {
+    final StringMetadataColumn col = new StringMetadataColumn("test");
+    assertEquals("", col.convertOrThrow(""));
+    assertEquals("", col.convertOrThrow(" "));
+    assertEquals("", col.convertOrThrow("\t"));
+    assertEquals("A", col.convertOrThrow("\tA"));
+  }
+
+  @Test
   void testDateColumn() {
     final DateMetadataColumn col = new DateMetadataColumn("test");
-    assertThrows(IllegalArgumentException.class, () -> col.convertOrThrow(""));
+    assertNull(col.convertOrThrow(""));
     assertThrows(IllegalArgumentException.class, () -> col.convertOrThrow("A"));
     assertThrows(IllegalArgumentException.class, () -> col.convertOrThrow("2025-10"));
     assertThrows(IllegalArgumentException.class, () -> col.convertOrThrow("1025451"));
@@ -116,7 +125,7 @@ class ProjectMetadataReaderTest {
   @Test
   void testNumberColumn() {
     final DoubleMetadataColumn col = new DoubleMetadataColumn("test");
-    assertThrows(NumberFormatException.class, () -> col.convertOrThrow(""));
+    assertNull(col.convertOrThrow(""));
     assertThrows(NumberFormatException.class, () -> col.convertOrThrow("A"));
     assertThrows(NumberFormatException.class, () -> col.convertOrThrow("2025-10-15"));
     assertThrows(NumberFormatException.class, () -> col.convertOrThrow("2025-10"));
