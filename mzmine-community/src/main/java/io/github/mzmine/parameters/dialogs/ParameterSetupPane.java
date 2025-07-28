@@ -462,11 +462,11 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
     if (node instanceof TextField textField) {
       textField.textProperty().addListener(((_, _, _) -> parametersChanged()));
     } else if (node instanceof FeatureListsComponent fselect) {
-      fselect.getNumPeakListsLabel().textProperty().addListener(((_, _, _) -> parametersChanged()));
+      fselect.currentlySelectedProperty().addListener(((_, _, _) -> parametersChanged()));
     } else if (node instanceof RawDataFilesComponent rselect) {
-      rselect.getNumFilesLabel().textProperty().addListener(((_, _, _) -> parametersChanged()));
+      rselect.currentlySelectedProperty().addListener(((_, _, _) -> parametersChanged()));
     } else if (node instanceof SpectralLibrarySelectionComponent rselect) {
-      rselect.getNumFilesLabel().textProperty().addListener(((_, _, _) -> parametersChanged()));
+      rselect.currentlySelectedProperty().addListener(((_, _, _) -> parametersChanged()));
     } else if (node instanceof ComboBox<?> comboComp) {
       comboComp.valueProperty().addListener(((_, _, _) -> parametersChanged()));
     } else if (node instanceof ChoiceBox) {

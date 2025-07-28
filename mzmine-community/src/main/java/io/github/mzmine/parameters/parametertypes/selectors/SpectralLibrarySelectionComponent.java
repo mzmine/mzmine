@@ -30,9 +30,12 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.util.List;
 import javafx.animation.PauseTransition;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -46,6 +49,7 @@ public class SpectralLibrarySelectionComponent extends GridPane {
   private final ComboBox<SpectralLibrarySelectionType> typeCombo;
   private final Button detailsButton;
   private final Label numFilesLabel;
+  private final ReadOnlyObjectWrapper<List<SpectralLibrary>> currentlySelected = new ReadOnlyObjectWrapper<>();
   // the latest directly specified files
   private File[] specificFiles;
 
@@ -103,10 +107,6 @@ public class SpectralLibrarySelectionComponent extends GridPane {
     autoUpdate.playFromStart();
   }
 
-  public Label getNumFilesLabel() {
-    return numFilesLabel;
-  }
-
   public SpectralLibrarySelection getValue() {
     return new SpectralLibrarySelection(typeCombo.getValue(),
         specificFiles == null ? List.of() : List.of(specificFiles));
@@ -126,6 +126,28 @@ public class SpectralLibrarySelectionComponent extends GridPane {
   }
 
   private void updateNumFiles() {
-    numFilesLabel.setText("" + getValue().getMatchingLibraries().size());
+    final List<SpectralLibrary> matching = getValue().getMatchingLibraries();
+
+    if (currentlySelected.get() == null || !currentlySelected.get().equals(matching)) {
+      currentlySelected.set(matching);
+    }
+    numFilesLabel.setText("" + matching.size());
+  }
+
+  /**
+   * The currently selected property is auto updated every second
+   *
+   * @return a property that holds the currently selected elements
+   */
+  public ReadOnlyObjectProperty<List<SpectralLibrary>> currentlySelectedProperty() {
+    return currentlySelected.getReadOnlyProperty();
+  }
+
+  /**
+   * calls an update of the selection first
+   */
+  public List<SpectralLibrary> getCurrentlySelected() {
+    updateNumFiles();
+    return currentlySelected.get();
   }
 }

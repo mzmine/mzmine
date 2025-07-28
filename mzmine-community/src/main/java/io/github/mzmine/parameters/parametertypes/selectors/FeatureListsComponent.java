@@ -34,7 +34,10 @@ import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
+import java.util.List;
 import javafx.animation.PauseTransition;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -51,6 +54,7 @@ public class FeatureListsComponent extends HBox {
   private final Button detailsButton;
   private final Label numPeakListsLabel;
   private FeatureListsSelection currentValue = new FeatureListsSelection();
+  private final ReadOnlyObjectWrapper<List<FeatureList>> currentlySelected = new ReadOnlyObjectWrapper<>();
 
   public FeatureListsComponent() {
     setSpacing(5);
@@ -113,7 +117,7 @@ public class FeatureListsComponent extends HBox {
           || !getScene().getWindow().isShowing()) {
         return;
       }
-      
+
       // auto update the number of files in the component to react to changes from As selected in GUI
       // this only changes the component
       updateNumPeakLists();
@@ -134,10 +138,6 @@ public class FeatureListsComponent extends HBox {
     return currentValue;
   }
 
-  public Label getNumPeakListsLabel() {
-    return numPeakListsLabel;
-  }
-
   public void setToolTipText(String toolTip) {
     typeCombo.setTooltip(new Tooltip(toolTip));
   }
@@ -146,18 +146,41 @@ public class FeatureListsComponent extends HBox {
     if (currentValue.getSelectionType() == FeatureListsSelectionType.BATCH_LAST_FEATURELISTS) {
       numPeakListsLabel.setText("");
       numPeakListsLabel.setTooltip(null);
+      currentlySelected.set(null);
     } else {
-      FeatureList[] pls = currentValue.getMatchingFeatureLists();
-      if (pls.length == 1) {
-        String plName = pls[0].getName();
+      List<FeatureList> pls = List.of(currentValue.getMatchingFeatureLists());
+
+      if (currentlySelected.get() == null || !currentlySelected.get().equals(pls)) {
+        currentlySelected.set(pls);
+      }
+
+      if (pls.size() == 1) {
+        String plName = pls.getFirst().getName();
         if (plName.length() > 22) {
           plName = plName.substring(0, 20) + "...";
         }
         numPeakListsLabel.setText(plName);
       } else {
-        numPeakListsLabel.setText(pls.length + " selected");
+        numPeakListsLabel.setText(pls.size() + " selected");
       }
       numPeakListsLabel.setTooltip(new Tooltip(currentValue.toString()));
     }
+  }
+
+  /**
+   * The currently selected property is auto updated every second
+   *
+   * @return a property that holds the currently selected elements
+   */
+  public ReadOnlyObjectProperty<List<FeatureList>> currentlySelectedProperty() {
+    return currentlySelected.getReadOnlyProperty();
+  }
+
+  /**
+   * calls an update of the selection first
+   */
+  public List<FeatureList> getCurrentlySelected() {
+    updateNumPeakLists();
+    return currentlySelected.get();
   }
 }

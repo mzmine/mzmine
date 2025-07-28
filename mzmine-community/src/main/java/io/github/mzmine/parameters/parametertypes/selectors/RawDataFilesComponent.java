@@ -32,8 +32,11 @@ import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
+import java.util.List;
 import java.util.Objects;
 import javafx.animation.PauseTransition;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -49,6 +52,7 @@ public class RawDataFilesComponent extends GridPane {
   private final Button detailsButton;
   private final Label numFilesLabel;
   private RawDataFilesSelection currentValue = new RawDataFilesSelection();
+  private final ReadOnlyObjectWrapper<List<RawDataFile>> currentlySelected = new ReadOnlyObjectWrapper<>();
 
   public RawDataFilesComponent() {
 
@@ -120,10 +124,6 @@ public class RawDataFilesComponent extends GridPane {
     autoUpdate.playFromStart();
   }
 
-  public Label getNumFilesLabel() {
-    return numFilesLabel;
-  }
-
   void setValue(@Nullable RawDataFilesSelection newValue) {
     if (newValue == null) {
       currentValue = null;
@@ -154,18 +154,42 @@ public class RawDataFilesComponent extends GridPane {
     if (currentValue.getSelectionType() == RawDataFilesSelectionType.BATCH_LAST_FILES) {
       numFilesLabel.setText("");
       numFilesLabel.setTooltip(null);
+      currentlySelected.set(null);
     } else {
-      RawDataFile files[] = currentValue.getMatchingRawDataFiles();
-      if (files.length == 1) {
-        String fileName = files[0].getName();
+      List<RawDataFile> files = List.of(currentValue.getMatchingRawDataFiles());
+
+      if (currentlySelected.get() == null || !currentlySelected.get().equals(files)) {
+        currentlySelected.set(files);
+      }
+
+      if (files.size() == 1) {
+        String fileName = files.getFirst().getName();
         if (fileName.length() > 22) {
           fileName = fileName.substring(0, 20) + "...";
         }
         numFilesLabel.setText(fileName);
       } else {
-        numFilesLabel.setText(files.length + " selected");
+        numFilesLabel.setText(files.size() + " selected");
       }
       numFilesLabel.setTooltip(new Tooltip(currentValue.toString()));
     }
   }
+
+  /**
+   * The currently selected property is auto updated every second
+   *
+   * @return a property that holds the currently selected elements
+   */
+  public ReadOnlyObjectProperty<List<RawDataFile>> currentlySelectedProperty() {
+    return currentlySelected.getReadOnlyProperty();
+  }
+
+  /**
+   * calls an update of the selection first
+   */
+  public List<RawDataFile> getCurrentlySelected() {
+    updateNumFiles();
+    return currentlySelected.get();
+  }
+
 }
