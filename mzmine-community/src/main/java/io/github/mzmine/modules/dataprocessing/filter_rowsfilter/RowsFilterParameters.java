@@ -28,7 +28,10 @@ package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
+import io.github.mzmine.parameters.dialogs.GroupedParameterSetupPane.GroupView;
+import io.github.mzmine.parameters.dialogs.GroupedParameterSetupPane.ParameterGroup;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -47,8 +50,10 @@ import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.List;
 import java.util.Map;
 import javafx.application.Platform;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -185,24 +190,28 @@ public class RowsFilterParameters extends SimpleParameterSet {
     return showSetupDialog(valueCheckRequired, "");
   }
 
-  public ExitCode showSetupDialog(boolean valueCheckRequired, String filterParameters) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired, @Nullable String filterParameters) {
     assert Platform.isFxApplicationThread();
-    GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this);
 
-    dialog.setFixedTopGroup(FEATURE_LISTS, SUFFIX, REMOVE_ROW, handleOriginal);
+    final List<UserParameter<?, ? extends Region>> fixed = List.of(FEATURE_LISTS, SUFFIX,
+        REMOVE_ROW, handleOriginal);
 
-    dialog.showSummaryOfSelectedParameters(true);
+    final List<ParameterGroup> groups = List.of( //
+        new ParameterGroup("Sample-based filters", MIN_FEATURE_COUNT, MIN_FEATURE_IN_GROUP_COUNT,
+            cvFilter, foldChangeFilter), //
+        new ParameterGroup("Isotope filters", MIN_ISOTOPE_PATTERN_COUNT, ISOTOPE_FILTER_13C,
+            removeRedundantRows), //
+        new ParameterGroup("Feature properties", MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
+            massDefect, KENDRICK_MASS_DEFECT), //
+        new ParameterGroup("Annotations & MS2 filter", KEEP_ALL_MS2, MS2_Filter, KEEP_ALL_ANNOTATED,
+            HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT), //
+        new ParameterGroup("Other options", onlyCorrelatedWithOtherDetectors, Reset_ID) //
+    );
+
+    GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this,
+        true, fixed, groups, GroupView.GROUPED);
 
     // add groups
-    dialog.addParameterGroup("Sample-based filters", MIN_FEATURE_COUNT, MIN_FEATURE_IN_GROUP_COUNT,
-        cvFilter, foldChangeFilter);
-    dialog.addParameterGroup("Isotope filters", MIN_ISOTOPE_PATTERN_COUNT, ISOTOPE_FILTER_13C,
-        removeRedundantRows);
-    dialog.addParameterGroup("Feature properties", MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM,
-        CHARGE, massDefect, KENDRICK_MASS_DEFECT);
-    dialog.addParameterGroup("Annotations & MS2 filter", KEEP_ALL_MS2, MS2_Filter,
-        KEEP_ALL_ANNOTATED, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT);
-    dialog.addParameterGroup("Other options", onlyCorrelatedWithOtherDetectors, Reset_ID);
     dialog.setFilterText(filterParameters);
 
     dialog.setMinWidth(600);

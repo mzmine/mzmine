@@ -25,10 +25,20 @@
 
 package io.github.mzmine.parameters.dialogs;
 
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.parameters.FullColumnComponent;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
-import javafx.geometry.Insets;
+import io.github.mzmine.util.StringUtils;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -39,13 +49,26 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ParameterGridLayout extends GridPane {
 
-  public ParameterGridLayout(@NotNull Parameter<?>[] parameters) {
-    setPadding(new Insets(5));
-    // setStyle("-fx-border-color: blue;");
+  /**
+   * Parameter.getName to component
+   */
+  private final Map<String, ParameterAndComponent> components;
+  private final StringProperty searchText = new SimpleStringProperty("");
+  private final BooleanProperty hasComponents = new SimpleBooleanProperty(true);
 
+  public ParameterGridLayout(@NotNull Parameter<?>[] parameters) {
+    setPadding(FxLayout.DEFAULT_PADDING_INSETS);
+    // setStyle("-fx-border-color: blue;");
+    setVgap(FxLayout.DEFAULT_SPACE);
+    setHgap(FxLayout.DEFAULT_SPACE);
+
+    List<UserParameter> userParams = Arrays.stream(parameters)
+        .filter(UserParameter.class::isInstance).map(UserParameter.class::cast).toList();
+    components = HashMap.newHashMap(userParams.size());
     /*
      * Adding an empty ColumnConstraints object for column2 has the effect of not setting any
      * constraints, leaving the GridPane to compute the column's layout based solely on its
@@ -62,12 +85,7 @@ public class ParameterGridLayout extends GridPane {
     int rowCounter = 0;
 
     // Create labels and components for each parameter
-    for (Parameter<?> p : parameters) {
-
-      if (!(p instanceof UserParameter up)) {
-        continue;
-      }
-
+    for (UserParameter up : userParams) {
       Node comp = up.createEditingComponent();
       //      addToolTipToControls(comp, up.getDescription());
       if (comp instanceof Region) {
@@ -75,7 +93,8 @@ public class ParameterGridLayout extends GridPane {
         // if (minWidth > column2.getMinWidth()) column2.setMinWidth(minWidth);
         // setMinWidth(minWidth + 200);
       }
-      GridPane.setMargin(comp, new Insets(5.0, 0.0, 5.0, 0.0));
+      // now added as Vgap and Hgap above
+//      GridPane.setMargin(comp, new Insets(5.0, 0.0, 5.0, 0.0));
 
       // Set the initial value
       Object value = up.getValue();
@@ -83,17 +102,14 @@ public class ParameterGridLayout extends GridPane {
         up.setValueToComponent(comp, value);
       }
 
-      // Add listeners so we are notified about any change in the values
-      addListenersToNode(comp);
-
       // By calling this we make sure the components will never be resized
       // smaller than their optimal size
       // comp.setMinimumSize(comp.getPreferredSize());
       // comp.setToolTipText(up.getDescription());
 
-      Label label = new Label(p.getName());
+      Label label = new Label(up.getName());
       label.minWidthProperty().bind(label.widthProperty());
-      label.setPadding(new Insets(0.0, 10.0, 0.0, 0.0));
+//      label.setPadding(new Insets(0.0, 10.0, 0.0, 0.0));
 
       if (!up.getDescription().isEmpty()) {
         final Tooltip tooltip = new Tooltip(up.getDescription());
@@ -103,8 +119,6 @@ public class ParameterGridLayout extends GridPane {
 
       label.setStyle("-fx-font-weight: bold");
       label.setLabelFor(comp);
-
-      parametersAndComponents.put(p.getName(), comp);
 
       // TODO: Multiple selection will be expandable, other components not
       /*
@@ -120,12 +134,79 @@ public class ParameterGridLayout extends GridPane {
       if (comp instanceof FullColumnComponent) {
         add(comp, 0, rowCounter, 2, 1);
 //        rowConstraints.setVgrow(Priority.NEVER);
+        components.put(up.getName(), new ParameterAndComponent<>(up, comp, null));
       } else {
         add(label, 0, rowCounter);
         add(comp, 1, rowCounter, 1, 1);
+        components.put(up.getName(), new ParameterAndComponent<>(up, comp, label));
       }
       getRowConstraints().add(rowConstraints);
       rowCounter++;
     }
+
+    // add search capability
+    searchText.subscribe((_, filter) -> applyFilter(filter));
+  }
+
+  public void setSearchText(String text) {
+    searchText.set(text);
+  }
+
+  public StringProperty searchTextProperty() {
+    return searchText;
+  }
+
+  private void applyFilter(@Nullable String filter) {
+    if (StringUtils.isBlank(filter)) {
+      makeLayout(components.values());
+      return;
+    }
+
+    final String lowerFilter = filter.toLowerCase().trim();
+    final List<ParameterAndComponent> filtered = components.values().stream()
+        .filter(comp -> comp.parameter().getName().toLowerCase().contains(lowerFilter)).toList();
+
+    makeLayout(filtered);
+  }
+
+  private void makeLayout(Collection<ParameterAndComponent> filtered) {
+    getChildren().clear();
+    getRowConstraints().clear();
+
+    int rowCounter = 0;
+    for (ParameterAndComponent comp : filtered) {
+      Label label = comp.label();
+      Node component = comp.component();
+      if (label == null) {
+        add(component, 0, rowCounter, 2, 1);
+      } else {
+        add(label, 0, rowCounter);
+        add(component, 1, rowCounter);
+      }
+
+      RowConstraints rowConstraints = new RowConstraints();
+      rowConstraints.setVgrow(comp.parameter().getComponentVgrowPriority());
+      rowConstraints.setMinHeight(USE_PREF_SIZE);
+      rowConstraints.setPrefHeight(USE_COMPUTED_SIZE);
+      getRowConstraints().add(rowConstraints);
+
+      rowCounter++;
+    }
+
+    // empty
+    boolean visible = rowCounter != 0;
+    hasComponents.set(visible);
+  }
+
+  public BooleanProperty hasComponentsProperty() {
+    return hasComponents;
+  }
+
+  public boolean hasComponents() {
+    return hasComponents.get();
+  }
+
+  public @NotNull Map<String, ParameterAndComponent> getComponents() {
+    return components;
   }
 }

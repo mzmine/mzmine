@@ -289,7 +289,7 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
    * @return a grid pane
    */
   @NotNull
-  public GridPane createParameterPane(List<Parameter<?>> parameters) {
+  public ParameterGridLayout createParameterPane(List<? extends Parameter<?>> parameters) {
     return createParameterPane(parameters.toArray(Parameter[]::new));
   }
 
@@ -300,8 +300,23 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
    * @return a grid pane
    */
   @NotNull
-  public static GridPane createParameterPane(@NotNull Parameter<?>[] parameters) {
+  public ParameterGridLayout createParameterPane(@NotNull Parameter<?>[] parameters) {
     ParameterGridLayout paramsPane = new ParameterGridLayout(parameters);
+    final Map<String, ParameterAndComponent> components = paramsPane.getComponents();
+
+    for (Parameter<?> p : parameters) {
+      // components only for user parameters so may be null
+      final ParameterAndComponent comp = components.get(p);
+      if (comp == null) {
+        continue;
+      }
+
+      // Add listeners so we are notified about any change in the values
+      addListenersToNode(comp.component());
+
+      // add to map to reflect changes
+      parametersAndComponents.put(p.getName(), comp.component());
+    }
 
     return paramsPane;
   }

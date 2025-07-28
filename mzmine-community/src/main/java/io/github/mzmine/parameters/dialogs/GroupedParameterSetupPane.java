@@ -25,66 +25,128 @@
 
 package io.github.mzmine.parameters.dialogs;
 
+import static io.github.mzmine.javafx.components.factories.FxTextFlows.newTextFlow;
+import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_SPACE;
+import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
+import static io.github.mzmine.javafx.components.util.FxLayout.newStackPane;
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.factories.FxLabels.Styles;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.util.StringUtils;
+import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import javafx.animation.PauseTransition;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Accordion;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
+import javafx.util.Duration;
 import org.controlsfx.control.textfield.TextFields;
 import org.jetbrains.annotations.Nullable;
 
 public class GroupedParameterSetupPane extends BorderPane {
 
-  private final List<Parameter<?>> fixedParameters;
+  private final List<? extends Parameter<?>> fixedParameters;
   private final List<ParameterGroup> groups;
   private final ParameterSetupPane parentPane;
   private final List<ParameterGroupGrid> groupedParameterPanes = new ArrayList<>();
   private final ObjectProperty<GroupView> viewType = new SimpleObjectProperty<>(GroupView.GROUPED);
   private final TextField searchField;
   private final BorderPane centerPane;
+  private final BooleanProperty showSummary = new SimpleBooleanProperty();
+  private final TextFlow summary;
 
-  public GroupedParameterSetupPane(@Nullable List<Parameter<?>> fixedParameters,
-      List<ParameterGroup> groups, ParameterSetupPane parentPane, GroupView viewType) {
+  private final PauseTransition reLayoutDelay = new PauseTransition(Duration.millis(200));
+
+  public GroupedParameterSetupPane(@Nullable List<? extends Parameter<?>> fixedParameters,
+      List<ParameterGroup> groups, ParameterSetupPane parentPane, GroupView view,
+      boolean useAutoCompleteFilter) {
+
     assert !groups.isEmpty() : "Groups cannot be empty";
     this.fixedParameters = fixedParameters;
     this.groups = groups;
     this.parentPane = parentPane;
-    this.viewType.set(viewType);
+    this.viewType.set(view);
+
+    reLayoutDelay.setOnFinished(_ -> applyViewLayout(viewType.get()));
 
     // search bar
     searchField = TextFields.createClearableTextField();
-    FxTextFields.bindAutoCompletion(searchField,
-        List.of(parentPane.getParameterSet().getParameters()));
+
+    // only in some cases useful. Default is not to use auto complete as the filter is directly responding and showing options
+    if (useAutoCompleteFilter) {
+      final List<String> autoOptions = Arrays.stream(parentPane.getParameterSet().getParameters())
+          .filter(UserParameter.class::isInstance).map(Parameter::getName).toList();
+      FxTextFields.bindAutoCompletion(searchField, autoOptions);
+    }
     searchField.setPromptText("Search...");
 
     final ToggleButton groupViewButton = FxIconUtil.newToggleIconButton(
         "Either show parameters as groups or in one list. Click to toggle.",
         selected -> selected ? FxIcons.FOLDER : FxIcons.LIST);
-    groupViewButton.selectedProperty().bind(this.viewType.map(type -> type == GroupView.GROUPED));
+
+    // both set each other
+    this.viewType.subscribe((nv) -> groupViewButton.setSelected(nv == GroupView.GROUPED));
+    groupViewButton.selectedProperty()
+        .subscribe((_, nv) -> viewType.set(nv ? GroupView.GROUPED : GroupView.SINGLE_LIST));
+
+    final HBox searchBar = newHBox(groupViewButton, searchField);
+    HBox.setHgrow(searchField, Priority.ALWAYS);
+
+    // summary just under search bar
+    summary = newTextFlow();
+    final var summaryFlow = newStackPane(new Insets(DEFAULT_SPACE, DEFAULT_SPACE, 8, DEFAULT_SPACE),
+        summary);
+
+    showSummary.subscribe((_, _) -> updateSummary());
+    final BooleanBinding hasMessage = Bindings.isNotEmpty(summary.getChildren()).and(showSummary);
+    summaryFlow.visibleProperty().bind(hasMessage);
+    summaryFlow.managedProperty().bind(hasMessage);
+//    topPane.bottomProperty()
+//        .bind(Bindings.when(showSummary).then(summaryFlow).otherwise((StackPane) null));
 
     centerPane = new BorderPane();
-
-    final HBox searchBar = new HBox(5, groupViewButton, searchField);
-    VBox centerFlow = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true, searchBar, centerPane);
+    VBox centerFlow = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true, searchBar, summaryFlow,
+        centerPane);
     setCenter(centerFlow);
 
-    createInitialLayout();
-    this.viewType.subscribe((nv) -> applyViewLayout(nv));
+    createParameterComponents();
+    this.viewType.subscribe((_) -> reLayoutDelay.playFromStart());
+
+    // final check
+    checkAllParametersCovered();
   }
 
   private void applyViewLayout(GroupView view) {
@@ -102,15 +164,35 @@ public class GroupedParameterSetupPane extends BorderPane {
       case GROUPED -> {
         final Accordion accordion = new Accordion();
         for (ParameterGroupGrid group : groupedParameterPanes) {
-          accordion.getPanes().add(FxLayout.newTitledPane(group.name(), group.grid()));
+          if (!group.grid.hasComponents()) {
+            // skip empty
+            continue;
+          }
+
+          final TitledPane pane = FxLayout.newTitledPane(group.name(), group.grid());
+          accordion.getPanes().add(pane);
         }
         centerPane.setCenter(accordion);
-        accordion.setExpandedPane(accordion.getPanes().getFirst());
+        if (!accordion.getPanes().isEmpty()) {
+          accordion.setExpandedPane(accordion.getPanes().getFirst());
+        }
         centerPane.setCenter(accordion);
       }
       case SINGLE_LIST -> {
-        final GridPane[] nodes = groupedParameterPanes.stream().map(ParameterGroupGrid::grid)
-            .toArray(GridPane[]::new);
+        List<Node> list = new ArrayList<>();
+        for (ParameterGroupGrid group : groupedParameterPanes) {
+          ParameterGridLayout grid = group.grid();
+          if (!grid.hasComponents()) {
+            continue;
+          }
+          list.add(new Separator(Orientation.HORIZONTAL));
+          list.add(FxLabels.styled(group.name(), Styles.BOLD_SEMI_TITLE));
+          list.add(grid);
+          // is false in accordion so need to reset
+          grid.setVisible(true);
+          grid.setManaged(true);
+        }
+        final Node[] nodes = list.toArray(Node[]::new);
         final VBox singleFlow = FxLayout.newVBox(Pos.TOP_LEFT,
             new Insets(0, FxLayout.DEFAULT_SPACE, 0, FxLayout.DEFAULT_SPACE), true, nodes);
         centerPane.setCenter(singleFlow);
@@ -125,30 +207,153 @@ public class GroupedParameterSetupPane extends BorderPane {
   /**
    * Only called once to initialize everything
    */
-  private void createInitialLayout() {
+  private void createParameterComponents() {
     if (!fixedParameters.isEmpty()) {
       final GridPane fixedGrid = parentPane.createParameterPane(fixedParameters);
       setTop(fixedGrid);
-    } else if (!groups.isEmpty()) {
+    }
+
+    if (!groups.isEmpty()) {
       // for now just create the grouped view - so that components are initialized
       for (ParameterGroup group : groups) {
-        final GridPane grid = parentPane.createParameterPane(group.parameters());
+        final ParameterGridLayout grid = parentPane.createParameterPane(group.parameters());
+        grid.searchTextProperty().bind(searchField.textProperty());
         groupedParameterPanes.add(new ParameterGroupGrid(group.name(), group.parameters(), grid));
+
+        // listen for changes in optional selection state
+        addSummaryListeners(grid);
+
+        // add layout listeners
+        grid.hasComponentsProperty().subscribe((_, _) -> reLayoutDelay.playFromStart());
       }
       // layout is added later
     }
   }
 
-
-  public enum GroupView {
-    GROUPED, SINGLE_LIST;
+  private void addSummaryListeners(ParameterGridLayout grid) {
+    for (ParameterAndComponent pc : grid.getComponents().values()) {
+      final BooleanProperty selectedProperty = ParameterUtils.getSelectedProperty(pc.component());
+      if (selectedProperty != null) {
+        selectedProperty.subscribe((_) -> updateSummary());
+      }
+    }
   }
 
-  private record ParameterGroupGrid(String name, List<Parameter<?>> parameters, GridPane grid) {
+
+  /**
+   * concat all optional parameter values
+   */
+  private void updateSummary() {
+    if (!showSummary.get()) {
+      summary.getChildren().clear();
+      return;
+    }
+
+    List<Parameter<?>> selected = new ArrayList<>();
+    List<Text> texts = new ArrayList<>();
+    texts.add(FxTexts.styledText("Summary: ", Styles.BOLD_SEMI_TITLE));
+
+    for (ParameterGroupGrid group : groupedParameterPanes) {
+      for (ParameterAndComponent pc : group.grid().getComponents().values()) {
+        final UserParameter up = pc.parameter();
+        final Node comp = pc.component();
+
+        final BooleanProperty selectedProperty = ParameterUtils.getSelectedProperty(comp);
+        if (selectedProperty != null && selectedProperty.get()) {
+          selected.add(up);
+          // make text clickable to auto filter
+          final Text text = FxTexts.styledText(up.getName(), Styles.BOLD_SEMI_TITLE);
+          text.setOnMouseClicked(_ -> setSearchFilter(up.getName()));
+          if (selected.size() > 1) {
+            texts.add(FxTexts.styledText(", ", Styles.BOLD_SEMI_TITLE));
+          }
+          texts.add(text);
+        }
+      }
+    }
+
+    summary.getChildren().setAll(texts);
+  }
+
+
+  /**
+   * All {@link UserParameter} require an entry in both allParameters and in the fixed or grouped
+   * parameters
+   */
+  private void checkAllParametersCovered() {
+    final List<String> issues = new ArrayList<>();
+
+    final var allParametersList = Arrays.stream(parentPane.getParameterSet().getParameters())
+        .filter(UserParameter.class::isInstance).toList();
+    final Set<Parameter<?>> allParametersSet = new HashSet<>(allParametersList);
+
+    if (allParametersSet.size() != allParametersList.size()) {
+      var duplicates = CollectionUtils.findDuplicates(allParametersList);
+      issues.add("Duplicate parameters found in ParameterSet: " + StringUtils.join(duplicates, "\n",
+          Parameter::getName));
+    }
+
+    Set<Parameter<?>> allComponentParameters = new HashSet<>();
+
+    if (fixedParameters != null) {
+      for (Parameter<?> fixed : fixedParameters) {
+        if (!allParametersSet.contains(fixed)) {
+          issues.add(
+              "Fixed parameter " + fixed.getName() + " not found in ParameterSet with nparams="
+                  + parentPane.getNumberOfParameters());
+        }
+        // already added? = duplicate
+        if (!allComponentParameters.add(fixed)) {
+          issues.add("Duplicate fixed parameter " + fixed.getName());
+        }
+      }
+    }
+
+    // need to check the actual parameter here
+    final Parameter[] grouped = groups.stream().map(ParameterGroup::parameters)
+        .flatMap(Collection::stream).toArray(Parameter[]::new);
+
+    for (Parameter<?> groupedParam : grouped) {
+      if (!allParametersSet.contains(groupedParam)) {
+        issues.add("Grouped parameter " + groupedParam.getName()
+            + " not found in ParameterSet with nparams=" + parentPane.getNumberOfParameters());
+      }
+      // already added? = duplicate
+      if (!allComponentParameters.add(groupedParam)) {
+        issues.add("Duplicate grouped parameter " + groupedParam.getName());
+      }
+    }
+
+    // now check reverse if all user parameters from allParameters are actual visual as component
+    for (Parameter<?> param : allParametersList) {
+      if (!allComponentParameters.contains(param)) {
+        issues.add("Parameter " + param.getName()
+            + " from ParameterSet is not found in the grouped or fixed parameters");
+      }
+    }
+
+    if (!issues.isEmpty()) {
+      throw new IllegalArgumentException(String.join("\n", issues));
+    }
+  }
+
+  public void setShowSummary(boolean showSummary) {
+    this.showSummary.set(showSummary);
+  }
+
+  public enum GroupView {
+    GROUPED, SINGLE_LIST
+  }
+
+  private record ParameterGroupGrid(String name, List<Parameter<?>> parameters,
+                                    ParameterGridLayout grid) {
 
   }
 
   public record ParameterGroup(String name, List<Parameter<?>> parameters) {
 
+    public ParameterGroup(String name, Parameter<?>... parameters) {
+      this(name, List.of(parameters));
+    }
   }
 }
