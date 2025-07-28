@@ -229,7 +229,7 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
             String queryScan = null;
             if (annotation instanceof SpectralDBAnnotation spec) {
               queryScan = ScanUtils.extractCompressedUSIRanges(spec.getQueryScan(), "DATASET_ID_PLACEHOLDER").collect(
-                  Collectors.joining(","));
+                  Collectors.joining(";"));
             }
 
             String result = Stream.of(rowId, compoundName, adductType, scoreType, precursorMZ,
