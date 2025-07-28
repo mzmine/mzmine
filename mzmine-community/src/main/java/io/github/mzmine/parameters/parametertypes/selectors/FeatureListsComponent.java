@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,12 +34,14 @@ import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
+import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import javafx.util.Duration;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureListsComponent extends HBox {
@@ -104,6 +106,20 @@ public class FeatureListsComponent extends HBox {
       updateNumPeakLists();
     });
 
+    PauseTransition autoUpdate = new PauseTransition(Duration.seconds(1));
+    autoUpdate.setOnFinished(_ -> {
+      // only if actually shown on screen
+      if (!isVisible() || getScene() == null || getScene().getWindow() == null
+          || !getScene().getWindow().isShowing()) {
+        return;
+      }
+      
+      // auto update the number of files in the component to react to changes from As selected in GUI
+      // this only changes the component
+      updateNumPeakLists();
+      autoUpdate.playFromStart();
+    });
+    autoUpdate.playFromStart();
   }
 
   void setValue(@Nullable FeatureListsSelection newValue) {
@@ -118,6 +134,9 @@ public class FeatureListsComponent extends HBox {
     return currentValue;
   }
 
+  public Label getNumPeakListsLabel() {
+    return numPeakListsLabel;
+  }
 
   public void setToolTipText(String toolTip) {
     typeCombo.setTooltip(new Tooltip(toolTip));

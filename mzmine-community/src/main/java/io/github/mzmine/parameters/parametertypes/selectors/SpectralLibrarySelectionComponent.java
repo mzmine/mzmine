@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,12 +32,14 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.util.List;
+import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
+import javafx.util.Duration;
 
 public class SpectralLibrarySelectionComponent extends GridPane {
 
@@ -84,6 +86,25 @@ public class SpectralLibrarySelectionComponent extends GridPane {
     });
 
     setMinWidth(getPrefWidth());
+
+    PauseTransition autoUpdate = new PauseTransition(Duration.seconds(1));
+    autoUpdate.setOnFinished(_ -> {
+      // only if actually shown on screen
+      if (!isVisible() || getScene() == null || getScene().getWindow() == null
+          || !getScene().getWindow().isShowing()) {
+        return;
+      }
+
+      // auto update the number of files in the component to react to changes from As selected in GUI
+      // this only changes the component
+      updateNumFiles();
+      autoUpdate.playFromStart();
+    });
+    autoUpdate.playFromStart();
+  }
+
+  public Label getNumFilesLabel() {
+    return numFilesLabel;
   }
 
   public SpectralLibrarySelection getValue() {
