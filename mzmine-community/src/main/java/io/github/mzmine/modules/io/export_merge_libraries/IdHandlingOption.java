@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public enum IdHandlingOption implements UniqueIdSupplier {
-  KEEP_ALL, NEW_ID_WITH_FILENAME, NEW_ID_WITH_DATASET_ID, AVOID_DUPLICATES, NEW_ID_WITH_OLD_LIBRARY_NAME;
+  KEEP_ALL, NEW_ID_WITH_FILENAME, NEW_ID_WITH_DATASET_ID, NEW_ID_WITH_OLD_LIBRARY_NAME, AVOID_DUPLICATES;
 
   private static final String remappingPattern = "%s_%s";
 
