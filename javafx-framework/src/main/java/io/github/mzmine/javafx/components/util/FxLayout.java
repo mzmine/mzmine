@@ -148,6 +148,37 @@ public class FxLayout {
     return pane;
   }
 
+  public static void applyDefaults(VBox pane, Insets padding) {
+    apply(pane, DEFAULT_SPACE, padding, Pos.CENTER_LEFT);
+  }
+
+  public static void applyDefaults(HBox pane, Insets padding) {
+    apply(pane, DEFAULT_SPACE, padding, Pos.CENTER_LEFT);
+  }
+
+  public static void applyDefaults(FlowPane pane, Insets padding) {
+    apply(pane, DEFAULT_SPACE, DEFAULT_SPACE, padding, Pos.CENTER_LEFT);
+  }
+
+  public static void apply(VBox pane, int space, Insets padding, Pos pos) {
+    pane.setPadding(padding);
+    pane.setSpacing(space);
+    pane.setAlignment(pos);
+  }
+
+  public static void apply(HBox pane, int space, Insets padding, Pos pos) {
+    pane.setPadding(padding);
+    pane.setSpacing(space);
+    pane.setAlignment(pos);
+  }
+
+  public static void apply(FlowPane pane, int vGap, int hGap, Insets padding, Pos pos) {
+    pane.setPadding(padding);
+    pane.setVgap(vGap);
+    pane.setHgap(hGap);
+    pane.setAlignment(pos);
+  }
+
   public static StackPane newStackPane(Node... children) {
     return newStackPane(DEFAULT_PADDING_INSETS, children);
   }

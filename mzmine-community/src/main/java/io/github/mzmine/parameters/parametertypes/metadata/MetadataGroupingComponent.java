@@ -72,6 +72,7 @@ public class MetadataGroupingComponent extends HBox implements
     super();
     setSpacing(FxLayout.DEFAULT_SPACE);
     setPadding(Insets.EMPTY);
+    FxLayout.applyDefaults(this, Insets.EMPTY);
     this.availableTypes = types;
 
     // find all columns at time of creation
