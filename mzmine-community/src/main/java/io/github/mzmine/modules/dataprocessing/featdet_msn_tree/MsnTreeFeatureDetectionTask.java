@@ -113,8 +113,7 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
         ScanUtils.getMSnFragmentTrees(dataFile, mzTol));
     trees.sort(Comparator.comparingDouble(PrecursorIonTree::getPrecursorMz));
     List<Range<Double>> mzRangesSorted = trees.stream()
-        .mapToDouble(PrecursorIonTree::getPrecursorMz)
-        .mapToObj(mzTol::getToleranceRange).toList();
+        .mapToDouble(PrecursorIonTree::getPrecursorMz).mapToObj(mzTol::getToleranceRange).toList();
 
     extractorFunction = new ExtractMzRangesIonSeriesFunction(dataFile, scanSelection,
         mzRangesSorted, ScanDataType.MASS_LIST, this);
@@ -140,6 +139,11 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
       // need to set mz if data was empty
       if (!hasData) {
         f.setMZ(mstree.getPrecursorMz());
+        f.setHeight(0f);
+        f.setArea(0f);
+        f.setRT(0f);
+        // should we discard the feature in that case? it is possible that the precursor ion is
+        // not found in the ms2 spectra at all but the ms2s still contain information
       }
       f.setAllMS2FragmentScans(mstree.getAllFragmentScans());
       ModularFeatureListRow row = new ModularFeatureListRow(newFeatureList, id, f);

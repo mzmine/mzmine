@@ -97,8 +97,12 @@ public class FeatureShapeChart extends BufferedChartNode {
       } else {
         // show full RT range
         final float length = Math.max(fullWidth, 0.001f);
-        defaultRange = new org.jfree.data.Range(Math.max(rt - length * 1.05, rawMinRt),
-            Math.min(rt + length * 1.05, rawMaxRt));
+        final double lower = Math.max(rt - length * 1.05, rawMinRt);
+        final double upper = Math.min(rt + length * 1.05, rawMaxRt);
+        // odd possibility for lower > upper in case:
+        // rawMinRt is low and rawMaxRt is high, but rt is 0 and length is small.
+        // (e.g. no data points after msn tree feature list builder)
+        defaultRange = new org.jfree.data.Range(Math.min(lower, upper), Math.max(lower, upper));
       }
     } else {
       defaultRange = new Range(0, 1);
