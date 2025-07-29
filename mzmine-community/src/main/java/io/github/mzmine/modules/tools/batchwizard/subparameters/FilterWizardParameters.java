@@ -47,8 +47,10 @@ public final class FilterWizardParameters extends WizardStepParameters {
       new MinimumSamplesInMetadataParameter(), false);
 
   public static final BooleanParameter rsdQcFilter = new BooleanParameter(
-      "Remove features with RSD > 20% in QC",
-      "Filters out all rows that have a relative standard deviation (RSD) > 20% in QC samples. Define QC in sample metadata or by adding _qc to the filenames.",
+      "Pooled QC area RSD ≤ 20%", """
+      Filters out all rows that have an area relative standard deviation (RSD) > 20% in QC samples.
+      Define QC in sample metadata or by adding _qc to the filenames.
+      This filter is useful for samples with very similar composition to pooled QCs, but not for samples with very unique compounds like natural products.""",
       false);
 
   public static final BooleanParameter filter13C = new BooleanParameter(
