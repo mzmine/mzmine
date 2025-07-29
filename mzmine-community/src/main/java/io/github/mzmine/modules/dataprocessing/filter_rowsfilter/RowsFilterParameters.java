@@ -214,7 +214,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
     // add groups
     dialog.setFilterText(filterParameters);
 
-    dialog.setMinWidth(600);
+    dialog.setMinWidth(800);
     dialog.setMinHeight(800);
 
     // check
