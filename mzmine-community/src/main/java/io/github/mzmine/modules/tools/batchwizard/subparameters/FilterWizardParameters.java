@@ -27,6 +27,8 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.FilterWizardParameterFactory;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesInMetadataParameter;
@@ -48,10 +50,10 @@ public final class FilterWizardParameters extends WizardStepParameters {
 
   public static final BooleanParameter rsdQcFilter = new BooleanParameter(
       "Pooled QC area RSD ≤ 20%", """
-      Filters out all rows that have an area relative standard deviation (RSD) > 20% in QC samples.
-      Define QC in sample metadata or by adding _qc to the filenames.
-      This filter is useful for samples with very similar composition to pooled QCs, but not for samples with very unique compounds like natural products.""",
-      false);
+      Pooled QC filter removes rows that have an area relative standard deviation (RSD) > 20%% in QC samples.
+      Define QC samples in project metadata: column="%s" value="%s"; or by adding _qc to the filenames.
+      This filter is useful for samples with very similar composition to pooled QCs, but not for samples with very unique compounds like natural products.""".formatted(
+      MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()), false);
 
   public static final BooleanParameter filter13C = new BooleanParameter(
       "Only keep features with 13C",
