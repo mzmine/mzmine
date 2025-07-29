@@ -55,6 +55,7 @@ public interface OtherFeature extends ModularDataModel {
     return timeSeries.getOtherDataFile();
   }
 
+  @NotNull
   default RawDataFile getRawDataFile() {
     return getOtherDataFile().getCorrespondingRawDataFile();
   }
