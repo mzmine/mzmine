@@ -64,8 +64,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
       new MinimumSamplesInMetadataParameter(), false);
 
   public static final OptionalParameter<IntegerParameter> MIN_ISOTOPE_PATTERN_COUNT = new OptionalParameter<>(
-      new IntegerParameter("Minimum features in an isotope pattern",
-          "Minimum number of features required in an isotope pattern", 2), false);
+      new IntegerParameter("Minimum signals in an isotope pattern",
+          "Minimum number of detected signals required in an isotope pattern", 2), false);
 
   public static final OptionalModuleParameter<Isotope13CFilterParameters> ISOTOPE_FILTER_13C = new OptionalModuleParameter<>(
       "Validate 13C isotope pattern",
@@ -86,8 +86,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
       new RTRangeParameter(), false);
 
   public static final OptionalParameter<DoubleRangeParameter> FEATURE_DURATION = new OptionalParameter<>(
-      new DoubleRangeParameter("features duration range",
-          "Permissible range of (average) feature durations per row",
+      new DoubleRangeParameter("Chromatographic width",
+          "Permissible range of (average) row retention time widths. The full width including all detected data points.",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 3d)), false);
 
   public static final OptionalParameter<DoubleRangeParameter> FWHM = new OptionalParameter<>(
@@ -131,11 +131,11 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
       true);
 
-  public static final BooleanParameter MS2_Filter = new BooleanParameter("Feature with MS2 scan",
+  public static final BooleanParameter MS2_Filter = new BooleanParameter("Require MS2 scan",
       "If checked, the rows that don't contain MS2 scan will be removed.", false);
 
   public static final BooleanParameter KEEP_ALL_MS2 = new BooleanParameter(
-      "Never remove feature with MS2",
+      "Never remove rows with MS2",
       "If checked, all rows with MS2 are retained without applying any further filters on them.",
       true);
 
@@ -144,8 +144,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
       "If checked, a feature that is annotated will never be removed from the feature list.",
       false);
 
-  public static final BooleanParameter Reset_ID = new BooleanParameter(
-      "Reset the feature number ID",
+  public static final BooleanParameter Reset_ID = new BooleanParameter("Reset the row ID",
       "If checked, the row number of original feature list will be reset.", false);
 
   public static final OptionalParameter<MassDefectParameter> massDefect = new OptionalParameter<>(
@@ -219,6 +218,11 @@ public class RowsFilterParameters extends SimpleParameterSet {
     var map = super.getNameParameterMap();
     map.put("Only other detector correlated", getParameter(onlyCorrelatedWithOtherDetectors));
     map.put("Minimum aligned features (samples)", getParameter(MIN_FEATURE_COUNT));
+    map.put("Reset the feature number ID", getParameter(Reset_ID));
+    map.put("Never remove feature with MS2", getParameter(KEEP_ALL_MS2));
+    map.put("Feature with MS2 scan", getParameter(MS2_Filter));
+    map.put("Minimum features in an isotope pattern", getParameter(MIN_ISOTOPE_PATTERN_COUNT));
+    map.put("features duration range", getParameter(FEATURE_DURATION));
     return map;
   }
 }
