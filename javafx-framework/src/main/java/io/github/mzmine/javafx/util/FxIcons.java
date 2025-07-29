@@ -33,7 +33,7 @@ public enum FxIcons implements IconCodeSupplier {
   ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, PLUS, ADD, EDIT, QUESTIONMARK, ARROW_IN_RIGHT,
 
   // icons
-  FILE, FOLDER, LIST,
+  FILE, FOLDER, LIST, GROUPED_PARAMETERS,
 
   // UI
   DARK_MODE_SWITCH, BATCH,
@@ -57,6 +57,7 @@ public enum FxIcons implements IconCodeSupplier {
       case EXCLAMATION_TRIANGLE -> "bi-exclamation-triangle";
       case EXCLAMATION_CIRCLE -> "bi-exclamation-circle";
       case LIST -> "bi-list-ul";
+      case GROUPED_PARAMETERS -> "bi-menu-app-fill";
       case DARK_MODE_SWITCH -> "bi-mask";
       case USER -> "bi-person-circle";
       case BUG -> "bi-bug";

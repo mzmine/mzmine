@@ -50,6 +50,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -79,6 +80,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class GroupedParameterSetupPane extends BorderPane {
 
+  private static final Logger logger = Logger.getLogger(GroupedParameterSetupPane.class.getName());
   private final List<? extends Parameter<?>> fixedParameters;
   private final List<ParameterGroup> groups;
   private final ParameterSetupPane parentPane;
@@ -88,6 +90,7 @@ public class GroupedParameterSetupPane extends BorderPane {
   private final BorderPane centerPane;
   private final BooleanProperty showSummary = new SimpleBooleanProperty();
   private final TextFlow summary;
+  private int minimumParametersForGrouped = 7;
 
   private final PauseTransition reLayoutDelay = new PauseTransition(Duration.millis(200));
 
@@ -118,7 +121,7 @@ public class GroupedParameterSetupPane extends BorderPane {
 
     final ToggleButton groupViewButton = FxIconUtil.newToggleIconButton(
         "Either show parameters as groups or in one list. Click to toggle.",
-        selected -> selected ? FxIcons.FOLDER : FxIcons.LIST);
+        selected -> selected ? FxIcons.GROUPED_PARAMETERS : FxIcons.LIST);
 
     // both set each other
     this.viewType.subscribe((nv) -> groupViewButton.setSelected(nv == GroupView.GROUPED));
@@ -153,18 +156,21 @@ public class GroupedParameterSetupPane extends BorderPane {
   }
 
   private void applyViewLayout(GroupView view) {
-    // TODO need to remove from parent first?
-//    for (GridPane pane : groupedParameterPanes) {
-//      if (pane.getParent() instanceof TitledPane parent) {
-//        parent.setContent(null);
-//      }
-//      if (pane.getParent() instanceof Pane parent) {
-//        parent.getChildren().remove(pane);
-//      }
-//    }
     centerPane.setCenter(null);
     switch (view) {
       case GROUPED -> {
+        // only if enough parameters after filtering
+        final int components = groupedParameterPanes.stream().map(ParameterGroupGrid::grid)
+            .mapToInt(ParameterGridLayout::getNumComponents).sum();
+
+        if (components < minimumParametersForGrouped) {
+          logger.fine(
+              "RELAYOUT Not enough parameters to show grouped view. Showing single list instead.");
+          applyViewLayout(GroupView.SINGLE_LIST);
+          return;
+        }
+        logger.fine("RELAYOUT GROUPED");
+
         final Accordion accordion = new Accordion();
         for (ParameterGroupGrid group : groupedParameterPanes) {
           if (!group.grid.hasComponents()) {
@@ -182,6 +188,7 @@ public class GroupedParameterSetupPane extends BorderPane {
         centerPane.setCenter(accordion);
       }
       case SINGLE_LIST -> {
+        logger.fine("RELAYOUT SINGLE");
         List<Node> list = new ArrayList<>();
         for (ParameterGroupGrid group : groupedParameterPanes) {
           ParameterGridLayout grid = group.grid();
@@ -220,6 +227,7 @@ public class GroupedParameterSetupPane extends BorderPane {
       // for now just create the grouped view - so that components are initialized
       for (ParameterGroup group : groups) {
         final ParameterGridLayout grid = parentPane.createParameterPane(group.parameters());
+        grid.setPadding(new Insets(DEFAULT_SPACE, DEFAULT_SPACE, DEFAULT_SPACE, DEFAULT_SPACE * 3));
         grid.searchTextProperty().bind(searchField.textProperty());
         groupedParameterPanes.add(new ParameterGroupGrid(group.name(), group.parameters(), grid));
 
@@ -227,7 +235,7 @@ public class GroupedParameterSetupPane extends BorderPane {
         addSummaryListeners(grid);
 
         // add layout listeners
-        grid.hasComponentsProperty().subscribe((_, _) -> reLayoutDelay.playFromStart());
+        grid.numComponentsProperty().subscribe((_, _) -> reLayoutDelay.playFromStart());
       }
       // layout is added later
     }

@@ -32,11 +32,13 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.StringUtils;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.Node;
@@ -59,6 +61,7 @@ public class ParameterGridLayout extends GridPane {
   private final Map<String, ParameterAndComponent> components;
   private final StringProperty searchText = new SimpleStringProperty("");
   private final BooleanProperty hasComponents = new SimpleBooleanProperty(true);
+  private final IntegerProperty numComponents = new SimpleIntegerProperty(0);
 
   public ParameterGridLayout(@NotNull Parameter<?>[] parameters) {
     setPadding(FxLayout.DEFAULT_PADDING_INSETS);
@@ -68,7 +71,8 @@ public class ParameterGridLayout extends GridPane {
 
     List<UserParameter> userParams = Arrays.stream(parameters)
         .filter(UserParameter.class::isInstance).map(UserParameter.class::cast).toList();
-    components = HashMap.newHashMap(userParams.size());
+    // needs order
+    components = LinkedHashMap.newLinkedHashMap(userParams.size());
     /*
      * Adding an empty ColumnConstraints object for column2 has the effect of not setting any
      * constraints, leaving the GridPane to compute the column's layout based solely on its
@@ -145,7 +149,7 @@ public class ParameterGridLayout extends GridPane {
     }
 
     // add search capability
-    searchText.subscribe((_, filter) -> applyFilter(filter));
+    searchText.subscribe((filter) -> applyFilter(filter));
   }
 
   public void setSearchText(String text) {
@@ -196,6 +200,7 @@ public class ParameterGridLayout extends GridPane {
     // empty
     boolean visible = rowCounter != 0;
     hasComponents.set(visible);
+    numComponents.set(rowCounter);
   }
 
   public BooleanProperty hasComponentsProperty() {
@@ -213,5 +218,13 @@ public class ParameterGridLayout extends GridPane {
   @Nullable
   public ParameterAndComponent getParameterAndComponent(@NotNull Parameter<?> parameter) {
     return components.get(parameter.getName());
+  }
+
+  public int getNumComponents() {
+    return numComponents.get();
+  }
+
+  public IntegerProperty numComponentsProperty() {
+    return numComponents;
   }
 }
