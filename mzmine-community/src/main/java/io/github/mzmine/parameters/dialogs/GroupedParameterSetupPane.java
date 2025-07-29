@@ -179,6 +179,7 @@ public class GroupedParameterSetupPane extends BorderPane {
           }
 
           final TitledPane pane = FxLayout.newTitledPane(group.name(), group.grid());
+          pane.getStyleClass().add("large-title-pane");
           accordion.getPanes().add(pane);
         }
         centerPane.setCenter(accordion);
@@ -274,6 +275,7 @@ public class GroupedParameterSetupPane extends BorderPane {
           selected.add(up);
           // make text clickable to auto filter
           final Text text = FxTexts.styledText(up.getName(), Styles.BOLD_SEMI_TITLE);
+          text.getStyleClass().add("text-hover");
           text.setOnMouseClicked(_ -> setSearchFilter(up.getName()));
           if (selected.size() > 1) {
             texts.add(FxTexts.styledText(", ", Styles.BOLD_SEMI_TITLE));
