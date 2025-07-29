@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,21 +27,29 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.FilterWizardParameterFactory;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesInMetadataParameter;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import java.util.Map;
 
 /**
  * Filtering steps throughout the batch mode
  */
 public final class FilterWizardParameters extends WizardStepParameters {
 
-  public static final MinimumSamplesParameter minNumberOfSamples = new MinimumSamplesParameter(
-      "Min samples per aligned feature",
-      "The minimum number of samples in which a feature needs to be detected, e.g., 2-3 for triplicates.\n"
-          + "Used in feature list rows filter and feature grouping.");
+  public static final MinimumSamplesParameter minNumberOfSamples = new MinimumSamplesParameter();
 
+  public static final OptionalParameter<MinimumSamplesInMetadataParameter> minNumberOfSamplesInAnyGroup = new OptionalParameter<>(
+      new MinimumSamplesInMetadataParameter(), false);
+
+  public static final BooleanParameter rsdQcFilter = new BooleanParameter(
+      "Remove features with RSD > 20% in QC",
+      "Filters out all rows that have a relative standard deviation (RSD) > 20% in QC samples. Define QC in sample metadata or by adding _qc to the filenames.",
+      false);
 
   public static final BooleanParameter filter13C = new BooleanParameter(
       "Only keep features with 13C",
@@ -56,7 +64,13 @@ public final class FilterWizardParameters extends WizardStepParameters {
 
   public FilterWizardParameters() {
     super(WizardPart.FILTER, FilterWizardParameterFactory.Filters, handleOriginalFeatureLists,
-        minNumberOfSamples, filter13C, goodPeaksOnly);
+        minNumberOfSamples, minNumberOfSamplesInAnyGroup, rsdQcFilter, filter13C, goodPeaksOnly);
   }
 
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    final Map<String, Parameter<?>> map = super.getNameParameterMap();
+    map.put("Min samples per aligned feature", getParameter(minNumberOfSamples));
+    return map;
+  }
 }
