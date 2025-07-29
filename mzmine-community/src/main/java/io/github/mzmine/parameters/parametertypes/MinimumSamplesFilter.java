@@ -39,11 +39,12 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param minSamples   min samples
  * @param column       the column or null
+ * @param group        if present then only filter for this group
  * @param files        all data files
  * @param groupedFiles grouped by column or null if there is no column
  */
 public record MinimumSamplesFilter(@NotNull AbsoluteAndRelativeInt minSamples,
-                                   @Nullable MetadataColumn<?> column,
+                                   @Nullable MetadataColumn<?> column, @Nullable String group,
                                    @NotNull List<RawDataFile> files,
                                    @Nullable List<List<RawDataFile>> groupedFiles) {
 

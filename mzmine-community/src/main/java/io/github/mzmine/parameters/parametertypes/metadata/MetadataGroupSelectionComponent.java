@@ -74,4 +74,12 @@ public class MetadataGroupSelectionComponent extends GridPane {
     groupField.setValue(value.groupStr());
     columnField.setValue(value.columnName());
   }
+
+  public MetadataGroupingComponent getColumnField() {
+    return columnField;
+  }
+
+  public ComboBox<String> getGroupField() {
+    return groupField;
+  }
 }
