@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.CompositeParametersParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import java.util.Collection;
+import java.util.Map;
 import org.jetbrains.annotations.Nullable;
 
 public class MinimumSamplesInMetadataParameter extends
@@ -63,7 +64,6 @@ public class MinimumSamplesInMetadataParameter extends
 
   @Override
   protected Parameter<?>[] getInternalParameters() {
-    // dont change order as this matters in load save
     return new Parameter[]{minSamples, metadata};
   }
 
@@ -73,7 +73,7 @@ public class MinimumSamplesInMetadataParameter extends
     this.value = value;
     this.minAbsolute = minAbsolute;
 
-    minSamples = new MinimumSamplesParameter("Min samples", "", minAbsolute);
+    minSamples = new MinimumSamplesParameter("Minimum samples", "", minAbsolute);
     setValue(value);
   }
 
@@ -118,4 +118,9 @@ public class MinimumSamplesInMetadataParameter extends
         errorMessages);
   }
 
+  @Override
+  protected void handleLoadedParameters(Map<String, Parameter<?>> loadedParameters) {
+    super.handleLoadedParameters(loadedParameters);
+    setValue(new MinimumSamplesFilterConfig(minSamples.getValue(), metadata.getValue()));
+  }
 }

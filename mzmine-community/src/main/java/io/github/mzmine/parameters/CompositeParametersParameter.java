@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters;
 
+import java.util.Map;
 import javafx.scene.Node;
 import org.w3c.dom.Element;
 
@@ -48,12 +49,27 @@ public abstract class CompositeParametersParameter<ValueType, EditorComponent ex
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    ParameterUtils.loadParametersInOrder(xmlElement, getInternalParameters());
+    final Map<String, Parameter<?>> nameParameterMap = ParameterUtils.getNameParameterMap(
+        getInternalParameters());
+
+    final Map<String, Parameter<?>> loadedParameters = ParameterUtils.loadValuesFromXML(
+        this.getClass(), xmlElement, nameParameterMap);
+    // currently this does nothing but just in case loaded parameters need to be handled
+    // e.g. after changes to structure
+    handleLoadedParameters(loadedParameters);
+  }
+
+  /**
+   * Handle the loaded parameters. e.g., after change of parameters
+   *
+   * @param loadedParameters the actually loaded parameters
+   */
+  protected void handleLoadedParameters(Map<String, Parameter<?>> loadedParameters) {
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    ParameterUtils.saveInOrder(xmlElement, getInternalParameters());
+    ParameterUtils.saveValuesToXML(xmlElement, true, getInternalParameters());
   }
 
 }

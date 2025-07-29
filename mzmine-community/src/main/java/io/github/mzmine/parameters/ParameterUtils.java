@@ -35,6 +35,7 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
+import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
@@ -48,6 +49,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -453,14 +455,46 @@ public class ParameterUtils {
 
 
   /**
-   * Loads parameters in order. Can be useful to save and load parameters in order when designing
-   * other composite parameters.
+   * Maps the names of parameters to the parameter for
+   * {@link #loadValuesFromXML(Class, Element, Map)}.
+   * <p>
+   * Extend this method to map old parameter names (maybe saved to batch files) to the parameter.
+   * Only works if the old and new parameters are of the same type (save and load the parameter
+   * values the same way).
+   * <p></p>
+   * Intended usage is: <p></p>
+   * {@code nameParameterMap.put("m/z tolerance", getParameter(mzTolerance));}
+   * <p>
+   * It is important to use {@link ParameterSet#getParameter(Parameter)} instead of directly passing
+   * the static final parameter. Otherwise, new parameter set instances will always use the same
+   * instance of the parameter.
+   *
+   * @return map of name to parameter
    */
-  public static void loadParametersInOrder(Element xmlElement, Parameter<?>... parameters) {
+  public static Map<String, Parameter<?>> getNameParameterMap(Parameter<?>... parameters) {
+    Map<String, Parameter<?>> nameParameterMap = HashMap.newHashMap(parameters.length);
+    for (final Parameter<?> p : parameters) {
+      nameParameterMap.put(p.getName(), p);
+    }
+    return nameParameterMap;
+  }
+
+  /**
+   * Load all parameters in name map from xmlElement.
+   *
+   * @param callerClass      for logging
+   * @param nameParameterMap parameter name -> parameter; make sure to use the correct parameters
+   *                         here and not the static instance
+   * @return A map of loaded parameters with name, parameter
+   */
+  @NotNull
+  public static Map<String, Parameter<?>> loadValuesFromXML(@NotNull Class<?> callerClass,
+      @NotNull Element xmlElement, @NotNull Map<String, Parameter<?>> nameParameterMap) {
     // cannot use getElementsByTagName, this goes recursively through all levels
     // finding nested ParameterSets
 //    NodeList list = xmlElement.getElementsByTagName(parameterElement);
-    int nextParamToLoad = 0;
+
+    Map<String, Parameter<?>> loadedParameters = HashMap.newHashMap(nameParameterMap.size());
 
     var childNodes = xmlElement.getChildNodes();
     for (int i = 0; i < childNodes.getLength(); i++) {
@@ -470,41 +504,41 @@ public class ParameterUtils {
       }
 
       String paramName = nextElement.getAttribute(SimpleParameterSet.nameAttribute);
-      Parameter<?> param = parameters[nextParamToLoad];
-      // name mismatch? this method should always load the parameters in the same order as they were saved
-      if (!param.getName().equals(paramName)) {
-        throw new IllegalStateException(
-            "Error while loading parameters in order. Name mismatch: reading parameter index=%d name=%s but xml name was=%s from xmlElement=%s".formatted(
-                nextParamToLoad, param.getName(), paramName, xmlElement.getTagName()));
+      Parameter<?> param = nameParameterMap.get(paramName);
+      if (param != null) {
+        try {
+          param.loadValueFromXML(nextElement);
+          // keep track of all parameters that were actually loaded - this means that some may be missing
+          loadedParameters.put(param.getName(), param);
+        } catch (Exception e) {
+          logger.log(Level.WARNING, "Error while loading parameter values for " + param.getName(),
+              e);
+        }
+      } else {
+        // load config reads the EncryptionKeyParameter in a second go
+        if (nameParameterMap.values().stream()
+            .noneMatch(p -> p instanceof EncryptionKeyParameter)) {
+          logger.warning(
+              "Cannot find parameter of name %s in ParameterSet %s. This might indicate changes of the parameterset and parameter types".formatted(
+                  paramName, callerClass.getName()));
+        }
       }
-
-      try {
-        param.loadValueFromXML(nextElement);
-      } catch (Exception e) {
-        throw new IllegalStateException(
-            "Error while loading parameters in order. Parameter load exception: reading parameter index=%d name=%s from xmlElement=%s".formatted(
-                nextParamToLoad, paramName, xmlElement.getTagName()), e);
-      }
-      nextParamToLoad++;
     }
+    return loadedParameters;
   }
 
-  /**
-   * Saves parameters in order. Can be useful to save and load parameters in order when designing
-   * other composite parameters.
-   */
-  public static void saveInOrder(Element parentElement, Parameter<?>... parameters) {
-    Document parentDocument = parentElement.getOwnerDocument();
+  public static void saveValuesToXML(Element xmlElement, boolean skipSensitiveParameters,
+      Parameter<?>... parameters) {
+    Document parentDocument = xmlElement.getOwnerDocument();
     for (Parameter<?> param : parameters) {
-      if (param.isSensitive()) {
-        throw new IllegalStateException(
-            "Cannot save sensitive parameters in order because this will limit ability to load this parameter. Either just remove from list to save or use a ParameterSet.");
+      if (skipSensitiveParameters && param.isSensitive()) {
+        continue;
       }
-
       Element paramElement = parentDocument.createElement(SimpleParameterSet.parameterElement);
       paramElement.setAttribute(SimpleParameterSet.nameAttribute, param.getName());
-      parentElement.appendChild(paramElement);
+      xmlElement.appendChild(paramElement);
       param.saveValueToXML(paramElement);
+
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.date.DateTimeUtils;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -138,7 +139,17 @@ public class ProjectMetadataColumnParameters extends SimpleParameterSet {
         Object[] result = new Object[values.length];
         for (int i = 0; i < values.length; i++) {
           v = values[i];
-          result[i] = v == null || v.isBlank() ? null : getInstance().convertOrThrow(v);
+          if (StringUtils.isBlank(v)) {
+            result[i] = null;
+            continue;
+          }
+
+          result[i] = getInstance().convertOrThrow(v);
+          // cannot be null after this
+          if (result[i] == null) {
+            // failed to convert a string value that was not blank
+            return null;
+          }
         }
         return result;
       } catch (Exception ex) {

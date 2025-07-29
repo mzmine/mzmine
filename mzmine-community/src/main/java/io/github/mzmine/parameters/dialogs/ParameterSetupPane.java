@@ -33,6 +33,9 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsComponent;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesComponent;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionComponent;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComponent;
 import java.net.URL;
 import java.util.HashMap;
@@ -394,6 +397,12 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
   protected void addListenersToNode(Node node) {
     if (node instanceof TextField textField) {
       textField.textProperty().addListener(((_, _, _) -> parametersChanged()));
+    } else if (node instanceof FeatureListsComponent fselect) {
+      fselect.currentlySelectedProperty().addListener(((_, _, _) -> parametersChanged()));
+    } else if (node instanceof RawDataFilesComponent rselect) {
+      rselect.currentlySelectedProperty().addListener(((_, _, _) -> parametersChanged()));
+    } else if (node instanceof SpectralLibrarySelectionComponent rselect) {
+      rselect.currentlySelectedProperty().addListener(((_, _, _) -> parametersChanged()));
     } else if (node instanceof ComboBox<?> comboComp) {
       comboComp.valueProperty().addListener(((_, _, _) -> parametersChanged()));
     } else if (node instanceof ChoiceBox) {
