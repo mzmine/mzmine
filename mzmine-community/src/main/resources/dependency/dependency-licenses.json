@@ -519,7 +519,7 @@
         },
         {
             "moduleName": "commons-cli:commons-cli",
-            "moduleVersion": "1.9.0",
+            "moduleVersion": "1.6.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-cli/"
             ],
@@ -558,7 +558,7 @@
         },
         {
             "moduleName": "commons-io:commons-io",
-            "moduleVersion": "2.18.0",
+            "moduleVersion": "2.16.1",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-io/"
             ],
@@ -1222,7 +1222,7 @@
         },
         {
             "moduleName": "net.java.dev.jna:jna",
-            "moduleVersion": "5.16.0",
+            "moduleVersion": "5.13.0",
             "moduleUrls": [
                 "https://github.com/java-native-access/jna"
             ],
@@ -1334,7 +1334,7 @@
         },
         {
             "moduleName": "org.apache.commons:commons-lang3",
-            "moduleVersion": "3.17.0",
+            "moduleVersion": "3.14.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-lang/"
             ],
@@ -1390,7 +1390,7 @@
         },
         {
             "moduleName": "org.apache.commons:commons-text",
-            "moduleVersion": "1.13.0",
+            "moduleVersion": "1.10.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-text"
             ],
@@ -2371,21 +2371,8 @@
             ]
         },
         {
-            "moduleName": "org.jfree:jcommon",
-            "moduleVersion": "1.0.24",
-            "moduleUrls": [
-                "http://www.jfree.org/jcommon/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-3.0"
-                }
-            ]
-        },
-        {
             "moduleName": "org.jfree:jfreechart",
-            "moduleVersion": "1.5.5",
+            "moduleVersion": "1.5.3",
             "moduleUrls": [
                 "http://www.jfree.org/jfreechart/"
             ],
@@ -2621,19 +2608,6 @@
                 {
                     "moduleLicense": "Apache License, Version 2.0",
                     "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.moeaframework:moeaframework",
-            "moduleVersion": "5.0",
-            "moduleUrls": [
-                "https://moeaframework.org/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-3.0"
                 }
             ]
         },
