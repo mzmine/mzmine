@@ -926,9 +926,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(RowsFilterParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     String suffix = (filter13C ? "13C" : "");
-    if (minAlignedSamples.isGreaterZero()) {
+    if (minAlignedSamples.isGreaterZero() || minNumberOfSamplesInAnyGroup.active()) {
       suffix = suffix + (suffix.isEmpty() ? "" : " ") + "peak";
     }
+    if (rsdQcFilter) {
+      suffix = suffix + (suffix.isEmpty() ? "" : " ") + "pooledQC";
+    }
+
     param.setParameter(RowsFilterParameters.SUFFIX, suffix);
     param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, minAlignedSamples.isGreaterZero(),
         minAlignedSamples);
@@ -939,6 +943,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(RowsFilterParameters.ISOTOPE_FILTER_13C, filter13C);
     final Isotope13CFilterParameters filterIsoParam = param.getParameter(
         RowsFilterParameters.ISOTOPE_FILTER_13C).getEmbeddedParameters();
+    // this is different to default parameters
     filterIsoParam.setParameter(Isotope13CFilterParameters.mzTolerance, mzTolFeaturesIntraSample);
     filterIsoParam.setParameter(Isotope13CFilterParameters.maxCharge, 2);
     filterIsoParam.setParameter(Isotope13CFilterParameters.applyMinCEstimation, true);
