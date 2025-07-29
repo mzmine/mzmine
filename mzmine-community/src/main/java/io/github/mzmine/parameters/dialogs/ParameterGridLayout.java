@@ -209,4 +209,9 @@ public class ParameterGridLayout extends GridPane {
   public @NotNull Map<String, ParameterAndComponent> getComponents() {
     return components;
   }
+
+  @Nullable
+  public ParameterAndComponent getParameterAndComponent(@NotNull Parameter<?> parameter) {
+    return components.get(parameter.getName());
+  }
 }

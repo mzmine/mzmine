@@ -531,4 +531,19 @@ public class ParameterUtils {
       case null, default -> null;
     };
   }
+
+  public static List<? extends Parameter<?>> mapToActualParameters(ParameterSet parameterSet,
+      List<? extends Parameter<?>> searchParameters) {
+    List<Parameter<?>> actualParameters = new ArrayList<>();
+    for (Parameter<?> searchParameter : searchParameters) {
+      final Parameter<?> parameter = parameterSet.getParameter(searchParameter);
+      if (parameter == null) {
+        throw new IllegalArgumentException(
+            "Parameter " + searchParameter.getName() + " not found in parameter set "
+                + parameterSet.getClass().getName());
+      }
+      actualParameters.add(parameter);
+    }
+    return actualParameters;
+  }
 }

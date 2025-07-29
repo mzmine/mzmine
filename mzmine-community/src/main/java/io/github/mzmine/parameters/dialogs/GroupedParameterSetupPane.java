@@ -39,6 +39,7 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.StringUtils;
@@ -93,10 +94,12 @@ public class GroupedParameterSetupPane extends BorderPane {
   public GroupedParameterSetupPane(@Nullable List<? extends Parameter<?>> fixedParameters,
       List<ParameterGroup> groups, ParameterSetupPane parentPane, GroupView view,
       boolean useAutoCompleteFilter) {
-
     assert !groups.isEmpty() : "Groups cannot be empty";
-    this.fixedParameters = fixedParameters;
-    this.groups = groups;
+
+    // need to map parameters to actual parameters to not use static instances
+    this.fixedParameters = fixedParameters == null ? null
+        : ParameterUtils.mapToActualParameters(parentPane.getParameterSet(), fixedParameters);
+    this.groups = groups.stream().map(group -> group.remap(parentPane.getParameterSet())).toList();
     this.parentPane = parentPane;
     this.viewType.set(view);
 
@@ -345,15 +348,21 @@ public class GroupedParameterSetupPane extends BorderPane {
     GROUPED, SINGLE_LIST
   }
 
-  private record ParameterGroupGrid(String name, List<Parameter<?>> parameters,
+  private record ParameterGroupGrid(String name, List<? extends Parameter<?>> parameters,
                                     ParameterGridLayout grid) {
 
   }
 
-  public record ParameterGroup(String name, List<Parameter<?>> parameters) {
+  public record ParameterGroup(String name, List<? extends Parameter<?>> parameters) {
 
     public ParameterGroup(String name, Parameter<?>... parameters) {
       this(name, List.of(parameters));
+    }
+
+    public ParameterGroup remap(ParameterSet paramset) {
+      final List<? extends Parameter<?>> actual = ParameterUtils.mapToActualParameters(paramset,
+          parameters);
+      return new ParameterGroup(name, actual);
     }
   }
 }

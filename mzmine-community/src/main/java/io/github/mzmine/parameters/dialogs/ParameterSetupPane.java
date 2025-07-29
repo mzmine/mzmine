@@ -302,11 +302,10 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
   @NotNull
   public ParameterGridLayout createParameterPane(@NotNull Parameter<?>[] parameters) {
     ParameterGridLayout paramsPane = new ParameterGridLayout(parameters);
-    final Map<String, ParameterAndComponent> components = paramsPane.getComponents();
 
     for (Parameter<?> p : parameters) {
       // components only for user parameters so may be null
-      final ParameterAndComponent comp = components.get(p);
+      final ParameterAndComponent comp = paramsPane.getParameterAndComponent(p);
       if (comp == null) {
         continue;
       }
