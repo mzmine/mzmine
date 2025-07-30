@@ -135,7 +135,7 @@ public final class MinimumSamplesFilter {
           the processed feature list %s had NO group that satisfies this filter in column %s (%d groups). Check the feature list rows \
           filter and adjust the minimum number of samples. Relative percentages help to scale this parameter automatically from small to large datasets.
           The current processing step and all following will be cancelled.""".formatted(filterName,
-          minSamples, featureList, column.getTitle(), groupedFiles.size());
+          minSamples.abs(), featureList, column.getTitle(), groupedFiles.size());
 
       return errorMessage;
     }

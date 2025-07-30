@@ -297,29 +297,12 @@ public class RowsFilterTask extends AbstractTask {
     boolean removeFailed = RowsFilterChoices.KEEP_MATCHING == filterOption;
 
     // check if min samples filter is valid
-    if (minSamples != null) {
-      String message = minSamples.getInvalidConfigMessage(
-          RowsFilterParameters.MIN_FEATURE_COUNT.getName(), featureList);
-      if (message != null) {
-        error(message);
-        return null;
-      }
-    }
-    if (minSamplesInGroup != null) {
-      String message = minSamplesInGroup.getInvalidConfigMessage(
-          RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT.getName(), featureList);
-      if (message != null) {
-        error(message);
-        return null;
-      }
-    }
-    if (minSamplesInOneGroup != null) {
-      String message = minSamplesInOneGroup.getInvalidConfigMessage(
-          RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT.getName(), featureList);
-      if (message != null) {
-        error(message);
-        return null;
-      }
+    final List<String> errors = prechecks(featureList);
+    if (!errors.isEmpty()) {
+      final String message = String.join("\n\n", errors);
+
+      error(message);
+      return null;
     }
 
     // Filter rows.
@@ -386,6 +369,37 @@ public class RowsFilterTask extends AbstractTask {
             getModuleCallDate()));
 
     return newFeatureList;
+  }
+
+  /**
+   * @param featureList
+   * @return list of errors if any
+   */
+  @NotNull
+  private List<String> prechecks(FeatureList featureList) {
+    List<String> errors = new ArrayList<>();
+
+    if (minSamples != null) {
+      String message = minSamples.getInvalidConfigMessage(
+          RowsFilterParameters.MIN_FEATURE_COUNT.getName(), featureList);
+      if (message != null) {
+        errors.add(message);
+      }
+    }
+    if (minSamplesInGroup != null) {
+      String message = minSamplesInGroup.getInvalidConfigMessage(
+          RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT.getName(), featureList);
+      if (message != null) {
+      }
+    }
+    if (minSamplesInOneGroup != null) {
+      String message = minSamplesInOneGroup.getInvalidConfigMessage(
+          RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT.getName(), featureList);
+      if (message != null) {
+        errors.add(message);
+      }
+    }
+    return errors;
   }
 
   private boolean isFilterRowCriteriaFailed(FeatureListRow row, int rowIndex, boolean hasMS2) {
