@@ -176,9 +176,9 @@ public class BatchWizardCreateBatchChecker {
     }
 
     // qc issue
-    errors.add(
-        "No QC samples found in the filenames or metadata file. Add _qc to the filename or define the metadata column=%s and value=%s".formatted(
-            MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC));
+    errors.add("""
+        No QC samples found in the filenames or metadata file. Add _qc to the filename or define the metadata column as "%s" with value "%s".""".formatted(
+        MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC));
   }
 
   private void checkMinSamplesAnyGroup() {
@@ -192,16 +192,16 @@ public class BatchWizardCreateBatchChecker {
 
     if (table == null) {
       errors.add(
-          "Metadata file missing. For using %s (Filters tab), a metadata table needs to be imported. Define one in the Data tab.");
+          "Metadata file missing. To use %s (Filters tab), a metadata table needs to be imported. Define one in the Data tab.");
       errors.add("");
       return;
     }
     final MetadataColumn<?> column = table.getColumnByName(config.columnName());
 
     if (column == null) {
-      errors.add(
-          "Metadata column missing. For using %s (Filters tab), the metadata file needs to contain a column named %s.".formatted(
-              FilterWizardParameters.minNumberOfSamples.getName(), config.columnName()));
+      errors.add("""
+          Metadata column missing. To use using "%s" (Filters tab), the metadata file must contain a column named "%s".""".formatted(
+          FilterWizardParameters.minNumberOfSamples.getName(), config.columnName()));
       errors.add("");
       return;
     }
