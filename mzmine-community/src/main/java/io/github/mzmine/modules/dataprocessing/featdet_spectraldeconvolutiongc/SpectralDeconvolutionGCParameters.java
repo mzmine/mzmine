@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,13 +35,20 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.ArrayList;
+import java.util.Map;
+import org.w3c.dom.Element;
 
 public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
+  // currently only one algorithm is available
+  // HCA was removed due to bad performance
+  // DBScan still needs improvement and more limits applied to it
   public static final ModuleOptionsEnumComboParameter<SpectralDeconvolutionAlgorithms> SPECTRAL_DECONVOLUTION_ALGORITHM = new ModuleOptionsEnumComboParameter<>(
       "Deconvolution algorithm", "Algorithm to use for spectral deconvolution and its parameters.",
+      new SpectralDeconvolutionAlgorithms[]{
+          SpectralDeconvolutionAlgorithms.RT_GROUPING_AND_SHAPE_CORRELATION},
       SpectralDeconvolutionAlgorithms.RT_GROUPING_AND_SHAPE_CORRELATION);
 
   public static final StringParameter SUFFIX = new StringParameter("Name suffix",
@@ -59,6 +66,11 @@ public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {
     super(new Parameter[]{FEATURE_LISTS, SPECTRAL_DECONVOLUTION_ALGORITHM, SUFFIX, HANDLE_ORIGINAL,
             MZ_VALUES_TO_IGNORE},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_spectraldeconvolutiongc/spectraldeconvolutiongc.html");
+  }
+
+  @Override
+  public Map<String, Parameter<?>> loadValuesFromXML(Element xmlElement) {
+    return super.loadValuesFromXML(xmlElement);
   }
 
   @Override
