@@ -66,8 +66,8 @@ public class ParameterGridLayout extends GridPane {
   public ParameterGridLayout(@NotNull Parameter<?>[] parameters) {
     setPadding(FxLayout.DEFAULT_PADDING_INSETS);
     // setStyle("-fx-border-color: blue;");
-    setVgap(FxLayout.DEFAULT_SPACE);
-    setHgap(FxLayout.DEFAULT_SPACE);
+    setVgap(FxLayout.DEFAULT_SPACE * 1.5);
+    setHgap(FxLayout.DEFAULT_SPACE * 2);
 
     List<UserParameter> userParams = Arrays.stream(parameters)
         .filter(UserParameter.class::isInstance).map(UserParameter.class::cast).toList();
