@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,55 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-.root {
-  -fx-font-size: 18;
-}
+package io.github.mzmine.parameters.dialogs;
 
-.menu-bar {
-  -fx-font-size: 15pt;
-}
-.menu-item {
-  -fx-font-size: 15pt;
-}
+import io.github.mzmine.parameters.UserParameter;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import org.jetbrains.annotations.Nullable;
 
-.title-label {
-  -fx-font-size: 16.0pt;
-}
+/**
+ * @param parameter a user parameter
+ * @param component editor
+ * @param label     the label for the editor, may be null if not present
+ * @param <T>       editing component
+ */
+public record ParameterAndComponent<T extends Node>(UserParameter<?, T> parameter, T component,
+                                                    @Nullable Label label) {
 
-.bold-title-label {
-  -fx-font-size: 16.0pt;
-  -fx-font-weight: bold;
-}
-
-.bold-semititle-label {
-  -fx-font-size: 12.0pt;
-  -fx-font-weight: bold;
-}
-
-.white-larger-label {
-  -fx-font-size: 13.0pt;
-  -fx-text-fill: white;
-  -fx-wrap-text: true;
-  -fx-font-weight: bold;
-}
-
-.white-score-label {
-  -fx-font-size: 20.0pt;
-  -fx-font-weight: bold;
-  -fx-text-fill: white;
-}
-
-.white-score-label-small {
-  -fx-font-size: 7pt;
-  -fx-font-weight: bold;
-  -fx-text-fill: white;
-}
-.copyable-label, .copyable-label:focused {
-     -fx-background-color: transparent ;
-     -fx-background-insets: 0px ;
- }
-
-.large-title-pane > .title > .text {
-  -fx-font-size: 12.0pt;
-  -fx-font-weight: bold;
 }

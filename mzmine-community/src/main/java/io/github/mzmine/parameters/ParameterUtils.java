@@ -37,10 +37,12 @@ import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -56,6 +58,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javafx.beans.property.BooleanProperty;
+import javafx.scene.Node;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.ToggleButton;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -533,5 +540,44 @@ public class ParameterUtils {
       param.saveValueToXML(paramElement);
 
     }
+  }
+
+  /**
+   * Useful to check if all parameters are {@link UserParameter} with an editing component.
+   */
+  public static void assertAllUserParameters(Parameter<?>... parameters) {
+    for (Parameter<?> parameter : parameters) {
+      if (!(parameter instanceof UserParameter<?, ?>)) {
+        throw new IllegalArgumentException(
+            "All parameters must be of type UserParameter. Parameter " + parameter.getName()
+                + " is of type " + parameter.getClass().getName());
+      }
+    }
+  }
+
+  public static @Nullable BooleanProperty getSelectedProperty(Node comp) {
+    return switch (comp) {
+      case CheckBox c -> c.selectedProperty();
+      case OptionalParameterComponent<?> c -> c.selectedProperty();
+      case OptionalModuleComponent c -> c.selectedProperty();
+      case RadioButton c -> c.selectedProperty();
+      case ToggleButton c -> c.selectedProperty();
+      case null, default -> null;
+    };
+  }
+
+  public static List<? extends Parameter<?>> mapToActualParameters(ParameterSet parameterSet,
+      List<? extends Parameter<?>> searchParameters) {
+    List<Parameter<?>> actualParameters = new ArrayList<>();
+    for (Parameter<?> searchParameter : searchParameters) {
+      final Parameter<?> parameter = parameterSet.getParameter(searchParameter);
+      if (parameter == null) {
+        throw new IllegalArgumentException(
+            "Parameter " + searchParameter.getName() + " not found in parameter set "
+                + parameterSet.getClass().getName());
+      }
+      actualParameters.add(parameter);
+    }
+    return actualParameters;
   }
 }
