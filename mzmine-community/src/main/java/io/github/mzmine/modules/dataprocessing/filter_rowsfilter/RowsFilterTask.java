@@ -114,6 +114,7 @@ public class RowsFilterTask extends AbstractTask {
   private final MinimumSamplesFilter minSamplesInGroup;
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
+  private final MinimumSamplesFilter minSamplesInOneGroup;
   private FeatureList filteredFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
@@ -165,6 +166,9 @@ public class RowsFilterTask extends AbstractTask {
     minSamples = parameters.getOptionalValue(RowsFilterParameters.MIN_FEATURE_COUNT)
         .map(min -> new MinimumSamplesFilterConfig(min).createFilter(rawFiles)).orElse(null);
     minSamplesInGroup = parameters.getOptionalValue(RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT)
+        .map(config -> config.createFilter(rawFiles)).orElse(null);
+    minSamplesInOneGroup = parameters.getOptionalValue(
+            RowsFilterParameters.MIN_FEATURE_IN_ONE_GROUP_COUNT)
         .map(config -> config.createFilter(rawFiles)).orElse(null);
 
     renumber = parameters.getValue(RowsFilterParameters.Reset_ID);
@@ -309,6 +313,14 @@ public class RowsFilterTask extends AbstractTask {
         return null;
       }
     }
+    if (minSamplesInOneGroup != null) {
+      String message = minSamplesInOneGroup.getInvalidConfigMessage(
+          RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT.getName(), featureList);
+      if (message != null) {
+        error(message);
+        return null;
+      }
+    }
 
     // Filter rows.
     totalRows = featureList.getNumberOfRows();
@@ -385,15 +397,14 @@ public class RowsFilterTask extends AbstractTask {
 
     // Check number of features.
     final int featureCount = row.getNumberOfFeatures();
-    if (minSamples != null) {
-      if (!minSamples.matches(row)) {
-        return true;
-      }
+    if (minSamples != null && !minSamples.matches(row)) {
+      return true;
     }
-    if (minSamplesInGroup != null) {
-      if (!minSamplesInGroup.matches(row)) {
-        return true;
-      }
+    if (minSamplesInGroup != null && !minSamplesInGroup.matches(row)) {
+      return true;
+    }
+    if (minSamplesInOneGroup != null && !minSamplesInOneGroup.matches(row)) {
+      return true;
     }
 
     // Check identities.

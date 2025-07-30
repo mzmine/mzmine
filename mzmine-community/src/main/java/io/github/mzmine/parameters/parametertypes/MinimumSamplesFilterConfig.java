@@ -76,6 +76,7 @@ public record MinimumSamplesFilterConfig(@NotNull AbsoluteAndRelativeInt minSamp
       }
       final Map<?, List<RawDataFile>> groups = metadata.groupFilesByColumn(files, column);
 
+      // only use one group or all groups depending on group field
       final List<List<RawDataFile>> groupedFiles;
       if (group != null) {
         final List<RawDataFile> g = groups.get(group);
