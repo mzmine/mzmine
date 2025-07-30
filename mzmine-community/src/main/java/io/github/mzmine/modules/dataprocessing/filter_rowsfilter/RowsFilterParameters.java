@@ -202,7 +202,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
     final List<ParameterGroup> groups = List.of( //
         new ParameterGroup("Sample-based filters", MIN_FEATURE_COUNT, MIN_FEATURE_IN_GROUP_COUNT,
-            cvFilter, foldChangeFilter), //
+            MIN_FEATURE_IN_ONE_GROUP_COUNT, cvFilter, foldChangeFilter), //
         new ParameterGroup("Isotope filters", MIN_ISOTOPE_PATTERN_COUNT, ISOTOPE_FILTER_13C,
             removeRedundantRows), //
         new ParameterGroup("Feature properties", MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
