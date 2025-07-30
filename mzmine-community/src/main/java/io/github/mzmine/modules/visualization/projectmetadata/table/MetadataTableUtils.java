@@ -31,13 +31,45 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MetadataTableUtils {
 
+
+  /**
+   * Only maps files that actually have a raw data file in metadata table
+   *
+   * @param table     metadata table
+   * @param dataFiles data files that may be already loaded or will be loaded. Remember to apply
+   *                  {@link AllSpectralDataImportParameters#streamValidatedFiles(File[])} if the
+   *                  files are not yet loaded to use the actually loaded file
+   * @return a map of all dataFiles that have an entry in the table, key is the dataFiles.getName
+   */
+  @NotNull
+  public static Map<String, RawDataFile> matchFileNames(MetadataTable table, File[] dataFiles) {
+    final Map<String, RawDataFile> nameMap = HashMap.newHashMap(dataFiles.length);
+
+    // create map of names as they may be full names with format or without
+    // raw files may be placeholders here
+    final List<RawDataFile> rawFiles = table.getRawDataFilesUnsorted();
+
+    // check for files missing in metadata
+    List<String> filesMissingInTable = new ArrayList<>();
+    for (File file : dataFiles) {
+      // match with the same method that is used during metadata import and raw file matching
+      final Optional<RawDataFile> actualFile = rawFiles.stream()
+          .filter(raw -> matchesFilename(file.getName(), raw)).findFirst();
+
+      actualFile.ifPresent(raw -> nameMap.put(file.getName(), raw));
+    }
+
+    return nameMap;
+  }
 
   /**
    * @param table     metadata table

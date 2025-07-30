@@ -30,7 +30,6 @@ import static io.github.mzmine.modules.tools.batchwizard.WizardPart.FILTER;
 import static io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder.getOptional;
 import static io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder.getOrElse;
 import static io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder.getValue;
-import static io.github.mzmine.util.StringUtils.inQuotes;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
@@ -44,24 +43,78 @@ import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadata
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.parameters.parametertypes.OptionalValue;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilter;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilterConfig;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.validation.constraints.Null;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class BatchWizardCreateBatchChecker {
 
   private static final Logger logger = Logger.getLogger(
       BatchWizardCreateBatchChecker.class.getName());
+
   private final WizardSequence sequenceSteps;
+
+  private final List<String> errors = new ArrayList<>();
+  private final @Null File metadata;
+  private final File[] dataFiles;
+  private final boolean rsdQcFilter;
+  private final @Nullable MetadataTable table;
+  // only present if metadata loaded
+  private final @NotNull Map<String, RawDataFile> nameFileMap;
+  // only present if metadata loaded
+  private final List<RawDataFile> rawFilesInMetadata;
 
   public BatchWizardCreateBatchChecker(WizardSequence sequenceSteps) {
     this.sequenceSteps = sequenceSteps;
+    //
+    final Optional<WizardStepParameters> importStep = sequenceSteps.get(DATA_IMPORT);
+    metadata = getOptional(importStep, DataImportWizardParameters.metadataFile).orElse(null);
+
+    // map to actual filenames that will be the name after import
+    File[] importFiles = getValue(importStep, DataImportWizardParameters.fileNames);
+    dataFiles = AllSpectralDataImportParameters.streamValidatedFiles(importFiles)
+        .map(ImportFile::importedFile).toArray(File[]::new);
+
+    // qc filter needs qc samples by filename or by
+    rsdQcFilter = sequenceSteps.get(FILTER).get().getValue(FilterWizardParameters.rsdQcFilter);
+
+    table = readTable();
+    nameFileMap = table == null ? Map.of() : MetadataTableUtils.matchFileNames(table, dataFiles);
+    rawFilesInMetadata = List.copyOf(nameFileMap.values());
+  }
+
+  private @Nullable MetadataTable readTable() {
+    if (metadata == null) {
+      return null;
+    }
+    try {
+      // use placeholders so that RawDataFiles do not need to be present.
+      ProjectMetadataReader reader = new ProjectMetadataReader(false, false, true);
+      MetadataTable table = reader.readFile(metadata);
+
+      if (!reader.getErrors().isEmpty()) {
+        errors.add("Issues when reading metadata file from path: " + metadata.getAbsolutePath());
+        errors.addAll(reader.getErrors());
+        errors.add("");
+      }
+      return table;
+    } catch (Exception e) {
+      errors.add("Error reading metadata file: " + e.getMessage());
+      errors.add("");
+      logger.log(Level.WARNING, "Error reading metadata file: " + e.getMessage(), e);
+    }
+    return null;
   }
 
   /**
@@ -70,76 +123,109 @@ public class BatchWizardCreateBatchChecker {
    * @return true if all checks run
    */
   public boolean checks() {
-    return checkSampleFilterValid() && checkMetadataAndFiltersValid();
-  }
 
-
-  /**
-   * If RSD QC filter active: Check QC samples available
-   * <p>
-   * If metadata import: check format and all files covered by metadata
-   *
-   * @return true if ok or if user clicks proceed
-   */
-  private boolean checkMetadataAndFiltersValid() {
-    final List<String> errors = new ArrayList<>();
-    //
-    final Optional<WizardStepParameters> importStep = sequenceSteps.get(DATA_IMPORT);
-    final OptionalValue<File> metadata = getOptional(importStep,
-        DataImportWizardParameters.metadataFile);
-
-    // map to actual filenames that will be the name after import
-    File[] dataFiles = getValue(importStep, DataImportWizardParameters.fileNames);
-    dataFiles = AllSpectralDataImportParameters.streamValidatedFiles(dataFiles)
-        .map(ImportFile::importedFile).toArray(File[]::new);
-
-    // qc filter needs qc samples by filename or by
-    final boolean rsdQcFilter = sequenceSteps.get(FILTER).get()
-        .getValue(FilterWizardParameters.rsdQcFilter);
-    boolean rsdFilterMatched = false;
-
-    if (rsdQcFilter) {
-      // any file needs to match the QC sample type
-      rsdFilterMatched = Arrays.stream(dataFiles).map(f -> SampleType.ofString(f.getName()))
-          .anyMatch(type -> type == SampleType.QC);
-    }
-
-    if (metadata.active()) {
-      try {
-        // use placeholders so that RawDataFiles do not need to be present.
-        ProjectMetadataReader reader = new ProjectMetadataReader(false, false, true);
-        final MetadataTable table = reader.readFile(metadata.value());
-        errors.addAll(reader.getErrors());
-
-        // maybe add more issues if
-        final List<String> tabError = MetadataTableUtils.checkTableAgainstFiles(table, dataFiles);
-        errors.addAll(tabError);
-
-        // evaluate rsd filter if not already done by filename
-        if (rsdQcFilter && !rsdFilterMatched) {
-          rsdFilterMatched = checkAnyQcSampleInMetadataTable(table, dataFiles, rsdFilterMatched);
-        }
-      } catch (Exception e) {
-        errors.add("Error reading metadata file: " + e.getMessage());
-        logger.log(Level.WARNING, "Error reading metadata file: " + e.getMessage(), e);
-      }
-    }
-
-    if (rsdQcFilter && !rsdFilterMatched) {
-      errors.add(
-          "No QC samples found in the filenames or metadata file. Add _qc to the filename or define the metadata column=%s and value=%s".formatted(
-              MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC));
-    }
+    checkMetadataTableValid();
+    checkSampleFilterValid();
+    checkMinSamplesAnyGroup();
+    checkRsdQcFilter();
 
     if (!errors.isEmpty()) {
       // continue? y/n
       return DialogLoggerUtil.showDialogYesNo("Warning", """
-          The metadata file "%s" had issues during import.
-          Continue anyway?
-          
-          %s""".formatted(metadata.value(), String.join("\n", errors)));
+          %s
+          Continue anyway?""".formatted(String.join("\n", errors)));
     }
     return true;
+  }
+
+  private void checkMetadataTableValid() {
+    final List<String> missingInMetadata = new ArrayList<>();
+
+    for (File file : dataFiles) {
+      final RawDataFile raw = getRaw(file);
+      if (raw == null) {
+        missingInMetadata.add(file.getName());
+      }
+    }
+    if (!missingInMetadata.isEmpty()) {
+      errors.add("The following files are not present in the metadata file: %s".formatted(
+          String.join(", ", missingInMetadata)));
+      errors.add("");
+    }
+  }
+
+  private RawDataFile getRaw(File file) {
+    return nameFileMap.get(file.getName());
+  }
+
+  /**
+   * If RSD QC filter active: Check QC samples available
+   */
+  private void checkRsdQcFilter() {
+    if (!rsdQcFilter) {
+      return;
+    }
+
+    // any file needs to match the QC sample type
+    boolean rsdFilterMatched = Arrays.stream(dataFiles).map(f -> SampleType.ofString(f.getName()))
+        .anyMatch(type -> type == SampleType.QC);
+
+    if (rsdFilterMatched || (table != null && checkAnyQcSampleInMetadataTable(table, dataFiles,
+        rsdFilterMatched))) {
+      return;
+    }
+
+    // qc issue
+    errors.add(
+        "No QC samples found in the filenames or metadata file. Add _qc to the filename or define the metadata column=%s and value=%s".formatted(
+            MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC));
+  }
+
+  private void checkMinSamplesAnyGroup() {
+    // also check
+    var minSamplesAnyGroup = getOptional(sequenceSteps.get(FILTER),
+        FilterWizardParameters.minNumberOfSamplesInAnyGroup);
+    if (!minSamplesAnyGroup.active()) {
+      return;
+    }
+    final MinimumSamplesFilterConfig config = minSamplesAnyGroup.value();
+
+    if (table == null) {
+      errors.add(
+          "Metadata file missing. For using %s (Filters tab), a metadata table needs to be imported. Define one in the Data tab.");
+      errors.add("");
+      return;
+    }
+    final MetadataColumn<?> column = table.getColumnByName(config.columnName());
+
+    if (column == null) {
+      errors.add(
+          "Metadata column missing. For using %s (Filters tab), the metadata file needs to contain a column named %s.".formatted(
+              FilterWizardParameters.minNumberOfSamples.getName(), config.columnName()));
+      errors.add("");
+      return;
+    }
+
+    try {
+      final MinimumSamplesFilter filter = config.createFilter(rawFilesInMetadata, table);
+
+      final int maxGroupSize = table.groupFilesByColumn(column).values().stream()
+          .mapToInt(List::size).max().orElse(0);
+
+      final AbsoluteAndRelativeInt minSamples = filter.minSamples();
+
+      if (minSamples.getMaximumValue(maxGroupSize) > maxGroupSize) {
+        final String error = """
+            The minimum samples number of "%s" (Filters tab; %s) does not match the number of imported data files per group (max=%d). This may cause issues like empty feature lists.""".formatted(
+            FilterWizardParameters.minNumberOfSamplesInAnyGroup.getName(), minSamples,
+            maxGroupSize);
+        errors.add(error);
+        errors.add("");
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Error creating filter for %s (Filters tab).".formatted(
+          FilterWizardParameters.minNumberOfSamplesInAnyGroup.getName()));
+    }
   }
 
   private static boolean checkAnyQcSampleInMetadataTable(MetadataTable table, File[] dataFiles,
@@ -157,21 +243,19 @@ public class BatchWizardCreateBatchChecker {
   }
 
   /**
-   * @return true if imported samples > min num samples
+   *
    */
-  private boolean checkSampleFilterValid() {
-    int numFiles = getOrElse(sequenceSteps.get(DATA_IMPORT), DataImportWizardParameters.fileNames,
-        new File[0]).length;
+  private void checkSampleFilterValid() {
+    int numFiles = dataFiles.length;
 
     var minSamples = getOrElse(sequenceSteps.get(FILTER), FilterWizardParameters.minNumberOfSamples,
         new AbsoluteAndRelativeInt(0, 0));
     if (minSamples.getMaximumValue(numFiles) > numFiles) {
-      // continue? y/n
-      return DialogLoggerUtil.showDialogYesNo("Warning", """
-          The number of %s (Filters tab) does not match the number of imported data files. This may cause issues like empty feature lists.
-          Continue anyway?""".formatted(
-          inQuotes(FilterWizardParameters.minNumberOfSamples.getName())));
+      final String error = """
+          The minimum samples of "%s" (Filters tab; %s) does not match the number of imported data files %d. This may cause issues like empty feature lists.""".formatted(
+          FilterWizardParameters.minNumberOfSamples.getName(), minSamples, numFiles);
+      errors.add(error);
+      errors.add("");
     }
-    return true;
   }
 }
