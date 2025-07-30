@@ -28,6 +28,7 @@ package io.github.mzmine.javafx.dialogs;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.JavaFxDesktop;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.javafx.util.FxTextUtils;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -269,4 +270,25 @@ public class DialogLoggerUtil {
     });
   }
 
+  public static void showNotification(@NotNull NotificationType type, @NotNull String title,
+      @NotNull String message) {
+    logger.info(() -> title + ": " + message);
+    NotificationService.show(type, title, message);
+  }
+
+  public static void showInfoNotification(@NotNull String title, @NotNull String message) {
+    showNotification(NotificationType.INFO, title, message);
+  }
+
+  public static void showWarningNotification(@NotNull String title, @NotNull String message) {
+    showNotification(NotificationType.WARNING, title, message);
+  }
+
+  public static void showErrorNotification(@NotNull String title, @NotNull String message) {
+    showNotification(NotificationType.ERROR, title, message);
+  }
+
+  public static void showPlainNotification(@NotNull String title, @NotNull String message) {
+    showNotification(NotificationType.PLAIN, title, message);
+  }
 }
