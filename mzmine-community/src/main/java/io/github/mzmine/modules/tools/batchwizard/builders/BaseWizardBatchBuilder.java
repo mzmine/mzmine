@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,8 +43,10 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchModule;
 import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchParameters;
+import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters.ChimericMsOption;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
@@ -78,11 +80,13 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinde
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters.ScanRange;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
-import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RsdFilterParameters;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.FoldChangeFilterSides;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.FoldChangeSignificanceRowFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.Isotope13CFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterChoices;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RsdFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
@@ -180,6 +184,7 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelection;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
@@ -946,14 +951,20 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     filterIsoParam.setParameter(Isotope13CFilterParameters.removeIfMainIs13CIsotope, true);
     filterIsoParam.setParameter(Isotope13CFilterParameters.elements, List.of(new Element("O")));
 
+    param.setParameter(RowsFilterParameters.cvFilter, false);
     final RsdFilterParameters cvFilter = param.getParameter(RowsFilterParameters.cvFilter)
         .getEmbeddedParameters();
-    cvFilter.setParameter(RsdFilterParameters.abundanceMeasure, AbundanceMeasure.Area);
-    cvFilter.setParameter(RsdFilterParameters.grouping,
+    cvFilter.setAll(AbundanceMeasure.Area, ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION, 0.2, 0.2,
+        false,
         new MetadataGroupSelection(MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()));
-    cvFilter.setParameter(RsdFilterParameters.keepUndetected, false);
-    cvFilter.setParameter(RsdFilterParameters.maxCv, 0.2);
-    param.setParameter(RowsFilterParameters.cvFilter, false);
+
+    param.setParameter(RowsFilterParameters.foldChangeFilter, false);
+    final FoldChangeSignificanceRowFilterParameters fcParams = param.getParameter(
+        RowsFilterParameters.foldChangeFilter).getEmbeddedParameters();
+
+    fcParams.setAll(AbundanceMeasure.Area, ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION,
+        Metadata2GroupsSelection.NONE, SignificanceTests.WELCHS_T_TEST, 0.05, 1d,
+        FoldChangeFilterSides.ABS_BOTH_SIDES);
 
     //
     param.setParameter(RowsFilterParameters.MZ_RANGE, false);

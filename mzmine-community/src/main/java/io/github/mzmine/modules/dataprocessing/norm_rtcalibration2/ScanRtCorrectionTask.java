@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RawFileRtCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
@@ -65,6 +66,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.scene.control.Alert.AlertType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -127,6 +129,10 @@ class ScanRtCorrectionTask extends AbstractTask {
       List<FeatureList> referenceFlists, List<FeatureList> allFeatureLists, MetadataTable metadata,
       List<RtStandard> monotonousStandards, RawFileRtCorrectionModule correctionModule,
       @NotNull final RTMeasure rtMeasure, ParameterSet correctionModuleParameters) {
+    if (monotonousStandards.isEmpty()) {
+      return List.of();
+    }
+
     final Map<RawDataFile, AbstractRtCorrectionFunction> referenceCalibrations = referenceFlists.stream()
         .map(flist -> correctionModule.createFromStandards(flist, monotonousStandards, rtMeasure,
             correctionModuleParameters))
@@ -390,6 +396,15 @@ class ScanRtCorrectionTask extends AbstractTask {
     goodStandards.sort(Comparator.comparingDouble(rtMeasure::getRt));
     final List<RtStandard> monotonousStandards = removeNonMonotonousStandards(goodStandards,
         referenceFlistsByNumRows, rtMeasure);
+
+    if (monotonousStandards.isEmpty()) {
+      DialogLoggerUtil.showDialogForTime("No RT correction applied",
+          "No monotonous standards found. No retention time correction will be appplied. The task finishes with success to not break batch processing.",
+          AlertType.WARNING);
+      setStatus(TaskStatus.FINISHED);
+      return;
+    }
+
     final List<AbstractRtCorrectionFunction> allCalibrations = interpolateMissingCalibrations(
         referenceFlistsByNumRows, flists, project.getProjectMetadata(), monotonousStandards,
         calibrationModule, rtMeasure, calibrationModuleParameters);
