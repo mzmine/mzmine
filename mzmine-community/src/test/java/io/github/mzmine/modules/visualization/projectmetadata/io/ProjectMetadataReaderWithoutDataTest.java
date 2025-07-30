@@ -37,13 +37,14 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Date
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.date.DateTimeUtils;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import testutils.MZmineTestUtil;
 
 /**
  * Loads metadata by using placeholders instead of actual raw data files.
@@ -54,9 +55,13 @@ class ProjectMetadataReaderWithoutDataTest {
   RawDataFilePlaceholder rawB = new RawDataFilePlaceholder("b.mzML", null);
   RawDataFilePlaceholder rawC = new RawDataFilePlaceholder("c.mzML", null);
 
+  @BeforeEach
+  void init() {
+    MZmineTestUtil.cleanProject();
+  }
+
   @Test
   void readWithTypeMismatch() {
-    ProjectService.getProjectManager().clearProject();
     // should read all as string as number and date also contains a string
     ProjectMetadataReader reader = new ProjectMetadataReader(false, true, true);
     File file = new File(
