@@ -37,6 +37,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Date
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.date.DateTimeUtils;
 import java.io.File;
 import java.util.HashSet;
@@ -55,6 +56,7 @@ class ProjectMetadataReaderWithoutDataTest {
 
   @Test
   void readWithTypeMismatch() {
+    ProjectService.getProjectManager().clearProject();
     // should read all as string as number and date also contains a string
     ProjectMetadataReader reader = new ProjectMetadataReader(false, true, true);
     File file = new File(
