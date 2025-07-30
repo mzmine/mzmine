@@ -166,12 +166,11 @@ public class BatchWizardCreateBatchChecker {
       return;
     }
 
-    // any file needs to match the QC sample type
-    boolean rsdFilterMatched = Arrays.stream(dataFiles).map(f -> SampleType.ofString(f.getName()))
-        .anyMatch(type -> type == SampleType.QC);
+    // two files need to match the QC sample type
+    long rsdFilterMatched = Arrays.stream(dataFiles).map(f -> SampleType.ofString(f.getName()))
+        .filter(type -> type == SampleType.QC).count();
 
-    if (rsdFilterMatched || (table != null && checkAnyQcSampleInMetadataTable(table, dataFiles,
-        rsdFilterMatched))) {
+    if (rsdFilterMatched >= 2 || (table != null && checkAtLeastTwoQcSampleInMetadataTable())) {
       return;
     }
 
@@ -228,18 +227,25 @@ public class BatchWizardCreateBatchChecker {
     }
   }
 
-  private static boolean checkAnyQcSampleInMetadataTable(MetadataTable table, File[] dataFiles,
-      boolean rsdFilterMatched) {
-    final List<RawDataFile> qcSamples = table.getFilesOfSampleType(SampleType.QC);
-    for (RawDataFile qc : qcSamples) {
-      // make sure the sample is on the import list
-      if (Arrays.stream(dataFiles)
-          .anyMatch(file -> MetadataTableUtils.matchesFilename(file.getName(), qc))) {
-        rsdFilterMatched = true;
-        break;
+  private boolean checkAtLeastTwoQcSampleInMetadataTable() {
+    if (table == null) {
+      return false;
+    }
+
+    int qcSamples = 0;
+
+    // actually imported raw data files
+    final MetadataColumn<String> sampleTypeColumn = table.getSampleTypeColumn();
+    for (RawDataFile raw : nameFileMap.values()) {
+      final String value = table.getValue(sampleTypeColumn, raw);
+      if (SampleType.ofString(value) == SampleType.QC) {
+        qcSamples++;
+      }
+      if (qcSamples >= 2) {
+        return true;
       }
     }
-    return rsdFilterMatched;
+    return false;
   }
 
   /**
