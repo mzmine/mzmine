@@ -25,19 +25,23 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CvType;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.util.MathUtils;
+import java.util.List;
 
 /**
- * @param maxMissingValues
- * @param maxCvPercent
+ * @param group
  * @param dataTable        data table that only contains the data files that are grouped and
  *                         selected
+ * @param maxMissingValues
+ * @param maxCvPercent
  * @param keepUndetected
  */
-record RsdFilter(FeaturesDataTable dataTable, double maxMissingValues, double maxCvPercent,
+record RsdFilter(io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection group,
+                 FeaturesDataTable dataTable, double maxMissingValues, double maxCvPercent,
                  boolean keepUndetected) {
 
   /**
@@ -67,4 +71,9 @@ record RsdFilter(FeaturesDataTable dataTable, double maxMissingValues, double ma
 
     return rsd <= maxCvPercent;
   }
+
+  public List<RawDataFile> getGroupDataFiles() {
+    return dataTable.getRawDataFiles();
+  }
+
 }
