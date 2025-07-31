@@ -25,6 +25,14 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
-public class ItemShapeProvider {
+import java.awt.Shape;
+import org.jetbrains.annotations.NotNull;
 
+public interface ItemShapeProvider {
+
+  /**
+   * @param item the index of a data point
+   * @return the shape of a dataset item
+   */
+  @NotNull Shape getItemShape(int item);
 }

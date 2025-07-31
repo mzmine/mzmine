@@ -25,6 +25,9 @@
 
 package io.github.mzmine.gui.chartbasics;
 
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
+import io.github.mzmine.main.ConfigService;
+import java.awt.Color;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
@@ -44,10 +47,14 @@ public class JFreeChartUtils {
 
   public static final Shape[] DEFAULT_SERIES_SHAPES = createStandardSeriesShapes();
 
+  public static Shape defaultShape() {
+    return ColoredXYShapeRenderer.defaultShape;
+  }
 
   public static DefaultDrawingSupplier createDefaultDrawingSupplier() {
-    return new DefaultDrawingSupplier(DefaultDrawingSupplier.DEFAULT_PAINT_SEQUENCE,
-        DefaultDrawingSupplier.DEFAULT_OUTLINE_PAINT_SEQUENCE,
+    final Color[] colors = ConfigService.getDefaultColorPalette().getColorsAWT()
+        .toArray(Color[]::new);
+    return new DefaultDrawingSupplier(colors, DefaultDrawingSupplier.DEFAULT_OUTLINE_PAINT_SEQUENCE,
         DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
         DefaultDrawingSupplier.DEFAULT_OUTLINE_STROKE_SEQUENCE, DEFAULT_SERIES_SHAPES);
   }
