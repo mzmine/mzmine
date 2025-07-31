@@ -28,6 +28,9 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers;
 import java.awt.Shape;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Shapes for each item
+ */
 public interface ItemShapeProvider {
 
   /**
