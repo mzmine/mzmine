@@ -400,6 +400,18 @@ public class RowsFilterTask extends AbstractTask {
         errors.add(message);
       }
     }
+
+    // rsd filters
+    if (cvFilter != null) {
+      final boolean noGroupFiles = cvFilter.getGroupDataFiles().isEmpty();
+      if (noGroupFiles) {
+        errors.add("""
+            No raw data files match the "%s" filter's metadata group "%s" in column "%s".""".formatted(
+            RowsFilterParameters.cvFilter.getName(), cvFilter.group().groupStr(),
+            cvFilter.group().columnName()));
+      }
+    }
+
     return errors;
   }
 
