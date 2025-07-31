@@ -26,12 +26,24 @@
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
 import java.awt.Paint;
+import java.awt.Shape;
+import org.jetbrains.annotations.NotNull;
 
-public interface ZCategoryProvider extends XYZValueProvider {
+/**
+ * This is the legend categories that may not cover all data categories if there are too many like
+ * in gradient datasets
+ */
+public interface ZLegendCategoryProvider {
 
-  int getNumberOfCategories();
+  int getNumberOfLegendCategories();
 
-  String getLegendLabel(int category);
+  @NotNull String getLegendCategoryLabel(int category);
 
-  Paint getLegendItemColor(int category);
+  @NotNull Paint getLegendCategoryItemColor(int category);
+
+  /**
+   * @param category the index of the category
+   * @return the shape of a category
+   */
+  @NotNull Shape getLegendCategoryShape(int category);
 }
