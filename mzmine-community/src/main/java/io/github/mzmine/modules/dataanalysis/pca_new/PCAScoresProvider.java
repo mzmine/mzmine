@@ -202,6 +202,13 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
     int dp = 0;
     int groupIndex = 0;
     for (final ColorByMetadataGroup group : groups) {
+      // Gradient: too many groups then use different shapes
+      // Discrete colors: change shape if the first color repeats
+      if ((gradient && groups.size() > 5) || //
+          (!gradient && groupIndex > 0 && firstColor.equals(groups.get(groupIndex).color()))) {
+        shape = drawingSupplier.getNextShape();
+      }
+
       for (RawDataFile file : group.files()) {
         // set data
         final int resultIndex = pcaResultIndex.get(file);
@@ -223,14 +230,6 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
       }
 
       groupIndex++;
-
-      // Gradient: too many groups then use different shapes
-      // Discrete colors: change shape if the first color repeats
-      //
-      if (gradient && groups.size() > 5 || !gradient && firstColor.equals(
-          groups.get(groupIndex).color())) {
-        shape = drawingSupplier.getNextShape();
-      }
     }
 
     setxValues(domainData);
