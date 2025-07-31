@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,7 +49,6 @@ import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionInfo;
 import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionType;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -256,13 +255,14 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
   }
 
   /**
-   * @param file
-   * @param keepConverted
-   * @return
+   * @param file          the actual file
+   * @param keepConverted keep files after conversion
+   * @param type          file type detected by
+   *                      {@link RawDataFileTypeDetector#detectDataFileType(File)}
    */
-  public static File applyMsConvertImportNameChanges(File file, boolean keepConverted) {
-    if (keepConverted && getSupportedFileTypes().contains(
-        RawDataFileTypeDetector.detectDataFileType(file))) {
+  public static File applyMsConvertImportNameChanges(File file, boolean keepConverted,
+      RawDataFileType type) {
+    if (type != null && keepConverted && getSupportedFileTypes().contains(type)) {
       return getMzMLFileName(file);
     } else {
       return file;

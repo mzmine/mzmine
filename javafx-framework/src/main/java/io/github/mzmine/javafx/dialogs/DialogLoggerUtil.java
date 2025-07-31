@@ -28,6 +28,7 @@ package io.github.mzmine.javafx.dialogs;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.JavaFxDesktop;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.javafx.util.FxTextUtils;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -241,12 +242,26 @@ public class DialogLoggerUtil {
   }
 
   public static void showMessageDialogForTime(String title, String message, long timeMillis) {
+    showDialogForTime(title, message, timeMillis, AlertType.INFORMATION);
+  }
+
+  public static void showDialogForTime(String title, String message, final AlertType type) {
+    showDialogForTime(title, message, 3500, type);
+  }
+
+  public static void showDialogForTime(String title, String message, long timeMillis,
+      final AlertType type) {
     FxThread.runLater(() -> {
-      logger.info(title + ": " + message);
+      if (type == AlertType.WARNING || type == AlertType.ERROR) {
+        logger.warning(title + ": " + message);
+      } else {
+        logger.info(title + ": " + message);
+      }
+
       if (DesktopService.isHeadLess()) {
         return;
       }
-      var alert = createAlert(AlertType.INFORMATION, title, message);
+      var alert = createAlert(type, title, message);
       alert.show();
 
       PauseTransition delay = new PauseTransition(Duration.millis(timeMillis));
@@ -255,4 +270,25 @@ public class DialogLoggerUtil {
     });
   }
 
+  public static void showNotification(@NotNull NotificationType type, @NotNull String title,
+      @NotNull String message) {
+    logger.info(() -> title + ": " + message);
+    NotificationService.show(type, title, message);
+  }
+
+  public static void showInfoNotification(@NotNull String title, @NotNull String message) {
+    showNotification(NotificationType.INFO, title, message);
+  }
+
+  public static void showWarningNotification(@NotNull String title, @NotNull String message) {
+    showNotification(NotificationType.WARNING, title, message);
+  }
+
+  public static void showErrorNotification(@NotNull String title, @NotNull String message) {
+    showNotification(NotificationType.ERROR, title, message);
+  }
+
+  public static void showPlainNotification(@NotNull String title, @NotNull String message) {
+    showNotification(NotificationType.PLAIN, title, message);
+  }
 }

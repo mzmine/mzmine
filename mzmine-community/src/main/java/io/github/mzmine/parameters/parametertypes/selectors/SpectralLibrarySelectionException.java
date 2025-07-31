@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,7 +46,7 @@ public class SpectralLibrarySelectionException extends IllegalArgumentException 
 
   public static SpectralLibrarySelectionException forEmptyLibraries(
       final List<SpectralLibrary> libraries) {
-    var librariesJoined = libraries.stream().map(SpectralLibrary::getName)
+    var librariesJoined = libraries.stream().map(SpectralLibrary::getNameWithSize)
         .collect(Collectors.joining(", "));
     return new SpectralLibrarySelectionException("""
         Spectral library matching but libraries are empty. This might indicate that the imported library files \

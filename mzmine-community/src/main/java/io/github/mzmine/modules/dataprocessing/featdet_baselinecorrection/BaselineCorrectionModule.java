@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
 public class BaselineCorrectionModule extends AbstractProcessingModule {
 
   public BaselineCorrectionModule() {
-    super("Baseline correction", BaselineCorrectionParameters.class,
+    super("Baseline correction (beta)", BaselineCorrectionParameters.class,
         MZmineModuleCategory.EIC_DETECTION, "Correct baseline drifts in chromatograms.");
   }
 

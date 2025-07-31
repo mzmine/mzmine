@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,12 @@
 
 package io.github.mzmine.parameters.parametertypes.metadata;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.util.StringUtils;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -40,8 +44,12 @@ public class MetadataGroupSelectionParameter implements
   private final String descr;
   private final String XML_COLUMN_ATTR = "column";
   private final String XML_GROUP_ATTR = "group";
-  @Nullable
+  @NotNull
   private MetadataGroupSelection value;
+
+  public MetadataGroupSelectionParameter() {
+    this("Sample grouping", "Select a sample metadata column and group from this column.");
+  }
 
   public MetadataGroupSelectionParameter(String name, String descr) {
     this(name, descr, new MetadataGroupSelection("", ""));
@@ -51,7 +59,7 @@ public class MetadataGroupSelectionParameter implements
       @Nullable MetadataGroupSelection defaultValue) {
     this.name = name;
     this.descr = descr;
-    value = defaultValue;
+    value = requireNonNullElse(defaultValue, MetadataGroupSelection.NONE);
   }
 
   @Override
@@ -60,23 +68,21 @@ public class MetadataGroupSelectionParameter implements
   }
 
   @Override
-  public MetadataGroupSelection getValue() {
+  public @NotNull MetadataGroupSelection getValue() {
     return value;
   }
 
   @Override
-  public void setValue(MetadataGroupSelection newValue) {
-    value = newValue;
+  public void setValue(@Nullable MetadataGroupSelection newValue) {
+    value = requireNonNullElse(newValue, MetadataGroupSelection.NONE);
   }
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if (value == null) {
-      errorMessages.add("No value set for " + getName() + " (null).");
-      return false;
-    }
-    if (!value.isValid()) {
-      errorMessages.add("Selected metadata column or group does not exist (case sensitive)");
+    // can only check if there is a value
+    if (StringUtils.isBlank(value.columnName()) || StringUtils.isBlank(value.groupStr())) {
+      errorMessages.add(
+          "No value set for parameter %s. Select a column and group.".formatted(getName()));
       return false;
     }
     return true;

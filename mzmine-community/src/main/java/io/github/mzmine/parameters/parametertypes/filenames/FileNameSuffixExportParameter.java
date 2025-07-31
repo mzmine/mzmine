@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,12 +89,46 @@ public class FileNameSuffixExportParameter extends FileNameParameter {
     return suffix;
   }
 
+  @Override
+  public File getValue() {
+    File value = super.getValue();
+    if (value == null) {
+      return null;
+    }
+    // automatically add the extension to the file so that export modules generate the correct format
+    final List<String> formats = getFormatExtensionList();
+    if (formats.size() == 1) {
+      // for a single extension option use this
+      value = FileAndPathUtil.getRealFilePath(value, formats.getFirst());
+    } else if (formats.size() > 1) {
+      // some modules allow tsv or csv export and the user needs to specify the format in the file name
+      // so there is no other parameter controlling the actual format
+      final String lowerName = value.getName().toLowerCase().strip();
+      if (formats.stream().map(String::toLowerCase).noneMatch(lowerName::endsWith)) {
+        // none of the extensions match the current file name extension.
+        // therefore, add the first as the preferred extension
+        value = FileAndPathUtil.getRealFilePath(value, formats.getFirst());
+      }
+      // otherwise a format was already defined by the user
+    }
+    return value;
+  }
+
   /**
    * Add suffix to file name and set value. Old format is kept
    *
    * @return filename with the suffix.
    */
   public File setValueAppendSuffix(File file, final @Nullable String duplicateSuffix) {
+
+    // try to use the same format as used before
+    // this is useful for modules that may export to csv or tsv or other multiple formats
+    final List<String> formats = getFormatExtensionList();
+    final String previousValueLowerName =
+        getValue() == null ? "" : getValue().getName().toLowerCase();
+    final Optional<String> extension = formats.stream().map(String::toLowerCase)
+        .filter(previousValueLowerName::endsWith).findFirst();
+
     file = FileAndPathUtil.eraseFormat(file);
     if (StringUtils.hasValue(suffix)) {
       file = FileAndPathUtil.getRealFilePathWithSuffix(file, "_" + suffix);
@@ -102,6 +137,12 @@ public class FileNameSuffixExportParameter extends FileNameParameter {
     if (StringUtils.hasValue(duplicateSuffix)) {
       file = FileAndPathUtil.getRealFilePathWithSuffix(file, duplicateSuffix);
     }
+
+    // set to the previous extension if it was matched
+    if (extension.isPresent()) {
+      file = FileAndPathUtil.getRealFilePath(file, extension.get());
+    }
+
     setValue(file);
     return file;
   }

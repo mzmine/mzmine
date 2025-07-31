@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,14 +29,17 @@ import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.EmbeddedParameterComponentProvider;
-import io.github.mzmine.parameters.FullColumnComponent;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsComponent;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesComponent;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionComponent;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComponent;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javafx.collections.ListChangeListener;
@@ -49,19 +52,15 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
+import org.controlsfx.control.CheckComboBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,7 +122,8 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
    * @param message: html-formatted text
    */
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, @Nullable Region message, boolean addParamComponents) {
+      boolean addOkButton, boolean addCancelButton, @Nullable Region message,
+      boolean addParamComponents) {
     this(valueCheckRequired, parameters, addOkButton, addCancelButton, message, addParamComponents,
         true);
   }
@@ -132,8 +132,8 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
    * Method to display setup dialog with a html-formatted footer message at the bottom.
    */
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, @Nullable Region message, boolean addParamComponents,
-      boolean addHelp) {
+      boolean addOkButton, boolean addCancelButton, @Nullable Region message,
+      boolean addParamComponents, boolean addHelp) {
     this(valueCheckRequired, parameters, addOkButton, addCancelButton, message, addParamComponents,
         addHelp, true);
   }
@@ -142,8 +142,8 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
    * Method to display setup dialog with a html-formatted footer message at the bottom.
    */
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, @Nullable Region message, boolean addParamComponents,
-      boolean addHelp, boolean addScrollPane) {
+      boolean addOkButton, boolean addCancelButton, @Nullable Region message,
+      boolean addParamComponents, boolean addHelp, boolean addScrollPane) {
     this.valueCheckRequired = valueCheckRequired;
     this.parameterSet = parameters;
     this.helpURL = parameters.getClass().getResource("help/help.html");
@@ -153,7 +153,7 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
     mainPane = this;
 
     // Use main CSS
-    if(DesktopService.isGUI()) {
+    if (DesktopService.isGUI()) {
       // may be called in headless mode for graphics export
       getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     }
@@ -292,91 +292,32 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
    * @return a grid pane
    */
   @NotNull
-  public GridPane createParameterPane(@NotNull Parameter<?>[] parameters) {
-    GridPane paramsPane = new GridPane();
-    paramsPane.setPadding(new Insets(5));
-    // paramsPane.setStyle("-fx-border-color: blue;");
+  public ParameterGridLayout createParameterPane(List<? extends Parameter<?>> parameters) {
+    return createParameterPane(parameters.toArray(Parameter[]::new));
+  }
 
-    /*
-     * Adding an empty ColumnConstraints object for column2 has the effect of not setting any
-     * constraints, leaving the GridPane to compute the column's layout based solely on its
-     * content's size preferences and constraints.
-     */
-    ColumnConstraints column1 = new ColumnConstraints();
-    column1.setHgrow(Priority.SOMETIMES);
-    column1.setMinWidth(USE_PREF_SIZE);
-    column1.setPrefWidth(Region.USE_COMPUTED_SIZE);
-    ColumnConstraints column2 = new ColumnConstraints();
-    column2.setFillWidth(true);
-    column2.setHgrow(Priority.ALWAYS);
-    paramsPane.getColumnConstraints().addAll(column1, column2);
-    int rowCounter = 0;
+  /**
+   * Creating a grid pane with all the parameters and labels
+   *
+   * @param parameters parameters to fill the grid pane
+   * @return a grid pane
+   */
+  @NotNull
+  public ParameterGridLayout createParameterPane(@NotNull Parameter<?>[] parameters) {
+    ParameterGridLayout paramsPane = new ParameterGridLayout(parameters);
 
-    // Create labels and components for each parameter
     for (Parameter<?> p : parameters) {
-
-      if (!(p instanceof UserParameter up)) {
+      // components only for user parameters so may be null
+      final ParameterAndComponent comp = paramsPane.getParameterAndComponent(p);
+      if (comp == null) {
         continue;
       }
 
-      Node comp = up.createEditingComponent();
-      //      addToolTipToControls(comp, up.getDescription());
-      if (comp instanceof Region) {
-        double minWidth = ((Region) comp).getMinWidth();
-        // if (minWidth > column2.getMinWidth()) column2.setMinWidth(minWidth);
-        // paramsPane.setMinWidth(minWidth + 200);
-      }
-      GridPane.setMargin(comp, new Insets(5.0, 0.0, 5.0, 0.0));
-
-      // Set the initial value
-      Object value = up.getValue();
-      if (value != null) {
-        up.setValueToComponent(comp, value);
-      }
-
       // Add listeners so we are notified about any change in the values
-      addListenersToNode(comp);
+      addListenersToNode(comp.component());
 
-      // By calling this we make sure the components will never be resized
-      // smaller than their optimal size
-      // comp.setMinimumSize(comp.getPreferredSize());
-      // comp.setToolTipText(up.getDescription());
-
-      Label label = new Label(p.getName());
-      label.minWidthProperty().bind(label.widthProperty());
-      label.setPadding(new Insets(0.0, 10.0, 0.0, 0.0));
-
-      if (!up.getDescription().isEmpty()) {
-        final Tooltip tooltip = new Tooltip(up.getDescription());
-        tooltip.setShowDuration(new Duration(20_000));
-        label.setTooltip(tooltip);
-      }
-
-      label.setStyle("-fx-font-weight: bold");
-      label.setLabelFor(comp);
-
-      parametersAndComponents.put(p.getName(), comp);
-
-      // TODO: Multiple selection will be expandable, other components not
-      /*
-       * JComboBox t = new JComboBox(); int comboh = t.getPreferredSize().height; int comph =
-       * comp.getPreferredSize().height; int verticalWeight = comph > 2 * comboh ? 1 : 0;
-       * vertWeightSum += verticalWeight;
-       */
-
-      RowConstraints rowConstraints = new RowConstraints();
-      rowConstraints.setVgrow(up.getComponentVgrowPriority());
-      rowConstraints.setMinHeight(USE_PREF_SIZE);
-      rowConstraints.setPrefHeight(USE_COMPUTED_SIZE);
-      if (comp instanceof FullColumnComponent) {
-        paramsPane.add(comp, 0, rowCounter, 2, 1);
-//        rowConstraints.setVgrow(Priority.NEVER);
-      } else {
-        paramsPane.add(label, 0, rowCounter);
-        paramsPane.add(comp, 1, rowCounter, 1, 1);
-      }
-      paramsPane.getRowConstraints().add(rowConstraints);
-      rowCounter++;
+      // add to map to reflect changes
+      parametersAndComponents.put(p.getName(), comp.component());
     }
 
     return paramsPane;
@@ -455,20 +396,25 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
 
   protected void addListenersToNode(Node node) {
     if (node instanceof TextField textField) {
-      textField.textProperty()
-          .addListener(((observable, oldValue, newValue) -> parametersChanged()));
+      textField.textProperty().addListener(((_, _, _) -> parametersChanged()));
+    } else if (node instanceof FeatureListsComponent fselect) {
+      fselect.currentlySelectedProperty().addListener(((_, _, _) -> parametersChanged()));
+    } else if (node instanceof RawDataFilesComponent rselect) {
+      rselect.currentlySelectedProperty().addListener(((_, _, _) -> parametersChanged()));
+    } else if (node instanceof SpectralLibrarySelectionComponent rselect) {
+      rselect.currentlySelectedProperty().addListener(((_, _, _) -> parametersChanged()));
     } else if (node instanceof ComboBox<?> comboComp) {
-      comboComp.valueProperty()
-          .addListener(((observable, oldValue, newValue) -> parametersChanged()));
+      comboComp.valueProperty().addListener(((_, _, _) -> parametersChanged()));
     } else if (node instanceof ChoiceBox) {
       ChoiceBox<?> choiceBox = (ChoiceBox) node;
-      choiceBox.valueProperty()
-          .addListener(((observable, oldValue, newValue) -> parametersChanged()));
+      choiceBox.valueProperty().addListener(((_, _, _) -> parametersChanged()));
     } else if (node instanceof CheckBox checkBox) {
-      checkBox.selectedProperty()
-          .addListener(((observable, oldValue, newValue) -> parametersChanged()));
+      checkBox.selectedProperty().addListener(((_, _, _) -> parametersChanged()));
     } else if (node instanceof ListView listview) {
-      listview.getItems().addListener((ListChangeListener) change -> parametersChanged());
+      listview.getItems().addListener((ListChangeListener) _ -> parametersChanged());
+    } else if (node instanceof CheckComboBox<?> checkCombo) {
+      checkCombo.getCheckModel().getCheckedIndices()
+          .addListener((ListChangeListener<? super Integer>) _ -> parametersChanged());
     } else if (node instanceof ModuleOptionsEnumComponent<?> options) {
       options.addSubParameterChangedListener(this::parametersChanged);
     } else if (node instanceof EmbeddedParameterComponentProvider prov) {

@@ -25,62 +25,41 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CvType;
-import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunction;
-import io.github.mzmine.modules.dataanalysis.utils.imputation.ZeroImputer;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.util.MathUtils;
-import java.util.List;
-import java.util.stream.IntStream;
-import org.apache.commons.math3.linear.ArrayRealVector;
-import org.apache.commons.math3.linear.RealVector;
 
-record RsdFilter(double maxCvPercent, AbundanceMeasure abundanceMeasure, List<RawDataFile> cvFiles,
+/**
+ * @param maxMissingValues
+ * @param maxCvPercent
+ * @param dataTable        data table that only contains the data files that are grouped and
+ *                         selected
+ * @param keepUndetected
+ */
+record RsdFilter(FeaturesDataTable dataTable, double maxMissingValues, double maxCvPercent,
                  boolean keepUndetected) {
-
-  public RsdFilter(MetadataGroupSelection metadataGrouping, double maxCv,
-      AbundanceMeasure abundanceMeasure, FeatureList flist, boolean keepUndetected) {
-    this(maxCv, abundanceMeasure, metadataGrouping.getMatchingFiles().stream()
-        .filter(file -> flist.getRawDataFiles().contains(file)).toList(), keepUndetected);
-  }
-
-  public static RsdFilter of(RsdFilterParameters parameters, FeatureList flist) {
-    return new RsdFilter(parameters.getValue(RsdFilterParameters.grouping),
-        parameters.getValue(RsdFilterParameters.maxCv),
-        parameters.getValue(RsdFilterParameters.abundanceMeasure), flist,
-        parameters.getValue(RsdFilterParameters.keepUndetected));
-  }
 
   /**
    * @return True if the row passes the filter and is thereby below the set {@link #maxCvPercent}.
    */
-  public boolean matches(final FeatureListRow row) {
-    final RealVector abundances = new ArrayRealVector(cvFiles.size());
-    final ImputationFunction imputer = new ZeroImputer();
+  public boolean matches(FeatureListRow row, final int rowIndex) {
+    final double[] abundances = dataTable.getFeatureData(rowIndex, false);
 
-    for (int i = 0; i < cvFiles.size(); i++) {
-      final RawDataFile qcFile = cvFiles.get(i);
-      abundances.setEntry(i, abundanceMeasure.getOrNaN((ModularFeature) row.getFeature(qcFile)));
-    }
+    // these are the missing values from the original data
+    final long missing = dataTable.getFeatureRow(rowIndex).countOriginalMissingValues();
 
-    final boolean allNaN = IntStream.range(0, abundances.getDimension())
-        .allMatch(i -> Double.isNaN(abundances.getEntry(i)));
-    if (allNaN && !keepUndetected) {
+    if (missing == abundances.length && !keepUndetected) {
       // feature not detected in QCs, will filter it out
       return false;
     }
 
-    final double imputation = imputer.apply(abundances);
-    abundances.mapToSelf(v -> Double.isNaN(v) ? imputation : v);
+    if (missing > maxMissingValues * abundances.length) {
+      return false;
+    }
 
-    final double[] abundancesArray = abundances.toArray();
-    final double avg = MathUtils.calcAvg(abundancesArray);
-    final double sd = MathUtils.calcStd(abundancesArray);
+    final double avg = MathUtils.calcAvg(abundances);
+    final double sd = MathUtils.calcStd(abundances);
     // RSD=0 for avg 0
     final double rsd = Double.compare(avg, 0d) == 0 ? 0 : sd / avg;
 
