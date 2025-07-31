@@ -147,11 +147,11 @@ public enum PolarityType implements UniqueIdSupplier {
   @Override
   public @NotNull String getUniqueID() {
     return switch (this) {
-      case ANY -> "ANY";
-      case NEGATIVE -> "NEGATIVE";
-      case POSITIVE -> "POSITIVE";
-      case NEUTRAL -> "NEUTRAL";
-      case UNKNOWN -> "UNKNOWN";
+      case ANY -> "Any";
+      case NEGATIVE -> "-";
+      case POSITIVE -> "+";
+      case NEUTRAL -> "n";
+      case UNKNOWN -> "?";
     };
   }
 }
