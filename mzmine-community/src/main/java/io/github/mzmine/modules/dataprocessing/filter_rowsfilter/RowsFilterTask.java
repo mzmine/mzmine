@@ -390,11 +390,12 @@ public class RowsFilterTask extends AbstractTask {
       String message = minSamplesInGroup.getInvalidConfigMessage(
           RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT.getName(), featureList);
       if (message != null) {
+        errors.add(message);
       }
     }
     if (minSamplesInOneGroup != null) {
       String message = minSamplesInOneGroup.getInvalidConfigMessage(
-          RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT.getName(), featureList);
+          RowsFilterParameters.MIN_FEATURE_IN_ONE_GROUP_COUNT.getName(), featureList);
       if (message != null) {
         errors.add(message);
       }
