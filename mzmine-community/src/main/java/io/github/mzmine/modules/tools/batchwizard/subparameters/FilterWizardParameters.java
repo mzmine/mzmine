@@ -31,7 +31,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.MinimumSamplesInMetadataParameter;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesInAnyMetadataGroupParameter;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -45,8 +45,8 @@ public final class FilterWizardParameters extends WizardStepParameters {
 
   public static final MinimumSamplesParameter minNumberOfSamples = new MinimumSamplesParameter();
 
-  public static final OptionalParameter<MinimumSamplesInMetadataParameter> minNumberOfSamplesInAnyGroup = new OptionalParameter<>(
-      new MinimumSamplesInMetadataParameter(), false);
+  public static final OptionalParameter<MinimumSamplesInAnyMetadataGroupParameter> minNumberOfSamplesInAnyGroup = new OptionalParameter<>(
+      new MinimumSamplesInAnyMetadataGroupParameter(), false);
 
   public static final BooleanParameter rsdQcFilter = new BooleanParameter(
       "Pooled QC area RSD ≤ 20%", """
