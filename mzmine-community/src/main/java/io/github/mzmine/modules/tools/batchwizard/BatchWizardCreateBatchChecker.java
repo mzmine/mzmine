@@ -98,6 +98,11 @@ public class BatchWizardCreateBatchChecker {
     if (metadata == null) {
       return null;
     }
+    if (metadata.getName().isBlank()) {
+      errors.add("Metadata file name is empty.");
+      errors.add("");
+      return null;
+    }
     try {
       // use placeholders so that RawDataFiles do not need to be present.
       ProjectMetadataReader reader = new ProjectMetadataReader(false, false, true);
@@ -139,6 +144,10 @@ public class BatchWizardCreateBatchChecker {
   }
 
   private void checkMetadataTableValid() {
+    if (table == null) {
+      return;
+    }
+
     final List<String> missingInMetadata = new ArrayList<>();
 
     for (File file : dataFiles) {
