@@ -65,7 +65,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import java.util.List;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
 import java.util.Map;
@@ -258,8 +257,6 @@ public class RowsFilterParameters extends SimpleParameterSet {
         MinimumSamplesFilterConfig.DEFAULT);
     // just set the filter to false and allow to use the recent parameters internally
     param.setParameter(RowsFilterParameters.MIN_FEATURE_IN_ONE_GROUP_COUNT, false);
-//    param.setParameter(RowsFilterParameters.MIN_FEATURE_IN_ONE_GROUP_COUNT, false,
-//        MinimumSamplesFilterConfig.DEFAULT);
 
     param.setParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT, false);
     param.setParameter(RowsFilterParameters.ISOTOPE_FILTER_13C, false);
