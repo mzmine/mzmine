@@ -120,6 +120,11 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
     return super.getPaint(dataset, series, item);
   }
 
+  @Override
+  public Shape getItemShape(int row, int column) {
+    return super.getItemShape(row, column);
+  }
+
   // need to override because the legend item does not have the correct paint otherwise.
   @Override
   public LegendItem getLegendItem(int datasetIndex, int series) {
