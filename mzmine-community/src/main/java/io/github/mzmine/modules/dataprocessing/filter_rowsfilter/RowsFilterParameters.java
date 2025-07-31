@@ -37,7 +37,8 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.MinimumSamplesInMetadataParameter;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesInAnyMetadataGroupParameter;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesInOneMetadataGroupParameter;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -68,8 +69,11 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final OptionalParameter<MinimumSamplesParameter> MIN_FEATURE_COUNT = new OptionalParameter<>(
       new MinimumSamplesParameter(), false);
 
-  public static final OptionalParameter<MinimumSamplesInMetadataParameter> MIN_FEATURE_IN_GROUP_COUNT = new OptionalParameter<>(
-      new MinimumSamplesInMetadataParameter(), false);
+  public static final OptionalParameter<MinimumSamplesInAnyMetadataGroupParameter> MIN_FEATURE_IN_GROUP_COUNT = new OptionalParameter<>(
+      new MinimumSamplesInAnyMetadataGroupParameter(), false);
+
+  public static final OptionalParameter<MinimumSamplesInOneMetadataGroupParameter> MIN_FEATURE_IN_ONE_GROUP_COUNT = new OptionalParameter<>(
+      new MinimumSamplesInOneMetadataGroupParameter(), false);
 
   public static final OptionalParameter<IntegerParameter> MIN_ISOTOPE_PATTERN_COUNT = new OptionalParameter<>(
       new IntegerParameter("Minimum signals in an isotope pattern",
@@ -171,7 +175,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
             // general parameters
             FEATURE_LISTS, SUFFIX, REMOVE_ROW, handleOriginal,
             // sample filtering
-            MIN_FEATURE_COUNT, MIN_FEATURE_IN_GROUP_COUNT, cvFilter, foldChangeFilter,
+            MIN_FEATURE_COUNT, MIN_FEATURE_IN_GROUP_COUNT, MIN_FEATURE_IN_ONE_GROUP_COUNT, cvFilter,
+            foldChangeFilter,
             // isotopes
             // TODO what does redundant do?
             MIN_ISOTOPE_PATTERN_COUNT, ISOTOPE_FILTER_13C, removeRedundantRows,
@@ -197,7 +202,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
     final List<ParameterGroup> groups = List.of( //
         new ParameterGroup("Sample-based filters", MIN_FEATURE_COUNT, MIN_FEATURE_IN_GROUP_COUNT,
-            cvFilter, foldChangeFilter), //
+            MIN_FEATURE_IN_ONE_GROUP_COUNT, cvFilter, foldChangeFilter), //
         new ParameterGroup("Isotope filters", MIN_ISOTOPE_PATTERN_COUNT, ISOTOPE_FILTER_13C,
             removeRedundantRows), //
         new ParameterGroup("Feature properties", MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
@@ -250,6 +255,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
     // deactivate new parameter that may not be available
     if (!loadedParams.containsKey(MIN_FEATURE_IN_GROUP_COUNT.getName())) {
       setParameter(MIN_FEATURE_IN_GROUP_COUNT, false);
+    }
+    if (!loadedParams.containsKey(MIN_FEATURE_IN_ONE_GROUP_COUNT.getName())) {
+      setParameter(MIN_FEATURE_IN_ONE_GROUP_COUNT, false);
     }
     if (!loadedParams.containsKey(cvFilter.getName())) {
       setParameter(cvFilter, false);

@@ -25,10 +25,13 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeIntComponent;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelectionComponent;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
@@ -36,15 +39,16 @@ import javafx.scene.layout.HBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MinimumSamplesInMetadataComponent extends FlowPane {
+public class MinimumSamplesInOneMetadataGroupComponent extends FlowPane {
 
   private final AbsoluteAndRelativeIntComponent minSamples;
-  private final MetadataGroupingComponent metadata;
+  private final MetadataGroupSelectionComponent metadata;
 
-  public MinimumSamplesInMetadataComponent(AbsoluteAndRelativeIntComponent minSamples,
-      MetadataGroupingComponent metadata, MinimumSamplesFilterConfig value) {
-    final HBox metadataBox = FxLayout.newHBox(Insets.EMPTY, new Label("in"),
-        FxLabels.newBoldLabel("ANY"), new Label("group in"), metadata);
+  public MinimumSamplesInOneMetadataGroupComponent(AbsoluteAndRelativeIntComponent minSamples,
+      MetadataGroupSelectionComponent metadata, MinimumSamplesFilterConfig value) {
+    final HBox metadataBox = FxLayout.newHBox(Insets.EMPTY, new Label("in column"),
+        metadata.getColumnField(), new Label("in"), FxLabels.newBoldLabel("THIS"),
+        new Label("group"), metadata.getGroupField());
     super(minSamples, metadataBox);
     this.minSamples = minSamples;
     this.metadata = metadata;
@@ -56,16 +60,21 @@ public class MinimumSamplesInMetadataComponent extends FlowPane {
 
   public void setValue(@Nullable MinimumSamplesFilterConfig value) {
     if (value == null) {
-      metadata.setValue("");
+      metadata.setValue(MetadataGroupSelection.NONE);
       minSamples.setValue(MinimumSamplesFilterConfig.DEFAULT.minSamples());
       return;
     }
-    metadata.setValue(value.columnName());
+
+    final String column = requireNonNullElse(value.columnName(), "");
+    final String groupStr = requireNonNullElse(value.group(), "");
+    metadata.setValue(new MetadataGroupSelection(column, groupStr));
     minSamples.setValue(value.minSamples());
   }
 
   @NotNull
   public MinimumSamplesFilterConfig getValue() {
-    return new MinimumSamplesFilterConfig(minSamples.getValue(), metadata.getValue());
+    final MetadataGroupSelection selection = metadata.getValue();
+    return new MinimumSamplesFilterConfig(minSamples.getValue(), selection.columnName(),
+        selection.groupStr());
   }
 }

@@ -47,6 +47,10 @@ public class MetadataGroupSelectionParameter implements
   @NotNull
   private MetadataGroupSelection value;
 
+  public MetadataGroupSelectionParameter() {
+    this("Sample grouping", "Select a sample metadata column and group from this column.");
+  }
+
   public MetadataGroupSelectionParameter(String name, String descr) {
     this(name, descr, new MetadataGroupSelection("", ""));
   }

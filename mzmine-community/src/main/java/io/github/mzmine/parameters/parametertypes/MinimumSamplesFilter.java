@@ -31,21 +31,41 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The actual filter with prepared groups of files
- *
- * @param minSamples   min samples
- * @param column       the column or null
- * @param files        all data files
- * @param groupedFiles grouped by column or null if there is no column
+ * The actual filter with prepared groups of files. Created by
+ * {@link MinimumSamplesFilterConfig#createFilter(List)}
  */
-public record MinimumSamplesFilter(@NotNull AbsoluteAndRelativeInt minSamples,
-                                   @Nullable MetadataColumn<?> column,
-                                   @NotNull List<RawDataFile> files,
-                                   @Nullable List<List<RawDataFile>> groupedFiles) {
+public final class MinimumSamplesFilter {
+
+  private final @NotNull AbsoluteAndRelativeInt minSamples;
+  private final @Nullable MetadataColumn<?> column;
+  private final @Nullable String group;
+  private final @NotNull List<RawDataFile> files;
+  private final @Nullable List<List<RawDataFile>> groupedFiles;
+
+  /**
+   * @param minSamples   min samples
+   * @param column       the column or null
+   * @param group        if present then only filter for this group - this means that the grouped
+   *                     files will only contain the raw data files from this group. This is done
+   *                     before creation in {@link MinimumSamplesFilterConfig#createFilter(List)}
+   * @param files        all data files
+   * @param groupedFiles grouped by column or null if there is no column. If a group is set then
+   *                     only provide the grouped files for this single group.
+   */
+  MinimumSamplesFilter(@NotNull AbsoluteAndRelativeInt minSamples,
+      @Nullable MetadataColumn<?> column, @Nullable String group, @NotNull List<RawDataFile> files,
+      @Nullable List<List<RawDataFile>> groupedFiles) {
+    this.minSamples = minSamples;
+    this.column = column;
+    this.group = group;
+    this.files = files;
+    this.groupedFiles = groupedFiles;
+  }
 
   public boolean matches(FeatureListRow row) {
     if (groupedFiles == null) {
@@ -115,10 +135,56 @@ public record MinimumSamplesFilter(@NotNull AbsoluteAndRelativeInt minSamples,
           the processed feature list %s had NO group that satisfies this filter in column %s (%d groups). Check the feature list rows \
           filter and adjust the minimum number of samples. Relative percentages help to scale this parameter automatically from small to large datasets.
           The current processing step and all following will be cancelled.""".formatted(filterName,
-          minSamples, featureList, column.getTitle(), groupedFiles.size());
+          minSamples.abs(), featureList, column.getTitle(), groupedFiles.size());
 
       return errorMessage;
     }
     return null;
   }
+
+  public @NotNull AbsoluteAndRelativeInt minSamples() {
+    return minSamples;
+  }
+
+  public @Nullable MetadataColumn<?> column() {
+    return column;
+  }
+
+  public @Nullable String group() {
+    return group;
+  }
+
+  public @NotNull List<RawDataFile> files() {
+    return files;
+  }
+
+  public @Nullable List<List<RawDataFile>> groupedFiles() {
+    return groupedFiles;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || obj.getClass() != this.getClass()) {
+      return false;
+    }
+    var that = (MinimumSamplesFilter) obj;
+    return Objects.equals(this.minSamples, that.minSamples) && Objects.equals(this.column,
+        that.column) && Objects.equals(this.group, that.group) && Objects.equals(this.files,
+        that.files) && Objects.equals(this.groupedFiles, that.groupedFiles);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(minSamples, column, group, files, groupedFiles);
+  }
+
+  @Override
+  public String toString() {
+    return "MinimumSamplesFilter[" + "minSamples=" + minSamples + ", " + "column=" + column + ", "
+        + "group=" + group + ", " + "files=" + files + ", " + "groupedFiles=" + groupedFiles + ']';
+  }
+
 }
