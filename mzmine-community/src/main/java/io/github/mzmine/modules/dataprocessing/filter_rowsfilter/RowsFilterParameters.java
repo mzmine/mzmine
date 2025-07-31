@@ -26,8 +26,14 @@
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupPane.GroupView;
@@ -37,19 +43,28 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilterConfig;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesInAnyMetadataGroupParameter;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesInOneMetadataGroupParameter;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
+import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt.Mode;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelection;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +72,7 @@ import javafx.application.Platform;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.Element;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
@@ -226,6 +242,70 @@ public class RowsFilterParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
+
+  /**
+   * A default parameter set with all options off
+   */
+  public static ParameterSet createDefaultAllOff() {
+    final ParameterSet param = new RowsFilterParameters().cloneParameterSet();
+    param.setParameter(RowsFilterParameters.FEATURE_LISTS,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(RowsFilterParameters.SUFFIX, "row_filtered");
+    param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, false,
+        new AbsoluteAndRelativeInt(1, 0, Mode.ROUND_DOWN));
+    param.setParameter(RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT, false,
+        MinimumSamplesFilterConfig.DEFAULT);
+    // just set the filter to false and allow to use the recent parameters internally
+    param.setParameter(RowsFilterParameters.MIN_FEATURE_IN_ONE_GROUP_COUNT, false);
+
+    param.setParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT, false);
+    param.setParameter(RowsFilterParameters.ISOTOPE_FILTER_13C, false);
+
+    final Isotope13CFilterParameters filterIsoParam = param.getParameter(
+        RowsFilterParameters.ISOTOPE_FILTER_13C).getEmbeddedParameters();
+    filterIsoParam.setParameter(Isotope13CFilterParameters.mzTolerance,
+        MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.maxCharge, 2);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.applyMinCEstimation, true);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.removeIfMainIs13CIsotope, true);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.elements, List.of(new Element("O")));
+
+    param.setParameter(RowsFilterParameters.cvFilter, false);
+    final RsdFilterParameters cvFilter = param.getParameter(RowsFilterParameters.cvFilter)
+        .getEmbeddedParameters();
+    cvFilter.setAll(AbundanceMeasure.Area, ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION, 0.2, 0.2,
+        false,
+        new MetadataGroupSelection(MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()));
+
+    param.setParameter(RowsFilterParameters.foldChangeFilter, false);
+    final FoldChangeSignificanceRowFilterParameters fcParams = param.getParameter(
+        RowsFilterParameters.foldChangeFilter).getEmbeddedParameters();
+
+    fcParams.setAll(AbundanceMeasure.Area, ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION,
+        Metadata2GroupsSelection.NONE, SignificanceTests.WELCHS_T_TEST, 0.05, 1d,
+        FoldChangeFilterSides.ABS_BOTH_SIDES);
+
+    //
+    param.setParameter(RowsFilterParameters.removeRedundantRows, false);
+    param.setParameter(RowsFilterParameters.MZ_RANGE, false);
+    param.setParameter(RowsFilterParameters.RT_RANGE, false);
+    param.setParameter(RowsFilterParameters.FEATURE_DURATION, false);
+    param.setParameter(RowsFilterParameters.FWHM, false);
+    param.setParameter(RowsFilterParameters.CHARGE, false);
+    param.setParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT, false);
+    param.setParameter(RowsFilterParameters.HAS_IDENTITIES, false);
+    param.setParameter(RowsFilterParameters.IDENTITY_TEXT, false);
+    param.setParameter(RowsFilterParameters.COMMENT_TEXT, false);
+    param.setParameter(RowsFilterParameters.REMOVE_ROW, RowsFilterChoices.KEEP_MATCHING);
+    param.setParameter(RowsFilterParameters.MS2_Filter, false);
+    param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, true);
+    param.setParameter(RowsFilterParameters.KEEP_ALL_ANNOTATED, false);
+    param.setParameter(RowsFilterParameters.Reset_ID, false);
+    param.setParameter(RowsFilterParameters.massDefect, false);
+    param.setParameter(RowsFilterParameters.onlyCorrelatedWithOtherDetectors, false);
+    param.setParameter(RowsFilterParameters.handleOriginal, OriginalFeatureListOption.KEEP);
+    return param;
+  }
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {

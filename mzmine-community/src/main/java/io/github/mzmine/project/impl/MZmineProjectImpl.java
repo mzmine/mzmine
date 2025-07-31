@@ -34,6 +34,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
 import io.github.mzmine.util.StringUtils;
@@ -258,10 +259,8 @@ public class MZmineProjectImpl implements MZmineProject {
     }
     try {
       rawLock.readLock().lock();
-      name = FileAndPathUtil.eraseFormat(name).trim();
       for (final RawDataFile raw : rawDataFiles) {
-        if (name.equalsIgnoreCase(raw.getName()) || name.equalsIgnoreCase(
-            FileAndPathUtil.eraseFormat(raw.getName()))) {
+        if (MetadataTableUtils.matchesFilename(name, raw)) {
           return raw;
         }
       }

@@ -67,9 +67,17 @@ public record MinimumSamplesFilterConfig(@NotNull AbsoluteAndRelativeInt minSamp
    */
   public @NotNull MinimumSamplesFilter createFilter(List<RawDataFile> files)
       throws MetadataColumnDoesNotExistException {
+    return createFilter(files, ProjectService.getMetadata());
+  }
+
+  /**
+   * @return a filter that can be applied to filter rows
+   * @throws MetadataColumnDoesNotExistException if column is missing
+   */
+  public @NotNull MinimumSamplesFilter createFilter(List<RawDataFile> files,
+      @NotNull MetadataTable metadata) throws MetadataColumnDoesNotExistException {
     if (StringUtils.hasValue(columnName)) {
       // group by column
-      final MetadataTable metadata = ProjectService.getMetadata();
       final MetadataColumn<?> column = metadata.getColumnByName(columnName);
       if (column == null) {
         throw new MetadataColumnDoesNotExistException(columnName);
