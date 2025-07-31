@@ -222,13 +222,15 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
         legendCategoryShapes[catIndex] = shape;
       }
 
+      groupIndex++;
+
       // Gradient: too many groups then use different shapes
       // Discrete colors: change shape if the first color repeats
-      if ((gradient && groups.size() > 5) || //
-          (!gradient && groupIndex > 0 && firstColor.equals(groups.get(groupIndex).color()))) {
+      //
+      if (gradient && groups.size() > 5 || !gradient && firstColor.equals(
+          groups.get(groupIndex).color())) {
         shape = drawingSupplier.getNextShape();
       }
-      groupIndex++;
     }
 
     setxValues(domainData);
