@@ -40,5 +40,6 @@ public class MassLynxConstants {
   public static final int NO_DRIFT_SCANS = DEFAULT_INT;
   public static final int NO_LOCKMASS_FUNCTION = DEFAULT_INT;
   public static final float NO_RT = DEFAULT_FLOAT;
+  public static final float NO_POSITION = DEFAULT_FLOAT;
 
 }

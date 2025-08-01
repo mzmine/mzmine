@@ -33,7 +33,7 @@ import static java.lang.foreign.ValueLayout.*;
 import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
- * {@snippet lang=c :
+ * {@snippet lang = c:
  * struct ScanInfo {
  *     int32_t msLevel;
  *     int32_t polarity;
@@ -44,26 +44,55 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
  *     float quadIsolationEnd;
  *     float collisionEnergy;
  *     float rt;
+ *     float laserXPos;
+ *     float laserYPos;
  * }
- * }
+ *}
  */
 public class ScanInfo {
+
+  private static final GroupLayout $LAYOUT = MemoryLayout.structLayout(
+          MassLynxLib.C_INT.withName("msLevel"), MassLynxLib.C_INT.withName("polarity"),
+          MassLynxLib.C_INT.withName("driftScanCount"), MassLynxLib.C_INT.withName("isProfile"),
+          MassLynxLib.C_FLOAT.withName("precursorMz"),
+          MassLynxLib.C_FLOAT.withName("quadIsolationStart"),
+          MassLynxLib.C_FLOAT.withName("quadIsolationEnd"),
+          MassLynxLib.C_FLOAT.withName("collisionEnergy"), MassLynxLib.C_FLOAT.withName("rt"),
+          MassLynxLib.C_FLOAT.withName("laserXPos"), MassLynxLib.C_FLOAT.withName("laserYPos"))
+      .withName("ScanInfo");
+  private static final OfInt msLevel$LAYOUT = (OfInt) $LAYOUT.select(groupElement("msLevel"));
+  private static final long msLevel$OFFSET = 0;
+  private static final OfInt polarity$LAYOUT = (OfInt) $LAYOUT.select(groupElement("polarity"));
+  private static final long polarity$OFFSET = 4;
+  private static final OfInt driftScanCount$LAYOUT = (OfInt) $LAYOUT.select(
+      groupElement("driftScanCount"));
+  private static final long driftScanCount$OFFSET = 8;
+  private static final OfInt isProfile$LAYOUT = (OfInt) $LAYOUT.select(groupElement("isProfile"));
+  private static final long isProfile$OFFSET = 12;
+  private static final OfFloat precursorMz$LAYOUT = (OfFloat) $LAYOUT.select(
+      groupElement("precursorMz"));
+  private static final long precursorMz$OFFSET = 16;
+  private static final OfFloat quadIsolationStart$LAYOUT = (OfFloat) $LAYOUT.select(
+      groupElement("quadIsolationStart"));
+  private static final long quadIsolationStart$OFFSET = 20;
+  private static final OfFloat quadIsolationEnd$LAYOUT = (OfFloat) $LAYOUT.select(
+      groupElement("quadIsolationEnd"));
+  private static final long quadIsolationEnd$OFFSET = 24;
+  private static final OfFloat collisionEnergy$LAYOUT = (OfFloat) $LAYOUT.select(
+      groupElement("collisionEnergy"));
+  private static final long collisionEnergy$OFFSET = 28;
+  private static final OfFloat rt$LAYOUT = (OfFloat) $LAYOUT.select(groupElement("rt"));
+  private static final long rt$OFFSET = 32;
+  private static final OfFloat laserXPos$LAYOUT = (OfFloat) $LAYOUT.select(
+      groupElement("laserXPos"));
+  private static final long laserXPos$OFFSET = 36;
+  private static final OfFloat laserYPos$LAYOUT = (OfFloat) $LAYOUT.select(
+      groupElement("laserYPos"));
+  private static final long laserYPos$OFFSET = 40;
 
   ScanInfo() {
     // Should not be called directly
   }
-
-  private static final GroupLayout $LAYOUT = MemoryLayout.structLayout(
-      MassLynxLib.C_INT.withName("msLevel"),
-      MassLynxLib.C_INT.withName("polarity"),
-      MassLynxLib.C_INT.withName("driftScanCount"),
-      MassLynxLib.C_INT.withName("isProfile"),
-      MassLynxLib.C_FLOAT.withName("precursorMz"),
-      MassLynxLib.C_FLOAT.withName("quadIsolationStart"),
-      MassLynxLib.C_FLOAT.withName("quadIsolationEnd"),
-      MassLynxLib.C_FLOAT.withName("collisionEnergy"),
-      MassLynxLib.C_FLOAT.withName("rt")
-  ).withName("ScanInfo");
 
   /**
    * The layout of this struct
@@ -72,25 +101,21 @@ public class ScanInfo {
     return $LAYOUT;
   }
 
-  private static final OfInt msLevel$LAYOUT = (OfInt)$LAYOUT.select(groupElement("msLevel"));
-
   /**
    * Layout for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t msLevel
-   * }
+   *}
    */
   public static final OfInt msLevel$layout() {
     return msLevel$LAYOUT;
   }
 
-  private static final long msLevel$OFFSET = 0;
-
   /**
    * Offset for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t msLevel
-   * }
+   *}
    */
   public static final long msLevel$offset() {
     return msLevel$OFFSET;
@@ -98,9 +123,9 @@ public class ScanInfo {
 
   /**
    * Getter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t msLevel
-   * }
+   *}
    */
   public static int msLevel(MemorySegment struct) {
     return struct.get(msLevel$LAYOUT, msLevel$OFFSET);
@@ -108,33 +133,29 @@ public class ScanInfo {
 
   /**
    * Setter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t msLevel
-   * }
+   *}
    */
   public static void msLevel(MemorySegment struct, int fieldValue) {
     struct.set(msLevel$LAYOUT, msLevel$OFFSET, fieldValue);
   }
 
-  private static final OfInt polarity$LAYOUT = (OfInt)$LAYOUT.select(groupElement("polarity"));
-
   /**
    * Layout for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t polarity
-   * }
+   *}
    */
   public static final OfInt polarity$layout() {
     return polarity$LAYOUT;
   }
 
-  private static final long polarity$OFFSET = 4;
-
   /**
    * Offset for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t polarity
-   * }
+   *}
    */
   public static final long polarity$offset() {
     return polarity$OFFSET;
@@ -142,9 +163,9 @@ public class ScanInfo {
 
   /**
    * Getter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t polarity
-   * }
+   *}
    */
   public static int polarity(MemorySegment struct) {
     return struct.get(polarity$LAYOUT, polarity$OFFSET);
@@ -152,33 +173,29 @@ public class ScanInfo {
 
   /**
    * Setter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t polarity
-   * }
+   *}
    */
   public static void polarity(MemorySegment struct, int fieldValue) {
     struct.set(polarity$LAYOUT, polarity$OFFSET, fieldValue);
   }
 
-  private static final OfInt driftScanCount$LAYOUT = (OfInt)$LAYOUT.select(groupElement("driftScanCount"));
-
   /**
    * Layout for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t driftScanCount
-   * }
+   *}
    */
   public static final OfInt driftScanCount$layout() {
     return driftScanCount$LAYOUT;
   }
 
-  private static final long driftScanCount$OFFSET = 8;
-
   /**
    * Offset for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t driftScanCount
-   * }
+   *}
    */
   public static final long driftScanCount$offset() {
     return driftScanCount$OFFSET;
@@ -186,9 +203,9 @@ public class ScanInfo {
 
   /**
    * Getter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t driftScanCount
-   * }
+   *}
    */
   public static int driftScanCount(MemorySegment struct) {
     return struct.get(driftScanCount$LAYOUT, driftScanCount$OFFSET);
@@ -196,33 +213,29 @@ public class ScanInfo {
 
   /**
    * Setter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t driftScanCount
-   * }
+   *}
    */
   public static void driftScanCount(MemorySegment struct, int fieldValue) {
     struct.set(driftScanCount$LAYOUT, driftScanCount$OFFSET, fieldValue);
   }
 
-  private static final OfInt isProfile$LAYOUT = (OfInt)$LAYOUT.select(groupElement("isProfile"));
-
   /**
    * Layout for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t isProfile
-   * }
+   *}
    */
   public static final OfInt isProfile$layout() {
     return isProfile$LAYOUT;
   }
 
-  private static final long isProfile$OFFSET = 12;
-
   /**
    * Offset for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t isProfile
-   * }
+   *}
    */
   public static final long isProfile$offset() {
     return isProfile$OFFSET;
@@ -230,9 +243,9 @@ public class ScanInfo {
 
   /**
    * Getter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t isProfile
-   * }
+   *}
    */
   public static int isProfile(MemorySegment struct) {
     return struct.get(isProfile$LAYOUT, isProfile$OFFSET);
@@ -240,33 +253,29 @@ public class ScanInfo {
 
   /**
    * Setter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * int32_t isProfile
-   * }
+   *}
    */
   public static void isProfile(MemorySegment struct, int fieldValue) {
     struct.set(isProfile$LAYOUT, isProfile$OFFSET, fieldValue);
   }
 
-  private static final OfFloat precursorMz$LAYOUT = (OfFloat)$LAYOUT.select(groupElement("precursorMz"));
-
   /**
    * Layout for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float precursorMz
-   * }
+   *}
    */
   public static final OfFloat precursorMz$layout() {
     return precursorMz$LAYOUT;
   }
 
-  private static final long precursorMz$OFFSET = 16;
-
   /**
    * Offset for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float precursorMz
-   * }
+   *}
    */
   public static final long precursorMz$offset() {
     return precursorMz$OFFSET;
@@ -274,9 +283,9 @@ public class ScanInfo {
 
   /**
    * Getter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float precursorMz
-   * }
+   *}
    */
   public static float precursorMz(MemorySegment struct) {
     return struct.get(precursorMz$LAYOUT, precursorMz$OFFSET);
@@ -284,33 +293,29 @@ public class ScanInfo {
 
   /**
    * Setter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float precursorMz
-   * }
+   *}
    */
   public static void precursorMz(MemorySegment struct, float fieldValue) {
     struct.set(precursorMz$LAYOUT, precursorMz$OFFSET, fieldValue);
   }
 
-  private static final OfFloat quadIsolationStart$LAYOUT = (OfFloat)$LAYOUT.select(groupElement("quadIsolationStart"));
-
   /**
    * Layout for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float quadIsolationStart
-   * }
+   *}
    */
   public static final OfFloat quadIsolationStart$layout() {
     return quadIsolationStart$LAYOUT;
   }
 
-  private static final long quadIsolationStart$OFFSET = 20;
-
   /**
    * Offset for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float quadIsolationStart
-   * }
+   *}
    */
   public static final long quadIsolationStart$offset() {
     return quadIsolationStart$OFFSET;
@@ -318,9 +323,9 @@ public class ScanInfo {
 
   /**
    * Getter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float quadIsolationStart
-   * }
+   *}
    */
   public static float quadIsolationStart(MemorySegment struct) {
     return struct.get(quadIsolationStart$LAYOUT, quadIsolationStart$OFFSET);
@@ -328,33 +333,29 @@ public class ScanInfo {
 
   /**
    * Setter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float quadIsolationStart
-   * }
+   *}
    */
   public static void quadIsolationStart(MemorySegment struct, float fieldValue) {
     struct.set(quadIsolationStart$LAYOUT, quadIsolationStart$OFFSET, fieldValue);
   }
 
-  private static final OfFloat quadIsolationEnd$LAYOUT = (OfFloat)$LAYOUT.select(groupElement("quadIsolationEnd"));
-
   /**
    * Layout for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float quadIsolationEnd
-   * }
+   *}
    */
   public static final OfFloat quadIsolationEnd$layout() {
     return quadIsolationEnd$LAYOUT;
   }
 
-  private static final long quadIsolationEnd$OFFSET = 24;
-
   /**
    * Offset for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float quadIsolationEnd
-   * }
+   *}
    */
   public static final long quadIsolationEnd$offset() {
     return quadIsolationEnd$OFFSET;
@@ -362,9 +363,9 @@ public class ScanInfo {
 
   /**
    * Getter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float quadIsolationEnd
-   * }
+   *}
    */
   public static float quadIsolationEnd(MemorySegment struct) {
     return struct.get(quadIsolationEnd$LAYOUT, quadIsolationEnd$OFFSET);
@@ -372,33 +373,29 @@ public class ScanInfo {
 
   /**
    * Setter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float quadIsolationEnd
-   * }
+   *}
    */
   public static void quadIsolationEnd(MemorySegment struct, float fieldValue) {
     struct.set(quadIsolationEnd$LAYOUT, quadIsolationEnd$OFFSET, fieldValue);
   }
 
-  private static final OfFloat collisionEnergy$LAYOUT = (OfFloat)$LAYOUT.select(groupElement("collisionEnergy"));
-
   /**
    * Layout for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float collisionEnergy
-   * }
+   *}
    */
   public static final OfFloat collisionEnergy$layout() {
     return collisionEnergy$LAYOUT;
   }
 
-  private static final long collisionEnergy$OFFSET = 28;
-
   /**
    * Offset for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float collisionEnergy
-   * }
+   *}
    */
   public static final long collisionEnergy$offset() {
     return collisionEnergy$OFFSET;
@@ -406,9 +403,9 @@ public class ScanInfo {
 
   /**
    * Getter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float collisionEnergy
-   * }
+   *}
    */
   public static float collisionEnergy(MemorySegment struct) {
     return struct.get(collisionEnergy$LAYOUT, collisionEnergy$OFFSET);
@@ -416,33 +413,29 @@ public class ScanInfo {
 
   /**
    * Setter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float collisionEnergy
-   * }
+   *}
    */
   public static void collisionEnergy(MemorySegment struct, float fieldValue) {
     struct.set(collisionEnergy$LAYOUT, collisionEnergy$OFFSET, fieldValue);
   }
 
-  private static final OfFloat rt$LAYOUT = (OfFloat)$LAYOUT.select(groupElement("rt"));
-
   /**
    * Layout for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float rt
-   * }
+   *}
    */
   public static final OfFloat rt$layout() {
     return rt$LAYOUT;
   }
 
-  private static final long rt$OFFSET = 32;
-
   /**
    * Offset for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float rt
-   * }
+   *}
    */
   public static final long rt$offset() {
     return rt$OFFSET;
@@ -450,9 +443,9 @@ public class ScanInfo {
 
   /**
    * Getter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float rt
-   * }
+   *}
    */
   public static float rt(MemorySegment struct) {
     return struct.get(rt$LAYOUT, rt$OFFSET);
@@ -460,17 +453,97 @@ public class ScanInfo {
 
   /**
    * Setter for field:
-   * {@snippet lang=c :
+   * {@snippet lang = c:
    * float rt
-   * }
+   *}
    */
   public static void rt(MemorySegment struct, float fieldValue) {
     struct.set(rt$LAYOUT, rt$OFFSET, fieldValue);
   }
 
   /**
-   * Obtains a slice of {@code arrayParam} which selects the array element at {@code index}.
-   * The returned segment has address {@code arrayParam.address() + index * layout().byteSize()}
+   * Layout for field:
+   * {@snippet lang = c:
+   * float laserXPos
+   *}
+   */
+  public static final OfFloat laserXPos$layout() {
+    return laserXPos$LAYOUT;
+  }
+
+  /**
+   * Offset for field:
+   * {@snippet lang = c:
+   * float laserXPos
+   *}
+   */
+  public static final long laserXPos$offset() {
+    return laserXPos$OFFSET;
+  }
+
+  /**
+   * Getter for field:
+   * {@snippet lang = c:
+   * float laserXPos
+   *}
+   */
+  public static float laserXPos(MemorySegment struct) {
+    return struct.get(laserXPos$LAYOUT, laserXPos$OFFSET);
+  }
+
+  /**
+   * Setter for field:
+   * {@snippet lang = c:
+   * float laserXPos
+   *}
+   */
+  public static void laserXPos(MemorySegment struct, float fieldValue) {
+    struct.set(laserXPos$LAYOUT, laserXPos$OFFSET, fieldValue);
+  }
+
+  /**
+   * Layout for field:
+   * {@snippet lang = c:
+   * float laserYPos
+   *}
+   */
+  public static final OfFloat laserYPos$layout() {
+    return laserYPos$LAYOUT;
+  }
+
+  /**
+   * Offset for field:
+   * {@snippet lang = c:
+   * float laserYPos
+   *}
+   */
+  public static final long laserYPos$offset() {
+    return laserYPos$OFFSET;
+  }
+
+  /**
+   * Getter for field:
+   * {@snippet lang = c:
+   * float laserYPos
+   *}
+   */
+  public static float laserYPos(MemorySegment struct) {
+    return struct.get(laserYPos$LAYOUT, laserYPos$OFFSET);
+  }
+
+  /**
+   * Setter for field:
+   * {@snippet lang = c:
+   * float laserYPos
+   *}
+   */
+  public static void laserYPos(MemorySegment struct, float fieldValue) {
+    struct.set(laserYPos$LAYOUT, laserYPos$OFFSET, fieldValue);
+  }
+
+  /**
+   * Obtains a slice of {@code arrayParam} which selects the array element at {@code index}. The
+   * returned segment has address {@code arrayParam.address() + index * layout().byteSize()}
    */
   public static MemorySegment asSlice(MemorySegment array, long index) {
     return array.asSlice(layout().byteSize() * index);
@@ -479,7 +552,9 @@ public class ScanInfo {
   /**
    * The size (in bytes) of this struct
    */
-  public static long sizeof() { return layout().byteSize(); }
+  public static long sizeof() {
+    return layout().byteSize();
+  }
 
   /**
    * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}
@@ -489,26 +564,28 @@ public class ScanInfo {
   }
 
   /**
-   * Allocate an array of size {@code elementCount} using {@code allocator}.
-   * The returned segment has size {@code elementCount * layout().byteSize()}.
+   * Allocate an array of size {@code elementCount} using {@code allocator}. The returned segment
+   * has size {@code elementCount * layout().byteSize()}.
    */
   public static MemorySegment allocateArray(long elementCount, SegmentAllocator allocator) {
     return allocator.allocate(MemoryLayout.sequenceLayout(elementCount, layout()));
   }
 
   /**
-   * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction} (if any).
-   * The returned segment has size {@code layout().byteSize()}
+   * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction} (if any). The
+   * returned segment has size {@code layout().byteSize()}
    */
-  public static MemorySegment reinterpret(MemorySegment addr, Arena arena, Consumer<MemorySegment> cleanup) {
+  public static MemorySegment reinterpret(MemorySegment addr, Arena arena,
+      Consumer<MemorySegment> cleanup) {
     return reinterpret(addr, 1, arena, cleanup);
   }
 
   /**
-   * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction} (if any).
-   * The returned segment has size {@code elementCount * layout().byteSize()}
+   * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction} (if any). The
+   * returned segment has size {@code elementCount * layout().byteSize()}
    */
-  public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena arena, Consumer<MemorySegment> cleanup) {
+  public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena arena,
+      Consumer<MemorySegment> cleanup) {
     return addr.reinterpret(layout().byteSize() * elementCount, arena, cleanup);
   }
 }

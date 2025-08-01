@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
-import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
@@ -48,7 +47,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.time.Instant;
@@ -60,9 +58,9 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class WatersRawImportTask extends AbstractTask implements RawDataImportTask {
+public class MassLynxImportTask extends AbstractTask implements RawDataImportTask {
 
-  private static final Logger logger = Logger.getLogger(WatersRawImportTask.class.getName());
+  private static final Logger logger = Logger.getLogger(MassLynxImportTask.class.getName());
 
   private final File rawFolder;
   @NotNull
@@ -77,7 +75,7 @@ public class WatersRawImportTask extends AbstractTask implements RawDataImportTa
   private long loadedItems = 0;
   private RawDataFileImpl dataFile;
 
-  public WatersRawImportTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+  public MassLynxImportTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       File rawFolder, @NotNull final Class<? extends MZmineModule> module,
       @NotNull final ParameterSet parameters, @NotNull final MZmineProject project,
       @Nullable ScanImportProcessorConfig processor) {

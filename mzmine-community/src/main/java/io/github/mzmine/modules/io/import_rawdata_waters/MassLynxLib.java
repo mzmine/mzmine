@@ -272,6 +272,15 @@ public class MassLynxLib {
   static final Arena LIBRARY_ARENA = Arena.ofAuto();
   static final boolean TRACE_DOWNCALLS = Boolean.getBoolean("jextract.trace.downcalls");
   static final SymbolLookup SYMBOL_LOOKUP = getSymbolLookup();
+
+  private static synchronized SymbolLookup getSymbolLookup() {
+    // load mass lynx base library before
+    System.load(Path.of("external_tools\\waters_raw\\MassLynxRaw.dll").toAbsolutePath().toString());
+    return SymbolLookup.libraryLookup(
+            "external_tools/waters_raw/%s".formatted(System.mapLibraryName("MLReader")), LIBRARY_ARENA)
+        .or(SymbolLookup.loaderLookup()).or(Linker.nativeLinker().defaultLookup());
+  }
+
   private static final int _VCRT_COMPILER_PREPROCESSOR = (int) 1L;
   private static final int _SAL_VERSION = (int) 20L;
   private static final int __SAL_H_VERSION = (int) 180000000L;
@@ -340,17 +349,6 @@ public class MassLynxLib {
 
   MassLynxLib() {
     // Should not be called directly
-  }
-
-  /**
-   * synchronized, otherwise we saw crashes in kernellib
-   */
-  private static synchronized SymbolLookup getSymbolLookup() {
-    // load mass lynx base library before
-    System.load(Path.of("external_tools\\waters_raw\\MassLynxRaw.dll").toAbsolutePath().toString());
-    return SymbolLookup.libraryLookup(
-            "external_tools/waters_raw/%s".formatted(System.mapLibraryName("MLReader")), LIBRARY_ARENA)
-        .or(SymbolLookup.loaderLookup()).or(Linker.nativeLinker().defaultLookup());
   }
 
   static void traceDowncall(String name, Object... args) {
@@ -949,6 +947,46 @@ public class MassLynxLib {
    */
   public static void NO_MOBILITY(float varValue) {
     NO_MOBILITY$constants.SEGMENT.set(NO_MOBILITY$constants.LAYOUT, 0L, varValue);
+  }
+
+  /**
+   * Layout for variable:
+   * {@snippet lang = c:
+   * const float NO_POSITION = DEFAULT_FLOAT
+   *}
+   */
+  public static OfFloat NO_POSITION$layout() {
+    return NO_POSITION$constants.LAYOUT;
+  }
+
+  /**
+   * Segment for variable:
+   * {@snippet lang = c:
+   * const float NO_POSITION = DEFAULT_FLOAT
+   *}
+   */
+  public static MemorySegment NO_POSITION$segment() {
+    return NO_POSITION$constants.SEGMENT;
+  }
+
+  /**
+   * Getter for variable:
+   * {@snippet lang = c:
+   * const float NO_POSITION = DEFAULT_FLOAT
+   *}
+   */
+  public static float NO_POSITION() {
+    return NO_POSITION$constants.SEGMENT.get(NO_POSITION$constants.LAYOUT, 0L);
+  }
+
+  /**
+   * Setter for variable:
+   * {@snippet lang = c:
+   * const float NO_POSITION = DEFAULT_FLOAT
+   *}
+   */
+  public static void NO_POSITION(float varValue) {
+    NO_POSITION$constants.SEGMENT.set(NO_POSITION$constants.LAYOUT, 0L, varValue);
   }
 
   /**
@@ -1586,7 +1624,7 @@ public class MassLynxLib {
   /**
    * Function descriptor for:
    * {@snippet lang = c:
-   * uint32_t getLockmassFunction(Handle handle)
+   * int32_t getLockmassFunction(Handle handle)
    *}
    */
   public static FunctionDescriptor getLockmassFunction$descriptor() {
@@ -1596,7 +1634,7 @@ public class MassLynxLib {
   /**
    * Downcall method handle for:
    * {@snippet lang = c:
-   * uint32_t getLockmassFunction(Handle handle)
+   * int32_t getLockmassFunction(Handle handle)
    *}
    */
   public static MethodHandle getLockmassFunction$handle() {
@@ -1606,7 +1644,7 @@ public class MassLynxLib {
   /**
    * Address for:
    * {@snippet lang = c:
-   * uint32_t getLockmassFunction(Handle handle)
+   * int32_t getLockmassFunction(Handle handle)
    *}
    */
   public static MemorySegment getLockmassFunction$address() {
@@ -1615,7 +1653,7 @@ public class MassLynxLib {
 
   /**
    * {@snippet lang = c:
-   * uint32_t getLockmassFunction(Handle handle)
+   * int32_t getLockmassFunction(Handle handle)
    *}
    */
   public static int getLockmassFunction(MemorySegment handle) {
@@ -1811,6 +1849,53 @@ public class MassLynxLib {
     try {
       if (TRACE_DOWNCALLS) {
         traceDowncall("isDdaFile", handle);
+      }
+      return (int) mh$.invokeExact(handle);
+    } catch (Throwable ex$) {
+      throw new AssertionError("should not reach here", ex$);
+    }
+  }
+
+  /**
+   * Function descriptor for:
+   * {@snippet lang = c:
+   * uint32_t isImagingFile(Handle handle)
+   *}
+   */
+  public static FunctionDescriptor isImagingFile$descriptor() {
+    return isImagingFile.DESC;
+  }
+
+  /**
+   * Downcall method handle for:
+   * {@snippet lang = c:
+   * uint32_t isImagingFile(Handle handle)
+   *}
+   */
+  public static MethodHandle isImagingFile$handle() {
+    return isImagingFile.HANDLE;
+  }
+
+  /**
+   * Address for:
+   * {@snippet lang = c:
+   * uint32_t isImagingFile(Handle handle)
+   *}
+   */
+  public static MemorySegment isImagingFile$address() {
+    return isImagingFile.ADDR;
+  }
+
+  /**
+   * {@snippet lang = c:
+   * uint32_t isImagingFile(Handle handle)
+   *}
+   */
+  public static int isImagingFile(MemorySegment handle) {
+    var mh$ = isImagingFile.HANDLE;
+    try {
+      if (TRACE_DOWNCALLS) {
+        traceDowncall("isImagingFile", handle);
       }
       return (int) mh$.invokeExact(handle);
     } catch (Throwable ex$) {
@@ -3410,6 +3495,13 @@ public class MassLynxLib {
         .reinterpret(LAYOUT.byteSize());
   }
 
+  private static class NO_POSITION$constants {
+
+    public static final OfFloat LAYOUT = MassLynxLib.C_FLOAT;
+    public static final MemorySegment SEGMENT = MassLynxLib.findOrThrow("NO_POSITION")
+        .reinterpret(LAYOUT.byteSize());
+  }
+
   private static class NO_DRIFT_SCANS$constants {
 
     public static final OfInt LAYOUT = MassLynxLib.C_INT;
@@ -3585,6 +3677,16 @@ public class MassLynxLib {
         MassLynxLib.C_POINTER);
 
     public static final MemorySegment ADDR = MassLynxLib.findOrThrow("isDdaFile");
+
+    public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+  }
+
+  private static class isImagingFile {
+
+    public static final FunctionDescriptor DESC = FunctionDescriptor.of(MassLynxLib.C_INT,
+        MassLynxLib.C_POINTER);
+
+    public static final MemorySegment ADDR = MassLynxLib.findOrThrow("isImagingFile");
 
     public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
   }
@@ -3803,4 +3905,6 @@ public class MassLynxLib {
     public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
   }
 }
+
+
 

@@ -25,13 +25,17 @@
 package io.github.mzmine.modules.io.import_rawdata_waters;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MetadataOnlyScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.impl.SimpleImagingFrame;
+import io.github.mzmine.datamodel.impl.SimpleImagingScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
@@ -44,9 +48,11 @@ import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
+import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -54,8 +60,6 @@ import java.io.File;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -82,7 +86,10 @@ public class MassLynxDataAccess implements AutoCloseable {
   private final @Nullable ScanImportProcessorConfig processor;
   private final boolean isDdaFile;
   private final boolean isImsFile;
+  private final boolean isImagingFile;
   private final MemorySegment scanInfoBuffer = arena.allocate(ScanInfo.layout());
+  @Nullable
+  private final ImagingMetadata metadata;
   private double[] mobilities = null;
 
   /**
@@ -128,12 +135,49 @@ public class MassLynxDataAccess implements AutoCloseable {
 
     checkAndApplyLockMassCorrection(rawFolder);
     MassLynxLib.setCentroid(handle, centroid ? 1 : 0);
+
+    // its possible that a file has coordinates, but does not have more than one coordinate.
+    // In that case, import as LC file.
+    if (MassLynxLib.isImagingFile(handle) > 0) {
+      final var tempMetadata = new ImagingMetadata(this);
+      if (tempMetadata.hasMoreThanOnePosition()) {
+        metadata = tempMetadata;
+        isImagingFile = true;
+      } else {
+        metadata = null;
+        isImagingFile = false;
+      }
+    } else {
+      metadata = null;
+      isImagingFile = false;
+    }
   }
 
   public @NotNull RawDataFileImpl createDataFile() {
-    return MassLynxLib.isIonMobilityFile(handle) > 0 ? new IMSRawDataFileImpl(rawFolder.getName(),
-        rawFolder.getAbsolutePath(), storage)
-        : new RawDataFileImpl(rawFolder.getName(), rawFolder.getAbsolutePath(), storage);
+    if (isImsFile) {
+      if (isImagingFile && metadata != null && metadata.getImagingParameters() != null) {
+        logger.finest(
+            "Opening data file %s as IMS-MS imaging file.".formatted(rawFolder.getName()));
+        final IMSImagingRawDataFileImpl imagingRawDataFile = new IMSImagingRawDataFileImpl(
+            rawFolder.getName(), rawFolder.getAbsolutePath(), storage);
+        imagingRawDataFile.setImagingParam(metadata.getImagingParameters());
+        return imagingRawDataFile;
+      } else {
+        logger.finest("Opening data file %s as IMS-MS file.".formatted(rawFolder.getName()));
+        return new IMSRawDataFileImpl(rawFolder.getName(), rawFolder.getAbsolutePath(), storage);
+      }
+    } else {
+      if (isImagingFile && metadata != null && metadata.getImagingParameters() != null) {
+        logger.finest("Opening data file %s as MS imaging file.".formatted(rawFolder.getName()));
+        final ImagingRawDataFileImpl imagingRawDataFile = new ImagingRawDataFileImpl(
+            rawFolder.getName(), rawFolder.getAbsolutePath(), storage);
+        imagingRawDataFile.setImagingParam(metadata.getImagingParameters());
+        return imagingRawDataFile;
+      } else {
+        logger.finest("Opening data file %s as MS file.".formatted(rawFolder.getName()));
+        return new RawDataFileImpl(rawFolder.getName(), rawFolder.getAbsolutePath(), storage);
+      }
+    }
   }
 
   private void checkAndApplyLockMassCorrection(@NotNull File rawFolder) {
@@ -160,8 +204,7 @@ public class MassLynxDataAccess implements AutoCloseable {
       return;
     }
 
-    MassLynxLib.getScanInfo(handle, lockmassFunction, 0, scanInfoBuffer);
-    final ScanInfoWrapper scanInfo = ScanInfoWrapper.fromScanInfo(scanInfoBuffer);
+    final ScanInfoWrapper scanInfo = getScanInfo(lockmassFunction, 0, scanInfoBuffer);
     final PolarityType polarityType = scanInfo.polarityType();
 
     final WatersLockmassParameters lmParam = ConfigService.getPreferences()
@@ -231,7 +274,8 @@ public class MassLynxDataAccess implements AutoCloseable {
         yield readMsScan(file, function, scan);
       }
       case LOCKMASS -> {
-        throw new IllegalStateException("Attempted to load lock mass function " + function);
+        yield readMsScan(file, function, scan);
+//        throw new IllegalStateException("Attempted to load lock mass function " + function);
       }
       case MRM -> throw new IllegalStateException("MRM function, cannot read scan.");
       case NOT_MS -> throw new IllegalStateException("Non-MS function, cannot read scan.");
@@ -239,9 +283,8 @@ public class MassLynxDataAccess implements AutoCloseable {
   }
 
   private @Nullable SimpleScan readMsScan(RawDataFileImpl file, int function, int scan) {
-    MassLynxLib.getScanInfo(handle, function, scan, scanInfoBuffer);
-    final ScanInfoWrapper scanInfo = ScanInfoWrapper.fromScanInfo(scanInfoBuffer);
-    final MetadataOnlyScan metadataScan = scanInfo.metadataOnlyScan(requestedSpectrumType);
+    final ScanInfoWrapper scanInfo = getScanInfo(function, scan, scanInfoBuffer);
+    final MetadataOnlyScan metadataScan = scanInfo.metadataOnlyScan();
 
     if (processor != null && processor.hasProcessors() && processor.scanFilter() != null
         && processor.scanFilter().isActiveFilter()) {
@@ -266,25 +309,47 @@ public class MassLynxDataAccess implements AutoCloseable {
         .toArray(MassLynxLib.C_DOUBLE);
 
     final SimpleSpectralArrays dataPoints;
+    MassSpectrumType spectrumType =
+        scanInfo.isProfile() > 0 ? MassSpectrumType.PROFILE : MassSpectrumType.CENTROIDED;
     if (processor != null && processor.isMassDetectActive(scanInfo.msLevel())) {
       final SimpleSpectralArrays simpleSpectralArrays = new SimpleSpectralArrays(mzs, intensities);
       dataPoints = processor.processor().processScan(metadataScan, simpleSpectralArrays);
+      spectrumType = MassSpectrumType.CENTROIDED;
     } else {
       dataPoints = new SimpleSpectralArrays(mzs, intensities);
     }
 
     final String scanDefinition = "func=%d, scan=%d".formatted(function, scan);
 
-    return new SimpleScan(file, scan, scanInfo.msLevel(), scanInfo.rt(),
-        scanInfo.msLevel() > 1 ? scanInfo.msMsInfo(isDdaFile, isImsFile) : null, dataPoints.mzs(),
-        dataPoints.intensities(), metadataScan.getSpectrumType(), scanInfo.polarityType(),
-        scanDefinition, getAcquisitionMassRange(function));
+    if (isImagingFile && metadata != null) {
+      final Coordinates coordinates = metadata.getCoordinates(scanInfo);
+      return new SimpleImagingScan(file, scan, scanInfo.msLevel(), scanInfo.rt(), 0, 0,
+          dataPoints.mzs(), dataPoints.intensities(), spectrumType,
+          scanInfo.polarityType(), scanDefinition, getAcquisitionMassRange(function), coordinates);
+    } else {
+      return new SimpleScan(file, scan, scanInfo.msLevel(), scanInfo.rt(),
+          scanInfo.msLevel() > 1 ? scanInfo.msMsInfo(isDdaFile, isImsFile) : null, dataPoints.mzs(),
+          dataPoints.intensities(), spectrumType, scanInfo.polarityType(),
+          scanDefinition, getAcquisitionMassRange(function));
+    }
+
+  }
+
+  public @NotNull ScanInfoWrapper getScanInfo(int function, int scan,
+      MemorySegment scanInfoBuffer) {
+    if (scanInfoBuffer.byteSize() < ScanInfo.layout().byteSize()) {
+      throw new IllegalStateException(
+          "Buffer size is not large enough to store a ScanInfo object.");
+    }
+
+    MassLynxLib.getScanInfo(handle, function, scan, scanInfoBuffer);
+    final ScanInfoWrapper scanInfo = ScanInfoWrapper.fromScanInfo(scanInfoBuffer);
+    return scanInfo;
   }
 
   public @Nullable SimpleFrame readFrame(IMSRawDataFileImpl file, int function, int scan) {
-    MassLynxLib.getScanInfo(handle, function, scan, scanInfoBuffer);
-    final ScanInfoWrapper scanInfo = ScanInfoWrapper.fromScanInfo(scanInfoBuffer);
-    final MetadataOnlyScan metadataScan = scanInfo.metadataOnlyScan(requestedSpectrumType);
+    final ScanInfoWrapper scanInfo = getScanInfo(function, scan, scanInfoBuffer);
+    final MetadataOnlyScan metadataScan = scanInfo.metadataOnlyScan();
 
     if (processor != null && processor.hasProcessors() && processor.scanFilter() != null
         && processor.scanFilter().isActiveFilter()) {
@@ -315,19 +380,34 @@ public class MassLynxDataAccess implements AutoCloseable {
         .toArray(MassLynxLib.C_DOUBLE);
 
     final SimpleSpectralArrays dataPoints;
+    MassSpectrumType spectrumType =
+        scanInfo.isProfile() > 0 ? MassSpectrumType.PROFILE : MassSpectrumType.CENTROIDED;
     if (processor != null && processor.isMassDetectActive(scanInfo.msLevel())) {
       final SimpleSpectralArrays simpleSpectralArrays = new SimpleSpectralArrays(mzs, intensities);
       dataPoints = processor.processor().processScan(metadataScan, simpleSpectralArrays);
+      spectrumType = MassSpectrumType.CENTROIDED;
     } else {
       dataPoints = new SimpleSpectralArrays(mzs, intensities);
     }
 
     final String scanDefinition = "func=%d, scan=%d".formatted(function, scan);
-    final SimpleFrame frame = new SimpleFrame(file, scan, scanInfo.msLevel(), scanInfo.rt(),
-        dataPoints.mzs(), dataPoints.intensities(), metadataScan.getSpectrumType(),
-        scanInfo.polarityType(), scanDefinition, getAcquisitionMassRange(function),
-        MobilityType.TRAVELING_WAVE, scanInfo.msLevel() > 1 ? Set.of(
-        (IonMobilityMsMsInfo) scanInfo.msMsInfo(isDdaFile, isImsFile)) : null, null);
+    final SimpleFrame frame;
+
+    if (isImagingFile && metadata != null) {
+      final Coordinates coordinates = metadata.getCoordinates(scanInfo);
+      frame = new SimpleImagingFrame(file, scan, scanInfo.msLevel(), scanInfo.rt(),
+          dataPoints.mzs(), dataPoints.intensities(), spectrumType,
+          scanInfo.polarityType(), scanDefinition, getAcquisitionMassRange(function),
+          MobilityType.TRAVELING_WAVE, scanInfo.msLevel() > 1 ? Set.of(
+          (IonMobilityMsMsInfo) scanInfo.msMsInfo(isDdaFile, isImsFile)) : null, null);
+      ((SimpleImagingFrame) frame).setCoordinates(coordinates);
+    } else {
+      frame = new SimpleFrame(file, scan, scanInfo.msLevel(), scanInfo.rt(), dataPoints.mzs(),
+          dataPoints.intensities(), spectrumType, scanInfo.polarityType(),
+          scanDefinition, getAcquisitionMassRange(function), MobilityType.TRAVELING_WAVE,
+          scanInfo.msLevel() > 1 ? Set.of(
+              (IonMobilityMsMsInfo) scanInfo.msMsInfo(isDdaFile, isImsFile)) : null, null);
+    }
 
     final List<BuildingMobilityScan> mobScans = readMobilityScansForFrame(function, scan,
         scanInfo.driftScanCount(), metadataScan);
@@ -441,5 +521,17 @@ public class MassLynxDataAccess implements AutoCloseable {
   public void close() throws Exception {
     MassLynxLib.closeFile(handle);
     arena.close();
+  }
+
+  public boolean isDdaFile() {
+    return isDdaFile;
+  }
+
+  public boolean isImsFile() {
+    return isImsFile;
+  }
+
+  public boolean isImagingFile() {
+    return isImagingFile;
   }
 }

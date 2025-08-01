@@ -64,25 +64,22 @@ import java.lang.foreign.MemorySegment;
 
 public record ScanInfoWrapper(int msLevel, int polarity, int driftScanCount, int isProfile,
                               float precursorMz, float quadIsolationStart, float quadIsolationEnd,
-                              float collisionEnergy, float rt) {
+                              float collisionEnergy, float rt, float laserXPos, float laserYPos) {
 
   public static ScanInfoWrapper fromScanInfo(final MemorySegment scanInfo) {
     return new ScanInfoWrapper(ScanInfo.msLevel(scanInfo), ScanInfo.polarity(scanInfo),
         ScanInfo.driftScanCount(scanInfo), ScanInfo.isProfile(scanInfo),
         ScanInfo.precursorMz(scanInfo), ScanInfo.quadIsolationStart(scanInfo),
         ScanInfo.quadIsolationEnd(scanInfo), ScanInfo.collisionEnergy(scanInfo),
-        ScanInfo.rt(scanInfo));
+        ScanInfo.rt(scanInfo), ScanInfo.laserXPos(scanInfo), ScanInfo.laserYPos(scanInfo));
   }
 
   public PolarityType polarityType() {
     return PolarityType.fromInt(polarity);
   }
 
-  public MetadataOnlyScan metadataOnlyScan(MassSpectrumType requestedSpectrumType) {
-    final MassSpectrumType actualSpectrumType =
-        requestedSpectrumType == MassSpectrumType.PROFILE && isProfile() >= 1
-            ? MassSpectrumType.PROFILE : MassSpectrumType.CENTROIDED;
-    return new SimpleBuildingScan(0, msLevel, polarityType(), actualSpectrumType, rt, precursorMz,
+  public MetadataOnlyScan metadataOnlyScan() {
+    return new SimpleBuildingScan(0, msLevel, polarityType(), isProfile > 0 ? MassSpectrumType.PROFILE : MassSpectrumType.CENTROIDED, rt, precursorMz,
         0);
   }
 
