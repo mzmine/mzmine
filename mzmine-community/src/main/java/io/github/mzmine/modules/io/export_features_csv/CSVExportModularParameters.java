@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,17 +27,20 @@ package io.github.mzmine.modules.io.export_features_csv;
 
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class CSVExportModularParameters extends SimpleParameterSet {
 
@@ -55,12 +58,11 @@ public class CSVExportModularParameters extends SimpleParameterSet {
       new ExtensionFilter("comma-separated values", "*.csv"), //
       new ExtensionFilter("All files", "*.*") //
   );
-  public static final FileNameParameter filename = new FileNameParameter("Filename",
-      "Name of the output CSV file. "
-          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
-          + "If the file already exists, it will be overwritten.", extensions,
-      FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter filename = new FileNameSuffixExportParameter(
+      "Filename", "Name of the output CSV file. "
+      + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+      + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
+      + "If the file already exists, it will be overwritten.", extensions, "full_feature_table");
 
 
   public CSVExportModularParameters() {
@@ -84,5 +86,23 @@ public class CSVExportModularParameters extends SimpleParameterSet {
     }
 
     return superCheck && errorMessages.isEmpty();
+  }
+
+  public static CSVExportModularParameters create(File csvExportFile,
+      FeatureListRowsFilter rowsFilter, boolean omitEmpty, String idSeparator, String fieldSep,
+      FeatureListsSelection featureListsSelection) {
+    final ParameterSet parameters = new CSVExportModularParameters().cloneParameterSet();
+    parameters.setParameter(CSVExportModularParameters.filename, csvExportFile);
+    parameters.setParameter(CSVExportModularParameters.filter, rowsFilter);
+    parameters.setParameter(CSVExportModularParameters.omitEmptyColumns, omitEmpty);
+    parameters.setParameter(CSVExportModularParameters.idSeparator, idSeparator);
+    parameters.setParameter(CSVExportModularParameters.fieldSeparator, fieldSep);
+    parameters.setParameter(CSVExportModularParameters.featureLists, featureListsSelection);
+    return (CSVExportModularParameters) parameters;
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

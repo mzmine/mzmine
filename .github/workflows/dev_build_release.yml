@@ -2,7 +2,7 @@ name: Development Build Release
 
 on:
   push:
-    branches: [ master ]
+    branches: [ "master", "actions-test" ]
     paths-ignore:
       - 'mzmine-community/src/main/resources/mzmineversion.properties'
 
@@ -18,29 +18,28 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21.0.2'
-#          cache: 'gradle'  # now done with gradle
+          java-version: '23.0.2'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-#      in push to master use signed version for macOS defined below
+      #      in push to master use signed version for macOS defined below
       - name: Execute Gradle build (unsigned)
         if: runner.os != 'macOS'
-        run: ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
+        run: ./gradlew -p mzmine-community --info --warning-mode all
         env:
           TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
 
       # ZIP PORTABLE VERSIONS
       - name: Zip portable windows
         if: runner.os == 'Windows'
-        uses: papeloto/action-zip@v1
+        uses: vimtor/action-zip@v1.2
         with:
           files: mzmine-community/build/jpackage/mzmine/
           dest: mzmine-community/build/jpackage/mzmine_Windows_portable.zip
       - name: Zip portable linux
         if: runner.os == 'Linux'
-        uses: papeloto/action-zip@v1
+        uses: vimtor/action-zip@v1.2
         with:
           files: mzmine-community/build/jpackage/mzmine/
           dest: mzmine-community/build/jpackage/mzmine_Linux_portable.zip
@@ -48,14 +47,14 @@ jobs:
       # UPLOAD ALL FILES
       - name: Upload windows builds
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_windows_msi_installer
           path: mzmine-community/build/jpackage/*.msi
           retention-days: 7  # store for 7 days
       - name: Upload windows portable builds
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_windows_portable
           path: mzmine-community/build/jpackage/mzmine_Windows_portable.zip
@@ -63,39 +62,33 @@ jobs:
 
       - name: Upload builds ubuntu deb
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_linux_deb_package
           path: mzmine-community/build/jpackage/*.deb
           retention-days: 7  # store for 7 days
       - name: Upload builds ubuntu rpm
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_linux_rpm_package
           path: mzmine-community/build/jpackage/*.rpm
           retention-days: 7  # store for 7 days
       - name: Upload linux portable builds
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mzmine_linux_portable
           path: mzmine-community/build/jpackage/mzmine_Linux_portable.zip
           retention-days: 7  # store for 7 days
 
-
-
       # for macOS:
-      # 1. upload the dmg installer
-      # 2. remove the dmg isntaller from path
-      # 3. zip and upload the jpackage directory
-      # This is needed because zipping of the /jpackage/mzmine.app portable version zips the content
-      # of the folder not the folder itself
+      # Build, sign, notarize DMG, and create portable ZIP all happen in build.gradle
       - name: Setup node for macOS packaging
         if: runner.os == 'macOS'
-        uses: actions/setup-node@v3  # To install appdmg
+        uses: actions/setup-node@v3  # Required for appdmg in Gradle build
 
-      - name: Execute Gradle build on macOS (signed)
+      - name: Execute Gradle build on macOS (signed and notarized)
         if: runner.os == 'macOS'
         run: |
           echo "$MACOS_DEVELOPER_CERTIFICATE" | base64 --decode > certificate.p12
@@ -113,39 +106,22 @@ jobs:
           MACOS_APP_IDENTITY_TEAM_ID: ${{ secrets.MACOS_APP_IDENTITY_TEAM_ID }}
           TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
 
-      - name: Pack macOS .app to .dmg
-        if: runner.os == 'macOS'
-        run: |
-          npm install --python=python3.11 -g appdmg
-          appdmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
-
+      # DMG is now created, signed, and notarized in Gradle - just upload it
       - name: Upload macOS installer
         if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: mzmine_macOS_installer
-          path: mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
+          name: mzmine_macOS_installer_academia
+          path: mzmine-community/build/jpackage/mzmine_macOS_installer_academia.dmg
           retention-days: 7  # store for 7 days
 
-#      - name: Remove dmg File and Make .app executable
-#        if: runner.os == 'macOS'
-#        run: |
-#          find ./build/jpackage/ -name '*.dmg' -delete
-#          chmod a+x build/jpackage/mzmine.app/Contents/MacOS/mzmine
-#      - name: Zip portable macos
-#        if: runner.os == 'macOS'
-#        uses: papeloto/action-zip@v1
-#        with:
-#          files: build/jpackage/
-#          dest: build/jpackage/mzmine_macOS_portable.zip
       - name: Upload macOS portable builds
         if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: mzmine_macos_portable
-          path: mzmine-community/build/jpackage/mzmine_macOS_portable.zip
+          name: mzmine_macos_portable_academia
+          path: mzmine-community/build/jpackage/mzmine_macOS_portable_academia.zip
           retention-days: 7  # store for 7 days
-
 
   # release dev version
   release_dev:
@@ -154,7 +130,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v2 # download all artifacts
+        uses: actions/download-artifact@v4 # download all artifacts
         with:
           path: build/
       - name: Create development release
@@ -173,11 +149,17 @@ jobs:
     if: ${{ !startsWith(github.ref, 'refs/tags/') }} # only increment if not a tag push
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.MZMINE_BOT_ACTIONS_TOKEN }}
+          
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '23.0.2'
+
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
       - name: Execute Gradle to increment version
         run: ./gradlew incrementPatch
       - name: Commit updated patch version

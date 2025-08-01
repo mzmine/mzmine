@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,6 +42,7 @@ import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumCha
 import io.github.mzmine.gui.chartbasics.graphicsexport.ExportChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportDialogFX;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
+import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsFormats;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.preferences.MZminePreferences;
@@ -258,22 +259,23 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
 
   private void exportPdfAndPng(File exportFile, ParameterSet exportClone, JFreeChart chart) {
     FxThread.runOnFxThreadAndWait(() -> {
-      final GraphicsExportDialogFX dialog = new GraphicsExportDialogFX(true, exportClone, chart);
+      final GraphicsExportDialogFX dialog = new GraphicsExportDialogFX(true, exportClone, chart,
+          false);
       if (exportPdf) {
         File export = FileAndPathUtil.getRealFilePath(exportFile, "pdf");
         exportClone.setParameter(GraphicsExportParameters.path, export);
-        exportClone.setParameter(GraphicsExportParameters.exportFormat, "PDF");
+        exportClone.setParameter(GraphicsExportParameters.exportFormat, GraphicsFormats.PDF);
         dialog.setParameterValuesToComponents();
         dialog.export();
       }
       if (exportPng) {
         File export = FileAndPathUtil.getRealFilePath(exportFile, "png");
         exportClone.setParameter(GraphicsExportParameters.path, export);
-        exportClone.setParameter(GraphicsExportParameters.exportFormat, "PNG");
+        exportClone.setParameter(GraphicsExportParameters.exportFormat, GraphicsFormats.PNG);
         dialog.setParameterValuesToComponents();
         dialog.export();
       }
-    });
+    }, true);
   }
 
   private void exportSpectralLibraryMatches(File flistFolder, FeatureListRow row) {
@@ -391,7 +393,8 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
           RunOption.THIS_THREAD, true, true);
       final SpectraPlot spectraPlot = chart.getSpectraPlot();
 
-      final String formatStr = exportParameters.getValue(GraphicsExportParameters.exportFormat);
+      final GraphicsFormats format = exportParameters.getValue(
+          GraphicsExportParameters.exportFormat);
       final File exportFile = new File(flistFolder,
           ExportFormatter.getName(row, "lipid", lipid.getMsMsScore(), "", i));
 
@@ -402,22 +405,22 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
               ""));
       FxThread.runOnFxThreadAndWait(() -> {
         GraphicsExportDialogFX dialog = new GraphicsExportDialogFX(false, exportParameters,
-            spectraPlot.getChart());
+            spectraPlot.getChart(), false);
         if (exportPdf) {
           File file = FileAndPathUtil.getRealFilePath(exportFile, "pdf");
           exportParameters.setParameter(GraphicsExportParameters.path, file);
-          exportParameters.setParameter(GraphicsExportParameters.exportFormat, "PDF");
+          exportParameters.setParameter(GraphicsExportParameters.exportFormat, GraphicsFormats.PDF);
           dialog.setParameterValuesToComponents();
           dialog.export();
         }
         if (exportPng) {
           File file = FileAndPathUtil.getRealFilePath(exportFile, "png");
           exportParameters.setParameter(GraphicsExportParameters.path, file);
-          exportParameters.setParameter(GraphicsExportParameters.exportFormat, "PNG");
+          exportParameters.setParameter(GraphicsExportParameters.exportFormat, GraphicsFormats.PNG);
           dialog.setParameterValuesToComponents();
           dialog.export();
         }
-      });
+      }, true);
     }
   }
 }

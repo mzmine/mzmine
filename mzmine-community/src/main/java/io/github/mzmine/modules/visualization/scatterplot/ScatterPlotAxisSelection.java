@@ -33,89 +33,46 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.project.ProjectService;
 import java.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class represents axis selected in the scatter plot visualizer. This can be either a
  * RawDataFile, or a project parameter value representing several RawDataFiles. In the second case,
  * the average feature area is calculated.
- *
  */
 public class ScatterPlotAxisSelection {
 
-  private RawDataFile file;
-  private UserParameter<?, ?> parameter;
-  private Object parameterValue;
+  private @NotNull RawDataFile file;
 
-  public ScatterPlotAxisSelection(RawDataFile file) {
+  public ScatterPlotAxisSelection(@NotNull RawDataFile file) {
     this.file = file;
   }
 
-  public ScatterPlotAxisSelection(UserParameter<?, ?> parameter, Object parameterValue) {
-    this.parameter = parameter;
-    this.parameterValue = parameterValue;
-  }
 
   @Override
   public String toString() {
-    if (file != null)
-      return file.getName();
-    return parameter.getName() + ": " + parameterValue;
+    return file.getName();
   }
 
   public double getValue(FeatureListRow row) {
-    if (file != null) {
-      Feature feature = row.getFeature(file);
-      if (feature == null)
-        return 0;
-      else
-        return feature.getArea();
-    }
-
-    double totalArea = 0;
-    int numOfFiles = 0;
-    for (RawDataFile dataFile : row.getRawDataFiles()) {
-      Object fileValue =
-          ProjectService.getProjectManager().getCurrentProject().getParameterValue(parameter, dataFile);
-      if (fileValue == null)
-        continue;
-      if (fileValue.toString().equals(parameterValue.toString())) {
-        Feature feature = row.getFeature(dataFile);
-        if ((feature != null) && (feature.getArea() > 0)) {
-          totalArea += feature.getArea();
-          numOfFiles++;
-        }
-      }
-    }
-    if (numOfFiles == 0)
+    Feature feature = row.getFeature(file);
+    if (feature == null) {
       return 0;
-    totalArea /= numOfFiles;
-    return totalArea;
-
+    } else {
+      return feature.getArea();
+    }
   }
 
   static ScatterPlotAxisSelection[] generateOptionsForFeatureList(FeatureList featureList) {
 
-    Vector<ScatterPlotAxisSelection> options = new Vector<ScatterPlotAxisSelection>();
+    Vector<ScatterPlotAxisSelection> options = new Vector<>();
 
     for (RawDataFile dataFile : featureList.getRawDataFiles()) {
       ScatterPlotAxisSelection newOption = new ScatterPlotAxisSelection(dataFile);
       options.add(newOption);
     }
 
-    for (UserParameter<?, ?> parameter : ProjectService.getProjectManager().getCurrentProject()
-        .getParameters()) {
-      if (!(parameter instanceof ComboParameter))
-        continue;
-
-      var possibleValues = ((ComboParameter<?>) parameter).getChoices();
-      for (Object value : possibleValues) {
-        ScatterPlotAxisSelection newOption = new ScatterPlotAxisSelection(parameter, value);
-        options.add(newOption);
-      }
-    }
-
     return options.toArray(new ScatterPlotAxisSelection[0]);
-
   }
 
 }

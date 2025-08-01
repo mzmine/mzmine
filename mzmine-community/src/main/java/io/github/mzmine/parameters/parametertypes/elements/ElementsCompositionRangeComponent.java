@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,11 @@
 
 package io.github.mzmine.parameters.parametertypes.elements;
 
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.util.dialogs.PeriodicTableDialog;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -35,12 +39,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.openscience.cdk.interfaces.IElement;
 import org.openscience.cdk.interfaces.IIsotope;
 
-public class ElementsCompositionRangeComponent extends FlowPane {
+public class ElementsCompositionRangeComponent extends BorderPane {
 
   private final ObservableList<ElementsCompositionRangeValue> elementsValues = FXCollections.observableArrayList();
   private final TableView<ElementsCompositionRangeValue> elementsValueTable = new TableView<>();
@@ -50,7 +55,7 @@ public class ElementsCompositionRangeComponent extends FlowPane {
     elementsValueTable.setEditable(true);
     this.setMaxHeight(200);
     elementsValueTable.setMaxHeight(200);
-    elementsValueTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+    elementsValueTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
     // Allows the individual cells to be selected
     elementsValueTable.getSelectionModel().cellSelectionEnabledProperty().set(true);
@@ -60,11 +65,13 @@ public class ElementsCompositionRangeComponent extends FlowPane {
 
     // Make Column editable
     maxCol.setCellFactory(TextFieldTableCell.forTableColumn());
-    maxCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
-        getRow()).setMax(event.getNewValue()));
+    maxCol.setOnEditCommit(
+        event -> event.getTableView().getItems().get(event.getTablePosition().getRow())
+            .setMax(event.getNewValue()));
     minCol.setCellFactory(TextFieldTableCell.forTableColumn());
-    minCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
-        getRow()).setMin(event.getNewValue()));
+    minCol.setOnEditCommit(
+        event -> event.getTableView().getItems().get(event.getTablePosition().getRow())
+            .setMin(event.getNewValue()));
 
     elementCol.setCellValueFactory(
         cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getIsotope().getSymbol()));
@@ -75,31 +82,33 @@ public class ElementsCompositionRangeComponent extends FlowPane {
 
     minCol.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getMin()));
 
-    minCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
-        getRow()).setMin(event.getNewValue()));
+    minCol.setOnEditCommit(
+        event -> event.getTableView().getItems().get(event.getTablePosition().getRow())
+            .setMin(event.getNewValue()));
 
     elementsValueTable.setItems(elementsValues);
 
     final Button addButton = new Button("Add");
     final Button removeButton = new Button("Remove");
     // Add event
-    addButton.setOnAction(
-        t -> {
-          PeriodicTableDialog dialog = new PeriodicTableDialog();
-          dialog.show();
-          dialog.setOnHiding(e -> {
-            IIsotope chosenIsotope = dialog.getSelectedIsotope();
-            if (chosenIsotope == null) {
-              return;
-            }
-            ElementsCompositionRangeValue elementsValue = new ElementsCompositionRangeValue(chosenIsotope, "100", "0");
-            elementsValues.add(elementsValue);
-          });
-        });
+    addButton.setOnAction(t -> {
+      PeriodicTableDialog dialog = new PeriodicTableDialog();
+      dialog.show();
+      dialog.setOnHiding(e -> {
+        IIsotope chosenIsotope = dialog.getSelectedIsotope();
+        if (chosenIsotope == null) {
+          return;
+        }
+        ElementsCompositionRangeValue elementsValue = new ElementsCompositionRangeValue(
+            chosenIsotope, "100", "0");
+        elementsValues.add(elementsValue);
+      });
+    });
 
     // Remove event
     removeButton.setOnAction(t -> {
-      ElementsCompositionRangeValue element = elementsValueTable.getSelectionModel().getSelectedItem();
+      ElementsCompositionRangeValue element = elementsValueTable.getSelectionModel()
+          .getSelectedItem();
       elementsValues.remove(element);
 
     });
@@ -107,13 +116,10 @@ public class ElementsCompositionRangeComponent extends FlowPane {
     this.setPadding(new Insets(5, 0, 0, 5));
 
     elementsValueTable.getColumns().addAll(elementCol, minCol, maxCol);
-    VBox vBox = new VBox();
-    vBox.getChildren().addAll(addButton, removeButton);
-    vBox.setSpacing(10);
+    VBox vBox = FxLayout.newVBox(Pos.TOP_LEFT, addButton, removeButton);
 
-    this.getChildren().addAll(elementsValueTable, vBox);
-    this.setHgap(10d);
-    this.setAlignment(Pos.BASELINE_RIGHT);
+    setCenter(elementsValueTable);
+    setRight(vBox);
   }
 
   public MolecularFormulaRange getElements() {
@@ -137,11 +143,16 @@ public class ElementsCompositionRangeComponent extends FlowPane {
     if (elements == null) {
       return;
     }
-    for (IIsotope isotope : elements.isotopes()) {
+
+    List<IIsotope> isotopes = new ArrayList<>();
+    elements.isotopes().forEach(isotopes::add);
+    isotopes.sort(Comparator.comparing(IElement::getSymbol));
+
+    for (IIsotope isotope : isotopes) {
       int minCount = elements.getIsotopeCountMin(isotope);
       int maxCount = elements.getIsotopeCountMax(isotope);
-      ElementsCompositionRangeValue elementsValue = new ElementsCompositionRangeValue(isotope, String.valueOf(maxCount),
-          String.valueOf(minCount));
+      ElementsCompositionRangeValue elementsValue = new ElementsCompositionRangeValue(isotope,
+          String.valueOf(maxCount), String.valueOf(minCount));
       elementsValues.add(elementsValue);
     }
 

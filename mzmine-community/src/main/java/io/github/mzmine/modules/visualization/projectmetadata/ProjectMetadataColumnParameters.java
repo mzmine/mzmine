@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,14 +29,15 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Date
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DoubleMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.date.DateTimeUtils;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -85,7 +86,8 @@ public class ProjectMetadataColumnParameters extends SimpleParameterSet {
      */
     public static AvailableTypes castToMostAppropriateType(final String[] original,
         final Object[] converted) {
-      for (var type : values()) {
+      var priority = List.of(NUMBER, DATETIME, TEXT);
+      for (var type : priority) {
         Object[] tmp = type.tryCastType(original);
         // error: null; all empty values: all null elements
         // empty column only accepted for text (defaults to text)
@@ -132,17 +134,25 @@ public class ProjectMetadataColumnParameters extends SimpleParameterSet {
         return values;
       }
 
-      String v = null;
+      String v;
       try {
         Object[] result = new Object[values.length];
         for (int i = 0; i < values.length; i++) {
           v = values[i];
-          result[i] = v == null || v.isBlank() ? null : getInstance().convertOrThrow(v);
+          if (StringUtils.isBlank(v)) {
+            result[i] = null;
+            continue;
+          }
+
+          result[i] = getInstance().convertOrThrow(v);
+          // cannot be null after this
+          if (result[i] == null) {
+            // failed to convert a string value that was not blank
+            return null;
+          }
         }
         return result;
       } catch (Exception ex) {
-        logger.warning(
-            "Cannot convert value " + Objects.requireNonNullElse(v, "null") + " to " + this);
         return null;
       }
     }
@@ -152,6 +162,6 @@ public class ProjectMetadataColumnParameters extends SimpleParameterSet {
       "Type of the new parameter", AvailableTypes.values(), AvailableTypes.values()[0]);
 
   public ProjectMetadataColumnParameters() {
-    super(new Parameter[]{title, description, valueType});
+    super(valueType, title, description);
   }
 }

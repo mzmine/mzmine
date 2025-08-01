@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,15 +25,19 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.nio.DoubleBuffer;
+import java.lang.foreign.MemorySegment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,17 +47,19 @@ import org.jetbrains.annotations.Nullable;
 public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
   public static final String XML_SCAN_TYPE = "simplescan";
-  protected final Float injectionTime;
+  protected final float injectionTime;
   @NotNull
   private final RawDataFile dataFile;
   private int scanNumber;
   private int msLevel;
   private float retentionTime;
+  private Float correctedRetentionTime;
   private PolarityType polarity;
   private String scanDefinition;
-  private Range<Double> scanMZRange;
   private MassList massList = null;
   private MsMsInfo msMsInfo;
+
+  private final @Nullable SimpleDoubleRange scanningMzRange;
 
   /**
    * clone scan with new data
@@ -69,8 +75,8 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   /**
    * clone scan with new data
    */
-  public SimpleScan(@NotNull RawDataFile dataFile, Scan sc, DoubleBuffer newMzValues,
-      DoubleBuffer newIntensityValues) {
+  public SimpleScan(@NotNull RawDataFile dataFile, Scan sc, MemorySegment newMzValues,
+      MemorySegment newIntensityValues) {
 
     this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getMsMsInfo(),
         newMzValues, newIntensityValues, sc.getSpectrumType(), sc.getPolarity(),
@@ -103,14 +109,14 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.retentionTime = retentionTime;
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
-    this.scanMZRange = scanMZRange;
+    this.scanningMzRange = SimpleRange.ofDouble(scanMZRange);
     setSpectrumType(spectrumType);
     setMsMsInfo(msMsInfo);
-    this.injectionTime = injectionTime;
+    this.injectionTime = requireNonNullElse(injectionTime, -1f);
   }
 
   public SimpleScan(@NotNull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
-      @Nullable MsMsInfo msMsInfo, DoubleBuffer mzValues, DoubleBuffer intensityValues,
+      @Nullable MsMsInfo msMsInfo, MemorySegment mzValues, MemorySegment intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange, @Nullable Float injectionTime) {
 
@@ -122,10 +128,10 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.retentionTime = retentionTime;
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
-    this.scanMZRange = scanMZRange;
+    this.scanningMzRange = SimpleRange.ofDouble(scanMZRange);
     setSpectrumType(spectrumType);
     setMsMsInfo(msMsInfo);
-    this.injectionTime = injectionTime;
+    this.injectionTime = requireNonNullElse(injectionTime, -1f);
   }
 
 
@@ -177,7 +183,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
    */
   @Override
   public float getRetentionTime() {
-    return retentionTime;
+    return correctedRetentionTime != null ? correctedRetentionTime : retentionTime;
   }
 
   /**
@@ -186,7 +192,6 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   public void setRetentionTime(float retentionTime) {
     this.retentionTime = retentionTime;
   }
-
 
   @Override
   public String toString() {
@@ -238,17 +243,28 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   }
 
   @Override
-  @Nullable
-  public Range<Double> getScanningMZRange() {
-    if (scanMZRange == null) {
-      scanMZRange = getDataPointMZRange();
-    }
-    return scanMZRange;
+  public @Nullable Range<Double> getScanningMZRange() {
+    final Range<Double> scanning = SimpleRange.guavaOrNull(scanningMzRange);
+    return scanning != null ? scanning : getDataPointMZRange();
   }
 
   @Override
   public @Nullable Float getInjectionTime() {
-    return injectionTime;
+    // stored as primitive but behavior used to be null
+    return injectionTime < 0 ? null : injectionTime;
+  }
+
+  public void setCorrectedRetentionTime(@Nullable Float corrected) {
+    this.correctedRetentionTime = corrected;
+  }
+
+  public float getUncorrectedRetentionTime() {
+    return retentionTime;
+  }
+
+  @Nullable
+  public Float getCorrectedRetentionTime() {
+    return correctedRetentionTime;
   }
 }
 

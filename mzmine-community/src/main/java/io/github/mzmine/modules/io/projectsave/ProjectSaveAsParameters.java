@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,10 +35,10 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.util.List;
@@ -54,18 +54,21 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ProjectSaveAsParameters extends SimpleParameterSet {
 
-  public static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("MZmine project file", "*.mzmine"), //
-      new ExtensionFilter("All files", "*.*") //
-  );
+  public static final List<ExtensionFilter> extensions = List.of(ExtensionFilters.MZ_PROJECT,
+      ExtensionFilters.ALL_FILES);
   public static final ComboParameter<ProjectSaveOption> option = new ComboParameter<>(
-      "Project type",
-      "Referencing projects point to the original directory of raw data files (with those projects "
-          + "files should not be moved or renamed). Standalone copies the raw data files into the project, "
-          + "creating a large but flexible project that can be shared.", ProjectSaveOption.values(),
-      ProjectSaveOption.REFERENCING);
-  public static final FileNameParameter projectFile = new FileNameParameter("Project file",
-      "File name of project to be saved", extensions, FileSelectionType.SAVE);
+      "Project type", """
+      Referencing projects point to the original directory of raw data files as absolute and 
+      relative paths.  Projects can be shared if the raw files are located in exactly the same absolute 
+      path (e.g. starting with C:\\\\...) or the same path relative to the project file (e.g. saving the
+      project in the same folder as the raw files will achieve a portable project - requires mzmine 4.3 or higher). 
+      
+      Standalone copies the raw data files into the project, 
+      creating a larger, but flexible project that can be shared without any additional requirements.""",
+      ProjectSaveOption.values(), ProjectSaveOption.REFERENCING);
+
+  public static final FileNameSuffixExportParameter projectFile = new FileNameSuffixExportParameter(
+      "Project file", "File name of project to be saved", extensions, null);
   private static final Logger logger = Logger.getLogger(ProjectSaveAsParameters.class.getName());
 
   public ProjectSaveAsParameters() {
@@ -81,7 +84,9 @@ public class ProjectSaveAsParameters extends SimpleParameterSet {
         boldText("Standalone: "),
         text("Adds the raw data files into a project (large but flexible)"), linebreak(),
         boldText("Referencing: "), text(
-            "The project will point to the current files used. Any rename, move, or remove of a file from their current directory might lead to incompatibility of the project."),
+            "The project will point to the currently used files. Renaming, moving, or removing"
+                + " a file from its current directory might lead to incompatibility of the project. "
+                + "The project will keep absolute and relative (from mzmine 4.4) paths the the raw files."),
         linebreak(), boldText("WARNING: "),
         text("If this is an existing project, it is recommended to save it in the same way."));
 

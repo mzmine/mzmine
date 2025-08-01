@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,9 +26,14 @@
 package io.github.mzmine.javafx.components.factories;
 
 import io.github.mzmine.javafx.components.util.FxLayout;
+import java.util.stream.Collectors;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
@@ -54,29 +59,44 @@ public class FxTextFlows {
   public static TextFlow newTextFlow(final TextAlignment textAlignment, Node... nodes) {
     var textFlow = new TextFlow(nodes);
     textFlow.setTextAlignment(textAlignment);
+    textFlow.setPrefHeight(Region.USE_COMPUTED_SIZE);
+    textFlow.setMaxWidth(Double.MAX_VALUE);
+    textFlow.setMaxHeight(Double.MAX_VALUE);
     return textFlow;
   }
 
-  public static Region newTextFlowInAccordion(final String title,
-      Node... nodes) {
+  public static Region newTextFlowInAccordion(final String title, Node... nodes) {
     return newTextFlowInAccordion(title, false, TextAlignment.LEFT, nodes);
   }
 
-  public static Region newTextFlowInAccordion(final String title, boolean expanded,
-      Node... nodes) {
+  public static Region newTextFlowInAccordion(final String title, boolean expanded, Node... nodes) {
     return newTextFlowInAccordion(title, expanded, TextAlignment.LEFT, nodes);
   }
 
-  public static Region newTextFlowInAccordion(final String title, boolean expanded, final TextAlignment textAlignment,
-      Node... nodes) {
+  public static Region newTextFlowInAccordion(final String title, boolean expanded,
+      final TextAlignment textAlignment, Node... nodes) {
     TextFlow textFlow = newTextFlow(nodes);
     textFlow.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
     textFlow.setTextAlignment(textAlignment);
     final TitledPane pane = new TitledPane(title, textFlow);
     final Accordion accordion = new Accordion(pane);
-    if(expanded) {
+    if (expanded) {
       accordion.setExpandedPane(accordion.getPanes().getFirst());
     }
     return accordion;
+  }
+
+  public static String getText(Parent text) {
+    return text.getChildrenUnmodifiable().stream().<String>mapMulti((child, c) -> {
+      switch (child) {
+        case Text t -> c.accept(t.getText());
+        case Label t -> c.accept(t.getText());
+        case TextField tf -> c.accept(tf.getText());
+        case TextArea ta -> c.accept(ta.getText());
+        case Parent p -> c.accept(getText(p));
+        default -> {
+        }
+      }
+    }).collect(Collectors.joining());
   }
 }

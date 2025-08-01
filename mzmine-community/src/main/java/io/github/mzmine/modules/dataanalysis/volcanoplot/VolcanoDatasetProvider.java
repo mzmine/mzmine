@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,14 +25,14 @@
 
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
+import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import java.awt.Color;
@@ -40,21 +40,24 @@ import java.text.DecimalFormat;
 import java.util.List;
 import javafx.beans.property.Property;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.renderer.PaintScale;
 
 public class VolcanoDatasetProvider extends SimpleXYProvider implements
-    XYItemObjectProvider<RowSignificanceTestResult> {
+    XYItemObjectProvider<RowSignificanceTestResult>, PlotXYZDataProvider {
 
-  private final StudentTTest<?> test;
+  private final UnivariateRowSignificanceTest<?> test;
   private final List<RowSignificanceTestResult> results;
+  private final FeaturesDataTable dataA;
+  private final FeaturesDataTable dataB;
 
-  private final AbundanceMeasure abundanceMeasure;
-
-  public VolcanoDatasetProvider(StudentTTest<?> test, List<RowSignificanceTestResult> results,
-      Color color, String key, AbundanceMeasure abundanceMeasure) {
+  public VolcanoDatasetProvider(UnivariateRowSignificanceTest<?> test,
+      List<RowSignificanceTestResult> results, Color color, String key) {
     super(key, color, new DecimalFormat("0.0"), new DecimalFormat("0.0"));
     this.test = test;
     this.results = results;
-    this.abundanceMeasure = abundanceMeasure;
+    // quick find index of rows
+    dataA = test.getGroupAData();
+    dataB = test.getGroupBData();
   }
 
   @Override
@@ -68,7 +71,7 @@ public class VolcanoDatasetProvider extends SimpleXYProvider implements
     final FeatureAnnotation bestAnnotation = FeatureUtils.getBestFeatureAnnotation(result.row());
     String name = result.row().toString();
     if (bestAnnotation != null) {
-      name += STR.", \{bestAnnotation.getCompoundName()}";
+      name += ", " + bestAnnotation.getCompoundName();
     }
     return String.format("""
         %s
@@ -84,17 +87,43 @@ public class VolcanoDatasetProvider extends SimpleXYProvider implements
   @Override
   public void computeValues(Property<TaskStatus> status) {
     double[] minusLog10PValue = new double[results.size()];
-    final List<RawDataFile> groupAFiles = test.getGroupAFiles();
-    final List<RawDataFile> groupBFiles = test.getGroupBFiles();
+    double[] log2FoldChange = new double[results.size()];
 
     for (int i = 0; i < results.size(); i++) {
-      minusLog10PValue[i] = -Math.log10(results.get(i).pValue());
-    }
-    double[] log2FoldChange = StatisticUtils.calculateLog2FoldChange(results, groupAFiles,
-        groupBFiles, abundanceMeasure);
+      final RowSignificanceTestResult result = results.get(i);
+      minusLog10PValue[i] = -Math.log10(result.pValue());
 
+      // not all rows are in this dataset so use the index to retrieve data
+      final int rowIndex = dataA.getFeatureIndex(result.row());
+      final double[] a = dataA.getFeatureData(rowIndex, false);
+      final double[] b = dataB.getFeatureData(rowIndex, false);
+      log2FoldChange[i] = StatisticUtils.calculateLog2FoldChange(a, b);
+    }
+    // reuse the groups from stats test
     setxValues(log2FoldChange);
     setyValues(minusLog10PValue);
   }
 
+  @Override
+  public @Nullable PaintScale getPaintScale() {
+    return null;
+  }
+
+  /**
+   * @return The row id, mainly used for the export of the chart data.
+   */
+  @Override
+  public double getZValue(int index) {
+    return results.get(index).row().getID();
+  }
+
+  @Override
+  public @Nullable Double getBoxHeight() {
+    return null;
+  }
+
+  @Override
+  public @Nullable Double getBoxWidth() {
+    return null;
+  }
 }

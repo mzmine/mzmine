@@ -27,12 +27,12 @@ package io.github.mzmine.gui.mainwindow;
 
 import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.gui.VersionCheckResultType;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.io.SemverVersionReader;
 
 public record VersionCheckResult(VersionCheckResultType type, Semver newVersion) {
 
   public static VersionCheckResult of(Semver newVersion) {
-    final Semver current = MZmineCore.getMZmineVersion();
+    final Semver current = SemverVersionReader.getMZmineVersion();
     if (newVersion == null) {
       return new VersionCheckResult(VersionCheckResultType.CANNOT_PARSE, newVersion);
     } else if (current.isLowerThan(newVersion)) {
@@ -48,11 +48,12 @@ public record VersionCheckResult(VersionCheckResultType type, Semver newVersion)
   public String print() {
     return switch (type) {
       case NEW_AVAILALABLE ->
-          STR."An updated version is available: MZmine \{newVersion}. Please download the newest version.";
-      case CURRENT -> "No updated version of MZmine is available.";
+          "An updated version is available: mzmine %s. Please download the newest version.".formatted(
+              newVersion);
+      case CURRENT -> "No updated version of mzmine is available.";
       case THIS_IS_NEWER ->
-          STR."It seems you are running MZmine version \{MZmineCore.getMZmineVersion()
-              }, which is newer than the latest official release \{newVersion}";
+          "It seems you are running mzmine version %s which is newer than the latest official release %s".formatted(
+              SemverVersionReader.getMZmineVersion(), newVersion);
       case NO_INTERNET -> "Error retrieving or parsing latest version number from MZmine website.";
       case CANNOT_PARSE ->
           "An error occurred parsing or retrieving the latest version number. Please make sure that you are connected to the internet or try again later.";

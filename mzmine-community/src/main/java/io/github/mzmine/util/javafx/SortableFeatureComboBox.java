@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,6 @@ package io.github.mzmine.util.javafx;
 import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -70,7 +69,10 @@ public class SortableFeatureComboBox extends FlowPane {
 
     data = new ComboBox<>(filtered);
     data.setMinWidth(100);
-    sortBox = new ComboBox<>(FXCollections.observableArrayList(SortingProperty.values()));
+    // remove intensity to avoid confusion
+    final List<SortingProperty> sortingProperties =new ArrayList<>(List.of(SortingProperty.values()));
+    sortingProperties.remove(SortingProperty.Intensity);
+    sortBox = new ComboBox<>(FXCollections.observableArrayList(sortingProperties));
     sortBox.setValue(SortingProperty.RT);
     sortBox.valueProperty().addListener(((_, _, _) -> sortBaseList()));
 
@@ -104,6 +106,7 @@ public class SortableFeatureComboBox extends FlowPane {
       features.get().setAll(copy);
       logger.log(Level.WARNING, "Error while sorting feature list.", e);
     }
+    features.get().setAll(copy);
     if (selectedFeature != null && copy.contains(selectedFeature)) {
       setSelectedFeature(selectedFeature);
     }
@@ -136,6 +139,10 @@ public class SortableFeatureComboBox extends FlowPane {
     return data.getSelectionModel().selectedItemProperty();
   }
 
+  public Feature getSelectedFeature() {
+    return data.getValue();
+  }
+
   public void setSelectedFeature(Feature f) {
     if (filtered.contains(f)) {
       // check if we contain the feature in the filtered list. otherwise it will not keep the
@@ -144,15 +151,11 @@ public class SortableFeatureComboBox extends FlowPane {
     }
   }
 
-  public Feature getSelectedFeature() {
-    return data.getValue();
-  }
-
   public List<Feature> getItems() {
     return features.get();
   }
 
-  public void setItems(List<Feature> items) {
+  public void setItems(List<? extends Feature> items) {
     final ArrayList<Feature> copy = new ArrayList<>(items);
     features.get().setAll(copy);
     sortBaseList();

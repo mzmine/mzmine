@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,9 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransfo
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.javafx.util.color.Vision;
+import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts.ChartUtils;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -42,7 +44,9 @@ import java.util.logging.Logger;
 import javafx.collections.ModifiableObservableListBase;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
+import org.jfree.chart.plot.Plot;
 import org.w3c.dom.Element;
 
 /**
@@ -127,7 +131,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     neutralColor = ColorsFX.getNeutralColor();
   }
 
-  public SimpleColorPalette(@NotNull Color[] clrs) {
+  public SimpleColorPalette(@NotNull Color... clrs) {
     this();
     for (Color clr : clrs) {
       add(clr);
@@ -155,15 +159,28 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   }
 
   public void applyToChartTheme(EStandardChartTheme theme) {
+    final DefaultDrawingSupplier drawingSupplier = createDrawingSupplier();
+    theme.setDrawingSupplier(drawingSupplier);
+  }
 
+  private @NotNull DefaultDrawingSupplier createDrawingSupplier() {
     List<java.awt.Color> awtColors = new ArrayList<>();
     this.forEach(c -> awtColors.add(FxColorUtil.fxColorToAWT(c)));
     java.awt.Color colors[] = awtColors.toArray(new java.awt.Color[0]);
 
-    theme.setDrawingSupplier(new DefaultDrawingSupplier(colors, colors, colors,
-        DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
+    final DefaultDrawingSupplier drawingSupplier = new DefaultDrawingSupplier(colors, colors,
+        colors, DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
         DefaultDrawingSupplier.DEFAULT_OUTLINE_STROKE_SEQUENCE,
-        DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE));
+        DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE);
+    return drawingSupplier;
+  }
+
+  public void applyToChart(@NotNull JFreeChart chart) {
+    final DefaultDrawingSupplier drawingSupplier = createDrawingSupplier();
+    final List<Plot> plots = ChartUtils.streamPlots(chart).toList();
+    for (Plot plot : plots) {
+      plot.setDrawingSupplier(drawingSupplier);
+    }
   }
 
   /**
@@ -186,6 +203,29 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return clr;
   }
 
+  public synchronized int getNumberOfColors() {
+    return this.size();
+  }
+
+  /**
+   * @return unmodifiable view of colors
+   */
+  public synchronized List<Color> getColors() {
+    return Collections.unmodifiableList(delegate);
+  }
+
+  /**
+   * @return new list of colors
+   */
+  public synchronized List<java.awt.Color> getColorsAWT() {
+    List<java.awt.Color> awtColors = new ArrayList<>(size());
+    for (Color color : delegate) {
+      awtColors.add(FxColorUtil.fxColorToAWT(color));
+    }
+
+    return awtColors;
+  }
+
   /**
    * @param exclusion A color to be visually different from.
    * @return A visually different color.
@@ -200,6 +240,14 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       }
     } while (startNext != next);
     return getNextColor(); // use the color we should use originally
+  }
+
+  /**
+   * @param exclusion A color to be visually different from.
+   * @return A visually different color.
+   */
+  public synchronized java.awt.Color getNextColorAWT(@NotNull final java.awt.Color exclusion) {
+    return FxColorUtil.fxColorToAWT(getNextColor(FxColorUtil.awtColorToFX(exclusion)));
   }
 
   public java.awt.Color getNextColorAWT() {
@@ -293,13 +341,23 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   }
 
   /**
-   * Checks for equality between two color palettes. Does not take the name into account.
+   * Checks for equality between two color palettes. Takes the name into account.
    *
    * @param obj The palette.
    * @return true or false.
    */
   @Override
   public boolean equals(Object obj) {
+    return equals(obj, true);
+  }
+
+  /**
+   * Checks for equality between two color palettes. Takes the name into account.
+   *
+   * @param obj The palette.
+   * @return true or false.
+   */
+  public boolean equals(Object obj, boolean checkName) {
     if (obj == null) {
       return false;
     }
@@ -324,7 +382,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       }
     }
 
-    if (!Objects.equals(getName(), palette.getName())) {
+    if (checkName && !Objects.equals(getName(), palette.getName())) {
       return false;
     }
 
@@ -349,13 +407,16 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   @Override
   public SimpleColorPalette clone() {
+    return clone(false);
+  }
+
+  public SimpleColorPalette clone(boolean resetIndex) {
     SimpleColorPalette clone = new SimpleColorPalette();
-    for (Color clr : this) {
-      clone.add(clr);
-    }
+    clone.addAll(this);
     clone.setName(getName());
     clone.setNegativeColor(getNegativeColor());
     clone.setPositiveColor(getPositiveColor());
+    clone.setColorCounter(resetIndex ? 0 : next);
     return clone;
   }
 
@@ -496,7 +557,24 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return delegate.remove(index);
   }
 
-  public void resetColorCounter() {
-    next = 0;
+  /**
+   * @param nextIndex this will be the next color index
+   */
+  public void setColorCounter(int nextIndex) {
+    next = nextIndex;
   }
+
+  public void resetColorCounter() {
+    setColorCounter(0);
+  }
+
+  /**
+   * Converts the given color to an fx color using {@link FxColorUtil#awtColorToFX(java.awt.Color)}
+   * and then searches using {@link List#indexOf(Object)}
+   */
+  public int indexOfAwt(java.awt.Color clr) {
+    final Color fxColor = FxColorUtil.awtColorToFX(clr);
+    return super.indexOf(fxColor);
+  }
+
 }

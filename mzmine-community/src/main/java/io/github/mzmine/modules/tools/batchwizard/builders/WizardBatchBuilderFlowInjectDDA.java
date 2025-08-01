@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,7 +65,7 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
     makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
-        minRtDataPoints, null);
+        minRtDataPoints, null, polarity);
 
     var groupMs2Params = createMs2GrouperParameters(minRtDataPoints, false, null);
 
@@ -90,14 +90,15 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
     // annotation
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, null);
-    makeAndAddLipidAnnotationStep(q, true);
+    makeAndAddLipidAnnotationStep(q);
     // networking
     if (applySpectralNetworking) {
-      makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath);
+      makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, false);
     }
 
     // export
-    makeAndAddDdaExportSteps(q, steps);
+    makeAndAddDdaExportSteps(q, steps, mzTolScans);
+    makeAndAddBatchExportStep(q, isExportActive, exportPath);
     return q;
   }
 

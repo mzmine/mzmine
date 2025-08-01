@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 
 /**
@@ -62,19 +63,21 @@ public class BatchSpeedTestMain {
   private static final Logger logger = Logger.getLogger(BatchSpeedTestMain.class.getName());
 
   public static void main(String[] args) {
-    String speedTestFile = "D:\\git\\mzmine3\\src\\test\\java\\import_data\\local\\speed.jsonlines";
-    String description = "RAM=16GB, MZmine3.10, smallDOM";
+    String speedTestFile = "D:\\speed.jsonlines";
+    String description = "mzmine4.5";
     // keep running and all in memory
-    String inMemory = "all";
-//    String inMemory = "none";
+//    String inMemory = "all";
+    String inMemory = "none";
     boolean headLess = false;
+   
+//    String batchFile = "rawdatafiles/test_batch_small.xml";
+//    String batchFile = "D:\\tmp\\workshop_small.mzbatch";
+    String batchFile = "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\speedtest_benchmark\\Orbitrap_QE_environmental_DOM_sea_water\\0_dom_500_mzmine4-4-52.mzbatch";
+//    List<String> samples = List.of("rawdatafiles/DOM_a.mzML",
+//        "rawdatafiles/DOM_a_invalid_chars.mzML", "rawdatafiles/DOM_a_invalid_header.mzML",
+//        "rawdatafiles/DOM_b.mzXML", "rawdatafiles/DOM_b_invalid_header.mzXML");
 
-    String batchFile = "rawdatafiles/test_batch_small.xml";
-    List<String> samples = List.of("rawdatafiles/DOM_a.mzML",
-        "rawdatafiles/DOM_a_invalid_chars.mzML", "rawdatafiles/DOM_a_invalid_header.mzML",
-        "rawdatafiles/DOM_b.mzXML", "rawdatafiles/DOM_b_invalid_header.mzXML");
-
-    List<BatchSpeedJob> jobs = List.of(new BatchSpeedJob(description, 3, batchFile, samples));
+    List<BatchSpeedJob> jobs = List.of(new BatchSpeedJob(description, 1, batchFile, null));
 
     startAndRunTests(speedTestFile, headLess, inMemory, jobs);
   }
@@ -111,8 +114,9 @@ public class BatchSpeedTestMain {
             iterations[i]++;
             allDone = false;
 
-            String description = STR."inMemory=\{inMemory}, \{job.description()} \{headLess
-                ? "headless" : "GUI"}";
+            String description =
+                "inMemory=" + inMemory + ", " + job.description() + " " + (headLess ? "headless"
+                    : "GUI");
             runBatch(description, job.files(), job.batchFile(), outFile);
           }
         }
@@ -129,8 +133,8 @@ public class BatchSpeedTestMain {
     System.exit(1);
   }
 
-  private static void runBatch(String description, final List<String> files, final String batchFile,
-      final String outFile) throws InterruptedException, IOException {
+  private static void runBatch(String description, @Nullable final List<String> files,
+      final String batchFile, final String outFile) throws InterruptedException, IOException {
 
     System.gc();
     try {
@@ -147,17 +151,20 @@ public class BatchSpeedTestMain {
         try (var tsvWriter = Files.newBufferedWriter(tsvFile.toPath(), StandardCharsets.UTF_8,
             StandardOpenOption.APPEND, StandardOpenOption.CREATE)) {
 
+          logger.info("Exporting files to " + tsvFile.getAbsolutePath());
+
           var tsvMapper = new CsvMapper();
-          var schema = tsvMapper.schemaFor(SpeedMeasurement.class)
-              .withUseHeader(!exists);
+          var schema = tsvMapper.schemaFor(SpeedMeasurement.class).withUseHeader(!exists);
           ObjectWriter tsvObjectWriter = tsvMapper.writer(schema);
 
           ObjectMapper jsonMapper = new ObjectMapper();
 
           for (final StepTimeMeasurement step : finished) {
-            double seconds = step.duration().toMillis() / 1000.0;
+            double seconds = step.secondsToFinish();
+            var nFiles =
+                files == null ? ProjectService.getProject().getNumberOfDataFiles() : files.size();
             var sm = new SpeedMeasurement(step.name(), new File(batchFile).getName(), description,
-                files.size(), seconds);
+                nFiles, seconds, step.usedHeapGB());
 
             String tsv = tsvObjectWriter.writeValueAsString(sm);
             tsvWriter.append(tsv);
@@ -171,20 +178,22 @@ public class BatchSpeedTestMain {
       }
     } catch (Exception ex) {
       logger.info(
-          STR."Failed batch \{description} for \{batchFile} with \{files.size()} files. Will continue with next task.");
+          "Failed batch " + description + " for " + batchFile + " with " + (files == null ? "x"
+              : files.size()) + " files. Will continue with next task.");
     }
 
     ProjectService.getProjectManager().clearProject();
   }
 
-  public static List<StepTimeMeasurement> runBatch(final List<String> fileNames, String batchFile) {
-    File[] files = fileNames.stream().map(BatchSpeedTestMain::getFileOrResource)
-        .toArray(File[]::new);
+  public static List<StepTimeMeasurement> runBatch(@Nullable final List<String> fileNames,
+      String batchFile) {
+    File[] files = fileNames == null ? null
+        : fileNames.stream().map(BatchSpeedTestMain::getFileOrResource).toArray(File[]::new);
 
     File batch = getFileOrResource(batchFile);
 
-    BatchTask task = BatchModeModule.runBatch(ProjectService.getProject(), batch, files, new File[0],
-        Instant.now());
+    BatchTask task = BatchModeModule.runBatchFile(ProjectService.getProject(), batch, files, null, null,
+        null, Instant.now());
 
     Assertions.assertEquals(TaskStatus.FINISHED, task.getStatus());
 

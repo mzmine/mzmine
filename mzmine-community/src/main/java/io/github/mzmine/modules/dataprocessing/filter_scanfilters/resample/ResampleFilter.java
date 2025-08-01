@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,19 +40,29 @@ import org.jetbrains.annotations.NotNull;
 
 public class ResampleFilter implements ScanFilter {
 
+  private final double binSize;
+
+  // requires default constructor for config
+  public ResampleFilter() {
+    binSize = 0.01;
+  }
+
+  public ResampleFilter(final ParameterSet parameters) {
+    binSize = parameters.getParameter(ResampleFilterParameters.binSize).getValue();
+  }
+
+
   @Override
-  public Scan filterScan(RawDataFile newFile, Scan scan, ParameterSet parameters) {
+  public Scan filterScan(RawDataFile newFile, Scan scan) {
 
     if (scan.isEmptyScan()) {
 //      return scan;
       return scan;
     }
 
-    double binSize = parameters.getParameter(ResampleFilterParameters.binSize).getValue();
-
     Range<Double> mzRange = scan.getDataPointMZRange();
-    int numberOfBins =
-        (int) Math.round((mzRange.upperEndpoint() - mzRange.lowerEndpoint()) / binSize);
+    int numberOfBins = (int) Math.round(
+        (mzRange.upperEndpoint() - mzRange.lowerEndpoint()) / binSize);
     if (numberOfBins == 0) {
       numberOfBins++;
     }

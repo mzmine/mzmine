@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,8 @@ package io.github.mzmine.datamodel.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -59,8 +61,10 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
   private final int msLevel;
   @NotNull
   private final ActivationMethod method;
+
   @Nullable
-  private final Range<Double> isolationWindow;
+  private final SimpleDoubleRange mzIsolationWindow;
+
   @Nullable
   private final Scan parentScan;
   @Nullable
@@ -76,7 +80,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     this.parentScan = parentScan;
     this.msLevel = msLevel;
     this.method = method;
-    this.isolationWindow = isolationWindow;
+    mzIsolationWindow = SimpleRange.ofDouble(isolationWindow);
   }
 
   public DDAMsMsInfoImpl(double isolationMz, @Nullable Integer charge, final int msLevel) {
@@ -92,6 +96,8 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     Double precursorMz = null;
     Integer charge = null;
     Float energy = null;
+    // this energy should be preferred over the also defined CID energy in EAD which is used to transfer the ions
+    Float energyEAD = null;
     ActivationMethod method = ActivationMethod.UNKNOWN;
 
     MzMLPrecursorActivation activation = precursorElement.getActivation();
@@ -100,6 +106,9 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
           .equals(MzMLCV.cvPercentCollisionEnergy) || mzMLCVParam.getAccession()
           .equals(MzMLCV.cvActivationEnergy2)) {
         energy = Float.parseFloat(mzMLCVParam.getValue().get());
+      }
+      if (mzMLCVParam.getAccession().equals(MzMLCV.cvElectronBeamEnergyEAD)) {
+        energyEAD = Float.parseFloat(mzMLCVParam.getValue().get());
       }
       if (mzMLCVParam.getAccession().equals(MzMLCV.cvActivationCID)) {
         method = ActivationMethod.CID;
@@ -113,6 +122,12 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
       if (mzMLCVParam.getAccession().equals(MzMLCV.cvLowEnergyCID)) {
         method = ActivationMethod.CID;
       }
+    }
+
+    if (energyEAD != null) {
+      // the regular energy is only used for ion transfer?
+      energy = energyEAD;
+      method = ActivationMethod.EAD;
     }
 
     List<MzMLCVParam> cvParamsList = list.get().getSelectedIonList().get(0).getCVParamsList();
@@ -178,21 +193,21 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
         XML_PRECURSOR_CHARGE_ATTR, null, Integer::parseInt);
 
     final Integer scanIndex = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
+        MsMsInfo.XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
 
     final Integer parentScanIndex = ParsingUtils.readAttributeValueOrDefault(reader,
         XML_PARENT_SCAN_ATTR, null, Integer::parseInt);
 
     final Float activationEnergy = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
+        MsMsInfo.XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
 
-    final int msLevel = Integer.parseInt(reader.getAttributeValue(null, XML_MSLEVEL_ATTR));
+    final int msLevel = Integer.parseInt(reader.getAttributeValue(null, MsMsInfo.XML_MSLEVEL_ATTR));
 
     final ActivationMethod method = ActivationMethod.valueOf(
-        reader.getAttributeValue(null, XML_ACTIVATION_TYPE_ATTR));
+        reader.getAttributeValue(null, MsMsInfo.XML_ACTIVATION_TYPE_ATTR));
 
     final Range<Double> isolationWindow = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
+        MsMsInfo.XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
 
     final String rawFileName = ParsingUtils.readAttributeValueOrDefault(reader,
         CONST.XML_RAW_FILE_ELEMENT, null, s -> s);
@@ -205,8 +220,8 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
 
     return new DDAMsMsInfoImpl(precursorMz, precursorCharge, activationEnergy,
         scanIndex != null && scanIndex != -1 && file != null ? file.getScan(scanIndex) : null,
-        parentScanIndex != null && parentScanIndex != -1 && file != null ? file.getScan(parentScanIndex) : null, msLevel, method,
-        isolationWindow);
+        parentScanIndex != null && parentScanIndex != -1 && file != null ? file.getScan(
+            parentScanIndex) : null, msLevel, method, isolationWindow);
   }
 
   @Override
@@ -237,7 +252,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
 
   @Override
   public @Nullable Range<Double> getIsolationWindow() {
-    return isolationWindow;
+    return mzIsolationWindow != null ? mzIsolationWindow.guava() : null;
   }
 
   public boolean setMsMsScan(Scan scan) {
@@ -276,7 +291,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     }
 
     if (getMsMsScan() != null) {
-      writer.writeAttribute(XML_FRAGMENT_SCAN_ATTR,
+      writer.writeAttribute(MsMsInfo.XML_FRAGMENT_SCAN_ATTR,
           String.valueOf(getMsMsScan().getDataFile().getScans().indexOf(getMsMsScan())));
       writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getMsMsScan().getDataFile().getName());
     }
@@ -287,13 +302,14 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     }
 
     if (getActivationEnergy() != null) {
-      writer.writeAttribute(XML_ACTIVATION_ENERGY_ATTR, String.valueOf(this.getActivationEnergy()));
+      writer.writeAttribute(MsMsInfo.XML_ACTIVATION_ENERGY_ATTR,
+          String.valueOf(this.getActivationEnergy()));
     }
-    writer.writeAttribute(XML_ACTIVATION_TYPE_ATTR, this.getActivationMethod().name());
-    writer.writeAttribute(XML_MSLEVEL_ATTR, String.valueOf(getMsLevel()));
+    writer.writeAttribute(MsMsInfo.XML_ACTIVATION_TYPE_ATTR, this.getActivationMethod().name());
+    writer.writeAttribute(MsMsInfo.XML_MSLEVEL_ATTR, String.valueOf(getMsLevel()));
 
     if (getIsolationWindow() != null) {
-      writer.writeAttribute(XML_ISOLATION_WINDOW_ATTR,
+      writer.writeAttribute(MsMsInfo.XML_ISOLATION_WINDOW_ATTR,
           ParsingUtils.rangeToString((Range) getIsolationWindow()));
     }
 
@@ -332,7 +348,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
   public String toString() {
     return "DDAMsMsInfoImpl{" + "isolationMz=" + isolationMz + ", charge=" + charge
         + ", activationEnergy=" + activationEnergy + ", msLevel=" + msLevel + ", method=" + method
-        + ", isolationWindow=" + isolationWindow + ", parentScan=" + parentScan + ", msMsScan="
+        + ", isolationWindow=" + getIsolationWindow() + ", parentScan=" + parentScan + ", msMsScan="
         + msMsScan + '}';
   }
 

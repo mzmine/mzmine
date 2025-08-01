@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -68,15 +68,22 @@ public class SpectralLibraryFormatChecker {
     try (FileReader reader = new FileReader(
         dataBaseFile); BufferedReader bufferedReader = new BufferedReader((reader))) {
       char[] chars = new char[4048];
-      int read = bufferedReader.read(chars);
 
-      String content = new String(chars, 0, read);
-      if (content.contains("peaks_json") || content.contains("library_membership")) {
-        return new GNPSJsonParser(bufferEntries, processor);
-      } else if (content.contains("\"compound\"") && content.contains("\"computed\"")
-          && content.contains("\"tags\"")) {
-        return new MonaJsonParser(bufferEntries, processor);
-      } else {
+      final String content;
+      try {
+        int read = bufferedReader.read(chars);
+        content = new String(chars, 0, read);
+        if (content.contains("peaks_json") || content.contains("library_membership")) {
+          return new GNPSJsonParser(bufferEntries, processor);
+        } else if (content.contains("\"compound\"") && content.contains("\"computed\"")
+            && content.contains("\"tags\"")) {
+          return new MonaJsonParser(bufferEntries, processor);
+        } else {
+          return new MZmineJsonParser(bufferEntries, processor);
+        }
+      } catch (Exception e) {
+        // this may be triggered when the file is empty or very small
+        // try mzmine parser as this might be a small library
         return new MZmineJsonParser(bufferEntries, processor);
       }
     }

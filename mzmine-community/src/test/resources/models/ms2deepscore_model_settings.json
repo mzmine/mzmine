@@ -1,0 +1,67 @@
+{
+    "base_dims": [
+        100,
+        100
+    ],
+    "embedding_dim": 50,
+    "ionisation_mode": "positive",
+    "train_binning_layer": false,
+    "train_binning_layer_group_size": 20,
+    "train_binning_layer_output_per_group": 2,
+    "dropout_rate": 0.0,
+    "learning_rate": 0.00025,
+    "epochs": 2,
+    "patience": 20,
+    "loss_function": "mse",
+    "weighting_factor": 0,
+    "model_file_name": "ms2deepscore_model.pt",
+    "history_plot_file_name": "history.svg",
+    "time_stamp": "2024_04_22_11_03_41",
+    "min_mz": 10,
+    "max_mz": 1000,
+    "mz_bin_width": 1.0,
+    "intensity_scaling": 0.5,
+    "additional_metadata": [
+        [
+            "StandardScaler",
+            {
+                "metadata_field": "precursor_mz",
+                "mean": 0.0,
+                "standard_deviation": 1000.0
+            }
+        ],
+        [
+            "CategoricalToBinary",
+            {
+                "metadata_field": "ionmode",
+                "entries_becoming_one": "positive",
+                "entries_becoming_zero": "negative"
+            }
+        ]
+    ],
+    "batch_size": 8,
+    "num_turns": 1,
+    "shuffle": true,
+    "use_fixed_set": false,
+    "average_pairs_per_bin": 2,
+    "max_pairs_per_bin": 100,
+    "same_prob_bins": [
+        [
+            0.0,
+            0.5
+        ],
+        [
+            0.5,
+            1.0
+        ]
+    ],
+    "include_diagonal": true,
+    "random_seed": null,
+    "fingerprint_type": "daylight",
+    "fingerprint_nbits": 2048,
+    "augment_removal_max": 0.2,
+    "augment_removal_intensity": 0.2,
+    "augment_intensity": 0.2,
+    "augment_noise_max": 10,
+    "augment_noise_intensity": 0.02
+}

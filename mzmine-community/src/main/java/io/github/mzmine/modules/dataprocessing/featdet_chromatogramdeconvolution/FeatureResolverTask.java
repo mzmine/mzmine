@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,16 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
@@ -39,30 +43,52 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.ImageType;
-import io.github.mzmine.datamodel.features.types.MaldiSpotType;
-import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
+import io.github.mzmine.datamodel.features.types.MsMsInfoType;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
+import io.github.mzmine.datamodel.otherdetectors.MrmTransition;
+import io.github.mzmine.datamodel.otherdetectors.MrmTransitionList;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingAlgorithm;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Processor;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
-import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureResolverTask extends AbstractTask {
 
   // Logger.
   private static final Logger logger = Logger.getLogger(FeatureResolverTask.class.getName());
+
+  // These types will not be copied to a new feature
+  private final Set<DataType<?>> featureCopyExcludedTypes = DataTypes.getInstances().stream()
+      .<DataType<?>>mapMulti((t, c) -> {
+        switch (t) {
+          case AnnotationType _, FragmentScanNumbersType _, FeatureDataType _, MsMsInfoType _ -> {
+            c.accept(t);
+          }
+          default -> {
+          }
+        }
+        ;
+      }).collect(Collectors.toSet());
 
   // Feature lists.
   private final MZmineProject project;
@@ -139,13 +165,11 @@ public class FeatureResolverTask extends AbstractTask {
           if (((GeneralResolverParameters) parameters).getResolver(parameters,
               (ModularFeatureList) originalPeakList) != null) {
             dimensionIndependentResolve((ModularFeatureList) originalPeakList);
-          } else {
-            legacyResolve();
           }
           // resolving finished
 
           // sort and reset IDs here to ahve the same sorting for every feature list
-          FeatureListUtils.sortByDefaultRT(newPeakList, true);
+          FeatureListUtils.sortByDefault(newPeakList, true);
 
           // group MS2 with features
           var groupMs2Param = parameters.getParameter(GeneralResolverParameters.groupMS2Parameters);
@@ -183,22 +207,6 @@ public class FeatureResolverTask extends AbstractTask {
     }
   }
 
-  /**
-   * Used for compatibility with old {@link FeatureResolver}s. New methods should implement
-   * {@link Resolver}. See
-   * {@link
-   * io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver}
-   * as an example implementation.
-   *
-   */
-  @Deprecated
-  private void legacyResolve() {
-    final FeatureResolver resolver = ((GeneralResolverParameters) parameters).getResolver();
-
-    // Resolve features.
-    newPeakList = resolvePeaks((ModularFeatureList) originalPeakList);
-  }
-
   private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
     final Resolver resolver = ((GeneralResolverParameters) parameters).getResolver(parameters,
         originalFeatureList);
@@ -211,8 +219,14 @@ public class FeatureResolverTask extends AbstractTask {
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
 
+    final BinningMobilogramDataAccess binningIms = dataFile instanceof IMSRawDataFile imsFile
+        ? BinningMobilogramDataAccess.createWithPreviousParameters(imsFile, originalFeatureList)
+        : null;
+    // use the same in resolver and data access:
+    resolver.setMobilogramDataAccess(binningIms);
+
     final FeatureDataAccess access = EfficientDataAccess.of(originalFeatureList,
-        EfficientDataAccess.FeatureDataType.INCLUDE_ZEROS, dataFile);
+        EfficientDataAccess.FeatureDataType.INCLUDE_ZEROS, dataFile, binningIms);
 
     processedRows = 0;
     totalRows = originalFeatureList.getNumberOfRows();
@@ -229,17 +243,13 @@ public class FeatureResolverTask extends AbstractTask {
         final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
             peakId++);
         final ModularFeature f = new ModularFeature(resolvedFeatureList,
-            originalFeature.getRawDataFile(), resolved, originalFeature.getFeatureStatus());
+            originalFeature.getRawDataFile(), originalFeature.getFeatureStatus());
+        DataTypeUtils.copyAllBut(originalFeature, f, featureCopyExcludedTypes);
 
-        if (originalFeature.getMobilityUnit() != null) {
-          f.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
-        }
-        if (originalFeature.get(ImageType.class) != null) {
-          f.set(ImageType.class, true);
-        }
-        if(originalFeature.get(MaldiSpotType.class) != null) {
-          f.set(MaldiSpotType.class, originalFeature.get(MaldiSpotType.class));
-        }
+        f.set(FeatureDataType.class, resolved);
+        FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
+//        handleMrmTraces(f);
+
         newRow.addFeature(originalFeature.getRawDataFile(), f);
         resolvedFeatureList.addRow(newRow);
         if (resolved.getSpectra().size() <= 3) {
@@ -249,7 +259,7 @@ public class FeatureResolverTask extends AbstractTask {
       processedRows++;
     }
     logger.info(c + "/" + resolvedFeatureList.getNumberOfRows()
-        + " have less than 4 scans (frames for IMS data)");
+                + " have less than 4 scans (frames for IMS data)");
     //    QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
@@ -259,64 +269,42 @@ public class FeatureResolverTask extends AbstractTask {
     newPeakList = resolvedFeatureList;
   }
 
+  /**
+   * Currently unused. Only the main trace in the {@link FeatureDataType} is resolved, so
+   * reintegration is possible later from the {@link MrmTransitionList} without having to re-process
+   * everything. Smoothing
+   * {@link
+   * io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingTask#handleMrmTraces(ModularFeature,
+   * SmoothingAlgorithm)} and Baseline correction and
+   * {@link
+   * io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionTask#handleMrmFeature(Feature)}
+   * is applied to all {@link MrmTransitionList} though.
+   */
+  private void handleMrmTraces(ModularFeature f) {
+    final MrmTransitionList mrmTransitions = f.get(MrmTransitionListType.class);
+    if (mrmTransitions == null) {
+      return;
+    }
+
+    final Range<Float> rtRange = f.getRawDataPointsRTRange();
+    List<MrmTransition> newTransitions = new ArrayList<>();
+    for (MrmTransition mrmTransition : mrmTransitions.transitions()) {
+      final IonTimeSeries<? extends Scan> series = mrmTransition.chromatogram();
+      final IonTimeSeries<? extends Scan> resolved = series.subSeries(getMemoryMapStorage(),
+          rtRange.lowerEndpoint(), rtRange.upperEndpoint());
+      newTransitions.add(mrmTransition.with(resolved));
+    }
+
+    final MrmTransitionList resolvedTransitions = new MrmTransitionList(newTransitions);
+    f.set(MrmTransitionListType.class, resolvedTransitions);
+    resolvedTransitions.setQuantifier(resolvedTransitions.quantifier(), f);
+  }
+
   @Override
   public void cancel() {
     super.cancel();
   }
 
-  /**
-   * This method is kept around to keep compatibility with resolvers implementing the legacy
-   * interface {@link FeatureResolver}. All new resolvers should implement {@link Resolver} or
-   * {@link AbstractResolver} instead.
-   */
-  @Deprecated
-  private FeatureList resolvePeaks(final ModularFeatureList originalFeatureList) {
-
-    final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
-    final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
-
-    final FeatureResolver resolver = ((GeneralResolverParameters) parameters).getResolver();
-
-    processedRows = 0;
-    totalRows = originalFeatureList.getNumberOfRows();
-    int peakId = 1;
-    final Integer minNumDp = parameters.getValue(
-        GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
-
-    for (int i = 0; i < totalRows; i++) {
-      final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList.getRow(
-          i);
-      final ModularFeature originalFeature = originalRow.getFeature(dataFile);
-
-      final ResolvedPeak[] peaks = resolver.resolvePeaks(originalFeature, parameters,
-          mzCenterFunction, msmsRange, RTRangeMSMS);
-
-      for (final ResolvedPeak peak : peaks) {
-        if (peak.getScanNumbers().length < minNumDp) {
-          continue;
-        }
-        peak.setParentChromatogramRowID(originalRow.getID());
-        final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
-            peakId++);
-        final ModularFeature newFeature = FeatureConvertors.ResolvedPeakToMoularFeature(
-            resolvedFeatureList, peak, originalFeature.getFeatureData());
-        if (originalFeature.getMobilityUnit() != null) {
-          newFeature.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
-        }
-
-        newRow.addFeature(dataFile, newFeature);
-        newRow.setFeatureInformation(peak.getPeakInformation());
-        resolvedFeatureList.addRow(newRow);
-      }
-      processedRows++;
-    }
-
-    resolvedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters,
-            getModuleCallDate()));
-
-    return resolvedFeatureList;
-  }
 
   private ModularFeatureList createNewFeatureList(ModularFeatureList originalFeatureList) {
     if (originalFeatureList.getRawDataFiles().size() > 1) {
@@ -324,11 +312,14 @@ public class FeatureResolverTask extends AbstractTask {
     }
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
 
+    // estimate number of resolved rows
+    int estimatedRows = originalFeatureList.getNumberOfRows() * 4;
     // create a new feature list and don't copy. Previous annotations of features are invalidated
     // during resolution
     final ModularFeatureList resolvedFeatureList = new ModularFeatureList(
         originalFeatureList.getName() + " " + parameters.getParameter(
-            GeneralResolverParameters.SUFFIX).getValue(), storage, dataFile);
+            GeneralResolverParameters.SUFFIX).getValue(), storage, estimatedRows, estimatedRows,
+        dataFile);
 
     //    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
     resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));

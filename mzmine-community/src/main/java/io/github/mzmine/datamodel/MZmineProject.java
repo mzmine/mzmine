@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
 import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Hashtable;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -64,41 +65,6 @@ public interface MZmineProject {
   File getProjectFile();
 
   /**
-   * Adds a new experimental parameter to the project
-   */
-  void addParameter(UserParameter<?, ?> parameter);
-
-  /**
-   * Removes an experimental parameter from the project
-   */
-  void removeParameter(UserParameter<?, ?> parameter);
-
-  /**
-   * Returns true if project contains the experimental parameter
-   */
-  boolean hasParameter(UserParameter<?, ?> parameter);
-
-  /**
-   * Returns all experimental parameter of the project
-   */
-  UserParameter<?, ?>[] getParameters();
-
-  UserParameter<?, ?> getParameterByName(String name);
-
-  /**
-   * Sets experimental parameter's value corresponding to a RawDataFile.
-   * <p>
-   * If the parameter does not exists in the project, it is added to the project. If parameter
-   * already has a value corresponding the given file, previous value is replaced.
-   */
-  void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile, Object value);
-
-  /**
-   * Returns experimental parameter's value corresponding to a RawDataFile.
-   */
-  Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile);
-
-  /**
    * Adds a new RawDataFile to the project.
    */
   void addFile(@NotNull RawDataFile newFile);
@@ -128,14 +94,16 @@ public interface MZmineProject {
    *
    * @return copy of the current feature lists
    */
-  @NotNull List<FeatureList> getCurrentFeatureLists();
+  @NotNull
+  List<FeatureList> getCurrentFeatureLists();
 
   /**
    * Unmodifiable copy of current list
    *
    * @return copy of current raw data files
    */
-  @NotNull List<RawDataFile> getCurrentRawDataFiles();
+  @NotNull
+  List<RawDataFile> getCurrentRawDataFiles();
 
   void addProjectListener(ProjectChangeListener newListener);
 
@@ -159,9 +127,11 @@ public interface MZmineProject {
    * @param name the exact name of the feature list
    * @return the last feature list with that name or null
    */
-  @Nullable FeatureList getFeatureList(String name);
+  @Nullable
+  FeatureList getFeatureList(String name);
 
-  @Nullable Boolean isStandalone();
+  @Nullable
+  Boolean isStandalone();
 
   void setStandalone(Boolean standalone);
 
@@ -189,7 +159,8 @@ public interface MZmineProject {
    *
    * @return current list of preloaded libraries
    */
-  @NotNull List<SpectralLibrary> getCurrentSpectralLibraries();
+  @NotNull
+  List<SpectralLibrary> getCurrentSpectralLibraries();
 
   /**
    * Remove preloaded spectral library
@@ -197,6 +168,11 @@ public interface MZmineProject {
    * @param library library to be removed
    */
   void removeSpectralLibrary(SpectralLibrary... library);
+
+  /**
+   * Remove all preloaded spectral libraries
+   */
+  void clearSpectralLibrary();
 
   int getNumberOfFeatureLists();
 
@@ -219,7 +195,8 @@ public interface MZmineProject {
 
   int getNumberOfDataFiles();
 
-  @NotNull MetadataTable getProjectMetadata();
+  @NotNull
+  MetadataTable getProjectMetadata();
 
   /**
    * find data file by name. Acquires read lock on files for synchronization.
@@ -227,5 +204,19 @@ public interface MZmineProject {
    * @param name name of the file, compared with ignore case
    * @return the RawDataFile or null if the name was null or no such file exists
    */
-  @Nullable RawDataFile getDataFileByName(@Nullable String name);
+  @Nullable
+  RawDataFile getDataFileByName(@Nullable String name);
+
+  /**
+   * @return The relative path of the file/folder with regard to the project file. Null if the path
+   * or the project file are null.
+   */
+  @Nullable
+  Path getRelativePath(@Nullable Path path);
+
+  /**
+   * @return A
+   */
+  @Nullable
+  File resolveRelativePathToFile(@Nullable String path);
 }

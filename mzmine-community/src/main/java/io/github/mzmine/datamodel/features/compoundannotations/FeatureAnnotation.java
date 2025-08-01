@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features.compoundannotations;
 
+import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -32,7 +33,18 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -44,6 +56,8 @@ import org.jetbrains.annotations.Nullable;
  * {@link io.github.mzmine.util.FeatureUtils#getBestFeatureAnnotation(ModularDataModel)} method.
  */
 public interface FeatureAnnotation {
+
+  Logger logger = Logger.getLogger(FeatureAnnotation.class.getName());
 
   String XML_ELEMENT = "feature_annotation";
   String XML_TYPE_ATTR = "annotation_type";
@@ -59,8 +73,76 @@ public interface FeatureAnnotation {
           SpectralDBAnnotation.loadFromXML(reader, project, project.getCurrentRawDataFiles());
       case SimpleCompoundDBAnnotation.XML_ATTR ->
           SimpleCompoundDBAnnotation.loadFromXML(reader, project, flist, row);
+      case MatchedLipid.XML_ELEMENT ->
+          MatchedLipid.loadFromXML(reader, project.getCurrentRawDataFiles());
       default -> null;
     };
+  }
+
+  /**
+   * Translates a list of annotations to an XML so it can be saved outside of the project load/save
+   * operations. Useful if a annotation was done/edited manually and it has to be saved in a
+   * parameter set.
+   * <p></p>
+   * Can be used in conjuction with the
+   * {@link io.github.mzmine.parameters.parametertypes.EmbeddedXMLParameter} to store annotations in
+   * a parameter set.
+   */
+  static String toXMLString(List<FeatureAnnotation> annotations, ModularFeatureList flist,
+      ModularFeatureListRow row) {
+
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+      final XMLOutputFactory xof = XMLOutputFactory.newInstance();
+      final XMLStreamWriter writer = new IndentingXMLStreamWriter(
+          xof.createXMLStreamWriter(baos, "UTF-8"));
+      writer.writeStartDocument();
+
+      for (FeatureAnnotation annotation : annotations) {
+        annotation.saveToXML(writer, flist, row);
+      }
+
+      writer.writeEndDocument();
+      writer.flush();
+      writer.close();
+
+      return baos.toString();
+    } catch (IOException | XMLStreamException e) {
+      logger.log(Level.WARNING, "Error when parsing annotation to xml string.", e);
+      return null;
+    }
+  }
+
+  /**
+   * Translates an XML string to a list of feature annotations. Can be used to load an annotation
+   * from an applied method, e.g., after storing it in a string parameter. Requires the same
+   * parameters as
+   * {@link #loadFromXML(XMLStreamReader, MZmineProject, ModularFeatureList,
+   * ModularFeatureListRow)}
+   */
+  static List<FeatureAnnotation> parseFromXMLString(@NotNull String xml, MZmineProject project,
+      ModularFeatureList flist, ModularFeatureListRow row) {
+    try (ByteArrayInputStream inputStream = new ByteArrayInputStream(
+        xml.getBytes(StandardCharsets.UTF_8))) {
+      XMLInputFactory xif = XMLInputFactory.newInstance();
+      XMLStreamReader reader = xif.createXMLStreamReader(inputStream);
+      List<FeatureAnnotation> annotations = new ArrayList<>();
+      while (reader.hasNext()) {
+        while (reader.hasNext() && !(reader.isStartElement() && reader.getLocalName()
+            .equals(FeatureAnnotation.XML_ELEMENT))) {
+          reader.next();
+        }
+
+        if (reader.isStartElement() && reader.getLocalName()
+            .equals(FeatureAnnotation.XML_ELEMENT)) {
+          final FeatureAnnotation annotation = loadFromXML(reader, project, flist, row);
+          annotations.add(annotation);
+        }
+      }
+      return annotations;
+    } catch (IOException | XMLStreamException e) {
+      logger.log(Level.WARNING, "Error when parsing annotation from xml string.", e);
+      return List.of();
+    }
   }
 
   void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
@@ -84,6 +166,18 @@ public interface FeatureAnnotation {
 
   @Nullable String getCompoundName();
 
+  @Nullable String getIupacName();
+
+  /**
+   * @see {@link io.github.mzmine.datamodel.features.types.identifiers.CASType}
+   */
+  @Nullable String getCAS();
+
+  /**
+   * @see {@link io.github.mzmine.datamodel.features.types.identifiers.InternalIdType}
+   */
+  @Nullable String getInternalId();
+
   @Nullable String getFormula();
 
   @Nullable IonType getAdductType();
@@ -106,6 +200,40 @@ public interface FeatureAnnotation {
   }
 
   @Nullable String getDatabase();
+
+  /**
+   * @return the best name identifier in order of {@link CompoundNameIdentifier}
+   */
+  @Nullable
+  default String getBestNameIdentifier() {
+    for (CompoundNameIdentifier id : CompoundNameIdentifier.values()) {
+      final String name = getNameIdentifier(id);
+
+      if (name != null) {
+        return name;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @param id identifier for name
+   * @return the mapped identifier or null
+   */
+  default @Nullable String getNameIdentifier(@Nullable CompoundNameIdentifier id) {
+    return switch (id) {
+      case null -> null;
+      case COMPOUND_NAME -> getCompoundName();
+      case IUPAC_NAME -> getIupacName();
+      case INTERNAL_ID -> getInternalId();
+      case FORMULA -> getFormula();
+      case SMILES -> getSmiles();
+      case INCHI_KEY -> getInChIKey();
+      case INCHI -> getInChI();
+      case CAS -> getCAS();
+    };
+  }
+
 
   /**
    * Keep stable as its exported to tools. often the xml key but not always

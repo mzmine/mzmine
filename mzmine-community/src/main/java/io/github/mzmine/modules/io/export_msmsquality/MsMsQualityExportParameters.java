@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,22 +26,23 @@
 package io.github.mzmine.modules.io.export_msmsquality;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class MsMsQualityExportParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
-  public static final FileNameParameter file = new FileNameParameter("Export File",
-      "File to put the quality analysis files in.", List.of(new ExtensionFilter("csv", "*.csv")),
-      FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter file = new FileNameSuffixExportParameter(
+      "Export File", "File to put the quality analysis files in.",
+      List.of(new ExtensionFilter("csv", "*.csv")), "msms_quality");
 
   public static final BooleanParameter onlyCompoundAnnotated = new BooleanParameter(
       "Only compound matches", "Only export MSMS spectra from features with compound matches",
@@ -58,5 +59,10 @@ public class MsMsQualityExportParameters extends SimpleParameterSet {
   public MsMsQualityExportParameters() {
     super(new Parameter[]{flists, file, onlyCompoundAnnotated, formulaTolerance,
         matchCompoundNameToFlist});
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

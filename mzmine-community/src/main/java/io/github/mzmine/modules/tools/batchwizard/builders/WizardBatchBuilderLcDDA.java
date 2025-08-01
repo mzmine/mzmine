@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,17 +40,17 @@ import java.util.Optional;
 
 public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
 
-  private final Range<Double> cropRtRange;
-  private final RTTolerance intraSampleRtTol;
-  private final RTTolerance interSampleRtTol;
-  private final Integer minRtDataPoints;
-  private final Integer maxIsomersInRt;
-  private final RTTolerance rtFwhm;
-  private final Boolean stableIonizationAcrossSamples;
-  private final Boolean rtSmoothing;
-  private final Boolean applySpectralNetworking;
-  private final File exportPath;
-  private final boolean isExportActive;
+  protected final Range<Double> cropRtRange;
+  protected final RTTolerance intraSampleRtTol;
+  protected final RTTolerance interSampleRtTol;
+  protected final Integer minRtDataPoints;
+  protected final Integer maxIsomersInRt;
+  protected final RTTolerance rtFwhm;
+  protected final Boolean stableIonizationAcrossSamples;
+  protected final Boolean rtSmoothing;
+  protected final Boolean applySpectralNetworking;
+  protected final File exportPath;
+  protected final boolean isExportActive;
 
   public WizardBatchBuilderLcDDA(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -84,7 +84,7 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
     makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
-        minRtDataPoints, cropRtRange);
+        minRtDataPoints, cropRtRange, polarity);
     makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
 
     var groupMs2Params = createMs2GrouperParameters();
@@ -99,6 +99,7 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     }
 
     makeAndAddDeisotopingStep(q, intraSampleRtTol);
+    makeAndAddFeatureFilterStep(q);
     makeAndAddIsotopeFinderStep(q);
     makeAndAddJoinAlignmentStep(q, interSampleRtTol);
     makeAndAddRowFilterStep(q);
@@ -112,15 +113,16 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     // annotation
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
-    makeAndAddLipidAnnotationStep(q, true);
+    makeAndAddLipidAnnotationStep(q);
 
     // networking
     if (applySpectralNetworking) {
-      makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath);
+      makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, false);
     }
 
     // export
-    makeAndAddDdaExportSteps(q, steps);
+    makeAndAddDdaExportSteps(q, steps, mzTolScans);
+    makeAndAddBatchExportStep(q, isExportActive, exportPath);
     return q;
   }
 

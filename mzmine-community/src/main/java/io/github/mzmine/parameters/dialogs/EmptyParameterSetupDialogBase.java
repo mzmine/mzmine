@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,11 @@
 
 package io.github.mzmine.parameters.dialogs;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.EmbeddedParameterComponentProvider;
 import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
 import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
 import io.github.mzmine.parameters.Parameter;
@@ -36,8 +38,11 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -45,12 +50,15 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class represents an empty base parameter setup dialog. Implementations of this dialog should
@@ -72,6 +80,7 @@ public class EmptyParameterSetupDialogBase extends Stage {
   protected ParameterSet parameterSet;
   // this value is incremented after a sub parmaeterset was expanded
   protected int widthExpandedBySubParameters;
+  protected DoubleProperty maxExtraHeightExpanded = new SimpleDoubleProperty(0);
   protected DoubleProperty maxExtraWidthExpanded = new SimpleDoubleProperty(0);
 
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters) {
@@ -84,12 +93,12 @@ public class EmptyParameterSetupDialogBase extends Stage {
    * @param message: html-formatted text
    */
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters,
-      Region message) {
+      @Nullable Region message) {
     this(valueCheckRequired, parameters, true, true, message);
   }
 
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, Region message) {
+      boolean addOkButton, boolean addCancelButton, @Nullable Region message) {
     super();
     Image mzmineIcon = FxIconUtil.loadImageFromResources("mzmineIcon.png");
     this.getIcons().add(mzmineIcon);
@@ -124,12 +133,25 @@ public class EmptyParameterSetupDialogBase extends Stage {
     parameterSet = paramPane.getParameterSet();
 
     mainPane = new BorderPane(paramPane);
-    mainPane.setMaxHeight(calcMaxHeight());
     Scene scene = new Scene(new StackPane(mainPane));
+    scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+      if (event.getCode() == KeyCode.ESCAPE) {
+        logger.finest("Escape pressed on dialog %s".formatted(parameters.getModuleNameAttribute()));
+        event.consume();
+        closeDialog(ExitCode.CANCEL);
+      }
+      if (event.getCode() == KeyCode.ENTER && event.isShortcutDown()) {
+        event.consume();
+        closeDialog(ExitCode.OK);
+      }
+    });
 
     // Use main CSS
-    scene.getStylesheets()
-        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    if(DesktopService.isGUI()) {
+      // may be called in headless mode for graphics export
+      scene.getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    }
     setScene(scene);
 
     setTitle(parameterSet.getModuleNameAttribute());
@@ -138,6 +160,14 @@ public class EmptyParameterSetupDialogBase extends Stage {
     setMinHeight(400.0);
 
     centerOnScreen();
+  }
+
+  private static double calcMaxHeight() {
+    return MZmineCore.getDesktop().getMainWindow().getScene().getHeight() * 0.95;
+  }
+
+  private static double calcMaxWidth() {
+    return MZmineCore.getDesktop().getMainWindow().getScene().getWidth() * 0.95;
   }
 
   /**
@@ -150,29 +180,25 @@ public class EmptyParameterSetupDialogBase extends Stage {
     paramPane.addCheckParametersButton();
   }
 
-  private static double calcMaxHeight() {
-    return MZmineCore.getDesktop().getMainWindow().getScene().getHeight() * 0.95;
-  }
-
-  private static double calcMaxWidth() {
-    return MZmineCore.getDesktop().getMainWindow().getScene().getWidth() * 0.95;
-  }
-
   private void addSizeChangeListeners(final Map<String, Node> parametersAndComponents) {
-    parametersAndComponents.values().forEach(node -> {
-      if (node instanceof EstimatedComponentHeightProvider sizePropertyProvider) {
-        sizePropertyProvider.estimatedHeightProperty()
-            .addListener((observable, oldHeight, newHeight) -> {
-              double heightDiff = newHeight.doubleValue() - oldHeight.doubleValue();
-              // just an estimate to increase height of dialog
-              setHeight(Math.min(calcMaxHeight(), getHeight() + heightDiff));
-            });
-      }
+    final var heightProperties = streamComponents(parametersAndComponents.values()) //
+        .filter(EstimatedComponentHeightProvider.class::isInstance)
+        .map(EstimatedComponentHeightProvider.class::cast)
+        .map(EstimatedComponentHeightProvider::estimatedHeightProperty)
+        .toArray(DoubleProperty[]::new);
+
+    // sum of extra heights
+    maxExtraHeightExpanded.bind(Bindings.createDoubleBinding(
+        (() -> Arrays.stream(heightProperties).mapToDouble(DoubleProperty::get).sum()),
+        heightProperties));
+    maxExtraHeightExpanded.addListener((_, oldValue, newValue) -> {
+      double diff = newValue.doubleValue() - oldValue.doubleValue();
+      setHeight(Math.min(calcMaxHeight(), getHeight() + diff));
     });
 
     // bind extra width to MAX of all widths
-    var widthProperties = parametersAndComponents.values().stream()
-        .filter(n -> n instanceof EstimatedComponentWidthProvider)
+    final var widthProperties = streamComponents(parametersAndComponents.values()).filter(
+            n -> n instanceof EstimatedComponentWidthProvider)
         .map(n -> ((EstimatedComponentWidthProvider) n).estimatedWidthProperty())
         .toArray(DoubleProperty[]::new);
     maxExtraWidthExpanded.bind(Bindings.createDoubleBinding(
@@ -182,6 +208,19 @@ public class EmptyParameterSetupDialogBase extends Stage {
       double widthDiff = newValue.doubleValue() - oldValue.doubleValue();
       setWidth(Math.min(calcMaxWidth(), getWidth() + widthDiff));
     });
+  }
+
+  private static Stream<Node> streamComponents(final Collection<Node> nodes) {
+    return nodes.stream().mapMulti(EmptyParameterSetupDialogBase::streamComponents);
+  }
+
+  private static void streamComponents(final Node node, final Consumer<Node> nodeConsumer) {
+    nodeConsumer.accept(node);
+    if (node instanceof EmbeddedParameterComponentProvider component) {
+      component.getComponents().forEach(child -> {
+        streamComponents(child, nodeConsumer);
+      });
+    }
   }
 
   @Override
@@ -263,6 +302,11 @@ public class EmptyParameterSetupDialogBase extends Stage {
    * @return false if parameters are set incorrectly
    */
   public boolean checkParameterValues(boolean updateParametersFirst, boolean showSuccessDialog) {
+    return checkParameterValues(updateParametersFirst, showSuccessDialog, false);
+  }
+
+  public boolean checkParameterValues(boolean updateParametersFirst, boolean showSuccessDialog,
+      boolean skipRawDataAndFeatureListParameters) {
     // commit the changes to the parameter set
     if (updateParametersFirst) {
       updateParameterSetFromComponents();
@@ -270,7 +314,8 @@ public class EmptyParameterSetupDialogBase extends Stage {
 
     if (isValueCheckRequired()) {
       ArrayList<String> messages = new ArrayList<>();
-      boolean allParametersOK = paramPane.getParameterSet().checkParameterValues(messages);
+      boolean allParametersOK = paramPane.getParameterSet()
+          .checkParameterValues(messages, skipRawDataAndFeatureListParameters);
 
       if (!allParametersOK) {
         StringBuilder message = new StringBuilder("Please check the parameter settings:\n");

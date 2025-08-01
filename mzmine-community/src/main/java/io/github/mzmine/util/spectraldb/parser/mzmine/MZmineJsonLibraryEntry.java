@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -51,7 +52,8 @@ import org.jetbrains.annotations.Nullable;
 
 @JsonNaming(SnakeCaseStrategy.class)
 @JsonPropertyOrder({"softwaresource", "mergedSpectrumType", "entry_id", "ms_level", "polarity",
-    "compound_name", "synonyms", "adduct", "charge", "precursor_mz", "exact_mass", "rt", "ccs",
+    "compound_name", "synonyms", "adduct", "charge", "precursor_mz", "exact_mass", "rt", "ri",
+    "ccs",
 
     // structure/compound specific
     "formula", "smiles", "inchi", "inchikey",
@@ -76,6 +78,7 @@ import org.jetbrains.annotations.Nullable;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
 @Generated("jsonschema2pojo")
+@Deprecated
 public class MZmineJsonLibraryEntry {
 
   public String softwaresource;
@@ -88,9 +91,10 @@ public class MZmineJsonLibraryEntry {
   public Double precursorMz, isolationWindow;
   public Double exactMass;
   public Double rt, ccs;
+  public String ri;
   public String cas, splash;
   public String formula, smiles, inchi, inchikey, peptideSequence;
-  public Double fragmentationEnergy;
+  public FloatArrayList fragmentationEnergy;
   public String mergedSpectrumType;
   public String fragmentationMethod;
   public String instrumentType, instrument, resolution, ionSource;
@@ -103,6 +107,19 @@ public class MZmineJsonLibraryEntry {
   public SpectralQuality quality;
   public Double purity;
   public Integer numSignals;
+  public String internalId;
+
+  public String classyFireSuperclass;
+  public String classyFireClass;
+  public String classyFireSubclass;
+  public String classyFireParent;
+  public String npClassifierSuperclass;
+  public String npClassifierPathway;
+  public String npClassifierClass;
+  public String iupacName;
+
+  public String acquisitionMethod;
+
 
   @JsonDeserialize(using = SpectrumDeserializer.class)
   public double[][] signals;
@@ -143,9 +160,19 @@ public class MZmineJsonLibraryEntry {
       case INCHIKEY -> inchikey;
       case SMILES -> smiles;
       case PEPTIDE_SEQ -> peptideSequence;
+      case CLASSYFIRE_SUPERCLASS -> classyFireSuperclass;
+      case CLASSYFIRE_CLASS -> classyFireClass;
+      case CLASSYFIRE_SUBCLASS -> classyFireSubclass;
+      case CLASSYFIRE_PARENT -> classyFireParent;
+      case NPCLASSIFIER_SUPERCLASS -> npClassifierSuperclass;
+      case NPCLASSIFIER_CLASS -> npClassifierClass;
+      case NPCLASSIFIER_PATHWAY -> npClassifierPathway;
       case CAS -> cas;
+      case INTERNAL_ID -> internalId;
+      case IUPAC_NAME -> iupacName;
       case MS_LEVEL -> msLevel;
       case RT -> rt;
+      case RETENTION_INDEX -> ri;
       case CCS -> ccs;
       case ION_TYPE -> adduct;
       case IMS_TYPE -> imsType;
@@ -174,9 +201,11 @@ public class MZmineJsonLibraryEntry {
       case PRINCIPAL_INVESTIGATOR -> investigator;
       case DATA_COLLECTOR -> dataCollector;
       case SOFTWARE -> softwaresource;
+      case ACQUISITION_METHOD -> acquisitionMethod;
       case DATASET_ID -> datasetId;
       case FILENAME -> null;
       case USI -> usi;
+      case SOURCE_SCAN_USI -> null;
       case SPLASH -> splash;
       case QUALITY -> quality;
       case QUALITY_PRECURSOR_PURITY -> purity;
@@ -190,13 +219,16 @@ public class MZmineJsonLibraryEntry {
       case GNPS_ID -> null;
       case MONA_ID -> null;
       case CHEMSPIDER -> null;
+      case MERGED_N_SAMPLES -> null;
       case SIRIUS_MERGED_SCANS -> null;
       case SIRIUS_MERGED_STATS -> null;
       case OTHER_MATCHED_COMPOUNDS_N -> null;
       case OTHER_MATCHED_COMPOUNDS_NAMES -> null;
-      case FEATURE_ID, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT -> null;
+      case FEATURE_ID, FEATURE_FULL_ID, FEATURELIST_NAME_FEATURE_ID, FEATURE_MS1_HEIGHT,
+           FEATURE_MS1_REL_HEIGHT -> null;
       case SCAN_NUMBER -> scanNumber;
       case UNSPECIFIED -> null;
+      case JSON_STRING -> null;
     };
   }
 
@@ -205,6 +237,13 @@ public class MZmineJsonLibraryEntry {
       return;
     }
     switch (field) {
+      case CLASSYFIRE_SUPERCLASS -> classyFireSuperclass = value.toString();
+      case CLASSYFIRE_CLASS -> classyFireClass = value.toString();
+      case CLASSYFIRE_SUBCLASS -> classyFireSubclass = value.toString();
+      case CLASSYFIRE_PARENT -> classyFireParent = value.toString();
+      case NPCLASSIFIER_SUPERCLASS -> npClassifierSuperclass = value.toString();
+      case NPCLASSIFIER_CLASS -> npClassifierClass = value.toString();
+      case NPCLASSIFIER_PATHWAY -> npClassifierPathway = value.toString();
       case ENTRY_ID -> entryId = value.toString();
       case NAME -> compoundName = value.toString();
       case SYNONYMS -> synonyms.addAll((Collection<? extends String>) value);
@@ -220,10 +259,11 @@ public class MZmineJsonLibraryEntry {
       case NUM_PEAKS -> numSignals = (int) value;
       case EXACT_MASS -> exactMass = (double) value;
       case RT -> rt = (double) value;
+      case RETENTION_INDEX -> ri = value.toString();
       case CCS -> ccs = (double) value;
       case PRECURSOR_MZ -> precursorMz = (double) value;
       case MERGED_SPEC_TYPE -> mergedSpectrumType = value.toString();
-      case COLLISION_ENERGY -> fragmentationEnergy = (double) value;
+      case COLLISION_ENERGY -> fragmentationEnergy = (FloatArrayList) value;
       case FRAGMENTATION_METHOD -> fragmentationMethod = value.toString();
       case ISOLATION_WINDOW -> isolationWindow = (double) value;
       case ACQUISITION -> compoundSource = value.toString();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,19 +27,20 @@ package io.github.mzmine.modules.io.export_library_analysis_csv;
 
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.scans.similarity.Weights;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class LibraryAnalysisCSVExportParameters extends SimpleParameterSet {
 
@@ -65,9 +66,10 @@ public class LibraryAnalysisCSVExportParameters extends SimpleParameterSet {
       new ExtensionFilter("comma-separated values", "*.csv"), //
       new ExtensionFilter("All files", "*.*") //
   );
-  public static final FileNameParameter filename = new FileNameParameter("Filename",
+  public static final FileNameSuffixExportParameter filename = new FileNameSuffixExportParameter(
+      "Filename",
       "Name of the output CSV file. " + "If the file already exists, it will be overwritten.",
-      extensions, FileSelectionType.SAVE);
+      extensions, "lib_analysis");
 
 
   public LibraryAnalysisCSVExportParameters() {
@@ -75,4 +77,8 @@ public class LibraryAnalysisCSVExportParameters extends SimpleParameterSet {
         deisotoping, minMatch, mzTolerance});
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

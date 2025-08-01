@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,6 +43,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarityParameters;
@@ -88,7 +89,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Converting library to feature list: " + library.getName();
+    return "Converting library to feature list: " + library.getNameWithSize();
   }
 
   @Override
@@ -142,8 +143,6 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
       return;
     }
 
-    var flist = new ModularFeatureList(library.getName(), null, libRaw);
-
     Map<LibraryEntryEqualityTester, List<LibraryEntryWrappedScan>> compoundMap = new HashMap<>();
     libRaw.streamLibraryScan().forEach(scan -> {
       var entry = scan.getEntry();
@@ -158,6 +157,10 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
     // largest first
     var compounds = compoundMap.values().stream()
         .sorted(Comparator.comparingInt(value -> -value.size())).toList();
+
+    var flist = new ModularFeatureList(library.getNameWithSize(), null, compounds.size(),
+        compounds.size(), libRaw);
+
     int counter = 0;
     for (final List<LibraryEntryWrappedScan> compound : compounds) {
       if (isCanceled()) {
@@ -174,9 +177,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
       // add all scans as matches
       List<SpectralDBAnnotation> matches = new ArrayList<>();
       for (final LibraryEntryWrappedScan scan : compound) {
-        var similarity = WeightedCosineSpectralSimilarity.weightedCosine.getSimilarity(
-            scoringParameters, mzTol, 0, scan.getEntry().getDataPoints(),
-            scan.getEntry().getDataPoints());
+        var similarity = SpectralSimilarity.ofMatchIdentity(scan.getEntry());
         // add spectral lib match
         var match = new SpectralDBAnnotation(scan.getEntry(), similarity, scan, null, null, null);
         matches.add(match);
@@ -200,7 +201,8 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
 
   private FeatureList addFeatureListWithEachEntry(final SpectralLibraryDataFile libRaw) {
     // add feature list
-    var flist = new ModularFeatureList(library.getName() + " single scans", null, libRaw);
+    var flist = new ModularFeatureList(library.getNameWithSize() + " single scans", null,
+        libRaw.getNumOfScans(), libRaw.getNumOfScans(), libRaw);
 
     var libScans = libRaw.streamLibraryScan().toList();
     for (final LibraryEntryWrappedScan scan : libScans) {
@@ -212,9 +214,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
       var feature = createFeature(flist, libRaw, scan);
 
       var row = new ModularFeatureListRow(flist, scan.getScanNumber(), feature);
-      var similarity = WeightedCosineSpectralSimilarity.weightedCosine.getSimilarity(
-          scoringParameters, mzTol, 0, scan.getEntry().getDataPoints(),
-          scan.getEntry().getDataPoints());
+      var similarity = SpectralSimilarity.ofMatchIdentity(scan.getEntry());
       // add spectral lib match
       var match = new SpectralDBAnnotation(scan.getEntry(), similarity, scan, null, null, null);
       row.addSpectralLibraryMatch(match);

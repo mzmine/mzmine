@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.tools.batchwizard.builders;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
@@ -34,6 +36,13 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationWizard
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDDA;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDIA;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDeconvolution;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowImaging;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowLibraryGeneration;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowMs1Only;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowTargetPlate;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -64,69 +73,6 @@ public abstract class WizardBatchBuilder {
   }
 
   /**
-   * Create workflow builder for workflow steps
-   *
-   * @param steps workflow
-   * @return the builder
-   */
-  public static WizardBatchBuilder createBatchBuilderForSequence(final WizardSequence steps) {
-    // workflow is always set
-    Optional<WizardStepParameters> preset = steps.get(WizardPart.WORKFLOW);
-    var workflowPreset = (WorkflowWizardParameterFactory) preset.get().getFactory();
-    var ionInterface = (IonInterfaceWizardParameterFactory) steps.get(WizardPart.ION_INTERFACE)
-        .get().getFactory();
-
-    // throw in case we hit unsupported workflow
-    // those combinations should be filtered out previously though
-    var unsupportedException = new UnsupportedOperationException(
-        "Currently not implemented workflow " + workflowPreset);
-
-    return switch (workflowPreset) {
-      case DDA -> switch (ionInterface.group()) {
-        case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcDDA(steps);
-        case DIRECT_AND_FLOW -> new WizardBatchBuilderFlowInjectDDA(steps);
-        case SPATIAL_IMAGING -> new WizardBatchBuilderImagingDda(steps);
-        case CHROMATOGRAPHY_HARD -> throw unsupportedException;
-      };
-      case DIA -> switch (ionInterface.group()) {
-        case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcDIA(steps);
-        default -> throw unsupportedException;
-      };
-      // only used for GC EI
-      case DECONVOLUTION -> new WizardBatchBuilderGcEiDeconvolution(steps);
-      case IMAGING -> new WizardBatchBuilderImagingDda(steps);
-      case LIBRARY_GENERATION -> {
-        // requires annotation!
-        var annotation = steps.get(WizardPart.ANNOTATION);
-        var params = getOptionalParameters(annotation, AnnotationWizardParameters.localCsvSearch);
-        boolean useAnnotation = params.active();
-        boolean sampleFilterValid = !params.value().getEmbeddedParameterValueIfSelectedOrElse(
-            AnnotationLocalCSVDatabaseSearchParameters.filterSamplesColumn, "").isBlank();
-        File file = params.value().getValue(LocalCSVDatabaseSearchParameters.dataBaseFile);
-        if (sampleFilterValid) {
-          logger.warning(
-              "Tt is recommended to specify a column to filter annotations for specific samples that contain the compound.");
-        }
-        if (!useAnnotation || file == null || file.toString().isBlank()) {
-          throw new IllegalArgumentException("""
-              Configure local CSV database annotation!
-              The library generation workflow requires the local CSV database search active under \
-              Annotation, a valid file, and it is recommended to specify a column to filter annotations \
-              for specific samples that contain the compound.""");
-        }
-
-        yield switch (ionInterface.group()) {
-          case CHROMATOGRAPHY_SOFT -> new WizardBatchBuilderLcLibraryGen(steps);
-          case DIRECT_AND_FLOW -> new WizardBatchBuilderFlowInjectLibraryGen(steps);
-          case CHROMATOGRAPHY_HARD, SPATIAL_IMAGING -> throw unsupportedException;
-        };
-      }
-      case MS1_ONLY -> throw new UnsupportedOperationException(
-          "Currently not implemented workflow " + workflowPreset);
-    };
-  }
-
-  /**
    * Create different workflows in {@link BatchQueue}. Workflows are defined in
    *
    * @return a batch queue
@@ -152,6 +98,20 @@ public abstract class WizardBatchBuilder {
       }
     }
     return null;
+  }
+
+  /**
+   * Get parameter if available or else return default value. params usually comes from
+   * {@link WizardSequence#get(WizardPart)}
+   *
+   * @param params    an optional parameter class for a part
+   * @param parameter parameter as defined in params class. Usually a static parameter
+   * @return the value of the parameter or default value if !params.isPresent
+   */
+  @NotNull
+  public static <T> T getOrElse(@NotNull final Optional<? extends WizardStepParameters> params,
+      @NotNull final Parameter<T> parameter, @NotNull T defaultValue) {
+    return requireNonNullElse(getValue(params, parameter), defaultValue);
   }
 
   /**

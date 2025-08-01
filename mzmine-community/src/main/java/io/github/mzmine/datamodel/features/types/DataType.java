@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,9 +46,11 @@ import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.Property;
@@ -67,7 +69,7 @@ import org.jetbrains.annotations.Nullable;
  * @param <T>
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public abstract class DataType<T> implements Comparable<DataType> {
+public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSupplier {
 
   private static final Logger logger = Logger.getLogger(DataType.class.getName());
 
@@ -123,8 +125,18 @@ public abstract class DataType<T> implements Comparable<DataType> {
                 List list = (List) model.get(type);
                 if (list != null) {
                   list = new ArrayList<>(list);
-                  list.remove(data);
-                  list.add(0, data);
+                  boolean removed = list.remove(data);
+                  // sometimes the edit combo cell seems to return wrapped values (in a list) instead of the actual ones.
+                  // check if that is the case and unwrap here.
+                  // also checked in EditComboCellFactory, but unfortunately the commitEdit method is already called with
+                  // the wrapped value. so seems to be nested deeply.
+                  if (!removed && data instanceof List falselyWrappedData) {
+                    removed = list.removeAll(falselyWrappedData);
+                    assert removed;
+                    list.addAll(0, falselyWrappedData);
+                  } else {
+                    list.add(0, data);
+                  }
                   model.set((DataType) type, list);
                 }
               } catch (Exception ex) {
@@ -155,6 +167,7 @@ public abstract class DataType<T> implements Comparable<DataType> {
    *
    * @return a unique identifier
    */
+  @Override
   @NotNull
   public abstract String getUniqueID();
 
@@ -206,7 +219,9 @@ public abstract class DataType<T> implements Comparable<DataType> {
     } else if (getValueClass().isInstance(value)) {
       return getFormattedString(getValueClass().cast(value));
     } else {
-      throw new IllegalArgumentException("value is not ValueClass: " + getValueClass().toString());
+      throw new IllegalArgumentException(
+          "value %s (type ) is not of class: %s".formatted(value.toString(),
+              value.getClass().getName(), getValueClass().toString()));
     }
   }
 
@@ -303,18 +318,18 @@ public abstract class DataType<T> implements Comparable<DataType> {
     } else {
       throw new UnsupportedOperationException(
           "Programming error: No edit CellFactory for " + "data type: " + this.getHeaderString()
-          + " class " + this.getClass().toString());
+              + " class " + this.getClass().toString());
     }
   }
 
   // TODO dirty hack to make this a "singleton"
   @Override
-  public boolean equals(Object obj) {
+  public final boolean equals(Object obj) {
     return obj instanceof DataType dt && dt.getUniqueID().equals(this.getUniqueID());
   }
 
   @Override
-  public int hashCode() {
+  public final int hashCode() {
     return getUniqueID().hashCode();
   }
 
@@ -324,7 +339,8 @@ public abstract class DataType<T> implements Comparable<DataType> {
   }
 
   /**
-   * Creating a property which is used in a {@link ModularDataModel}
+   * Creating a property which is used for representing a value of a {@link ModularDataModel} in the
+   * gui.
    *
    * @return
    */
@@ -353,9 +369,9 @@ public abstract class DataType<T> implements Comparable<DataType> {
    * modified.
    */
   @Nullable
-  public Runnable getDoubleClickAction(final @Nullable FeatureTableFX table, @NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> file, @Nullable DataType<?> superType,
-      @Nullable final Object value) {
+  public Runnable getDoubleClickAction(final @Nullable FeatureTableFX table,
+      @NotNull ModularFeatureListRow row, @NotNull List<RawDataFile> file,
+      @Nullable DataType<?> superType, @Nullable final Object value) {
     return null;
   }
 
@@ -439,5 +455,21 @@ public abstract class DataType<T> implements Comparable<DataType> {
       default:
         return null;
     }
+  }
+
+  /**
+   * Creates a mapper to convert from a simple string to a value of this data type. The string value
+   * passed to the mapper may be null and the return value of the mapper may be null. If the
+   * returned mapper is not null, the data type can be used in an
+   * {@link io.github.mzmine.parameters.parametertypes.ImportType} to convert simple csv column
+   * values.
+   * <p>
+   * In the future, different mappers may be introduced and this function may be renamed to a more
+   * specific mapper.
+   *
+   * @return {@code null} or a mapper to convert from a simple string to a value of this data type.
+   */
+  public @Nullable Function<@Nullable String, @Nullable T> getMapper() {
+    return null;
   }
 }

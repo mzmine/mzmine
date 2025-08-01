@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,11 +34,15 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -47,6 +51,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -122,67 +127,6 @@ public class MZmineProjectImpl implements MZmineProject {
       }
     }
     return null;
-  }
-
-  @Override
-  public void addParameter(UserParameter<?, ?> parameter) {
-    if (projectParametersAndValues.containsKey(parameter)) {
-      return;
-    }
-
-    Hashtable<RawDataFile, Object> parameterValues = new Hashtable<>();
-    projectParametersAndValues.put(parameter, parameterValues);
-
-  }
-
-  @Override
-  public void removeParameter(UserParameter<?, ?> parameter) {
-    projectParametersAndValues.remove(parameter);
-  }
-
-  @Override
-  public UserParameter<?, ?> getParameterByName(String name) {
-    for (UserParameter<?, ?> parameter : getParameters()) {
-      if (parameter.getName().equals(name)) {
-        return parameter;
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public boolean hasParameter(UserParameter<?, ?> parameter) {
-    // matching by name
-    UserParameter<?, ?> param = getParameterByName(parameter.getName());
-    return param != null;
-  }
-
-  @Override
-  public UserParameter<?, ?>[] getParameters() {
-    return projectParametersAndValues.keySet().toArray(new UserParameter[0]);
-  }
-
-  @Override
-  public void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile,
-      Object value) {
-    if (!(hasParameter(parameter))) {
-      addParameter(parameter);
-    }
-    Hashtable<RawDataFile, Object> parameterValues = projectParametersAndValues.get(parameter);
-    if (value == null) {
-      parameterValues.remove(rawDataFile);
-    } else {
-      parameterValues.put(rawDataFile, value);
-    }
-  }
-
-  @Override
-  public Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile) {
-    if (!(hasParameter(parameter))) {
-      return null;
-    }
-
-    return projectParametersAndValues.get(parameter).get(rawDataFile);
   }
 
   @Override
@@ -266,7 +210,11 @@ public class MZmineProjectImpl implements MZmineProject {
         featureList.setName(getUniqueName(featureList.getName(), names));
       }
       featureLists.add(featureList);
+      logger.finer(
+          "Added feature list with %d rows named: %s".formatted(featureList.getNumberOfRows(),
+              featureList.getName()));
       fireFeatureListsChangeEvent(List.of(featureList), Type.ADDED);
+
     } finally {
       featureLock.writeLock().unlock();
     }
@@ -306,14 +254,13 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public @Nullable RawDataFile getDataFileByName(@Nullable String name) {
-    if (name == null) {
+    if (StringUtils.isBlank(name)) {
       return null;
     }
     try {
       rawLock.readLock().lock();
       for (final RawDataFile raw : rawDataFiles) {
-        if (name.equalsIgnoreCase(raw.getName()) || name.equalsIgnoreCase(
-            FileAndPathUtil.eraseFormat(raw.getName()))) {
+        if (MetadataTableUtils.matchesFilename(name, raw)) {
           return raw;
         }
       }
@@ -442,6 +389,15 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
+  public void clearSpectralLibrary() {
+    synchronized (spectralLibraries) {
+      final List<SpectralLibrary> removed = List.copyOf(spectralLibraries);
+      spectralLibraries.clear();
+      fireLibrariesChangeEvent(removed, Type.REMOVED);
+    }
+  }
+
+  @Override
   public void fireLibrariesChangeEvent(List<SpectralLibrary> libraries, Type type) {
     final var event = new ProjectChangeEvent<>(this, libraries, type);
     listeners.forEach(l -> l.librariesChanged(event));
@@ -508,4 +464,37 @@ public class MZmineProjectImpl implements MZmineProject {
     }
   }
 
+  public @Nullable Path getRelativePath(@Nullable Path path) {
+    if (path == null) {
+      return null;
+    }
+    final File projectFile = getProjectFile();
+
+    if (projectFile == null) {
+      return null;
+    }
+
+    try {
+      return projectFile.toPath().relativize(path).normalize();
+    } catch (IllegalArgumentException e) {
+      logger.warning(
+          () -> "Cannot relativize path %s to project file %s. Files may be located on a different drive.".formatted(
+              path.toFile().getAbsolutePath(), projectFile.getAbsolutePath()));
+      return null;
+    }
+  }
+
+  @Override
+  public @Nullable File resolveRelativePathToFile(@Nullable String path) {
+    if (path == null || path.isBlank() || getProjectFile() == null) {
+      return null;
+    }
+
+    try {
+      return projectFile.toPath().resolve(path).normalize().toFile();
+    } catch (InvalidPathException e) {
+      logger.log(Level.SEVERE, "Cannot resolve file path relative to project.", e);
+      return null;
+    }
+  }
 }

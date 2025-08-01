@@ -28,6 +28,7 @@ package io.github.mzmine.gui.mainwindow;
 import io.github.mzmine.gui.mainwindow.dependenciestab.DependenciesTab;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.javafx.LightAndDarkModeIcon;
 import io.mzio.links.MzioMZmineLinks;
 import javafx.geometry.Insets;
@@ -61,7 +62,8 @@ public class AboutTab extends SimpleTab {
 
     // Software + version
     contentBox.getChildren().add(FxLabels.newBoldLabel("Software Name"));
-    Label softwareName = new Label(STR."mzmine \{MZmineCore.getMZmineVersion().toString()}, by mzio GmbH");
+    Label softwareName = new Label(
+        "mzmine " + SemverVersionReader.getMZmineVersion() + ", by mzio GmbH");
     contentBox.getChildren().add(softwareName);
 
     // Privacy Policy
@@ -72,7 +74,8 @@ public class AboutTab extends SimpleTab {
     // Terms and conditions
     //TODO add to mzio links
     contentBox.getChildren().add(FxLabels.newBoldLabel("Terms and Conditions"));
-    Hyperlink legalInfo = FxLabels.newWebHyperlink(MzioMZmineLinks.TERMS_CONDITIONS.getUrl()); // Assuming you're updating this
+    Hyperlink legalInfo = FxLabels.newWebHyperlink(
+        MzioMZmineLinks.TERMS_CONDITIONS.getUrl()); // Assuming you're updating this
     contentBox.getChildren().add(legalInfo);
 
     // Third-party Libraries
@@ -83,7 +86,7 @@ public class AboutTab extends SimpleTab {
 
     // Copyright Notice
     contentBox.getChildren().add(FxLabels.newBoldLabel("Copyright Notice"));
-    Label copyrightNotice = new Label("©2024 by mzio GmbH and mzmine development team");
+    Label copyrightNotice = new Label("©2025 by mzio GmbH and mzmine development team");
     contentBox.getChildren().add(copyrightNotice);
 
     ScrollPane scrollPane = new ScrollPane(contentBox);

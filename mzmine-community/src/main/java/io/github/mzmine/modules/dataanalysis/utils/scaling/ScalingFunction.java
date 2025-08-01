@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,9 @@
 
 package io.github.mzmine.modules.dataanalysis.utils.scaling;
 
+import io.github.mzmine.datamodel.statistics.DataTableProcessingStep;
 import java.util.function.Function;
+import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.linear.RealVector;
 
 /**
@@ -33,6 +35,13 @@ import org.apache.commons.math3.linear.RealVector;
  * statistical analysis. A statistician recommended "AutoScaling" as a default, which scales
  * intensities to the standard deviation of the row.
  */
-public interface ScalingFunction extends Function<RealVector, RealVector> {
+public interface ScalingFunction extends Function<RealVector, RealVector>, DataTableProcessingStep {
+
+  UnivariateFunction scalingResultChecker = x -> {
+    if (Double.isNaN(x) || Double.isInfinite(x)) {
+      return 0;
+    }
+    return x;
+  };
 
 }

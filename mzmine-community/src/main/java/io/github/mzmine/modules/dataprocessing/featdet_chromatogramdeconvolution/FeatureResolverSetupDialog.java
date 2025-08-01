@@ -25,14 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
-import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
-import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -40,14 +32,11 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.javafx.components.util.FxLayout;
-import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.mvci.FxController;
+import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
@@ -55,23 +44,15 @@ import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskService;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
-import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.SortableFeatureComboBox;
-import io.github.mzmine.util.maths.CenterFunction;
-import io.github.mzmine.util.maths.CenterMeasure;
-import io.github.mzmine.util.maths.Weighting;
 import java.text.NumberFormat;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import javafx.animation.PauseTransition;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
@@ -96,13 +77,13 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   protected final NumberFormat rtFormat;
   protected final NumberFormat intensityFormat;
   protected final NumberFormat mobilityFormat;
-  private final PauseTransition delayedParameterUpdateListener;
-  private final PauseTransition delayedFeatureUpdateListener;
   protected ComboBox<FeatureList> flistBox;
   protected SortableFeatureComboBox fBox;
   protected SortableFeatureComboBox fBoxBadFeature;
-  protected BinningMobilogramDataAccess mobilogramBinning;
   protected Resolver resolver;
+
+  protected final FxController<Object> controller = new FeatureResolverUpdateController(
+      new Object());
   private final Map<SimpleXYChart<IonTimeSeriesToXYProvider>, AbstractTask> updateTasksMap = new HashMap<>();
 
   public FeatureResolverSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
@@ -123,12 +104,6 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
         uf.format("Retention time", "min"), uf.format("Intensity", "a.u."));
     previewChartBadFeature.setDomainAxisNumberFormatOverride(rtFormat);
     previewChartBadFeature.setRangeAxisNumberFormatOverride(intensityFormat);
-
-    // add pause to delay response to parameter changes
-    delayedParameterUpdateListener = new PauseTransition(Duration.seconds(0.5));
-    delayedParameterUpdateListener.setOnFinished(event -> updateWithCurrentParameters());
-    delayedFeatureUpdateListener = new PauseTransition(Duration.seconds(0.1));
-    delayedFeatureUpdateListener.setOnFinished(_ -> updateWithCurrentParameters());
 
     ObservableList<FeatureList> flists = FXCollections.observableArrayList(
         ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists());
@@ -167,7 +142,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
       }
     });
     fBox.selectedFeatureProperty().addListener(
-        ((_, _, newValue) -> /*startUpdateThreadForChart(previewChart, newValue)*/ delayedFeatureUpdateListener.playFromStart()));
+        ((_, _, newValue) -> /*startUpdateThreadForChart(previewChart, newValue)*/ updateWithCurrentParameters()));
 
     fBoxBadFeature = new SortableFeatureComboBox();
     fBoxBadFeature.setConverter(new StringConverter<>() {
@@ -186,7 +161,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
       }
     });
     fBoxBadFeature.selectedFeatureProperty().addListener(
-        ((_, _, newValue) -> /*startUpdateThreadForChart(previewChartBadFeature, newValue)*/ delayedFeatureUpdateListener.playFromStart()));
+        ((_, _, newValue) -> /*startUpdateThreadForChart(previewChartBadFeature, newValue)*/ updateWithCurrentParameters()));
 
     final BorderPane pnBadFeaturePreview = new BorderPane();
     pnBadFeaturePreview.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
@@ -205,7 +180,6 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     pnFeaturePreview.setCenter(previewChart);
     pnFeaturePreview.setBottom(pnControls);
 
-
     GridPane preview = new GridPane();
     preview.add(pnBadFeaturePreview, 0, 0, 2, 1);
     preview.add(pnFeaturePreview, 0, 1, 2, 1);
@@ -218,61 +192,44 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     previewWrapperPane.setCenter(preview);
   }
 
-  protected void startUpdateThreadForChart(SimpleXYChart<IonTimeSeriesToXYProvider> chart,
-      Feature newValue) {
-    if (newValue == null) {
-      return;
-    }
-    // cancel old
-    AbstractTask oldTask = updateTasksMap.get(chart);
-    if (oldTask != null) {
-      oldTask.cancel();
-    }
-
-    // do all of this and only update the chart once finished
-    final AbstractTask updateTask = new UpdateTask(chart, newValue);
-    updateTasksMap.put(chart, updateTask);
-    TaskService.getController().addTask(updateTask, TaskPriority.HIGH);
-  }
-
-  @Deprecated
-  protected ResolvedPeak[] resolveFeature(Feature feature) {
-    FeatureResolver resolver = ((GeneralResolverParameters) parameterSet).getResolver();
-    if (fBox.getSelectedFeature() == null) {
-      return null;
-    }
-    CenterFunction cf = new CenterFunction(CenterMeasure.MEDIAN, Weighting.logger10, 0, 4);
-    ResolvedPeak[] resolvedFeatures = resolver.resolvePeaks(feature, parameterSet, cf, 0, 0);
-    return resolvedFeatures;
-  }
-
   @Override
   protected void parametersChanged() {
     super.parametersChanged();
-    // add a delay to accumulate changes then call updateWithCurrentParameters
-    delayedParameterUpdateListener.playFromStart();
+    updateWithCurrentParameters();
   }
 
   private void updateWithCurrentParameters() {
     updateParameterSetFromComponents();
 
-    if (flistBox.getValue() != null) {
+    List<String> errors = new ArrayList<>();
+    if (parameterSet.checkParameterValues(errors, true) && flistBox.getValue() != null
+        && fBox.getSelectedFeature() != null) {
       resolver = ((GeneralResolverParameters) parameterSet).getResolver(parameterSet,
           (ModularFeatureList) flistBox.getValue());
+      queueUpdateThreadForChart("good eic", previewChart, fBox.getSelectedFeature());
+      queueUpdateThreadForChart("bad eic", previewChartBadFeature,
+          fBoxBadFeature.getSelectedFeature());
+    }
+  }
+
+  protected void queueUpdateThreadForChart(String chartName,
+      SimpleXYChart<IonTimeSeriesToXYProvider> chart, Feature feature) {
+    if (feature == null) {
+      return;
     }
 
-    List<String> errors = new ArrayList<>();
-    if (parameterSet.checkParameterValues(errors, true)) {
-      startUpdateThreadForChart(previewChart, fBox.getSelectedFeature());
-      startUpdateThreadForChart(previewChartBadFeature, fBoxBadFeature.getSelectedFeature());
-    }
+    // do all of this and only update the chart once finished
+    final FxUpdateTask<Object> updateTask = new ResolverPreviewUpdateTask(chartName, chart, feature,
+        (ModularFeatureList) flistBox.getValue(),
+        (GeneralResolverParameters) parameterSet);
+
+    controller.onTaskThreadDelayed(updateTask, Duration.millis(100));
   }
 
   @Override
   public void setOnPreviewShown(Runnable onPreviewShown) {
     super.setOnPreviewShown(onPreviewShown);
   }
-
 
   private ModularFeature findBadFeature(List<ModularFeatureListRow> rows) {
     final List<ModularFeatureListRow> sortedByArea = rows.stream()
@@ -296,145 +253,4 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     return top30.get(top30.size() - 1).getBestFeature();
   }
 
-  private class UpdateTask extends AbstractTask {
-
-    private final SimpleXYChart chart;
-    private final Feature newValue;
-
-    UpdateTask(SimpleXYChart chart, Feature newValue) {
-      super(null, Instant.now());
-
-      this.chart = chart;
-      this.newValue = newValue;
-    }
-
-    @Override
-    public String getTaskDescription() {
-      return "Updating resolver preview with " + FeatureUtils.featureToString(newValue);
-    }
-
-    @Override
-    public double getFinishedPercentage() {
-      return 0;
-    }
-
-    @Override
-    public void run() {
-      setStatus(TaskStatus.PROCESSING);
-      try {
-        chart.applyWithNotifyChanges(false, true, () -> {
-          logger.finest("Updating feature resolving preview");
-          chart.removeAllDatasets();
-          if (isCanceled()) {
-            return;
-          }
-
-          ResolvingDimension dimension = ResolvingDimension.RETENTION_TIME;
-          try {
-            // not all resolvers are capable of resolving rt and mobility dimension. In that case, the
-            // parameter has not been added to the parameter set.
-            dimension = parameterSet.getParameter(GeneralResolverParameters.dimension).getValue();
-          } catch (IllegalArgumentException e) {
-            // this one can go silent
-          }
-          // add preview depending on which dimension is selected.
-          if (dimension == ResolvingDimension.RETENTION_TIME) {
-            chart.addDataset(new ColoredXYDataset(new IonTimeSeriesToXYProvider(newValue),
-                RunOption.THIS_THREAD));
-            chart.setDomainAxisLabel(uf.format("Retention time", "min"));
-            chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
-          } else if (dimension == ResolvingDimension.MOBILITY
-              && newValue.getFeatureData() instanceof IonMobilogramTimeSeries) {
-            IonMobilogramTimeSeries data = (IonMobilogramTimeSeries) newValue.getFeatureData();
-            chart.addDataset(new ColoredXYDataset(
-                new SummedMobilogramXYProvider(data.getSummedMobilogram(),
-                    new SimpleObjectProperty<>(newValue.getRawDataFile().getColor()), ""),
-                RunOption.THIS_THREAD));
-            IMSRawDataFile file = (IMSRawDataFile) newValue.getRawDataFile();
-            chart.setDomainAxisLabel(
-                uf.format(file.getMobilityType().getAxisLabel(), file.getMobilityType().getUnit()));
-            chart.setDomainAxisNumberFormatOverride(
-                MZmineCore.getConfiguration().getMobilityFormat());
-          } else {
-            MZmineCore.getDesktop().displayErrorMessage(
-                "Cannot resolve for mobility in a dataset that has no mobility dimension.");
-            return;
-          }
-          if (isCanceled()) {
-            return;
-          }
-
-          int resolvedFeatureCounter = 0;
-          SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
-
-          if (resolver == null || (flistBox.getValue() != null
-              && resolver.getRawDataFile() != flistBox.getValue().getRawDataFile(0))) {
-            resolver = ((GeneralResolverParameters) parameterSet).getResolver(parameterSet,
-                (ModularFeatureList) flistBox.getValue());
-          }
-          if (resolver != null) {
-
-            if (newValue.getFeatureList() instanceof ModularFeatureList) {
-              if (dimension == ResolvingDimension.RETENTION_TIME) {
-                // we can't use FeatureDataAccess to select a specific feature, so we need to remap manually.
-                final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(
-                    IonTimeSeriesUtils.remapRtAxis(newValue.getFeatureData(),
-                        flistBox.getValue().getSeletedScans(newValue.getRawDataFile())), null);
-
-                for (IonTimeSeries<? extends Scan> series : resolved) {
-                  if (isCanceled()) {
-                    return;
-                  }
-                  ColoredXYDataset ds = new ColoredXYDataset(new IonTimeSeriesToXYProvider(series,
-                      rtFormat.format(series.getSpectra().get(0).getRetentionTime()) + " - "
-                          + rtFormat.format(series.getSpectra().get(series.getNumberOfValues() - 1)
-                          .getRetentionTime()) + " min",
-                      new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))),
-                      RunOption.THIS_THREAD);
-                  chart.addDataset(ds, new ColoredAreaShapeRenderer());
-                }
-              } else {
-                // for mobility dimension we don't need to remap RT
-                final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(
-                    newValue.getFeatureData(), null);
-                for (IonTimeSeries<? extends Scan> series : resolved) {
-                  if (isCanceled()) {
-                    return;
-                  }
-                  final SummedIntensityMobilitySeries mobilogram = ((IonMobilogramTimeSeries) series).getSummedMobilogram();
-                  ColoredXYDataset ds = new ColoredXYDataset(
-                      new SummedMobilogramXYProvider(mobilogram,
-                          new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)),
-                          mobilityFormat.format(mobilogram.getMobility(0)) + " - "
-                              + mobilityFormat.format(
-                              mobilogram.getMobility(mobilogram.getNumberOfValues() - 1)) + " "
-                              + ((Frame) series.getSpectrum(0)).getMobilityType().getUnit()),
-                      RunOption.THIS_THREAD);
-                  chart.addDataset(ds, new ColoredAreaShapeRenderer());
-                }
-              }
-            }
-          } else {
-            ResolvedPeak[] resolved = resolveFeature(newValue);
-            if (resolved.length == 0) {
-              return;
-            }
-            for (ResolvedPeak rp : resolved) {
-              if (isCanceled()) {
-                return;
-              }
-              ColoredXYDataset ds = new ColoredXYDataset(rp, RunOption.THIS_THREAD);
-              ds.setColor(FxColorUtil.fxColorToAWT(palette.get(resolvedFeatureCounter++)));
-              chart.addDataset(ds, new ColoredAreaShapeRenderer());
-            }
-          }
-        });
-      } catch (Exception ex) {
-        logger.log(Level.FINER,
-            "Error during resolver preview update. This is no issue if the old task was stopped and a new was started.",
-            ex);
-      }
-      setStatus(TaskStatus.FINISHED);
-    }
-  }
 }

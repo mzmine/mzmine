@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,11 +35,11 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.WriterOptions;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map.Entry;
@@ -136,7 +136,8 @@ public class CcsBaseExportTask extends AbstractTask {
       return;
     }
 
-    try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardOpenOption.WRITE)) {
+    try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(),
+        WriterOptions.REPLACE.toOpenOption())) {
       writer.write(CCS_BASE_HEADER);
       writer.newLine();
       for (Entry<CcsBaseEntry, Double> entry : map.entrySet()) {

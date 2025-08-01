@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
-import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gestures.SimpleDataDragGestureHandler;
@@ -141,6 +141,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
 
   private FontIcon massDetectionScanIcon;
   private FontIcon massDetectionFrameIcon;
+  private final Label binWidthLabel = new Label("");
 
   /**
    * Creates a BorderPane layout.
@@ -195,7 +196,13 @@ public class IMSRawDataOverviewPane extends BorderPane {
         "Indication if the mass detection was " + "performed successfully in the selected frame"));
     massDetectionPane.add(massDetectionFrameIcon, 1, 2);
     massDetectionPane.add(massDetectionFrameLabel, 0, 2);
-    chartPanel.getChildren().add(massDetectionPane);
+    final Label binWidthDesc = new Label("Default mobility bin width:");
+    Tooltip.install(binWidthDesc, new Tooltip(
+        "The automatically determined bin width for this dataset. Optimizing this manually and setting it in the\n"
+            + "IMS expander step may improve processing results."));
+    massDetectionPane.add(binWidthDesc, 0, 3);
+    massDetectionPane.add(this.binWidthLabel, 1, 3);
+    chartPanel.add(massDetectionPane, 0, 0);
 
     selectedFrame = new SimpleObjectProperty<>();
     selectedFrame.addListener((observable, oldValue, newValue) -> onSelectedFrameChanged());
@@ -238,8 +245,9 @@ public class IMSRawDataOverviewPane extends BorderPane {
     // ticChart.removeDatasets(mzRangeTicDatasetIndices);
 
     massDetectionPane.getChildren().remove(massDetectionFrameIcon);
-    massDetectionFrameIcon = selectedFrame.get().getMassList() != null ? MZmineIconUtils.getCheckedIcon()
-        : MZmineIconUtils.getUncheckedIcon();
+    massDetectionFrameIcon =
+        selectedFrame.get().getMassList() != null ? MZmineIconUtils.getCheckedIcon()
+            : MZmineIconUtils.getUncheckedIcon();
     massDetectionPane.add(massDetectionFrameIcon, 1, 2);
 
     massDetectionPane.getChildren().remove(massDetectionScanIcon);
@@ -286,14 +294,18 @@ public class IMSRawDataOverviewPane extends BorderPane {
     final Color boxClr = MZmineCore.getConfiguration().getDefaultColorPalette()
         .getNegativeColorAWT();
     final Color transparent = new Color(0.5f, 0f, 0f, 0.5f);
-    for (PasefMsMsInfo info : selectedFrame.get().getImsMsMsInfos()) {
+    for (IonMobilityMsMsInfo info : selectedFrame.get().getImsMsMsInfos()) {
       final double mobLow = selectedFrame.get()
           .getMobilityForMobilityScanNumber(info.getSpectrumNumberRange().lowerEndpoint());
       final double mobHigh = selectedFrame.get()
           .getMobilityForMobilityScanNumber(info.getSpectrumNumberRange().upperEndpoint());
-      var rect = new Rectangle2D.Double(info.getIsolationWindow().lowerEndpoint(),
-          Math.min(mobLow, mobHigh), RangeUtils.rangeLength(info.getIsolationWindow()),
-          Math.abs(mobHigh - mobLow));
+      final var mzRange = info.getIsolationWindow();
+      if (mzRange == null) {
+        continue;
+      }
+
+      var rect = new Rectangle2D.Double(mzRange.lowerEndpoint(), Math.min(mobLow, mobHigh),
+          RangeUtils.rangeLength(mzRange), Math.abs(mobHigh - mobLow));
       final XYShapeAnnotation precursorIso = new XYShapeAnnotation(rect, new BasicStroke(1f),
           Color.red, null);
       heatmapChart.getXYPlot().addAnnotation(precursorIso);
@@ -570,10 +582,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   protected void updateTicPlot() {
     ticChart.removeAllDataSets();
     mzRangeTicDatasetIndices.clear();
-    final double selectedRt =
-        selectedFrame.get() != null ? selectedFrame.get().getRetentionTime() : rtWidth / 2;
-    final ScanSelection scanSel = new ScanSelection(msLevelFilter).cloneWithNewRtRange(
-        RangeUtils.rangeAround(selectedRt, rtWidth));
+    final ScanSelection scanSel = new ScanSelection(msLevelFilter);
     Thread thread = new Thread(
         new BuildMultipleTICRanges(controlsPanel.getMobilogramRangesList(), rawDataFile, scanSel,
             this));
@@ -581,15 +590,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
     TICDataSet dataSet = new TICDataSet(rawDataFile,
         new ScanSelection(msLevelFilter).getMatchingScans(rawDataFile),
         rawDataFile.getDataMZRange(), null);
-    ticChart.addTICDataSet(dataSet, rawDataFile.getColorAWT());
-    ticChart.getXYPlot().getDomainAxis().setRange(
-        RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(rawDataFile.getDataRTRange(), 0.001f)));
-    ticChart.setTitle("BPC - " + rawDataFile.getName(), "");
-    if (!RangeUtils.isJFreeRangeConnectedToGuavaRange(
+    if (RangeUtils.isDefaultJFreeRange(ticChart.getXYPlot().getDomainAxis().getRange())
+        || !RangeUtils.isJFreeRangeConnectedToGuavaRange(
         ticChart.getXYPlot().getDomainAxis().getRange(), rawDataFile.getDataRTRange(1))) {
-      ticChart.getXYPlot().getDomainAxis().setRange(rawDataFile.getDataRTRange().lowerEndpoint(),
-          rawDataFile.getDataRTRange().upperEndpoint());
+      ticChart.getXYPlot().getDomainAxis().setRange(RangeUtils.guavaToJFree(
+          RangeUtils.getPositiveRange(rawDataFile.getDataRTRange(), 0.001f)));
     }
+    // add tic dataset after setting the range, so autoscale on the y axis uses the correct range.
+    ticChart.addTICDataSet(dataSet, rawDataFile.getColorAWT());
   }
 
   public void addRanges(List<Range<Double>> ranges) {
@@ -634,10 +642,13 @@ public class IMSRawDataOverviewPane extends BorderPane {
       return;
     }
     this.rawDataFile = (IMSRawDataFile) rawDataFile;
+    binWidthLabel.setText(
+        "%d".formatted(BinningMobilogramDataAccess.getRecommendedBinWidth(this.rawDataFile)));
     rangesBinningMobilogramDataAccess = EfficientDataAccess.of(this.rawDataFile, binWidth);
     selectedBinningMobilogramDataAccess = EfficientDataAccess.of(this.rawDataFile, binWidth);
     updateTicPlot();
     updateAxisLabels();
+    ionTraceChart.removeAllDatasets();
     setSelectedFrame(((IMSRawDataFile) rawDataFile).getFrames().stream().findFirst().get());
   }
 

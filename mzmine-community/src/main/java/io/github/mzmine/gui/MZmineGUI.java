@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ import io.github.mzmine.gui.mainwindow.AboutTab;
 import io.github.mzmine.gui.mainwindow.GlobalKeyHandler;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
+import io.github.mzmine.gui.mainwindow.ProjectTab;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
@@ -47,12 +48,13 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.parameters.ParameterSet;
@@ -62,9 +64,13 @@ import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.files.ExtensionFilters;
+import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
+import io.mzio.mzmine.gui.workspace.Workspace;
+import io.mzio.mzmine.gui.workspace.WorkspaceTags;
 import io.mzio.users.client.UserAuthStore;
 import io.mzio.users.gui.fx.UsersViewState;
 import io.mzio.users.user.CurrentUserService;
@@ -74,6 +80,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -110,7 +117,6 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -143,18 +149,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   public static void requestQuit() {
     FxThread.runLater(() -> {
-      Alert alert = new Alert(AlertType.CONFIRMATION);
-      Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-      stage.getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-      stage.getIcons().add(mzMineIcon);
-      alert.setTitle("Confirmation");
-      alert.setHeaderText("Exit mzmine");
-      String s = "Are you sure you want to exit?";
-      alert.setContentText(s);
-      Optional<ButtonType> result = alert.showAndWait();
-
-      if ((result.isPresent()) && (result.get() == ButtonType.OK)) {
+      if (DialogLoggerUtil.showDialogYesNo("Exit mzmine", "Are you sure you want to exit?")) {
         // Quit the JavaFX thread
         Platform.exit();
         // Call System.exit() because there are probably some background
@@ -199,7 +194,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     Scene newScene = new Scene(parent);
 
     // Copy CSS styles
-    newScene.getStylesheets().addAll(rootScene.getStylesheets());
+    ConfigService.getConfiguration().getTheme().apply(newScene.getStylesheets());
 
     Stage newStage = new Stage();
     newStage.setTitle(title);
@@ -255,6 +250,16 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   }
 
+  /**
+   * Currently the {@link GroupableListView} only allows sorting by name.
+   */
+  public static void sortRawDataFilesAlphabetically(final List<RawDataFile> raws) {
+    if (mainWindowController == null) {
+      return;
+    }
+    FxThread.runLater(() -> mainWindowController.getRawDataList().sortItemObjects(raws));
+  }
+
   @NotNull
   public static List<RawDataFile> getSelectedRawDataFiles() {
     final GroupableListView<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
@@ -264,7 +269,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
   @NotNull
   public static List<FeatureList> getSelectedFeatureLists() {
     final GroupableListView<FeatureList> featureListView = mainWindowController.getFeatureListsList();
-    return ImmutableList.copyOf(featureListView.getSelectedValues());
+    return ImmutableList.copyOf(featureListView.getSelectedValues().stream().distinct().toList());
   }
 
   @NotNull
@@ -300,21 +305,22 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
    *
    * @param event - DragEvent
    */
-
   public static void activateSetOnDragDropped(DragEvent event) {
     List<String> messages = new ArrayList<>();
 
     Dragboard dragboard = event.getDragboard();
     boolean hasFileDropped = false;
+    File lastBatchFile = null;
     if (dragboard.hasFiles()) {
       hasFileDropped = true;
 
-      final List<String> rawExtensions = List.of("mzml", "mzxml", "raw", "cdf", "netcdf", "nc",
-          "mzdata", "imzml", "tdf", "d", "tsf", "zip", "gz");
+      final List<String> rawExtensions = ExtensionFilters.ALL_MS_DATA_FILTER.getExtensions()
+          .stream().map(e -> e.replaceAll("\\*\\.", "")).toList();
       final List<String> libraryExtensions = List.of("json", "mgf", "msp", "jdx");
 
       final List<File> rawDataFiles = new ArrayList<>();
       final List<File> libraryFiles = new ArrayList<>();
+      lastBatchFile = null;
 
       for (File selectedFile : dragboard.getFiles()) {
         final String extension = FilenameUtils.getExtension(selectedFile.getName()).toLowerCase();
@@ -345,20 +351,20 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         if (WizardSequenceIOUtils.isWizardFile(extension)) {
           boolean result = copyToUserDirectory(selectedFile);
           String resultStr = result ? "succeeded" : "failed";
-          messages.add(STR."Adding wizard file \{selectedFile.getName()} \{resultStr}");
+          messages.add("Adding wizard file %s %s".formatted(selectedFile.getName(), resultStr));
         }
         if (UserAuthStore.isUserFile(extension)) {
           var result = UserAuthStore.copyAddUserFile(selectedFile);
           String resultStr = result ? "succeeded" : "failed";
-          messages.add(STR."Adding user \{selectedFile.getName()} \{resultStr}");
+          messages.add("Adding user %s %s".formatted(selectedFile.getName(), resultStr));
           if (result) {
             askChangeUser(selectedFile.getName());
           }
         }
 
-//        if(selectedFile.getName().strip().toLowerCase().endsWith("mzbatch")) {
-//          lastBatchFile = selectedFile;
-//        }
+        if (selectedFile.getName().trim().toLowerCase().endsWith("mzbatch")) {
+          lastBatchFile = selectedFile;
+        }
       }
 
 //      if (lastBatchFile != null) {
@@ -369,23 +375,18 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
         if (!rawDataFiles.isEmpty()) {
           logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
-                              + rawDataFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+              + rawDataFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
         }
         if (!libraryFiles.isEmpty()) {
           logger.finest(() -> "Importing " + libraryFiles.size() + " raw files via drag and drop: "
-                              + libraryFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+              + libraryFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
         }
 
         // set raw and library files to parameter
         ParameterSet param = MZmineCore.getConfiguration()
             .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
-        param.setParameter(AllSpectralDataImportParameters.advancedImport, false);
-        param.setParameter(AllSpectralDataImportParameters.fileNames,
-            rawDataFiles.toArray(File[]::new));
-        param.setParameter(SpectralLibraryImportParameters.dataBaseFiles,
-            libraryFiles.toArray(File[]::new));
+        param = AllSpectralDataImportParameters.create(ConfigService.isApplyVendorCentroiding(),
+            rawDataFiles.toArray(File[]::new), null, libraryFiles.toArray(File[]::new), null);
 
         // start import task for libraries and raw data files
         AllSpectralDataImportModule module = MZmineCore.getModuleInstance(
@@ -398,8 +399,15 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         }
       }
     }
+
     event.setDropCompleted(hasFileDropped);
     event.consume();
+
+    // needs to be last after completing the drag event
+    // load last batch file - only one
+    if (lastBatchFile != null) {
+      BatchModeParameters.showSetupDialogLoadFile(lastBatchFile);
+    }
   }
 
   private static void askChangeUser(final String fileName) {
@@ -410,7 +418,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       }
 
       boolean changeUserResult = DialogLoggerUtil.showDialogYesNo("Changing active user",
-          STR."Switch to user \{user.getNickname()}?");
+          "Switch to user %s?".formatted(user.getNickname()));
 
       if (changeUserResult) {
         CurrentUserService.setUser(user);
@@ -427,7 +435,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     }
 
     if (loc == TAB && MZmineCore.getDesktop().getAllTabs().stream()
-        .anyMatch(t -> t.getText().equals("Tasks")) || (loc != TAB && Objects.equals(loc,
+        .anyMatch(t -> MZmineTab.getText(t).equals("Tasks")) || (loc != TAB && Objects.equals(loc,
         currentTaskManagerLocation))) {
       // only return if we have that tab
       return;
@@ -516,7 +524,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       Platform.exit();
     }
 
-    stage.setTitle("mzmine " + MZmineCore.getMZmineVersion());
+    stage.setTitle("mzmine " + SemverVersionReader.getMZmineVersion());
     stage.setMinWidth(600);
     stage.setMinHeight(400);
 
@@ -541,7 +549,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     desktopSetupThread.setPriority(Thread.MIN_PRIORITY);
     desktopSetupThread.start();
 
-    setStatusBarText("Welcome to mzmine " + MZmineCore.getMZmineVersion());
+    setStatusBarText("Welcome to mzmine " + SemverVersionReader.getMZmineVersion());
 
     stage.show();
 
@@ -554,24 +562,10 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         FxThread.runLater(() -> displayNotification("""
                 Set temp folder to a fast local drive (prefer a public folder over a user folder).
                 mzmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
-                """, "Change", MZmineCore::openTempPreferences,
+                """, "Change", ConfigService::openTempPreferences,
             () -> preferences.setParameter(MZminePreferences.showTempFolderAlert, false)));
       }
     }
-    // update the size and position of the main window
-    /*
-     * ParameterSet paramSet = configuration.getPreferences(); WindowSettingsParameter settings =
-     * paramSet .getParameter(MZminePreferences.windowSetttings);
-     * settings.applySettingsToWindow(desktop.getMainWindow());
-     */
-    // add last project menu items
-    /*
-     * if (desktop instanceof MainWindow) { ((MainWindow) desktop).createLastUsedProjectsMenu(
-     * configuration.getLastProjects()); // listen for changes
-     * configuration.getLastProjectsParameter() .addFileListChangedListener(list -> { // new list of
-     * last used projects Desktop desk = getDesktop(); if (desk instanceof MainWindow) {
-     * ((MainWindow) desk) .createLastUsedProjectsMenu(list); } }); }
-     */
 
     // Activate project - bind it to the desktop's project tree
     MZmineGUI.activateProject(ProjectService.getProject());
@@ -583,7 +577,12 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     nvcThread.start();
 
     // add global keys that may be added to other dialogs to receive the same key event handling
-    rootScene.addEventFilter(KeyEvent.KEY_PRESSED, GlobalKeyHandler.getInstance());
+    // key typed does not work
+    // using EventFilter instead of handler as this is a top level to get all events
+    rootScene.addEventFilter(KeyEvent.KEY_RELEASED, GlobalKeyHandler.getInstance());
+
+    // check user in gui mode and show message now
+    MZmineCore.checkUserRemainingDays(CurrentUserService.getUser());
 
     // register shutdown hook only if we have GUI - we don't want to
     // save configuration on exit if we only run a batch
@@ -685,7 +684,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       stage.getIcons().add(mzMineIcon);
       dialog.setTitle(title);
 
-      TextFlow flow = new TextFlow(new Text(msg));
+      TextFlow flow = new TextFlow(new Text(msg + " "));
       if (url != null) {
         Hyperlink href = new Hyperlink(url);
         flow.getChildren().add(href);
@@ -718,34 +717,9 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
   }
 
   @Override
-  public ButtonType displayConfirmation(String msg, ButtonType... buttonTypes) {
-
-    FutureTask<ButtonType> alertTask = new FutureTask<>(() -> {
-      Alert alert = new Alert(AlertType.CONFIRMATION, "", buttonTypes);
-      alert.getDialogPane().getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-      Text text = new Text(msg);
-      text.setWrappingWidth(370);
-      final FlowPane pane = new FlowPane(text);
-      pane.setPadding(new Insets(5));
-      alert.getDialogPane().setContent(pane);
-      alert.setWidth(400);
-      alert.showAndWait();
-      return alert.getResult();
-    });
-
-    // Show the dialog
-    try {
-      if (Platform.isFxApplicationThread()) {
-        alertTask.run();
-      } else {
-        FxThread.runLater(alertTask);
-      }
-      return alertTask.get();
-    } catch (Exception e) {
-      logger.log(Level.WARNING, e.getMessage(), e);
-      return null;
-    }
+  public ButtonType displayConfirmation(final String title, String msg, ButtonType... buttonTypes) {
+    return DialogLoggerUtil.showDialog(AlertType.CONFIRMATION, "null", msg, buttonTypes)
+        .orElse(null);
   }
 
   @Override
@@ -782,7 +756,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   @Override
   public FeatureList[] getSelectedPeakLists() {
-    return getSelectedFeatureLists().toArray(new FeatureList[0]);
+    return getSelectedFeatureLists().stream().distinct().toArray(FeatureList[]::new);
   }
 
   @Override
@@ -854,8 +828,8 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     // Credits: https://stackoverflow.com/questions/36949595/how-do-i-create-a-javafx-alert-with-a-check-box-for-do-not-ask-again
     FutureTask<ButtonType> task = new FutureTask<>(() -> {
       Alert alert = new Alert(AlertType.WARNING);
-      alert.getDialogPane().getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+      ConfigService.getConfiguration().getTheme()
+          .apply(alert.getDialogPane().getScene().getStylesheets());
       // Need to force the alert to layout in order to grab the graphic,
       // as we are replacing the dialog pane with a custom pane
       alert.getDialogPane().applyCss();
@@ -902,5 +876,17 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       logger.log(Level.WARNING, e.getMessage(), e);
     }
     return ButtonType.NO;
+  }
+
+  public ProjectTab getSelectedProjectTab() {
+    return mainWindowController.getSelectedProjectTab();
+  }
+
+  public void setWorkspace(@NotNull Workspace workspace, @NotNull EnumSet<WorkspaceTags> tags) {
+    mainWindowController.setActiveWorkspace(workspace, tags);
+  }
+
+  public Workspace getActiveWorkspace() {
+    return mainWindowController.getActiveWorkspace();
   }
 }

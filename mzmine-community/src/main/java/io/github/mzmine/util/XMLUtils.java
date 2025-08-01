@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Objects;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -41,6 +42,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -206,6 +208,32 @@ public class XMLUtils {
       return null;
     } else {
       return items.item(0).getTextContent();
+    }
+  }
+
+  public static String nodeToString(Node node) {
+    try {
+      // Create a TransformerFactory instance
+      TransformerFactory transformerFactory = TransformerFactory.newInstance();
+
+      // Create a Transformer
+      Transformer transformer = transformerFactory.newTransformer();
+
+      // Set output properties to make it pretty
+      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+
+      // Create a StringWriter to hold the XML as a string
+      StringWriter writer = new StringWriter();
+
+      // Transform the DOM Node into a string
+      transformer.transform(new DOMSource(node), new StreamResult(writer));
+
+      return writer.toString();
+    } catch (TransformerException e) {
+      e.printStackTrace();
+      return null;
     }
   }
 }

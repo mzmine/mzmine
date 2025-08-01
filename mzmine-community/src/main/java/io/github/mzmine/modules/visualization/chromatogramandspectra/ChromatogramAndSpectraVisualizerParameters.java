@@ -67,7 +67,7 @@ public class ChromatogramAndSpectraVisualizerParameters extends SimpleParameterS
     // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("XIC tolerance", chromMzTolerance);
+    nameParameterMap.put("XIC tolerance", getParameter(chromMzTolerance));
     return nameParameterMap;
   }
 }

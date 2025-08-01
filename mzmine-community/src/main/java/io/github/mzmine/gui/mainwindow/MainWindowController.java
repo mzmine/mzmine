@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,21 +36,31 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
+import io.github.mzmine.gui.mainwindow.workspace.AcademicWorkspace;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
+import io.github.mzmine.modules.io.export_merge_libraries.MergeLibrariesModule;
+import io.github.mzmine.modules.io.export_merge_libraries.MergeLibrariesParameters;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
+import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
+import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardParameters;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
@@ -62,9 +72,11 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionType;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
@@ -74,10 +86,14 @@ import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewCell;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewEntity;
 import io.github.mzmine.util.javafx.groupablelistview.ValueEntity;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.mzio.mzmine.gui.workspace.Workspace;
+import io.mzio.mzmine.gui.workspace.WorkspaceMenuHelper;
+import io.mzio.mzmine.gui.workspace.WorkspaceTags;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -86,8 +102,11 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -120,6 +139,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -146,7 +166,8 @@ public class MainWindowController {
   private static final Image featureListAlignedIcon = FxIconUtil.loadImageFromResources(
       "icons/peaklisticon_aligned.png");
   private static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MainWindowController.class.getName());
+
   @FXML
   public ContextMenu rawDataContextMenu;
   @FXML
@@ -169,6 +190,8 @@ public class MainWindowController {
   @FXML
   public MenuItem featureListsRemoveMenuItem;
   public ColorPickerMenuItem rawDataFileColorPicker;
+  @FXML
+  public MenuItem mergeLibrariesMenuItem;
 
   @FXML
   public NotificationPane notificationPane;
@@ -180,6 +203,10 @@ public class MainWindowController {
   public FlowPane taskViewPane;
   @FXML
   public HBox bottomMenuBar;
+  public BorderPane mainPane;
+  public Tab tabMsData;
+  public Tab tabFeatureLists;
+  public Tab tabLibraries;
 
   @FXML
   private Scene mainScene;
@@ -203,6 +230,8 @@ public class MainWindowController {
   private RawDataOverviewWindowController rawDataOverviewController;
 
   @FXML
+  public TabPane projectTabPane;
+  @FXML
   private TabPane mainTabPane;
 
   @FXML
@@ -217,7 +246,10 @@ public class MainWindowController {
   private TasksViewController tasksViewController;
   private Region tasksView;
   private Region miniTaskView;
+  private final PauseTransition manualGcDelay = new PauseTransition(Duration.millis(500));
 
+  private Workspace activeWorkspace;
+  private final DoubleProperty dragDropOpacity = new SimpleDoubleProperty(0.3);
 
   @NotNull
   private static Pane getRawGraphic(RawDataFile rawDataFile) {
@@ -240,8 +272,9 @@ public class MainWindowController {
               This leads to degraded mass accuracies.""");
         } else if (rawDataFile.isContainsEmptyScans()) {
           tip.setText("""
-              Some scans were recognized as empty (no detected peaks).
-              The possible reason might be the high noise levels influencing mzml conversion.""");
+              Some MS1 scans were recognized as empty (no detected signals).
+              The possible reason might be high noise levels influencing mzml conversion.
+              Files can be processed anyway, but consider re-converting if you encounter unexpected results.""");
         }
         Tooltip.install(box, tip);
       }
@@ -254,8 +287,19 @@ public class MainWindowController {
   @FXML
   public void initialize() {
     // do not switch panes by arrows
-    mainTabPane.addEventFilter(KeyEvent.ANY, event -> {
+    mainTabPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
       if (event.getCode().isArrowKey() && event.getTarget() == mainTabPane) {
+        event.consume();
+      }
+      if (event.getCode() == KeyCode.PAGE_UP && event.isShortcutDown()) {
+        mainTabPane.getSelectionModel()
+            .select(Math.max(mainTabPane.getSelectionModel().getSelectedIndex() - 1, 0));
+        event.consume();
+      }
+      if (event.getCode() == KeyCode.PAGE_DOWN && event.isShortcutDown()) {
+        mainTabPane.getSelectionModel().select(
+            Math.min(mainTabPane.getSelectionModel().getSelectedIndex() + 1,
+                mainTabPane.getTabs().size() - 1));
         event.consume();
       }
     });
@@ -280,6 +324,7 @@ public class MainWindowController {
     selectTab(MZmineIntroductionTab.TITLE);
 
     memoryBar.setOnMouseClicked(event -> handleMemoryBarClick(event));
+    memoryBarLabel.setOnMouseClicked(event -> handleMemoryBarClick(event));
     memoryBar.setTooltip(new Tooltip("Free memory (is done automatically)"));
 
     // Setup the Timeline to update the memory indicator periodically
@@ -291,17 +336,38 @@ public class MainWindowController {
       tasksViewController.updateDataModel();
 
       // Obtain the settings of max concurrent threads
-      var numOfThreads = MZmineCore.getConfiguration().getNumOfThreads();
+      MZmineConfiguration config = ConfigService.getConfiguration();
+      var numOfThreads = config.getNumOfThreads();
       MZmineCore.getTaskController().setNumberOfThreads(numOfThreads);
 
-      final long freeMemMB = Runtime.getRuntime().freeMemory() / (1024 * 1024);
-      final long totalMemMB = Runtime.getRuntime().totalMemory() / (1024 * 1024);
-      final double memory = ((double) (totalMemMB - freeMemMB)) / totalMemMB;
+      final double GB = 1 << 30; // 1 GB
+      final double totalMemGB = config.getTotalMemoryGB();
+      final double usedMemGB = config.getUsedMemoryGB();
+      final double memory = usedMemGB / totalMemGB;
 
       memoryBar.setProgress(memory);
-      memoryBarLabel.setText(freeMemMB + "/" + totalMemMB + " MB free");
+      memoryBarLabel.setText("%.1f/%.1f GB used".formatted(usedMemGB, totalMemGB));
     }));
     memoryUpdater.play();
+
+    final AcademicWorkspace academicWorkspace = new AcademicWorkspace();
+    WorkspaceMenuHelper.addWorkspace(academicWorkspace);
+    if (WorkspaceMenuHelper.getDefaultWorkspaceId() == null) {
+      WorkspaceMenuHelper.setDefaultWorkspace(academicWorkspace);
+    }
+    setActiveWorkspace(WorkspaceMenuHelper.getDefaultWorkspaceOrElse(academicWorkspace),
+        EnumSet.allOf(WorkspaceTags.class));
+  }
+
+  public void setActiveWorkspace(@NotNull Workspace workspace, EnumSet<WorkspaceTags> tags) {
+    logger.fine("Setting active workspace to " + workspace.getName());
+    activeWorkspace = workspace;
+    // rebuild the menu here, needed for updates after user changes
+    mainPane.setTop(workspace.buildMainMenu(tags));
+  }
+
+  public Workspace getActiveWorkspace() {
+    return activeWorkspace;
   }
 
   private void initFeatureListsList() {
@@ -392,6 +458,17 @@ public class MainWindowController {
   }
 
   private void initRawDataList() {
+    final BorderPane parent = (BorderPane) rawDataList.getParent();
+    final StackPane dragAndDropWrapper = FxIconUtil.createDragAndDropWrapper(rawDataList,
+        Bindings.createBooleanBinding(() -> rawDataList.getItems().isEmpty(),
+            rawDataList.getListItems(), rawDataList.itemsProperty()),
+        "Drag & drop MS data files, mzmine projects, and/or spectral libraries here",
+        dragDropOpacity);
+    parent.setCenter(dragAndDropWrapper);
+    rawDataList.setOnDragEntered(_ -> dragDropOpacity.set(0.6));
+    rawDataList.setOnDragExited(_ -> dragDropOpacity.set(0.3));
+    rawDataList.setOnDragDropped(_ -> dragDropOpacity.set(0.3));
+
     rawDataList.setCellFactory(
         rawDataListView -> new GroupableListViewCell<>(rawDataGroupMenuItem) {
 
@@ -435,11 +512,10 @@ public class MainWindowController {
         RawDataFile clickedFile = MZmineGUI.getSelectedRawDataFiles().get(0);
         if (clickedFile instanceof IMSRawDataFile) {
           if (clickedFile instanceof ImagingRawDataFile) {
-            if (MZmineCore.getDesktop().displayConfirmation(
-                "Warning!\n" + "You are trying to open an IMS MS imaging file.\n"
-                + "The amount of information may crash MZmine.\n"
-                + "Would you like to open the overview anyway?", ButtonType.YES, ButtonType.NO)
-                == ButtonType.NO) {
+            if (!DialogLoggerUtil.showDialogYesNo(AlertType.WARNING, "Warning!", """
+                You are trying to open an IMS MS imaging file.
+                The amount of information may crash MZmine.
+                Would you like to open the overview anyway?""")) {
               return;
             }
           }
@@ -553,7 +629,7 @@ public class MainWindowController {
 
   public void selectTab(String title) {
     final Optional<Tab> first = mainTabPane.getTabs().stream()
-        .filter(f -> f.getText().equals(title)).findFirst();
+        .filter(f -> MZmineTab.getText(f).equals(title)).findFirst();
     first.ifPresent(tab -> mainTabPane.getSelectionModel().select(tab));
   }
 
@@ -854,8 +930,15 @@ public class MainWindowController {
     }
   }
 
-  public void handleShowScatterPlot(Event event) {
-    // TODO
+  public void handleShowIntegrationDashboard(Event event) {
+    final List<FeatureList> selected = getFeatureListsList().getSelectedValues().stream().distinct()
+        .toList();
+    if (!selected.isEmpty()) {
+      final ParameterSet param = new IntegrationDashboardParameters().cloneParameterSet();
+      param.setParameter(IntegrationDashboardParameters.flists,
+          new FeatureListsSelection((ModularFeatureList) selected.getFirst()));
+      MZmineCore.runMZmineModule(IntegrationDashboardModule.class, param);
+    }
   }
 
   public void handleRenameFeatureList(Event event) {
@@ -883,10 +966,28 @@ public class MainWindowController {
   @FXML
   public void handleMemoryBarClick(Event e) {
     // Run garbage collector on a new thread, so it doesn't block the GUI
-    new Thread(() -> {
-      logger.info("Freeing unused memory");
-      System.gc();
-    }).start();
+    manualGcDelay.playFromStart();
+    manualGcDelay.setOnFinished(_ -> {
+      new Thread(() -> {
+        logger.info("Freeing unused memory");
+        System.gc();
+        logger.fine("Used heap memory after manual GC: %.2f GB".formatted(
+            ConfigService.getConfiguration().getUsedMemoryGB()));
+        // temporary logs
+//        var raws = ProjectService.getProject().getCurrentRawDataFiles();
+//        var total = raws.stream().map(RawDataFile::getScans).flatMap(Collection::stream)
+//            .mapToLong(MassSpectrum::getNumberOfDataPoints).sum();
+//        var masses = raws.stream().map(RawDataFile::getScans).flatMap(Collection::stream)
+//            .map(Scan::getMassList).filter(Objects::nonNull)
+//            .mapToLong(MassSpectrum::getNumberOfDataPoints).sum();
+//        long totalMb = (total * 2 * 8) / 1024 / 1024;
+//        long massesMb = (masses * 2 * 8) / 1024 / 1024;
+//        logger.info("""
+//            Total data points:   %d (%d MB)
+//            Total in mass lists: %d (%d MB)
+//            """.formatted(total, totalMb, masses, massesMb));
+      }).start();
+    });
   }
 
   public void handleSpectralLibrarySort(Event event) {
@@ -1013,4 +1114,32 @@ public class MainWindowController {
     return notificationPane;
   }
 
+  public ProjectTab getSelectedProjectTab() {
+    if (tabMsData.isSelected()) {
+      return ProjectTab.DATA_FILES;
+    }
+    if (tabFeatureLists.isSelected()) {
+      return ProjectTab.FEATURE_LISTS;
+    }
+    if (tabLibraries.isSelected()) {
+      return ProjectTab.LIBRARIES;
+    }
+    return ProjectTab.DATA_FILES; // should not happen
+  }
+
+  public BorderPane getMainPane() {
+    return mainPane;
+  }
+
+  public void handleColorByMetadata(final ActionEvent e) {
+    MZmineCore.setupAndRunModule(ColorByMetadataModule.class);
+  }
+
+  public void handleShowStatisticsDashboard(final ActionEvent e) {
+    MZmineCore.setupAndRunModule(StatsDasboardModule.class);
+  }
+
+  public void handleMergeLibraries(ActionEvent e) {
+    MZmineCore.setupAndRunModule(MergeLibrariesModule.class);
+  }
 }

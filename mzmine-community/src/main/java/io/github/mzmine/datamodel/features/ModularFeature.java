@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
@@ -56,15 +57,16 @@ import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureUtils;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -72,8 +74,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,25 +82,18 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class ModularFeature implements Feature, ModularDataModel {
+public class ModularFeature extends ColumnarModularDataModelRow implements Feature {
 
   private static final Logger logger = Logger.getLogger(ModularFeature.class.getName());
-  private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
   // buffert col charts and nodes
   @NotNull
-  private ModularFeatureList flist;
+  private final ModularFeatureList flist;
 
   private FeatureListRow parentRow;
 
   public ModularFeature(@NotNull ModularFeatureList flist) {
+    super(flist.getFeaturesSchema());
     this.flist = flist;
-
-    //
-    map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
-      if (change.wasAdded()) {
-        flist.addFeatureType(change.getKey());
-      }
-    });
   }
 
   // NOT TESTED
@@ -283,12 +276,6 @@ public class ModularFeature implements Feature, ModularDataModel {
     return flist.getFeatureTypes();
   }
 
-  // todo make this private?
-  @Override
-  public ObservableMap<DataType, Object> getMap() {
-    return map;
-  }
-
   /**
    * Use {@link ModularFeature#getFeatureData()} and
    * {@link
@@ -422,15 +409,9 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(FeatureInformationType.class, featureInfo);
   }
 
-  @Nullable
   @Override
-  public FeatureList getFeatureList() {
+  public @NotNull FeatureList getFeatureList() {
     return flist;
-  }
-
-  @Override
-  public void setFeatureList(@NotNull FeatureList flist) {
-    this.flist = (ModularFeatureList) flist;
   }
 
   @Override
@@ -514,6 +495,16 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(RTType.class, rt);
   }
 
+  @Override
+  public Float getRI() {
+    return get(RIType.class);
+  }
+
+  @Override
+  public void setRI(float ri) {
+    set(RIType.class, ri);
+  }
+
   @NotNull
   @Override
   public FeatureStatus getFeatureStatus() {
@@ -595,5 +586,16 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public String toString() {
     return FeatureUtils.featureToString(this);
+  }
+
+  public String toFullString() {
+    return getFeatureList().getFeatureTypes().stream().sorted(DataType::compareTo).map(
+            type -> "{%s,%s}".formatted(type.getUniqueID(), type.getFormattedString(this.get(type))))
+        .collect(Collectors.joining(","));
+  }
+
+  @Override
+  public boolean isMrm() {
+    return get(MrmTransitionListType.class) != null;
   }
 }

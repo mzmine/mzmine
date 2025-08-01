@@ -80,9 +80,10 @@ public class IonModificationParameter implements
    */
   public IonModificationParameter(final String name, final String description) {
     super();
-    adducts = new MultiChoiceParameter<IonModification>(name, description, new IonModification[0]);
-    modification = new MultiChoiceParameter<IonModification>("Modifications",
-        "Modifications on adducts", new IonModification[0]);
+    adducts = new MultiChoiceParameter<>(name, description, 1, new IonModification[0],
+        IonModification.POLARITY_MASS_SORTER);
+    modification = new MultiChoiceParameter<>("Modifications", "Modifications on adducts", 0,
+        new IonModification[0], IonModification.POLARITY_MASS_SORTER);
   }
 
   @Override
@@ -251,11 +252,21 @@ public class IonModificationParameter implements
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if (getValue() == null) {
+    final IonModification[][] value = getValue();
+    if (value == null) {
       errorMessages.add("Adducts is not set properly");
       return false;
     }
-    return true;
+
+    adducts.checkValue(errorMessages);
+    final List<IonModification> adductsWithNoCharge = Arrays.stream(adducts.getValue())
+        .filter(i -> i.getCharge() == 0).toList();
+    if(!adductsWithNoCharge.isEmpty()) {
+      errorMessages.add("The adduct(s): " + adductsWithNoCharge + " have no charge. Use \"Modifcations\" for neutral modifications.");
+    }
+    modification.checkValue(errorMessages);
+
+    return errorMessages.isEmpty();
   }
 
   @Override

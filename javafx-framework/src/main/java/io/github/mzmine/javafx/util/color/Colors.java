@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,29 +28,35 @@ package io.github.mzmine.javafx.util.color;
 import java.awt.Color;
 
 /**
- * ColorPalletes (some based on http://mkweb.bcgsc.ca/colorblind) for color blindness
- * 
- * @author Robin Schmid
+ * ColorPalletes (some based on
+ * https://davidmathlogic.com/colorblind/#%23000000-%23E69F00-%2356B4E9-%23009E73-%23F0E442-%230072B2-%23D55E00-%23CC79A7
+ * https://www.nature.com/articles/nmeth.1618) for color blindness
  *
+ * @author Robin Schmid
  */
 public class Colors {
 
+  public static final Color TRANSPARENT = new Color(1f, 1f, 1f, 0f); //
   private static final Color NEUTRAL_MARKER = new Color(0.5f, 0.5f, 0.5f, 1f); // grey
 
   // colors to mark positive or negative results (color blindness aware)
-  private static final Color POSITIVE_MARKER_COLORBLIND = new Color(0.f, 0.447f, 0.698f, 1f); // blue
-  private static final Color NEGATIVE_MARKER_COLORBLIND = new Color(0.835f, 0.369f, 0.f, 1f); // orange
+  private static final Color POSITIVE_MARKER_COLORBLIND = new Color(0.f, 0.447f, 0.698f,
+      1f); // blue
+  private static final Color NEGATIVE_MARKER_COLORBLIND = new Color(0.835f, 0.369f, 0.f,
+      1f); // orange
 
   private static final Color POSITIVE_MARKER = new Color(0.220f, 0.557f, 0.235f, 1f); // green
   private static final Color NEGATIVE_MARKER = new Color(0.808f, 0.090f, 0.161f, 1f); // red
 
   /**
-   * Color palette with black+7colors for color blindness: <br>
-   * Black, orange, sky blue, bluish green, yellow, blue, vermillion (darker orange), reddish purple
+   * Color palette with black+7colors for color blindness: <br> Black, orange, sky blue, bluish
+   * green, yellow, blue, vermillion (darker orange), reddish purple
    * <br>
-   * http://mkweb.bcgsc.ca/colorblind/img/colorblindness.palettes.trivial.png
+   * <p>
+   * https://davidmathlogic.com/colorblind/#%23000000-%23E69F00-%2356B4E9-%23009E73-%23F0E442-%230072B2-%23D55E00-%23CC79A7
+   * https://www.nature.com/articles/nmeth.1618
    */
-  private static Color[] COLORS_7_AND_BLACK = new Color[] { //
+  private static Color[] COLORS_7_AND_BLACK = new Color[]{ //
       Color.BLACK, // black
       new Color(0.902f, 0.624f, 0f, 1f), // orange
       new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue
@@ -61,11 +67,13 @@ public class Colors {
       new Color(0.800f, 0.475f, 0.655f, 1f)}; // reddish purple
 
   /**
-   * Color palette with black+7colors for color blindness: <br>
-   * Orange, sky blue, bluish green, yellow, blue, vermillion (darker orange), reddish purple <br>
-   * http://mkweb.bcgsc.ca/colorblind/img/colorblindness.palettes.trivial.png
+   * Color palette with black+7colors for color blindness: <br> Orange, sky blue, bluish green,
+   * yellow, blue, vermillion (darker orange), reddish purple <br>
+   * <p>
+   * https://davidmathlogic.com/colorblind/#%23000000-%23E69F00-%2356B4E9-%23009E73-%23F0E442-%230072B2-%23D55E00-%23CC79A7
+   * https://www.nature.com/articles/nmeth.1618
    */
-  private static Color[] COLORS_7 = new Color[] { //
+  private static Color[] COLORS_7 = new Color[]{ //
       new Color(0.902f, 0.624f, 0f, 1f), // orange
       new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue
       new Color(0.f, 0.620f, 0.451f, 1f), // bluish green
@@ -76,8 +84,8 @@ public class Colors {
 
   /**
    * Seven colors (+black)
-   * 
-   * @param vision color blindness?
+   *
+   * @param vision       color blindness?
    * @param includeBlack include black as the first color
    * @return
    */
@@ -88,7 +96,7 @@ public class Colors {
 
   /**
    * Return positive feedback color
-   * 
+   *
    * @param vision
    * @return
    */
@@ -108,7 +116,7 @@ public class Colors {
 
   /**
    * Return positive feedback color
-   * 
+   *
    * @param vision
    * @return
    */

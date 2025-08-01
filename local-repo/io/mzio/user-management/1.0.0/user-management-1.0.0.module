@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "8.5"
+      "version": "8.10"
     }
   },
   "variants": [
@@ -19,7 +19,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 17,
+        "org.gradle.jvm.version": 23,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
@@ -27,11 +27,11 @@
         {
           "name": "user-management-1.0.0.jar",
           "url": "user-management-1.0.0.jar",
-          "size": 23429,
-          "sha512": "2bccc6018fe8465e748392682affc69be5199e50b771eea684a4fbcbb7c1ce8b073ea4ee99c99614bd8490219c41acf07d2c959ea57e80fe15033aef7d4e8ddb",
-          "sha256": "bec381577cd56b73a8cb7edd3bd86829fe71dfe779a05b465dc46f8b93ce5399",
-          "sha1": "74db2cd69e428bc2f9a9dec5f3c9b1b34611eaa9",
-          "md5": "2531e3db56f634e53a69afda76343999"
+          "size": 34824,
+          "sha512": "f314dff6605a643cb41e1755e4641e2279c9ef73826b8051df31c4e2f552b384a199f5d9662d0f270a4a2a223c0b0ea4839d3d514060b5e38f2692e12e6e741f",
+          "sha256": "23a1a879e9c63808ec9aac46ec5e72b262c6dbff9ab4d8f5fb09e22b0eb3f803",
+          "sha1": "3844cba321228673c7428325961356e6df70808e",
+          "md5": "7b2bfe8062476810ade46f26181e778f"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 17,
+        "org.gradle.jvm.version": 23,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -50,6 +50,13 @@
           "module": "annotations",
           "version": {
             "requires": "22.0.0"
+          }
+        },
+        {
+          "group": "io.mzio",
+          "module": "global-events",
+          "version": {
+            "requires": "1.0.0"
           }
         },
         {
@@ -71,11 +78,11 @@
         {
           "name": "user-management-1.0.0.jar",
           "url": "user-management-1.0.0.jar",
-          "size": 23429,
-          "sha512": "2bccc6018fe8465e748392682affc69be5199e50b771eea684a4fbcbb7c1ce8b073ea4ee99c99614bd8490219c41acf07d2c959ea57e80fe15033aef7d4e8ddb",
-          "sha256": "bec381577cd56b73a8cb7edd3bd86829fe71dfe779a05b465dc46f8b93ce5399",
-          "sha1": "74db2cd69e428bc2f9a9dec5f3c9b1b34611eaa9",
-          "md5": "2531e3db56f634e53a69afda76343999"
+          "size": 34824,
+          "sha512": "f314dff6605a643cb41e1755e4641e2279c9ef73826b8051df31c4e2f552b384a199f5d9662d0f270a4a2a223c0b0ea4839d3d514060b5e38f2692e12e6e741f",
+          "sha256": "23a1a879e9c63808ec9aac46ec5e72b262c6dbff9ab4d8f5fb09e22b0eb3f803",
+          "sha1": "3844cba321228673c7428325961356e6df70808e",
+          "md5": "7b2bfe8062476810ade46f26181e778f"
         }
       ]
     }

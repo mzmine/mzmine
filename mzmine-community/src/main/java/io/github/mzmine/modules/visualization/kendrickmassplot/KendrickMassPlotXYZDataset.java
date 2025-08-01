@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,12 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -51,7 +54,7 @@ import org.jfree.data.xy.AbstractXYZDataset;
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Task,
-    XYZBubbleDataset {
+    XYZBubbleDataset, XYItemObjectProvider<FeatureListRow> {
   // TODO replace with getTask method or AbstractTaskXYZDataset
 
   private static final Logger logger = Logger.getLogger(KendrickMassPlotXYZDataset.class.getName());
@@ -65,6 +68,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
   private double[] yValues;
   private double[] colorScaleValues;
   private double[] bubbleSizeValues;
+  private final boolean[] isAnnotated;
   private KendrickPlotDataTypes xKendrickDataType;
   private KendrickPlotDataTypes yKendrickDataType;
   private KendrickPlotDataTypes colorKendrickDataType;
@@ -75,8 +79,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
   private Integer yDivisor;
   private int yCharge;
 
-  public KendrickMassPlotXYZDataset(ParameterSet parameters, int xCharge,
-      int yCharge) {
+  public KendrickMassPlotXYZDataset(ParameterSet parameters, int xCharge, int yCharge) {
     FeatureList featureList = parameters.getParameter(KendrickMassPlotParameters.featureList)
         .getValue().getMatchingFeatureLists()[0];
     this.parameters = parameters.cloneParameterSet();
@@ -87,6 +90,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     yValues = new double[selectedRows.length];
     colorScaleValues = new double[selectedRows.length];
     bubbleSizeValues = new double[selectedRows.length];
+    isAnnotated = new boolean[selectedRows.length];
     setStatus(TaskStatus.WAITING);
     MZmineCore.getTaskController().addTask(this);
   }
@@ -105,21 +109,10 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     yValues = new double[selectedRows.length];
     colorScaleValues = new double[selectedRows.length];
     bubbleSizeValues = new double[selectedRows.length];
+    isAnnotated = new boolean[selectedRows.length];
     setStatus(TaskStatus.WAITING);
     MZmineCore.getTaskController().addTask(this);
   }
-
-  public KendrickMassPlotXYZDataset(ParameterSet parameters, List<FeatureListRow> rows) {
-    this.parameters = parameters.cloneParameterSet();
-    this.selectedRows = rows.toArray(new FeatureListRow[0]);
-
-    xValues = new double[selectedRows.length];
-    yValues = new double[selectedRows.length];
-    colorScaleValues = new double[selectedRows.length];
-    bubbleSizeValues = new double[selectedRows.length];
-    MZmineCore.getTaskController().addTask(this);
-  }
-
 
   @Override
   public void run() {
@@ -166,10 +159,12 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     initDimensionValues(bubbleSizeValues,
         parameters.getParameter(KendrickMassPlotParameters.bubbleSizeCustomKendrickMassBase)
             .getValue(), bubbleKendrickDataType, 1, 1);
+    for (int i = 0; i < selectedRows.length; i++) {
+      isAnnotated[i] = selectedRows[i].isIdentified();
+    }
     finishedSteps = 1;
     setStatus(TaskStatus.FINISHED);
   }
-
 
   private void initDimensionValues(double[] values, String kendrickMassBase,
       KendrickPlotDataTypes kendrickPlotDataType, int divisor, int charge) {
@@ -246,7 +241,6 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
       return 0;
     }
   }
-
 
   @Override
   public double getBubbleSizeValue(int series, int item) {
@@ -350,6 +344,10 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     return selectedRows[row].toString();
   }
 
+  public FeatureListRow getSelectedRow(int row) {
+    return selectedRows[row];
+  }
+
   @Override
   public Comparable<?> getSeriesKey(int series) {
     return getRowKey(series);
@@ -368,11 +366,9 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
   private double calculateKendrickMassDefectChargeAndDivisorDependent(double mz,
       String kendrickMassBase, int charge, int divisor) {
     double kendrickMassChargeAndDivisorDependent = calculateKendrickMassChargeAndDivisorDependent(
-        mz, kendrickMassBase, charge,
-        divisor);
-    return Math.round(
-        kendrickMassChargeAndDivisorDependent)
-        - kendrickMassChargeAndDivisorDependent;
+        mz, kendrickMassBase, charge, divisor);
+    return Math.round(kendrickMassChargeAndDivisorDependent)
+           - kendrickMassChargeAndDivisorDependent;
   }
 
   private double calculateRemainderOfKendrickMassChargeAndDivisorDependent(double mz,
@@ -454,12 +450,24 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     }
   }
 
-
   @Override
-  public void error(@NotNull String message, @Nullable Exception exceptionToLog) {
+  public void error(@Nullable String message, @Nullable Exception exceptionToLog) {
+    message = requireNonNullElse(message, "");
     if (exceptionToLog != null) {
       logger.log(Level.SEVERE, message, exceptionToLog);
     }
     setStatus(TaskStatus.ERROR);
+  }
+
+  @Override
+  public FeatureListRow getItemObject(int item) {
+    if (item < selectedRows.length) {
+      return selectedRows[item];
+    }
+    return null;
+  }
+
+  public boolean isAnnotated(int item) {
+    return isAnnotated[item];
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,20 +37,20 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 
 /**
- * StandardsListExtractor for xls and xlsx spreadsheets
- * uses sheet at specified index, first sheet available by default
- * expects columns at fixed positions for storing needed data
- * first column is retention time (min) and second column is ion formula
- * third column is optional name
- * first row (column headers) is skipped
+ * StandardsListExtractor for xls and xlsx spreadsheets uses sheet at specified index, first sheet
+ * available by default expects columns at fixed positions for storing needed data first column is
+ * retention time (min) and second column is ion formula third column is optional name first row
+ * (column headers) is skipped
  */
 public class StandardsListSpreadsheetExtractor implements StandardsListExtractor {
+
+  private static final Logger logger = Logger.getLogger(
+      StandardsListSpreadsheetExtractor.class.getName());
 
   protected static final int retentionTimeColumn = 0;
   protected static final int ionFormulaColumn = 1;
   protected static final int nameColumn = 2;
-
-  protected Logger logger = Logger.getLogger(this.getClass().getName());
+  protected static final int mzColumn = 3;
 
   protected String filename;
   protected int sheetIndex;
@@ -105,16 +105,19 @@ public class StandardsListSpreadsheetExtractor implements StandardsListExtractor
           Cell retentionCell = row.getCell(retentionTimeColumn);
           Cell ionCell = row.getCell(ionFormulaColumn);
           Cell nameCell = row.getCell(nameColumn);
+          Cell mzCell = row.getCell(mzColumn);
           float retentionTime = (float) retentionCell.getNumericCellValue();
           String molecularFormula = ionCell.getStringCellValue();
-          StandardsListItem calibrant = new StandardsListItem(molecularFormula, retentionTime);
+          Double mz = mzCell != null && !mzCell.getStringCellValue().isBlank() ? Double.parseDouble(
+              mzCell.getStringCellValue().trim()) : null;
+          StandardsListItem calibrant = new StandardsListItem(molecularFormula, retentionTime, mz);
           try {
             if (nameCell != null && nameCell.getStringCellValue().trim().isEmpty() == false) {
               calibrant.setName(nameCell.getStringCellValue());
             }
           } catch (Exception ex) {
-
           }
+
           extractedData.add(calibrant);
         } catch (Exception e) {
           logger.fine("Exception occurred when reading row index " + rowIndex);
@@ -125,10 +128,11 @@ public class StandardsListSpreadsheetExtractor implements StandardsListExtractor
 
     }
 
-    logger.info("Extracted " + extractedData.size() + " standard molecules from " + rowIndex + " rows");
+    logger.info(
+        "Extracted " + extractedData.size() + " standard molecules from " + rowIndex + " rows");
     if (extractedData.size() + 1 < rowIndex) {
-      logger.warning("Skipped " + (rowIndex - extractedData.size() - 1) + " rows when reading standards list in" +
-              " spreadsheet " + filename);
+      logger.warning("Skipped " + (rowIndex - extractedData.size() - 1)
+          + " rows when reading standards list in" + " spreadsheet " + filename);
     }
 
     return new StandardsList(extractedData);

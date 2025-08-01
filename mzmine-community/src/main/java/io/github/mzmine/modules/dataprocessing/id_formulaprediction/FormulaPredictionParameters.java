@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,6 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionParameters;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreParameters;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.NeutralMassParameter;
@@ -40,34 +39,36 @@ import org.jetbrains.annotations.NotNull;
 
 public class FormulaPredictionParameters extends SimpleParameterSet {
 
-  public static final NeutralMassParameter neutralMass =
-      new NeutralMassParameter("Neutral mass", "Original neutral mass");
+  public static final NeutralMassParameter neutralMass = new NeutralMassParameter("Neutral mass",
+      "Original neutral mass");
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(0.002, 5);
 
-  public static final ElementsCompositionRangeParameter elements =
-      new ElementsCompositionRangeParameter("Elements", "Elements and ranges");
+  public static final ElementsCompositionRangeParameter elements = new ElementsCompositionRangeParameter(
+      "Elements", "Elements and ranges");
 
-  public static final OptionalModuleParameter elementalRatios =
-      new OptionalModuleParameter("Element count heuristics",
-          "Restrict formulas by heuristic restrictions of elemental counts and ratios",
-          new ElementalHeuristicParameters());
+  public static final OptionalModuleParameter<ElementalHeuristicParameters> elementalRatios = new OptionalModuleParameter<>(
+      "Element count heuristics",
+      "Restrict formulas by heuristic restrictions of elemental counts and ratios",
+      new ElementalHeuristicParameters(), true);
 
-  public static final OptionalModuleParameter rdbeRestrictions =
-      new OptionalModuleParameter("RDBE restrictions",
-          "Search only for formulas which correspond to the given RDBE restrictions",
-          new RDBERestrictionParameters());
+  public static final OptionalModuleParameter<RDBERestrictionParameters> rdbeRestrictions = new OptionalModuleParameter<>(
+      "RDBE restrictions",
+      "Search only for formulas which correspond to the given RDBE restrictions",
+      new RDBERestrictionParameters(), true);
 
-  public static final OptionalModuleParameter isotopeFilter = new OptionalModuleParameter(
+  public static final OptionalModuleParameter<IsotopePatternScoreParameters> isotopeFilter = new OptionalModuleParameter<>(
       "Isotope pattern score", "Search only for formulas with a isotope pattern similar",
-      new IsotopePatternScoreParameters());
+      new IsotopePatternScoreParameters(), true);
 
-  public static final OptionalModuleParameter msmsFilter =
-      new OptionalModuleParameter("MS/MS filter", "Check MS/MS data", new MSMSScoreParameters());
+  public static final OptionalModuleParameter<MSMSScoreParameters> msmsFilter = new OptionalModuleParameter<>(
+      "MS/MS filter", "Check MS/MS data", new MSMSScoreParameters(), true);
 
   public FormulaPredictionParameters() {
-    super(new Parameter[] {neutralMass, mzTolerance, elements, elementalRatios, rdbeRestrictions,
-        isotopeFilter, msmsFilter});
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectra_chem_formula/chem-formula-pred.html",
+        neutralMass, mzTolerance, elements, elementalRatios, rdbeRestrictions, isotopeFilter,
+        msmsFilter);
   }
 
   @Override

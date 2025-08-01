@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.kovats;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.kovats.KovatsValues.KovatsIndex;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -33,13 +34,11 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.project.ProjectService;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
 import java.util.List;
@@ -57,8 +56,8 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
   );
 
   // last saved file
-  public static final FileNameParameter lastSavedFile = new FileNameParameter("Last file",
-      "Last saved file", extensions, FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter lastSavedFile = new FileNameSuffixExportParameter(
+      "Last file", "Last saved file", extensions, "retention_index");
 
   public static final StringParameter pickedKovatsValues = new StringParameter(
       "Picked Kovats values", "The picked values as C10:time,C12:time ... ");
@@ -76,8 +75,8 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
       "Show Kovats indexes from min", 8, 1, 49);
   public static final IntegerParameter maxKovats = new IntegerParameter("Max Kovats",
       "Show Kovats indexes until max (inclusive)", 24, 2, 50);
-  public static final MultiChoiceParameter<KovatsIndex> kovats = new MultiChoiceParameter<KovatsIndex>(
-      "Kovats", "Choice of Kovats indexes", KovatsIndex.values(), null);
+  public static final MultiChoiceParameter<KovatsIndex> kovats = new MultiChoiceParameter<>(
+      "Kovats", "Choice of Kovats indexes", KovatsIndex.values());
 
   public KovatsIndexExtractionParameters() {
     super(lastSavedFile, pickedKovatsValues,

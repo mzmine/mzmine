@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,11 +29,12 @@ import static java.util.Objects.requireNonNullElse;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -46,6 +47,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface RawDataFile {
+
+  /**
+   * Creates a dummy raw data file. Not to be added to a project.
+   */
+  static RawDataFile createDummyFile() {
+    return new RawDataFileImpl("dummy", null, null);
+  }
+
 
   /**
    * Returns the name of this data file (can be a descriptive name, not necessarily the original
@@ -127,8 +136,7 @@ public interface RawDataFile {
    * @return Sorted array of scan numbers, never returns null
    */
   default @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange) {
-    return stream()
-        .filter(s -> s.getMSLevel() == msLevel && rtRange.contains(s.getRetentionTime()))
+    return stream().filter(s -> s.getMSLevel() == msLevel && rtRange.contains(s.getRetentionTime()))
         .toArray(Scan[]::new);
   }
 
@@ -175,7 +183,7 @@ public interface RawDataFile {
     // closest index will be negative direct hit is positive
     int closestIndex = Math.abs(
         BinarySearch.binarySearch(rt, DefaultTo.CLOSEST_VALUE, getNumOfScans(),
-        index -> getScan(index).getRetentionTime()));
+            index -> getScan(index).getRetentionTime()));
     return closestIndex >= getNumOfScans() ? -1 : closestIndex;
   }
 
@@ -294,7 +302,7 @@ public interface RawDataFile {
 
   @Nullable MemoryMapStorage getMemoryMapStorage();
 
-  void addScan(Scan newScan) throws IOException;
+  void addScan(Scan newScan);
 
   @NotNull ObservableList<Scan> getScans();
 
@@ -350,4 +358,5 @@ public interface RawDataFile {
   default void setStartTimeStamp(@Nullable LocalDateTime localDateTime) {
   }
 
+  @NotNull List<OtherDataFile> getOtherDataFiles();
 }

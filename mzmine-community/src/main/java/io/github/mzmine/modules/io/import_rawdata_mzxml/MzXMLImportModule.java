@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,6 @@ package io.github.mzmine.modules.io.import_rawdata_mzxml;
 
 import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -38,11 +37,9 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileUtils;
 import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +49,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MzXMLImportModule implements MZmineProcessingModule {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MzXMLImportModule.class.getName());
 
   private static final String MODULE_NAME = "mzXML file import";
   private static final String MODULE_DESCRIPTION = "This module imports raw data into the project.";
@@ -112,21 +109,10 @@ public class MzXMLImportModule implements MZmineProcessingModule {
         newName = fileNames[i].getName();
       }
 
-      try {
-        RawDataFile newMZmineFile = MZmineCore.createNewFile(newName,
-            fileNames[i].getAbsolutePath(), storage);
-        Task newTask = new MzXMLImportTask(project, fileNames[i], newMZmineFile,
-            ScanImportProcessorConfig.createDefault(), MzXMLImportModule.class, parameters,
-            moduleCallDate);
-        tasks.add(newTask);
-      } catch (IOException e) {
-        e.printStackTrace();
-        MZmineCore.getDesktop().displayErrorMessage("Could not create a new temporary file " + e);
-        logger.log(Level.SEVERE, "Could not create a new temporary file ", e);
-        return ExitCode.ERROR;
-      }
-
-
+      Task newTask = new MzXMLImportTask(project, fileNames[i],
+          ScanImportProcessorConfig.createDefault(), MzXMLImportModule.class, parameters,
+          moduleCallDate, storage);
+      tasks.add(newTask);
     }
 
     return ExitCode.OK;

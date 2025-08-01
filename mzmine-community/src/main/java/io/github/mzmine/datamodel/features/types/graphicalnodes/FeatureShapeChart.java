@@ -66,8 +66,8 @@ public class FeatureShapeChart extends BufferedChartNode {
       }
       IonTimeSeries<? extends Scan> dpSeries = f.getFeatureData();
       if (dpSeries != null) {
-        ColoredXYDataset dataset = new ColoredXYDataset(
-            new IonTimeSeriesToXYProvider(f), RunOption.THIS_THREAD);
+        ColoredXYDataset dataset = new ColoredXYDataset(new IonTimeSeriesToXYProvider(f),
+            RunOption.THIS_THREAD);
         datasets.add(dataset);
       }
       if (progress != null) {
@@ -97,8 +97,12 @@ public class FeatureShapeChart extends BufferedChartNode {
       } else {
         // show full RT range
         final float length = Math.max(fullWidth, 0.001f);
-        defaultRange = new org.jfree.data.Range(Math.max(rt - length * 1.05, rawMinRt),
-            Math.min(rt + length * 1.05, rawMaxRt));
+        final double lower = Math.max(rt - length * 1.05, rawMinRt);
+        final double upper = Math.min(rt + length * 1.05, rawMaxRt);
+        // odd possibility for lower > upper in case:
+        // rawMinRt is low and rawMaxRt is high, but rt is 0 and length is small.
+        // (e.g. no data points after msn tree feature list builder)
+        defaultRange = new org.jfree.data.Range(Math.min(lower, upper), Math.max(lower, upper));
       }
     } else {
       defaultRange = new Range(0, 1);
@@ -108,13 +112,12 @@ public class FeatureShapeChart extends BufferedChartNode {
     try {
       chart.getXYPlot().getDomainAxis().setRange(defaultRange);
       chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
-    } catch (NoSuchElementException ex) {
+    } catch (NullPointerException | NoSuchElementException ex) {
       // error in jfreechart draw method
     }
 
-    var width = GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH;
-    var height = GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT;
     // set the chart to create a buffered image
-    setChartCreateImage(chart, width, height);
+    setChartCreateImage(chart, GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
+        GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
   }
 }

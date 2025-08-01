@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,7 +30,8 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.ZCategoryProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.ItemShapeProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.ZLegendCategoryProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.color.ColorUtils;
 import java.awt.BasicStroke;
@@ -40,6 +41,7 @@ import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
 import org.jfree.chart.axis.ValueAxis;
@@ -56,21 +58,33 @@ import org.jfree.data.xy.XYDataset;
 
 /**
  * Renderer that either draws outlines or filled shapes. If this renderer is used for an XYZ
- * dataset, it will try to use the paint scale of the xyz dataset.
+ * dataset, it will try to use the paint scale of the xyz dataset, unless the
+ * {@link ColoredXYShapeRenderer#ignoreZPaintScale} is set to true using the
+ * {@link ColoredXYShapeRenderer#ColoredXYShapeRenderer(boolean, Shape, boolean)} constructor.
  */
 public class ColoredXYShapeRenderer extends XYShapeRenderer {
 
   private static final int defaultSize = 7;
+  public static final Shape defaultShape = new Ellipse2D.Double((double) -defaultSize / 2,
+      (double) -defaultSize / 2, defaultSize, defaultSize);
+
   private final Shape dataPointsShape;
   private final boolean drawOutlinesOnly;
   private final BasicStroke outlineStroke = EStandardChartTheme.DEFAULT_ITEM_OUTLINE_STROKE;
+  private final boolean ignoreZPaintScale;
 
-  public ColoredXYShapeRenderer(boolean drawOutlinesOnly, Shape shape) {
+  /**
+   * @param ignoreZPaintScale If true, the paint scale of a {@link ColoredXYZDataset} is ignored and
+   *                          {@link ColoredXYDataset#getAWTColor()} is used instead.
+   */
+  public ColoredXYShapeRenderer(boolean drawOutlinesOnly, @NotNull Shape shape,
+      boolean ignoreZPaintScale) {
     super();
     this.drawOutlinesOnly = drawOutlinesOnly;
     setDrawOutlines(drawOutlinesOnly);
     setUseOutlinePaint(false); // uses the "normal" paint (from the dataset)
 
+    this.ignoreZPaintScale = ignoreZPaintScale;
     dataPointsShape = shape;
 
     SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
@@ -81,10 +95,12 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
     setSeriesShape(0, dataPointsShape);
   }
 
+  public ColoredXYShapeRenderer(boolean drawOutlinesOnly, @NotNull Shape shape) {
+    this(drawOutlinesOnly, shape, false);
+  }
+
   public ColoredXYShapeRenderer(boolean drawOutlinesOnly) {
-    this(drawOutlinesOnly,
-        new Ellipse2D.Double((double) -defaultSize / 2, (double) -defaultSize / 2, defaultSize,
-            defaultSize));
+    this(drawOutlinesOnly, defaultShape);
   }
 
   public ColoredXYShapeRenderer() {
@@ -93,7 +109,7 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
 
   @Override
   protected Paint getPaint(XYDataset dataset, int series, int item) {
-    if (dataset instanceof ColoredXYZDataset zds) {
+    if (dataset instanceof ColoredXYZDataset zds && !ignoreZPaintScale) {
       final PaintScale ps = zds.getPaintScale();
       if (ps != null) {
         return ps.getPaint(zds.getZValue(series, item));
@@ -126,7 +142,15 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
     if (getLegendItemURLGenerator() != null) {
       urlText = getLegendItemURLGenerator().generateLabel(dataset, series);
     }
-    Shape shape = this.dataPointsShape;
+    // shapes may be defined by
+    final Shape shape;
+    if (dataset instanceof ColoredXYDataset coloredDataset
+        && coloredDataset.getValueProvider() instanceof ZLegendCategoryProvider shapeProvider) {
+      shape = shapeProvider.getLegendCategoryShape(series);
+    } else {
+      shape = this.dataPointsShape;
+    }
+
     Paint paint = (dataset instanceof ColoredXYDataset) ? getPaint(dataset, series, 0)
         : lookupSeriesPaint(series);
     LegendItem item = new LegendItem(label, paint);
@@ -207,7 +231,15 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
         g2.draw(new Line2D.Double(dataArea.getMinX(), transY, dataArea.getMaxX(), transY));
       }
     } else if (pass == 1) {
-      Shape shape = getItemShape(series, item);
+      Shape shape;
+      // may provide a different shape for each item
+      if (dataset instanceof ColoredXYDataset coloredDataset
+          && coloredDataset.getValueProvider() instanceof ItemShapeProvider shapeProvider) {
+        shape = shapeProvider.getItemShape(item);
+      } else {
+        shape = getItemShape(series, item);
+      }
+
       if (orientation == PlotOrientation.HORIZONTAL) {
         shape = ShapeUtils.createTranslatedShape(shape, transY, transX);
       } else if (orientation == PlotOrientation.VERTICAL) {
@@ -246,18 +278,19 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
   public LegendItemCollection getLegendItems() {
     final int index = this.getPlot().getIndexOf(this);
     if (!(getPlot().getDataset(index) instanceof ColoredXYZDataset zds
-        && zds.getValueProvider() instanceof ZCategoryProvider zcat)) {
+        && zds.getValueProvider() instanceof ZLegendCategoryProvider zcat)) {
       return super.getLegendItems();
     }
 
-    final EStandardChartTheme theme = MZmineCore.getConfiguration()
-        .getDefaultChartTheme();
+    final EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     LegendItemCollection result = new LegendItemCollection();
-    final int numCategories = zcat.getNumberOfCategories();
+    final int numCategories = zcat.getNumberOfLegendCategories();
     for (int i = 0; i < numCategories; i++) {
-      final String labelText = zcat.getLegendLabel(i);
-      final Paint paint = zds.getPaintScale().getPaint(i);
-      final LegendItem item = new LegendItem(labelText, null, null, null, dataPointsShape,
+      final String labelText = zcat.getLegendCategoryLabel(i);
+      final Paint paint = zcat.getLegendCategoryItemColor(i);
+      final Shape shape = zcat.getLegendCategoryShape(i);
+
+      final LegendItem item = new LegendItem(labelText, null, null, null, shape,
           !drawOutlinesOnly ? paint : ColorUtils.TRANSPARENT_AWT, outlineStroke,
           drawOutlinesOnly ? paint : ColorUtils.TRANSPARENT_AWT);
       theme.applyToLegendItem(item);

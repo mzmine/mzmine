@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
@@ -48,7 +49,7 @@ public class SpectralLibrary {
   private final @NotNull String name;
   private final @NotNull File path;
   // spectra
-  private final @NotNull List<SpectralLibraryEntry> entries = new ArrayList<>();
+  private final @NotNull ArrayList<SpectralLibraryEntry> entries = new ArrayList<>(1024);
 
   // internals
   @Nullable
@@ -80,14 +81,28 @@ public class SpectralLibrary {
     entries.forEach(this::addEntry);
   }
 
+  public void trim() {
+    entries.trimToSize();
+  }
+
+  public void removeif(Predicate<SpectralLibraryEntry> filter) {
+    entries.removeIf(filter);
+  }
+
   @NotNull
   public File getPath() {
     return path;
   }
 
   @NotNull
-  public String getName() {
+  public String getNameWithSize() {
     return String.format("%s (%d spectra)", name, size());
+  }
+
+  @NotNull
+  public String getName() {
+    // used to return library name with size but better to use the library name without size by default
+    return name;
   }
 
   public int size() {
@@ -96,7 +111,8 @@ public class SpectralLibrary {
 
   @Override
   public String toString() {
-    return getName();
+    // use name with size to represent in library tab etc
+    return getNameWithSize();
   }
 
   public @Nullable MemoryMapStorage getStorage() {

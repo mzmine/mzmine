@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,15 +29,16 @@ import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class ExportCorrAnnotationParameters extends SimpleParameterSet {
 
@@ -61,13 +62,19 @@ public class ExportCorrAnnotationParameters extends SimpleParameterSet {
       new ExtensionFilter("comma-separated values", "*.csv"), //
       new ExtensionFilter("All files", "*.*") //
   );
-  public static final FileNameParameter filename = new FileNameParameter("Filename",
+  public static final FileNameSuffixExportParameter filename = new FileNameSuffixExportParameter(
+      "Filename",
       "Base file name of all edge files (Use {} to fill in the feature list name when exporting multiple feature lists at once)",
-      extensions, FileSelectionType.SAVE);
+      extensions, "edges");
 
   // Constructor
   public ExportCorrAnnotationParameters() {
-    super(new Parameter[]{featureLists, filename, exportTypes, allInOneFile, exportIIN,
-        exportIINRelationship, filter});
+    super(featureLists, filename, exportTypes, allInOneFile, exportIIN, exportIINRelationship,
+        filter);
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,16 @@
 
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
@@ -47,6 +51,7 @@ public class PCAModel {
       4);
   private final Property<Integer> domainPc = new SimpleIntegerProperty(1).asObject();
   private final Property<Integer> rangePc = new SimpleIntegerProperty(2).asObject();
+
   private final ObjectProperty<List<FeatureList>> flists = new SimpleObjectProperty<>();
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
   private final ObjectProperty<AbundanceMeasure> abundance = new SimpleObjectProperty<>(
@@ -63,6 +68,24 @@ public class PCAModel {
 
   private final ObjectProperty<@NotNull ImputationFunctions> imputationFunction = new SimpleObjectProperty<>(
       ImputationFunctions.OneFifthOfMinimum);
+  private final ObjectProperty<SampleTypeFilter> sampleTypeFilter = new SimpleObjectProperty<>(
+      SampleTypeFilter.sample());
+
+
+  // after missing value imputation etc
+  private final ObjectProperty<FeaturesDataTable> featureDataTable = new SimpleObjectProperty<>();
+
+  public FeaturesDataTable getFeatureDataTable() {
+    return featureDataTable.get();
+  }
+
+  public ObjectProperty<FeaturesDataTable> featureDataTableProperty() {
+    return featureDataTable;
+  }
+
+  public void setFeatureDataTable(FeaturesDataTable featureDataTable) {
+    this.featureDataTable.set(featureDataTable);
+  }
 
   public ObservableList<Integer> getAvailablePCs() {
     return availablePCs;
@@ -104,8 +127,9 @@ public class PCAModel {
     return metadataColumn;
   }
 
+  @NotNull
   public List<FeatureList> getFlists() {
-    return flists.get();
+    return requireNonNullElse(flists.get(), List.of());
   }
 
   public void setFlists(List<FeatureList> flists) {
@@ -198,5 +222,17 @@ public class PCAModel {
 
   public ObjectProperty<@NotNull ImputationFunctions> imputationFunctionProperty() {
     return imputationFunction;
+  }
+
+  public SampleTypeFilter getSampleTypeFilter() {
+    return sampleTypeFilter.get();
+  }
+
+  public ObjectProperty<SampleTypeFilter> sampleTypeFilterProperty() {
+    return sampleTypeFilter;
+  }
+
+  public void setSampleTypeFilter(@NotNull SampleTypeFilter filter) {
+    sampleTypeFilter.set(filter);
   }
 }

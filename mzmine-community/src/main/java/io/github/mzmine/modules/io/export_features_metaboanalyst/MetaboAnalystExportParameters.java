@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,38 +26,41 @@
 package io.github.mzmine.modules.io.export_features_metaboanalyst;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class MetaboAnalystExportParameters extends SimpleParameterSet {
 
   private static final List<ExtensionFilter> extensions = List.of( //
       new ExtensionFilter("comma-separated values", "*.csv") //
   );
-  
-  public static final FileNameParameter filename = new FileNameParameter("Filename",
-      "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
-          + "If the file already exists, it will be overwritten.", extensions,
-      FileSelectionType.SAVE);
+
+  public static final FileNameSuffixExportParameter filename = new FileNameSuffixExportParameter(
+      "Filename", "Use pattern \"{}\" in the file name to substitute with feature list name. "
+                  + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
+                  + "If the file already exists, it will be overwritten.", extensions,
+      "metaboanalyst");
 
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
   public static final MetadataGroupingParameter grouping = new MetadataGroupingParameter();
   public static final ComboParameter<AbundanceMeasure> FEATURE_INTENSITY = new ComboParameter(
-          "Feature intensity", "Either use height or area", AbundanceMeasure.values(), AbundanceMeasure.Area);
+      "Feature intensity", "Either use height or area", AbundanceMeasure.values(),
+      AbundanceMeasure.Area);
 
   public MetaboAnalystExportParameters() {
-    super(new Parameter[]{featureLists, filename,
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/io/data-exchange-with-other-software.html#metaboanalyst-export",
+        featureLists, filename,
 //        format,
-        grouping,FEATURE_INTENSITY});
+        grouping, FEATURE_INTENSITY);
   }
 
 //  public static final ComboParameter<StatsFormat> format = new ComboParameter<>("Export format",
@@ -76,5 +79,10 @@ public class MetaboAnalystExportParameters extends SimpleParameterSet {
         case ALL_FACTORS -> "All factors (not MetaboAnalyst)";
       };
     }
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

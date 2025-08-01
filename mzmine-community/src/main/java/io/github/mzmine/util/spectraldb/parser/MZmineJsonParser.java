@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonNumber;
@@ -113,18 +114,17 @@ public class MZmineJsonParser extends SpectralDBTextParser {
     JsonValue value = main.get(id);
     switch (value.getValueType()) {
       case STRING, OBJECT -> {
-        if (f.getObjectClass() == Double.class) {
-          o = Double.parseDouble(main.getString(id));
-        } else if (f.getObjectClass() == Integer.class) {
-          o = Integer.parseInt(main.getString(id));
-        } else if (f.getObjectClass() == Float.class) {
-          o = Float.parseFloat(main.getString(id));
-        } else {
-          o = main.getString(id, null);
-        }
+        o = f.convertValue(main.getString(id));
       }
       case NUMBER -> {
         o = main.getJsonNumber(id);
+        if (f.getObjectClass().equals(Integer.class)) {
+          o = ((JsonNumber) o).intValue();
+        } else if (f.getObjectClass().equals(Float.class)) {
+          o = (float) ((JsonNumber) o).doubleValue();
+        } else {
+          o = ((JsonNumber) o).doubleValue();
+        }
       }
       case TRUE -> {
         o = true;
@@ -134,6 +134,9 @@ public class MZmineJsonParser extends SpectralDBTextParser {
       }
       case NULL -> {
         o = null;
+      }
+      case ARRAY -> {
+        o = f.convertValue(main.getJsonArray(id).toString());
       }
     }
     if (o != null && o.equals("N/A")) {
@@ -163,27 +166,17 @@ public class MZmineJsonParser extends SpectralDBTextParser {
           Object o = getValue(main, f, id);
           // add value
           if (o != null) {
-            if (o instanceof JsonNumber) {
-              if (f.getObjectClass().equals(Integer.class)) {
-                o = ((JsonNumber) o).intValue();
-              } else if (f.getObjectClass().equals(Float.class)) {
-                o = (float) ((JsonNumber) o).doubleValue();
-              } else {
-                o = ((JsonNumber) o).doubleValue();
-              }
-            }
-            // add
             map.put(f, o);
           }
         } catch (Exception e) {
           logger.log(Level.WARNING,
               String.format("Cannot convert value %s to its type %s", f.getMZmineJsonID(),
-                  f.getObjectClass().toString()), e);
+                  f.getObjectClass().toString()));
         }
       }
     }
 
-    return SpectralLibraryEntry.create(library.getStorage(), map, dps);
+    return SpectralLibraryEntryFactory.create(library.getStorage(), map, dps);
   }
 
   public static DataPoint[] getDataPointsFromJsonArray(JsonArray data) {

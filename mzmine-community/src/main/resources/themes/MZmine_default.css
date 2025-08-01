@@ -126,12 +126,25 @@
 	-fx-label-padding: 0.0 20.0 0.0 20.0;
 }
 
+.error-label {
+  -fx-text-fill: red;
+}
+
+.warning-label {
+  -fx-text-fill: #ffe600;
+}
+
 .title-label {
   -fx-font-size: 14.0pt;
 }
 
 .bold-title-label {
   -fx-font-size: 14.0pt;
+  -fx-font-weight: bold;
+}
+
+.bold-semititle-label {
+  -fx-font-size: 10.0pt;
   -fx-font-weight: bold;
 }
 

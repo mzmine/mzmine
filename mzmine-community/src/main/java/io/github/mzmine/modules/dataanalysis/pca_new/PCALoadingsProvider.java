@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,25 +28,29 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.ZCategoryProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.ZLegendCategoryProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.collections.SortOrder;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
+import java.awt.Paint;
+import java.awt.Shape;
 import java.util.Map;
 import javafx.beans.property.Property;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.PaintScale;
 
 public class PCALoadingsProvider extends SimpleXYProvider implements PlotXYZDataProvider,
-    ZCategoryProvider, XYItemObjectProvider<FeatureListRow> {
+    ZLegendCategoryProvider, XYItemObjectProvider<FeatureListRow> {
 
   private final PCARowsResult result;
   private final int loadingsIndexY;
@@ -112,7 +116,7 @@ public class PCALoadingsProvider extends SimpleXYProvider implements PlotXYZData
 
     // LinkedHashMap is sorted
     legendNames = typesInOrder.keySet().stream()
-        .map(type -> type instanceof MissingValueType _ ? "Not annotated" : type.getHeaderString())
+        .map(type -> type instanceof MissingValueType _ ? "Unknown" : type.getHeaderString())
         .toArray(String[]::new);
 
     setxValues(domainData);
@@ -139,14 +143,25 @@ public class PCALoadingsProvider extends SimpleXYProvider implements PlotXYZData
     return 5d;
   }
 
+
   @Override
-  public int getNumberOfCategories() {
+  public int getNumberOfLegendCategories() {
     return numberOfCategories;
   }
 
   @Override
-  public String getLegendLabel(int category) {
+  public @NotNull String getLegendCategoryLabel(int category) {
     return legendNames[category];
+  }
+
+  @Override
+  public @NotNull Paint getLegendCategoryItemColor(int category) {
+    return paintScale.getPaint(category);
+  }
+
+  @Override
+  public @NotNull Shape getLegendCategoryShape(int category) {
+    return JFreeChartUtils.defaultShape();
   }
 
   @Override

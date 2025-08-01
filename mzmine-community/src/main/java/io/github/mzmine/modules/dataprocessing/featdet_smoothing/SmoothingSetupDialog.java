@@ -44,7 +44,6 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.SortableFeatureComboBox;
-import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -54,7 +53,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
-import org.jetbrains.annotations.Nullable;
 
 public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
 
@@ -167,13 +165,13 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
         .getPositiveColor();
 
     // in case we smooth rt, we remap the rt dimension to all scans, as we would do usually.
-    featureSeries = previewDimension == SmoothingDimension.RETENTION_TIME ? IonTimeSeriesUtils
-        .remapRtAxis(featureSeries, flistBox.getValue().getSeletedScans(f.getRawDataFile()))
-        : featureSeries;
+    featureSeries =
+        previewDimension == SmoothingDimension.RETENTION_TIME ? IonTimeSeriesUtils.remapRtAxis(
+            featureSeries, flistBox.getValue().getSeletedScans(f.getRawDataFile())) : featureSeries;
 
-    final SmoothingAlgorithm smoothing = initializeSmoother(parameterSet);
-    final IonTimeSeries<? extends Scan> smoothed = smoothing
-        .smoothFeature(null, featureSeries, f, ZeroHandlingType.KEEP);
+    final SmoothingAlgorithm smoothing = FeatureSmoothingOptions.createSmoother(parameterSet);
+    final IonTimeSeries<? extends Scan> smoothed = smoothing.smoothFeature(null, featureSeries, f,
+        ZeroHandlingType.KEEP);
 
     if (previewDimension == SmoothingDimension.RETENTION_TIME) {
       previewChart.addDataset(new ColoredXYDataset(
@@ -195,17 +193,4 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     onSelectedFeatureChanged(fBox.getSelectedFeature());
   }
 
-  @Nullable
-  private SmoothingAlgorithm initializeSmoother(ParameterSet parameters) {
-    final SmoothingAlgorithm smoother;
-    try {
-      smoother = parameters.getParameter(SmoothingParameters.smoothingAlgorithm).getValue()
-          .getModule().getClass().getDeclaredConstructor(ParameterSet.class).newInstance(
-              parameters.getParameter(SmoothingParameters.smoothingAlgorithm).getValue()
-                  .getParameterSet());
-    } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-      return null;
-    }
-    return smoother;
-  }
 }

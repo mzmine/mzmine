@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,13 @@
 
 package io.github.mzmine.modules.io.export_network_graphml;
 
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.List;
 import javafx.stage.FileChooser;
+import org.jetbrains.annotations.NotNull;
 
 public class NetworkGraphMlExportParameters extends SimpleParameterSet {
 
@@ -41,15 +42,18 @@ public class NetworkGraphMlExportParameters extends SimpleParameterSet {
       new FileChooser.ExtensionFilter("All files", "*.*") //
   );
 
-  public static final FileNameParameter filename = new FileNameParameter("Filename",
-      "Name of the output graphml file. "
-      + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-      + "(i.e. \"blah{}blah.graphml\" would become \"blahSourceFeatureListNameblah.graphml\"). "
-      + "If the file already exists, it will be overwritten.", extensions, FileSelectionType.SAVE);
-
+  public static final FileNameSuffixExportParameter filename = new FileNameSuffixExportParameter(
+      "Filename", "Name of the output graphml file. "
+                  + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+                  + "(i.e. \"blah{}blah.graphml\" would become \"blahSourceFeatureListNameblah.graphml\"). "
+                  + "If the file already exists, it will be overwritten.", extensions, "networks");
 
   public NetworkGraphMlExportParameters() {
     super(featureLists, filename);
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,19 +25,37 @@
 
 package io.github.mzmine.util.files;
 
+import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.SPARSE;
+import static java.nio.file.StandardOpenOption.WRITE;
+
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.apache.commons.io.FileUtils;
@@ -54,7 +72,11 @@ public class FileAndPathUtil {
 
   private static final Logger logger = Logger.getLogger(FileAndPathUtil.class.getName());
   private final static File USER_MZMINE_DIR = new File(FileUtils.getUserDirectory(), ".mzmine/");
-  private static File MZMINE_TEMP_DIR = new File(System.getProperty("java.io.tmpdir"));
+
+  // changed on other thread so make volatile
+  // flag to delete temp files as soon as possible
+  private static volatile boolean earlyTempFileCleanup = true;
+  private static volatile File MZMINE_TEMP_DIR = new File(System.getProperty("java.io.tmpdir"));
 
   /**
    * Count the number of lines in a text file (should be seconds even for large files)
@@ -87,7 +109,9 @@ public class FileAndPathUtil {
    */
   public static long countLines(Path file) throws IOException {
     if (Files.exists(file) && Files.isRegularFile(file)) {
-      return Files.lines(file).count();
+      try (final var lines = Files.lines(file)) {
+        return lines.count();
+      }
     } else {
       return -1;
     }
@@ -117,9 +141,20 @@ public class FileAndPathUtil {
   }
 
 
+  /**
+   * Adds a suffix to the filename and replaces the format
+   */
   public static File getRealFilePathWithSuffix(File outputFile, String suffix, String format) {
     File out = eraseFormat(outputFile);
     return getRealFilePath(outputFile, out.getName() + suffix, format);
+  }
+
+  /**
+   * Creates a new file path that add a suffix to the filename and reuses the old format if present
+   */
+  public static File getRealFilePathWithSuffix(File outputFile, String suffix) {
+    var format = getFormat(outputFile);
+    return getRealFilePathWithSuffix(outputFile, suffix, format);
   }
 
   /**
@@ -150,12 +185,32 @@ public class FileAndPathUtil {
    * @param f target file
    * @return The file extension or null.
    */
+  public static String getExtension(String f) {
+    return FilenameUtils.getExtension(f);
+  }
+
+  /**
+   * @param f target file
+   * @return The file extension or null.
+   */
   public static String getExtension(File f) {
-    int lastDot = f.getName().lastIndexOf(".");
-    if (lastDot != -1) {
-      return f.getName().substring(lastDot + 1);
-    }
-    return null;
+    return getExtension(f.getName());
+  }
+
+  /**
+   * @param f target file
+   * @return The file extension or null.
+   */
+  public static String getFormat(File f) {
+    return getExtension(f.getName());
+  }
+
+  /**
+   * @param f target file
+   * @return The file extension or null.
+   */
+  public static String getFormat(String f) {
+    return getExtension(f);
   }
 
   /**
@@ -165,12 +220,7 @@ public class FileAndPathUtil {
    * @return remove format from file
    */
   public static File eraseFormat(File f) {
-    int lastDot = f.getName().lastIndexOf(".");
-    if (lastDot != -1) {
-      return new File(f.getParent(), f.getName().substring(0, lastDot));
-    } else {
-      return f;
-    }
+    return new File(FilenameUtils.removeExtension(f.getPath()));
   }
 
   /**
@@ -180,12 +230,7 @@ public class FileAndPathUtil {
    * @return remove format from file
    */
   public static String eraseFormat(String f) {
-    int lastDot = f.lastIndexOf(".");
-    if (lastDot != -1) {
-      return f.substring(0, lastDot);
-    } else {
-      return f;
-    }
+    return FilenameUtils.removeExtension(f);
   }
 
   /**
@@ -197,6 +242,9 @@ public class FileAndPathUtil {
    * @return name.format
    */
   public static String addFormat(String name, String format) {
+    if (format == null || format.isBlank()) {
+      return name;
+    }
     if (format.startsWith(".")) {
       return name + format;
     } else {
@@ -376,130 +424,27 @@ public class FileAndPathUtil {
   // ###############################################################################################
   // search for files
 
-  public static List<File[]> findFilesInDir(File dir, ExtensionFilter fileFilter) {
-    return findFilesInDir(dir, fileFilter, true);
-  }
-
-  public static List<File[]> findFilesInDir(File dir, ExtensionFilter fileFilter,
-      boolean searchSubdir) {
-    return findFilesInDir(dir, new FileTypeFilter(fileFilter, ""), searchSubdir, false);
-  }
-
   /**
-   * Flat array of all files in directory and sub directories that match the filter
+   * Flat array of all files or directories with matching extension filter in directory and sub
+   * directories
    *
-   * @param dir          parent directory
-   * @param fileFilter   filter for file extensions
-   * @param searchSubdir include all sub directories
+   * @param dir                   parent directory
+   * @param fileFilter            filter for file extensions (or directory extension)
+   * @param allowDirectoryMatches
+   * @param searchSubdir          include all sub directories
    */
-  public static File[] findFilesInDirFlat(File dir, ExtensionFilter fileFilter,
-      boolean searchSubdir) {
-    return findFilesInDir(dir, new FileTypeFilter(fileFilter, ""), searchSubdir, false).stream()
-        .flatMap(Arrays::stream).toArray(File[]::new);
-  }
+  public static @NotNull File[] findFilesInDirFlat(File dir, ExtensionFilter fileFilter,
+      boolean allowDirectoryMatches, boolean searchSubdir) {
+    int maxDepth = searchSubdir ? 10 : 1;
 
-  /**
-   * @param dir        parent directory
-   * @param fileFilter filter files
-   * @return list of all files in directory and sub directories
-   */
-  public static List<File[]> findFilesInDir(File dir, FileFilter fileFilter) {
-    return findFilesInDir(dir, fileFilter, true, false);
-  }
-
-  public static List<File[]> findFilesInDir(File dir, FileFilter fileFilter, boolean searchSubdir) {
-    return findFilesInDir(dir, fileFilter, searchSubdir, false);
-  }
-
-  public static List<File[]> findFilesInDir(File dir, FileFilter fileFilter, boolean searchSubdir,
-      boolean filesInSeparateFolders) {
-    File[] subDir = FileAndPathUtil.getSubDirectories(dir);
-    // result: each vector element stands for one file
-    List<File[]> list = new ArrayList<>();
-    // add all files as first
-    // sort all files and return them
-    File[] files = dir.listFiles(fileFilter);
-    if (files != null && files.length > 0) {
-      files = FileAndPathUtil.sortFilesByNumber(files, false);
-      list.add(files);
-    }
-
-    if (subDir == null || subDir.length <= 0 || !searchSubdir) {
-      // no subdir end directly
-      return list;
-    } else {
-      // sort dirs
-      subDir = FileAndPathUtil.sortFilesByNumber(subDir, false);
-      // go in all sub and subsub... folders to find files
-      if (filesInSeparateFolders) {
-        findFilesInSubDirSeparatedFolders(dir, subDir, list, fileFilter);
-      } else {
-        findFilesInSubDir(subDir, list, fileFilter);
-      }
-      // return as array (unsorted because they are sorted folder wise)
-      return list;
-    }
-  }
-
-  /**
-   * go into all subfolders and find all files and go in further subfolders files stored in separate
-   * folders. one line in one folder
-   *
-   * @param dirs musst be sorted!
-   * @param list
-   */
-  private static void findFilesInSubDirSeparatedFolders(File parent, File[] dirs, List<File[]> list,
-      FileFilter fileFilter) {
-    // go into folder and find files
-    List<File> img = null;
-    // each file in one folder
-    for (File dir : dirs) {
-      // find all suiting files
-      File[] subFiles = FileAndPathUtil.sortFilesByNumber(dir.listFiles(fileFilter), false);
-      // if there are some suiting files in here directory has been found!
-      // create image of these
-      // dirs
-      if (subFiles.length > 0) {
-        if (img == null) {
-          img = new ArrayList<>();
-        }
-        // put them into the list
-        img.addAll(Arrays.asList(subFiles));
-      } else {
-        // search in subfolders for data
-        // find all subfolders, sort them and do the same iterative
-        File[] subDir = FileAndPathUtil.sortFilesByNumber(FileAndPathUtil.getSubDirectories(dir),
-            false);
-        // call this method
-        findFilesInSubDirSeparatedFolders(dir, subDir, list, fileFilter);
-      }
-    }
-    // add to list
-    if (img != null && img.size() > 0) {
-      list.add(img.toArray(File[]::new));
-    }
-  }
-
-  /**
-   * Go into all sub-folders and find all files files stored one image in one folder!
-   *
-   * @param dirs musst be sorted!
-   * @param list
-   */
-  private static void findFilesInSubDir(File[] dirs, List<File[]> list, FileFilter fileFilter) {
-    // All files in one folder
-    for (File dir : dirs) {
-      // find all suiting files
-      File[] subFiles = FileAndPathUtil.sortFilesByNumber(dir.listFiles(fileFilter), false);
-      // put them into the list
-      if (subFiles != null && subFiles.length > 0) {
-        list.add(subFiles);
-      }
-      // find all subfolders, sort them and do the same iterative
-      File[] subDir = FileAndPathUtil.sortFilesByNumber(FileAndPathUtil.getSubDirectories(dir),
-          false);
-      // call this method
-      findFilesInSubDir(subDir, list, fileFilter);
+    // include directories in search
+    final FileTypeFilter actualFilter = new FileTypeFilter(fileFilter, "", allowDirectoryMatches);
+    try (Stream<Path> paths = Files.walk(dir.toPath(), maxDepth, FileVisitOption.FOLLOW_LINKS)) {
+      return paths.map(Path::toFile).filter(actualFilter::accept)
+          .sorted(Comparator.comparing(File::getAbsolutePath)).toArray(File[]::new);
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Cannot access files system to stream files: " + e.getMessage(), e);
+      return new File[0];
     }
   }
 
@@ -540,11 +485,18 @@ public class FileAndPathUtil {
   public static File getMzmineDir() {
     return USER_MZMINE_DIR;
   }
+
+  /**
+   * Directory for external resources
+   */
+  public static File resolveInDownloadResourcesDir(String name) {
+    return new File(resolveInMzmineDir("external_resources"), name);
+  }
+
   @Nullable
   public static File resolveInMzmineDir(String name) {
     return new File(USER_MZMINE_DIR, name);
   }
-
 
   public static File getUniqueFilename(final File parent, final String fileName) {
     final File dir = parent.isDirectory() ? parent : parent.getParentFile();
@@ -659,10 +611,159 @@ public class FileAndPathUtil {
     return tempFile;
   }
 
+  private static final SecureRandom random = new SecureRandom();
+
+  private static Path generateRandomPath(String prefix, String suffix, Path dir) {
+    String s = prefix + Long.toUnsignedString(random.nextLong()) + suffix;
+    return generatePath(s, dir);
+  }
+
+  private static Path generatePath(String filename, Path dir) {
+    Path name = dir.getFileSystem().getPath(filename);
+    // check that filename does not contain parent directory, this would be invalid string
+    if (name.getParent() != null) {
+      throw new IllegalArgumentException("filename is invalid and contains parent directory");
+    }
+    return dir.resolve(name);
+  }
+
+  /**
+   * Sparse files require SPARSE and CREATE_NEW
+   */
+  public static final Set<OpenOption> SPARSE_OPEN_OPTIONS = Set.of(CREATE_NEW, SPARSE, READ, WRITE);
+
+  public static MemorySegment memoryMapSparseTempFile(Arena arena, long size)
+      throws IOException, AccessDeniedException {
+    return memoryMapSparseTempFile("mzmine", ".tmp", getTempDir().toPath(), arena, size);
+  }
+
+  /**
+   * @param prefix of the filename
+   * @param suffix of the filename, usually .tmp
+   * @param dir    temp directory to create file in
+   * @param arena  an arena to manage the {@link MemorySegment}
+   * @param size   The size (in bytes) of the mapped memory backing the memory segment
+   * @return a new {@link MemorySegment} that maps the sparse file
+   * @throws IOException
+   * @throws AccessDeniedException
+   */
+  public static MemorySegment memoryMapSparseTempFile(String prefix, String suffix, Path dir,
+      Arena arena, long size) throws IOException, AccessDeniedException {
+    try (var fc = openTempFileChannel(prefix, suffix, dir)) {
+      // Create a mapped memory segment managed by the arena
+      MemorySegment segment = fc.map(MapMode.READ_WRITE, 0L, size, arena);
+      return segment;
+    }
+  }
+
+  /**
+   * @param prefix of the filename
+   * @param suffix of the filename, usually .tmp
+   * @param dir    temp directory to create file in
+   * @return a new {@link MemorySegment} that maps the sparse file
+   * @throws IOException
+   * @throws AccessDeniedException
+   */
+  public static FileChannel openTempFileChannel(String prefix, String suffix, Path dir)
+      throws IOException, AccessDeniedException {
+
+    // only try to handle a certain number of exceptions.
+
+    int exceptionCounter = 0;
+    // filename first
+    Path f = generatePath(prefix + suffix, dir);
+    // run until successful or exception
+    // even if file does not exist in first check - FileChannel.open is best check for success
+    while (exceptionCounter < 5) {
+      try {
+        var channel = FileChannel.open(f, SPARSE_OPEN_OPTIONS);
+        f.toFile().deleteOnExit();
+        try {
+          // channel keeps file alive and we can still memory map and write, read to memory mapped file
+          // this will cause the file to disappear directly - tmp folder is empty
+          // tested on linux
+          // tested on Windows 11:
+          // space is still taken from the disk of temp directory, but temp directory is empty
+          // GC will remove MemoryMapStorage, Arena, MemorySegment and with this automatically call
+          // munmap and unmap the file finally clearing the space on disk after GC
+          // TODO test on different platforms
+          // TODO macOS
+          // TODO wsl
+          // TODO docker
+          // does not work on exFAT partition like external drive
+          // will work the first time but then fail on FileChannel.open the second time with AccessDeniedException
+          // NTFS works and apple file system as well
+          if (earlyTempFileCleanup) {
+            f.toFile().delete();
+          }
+        } catch (Exception e) {
+          exceptionCounter++;
+        }
+        logger.fine("Open file channel to: " + f.toFile().getAbsolutePath());
+        return channel;
+      } catch (FileAlreadyExistsException e) {
+        // ignore and try next file name
+        exceptionCounter++;
+      } catch (AccessDeniedException e) {
+        exceptionCounter++;
+        // on exFAT file system the FileChannel.open throws AccessDeniedException for existing files
+        // maybe because sparse files are not supported and the direct delete triggers issues
+        // therefore only throw exception if the file does not exist
+        if (!f.toFile().exists()) {
+          // if the file does not exist and we cannot write, we need to actually cancel and throw
+          logger.log(Level.WARNING, //
+              """
+                  Access denied: Please choose a temporary directory with write access in the mzmine preferences. \
+                  No write access in """ + f.toFile().getAbsolutePath() + e.getMessage());
+          throw e;
+        }
+      }
+
+      // try adding random numbers if file already exists
+      f = generateRandomPath(prefix, suffix, dir);
+    }
+
+    throw new IOException(
+        "Cannot create temp file in path %s. Please select a different directory.".formatted(
+            dir.toFile().getAbsolutePath()));
+  }
+
   /**
    * Creates a temp folder in the set mzmine temp directory.
    */
   public static Path createTempDirectory(String name) throws IOException {
     return Files.createTempDirectory(MZMINE_TEMP_DIR.toPath(), name);
   }
+
+  public static Path getWorkingDirectory() {
+    return Paths.get("").toAbsolutePath();
+  }
+
+  /**
+   * strip query parameters from URL with split at ?
+   */
+  public static String getFileNameFromUrl(final String downloadUrl) {
+    return FilenameUtils.getName(downloadUrl).split("\\?")[0];
+  }
+
+  public static void setEarlyTempFileCleanup(final boolean state) {
+    FileAndPathUtil.earlyTempFileCleanup = state;
+  }
+
+  /**
+   * @param files A list of files
+   * @return The most frequently used path in the list of files. If two paths have the same number
+   * of occurrences, the result may vary as the map type of {@link Collectors#groupingBy(Function)}
+   * is a hash map.
+   */
+  public static @Nullable File getMajorityFilePath(@Nullable Collection<@Nullable File> files) {
+    if (files == null || files.isEmpty()) {
+      return null;
+    }
+
+    return files.stream().filter(Objects::nonNull)
+        .collect(Collectors.groupingBy(p -> p, Collectors.counting())).entrySet().stream()
+        .max(Entry.comparingByValue(Comparator.reverseOrder())).map(Entry::getKey).orElse(null);
+  }
+
 }

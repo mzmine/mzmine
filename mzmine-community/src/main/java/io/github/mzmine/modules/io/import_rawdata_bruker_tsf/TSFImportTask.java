@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,25 +25,36 @@
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tsf;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameLaserInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMetaDataTable;
+import io.github.mzmine.modules.io.import_rawdata_bruker_uv.BrukerUvReader;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -51,12 +62,13 @@ import java.sql.DriverManager;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TSFImportTask extends AbstractTask {
+public class TSFImportTask extends AbstractTask implements RawDataImportTask {
 
   private static Logger logger = Logger.getLogger(TSFImportTask.class.getName());
 
@@ -70,16 +82,18 @@ public class TSFImportTask extends AbstractTask {
   private final String rawDataFileName;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
+  private final ScanImportProcessorConfig config;
   private boolean isMaldi = false;
   private String description;
   private File tsf;
   private File tsf_bin;
   private int totalScans = 1;
   private int processedScans = 0;
+  private RawDataFile newMZmineFile = null;
 
   public TSFImportTask(MZmineProject project, File fileName, @Nullable MemoryMapStorage storage,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+      @NotNull Instant moduleCallDate, ScanImportProcessorConfig config) {
     super(storage, moduleCallDate);
 
     this.project = project;
@@ -87,6 +101,7 @@ public class TSFImportTask extends AbstractTask {
     rawDataFileName = fileName.getName();
     this.parameters = parameters;
     this.module = module;
+    this.config = config;
 
     metaDataTable = new TDFMetaDataTable();
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
@@ -95,6 +110,7 @@ public class TSFImportTask extends AbstractTask {
     frameMsMsInfoTable = new TDFFrameMsMsInfoTable();
 
     setDescription("Importing " + rawDataFileName + ": Waiting.");
+    assert parameters instanceof AllSpectralDataImportParameters;
   }
 
   @Override
@@ -127,9 +143,7 @@ public class TSFImportTask extends AbstractTask {
     try {
       tsfUtils = new TSFUtils();
     } catch (IOException e) {
-      e.printStackTrace();
-      setErrorMessage(e.getMessage());
-      setStatus(TaskStatus.ERROR);
+      error("Could not initialise tsf reader.", e);
       return;
     }
 
@@ -144,7 +158,6 @@ public class TSFImportTask extends AbstractTask {
     setDescription("Importing " + rawDataFileName + ": Reading metadata");
     readMetadata();
 
-    final RawDataFile newMZmineFile;
     try {
       if (isMaldi) {
         newMZmineFile = MZmineCore.createNewImagingFile(rawDataFileName, dirPath.getAbsolutePath(),
@@ -160,11 +173,17 @@ public class TSFImportTask extends AbstractTask {
       return;
     }
 
+    synchronized (org.sqlite.JDBC.class) {
+      BrukerUvReader.loadAndAddForFile(dirPath, (RawDataFileImpl) newMZmineFile,
+          getMemoryMapStorage());
+    }
+
     newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
 
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
-    final boolean tryProfile = MZmineCore.getInstance().isTsfProfile();
+    final boolean tryProfile = !parameters.getValue(
+        AllSpectralDataImportParameters.applyVendorCentroiding);
     final MassSpectrumType importSpectrumType =
         tryProfile && metaDataTable.hasProfileSpectra() ? MassSpectrumType.PROFILE
             : MassSpectrumType.CENTROIDED;
@@ -173,6 +192,7 @@ public class TSFImportTask extends AbstractTask {
       return;
     }
     addMsMsInfo(newMZmineFile);
+    assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
 
     newMZmineFile.getAppliedMethods()
         .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
@@ -189,16 +209,9 @@ public class TSFImportTask extends AbstractTask {
       setDescription("Importing " + rawDataFileName + ": Scan " + frameId + "/" + numScans);
 
       final Scan scan = tsfUtils.loadScan(newMZmineFile, handle, frameId, metaDataTable, frameTable,
-          frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType);
+          frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
 
-      try {
-        newMZmineFile.addScan(scan);
-      } catch (IOException e) {
-        e.printStackTrace();
-        setErrorMessage("Could not add scan " + frameId + " to raw data file.");
-        setStatus(TaskStatus.ERROR);
-        return true;
-      }
+      newMZmineFile.addScan(scan);
 
       if (isCanceled()) {
         return false;
@@ -229,9 +242,8 @@ public class TSFImportTask extends AbstractTask {
 
     synchronized (org.sqlite.JDBC.class) {
       setDescription("Establishing SQL connection to " + tsf.getName());
-      Connection connection;
-      try {
-        connection = DriverManager.getConnection("jdbc:sqlite:" + tsf.getAbsolutePath());
+      try (Connection connection = DriverManager.getConnection(
+          "jdbc:sqlite:" + tsf.getAbsolutePath())) {
 
         setDescription("Reading metadata for " + tsf.getName());
         metaDataTable.executeQuery(connection);
@@ -253,8 +265,6 @@ public class TSFImportTask extends AbstractTask {
           maldiFrameInfoTable.process();
           maldiFrameLaserInfoTable.executeQuery(connection);
         }
-
-        connection.close();
       } catch (Throwable t) {
         t.printStackTrace();
         logger.info("If stack trace contains \"out of memory\" the file was not found.");
@@ -335,5 +345,44 @@ public class TSFImportTask extends AbstractTask {
     logger.info(
         "Construced " + constructed + " DDAMsMsInfos for " + file.getScans().size() + " in " + (
             end.getTime() - start.getTime()) + " ms");
+  }
+
+  /**
+   * bbCID is Bruker's version of all ion fragmentation (AIF) or MSe. Alternating between low (MS1)
+   * and high collision energies (MS2) without quad isolation.
+   */
+  private void assignBbCidMsMsInfo(RawDataFile newMZmineFile, TSFFrameTable frameTable,
+      TDFFrameMsMsInfoTable frameMsMsInfoTable, TDFMetaDataTable metadataTable) {
+    List<? extends Scan> scans = newMZmineFile.getScans();
+
+    final int firstFrameId = (int) frameTable.getFirstFrameNumber();
+    final Range<Double> mzRange = metadataTable.getMzRange();
+
+    for (int i = 0; i < scans.size(); i++) {
+      Scan scan = scans.get(i);
+      final int frameTableIndex = scan.getScanNumber() - firstFrameId;
+
+      if (frameTable.getScanModeColumn().get(frameTableIndex).intValue()
+          != BrukerScanMode.BROADBAND_CID.getNum()
+          || frameTable.getMsMsTypeColumn().get(frameTableIndex).intValue() != 2) {
+        continue;
+      }
+
+      final int frameMsMsTableIndex = BinarySearch.binarySearch(frameMsMsInfoTable.getFrameId(),
+          (double) scan.getScanNumber(), DefaultTo.MINUS_INSERTION_POINT, Long::doubleValue);
+      if (frameMsMsTableIndex < 0) {
+        continue;
+      }
+
+      final float ce = frameMsMsInfoTable.getCe().get(frameMsMsTableIndex).floatValue();
+      final DIAMsMsInfoImpl diaMsMsInfo = new DIAMsMsInfoImpl(ce, scan, scan.getMSLevel(),
+          ActivationMethod.CID, mzRange);
+      ((SimpleScan) scan).setMsMsInfo(diaMsMsInfo);
+    }
+  }
+
+  @Override
+  public RawDataFile getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
   }
 }

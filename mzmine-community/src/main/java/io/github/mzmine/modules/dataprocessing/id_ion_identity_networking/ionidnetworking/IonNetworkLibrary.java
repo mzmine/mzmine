@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking;
 
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -60,8 +61,8 @@ public class IonNetworkLibrary {
   // adducts
   private final IonModification[] selectedAdducts;
   private final IonModification[] selectedMods;
-  private List<IonType> allAdducts = new ArrayList<>();
-  private final boolean isPositive;
+  private final List<IonType> allAdducts = new ArrayList<>();
+  private final PolarityType polarity;
   private final int maxCharge;
   private final int maxMolecules;
 
@@ -72,53 +73,54 @@ public class IonNetworkLibrary {
     this(parameterSet, null);
   }
 
-  /**
-   * For simple setup
-   */
+
   public IonNetworkLibrary(IonLibraryParameterSet parameterSet, MZTolerance mzTolerance) {
-    this.mzTolerance = mzTolerance;
-    this.maxCharge = parameterSet.getParameter(IonLibraryParameterSet.MAX_CHARGE).getValue();
-    // adducts stuff
-    isPositive = parameterSet.getParameter(IonLibraryParameterSet.POSITIVE_MODE).getValue()
-        .equals("POSITIVE");
-    maxMolecules = parameterSet.getParameter(IonLibraryParameterSet.MAX_MOLECULES).getValue();
+    this(parameterSet, PolarityType.ANY, mzTolerance);
+  }
 
-    selectedAdducts = parameterSet.getParameter(IonLibraryParameterSet.ADDUCTS).getValue()[0];
-    selectedMods = parameterSet.getParameter(IonLibraryParameterSet.ADDUCTS).getValue()[1];
-
-    createAllAdducts(isPositive, maxMolecules, maxCharge);
+  public IonNetworkLibrary(IonLibraryParameterSet parameterSet, PolarityType polarity,
+      MZTolerance mzTolerance) {
+    this(mzTolerance, parameterSet.getValue(IonLibraryParameterSet.MAX_CHARGE), polarity,
+        parameterSet.getValue(IonLibraryParameterSet.MAX_MOLECULES),
+        parameterSet.getValue(IonLibraryParameterSet.ADDUCTS)[0],
+        parameterSet.getValue(IonLibraryParameterSet.ADDUCTS)[1]);
   }
 
   /**
    * For simple setup
    */
-  public IonNetworkLibrary(MZTolerance mzTolerance, int maxCharge, boolean isPositive,
+  public IonNetworkLibrary(MZTolerance mzTolerance, int maxCharge, PolarityType polarity,
       int maxMolecules, IonModification[] selectedAdducts, IonModification[] selectedMods) {
     this.mzTolerance = mzTolerance;
     this.maxCharge = maxCharge;
-    this.isPositive = isPositive;
+    this.polarity = polarity;
     // adducts stuff
     this.maxMolecules = maxMolecules;
     this.selectedAdducts = selectedAdducts;
     this.selectedMods = selectedMods;
 
-    createAllAdducts(isPositive, maxMolecules, maxCharge);
+    createAllAdducts(polarity, maxMolecules, maxCharge);
   }
 
   /**
    * create all possible adducts
    */
-  private void createAllAdducts(boolean positive, int maxMolecules, int maxCharge) {
+  private void createAllAdducts(PolarityType polarity, int maxMolecules, int maxCharge) {
     // normal primary adducts
     allAdducts.clear();
     // add all [M+?]c+ as references to neutral loss
     // [M-H2O+?]c+
     for (int c = 1; c <= maxCharge; c++) {
-      allAdducts.add(new IonType(1, IonModification.getUndefinedforCharge(positive ? c : -c)));
+      if (polarity.includesPositive()) {
+        allAdducts.add(new IonType(1, IonModification.getUndefinedforCharge(c)));
+      }
+      if (polarity.includesNegative()) {
+        allAdducts.add(new IonType(1, IonModification.getUndefinedforCharge(-c)));
+      }
     }
 
     for (IonModification a : selectedAdducts) {
-      if ((a.getCharge() > 0 && positive) || (a.getCharge() < 0 && !positive)) {
+      if (polarity.includesCharge(a.getCharge())) {
         if (a.getAbsCharge() <= maxCharge) {
           for (int n = 1; n <= maxMolecules; n++) {
             allAdducts.add(new IonType(n, a));
@@ -137,9 +139,9 @@ public class IonNetworkLibrary {
   /**
    * Does find all possible adduct combinations
    */
-  public @NotNull
-  List<IonIdentity[]> findAdducts(final FeatureList featureList, final FeatureListRow row1,
-      final FeatureListRow row2, final CheckMode mode, final double minHeight) {
+  public @NotNull List<IonIdentity[]> findAdducts(final FeatureList featureList,
+      final FeatureListRow row1, final FeatureListRow row2, final IonNetworkLibrary.CheckMode mode,
+      final double minHeight) {
     return findAdducts(featureList, row1, row2, row1.getRowCharge(), row2.getRowCharge(), mode,
         minHeight);
   }
@@ -151,9 +153,9 @@ public class IonNetworkLibrary {
    * @param z2 -1 or 0 if not set (charge state always positive)
    * @return returns list of adducts for [row1, row2]
    */
-  public @NotNull
-  List<IonIdentity[]> findAdducts(final FeatureList featureList, final FeatureListRow row1,
-      final FeatureListRow row2, int z1, int z2, final CheckMode mode, final double minHeight) {
+  public @NotNull List<IonIdentity[]> findAdducts(final FeatureList featureList,
+      final FeatureListRow row1, final FeatureListRow row2, int z1, int z2, final CheckMode mode,
+      final double minHeight) {
     z1 = Math.abs(z1);
     z2 = Math.abs(z2);
     List<IonIdentity[]> list = new ArrayList<>();
@@ -177,13 +179,13 @@ public class IonNetworkLibrary {
             // is a2 a modification of a1? (same adducts - different mods
             if (adduct2.isModificationOf(adduct)) {
               IonType mod = adduct2.subtractMods(adduct);
-              IonType undefined =
-                  new IonType(IonModification.getUndefinedforCharge(adduct.getCharge()));
+              IonType undefined = new IonType(
+                  IonModification.getUndefinedforCharge(adduct.getCharge()));
               list.add(IonIdentity.addAdductIdentityToRow(mzTolerance, row1, undefined, row1, mod));
             } else if (adduct.isModificationOf(adduct2)) {
               IonType mod = adduct.subtractMods(adduct2);
-              IonType undefined =
-                  new IonType(IonModification.getUndefinedforCharge(adduct2.getCharge()));
+              IonType undefined = new IonType(
+                  IonModification.getUndefinedforCharge(adduct2.getCharge()));
               list.add(IonIdentity.addAdductIdentityToRow(mzTolerance, row1, mod, row2, undefined));
             } else {
               // Add adduct identity and notify GUI.
@@ -203,7 +205,7 @@ public class IonNetworkLibrary {
   /**
    * Searches for an IonType for row that matches in network
    *
-   * @param row row to check against neutral mass of ionNet
+   * @param row    row to check against neutral mass of ionNet
    * @param ionNet for neutral mass
    * @return IonIdentity or null if already present in network or if no match available
    */
@@ -245,12 +247,12 @@ public class IonNetworkLibrary {
    */
   private boolean checkSameAdducts(IonType a, IonType b) {
     // no adduct overlap (with none being undefined) (or both undefined_adduct)
-    return (!a.hasAdductOverlap(b)
-            && !a.getAdduct().getType().equals(IonModificationType.UNDEFINED_ADDUCT)
-            && !b.getAdduct().getType().equals(IonModificationType.UNDEFINED_ADDUCT))
+    return (!a.hasAdductOverlap(b) && !a.getAdduct().getType()
+        .equals(IonModificationType.UNDEFINED_ADDUCT) && !b.getAdduct().getType()
+        .equals(IonModificationType.UNDEFINED_ADDUCT))
            // all beeing M+?
-           || (a.getAdduct().getType().equals(IonModificationType.UNDEFINED_ADDUCT)
-               && b.getAdduct().getType().equals(IonModificationType.UNDEFINED_ADDUCT));
+           || (a.getAdduct().getType().equals(IonModificationType.UNDEFINED_ADDUCT) && b.getAdduct()
+        .getType().equals(IonModificationType.UNDEFINED_ADDUCT));
   }
 
   /**
@@ -260,8 +262,8 @@ public class IonNetworkLibrary {
    * @return only true if charge is different or no modification or adduct sub part equals
    */
   private boolean checkMultiChargeDifference(IonType a, IonType b) {
-    return a.getCharge() != b.getCharge()
-           || (!a.hasModificationOverlap(b) && !a.hasAdductOverlap(b));
+    return a.getCharge() != b.getCharge() || (!a.hasModificationOverlap(b) && !a.hasAdductOverlap(
+        b));
   }
 
   /**
@@ -405,8 +407,8 @@ public class IonNetworkLibrary {
     return allAdducts;
   }
 
-  public boolean isPositive() {
-    return isPositive;
+  public PolarityType isPositive() {
+    return polarity;
   }
 
   public int getMaxMolecules() {

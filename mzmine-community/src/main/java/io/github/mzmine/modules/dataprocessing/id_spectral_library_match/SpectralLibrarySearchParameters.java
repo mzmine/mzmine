@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
 
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -33,38 +36,37 @@ import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithInputComponent;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilterParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
+import java.util.Map;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings("deprecation")
 public class SpectralLibrarySearchParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
-
 
   public static final AdvancedParametersParameter<AdvancedSpectralLibrarySearchParameters> advanced = new AdvancedParametersParameter<>(
       new AdvancedSpectralLibrarySearchParameters());
 
   public static final SpectralLibrarySelectionParameter libraries = new SpectralLibrarySelectionParameter();
 
-  public static final ComboParameter<ScanMatchingSelection> scanMatchingSelection = new ComboParameter<>(
-      "Scans for matching", """
-      Choose the MS level and experimental scans to match against the library. MS1 for GC-EI-MS data,
-      MERGED: will merge all fragment scans, creating one merged spectrum for each fragmentation energy,
-              and one consensus spectrum merged from those different energies.
-      ALL: will use all available raw fragment scans + the ones from merging.
-      MS2: limits the final list to MS2 scans
-      MS2 (merged): and a scan were all MSn scans are merged into one 'pseudo' MS2 scan
-      MSn: defines all fragment scans of MS level 2 and higher
-          """, ScanMatchingSelection.values(), ScanMatchingSelection.MERGED_MSN);
+  public static final MsLevelFilterParameter msLevelFilter = new MsLevelFilterParameter(
+      new Options[]{Options.MS1, Options.MS2}, new MsLevelFilter(Options.MS2));
+
+  public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createSpectraLibrarySearchDefaultNoMSn();
 
   public static final MZToleranceParameter mzTolerancePrecursor = new MZToleranceParameter(
       "Precursor m/z tolerance", "Precursor m/z tolerance is used to filter library entries", 0.001,
@@ -76,28 +78,41 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
       0.0015, 10);
 
   public static final BooleanParameter removePrecursor = new BooleanParameter("Remove precursor",
-      "For MS2 scans, remove precursor signal prior to matching (+- 4 Da)",
-      true);
+      "For MS2 scans, remove precursor signal prior to matching (+- 4 Da)", true);
 
 
   public static final IntegerParameter minMatch = new IntegerParameter("Minimum  matched signals",
       "Minimum number of matched signals in masslist and spectral library entry (within mz tolerance)",
       4);
 
-  public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction = new ModuleComboParameter<>(
+  public static final ModuleOptionsEnumComboParameter<SpectralSimilarityFunctions> similarityFunction = new ModuleOptionsEnumComboParameter<>(
       "Similarity", "Algorithm to calculate similarity and filter matches",
-      SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.weightedCosine);
+      SpectralSimilarityFunctions.WEIGHTED_COSINE);
+
+  // outdated ex parameters that were replaced but still need to be loaded from old batch files
+  // better not static so that they are not shown for this class
+  // private final so that they are used internally, only during load
+  private final ComboParameter<LegacyScanMatchingSelection> scanMatchingSelection = new ComboParameter<>(
+      "Scans for matching", """
+      Choose the MS level and experimental scans to match against the library. MS1 for GC-EI-MS data,
+      MERGED: will merge all fragment scans, creating one merged spectrum for each fragmentation energy,
+              and one consensus spectrum merged from those different energies.
+      ALL: will use all available raw fragment scans + the ones from merging.
+      MS2: limits the final list to MS2 scans
+      MS2 (merged): and a scan were all MSn scans are merged into one 'pseudo' MS2 scan
+      MSn: defines all fragment scans of MS level 2 and higher
+          """, LegacyScanMatchingSelection.values(), LegacyScanMatchingSelection.MERGED_MSN);
 
   public SpectralLibrarySearchParameters() {
-    super(new Parameter[]{peakLists, libraries, scanMatchingSelection, mzTolerancePrecursor,
-            mzTolerance, removePrecursor, minMatch, similarityFunction, advanced},
+    super(new Parameter[]{libraries, peakLists, spectraMergeSelect, msLevelFilter,
+            mzTolerancePrecursor, mzTolerance, removePrecursor, minMatch, similarityFunction, advanced},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectral_library_search/spectral_library_search.html");
   }
 
   /**
    * for SelectedRowsParameters
    */
-  protected SpectralLibrarySearchParameters(Parameter[] parameters) {
+  protected SpectralLibrarySearchParameters(Parameter<?>... parameters) {
     super(parameters);
   }
 
@@ -106,60 +121,34 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
     if ((getParameters() == null) || (getParameters().length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
 
-    var selection = getValue(scanMatchingSelection);
-    var msLevelFilter = selection.getMsLevelFilter();
+    final Region message = FxTextFlows.newTextFlowInAccordion("Spectral libraries", true,
+        FxTexts.text("You can find compatible and freely available spectral libraries "),
+        FxTexts.hyperlinkText("here.",
+            "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectral_library_search/spectral_library_search.html#downloads-for-open-spectral-libraries"));
 
-    var msSelectionComp = dialog.getComponentForParameter(scanMatchingSelection);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
+
+    var msLevelParam = getParameter(SpectralLibrarySearchParameters.msLevelFilter);
+    var msLevelFilter = msLevelParam.getValue();
+
+    ComboWithInputComponent<Options> msFilterComp = dialog.getComponentForParameter(
+        SpectralLibrarySearchParameters.msLevelFilter);
     CheckBox cRemovePrec = dialog.getComponentForParameter(removePrecursor);
     Node mzTolPrecursor = dialog.getComponentForParameter(mzTolerancePrecursor);
 
     mzTolPrecursor.setDisable(msLevelFilter.isMs1Only());
     cRemovePrec.setDisable(msLevelFilter.isMs1Only());
-    msSelectionComp.getSelectionModel().selectedItemProperty()
-        .addListener((observable, oldValue, newValue) -> {
-          try {
-            var newLevelFilter = newValue.getMsLevelFilter();
-            boolean isMS1 = newLevelFilter.isMs1Only();
-            mzTolPrecursor.setDisable(isMS1);
-            cRemovePrec.setDisable(isMS1);
-          } catch (Exception ex) {
-            // do nothing user might be still typing
-            mzTolPrecursor.setDisable(true);
-            cRemovePrec.setDisable(true);
-          }
+    msFilterComp.addValueChangedListener(() -> {
+      msLevelParam.setValueFromComponent(msFilterComp);
+
+      var msLevel = msLevelParam.getValue();
+      mzTolPrecursor.setDisable(msLevel.isMs1Only());
+      cRemovePrec.setDisable(msLevel.isMs1Only());
     });
 
     dialog.showAndWait();
     return dialog.getExitCode();
-  }
-
-  public enum ScanMatchingSelection {
-    MS1, MERGED_MS2, MERGED_MSN, ALL_MS2, ALL_MSN;
-
-    @Override
-    public String toString() {
-      return switch (this) {
-        case MS1 -> "MS1";
-        case MERGED_MS2 -> "MS2 (merged)";
-        case MERGED_MSN -> "MS level ≥ 2 (merged)";
-        case ALL_MS2 -> "MS2 (all scans)";
-        case ALL_MSN -> "MS level ≥ 2 (all scans)";
-      };
-    }
-
-    public MsLevelFilter getMsLevelFilter() {
-      return switch (this) {
-        case MS1 -> new MsLevelFilter(Options.MS1);
-        case MERGED_MS2, ALL_MS2 -> new MsLevelFilter(Options.MS2);
-        case MERGED_MSN, ALL_MSN -> new MsLevelFilter(Options.MSn);
-      };
-    }
-
-    public boolean isAll() {
-      return this == ALL_MS2 || this == ALL_MSN;
-    }
   }
 
   @Override
@@ -168,7 +157,43 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
   }
 
   @Override
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
+    if (loadedParams.containsKey(scanMatchingSelection.getName())) {
+      // old batch with scan selection loaded - apply parameters to new parameters that replaced it
+      // legacy parameter need to retrieve value directly because getValue would throw exception
+      final LegacyScanMatchingSelection selection = scanMatchingSelection.getValue();
+      var msLevel = selection == LegacyScanMatchingSelection.MS1 ? Options.MS1 : Options.MS2;
+      setParameter(msLevelFilter, new MsLevelFilter(msLevel));
+    }
+    if (loadedParams.containsKey(mzTolerance.getName())) {
+      // use spectral mz tolerance as merging tolerance
+      getParameter(spectraMergeSelect).setMzTolerance(getValue(mzTolerance));
+    }
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var nameParameterMap = super.getNameParameterMap();
+    // add removed legacy parameters here so that they are loaded from xml
+    // those parameters need to be handled in the {@link #loadValuesFromXML} method
+    nameParameterMap.put(scanMatchingSelection.getName(), scanMatchingSelection);
+    return nameParameterMap;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(final int version) {
+    return switch (version) {
+      case 3 -> """
+          mzmine version > 4.4.3 harmonized the fragment scan selection and merging throughout various modules.
+          Ensure to configure the %s parameter to control which scans are matched.""".formatted(
+          spectraMergeSelect.getName());
+      default -> null;
+    };
+  }
+
+  @Override
   public int getVersion() {
-    return 2;
+    return 3;
   }
 }

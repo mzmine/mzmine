@@ -43,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class NumberRangeType<T extends Number & Comparable<?>> extends
-    NumberType<Range<T>> implements SubColumnsFactory {
+    NumberFormatType<Range<T>> implements SubColumnsFactory {
 
   // this is a trick, we need a datatype to get the sub column value
   // we use this as the first column and any other for the second
@@ -162,9 +162,9 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>> extends
     // first type is this
     // second is randomly MAX_REF_TYPE
     if (this.equals(sub)) {
-      return getExportFormat().format(((Range) value).lowerEndpoint());
+      return ((Range) value).lowerEndpoint();
     } else {
-      return getExportFormat().format(((Range) value).upperEndpoint());
+      return ((Range) value).upperEndpoint();
     }
   }
 

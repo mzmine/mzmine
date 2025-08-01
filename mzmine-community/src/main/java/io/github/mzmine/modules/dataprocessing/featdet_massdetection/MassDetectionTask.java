@@ -60,8 +60,8 @@ public class MassDetectionTask extends AbstractTask {
 
     this.dataFile = dataFile;
 
-    var massDetectorStep = parameters.getValue(MassDetectionParameters.massDetector);
-    detector = MassDetectorUtils.createMassDetector(massDetectorStep);
+    var md = parameters.getParameter(MassDetectionParameters.massDetector).getValueWithParameters();
+    detector = MassDetectors.createMassDetector(md);
 
     this.scanSelection = parameters.getValue(MassDetectionParameters.scanSelection);
     this.scanTypes = parameters.getValue(MassDetectionParameters.scanTypes);
@@ -126,7 +126,7 @@ public class MassDetectionTask extends AbstractTask {
         }
 
         if (scan instanceof SimpleFrame frame && (scanTypes == SelectedScanTypes.MOBLITY_SCANS
-            || scanTypes == SelectedScanTypes.SCANS)) {
+                                                  || scanTypes == SelectedScanTypes.SCANS)) {
           // for ion mobility, detect subscans, too
           frame.getMobilityScanStorage()
               .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector,

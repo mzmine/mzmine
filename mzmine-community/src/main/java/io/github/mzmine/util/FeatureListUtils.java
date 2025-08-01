@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,19 +29,26 @@ import static io.github.mzmine.util.FeatureListRowSorter.DEFAULT_RT;
 import static io.github.mzmine.util.FeatureListRowSorter.MZ_ASCENDING;
 import static io.github.mzmine.util.RangeUtils.calcCenterScore;
 import static io.github.mzmine.util.RangeUtils.isBounded;
+import static java.util.Objects.requireNonNullElse;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
 import io.github.mzmine.modules.dataprocessing.align_join.RowAlignmentScoreCalculator;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -55,11 +62,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableBooleanValue;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
+import javafx.scene.control.TreeItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,6 +114,86 @@ public class FeatureListUtils {
       }
     });
     rows.setAll(table.getSelectedRows());
+  }
+
+  public static void bindSelectedRows(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<FeatureListRow>> selectedRows) {
+    bindSelectedRows(weak, table, selectedRows, new SimpleBooleanProperty(true));
+  }
+
+  public static void bindSelectedRows(WeakAdapter weak, FeatureTableFX table,
+      @NotNull ObjectProperty<List<FeatureListRow>> selectedRows, @NotNull final ObservableBooleanValue isUpdateEnabled) {
+    weak.addListChangeListener(table, table.getSelectedTableRows(), c -> {
+      if (weak.isDisposed() || !isUpdateEnabled.get()) {
+        return;
+      }
+
+      var rows = c.getList().stream().<FeatureListRow>map(TreeItem::getValue).toList();
+      selectedRows.setValue(rows);
+    });
+
+    weak.addChangeListener(null, isUpdateEnabled, (_, _, newVal) -> {
+      if (newVal == null || !newVal || weak.isDisposed() || !isUpdateEnabled.get()) {
+        return;
+      }
+
+      final List<FeatureListRow> rows = List.copyOf(table.getSelectedRows());
+      selectedRows.setValue(rows);
+    });
+
+    final List<FeatureListRow> rows = List.copyOf(table.getSelectedRows());
+    selectedRows.setValue(rows);
+  }
+
+  public static void bindSelectedFeatures(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<Feature>> selectedFeatures) {
+    bindSelectedFeatures(weak, table, selectedFeatures, new SimpleBooleanProperty(true));
+  }
+
+  public static void bindSelectedFeatures(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<Feature>> selectedFeatures, @NotNull final ObservableBooleanValue isUpdateEnabled) {
+    weak.addListChangeListener(table, table.getSelectionModel().getSelectedCells(), c -> {
+      if (weak.isDisposed() || !isUpdateEnabled.get()) {
+        return;
+      }
+
+      List<Feature> features = List.copyOf(table.getSelectedFeatures());
+      selectedFeatures.setValue(features);
+    });
+    weak.addChangeListener(null, isUpdateEnabled, (_, _, newVal) -> {
+      if (newVal == null || !newVal || weak.isDisposed() || !isUpdateEnabled.get()) {
+        return;
+      }
+
+      List<Feature> features = List.copyOf(table.getSelectedFeatures());
+      selectedFeatures.setValue(features);
+    });
+  }
+
+  public static void bindSelectedRawDataFiles(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<RawDataFile>> selectedFiles) {
+   bindSelectedRawDataFiles(weak, table, selectedFiles, new SimpleBooleanProperty(true));
+  }
+
+  public static void bindSelectedRawDataFiles(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<RawDataFile>> selectedFiles, @NotNull final ObservableBooleanValue isUpdateEnabled) {
+    weak.addListChangeListener(table, table.getSelectionModel().getSelectedCells(), c -> {
+      if (weak.isDisposed() || !isUpdateEnabled.get()) {
+        return;
+      }
+
+      List<RawDataFile> raws = List.copyOf(table.getSelectedRawDataFiles());
+      selectedFiles.setValue(raws);
+    });
+
+    weak.addChangeListener(null, isUpdateEnabled, (_, _, newVal) -> {
+      if (newVal == null || !newVal || weak.isDisposed() || !isUpdateEnabled.get()) {
+        return;
+      }
+
+      List<RawDataFile> raws = List.copyOf(table.getSelectedRawDataFiles());
+      selectedFiles.setValue(raws);
+    });
   }
 
   /**
@@ -300,17 +396,16 @@ public class FeatureListUtils {
     // add the new types to the feature list
     alignedFeatureList.addRowType(DataTypes.get(AlignmentMainType.class));
 
-    SortedList<FeatureListRow> rows = alignedFeatureList.getRows().sorted(MZ_ASCENDING);
-
     // find the number of rows that match RT,MZ,Mobility in each original feature list
-    rows.stream().parallel().forEach(alignedRow -> {
+    var changed = alignedFeatureList.getRows().stream().parallel().mapToInt(alignedRow -> {
       AlignmentScores score = calculator.calcScore(alignedRow);
       if (mergeScores) {
         AlignmentScores oldScore = alignedRow.get(AlignmentMainType.class);
         score = score.merge(oldScore);
       }
       alignedRow.set(AlignmentMainType.class, score);
-    });
+      return 1;
+    }).sum();
   }
 
   /**
@@ -478,63 +573,8 @@ public class FeatureListUtils {
    * @param featureList target list
    */
   public static void sortByDefault(FeatureList featureList, boolean renumberIDs) {
-    RawDataFile rawDataFile = featureList.getRawDataFiles().get(0);
-    if (rawDataFile != null) {
-      if (!(rawDataFile instanceof ImagingRawDataFile)) {
-        FeatureListUtils.sortByDefaultRT(featureList, renumberIDs);
-      } else {
-        FeatureListUtils.sortByDefaultMZ(featureList, renumberIDs);
-      }
-    }
-  }
+    featureList.applyDefaultRowsSorting();
 
-  /**
-   * Sort feature list by retention time (default)
-   *
-   * @param featureList target list
-   */
-  public static void sortByDefaultRT(FeatureList featureList) {
-    // sort rows by rt
-    featureList.getRows().sort(FeatureListRowSorter.DEFAULT_RT);
-  }
-
-  /**
-   * Sort feature list by mz and reset IDs starting with 1
-   *
-   * @param featureList target list
-   * @param renumberIDs renumber rows
-   */
-  public static void sortByDefaultMZ(FeatureList featureList, boolean renumberIDs) {
-    sortByDefaultMZ(featureList);
-    if (!renumberIDs) {
-      return;
-    }
-    // reset IDs
-    int newRowID = 1;
-    for (var row : featureList.getRows()) {
-      row.set(IDType.class, newRowID);
-      newRowID++;
-    }
-  }
-
-  /**
-   * Sort feature list by mz (default)
-   *
-   * @param featureList target list
-   */
-  public static void sortByDefaultMZ(FeatureList featureList) {
-    // sort rows by mz
-    featureList.getRows().sort(MZ_ASCENDING);
-  }
-
-  /**
-   * Sort feature list by retention time and reset IDs starting with 1
-   *
-   * @param featureList target list
-   * @param renumberIDs renumber rows
-   */
-  public static void sortByDefaultRT(FeatureList featureList, boolean renumberIDs) {
-    sortByDefaultRT(featureList);
     if (!renumberIDs) {
       return;
     }
@@ -549,11 +589,21 @@ public class FeatureListUtils {
   /**
    * Transfers all row types present in the source feature list to the target feature list.
    */
-  public static void transferRowTypes(FeatureList targetFlist,
-      Collection<FeatureList> sourceFlists) {
+  public static void transferRowTypes(FeatureList targetFlist, Collection<FeatureList> sourceFlists,
+      final boolean transferFeatureTypes) {
+
+    // transfer all at once to optimize resizing of data structures
+    Set<DataType> allRowTypes = new HashSet<>();
+    Set<DataType> allFeatureTypes = new HashSet<>();
+
     for (FeatureList sourceFlist : sourceFlists) {
       // uses a set so okay to use addAll
-      targetFlist.addRowType(sourceFlist.getRowTypes());
+      allRowTypes.addAll(sourceFlist.getRowTypes());
+      allFeatureTypes.addAll(sourceFlist.getFeatureTypes());
+    }
+    targetFlist.addRowType(allRowTypes);
+    if (transferFeatureTypes) {
+      targetFlist.addFeatureType(allFeatureTypes);
     }
   }
 
@@ -599,21 +649,206 @@ public class FeatureListUtils {
    */
   @NotNull
   public static Int2ObjectMap<FeatureListRow> getRowIdMap(final ModularFeatureList featureList) {
-    Int2ObjectMap<FeatureListRow> map = new Int2ObjectArrayMap<>(featureList.getRows().size());
+    Int2ObjectMap<FeatureListRow> map = new Int2ObjectArrayMap<>(featureList.getNumberOfRows());
     for (final FeatureListRow row : featureList.getRows()) {
       map.put(row.getID(), row);
     }
     return map;
   }
 
+  /**
+   * Does not copy rows
+   */
+  public static ModularFeatureList createCopyWithoutRows(final FeatureList featureList,
+      final String suffix, final MemoryMapStorage storage, final @Nullable Integer totalRows,
+      final @Nullable Integer totalFeatures) {
+    return createCopy(featureList, null, suffix, storage, false, featureList.getRawDataFiles(),
+        false, totalRows, totalFeatures);
+  }
+
+  /**
+   * Automatically determines size for new feature list rows and features data backend
+   *
+   * @param featureList
+   * @param suffix
+   * @param storage
+   * @param copyRows
+   * @return
+   */
   public static ModularFeatureList createCopy(final FeatureList featureList, final String suffix,
-      final MemoryMapStorage storage) {
-    ModularFeatureList newFlist = new ModularFeatureList(featureList.getName() + " " + suffix,
-        storage, featureList.getRawDataFiles());
+      final MemoryMapStorage storage, boolean copyRows) {
+    return createCopy(featureList, null, suffix, storage, copyRows, featureList.getRawDataFiles(),
+        false, null, null);
+  }
+
+  public static ModularFeatureList createCopy(final FeatureList featureList,
+      @Nullable String fullTitle, final @Nullable String suffix, final MemoryMapStorage storage,
+      boolean copyRows, List<RawDataFile> dataFiles, boolean renumberIDs,
+      final @Nullable Integer totalRows, final @Nullable Integer totalFeatures) {
+    if (StringUtils.isBlank(fullTitle) && StringUtils.isBlank(suffix)) {
+      throw new IllegalArgumentException("Either suffix or fullTitle need a value");
+    }
+    if (fullTitle == null) {
+      fullTitle = featureList.getName() + " " + suffix;
+    }
+    final int estimatedRows;
+    final int estimatedFeatures;
+    if (copyRows) {
+      // need space for all rows and features
+      estimatedRows = featureList.getNumberOfRows();
+      final long allFeatures = featureList.stream().mapToLong(FeatureListRow::getNumberOfFeatures)
+          .sum();
+      // avoid overflow
+      if (allFeatures > Integer.MAX_VALUE) {
+        throw new IllegalStateException(
+            "Total features is too large. Total: %d; to max: %d".formatted(allFeatures,
+                Integer.MAX_VALUE));
+      }
+      estimatedFeatures = (int) allFeatures;
+    } else {
+      // start with less rows to not over commit to the size.
+      // many modules know the number
+      estimatedRows = (int) (featureList.getNumberOfRows() * 0.75);
+      estimatedFeatures = FeatureListUtils.estimateFeatures(estimatedRows, dataFiles.size());
+    }
+
+    ModularFeatureList newFlist = new ModularFeatureList(fullTitle, storage,
+        requireNonNullElse(totalRows, estimatedRows),
+        requireNonNullElse(totalFeatures, estimatedFeatures), dataFiles);
 
     FeatureListUtils.copyPeakListAppliedMethods(featureList, newFlist);
-    FeatureListUtils.transferRowTypes(newFlist, List.of(featureList));
+    FeatureListUtils.transferRowTypes(newFlist, List.of(featureList), true);
     FeatureListUtils.transferSelectedScans(newFlist, List.of(featureList));
+
+    if (copyRows) {
+      copyRows(featureList, newFlist, renumberIDs);
+    }
+
     return newFlist;
   }
+
+  public static void copyRows(final FeatureList featureList,
+      final ModularFeatureList newFeatureList, final boolean renumberIDs) {
+    int id = 1;
+    for (final FeatureListRow row : featureList.getRows()) {
+      FeatureListRow copy = new ModularFeatureListRow(newFeatureList,
+          renumberIDs ? id : row.getID(), (ModularFeatureListRow) row, true);
+      newFeatureList.addRow(copy);
+      id++;
+    }
+  }
+
+  /**
+   * Get the polarity of the feature list. Only checks a single row
+   *
+   * @return polarity or {@link PolarityType#UNKNOWN}
+   */
+  public static @NotNull PolarityType getPolarity(final FeatureList featureList) {
+    return getPolarity(featureList, PolarityType.UNKNOWN);
+  }
+
+  /**
+   * Get the polarity of the feature list. Only checks a single row
+   *
+   * @return polarity or default value if missing
+   */
+  public static @NotNull PolarityType getPolarity(final FeatureList featureList,
+      @NotNull final PolarityType defaultValue) {
+    return featureList.stream().findFirst().map(FeatureListRow::getBestFeature)
+        .map(Feature::getRepresentativeScan).map(Scan::getPolarity).orElse(defaultValue);
+  }
+
+  public static String rowsToIdString(List<? extends FeatureListRow> rows) {
+    return rows.stream().map(FeatureListRow::getID).map(Object::toString)
+        .collect(Collectors.joining(","));
+  }
+
+  public static List<FeatureListRow> idStringToRows(ModularFeatureList flist, String str) {
+    final Set<Integer> ids = Arrays.stream(str.split(",")).map(s -> {
+      if (s == null) {
+        return null;
+      }
+      final String stripped = s.strip();
+      try {
+        return Integer.valueOf(stripped);
+      } catch (NumberFormatException e) {
+        return null;
+      }
+    }).filter(Objects::nonNull).collect(Collectors.toSet());
+    final List<FeatureListRow> list = flist.stream().filter(row -> ids.contains(row.getID()))
+        .sorted(Comparator.comparingInt(FeatureListRow::getID)).toList();
+
+    if (list.size() != ids.size()) {
+      throw new RuntimeException(
+          "Number of found rows does not match number of ids. Is this the correct feature list? Found: %s, Searched: %s".formatted(
+              list.stream().map(FeatureListRow::getID).map(Object::toString)
+                  .collect(Collectors.joining(",")),
+              ids.stream().map(Object::toString).collect(Collectors.joining(","))));
+    }
+    return list;
+  }
+
+  /**
+   * Ims features usually consume more ram than non ims features. IF memory usage can be estimated
+   * for regular features, estimate a correction factor for the ram usage if ims files are present.
+   */
+  public static double getImsRamFactor(FeatureList flist) {
+    final int numRaws = flist.getNumberOfRawDataFiles();
+    final long numImsFiles = flist.getRawDataFiles().stream()
+        .filter(IMSRawDataFile.class::isInstance).count();
+    final boolean isIms = flist.getFeatureTypes().contains(DataTypes.get(MobilityType.class));
+    // ims features generally consume 10 times the ram of non ims features. not all files may be ims though
+    final double imsRamFactor = isIms ? (double) (numImsFiles * 10) / numRaws : 1;
+    return imsRamFactor;
+  }
+
+  public static boolean hasImagingData(FeatureList flist) {
+    return flist.getRawDataFiles().stream().anyMatch(ImagingRawDataFile.class::isInstance);
+  }
+
+  /**
+   * Default row sorter is depending on imaging data. If one raw file is imaging all is sorted by
+   * mz. Otherwise sort by RT
+   */
+  public static @NotNull Comparator<FeatureListRow> getDefaultRowSorter(FeatureList flist) {
+    if (hasImagingData(flist)) {
+      return FeatureListRowSorter.MZ_ASCENDING;
+    } else {
+      return FeatureListRowSorter.DEFAULT_RT;
+    }
+  }
+
+  /**
+   * We are using smaller filling for larger datasets to avoid over commiting. If possible, modules
+   * should find out the required number and then commit this number directly when copying feature
+   * lists
+   *
+   * @return estimated number of features across all samples uses different filling estimates for
+   * different sizes
+   */
+  public static int estimateFeatures(final int rows, final int samples) {
+    // different filling for size of dataset
+    final long features = (long) switch (samples) {
+      case 1 -> rows; // same
+      case int s when s < 64 -> rows * samples * 0.85; // small dataset - full
+      case int s when s < 500 -> rows * samples * 0.65; // medium dataset - full
+      case int s when s <= 1000 -> rows * samples * 0.45; // medium dataset - medium full
+      case int _ -> rows * samples * 0.35; // large dataset - medium full
+    };
+
+    if (features > Integer.MAX_VALUE) {
+      return Integer.MAX_VALUE;
+    }
+    return (int) features;
+  }
+
+  /**
+   * @return Creates a sorter which sorts by descending number of rows. Avoids collisions by the
+   * name of the feature list.
+   */
+  public static Comparator<FeatureList> createDescendingNumberOfRowsSorter() {
+    return Comparator.comparing(FeatureList::getNumberOfRows).reversed()
+        .thenComparing(FeatureList::getName);
+  }
+
 }

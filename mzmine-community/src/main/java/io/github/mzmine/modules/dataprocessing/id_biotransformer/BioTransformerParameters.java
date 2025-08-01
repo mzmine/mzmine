@@ -25,12 +25,15 @@
 
 package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -43,15 +46,19 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.List;
 import javafx.application.Platform;
 import javafx.scene.layout.Region;
+import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class BioTransformerParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
-  public static final FileNameParameter bioPath = new FileNameParameter("BioTransformer path",
-      "The path to bio transformer.", FileSelectionType.OPEN);
+  public static final FileNameParameter bioPath = new FileNameParameter("BioTransformer .jar path",
+      "The path to the BioTransformer.jar.", List.of(new ExtensionFilter("java files", "*.jar")),
+      FileSelectionType.OPEN);
 
   public static final ComboParameter<TransformationTypes> transformationType = new ComboParameter<>(
       "Transformation type", "The BioTransformer transformation type to use.",
@@ -89,9 +96,9 @@ public class BioTransformerParameters extends SimpleParameterSet {
 
   public BioTransformerParameters(boolean singleRow) {
     super(singleRow ? new Parameter[]{bioPath, transformationType, steps, mzTol, ionLibrary,
-        filterParam}
+        filterParam, advanced}
         : new Parameter[]{flists, bioPath, transformationType, steps, mzTol, ionLibrary,
-            filterParam});
+            filterParam, advanced});
   }
 
   @Override
@@ -101,13 +108,17 @@ public class BioTransformerParameters extends SimpleParameterSet {
     if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
     }
-    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite", hyperlinkText("""
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite & download instructions",
+        true, hyperlinkText("""
             Djoumbou Feunang Y, Fiamoncini J, de la Fuente AG, Manach C, Greiner R, and Wishart DS; BioTransformer: A Comprehensive Computational Tool for Small Molecule Metabolism Prediction and Metabolite Identification; Journal of Cheminformatics; 2019; Journal of Cheminformatics 11:2; 
             DOI: 10.1186/s13321-018-0324-5
-            """, "https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0324-5"), linebreak(),
-        hyperlinkText("""
+            """, "https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0324-5"),
+        linebreak(), hyperlinkText("""
             Wishart DS, Tian S, Allen D, Oler E, Peters H, Lui VW, Gautam V, Djoumbou Feunang Y, Greiner R, Metz TO; BioTransformer 3.0 – A Web Server for Accurately Predicting Metabolic Transformation Products [Submitted in Nucleic Acids Research, Webserver Issue.Apr.2022]
-            """, "http://biotransformer.ca/"));
+            """, "http://biotransformer.ca/"), linebreak(), boldText("Download: "),
+        hyperlinkText("here", "https://bitbucket.org/wishartlab/biotransformer3.0jar/downloads/"),
+        text(" (unzip everything to a single folder) "),
+        hyperlinkText("additional resources", "https://biotransformer.ca/download"));
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
@@ -145,5 +156,10 @@ public class BioTransformerParameters extends SimpleParameterSet {
         case env -> "env";
       };
     }
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

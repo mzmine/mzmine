@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,10 +27,8 @@ package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.project.impl.RawDataFileImpl;
-import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -46,6 +44,9 @@ public class SpectralLibraryDataFile extends RawDataFileImpl {
   private final SpectralLibrary library;
 
   public SpectralLibraryDataFile(@NotNull SpectralLibrary library) {
+    // name used to be name with size - but this does not match to real raw data file names
+    // also this creates issues with the USI and {@link ScanUtil#extractScanIdString} that the size is in there
+    // just use library.getName() instead
     super(library.getName(), library.getPath().getAbsolutePath(), library.getStorage());
     this.library = library;
 
@@ -55,11 +56,7 @@ public class SpectralLibraryDataFile extends RawDataFileImpl {
         // need to be sorted by RT even if no RT set
         .sorted(Comparator.comparingDouble(Scan::getRetentionTime)).toList();
     for (final Scan scan : scans) {
-      try {
-        addScan(scan);
-      } catch (IOException e) {
-        logger.log(Level.WARNING, "Cannot add scan to library data file " + e.getMessage(), e);
-      }
+      addScan(scan);
     }
   }
 

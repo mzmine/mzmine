@@ -26,8 +26,10 @@
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Stores information on mobility type, axis labels and units.
@@ -36,7 +38,7 @@ import io.github.mzmine.main.MZmineCore;
  *
  * @author https://github.com/SteffenHeu
  */
-public enum MobilityType {
+public enum MobilityType implements UniqueIdSupplier {
 
   /**
    * Undefined
@@ -50,7 +52,8 @@ public enum MobilityType {
   TIMS("1/k0", "Vs/cm^2", "TIMS"), // trapped ion mobility spectrometry
   DRIFT_TUBE("Drift time", "ms", "DTIMS"), // drift tube
   TRAVELING_WAVE("Drift time", "ms", "TWIMS"), // traveling wave ion mobility spectrometry
-  FAIMS("TODO", "TODO", "FAIMS"); // field asymmetric waveform ion mobility spectrometry
+  FAIMS("TODO", "TODO", "FAIMS"), // field asymmetric waveform ion mobility spectrometry
+  SLIM("Drift time", "ms", "SLIM");
 
   private final String axisLabel;
   private final String unit;
@@ -115,6 +118,21 @@ public enum MobilityType {
       case TIMS -> "TIMS";
       case DRIFT_TUBE -> "DT";
       case TRAVELING_WAVE -> "TW";
+      case SLIM -> "TW";
+    };
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case NONE -> "NONE";
+      case MIXED -> "MIXED";
+      case OTHER -> "OTHER";
+      case TIMS -> "TIMS";
+      case DRIFT_TUBE -> "DRIFT_TUBE";
+      case TRAVELING_WAVE -> "TRAVELING_WAVE";
+      case FAIMS -> "FAIMS";
+      case SLIM -> "SLIM";
     };
   }
 }

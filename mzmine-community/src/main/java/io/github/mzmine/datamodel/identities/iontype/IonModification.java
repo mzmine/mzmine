@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,11 +31,14 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.NeutralMolecule;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.StringMapParser;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -49,6 +52,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class IonModification extends NeutralMolecule implements Comparable<IonModification>,
     StringMapParser<IonModification> {
+
+  public static Comparator<IonModification> POLARITY_MASS_SORTER = Comparator.comparing(
+          IonModification::getPolarity).thenComparingInt(IonModification::getAbsCharge)
+      .thenComparing(NeutralMolecule::getMass);
 
   // use combinations of X adducts (2H++; -H+Na2+) and modifications
   public static final IonModification M_MINUS = new IonModification(IonModificationType.ADDUCT, "e",
@@ -216,7 +223,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     }
 
     String name = reader.getAttributeValue(null, "name");
-    String formula = reader.getAttributeValue(null, "formula");
+    String formula = ParsingUtils.readNullableString(reader.getAttributeValue(null, "formula"));
     String massDiff = reader.getAttributeValue(null, "massdifference");
     String type = reader.getAttributeValue(null, "type");
     String charge = reader.getAttributeValue(null, "charge");
@@ -684,5 +691,32 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
    */
   public IonModification withCharge(final int newCharge) {
     return new IonModification(type, name, molFormula, mass, newCharge);
+  }
+
+  /**
+   * Attempts to find the best fitting ion modification for the differnce of the neutral mass and
+   * the mz within the given tolerance.
+   *
+   * @param tol The mz tolerance to look for. The tolerance is applied to (neutralMass + adduct) vs
+   *            mz, not the (mz - neutralMass) vs adduct.
+   * @return The best fitting modification or null.
+   */
+  public static @Nullable IonModification getBestIonModification(double neutralMass, double mz,
+      @NotNull MZTolerance tol, @Nullable PolarityType polarity) {
+
+    // select the appropriate modifications to search
+    final Stream<IonModification> modifications = switch (polarity) {
+      case POSITIVE -> Stream.of(IonModification.DEFAULT_VALUES_POSITIVE);
+      case NEGATIVE -> Stream.of(IonModification.DEFAULT_VALUES_NEGATIVE);
+      case NEUTRAL -> Stream.of();
+      case ANY, UNKNOWN ->
+          Stream.of(DEFAULT_VALUES_POSITIVE, DEFAULT_VALUES_NEGATIVE).flatMap(Arrays::stream);
+      case null ->
+          Stream.of(DEFAULT_VALUES_POSITIVE, DEFAULT_VALUES_NEGATIVE).flatMap(Arrays::stream);
+    };
+
+    return modifications.filter(m -> m.getCharge() != 0)
+        .filter(m -> tol.checkWithinTolerance(m.getMZ(neutralMass), mz))
+        .min(Comparator.comparingDouble(m -> Math.abs(m.getMZ(neutralMass) - mz))).orElse(null);
   }
 }

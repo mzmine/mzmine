@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,13 @@
 
 package io.github.mzmine.util.collections;
 
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -35,12 +39,41 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Collection API related utilities
  */
 public class CollectionUtils {
+
+  private static final Logger logger = Logger.getLogger(CollectionUtils.class.getName());
+
+  /**
+   * Map of the object to its index to avoid indexOf. This method will take any collection as input
+   * and this makes only sense if the collection has an order.
+   * <p>
+   * The resulting map does not conserve order of its entries compared to the input sequence. The
+   * map is optimized for memory.
+   *
+   * @param list any collection
+   * @param <T>  the object to be mapped
+   * @return Map object to index in collection. Uses map that is space optimized but does not retain
+   * order of the input sequence
+   */
+  public static <T> Object2IntMap<T> indexMapUnordered(Collection<T> list) {
+    Object2IntMap<T> map = new Object2IntOpenHashMap<>(list.size());
+    int i = 0;
+    for (final T value : list) {
+      map.put(value, i);
+      i++;
+    }
+    return map;
+  }
 
   /**
    * Map of the object to its index to avoid indexOf. This method will take any collection as input
@@ -48,9 +81,10 @@ public class CollectionUtils {
    *
    * @param list any collection
    * @param <T>  the object to be mapped
-   * @return Map object to index in collection
+   * @return Map object to index in collection. Uses ordered map that preserves the original
+   * sequence.
    */
-  public static <T> Map<T, Integer> indexMap(Collection<T> list) {
+  public static <T> Map<T, Integer> indexMapOrdered(Collection<T> list) {
     Map<T, Integer> map = new LinkedHashMap<>(list.size());
     int i = 0;
     for (final T value : list) {
@@ -64,9 +98,10 @@ public class CollectionUtils {
    * Map of the object to its index to avoid indexOf.
    *
    * @param <T> the object to be mapped
-   * @return Map object to index in collection
+   * @return Map object to index in collection. Uses ordered map that preserves the original
+   * sequence.
    */
-  public static <T> Map<T, Integer> indexMap(T[] array) {
+  public static <T> Map<T, Integer> indexMapOrdered(T[] array) {
     Map<T, Integer> map = new LinkedHashMap<>(array.length);
     for (int i = 0; i < array.length; i++) {
       map.put(array[i], i);
@@ -199,4 +234,219 @@ public class CollectionUtils {
         : (T[]) Array.newInstance(newType.getComponentType(), newLength);
     return copy;
   }
+
+  /**
+   * Operation to remove elements by indices from large lists. Avoids copies.
+   *
+   * @param list            changed in place
+   * @param indicesToRemove list of indices to remove - sorted ascending
+   * @return the input list that is changed in place
+   */
+  public static <T> List<T> removeIndicesInPlaceSorted(List<T> list, IntList indicesToRemove) {
+    return removeIndicesInPlaceSorted(list, indicesToRemove.toIntArray());
+  }
+
+  /**
+   * Operation to remove elements by indices from large lists. Avoids copies.
+   *
+   * @param list            changed in place
+   * @param indicesToRemove list of indices to remove - sorted ascending
+   * @return the input list that is changed in place
+   */
+  public static <T> List<T> removeIndicesInPlaceSorted(List<T> list, int[] indicesToRemove) {
+    if (indicesToRemove.length == 0) {
+      return list;
+    }
+    int size = list.size();
+
+    int indicesToRemoveIndex = 0;
+    int nextToSkip = indicesToRemove[0];
+    // Overwrite elements not to remove
+    int writeIndex = nextToSkip; // start writing at index of first to remove
+    // start reading at first to remove+1
+    for (int readIndex = writeIndex; readIndex < size; readIndex++) {
+      if (nextToSkip == readIndex) {
+        indicesToRemoveIndex++;
+        if (indicesToRemoveIndex < indicesToRemove.length) {
+          nextToSkip = indicesToRemove[indicesToRemoveIndex];
+          if (nextToSkip <= readIndex) {
+            throw new IllegalArgumentException("Indices to remove are not sorted ascending");
+          }
+        }
+      } else {
+        list.set(writeIndex, list.get(readIndex));
+        writeIndex++;
+      }
+    }
+
+    // Remove extra elements at the end
+    if (list.size() > writeIndex) {
+      list.subList(writeIndex, list.size()).clear();
+    }
+    return list;
+  }
+
+  /**
+   * Operation to remove elements by indices from large lists. Avoids copies.
+   *
+   * @param list            changed in place
+   * @param indicesToRemove list of indices to remove - can be unsorted
+   * @return the input list that is changed in place
+   */
+  public static <T> List<T> removeIndicesInPlaceBitSet(List<T> list, IntList indicesToRemove) {
+    return removeIndicesInPlaceBitSet(list, indicesToRemove.toIntArray());
+  }
+
+  /**
+   * Operation to remove elements by indices from large lists. Avoids copies.
+   *
+   * @param list            changed in place
+   * @param indicesToRemove list of indices to remove - can be unsorted
+   * @return the input list that is changed in place
+   */
+  public static <T> List<T> removeIndicesInPlaceBitSet(List<T> list, int[] indicesToRemove) {
+    if (indicesToRemove.length == 0) {
+      return list;
+    }
+
+    int size = list.size();
+    BitSet toRemove = new BitSet(size);
+
+    // Mark indices to remove
+    for (int index : indicesToRemove) {
+      if (index >= 0 && index < size) {
+        toRemove.set(index);
+      }
+    }
+
+    // Overwrite elements not to remove
+    int writeIndex = indicesToRemove[0]; // start writing at index of first to remove
+    // start reading at first to remove+1
+    for (int readIndex = writeIndex + 1; readIndex < size; readIndex++) {
+      if (!toRemove.get(readIndex)) {
+        list.set(writeIndex, list.get(readIndex));
+        writeIndex++;
+      }
+    }
+
+    // Remove extra elements at the end
+    if (list.size() > writeIndex) {
+      list.subList(writeIndex, list.size()).clear();
+    }
+    return list;
+  }
+
+  public static <T> List<T> combine(List<? extends T>... lists) {
+    int size = 0;
+    for (final List<? extends T> list : lists) {
+      size += list.size();
+    }
+
+    final List<T> value = new ArrayList<>(size);
+    for (List<? extends T> list : lists) {
+      value.addAll(list);
+    }
+    return value;
+  }
+
+  public static int[] argsortReversed(float[] array) {
+    return IntStream.range(0, array.length).boxed()
+        .sorted((a, b) -> Float.compare(array[b], array[a])).mapToInt(Integer::intValue).toArray();
+  }
+
+  public static @NotNull <T> Collector<T, ?, ArrayList<T>> toArrayList() {
+    return Collectors.toCollection(ArrayList::new);
+  }
+
+  /**
+   * Both lists need the same sorting. Compares elements by identity (==)
+   *
+   * @param subRegion needs contained in master without holes or missing parts
+   * @param master    the main list that contains subRegion
+   * @return true if sub is a continuous region in master
+   */
+  public static boolean isContinuousRegionByIdentity(final List<?> subRegion,
+      final List<?> master) {
+    if (subRegion.isEmpty()) {
+      return true;
+    }
+
+    boolean startFound = false;
+    int subIndex = 0;
+    Object sub = subRegion.getFirst();
+
+    for (Object o : master) {
+      // once the objects are the same we start the region that should contain all of subRegion
+      // scans need to be the exact same instance
+      if (sub == o) {
+        startFound = true;
+        subIndex++;
+
+        if (subIndex == subRegion.size()) {
+          return startFound;
+        }
+        // check next
+        sub = subRegion.get(subIndex);
+      } else if (startFound) {
+        // mismatch between objects after start was found
+        return false;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Both lists need the same sorting. Compares elements by identity (==)
+   *
+   * @param subRegion needs contained in master without holes or missing parts
+   * @param master    the main list that contains subRegion
+   * @return sublist of master if subRegion is a continuous region in master. Or subRegion itself if
+   * not
+   */
+  public static <T> List<T> asContinuousRegionSubListByIdentity(final List<T> subRegion,
+      final List<T> master) {
+    if (subRegion.isEmpty()) {
+      return List.of();
+    }
+
+    int startIndex = -1;
+    int subIndex = 0;
+    Object sub = subRegion.getFirst();
+
+    for (int masterIndex = 0; masterIndex < master.size(); masterIndex++) {
+      final T o = master.get(masterIndex);
+      // once the objects are the same we start the region that should contain all of subRegion
+      // scans need to be the exact same instance
+      if (sub == o) {
+        if (startIndex == -1) {
+          startIndex = masterIndex;
+        }
+        subIndex++;
+
+        if (subIndex == subRegion.size()) {
+          masterIndex++;
+          assert (masterIndex - startIndex == subRegion.size());
+//          logger.fine("REUSING OLD MASTER LIST FOR IMS DATA");
+          if (master.size() == masterIndex - startIndex) {
+            return master;
+          }
+          return master.subList(startIndex, masterIndex);
+        }
+        // check next
+        sub = subRegion.get(subIndex);
+      } else if (startIndex != -1) {
+        // mismatch between objects after start was found
+        break;
+      }
+    }
+
+//    logger.fine("NEED TO USE NEW ARRAYLIST FOR FRAMES");
+    return subRegion;
+  }
+
+  public static <T> List<T> findDuplicates(List<T> items) {
+    Set<T> uniques = new HashSet<>();
+    return items.stream().filter(item -> !uniques.add(item)).toList();
+  }
+
 }

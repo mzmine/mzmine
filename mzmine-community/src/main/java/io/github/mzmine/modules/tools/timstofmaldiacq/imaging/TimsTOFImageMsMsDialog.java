@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,8 +56,8 @@ import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.TextFlow;
 import javafx.util.Duration;
 import org.jfree.chart.annotations.XYPointerAnnotation;
 
@@ -75,7 +75,7 @@ public class TimsTOFImageMsMsDialog extends ParameterSetupDialogWithPreview {
   }
 
   public TimsTOFImageMsMsDialog(boolean valueCheckRequired, ParameterSet parameters,
-      TextFlow message) {
+      Region message) {
     super(valueCheckRequired, parameters, message);
 
     SortableFeatureComboBox fBox = new SortableFeatureComboBox();
@@ -190,6 +190,9 @@ public class TimsTOFImageMsMsDialog extends ParameterSetupDialogWithPreview {
     imageChart.getChart().getXYPlot().clearAnnotations();
 
     final List<ImagingSpot> imagingSpots = map.get(newFeature);
+    if(imagingSpots == null) {
+      return;
+    }
     for (ImagingSpot imagingSpot : imagingSpots) {
       final MaldiSpotInfo info = imagingSpot.spotInfo();
       final double[] ms2Coord = ImagingUtils.transformCoordinates(info,

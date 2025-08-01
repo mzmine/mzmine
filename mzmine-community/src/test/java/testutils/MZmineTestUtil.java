@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,10 +63,7 @@ import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.FeatureListRowSorter;
-import io.mzio.users.client.UserAuthStore;
-import io.mzio.users.user.CurrentUserService;
-import io.mzio.users.user.UserFileReader;
+import io.github.mzmine.util.FeatureListUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -146,9 +143,11 @@ public class MZmineTestUtil {
       lock.countDown();
     });
 
-    // wait
-    if (!lock.await(timeout, unit)) {
-      return new TaskResult.TIMEOUT(moduleClass);
+    if (!abstractTasks.stream().allMatch(t -> t.isFinished() || t.isCanceled())) {
+      // wait
+      if (!lock.await(timeout, unit)) {
+        return new TaskResult.TIMEOUT(moduleClass);
+      }
     }
 
     if (errorMessage.size() > 0) {
@@ -170,11 +169,16 @@ public class MZmineTestUtil {
    * @return
    */
   public static boolean isSorted(FeatureList flist) {
-    return Comparators.isInOrder(flist.getRows(), FeatureListRowSorter.DEFAULT_RT);
+    return Comparators.isInOrder(flist.getRows(), FeatureListUtils.getDefaultRowSorter(flist));
   }
 
   public static void cleanProject() {
     ProjectService.getProjectManager().setCurrentProject(new MZmineProjectImpl());
+  }
+
+  public static void clearProjectAndLibraries() {
+    ProjectService.getProjectManager().clearProject();
+    ProjectService.getProject().clearSpectralLibrary();
   }
 
 
@@ -225,53 +229,7 @@ public class MZmineTestUtil {
 
   public static void startMzmineCore() {
     try {
-      // for debugging purpose of github actions
-//      for (final String s : List.of("TESTRUNNER_USER_GIT_ENV", "TESTRUNNER_USER", "USER_BASE64")) {
-//        String testRunner = System.getenv(s);
-//        if (testRunner != null) {
-//          logger.info(
-//              STR."Found testrunner env variable \{s} length \{testRunner.length()}\n\{testRunner}");
-//        }
-//      }
-//      var userFiles = List.of("testrunner", "user_base64");
-//      for (final String uf : userFiles) {
-//        var file = UserFileReader.resolveInUsersPath(STR."\{uf}.mzuserstr");
-//        try {
-//          if (!file.exists()) {
-//            logger.info("Cannot find file "+file.getAbsolutePath());
-//          }
-//          var user = UserFileReader.readUserFile(file);
-//          if (user.isValid()) {
-//            logger.info("Valid testrunner user for "+uf);
-//          }
-//        } catch (Exception e) {
-//          logger.info("Error parsing userfile "+file.getAbsolutePath());
-//        }
-//      }
-
-      MZmineCore.main(new String[]{"-r", "-m", "all"});
-      try {
-        logger.fine("Trying to find TESTRUNNER_USER env");
-        String testRunner = System.getenv("TESTRUNNER_USER");
-        if (testRunner != null && !testRunner.isBlank()) {
-          logger.info("Loaded TESTRUNNER_USER from env var");
-        }
-        var user = UserFileReader.parseUser(testRunner);
-        if (user != null) {
-          logger.info("Test user TESTRUNNER_USER loaded successfully");
-          CurrentUserService.setUser(user);
-        }
-      } catch (Exception ex) {
-        logger.fine("Cannot find testrunner user, set environment variable with license code");
-      }
-      if (!CurrentUserService.isValid()) {
-        // load testrunner user from users dir / e.g. on github actions
-        var file = UserAuthStore.resolveInUsersPath("testrunner.mzuserstr");
-        var user = UserFileReader.readUserFile(file);
-        if (user != null) {
-          CurrentUserService.setUser(user);
-        }
-      }
+      MZmineCore.main(new String[]{"-r", "-m", "all", "-pref", "null"});
     } catch (Exception ex) {
       // might be already initialized
       logger.log(Level.INFO,

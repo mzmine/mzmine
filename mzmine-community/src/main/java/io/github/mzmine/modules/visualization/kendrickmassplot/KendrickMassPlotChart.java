@@ -31,6 +31,7 @@ import io.github.mzmine.gui.chartbasics.chartutils.ColoredBubbleDatasetRenderer;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import java.awt.Color;
@@ -57,7 +58,7 @@ public class KendrickMassPlotChart extends EChartViewer {
     setStickyZeroRangeAxis(false);
     this.colorScaleLabel = colorScaleLabel;
 
-    EStandardChartTheme defaultChartTheme = MZmineCore.getConfiguration().getDefaultChartTheme();
+    EStandardChartTheme defaultChartTheme = ConfigService.getConfiguration().getDefaultChartTheme();
     defaultChartTheme.apply(this);
     double[] colorScaleValues = dataset.getColorScaleValues();
     final double[] quantiles = MathUtils.calcQuantile(colorScaleValues, new double[]{0.00, 1.00});
@@ -73,6 +74,10 @@ public class KendrickMassPlotChart extends EChartViewer {
     }
     ColoredBubbleDatasetRenderer renderer = new ColoredBubbleDatasetRenderer();
     renderer.setPaintScale(paintScale);
+    renderer.setDefaultToolTipGenerator(
+        new KendrickToolTipGenerator(xAxisLabel, yAxisLabel, colorScaleLabel,
+            dataset.getBubbleKendrickDataType().getName()));
+    
     PaintScaleLegend legend = generateLegend(paintScale);
     getChart().addSubtitle(legend);
     this.getChart().getXYPlot().setRenderer(renderer);
@@ -106,6 +111,5 @@ public class KendrickMassPlotChart extends EChartViewer {
     newLegend.setBackgroundPaint(legendBg);
     return newLegend;
   }
-
 }
 

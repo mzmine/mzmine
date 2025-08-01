@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,13 +25,20 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.PolarityType;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Detector of raw data file format
@@ -41,59 +48,77 @@ public class RawDataFileTypeDetector {
   /*
    * See "https://unidata.ucar.edu/software/netcdf/docs/netcdf_introduction.html#netcdf_format"
    */
-  private static final String CDF_HEADER = "CDF";
-  private static final String HDF_HEADER = "HDF";
+  public static final String CDF_HEADER = "CDF";
+  public static final String HDF_HEADER = "HDF";
   /*
    * mzML files with index start with <indexedmzML><mzML>tags, but files with no index contain only
    * the <mzML> tag. See
    * "http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/schema/mzML1.1.0.xsd"
    */
-  private static final String MZML_HEADER = "<mzML";
+  public static final String MZML_HEADER = "<mzML";
   /*
    * mzXML files with index start with <mzXML><msRun> tags, but files with no index contain only the
    * <msRun> tag. See "http://sashimi.sourceforge.net/schema_revision/mzXML_3.2/mzXML_3.2.xsd"
    */
-  private static final String MZXML_HEADER = "<msRun";
+  public static final String MZXML_HEADER = "<msRun";
   // See "http://www.psidev.info/sites/default/files/mzdata.xsd.txt"
-  private static final String MZDATA_HEADER = "<mzData";
+  public static final String MZDATA_HEADER = "<mzData";
   // See "https://code.google.com/p/unfinnigan/wiki/FileHeader"
-  private static final String THERMO_HEADER = String.valueOf(
+  public static final String THERMO_HEADER = String.valueOf(
       new char[]{0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0, 'n', 0});
-  private static final String GZIP_HEADER = String.valueOf(new char[]{0x1f, 0x8b});
-  private static final String ZIP_HEADER = String.valueOf(new char[]{'P', 'K', 0x03, 0x04});
-  private static final String TDF_SUFFIX = ".tdf";
-  private static final String TDF_BIN_SUFFIX = ".tdf_bin";
-  private static final String TSF_BIN_SUFFIX = ".tsf_bin";
-  private static final String TSF_SUFFIX = ".tsf_bin";
-  private static final String BRUKER_FOLDER_SUFFIX = ".d";
-  private static final String AIRD_SUFFIX = ".aird";
-  private static final String MZML_SUFFIX = ".mzml";
-  private static final String IMZML_SUFFIX = ".imzml";
+  public static final String GZIP_HEADER = String.valueOf(new char[]{0x1f, 0x8b});
+  public static final String ZIP_HEADER = String.valueOf(new char[]{'P', 'K', 0x03, 0x04});
+  public static final String TDF_SUFFIX = ".tdf";
+  public static final String TDF_BIN_SUFFIX = ".tdf_bin";
+  public static final String TSF_BIN_SUFFIX = ".tsf_bin";
+  public static final String TSF_SUFFIX = ".tsf_bin";
+  public static final String BAF_SUFFIX = ".baf";
+  public static final String BRUKER_FOLDER_SUFFIX = ".d";
+  public static final String AIRD_SUFFIX = ".aird";
+  public static final String MZML_SUFFIX = ".mzml";
+  public static final String MZXML_SUFFIX = ".mzxml";
+  public static final String IMZML_SUFFIX = ".imzml";
+  public static final String SCIEX_WIFF_SUFFIX = ".wiff";
+  public static final String SCIEX_WIFF2_SUFFIX = ".wiff2";
+  public static final String AGILENT_ACQDATATA_FOLDER = "AcqData";
+  private static final String MBI_SUFFIX = ".mbi";
 
   private static final Logger logger = Logger.getLogger(RawDataFileTypeDetector.class.getName());
+  private static final String LCD_SUFFIX = ".lcd";
 
   /**
    * @return Detected file type or null if the file is not of any supported type
    */
+  @Nullable
   public static RawDataFileType detectDataFileType(File fileName) {
 
     if (fileName.isDirectory()) {
-      /*if (fileName.getName().endsWith(BRUKER_FOLDER_SUFFIX)) {
-        return RawDataFileType.BRUKER_TDF;
-      }*/
-
       // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
       for (File f : fileName.listFiles()) {
-        /*if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT")) {
-          return RawDataFileType.WATERS_RAW;
-        }*/
-        if (f.isFile() && (f.getName().contains(TDF_SUFFIX) || f.getName()
-            .contains(TDF_BIN_SUFFIX))) {
+        if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT")) {
+//          DesktopService.getDesktop().displayMessage("Waters raw data detected",
+//              "Waters raw data is currently not supported in mzmine. Please use their tool DataConnect to convert zo mzML (see documentation).",
+//              "https://mzmine.github.io/mzmine_documentation/data_conversion.html#waters");
+//          throw new RuntimeException(
+//              "Waters raw data detected. Please download Waters DataConnect(R) and convert to mzML.");
+          return detectWatersAcquisitionType(fileName).isIms() ? RawDataFileType.WATERS_RAW_IMS
+              : RawDataFileType.WATERS_RAW;
+        }
+        final var lowerName = f.getName().toLowerCase();
+        if (f.isFile() && (lowerName.endsWith(TDF_SUFFIX) || lowerName.endsWith(TDF_BIN_SUFFIX))) {
           return RawDataFileType.BRUKER_TDF;
         }
-        if (f.isFile() && (f.getName().contains(TSF_SUFFIX) || f.getName()
-            .contains(TSF_BIN_SUFFIX))) {
+        if (f.isFile() && (lowerName.endsWith(TSF_SUFFIX) || lowerName.endsWith(TSF_BIN_SUFFIX))) {
           return RawDataFileType.BRUKER_TSF;
+        }
+        if (f.isFile() && (lowerName.endsWith(BAF_SUFFIX))) {
+          return RawDataFileType.BRUKER_BAF;
+        }
+        if (f.isDirectory() && f.getName().equals(AGILENT_ACQDATATA_FOLDER)) {
+          if (new File(f, "IMSFrame.bin").exists()) {
+            return RawDataFileType.AGILENT_D_IMS;
+          }
+          return RawDataFileType.AGILENT_D;
         }
       }
       // We don't recognize any other directory type than Waters and Bruker
@@ -101,14 +126,23 @@ public class RawDataFileTypeDetector {
     }
 
     try {
-      if (fileName.isFile()) {
-        if (fileName.getName().toLowerCase().endsWith(MZML_SUFFIX)) {
-          return RawDataFileType.MZML;
-        }
-        if (fileName.getName().toLowerCase().endsWith(IMZML_SUFFIX)) {
-          return RawDataFileType.IMZML;
-        }
-        //the suffix is json and have a .aird file with same name
+      var lowerName = fileName.getName().toLowerCase();
+      if (lowerName.endsWith(MZML_SUFFIX)) {
+        return RawDataFileType.MZML;
+      }
+      if (lowerName.endsWith(MZXML_SUFFIX)) {
+        return RawDataFileType.MZXML;
+      }
+      if (lowerName.endsWith(IMZML_SUFFIX)) {
+        return RawDataFileType.IMZML;
+      }
+      if (lowerName.endsWith(SCIEX_WIFF_SUFFIX)) {
+        return RawDataFileType.SCIEX_WIFF;
+      }
+      if (lowerName.endsWith(SCIEX_WIFF2_SUFFIX)) {
+        return RawDataFileType.SCIEX_WIFF2;
+      }
+      //the suffix is json and have a .aird file with same name
         /*if (fileName.getName().toLowerCase().endsWith(AIRD_SUFFIX)) {
           String airdIndexFilePath = AirdScanUtil.getIndexPathByAirdPath(fileName.getPath());
           if (airdIndexFilePath != null) {
@@ -119,24 +153,37 @@ public class RawDataFileTypeDetector {
           }
           logger.info("It's not an aird format file or the aird index file not exist");
         }*/
-        if (fileName.getName().contains(TDF_SUFFIX) || fileName.getName()
-            .contains(TDF_BIN_SUFFIX)) {
-          return RawDataFileType.BRUKER_TDF;
-        }
-        if (fileName.getName().contains(TSF_SUFFIX) || fileName.getName()
-            .contains(TSF_BIN_SUFFIX)) {
-          return RawDataFileType.BRUKER_TSF;
-        }
+      if (lowerName.endsWith(TDF_SUFFIX) || lowerName.endsWith(TDF_BIN_SUFFIX)) {
+        return RawDataFileType.BRUKER_TDF;
+      }
+      if (lowerName.endsWith(TSF_SUFFIX) || lowerName.endsWith(TSF_BIN_SUFFIX)) {
+        return RawDataFileType.BRUKER_TSF;
+      }
+      if (lowerName.endsWith(LCD_SUFFIX)) {
+        return RawDataFileType.SHIMADZU_LCD;
+      }
+      if (fileName.getName().endsWith(MBI_SUFFIX)) {
+        return RawDataFileType.MBI;
+      }
+
+      // only require file for reading header
+      if (fileName.isFile()) {
 
         // Read the first 1kB of the file into a String
-        InputStreamReader reader = new InputStreamReader(new FileInputStream(fileName),
-            StandardCharsets.ISO_8859_1);
-        char[] buffer = new char[1024];
-        reader.read(buffer);
-        reader.close();
-        String fileHeader = new String(buffer);
+        String fileHeader = null;
+        try (final var reader = Files.newBufferedReader(fileName.toPath(),
+            StandardCharsets.ISO_8859_1)) {
+          char[] buffer = new char[1024];
+          int read = reader.read(buffer);
+          if (read > 0) {
+            fileHeader = new String(buffer, 0, read);
+          }
+        }
+        if (fileHeader == null) {
+          return null;
+        }
 
-        if (fileName.getName().toLowerCase().endsWith(".csv")) {
+        if (lowerName.endsWith(".csv")) {
           if (fileHeader.contains(":") && fileHeader.contains("\\") && !fileHeader.contains(
               "file name")) {
             logger.fine("ICP raw file detected");
@@ -181,7 +228,7 @@ public class RawDataFileTypeDetector {
 
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.log(Level.SEVERE, e.getMessage(), e);
     }
 
     return null;
@@ -222,4 +269,103 @@ public class RawDataFileTypeDetector {
     }
   }
 
+  @NotNull
+  public static WatersAcquisitionInfo detectWatersAcquisitionType(File watersFolder) {
+    final Pattern parentFunctionPattern = Pattern.compile(
+        "[Ff]unction [Pp]arameters - [Ff]unction [0-9]+ - TOF PARENT FUNCTION");
+    final Pattern ddaFunctionPattern = Pattern.compile(
+        "[Ff]unction [Pp]arameters - [Ff]unction [0-9]+ - TOF FAST DDA FUNCTION");
+    final Pattern surveyFunctionPattern = Pattern.compile(
+        "[Ff]unction [Pp]arameters - [Ff]unction [0-9]+ - TOF SURVEY FUNCTION");
+    final Pattern referenceFunctionPattern = Pattern.compile(
+        "[Ff]unction [Pp]arameters - [Ff]unction [0-9]+ - REFERENCE");
+    final Pattern mobilityPattern = Pattern.compile("\\[MOBILITY\\]");
+    final Pattern tofModeIMSPattern = Pattern.compile("(TOFMode)(\\s+)(IMS)");
+    final Pattern positivePolarityPattern = Pattern.compile(
+        "(Polarity)(\\s+)([a-zA-Z]+)?([+]|[Pp]ositive)");
+    final Pattern negativePolarityPattern = Pattern.compile(
+        "(Polarity)(\\s+)([a-zA-Z]+)?([-]|[Nn]egative)");
+
+    final PatternMatchCounter parentCounter = new PatternMatchCounter(parentFunctionPattern);
+    final PatternMatchCounter ddaCounter = new PatternMatchCounter(ddaFunctionPattern);
+    final PatternMatchCounter surveyCounter = new PatternMatchCounter(surveyFunctionPattern);
+    final PatternMatchCounter referenceCounter = new PatternMatchCounter(referenceFunctionPattern);
+    final PatternMatchCounter mobilityCounter = new PatternMatchCounter(mobilityPattern);
+    final PatternMatchCounter postiveCounter = new PatternMatchCounter(positivePolarityPattern);
+    final PatternMatchCounter negativeCounter = new PatternMatchCounter(negativePolarityPattern);
+    final PatternMatchCounter tofModeImsCounter = new PatternMatchCounter(tofModeIMSPattern);
+
+    try (var reader = new BufferedReader(new FileReader(new File(watersFolder, "_extern.inf")))) {
+      reader.lines().forEach(line -> {
+        parentCounter.checkMatch(line);
+        ddaCounter.checkMatch(line);
+        surveyCounter.checkMatch(line);
+        referenceCounter.checkMatch(line);
+        mobilityCounter.checkMatch(line);
+        postiveCounter.checkMatch(line);
+        negativeCounter.checkMatch(line);
+        tofModeImsCounter.checkMatch(line);
+      });
+      mobilityCounter.matches += tofModeImsCounter.matches;
+
+      final PolarityType polarity =
+          (postiveCounter.matches > negativeCounter.matches) ? PolarityType.POSITIVE
+              : PolarityType.NEGATIVE;
+
+      if (ddaCounter.getMatches() > 0 && surveyCounter.getMatches() > 0) {
+        return new WatersAcquisitionInfo(WatersAcquisitionType.DDA, mobilityCounter.matches > 0,
+            polarity);
+      }
+      if (parentCounter.getMatches() > 1) {
+        return new WatersAcquisitionInfo(WatersAcquisitionType.MSE, mobilityCounter.matches > 0,
+            polarity);
+      } else if (parentCounter.getMatches() == 1) {
+        return new WatersAcquisitionInfo(WatersAcquisitionType.MS_ONLY, mobilityCounter.matches > 0,
+            polarity);
+      }
+
+      logger.info("Unable to detect file type of Waters raw data. Defaulting to MSe and " + (
+          mobilityCounter.matches == 0 ? "no " : "") + "mobility separation.");
+      return new WatersAcquisitionInfo(WatersAcquisitionType.MSE, mobilityCounter.matches > 0,
+          polarity);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public enum WatersAcquisitionType {
+    MS_ONLY, DDA, MSE;
+  }
+
+  public record WatersAcquisitionInfo(WatersAcquisitionType acquisitionType, boolean isIms,
+                                      PolarityType polarity) {
+
+  }
+
+
+  private static final class PatternMatchCounter {
+
+    private final Pattern pattern;
+    private int matches = 0;
+
+    private PatternMatchCounter(Pattern pattern) {
+      this.pattern = pattern;
+    }
+
+    public Pattern pattern() {
+      return pattern;
+    }
+
+    public boolean checkMatch(String str) {
+      if (pattern.matcher(str).find()) {
+        matches++;
+        return true;
+      }
+      return false;
+    }
+
+    public int getMatches() {
+      return matches;
+    }
+  }
 }

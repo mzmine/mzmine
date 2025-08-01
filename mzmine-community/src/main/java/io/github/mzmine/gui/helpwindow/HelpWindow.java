@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,7 +41,7 @@ import javafx.stage.Stage;
  */
 public class HelpWindow extends Stage {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(HelpWindow.class.getName());
 
   public HelpWindow(String helpFileURL) {
 

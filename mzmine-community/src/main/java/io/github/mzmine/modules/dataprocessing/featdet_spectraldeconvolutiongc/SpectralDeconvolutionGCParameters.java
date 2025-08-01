@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,21 +25,31 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.ranges.ListDoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.github.mzmine.util.ExitCode;
+import java.util.ArrayList;
+import java.util.Map;
+import org.w3c.dom.Element;
 
 public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
-  public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter();
-  public static final IntegerParameter MIN_NUMBER_OF_SIGNALS = new IntegerParameter(
-      "Minimum signals in pseudo spectrum",
-      "Minimum number of deconvoluted signals in pseudo spectrum", 10, true, 1, 5000);
+  // currently only one algorithm is available
+  // HCA was removed due to bad performance
+  // DBScan still needs improvement and more limits applied to it
+  public static final ModuleOptionsEnumComboParameter<SpectralDeconvolutionAlgorithms> SPECTRAL_DECONVOLUTION_ALGORITHM = new ModuleOptionsEnumComboParameter<>(
+      "Deconvolution algorithm", "Algorithm to use for spectral deconvolution and its parameters.",
+      new SpectralDeconvolutionAlgorithms[]{
+          SpectralDeconvolutionAlgorithms.RT_GROUPING_AND_SHAPE_CORRELATION},
+      SpectralDeconvolutionAlgorithms.RT_GROUPING_AND_SHAPE_CORRELATION);
 
   public static final StringParameter SUFFIX = new StringParameter("Name suffix",
       "Suffix to be added to feature list name", "decon");
@@ -47,8 +57,37 @@ public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {
   public static final OriginalFeatureListHandlingParameter HANDLE_ORIGINAL = new OriginalFeatureListHandlingParameter(
       false);
 
+  public static final OptionalParameter<ListDoubleRangeParameter> MZ_VALUES_TO_IGNORE = new OptionalParameter<>(
+      new ListDoubleRangeParameter("Exclude m/z-values",
+          "m/z-values to exclude as model feature. Values will be added to pseudo spectrum, yet not considered as representative feature in the feature list. Unless all values are excluded.",
+          false, new ArrayList<>()), false);
+
   public SpectralDeconvolutionGCParameters() {
-    super(FEATURE_LISTS, RT_TOLERANCE, MIN_NUMBER_OF_SIGNALS, SUFFIX, HANDLE_ORIGINAL);
+    super(new Parameter[]{FEATURE_LISTS, SPECTRAL_DECONVOLUTION_ALGORITHM, SUFFIX, HANDLE_ORIGINAL,
+            MZ_VALUES_TO_IGNORE},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_spectraldeconvolutiongc/spectraldeconvolutiongc.html");
+  }
+
+  @Override
+  public Map<String, Parameter<?>> loadValuesFromXML(Element xmlElement) {
+    return super.loadValuesFromXML(xmlElement);
+  }
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    if ((getParameters() == null) || (getParameters().length == 0)) {
+      return ExitCode.OK;
+    }
+    SpectralDeconvolutionGCDialog dialog = new SpectralDeconvolutionGCDialog(valueCheckRequired,
+        this);
+
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
   }
 
 }

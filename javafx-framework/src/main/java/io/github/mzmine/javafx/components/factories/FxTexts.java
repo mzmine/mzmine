@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,39 +27,21 @@ package io.github.mzmine.javafx.components.factories;
 
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.components.factories.FxLabels.Styles;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.control.Label;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import org.jetbrains.annotations.NotNull;
 
 public class FxTexts {
-
-  public static final Text mzminePaper = hyperlinkText(
-      "Schmid, R., Heuckeroth, S., Korf, A. et al. Nat Biotechnol 41, 447–449 (2023).",
-      "https://www.nature.com/articles/s41587-023-01690-2");
-  public static final Text gnpsPaper = hyperlinkText(
-      "Wang et al.: Nat Biotechnol 34.8 (2016): 828-837",
-      "https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.html");
-
-  public static final Text fbmnPaper = hyperlinkText(
-      "Nothias, Petras, Schmid et al. Nat Meth 17, 905–908 (2020)",
-      "https://www.nature.com/articles/s41592-020-0933-6");
-
-  public static final Text iimnPaper = hyperlinkText(
-      "Schmid, Petras, Nothias et al. Nat Comm 12, 3832 (2021)",
-      "https://www.nature.com/articles/s41467-021-23953-9");
-
-  public static final Text masstPaper = hyperlinkText(
-      "Wang, M., Jarmusch, A.K., Vargas, F. et al. Nat Biotechnol 38, 23–26 (2020)",
-      "https://doi.org/10.1038/s41587-019-0375-9");
-
-  public static final Text sirius4Paper = hyperlinkText(
-      "Dührkop, K., Fleischauer, M., Ludwig, M. et al. Nat Methods 16, 299–302 (2019)",
-      "http://dx.doi.org/10.1038/s41592-019-0344-8");
 
   public static Text text(String content) {
     return new Text(content);
   }
 
   public static Text underlined(String content) {
-    final Text text = new Text(content);
+    final Text text = text(content);
     text.setUnderline(true);
     return text;
   }
@@ -72,25 +54,26 @@ public class FxTexts {
     return styledText(content, Styles.ITALIC.getStyleClass());
   }
 
-  public static Text styledText(String content, String styleClass) {
-    final Text text = new Text(content);
-    text.getStyleClass().add(styleClass);
+  public static Text styledText(String content, Styles style) {
+    return styledText(content, style.getStyleClass());
+  }
 
+  public static Text styledText(String content, String styleClass) {
+    return styledText(text(content), styleClass);
+  }
+
+  public static @NotNull Text styledText(Text text, String styleClass) {
+    text.getStyleClass().add(styleClass);
     return text;
   }
 
   public static Text hyperlinkText(String link) {
-    final Text text = new Text(link);
-    text.getStyleClass().add("hyperlink");
-    text.setOnMouseReleased(_ -> DesktopService.getDesktop().openWebPage(link));
-    return text;
+    return hyperlinkText(link, link);
   }
 
   public static Text hyperlinkText(String content, String link) {
-    final Text text = new Text(content);
-    text.getStyleClass().add("hyperlink");
-    text.setOnMouseReleased(_ -> DesktopService.getDesktop().openWebPage(link));
-    return text;
+    final Text text = text(content);
+    return hyperlinkText(text, link);
   }
 
   public static Text hyperlinkText(Text text, String link) {
@@ -103,4 +86,28 @@ public class FxTexts {
     return text("\n");
   }
 
+  public static Text styledText(ObservableValue<String> text, Styles styleClass) {
+    return styledText(text, styleClass.getStyleClass());
+  }
+
+  public static Text styledText(ObservableValue<String> text, String styleClass) {
+    return styledText(text(text), styleClass);
+  }
+
+  public static @NotNull Text text(ObservableValue<String> text) {
+    final Text node = text(text.getValue());
+    node.textProperty().bind(text);
+    return node;
+  }
+
+  public static Text colored(Text text, Color color) {
+    // text.setFill does not work - overwritten by css?
+    text.setStyle("-fx-fill: " + FxColorUtil.colorToHex(color));
+    return text;
+  }
+
+  public static Label colored(Label text, Color color) {
+    text.setStyle("-fx-text-fill: " + FxColorUtil.colorToHex(color));
+    return text;
+  }
 }

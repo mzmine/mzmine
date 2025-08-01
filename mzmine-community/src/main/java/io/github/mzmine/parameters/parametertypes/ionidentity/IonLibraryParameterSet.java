@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,15 +26,11 @@
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
 public class IonLibraryParameterSet extends SimpleParameterSet {
-
-  public static final ComboParameter<String> POSITIVE_MODE = new ComboParameter<>("MS mode",
-      "Positive or negative mode?", new String[] {"POSITIVE", "NEGATIVE"}, "POSITIVE");
 
   public static final IntegerParameter MAX_CHARGE = new IntegerParameter("Maximum charge",
       "Maximum charge to be used for adduct search.", 2, 1, 100);
@@ -45,6 +41,21 @@ public class IonLibraryParameterSet extends SimpleParameterSet {
       "List of adducts, each one refers a specific distance in m/z axis between related peaks");
 
   public IonLibraryParameterSet() {
-    super(new Parameter[] {POSITIVE_MODE, MAX_CHARGE, MAX_MOLECULES, ADDUCTS});
+    super(MAX_CHARGE, MAX_MOLECULES, ADDUCTS);
   }
+
+  public void setAll(int maxCharge, int maxMolecules, final IonModification[] adductChoices,
+      final IonModification[] modificationChoices, final IonModification[][] selected) {
+    setParameter(MAX_MOLECULES, maxMolecules);
+    setParameter(MAX_CHARGE, maxCharge);
+    var ionLib = getParameter(ADDUCTS);
+    ionLib.setChoices(adductChoices, modificationChoices);
+    ionLib.setValue(selected);
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
 }

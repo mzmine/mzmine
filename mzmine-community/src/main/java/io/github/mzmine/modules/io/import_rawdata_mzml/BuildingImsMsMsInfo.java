@@ -28,18 +28,22 @@ package io.github.mzmine.modules.io.import_rawdata_mzml;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.impl.PasefMsMsInfoImpl;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
 
 public class BuildingImsMsMsInfo {
 
   private final double precursorMz;
-  private final float collisionEnergy;
+  private final Float collisionEnergy;
   private final int precursorCharge;
   private final int fragmentFrameNumber;
   private final int firstSpectrumNumber;
   private int parentFrameNumber;
   private int lastSpectrumNumber;
+  private Double lowerIsolationMz = null;
+  private Double upperIsolationMz = null;
+  private ActivationMethod activationMethod = null;
 
-  public BuildingImsMsMsInfo(final double precursorMz, final float collisionEnergy,
+  public BuildingImsMsMsInfo(final double precursorMz, final Float collisionEnergy,
       final int precursorCharge, final int fragmentFrameNumber, final int firstSpectrumNumber) {
     this.precursorMz = precursorMz;
     this.collisionEnergy = collisionEnergy;
@@ -78,7 +82,7 @@ public class BuildingImsMsMsInfo {
     throw new UnsupportedOperationException();
   }
 
-  public float getCollisionEnergy() {
+  public Float getCollisionEnergy() {
     return collisionEnergy;
   }
 
@@ -95,7 +99,34 @@ public class BuildingImsMsMsInfo {
   }
 
   public PasefMsMsInfoImpl build(Frame parentFrame, Frame thisFragmentFrame) {
+    // todo read mz isolation from ims-mzml and add it here. then either create pasef or dia msms info
     return new PasefMsMsInfoImpl(precursorMz, Range.closed(firstSpectrumNumber, lastSpectrumNumber),
-        collisionEnergy, precursorCharge, parentFrame, thisFragmentFrame, null);
+        collisionEnergy, precursorCharge, parentFrame, thisFragmentFrame,
+        lowerIsolationMz != null && upperIsolationMz != null ? Range.closed(lowerIsolationMz,
+            upperIsolationMz) : null);
+  }
+
+  public Double getLowerIsolationMz() {
+    return lowerIsolationMz;
+  }
+
+  public void setLowerIsolationMz(Double lowerIsolationMz) {
+    this.lowerIsolationMz = lowerIsolationMz;
+  }
+
+  public Double getUpperIsolationMz() {
+    return upperIsolationMz;
+  }
+
+  public void setUpperIsolationMz(Double upperIsolationMz) {
+    this.upperIsolationMz = upperIsolationMz;
+  }
+
+  public ActivationMethod getActivationMethod() {
+    return activationMethod;
+  }
+
+  public void setActivationMethod(ActivationMethod activationMethod) {
+    this.activationMethod = activationMethod;
   }
 }

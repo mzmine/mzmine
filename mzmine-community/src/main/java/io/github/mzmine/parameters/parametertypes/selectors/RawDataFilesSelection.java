@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.TextUtils;
+import io.github.mzmine.util.io.JsonUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -54,6 +55,7 @@ public class RawDataFilesSelection implements Cloneable {
   public RawDataFilesSelection(RawDataFilesSelectionType selectionType) {
     this.selectionType = selectionType;
   }
+
   public RawDataFilesSelection(RawDataFile[] specificDataFiles) {
     this.selectionType = RawDataFilesSelectionType.SPECIFIC_FILES;
     setSpecificFiles(specificDataFiles);
@@ -87,8 +89,8 @@ public class RawDataFilesSelection implements Cloneable {
     final RawDataFile[] matchingFiles;
     switch (selectionType) {
       case GUI_SELECTED_FILES -> matchingFiles = MZmineCore.getDesktop().getSelectedDataFiles();
-      case ALL_FILES -> matchingFiles = ProjectService.getProjectManager().getCurrentProject()
-          .getDataFiles();
+      case ALL_FILES ->
+          matchingFiles = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
       case SPECIFIC_FILES -> matchingFiles = getSpecificFiles();
       case NAME_PATTERN -> {
         if (Strings.isNullOrEmpty(namePattern)) {
@@ -115,8 +117,8 @@ public class RawDataFilesSelection implements Cloneable {
         }
         matchingFiles = matchingDataFiles.toArray(new RawDataFile[0]);
       }
-      case BATCH_LAST_FILES -> matchingFiles = Objects.requireNonNullElseGet(batchLastFiles,
-          () -> new RawDataFile[0]);
+      case BATCH_LAST_FILES ->
+          matchingFiles = Objects.requireNonNullElseGet(batchLastFiles, () -> new RawDataFile[0]);
       default -> throw new IllegalStateException("Unexpected value: " + selectionType);
     }
 
@@ -125,8 +127,10 @@ public class RawDataFilesSelection implements Cloneable {
       RawDataFile matchingFile = matchingFiles[i];
       evaluatedSelection[i] = new RawDataFilePlaceholder(matchingFile);
     }
-    logger.finest(
-        () -> "Setting file selection. Evaluated files: " + Arrays.toString(evaluatedSelection));
+    // only debugging
+    // the RawDataFilesComponent auto updates the selection every second so this would spam
+//    logger.finest(
+//        () -> "Setting file selection. Evaluated files: " + Arrays.toString(evaluatedSelection));
 
     return matchingFiles;
   }
@@ -140,10 +144,11 @@ public class RawDataFilesSelection implements Cloneable {
   }
 
   public void resetSelection() {
-    if (evaluatedSelection != null) {
-      logger.finest(() -> "Resetting file selection. Previously evaluated files: " + Arrays
-          .toString(evaluatedSelection));
-    }
+//    if (evaluatedSelection != null) {
+//      logger.finest(
+//          () -> "Resetting file selection. Previously evaluated files: " + Arrays.toString(
+//              evaluatedSelection));
+//    }
     evaluatedSelection = null;
   }
 
@@ -154,17 +159,15 @@ public class RawDataFilesSelection implements Cloneable {
     }
 
     if (specificFiles == null) {
-      return null;
+      return new RawDataFile[0];
     }
 
     return Arrays.stream(specificFiles).<RawDataFile>mapMulti((specificFile, c) -> {
       for (RawDataFile file : ProjectService.getProjectManager().getCurrentProject()
           .getCurrentRawDataFiles()) {
         if (file.getName().equals(specificFile.getName()) && (file.getAbsolutePath() == null
-                                                              || specificFile.getAbsolutePath()
-                                                                 == null || file.getAbsolutePath()
-                                                                  .equals(
-                                                                      specificFile.getAbsolutePath()))) {
+            || specificFile.getAbsolutePath() == null || file.getAbsolutePath()
+            .equals(specificFile.getAbsolutePath()))) {
           c.accept(file);
           break;
         }
@@ -224,17 +227,10 @@ public class RawDataFilesSelection implements Cloneable {
 
   public String toString() {
     if (evaluatedSelection != null) {
-      StringBuilder str = new StringBuilder();
-      RawDataFile[] files = getEvaluationResult();
-      for (int i = 0; i < files.length; i++) {
-        if (i > 0) {
-          str.append("\n");
-        }
-        str.append(files[i].getName());
-      }
-      return str.toString();
+      return selectionType + ", " + JsonUtils.writeStringOrElse(
+          Arrays.stream(evaluatedSelection).map(RawDataFilePlaceholder::getName).toList(), "[]");
     }
-    return "Evaluation not executed.";
+    return selectionType + ", Evaluation not executed.";
   }
 
   @Override
@@ -247,8 +243,8 @@ public class RawDataFilesSelection implements Cloneable {
     }
     RawDataFilesSelection that = (RawDataFilesSelection) o;
 
-    if (getSelectionType() != that.getSelectionType() || !Objects
-        .equals(getNamePattern(), that.getNamePattern())) {
+    if (getSelectionType() != that.getSelectionType() || !Objects.equals(getNamePattern(),
+        that.getNamePattern())) {
       return false;
     }
 

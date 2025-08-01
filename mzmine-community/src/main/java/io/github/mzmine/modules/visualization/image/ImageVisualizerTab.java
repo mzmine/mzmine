@@ -36,6 +36,7 @@ import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
+import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters.Pattern;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.parameters.ParameterSet;
@@ -47,6 +48,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.logging.Level;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -307,7 +309,8 @@ public class ImageVisualizerTab extends MZmineTab {
     imagingPatternLabel.setAlignment(Pos.CENTER_LEFT);
     imagingParametersInfoPane.add(imagingPatternLabel, 0, 3);
 
-    Label imagingPatternValueLabel = new Label(imagingParameters.getPattern().getName());
+    Label imagingPatternValueLabel = new Label(
+        Objects.requireNonNullElse(imagingParameters.getPattern(), Pattern.UNKNOWN).getName());
     imagingPatternValueLabel.setAlignment(Pos.CENTER_LEFT);
     imagingParametersInfoPane.add(imagingPatternValueLabel, 1, 3);
 

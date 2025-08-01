@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.javafx;
 
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.ConfigService;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -36,6 +37,21 @@ import javafx.scene.layout.HBox;
  * Icon that automatically changes if mzmine is switched from light to dark mode.
  */
 public class LightAndDarkModeIcon extends HBox {
+
+  public static LightAndDarkModeIcon mzmineImage(int maxWidth, int maxHeight) {
+    return new LightAndDarkModeIcon("icons/introductiontab/logos_mzio_mzmine.png",
+        "icons/introductiontab/logos_mzio_mzmine_light.png", maxWidth, maxHeight);
+  }
+
+  public static LightAndDarkModeIcon mzwizardImage(int maxWidth, int maxHeight) {
+    return new LightAndDarkModeIcon("icons/introductiontab/logo_mzwizard_click.png",
+        "icons/introductiontab/logo_mzwizard_light_click.png", maxWidth, maxHeight);
+  }
+
+  public static LightAndDarkModeIcon mzwizardImageTab(int maxWidth, int maxHeight) {
+    return new LightAndDarkModeIcon("icons/introductiontab/logos_mzio_mzwizard_lowres.png",
+        "icons/introductiontab/logos_mzio_mzwizard_light_lowres.png", maxWidth, maxHeight);
+  }
 
   public LightAndDarkModeIcon(String resourcePathForLightMode, String resourcePathForDarkMode,
       int maxWidth, int maxHeight) {

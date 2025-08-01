@@ -48,8 +48,19 @@ public interface Parameter<ValueType> {
 
   boolean checkValue(Collection<String> errorMessages);
 
+  /**
+   *
+   * @param xmlElement A parameter element of the parameter.
+   */
   void loadValueFromXML(Element xmlElement);
 
+  /**
+   * @param xmlElement A parameter element
+   *                   ({@link
+   *                   io.github.mzmine.parameters.impl.SimpleParameterSet#parameterElement}) with
+   *                   the name of this parameter as attribute
+   *                   ({@link io.github.mzmine.parameters.impl.SimpleParameterSet#nameAttribute}
+   */
   void saveValueToXML(Element xmlElement);
 
   /**

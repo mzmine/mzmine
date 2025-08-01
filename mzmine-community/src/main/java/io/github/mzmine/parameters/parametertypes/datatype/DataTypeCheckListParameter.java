@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,18 @@
 
 package io.github.mzmine.parameters.parametertypes.datatype;
 
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
+import io.github.mzmine.datamodel.features.types.fx.ColumnType;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import java.util.HashMap;
@@ -57,6 +68,13 @@ public class DataTypeCheckListParameter implements
     this.name = name;
     this.desc = description;
     this.value = new HashMap<>();
+    defaultDisableColumns();
+  }
+
+  private static @NotNull String getKey(boolean isFeatureType, Class<? extends DataType<?>> parent,
+      Class<? extends DataType<?>> sub) {
+    return ColumnID.buildUniqueIdString(
+        isFeatureType ? ColumnType.FEATURE_TYPE : ColumnType.ROW_TYPE, parent, sub);
   }
 
   /**
@@ -87,14 +105,29 @@ public class DataTypeCheckListParameter implements
    * Checks if the data type column has been displayed before. If the data type is not present yet,
    * it is added to the list and shown by default.
    *
-   * @param dataType The data type.
+   * @param dataTypeColumnId The data type.
    * @return true/false
    */
-  public boolean isDataTypeVisible(ColumnID dataType) {
-    Boolean val = value.get(getKey(dataType));
+  public boolean isDataTypeVisible(ColumnID dataTypeColumnId) {
+    Boolean val = value.get(getKey(dataTypeColumnId));
     if (val == null) {
-      val = dataType.getDataType().getDefaultVisibility();
-      addDataType(dataType, val);
+      val = dataTypeColumnId.getDataType().getDefaultVisibility();
+
+      // if this is a sub colum (subColIndex >= 0), use the visibility of the sub column type,
+      // but only if the parent column is visible
+      if (dataTypeColumnId.getDataType() instanceof SubColumnsFactory scf
+          && dataTypeColumnId.getSubColIndex() >= 0) {
+        if (isDataTypeVisible( // is the parent column visible?
+            new ColumnID(dataTypeColumnId.getDataType(), dataTypeColumnId.getType(),
+                dataTypeColumnId.getRaw(), -1))) {
+          final int subColIndex = dataTypeColumnId.getSubColIndex();
+          final DataType<?> subColDataType = (DataType<?>) scf.getType(subColIndex);
+          val = subColDataType.getDefaultVisibility();
+        } else {
+          val = false;
+        }
+      }
+      addDataType(dataTypeColumnId, val);
     }
     return val;
   }
@@ -106,9 +139,8 @@ public class DataTypeCheckListParameter implements
    * @return combined header key
    */
   public String getKey(ColumnID dataType) {
-    return dataType.getCombinedHeaderString();
+    return dataType.getUniqueIdString();
   }
-
 
   /**
    * Sets data type visibility value
@@ -117,17 +149,17 @@ public class DataTypeCheckListParameter implements
    * @param val  true/false
    */
   public void setDataTypeVisible(ColumnID type, Boolean val) {
-    setDataTypeVisible(type.getCombinedHeaderString(), val);
+    setDataTypeVisible(type.getUniqueIdString(), val);
   }
 
   /**
    * Sets data type visibility value
    *
-   * @param typeHeader Name of the data type
-   * @param val        true/false
+   * @param typeUniqueId Name of the data type
+   * @param val          true/false
    */
-  public void setDataTypeVisible(String typeHeader, Boolean val) {
-    value.put(typeHeader, val);
+  public void setDataTypeVisible(String typeUniqueId, Boolean val) {
+    value.put(typeUniqueId, val);
   }
 
   /**
@@ -190,6 +222,13 @@ public class DataTypeCheckListParameter implements
       Element e = (Element) childs.item(i);
       String key = e.getAttribute(DATA_TYPE_KEY_ATTR);
       Boolean val = Boolean.valueOf(e.getAttribute(DATA_TYPE_VISIBLE_ATTR));
+
+      final String replaced = key.replace("Feature:", "");
+      if(key.contains(" ") || !replaced.equals(replaced.toLowerCase())) {
+        // may be an old key from the time we were using the column headers
+        continue;
+      }
+
       value.put(key, val);
     }
   }
@@ -223,5 +262,28 @@ public class DataTypeCheckListParameter implements
 
   public void setAll(boolean visible) {
     value.keySet().forEach(key -> value.put(key, visible));
+  }
+
+  /**
+   * disable some types by default that don't make sense to show but would be shown usually. For
+   * example, the mz type in ion identity would be shown by default because
+   * {@link MZType#getDefaultVisibility()} mz itself is always on for a feature or a row.
+   */
+  private void defaultDisableColumns() {
+    if (getName().toLowerCase().contains("row")) {
+      value.put(getKey(false, IonIdentityListType.class, MZType.class), false);
+
+      value.put(getKey(false, SpectralLibraryMatchesType.class, FormulaType.class), false);
+      value.put(getKey(false, SpectralLibraryMatchesType.class, CCSType.class), false);
+
+      value.put(getKey(false, CompoundDatabaseMatchesType.class, RTType.class), false);
+      value.put(getKey(false, CompoundDatabaseMatchesType.class, CCSType.class), false);
+
+      value.put(getKey(false, LipidMatchListType.class, FormulaType.class), false);
+    }
+
+    if (getName().toLowerCase().contains("feature")) {
+      // add types here in the future
+    }
   }
 }

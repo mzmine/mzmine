@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,11 @@ public class ElementalHeuristicChecker {
 
   public static boolean checkFormula(IMolecularFormula formula, boolean checkHC, boolean checkNOPS,
       boolean checkMultiple) {
+
+    // if we dont have to do checks, return true.
+    if(!checkHC && !checkNOPS && !checkMultiple) {
+      return true;
+    }
 
     double eH = 0, eC = 0, eN = 0, eO = 0, eP = 0, eS = 0;
     for (IIsotope isotope : formula.isotopes()) {

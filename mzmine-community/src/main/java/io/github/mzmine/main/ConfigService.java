@@ -27,14 +27,29 @@ package io.github.mzmine.main;
 
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
 
 public final class ConfigService {
 
+  private static final Logger logger = Logger.getLogger(ConfigService.class.getName());
   private static final MZmineConfiguration config = new MZmineConfigurationImpl();
+
+  /**
+   * only set from cli
+   */
+  private static volatile boolean tdfPseudoProfile = false;
+
+  /**
+   * only set from cli
+   */
+  private static volatile boolean ignoreParameterWarningsInBatch = false;
 
   public static MZmineConfiguration getConfiguration() {
     return config;
@@ -56,7 +71,6 @@ public final class ConfigService {
     return config.getGuiFormats();
   }
 
-
   public static SimpleColorPalette getDefaultColorPalette() {
     return config.getDefaultColorPalette();
   }
@@ -67,5 +81,45 @@ public final class ConfigService {
 
   public static void setDarkMode(final Boolean dark) {
     getPreferences().setDarkMode(dark);
+  }
+
+  /**
+   * Save current config to user directory
+   *
+   * @return true if successful, false otherwise
+   */
+  public static boolean saveUserConfig() {
+    try {
+      getConfiguration().saveConfiguration(MZmineConfiguration.CONFIG_FILE);
+      return true;
+    } catch (IOException e) {
+      logger.log(Level.SEVERE, "Cannot save user config", e);
+      return false;
+    }
+  }
+
+  static void setTdfPseudoProfile(final boolean tdfPseudoProfile) {
+    ConfigService.tdfPseudoProfile = tdfPseudoProfile;
+  }
+
+  public static boolean isTdfPseudoProfile() {
+    return tdfPseudoProfile;
+  }
+
+  public static boolean isApplyVendorCentroiding() {
+    return getPreferences().getValue(MZminePreferences.applyVendorCentroiding);
+  }
+
+  public static void openTempPreferences() {
+    MZminePreferences pref = MZmineCore.getConfiguration().getPreferences();
+    FxThread.runLater(() -> pref.showSetupDialog(true, "temp"));
+  }
+
+  public static boolean isIgnoreParameterWarningsInBatch() {
+    return ignoreParameterWarningsInBatch;
+  }
+
+  public static void setIgnoreParameterWarningsInBatch(boolean ignoreParameterWarningsInBatch) {
+    ConfigService.ignoreParameterWarningsInBatch = ignoreParameterWarningsInBatch;
   }
 }

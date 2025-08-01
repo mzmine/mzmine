@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import java.util.Objects;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import org.apache.commons.math.MathException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -81,22 +82,14 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     name = parseName();
   }
 
-  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
-    writer.writeStartElement("iontype");
-    writer.writeAttribute("molecules", String.valueOf(molecules));
-    writer.writeAttribute("charge", String.valueOf(charge));
-
-    writer.writeStartElement("adduct");
-    adduct.saveToXML(writer);
-    writer.writeEndElement();
-
-    if (mod != null) {
-      writer.writeStartElement("modification");
-      mod.saveToXML(writer);
-      writer.writeEndElement();
-    }
-
-    writer.writeEndElement();
+  /**
+   * New ion type with different molecules count
+   *
+   * @param molecules
+   * @param ion
+   */
+  public IonType(int molecules, IonType ion) {
+    this(molecules, ion.adduct, ion.mod);
   }
 
   public static IonType loadFromXML(XMLStreamReader reader) throws XMLStreamException {
@@ -138,14 +131,22 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     return mod != null ? new IonType(molecules, adduct, mod) : new IonType(molecules, adduct);
   }
 
-  /**
-   * New ion type with different molecules count
-   *
-   * @param molecules
-   * @param ion
-   */
-  public IonType(int molecules, IonType ion) {
-    this(molecules, ion.adduct, ion.mod);
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement("iontype");
+    writer.writeAttribute("molecules", String.valueOf(molecules));
+    writer.writeAttribute("charge", String.valueOf(charge));
+
+    writer.writeStartElement("adduct");
+    adduct.saveToXML(writer);
+    writer.writeEndElement();
+
+    if (mod != null) {
+      writer.writeStartElement("modification");
+      mod.saveToXML(writer);
+      writer.writeEndElement();
+    }
+
+    writer.writeEndElement();
   }
 
   /**
@@ -363,8 +364,8 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
    */
   public boolean isModificationOf(IonType parent) {
     if (!hasMods() || !(parent.getModCount() < getModCount() && mass != parent.mass
-                        && adduct.equals(parent.adduct) && molecules == parent.molecules
-                        && charge == parent.charge)) {
+        && adduct.equals(parent.adduct) && molecules == parent.molecules
+        && charge == parent.charge)) {
       return false;
     } else if (!parent.hasMods()) {
       return true;
@@ -429,6 +430,10 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
    * @return the neutral mass for this m/z calculated for this IonType
    */
   public double getMass(double mz) {
+    if (getAbsCharge() == 0) {
+      throw new IllegalStateException(
+          "Charge of adduct %s is 0. Cannot calculate neutral mass.".formatted(toString()));
+    }
     return ((mz * this.getAbsCharge()) - this.getMassDifference()) / this.getMolecules();
   }
 
@@ -441,6 +446,10 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
    * @return the m/z for this neutral ionized by IonType
    */
   public double getMZ(double neutralmass) {
+    if (getAbsCharge() == 0) {
+      throw new IllegalStateException(
+          "Charge of adduct %s is 0. Cannot calculate m/z.".formatted(toString()));
+    }
     return (neutralmass * getMolecules() + getMassDifference()) / getAbsCharge();
   }
 
@@ -505,12 +514,25 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
   /**
    * Is adding or removing all sub adducts / modifications from the molecular formula
    *
-   * @param formula
-   * @return
-   * @throws CloneNotSupportedException
+   * @param formula the formula. The formula is cloned and the parameter is not altered.
    */
   public IMolecularFormula addToFormula(IMolecularFormula formula)
       throws CloneNotSupportedException {
+    return addToFormula(formula, true);
+  }
+
+  /**
+   * Is adding or removing all sub adducts / modifications from the molecular formula.
+   *
+   * @param formula the formula. The formula is cloned and the parameter is not altered.
+   * @param ionize  if the formula shall be ionised.
+   * @return The resulting molecule may be neutral if the charge of the molecule and the charge of
+   * this adduct are opposite.
+   */
+  public IMolecularFormula addToFormula(IMolecularFormula formula, boolean ionize)
+      throws CloneNotSupportedException {
+    final int formulaCharge = Objects.requireNonNullElse(formula.getCharge(), 0);
+
     IMolecularFormula result = (IMolecularFormula) formula.clone();
     // add for n molecules the M formula
     for (int i = 2; i <= molecules; i++) {
@@ -536,9 +558,14 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
           .filter(m -> m.getMass() < 0 && m.getCDKFormula() != null)
           .forEach(m -> FormulaUtils.subtractFormula(result, m.getCDKFormula()));
     }
+
+    if (ionize) {
+      final int ionTypeCharge = getCharge();
+      result.setCharge(formulaCharge + ionTypeCharge);
+    }
+
     return result;
   }
-
 
   @Override
   public boolean equals(final Object obj) {

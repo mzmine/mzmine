@@ -37,13 +37,12 @@
 package io.github.mzmine.modules.io.export_features_gnps.gc;
 
 import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
-import static io.github.mzmine.javafx.components.factories.FxTexts.gnpsPaper;
 import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
-import static io.github.mzmine.javafx.components.factories.FxTexts.mzminePaper;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportParameters;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportParameters.MzMode;
@@ -51,8 +50,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
@@ -69,8 +67,8 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter(1);
 
-  public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
-      "Base name of the output files (.MGF and .CSV).", extensions, FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter FILENAME = new FileNameSuffixExportParameter(
+      "Filename", "Base name of the output files (.MGF and .CSV).", extensions, "gc_fbmn");
 
   public static final ComboParameter<MzMode> REPRESENTATIVE_MZ = new ComboParameter<AdapMgfExportParameters.MzMode>(
       "Representative m/z",
@@ -98,15 +96,16 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
-    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite", boldText("Export/Submit to GNPS-GC:"),
-        linebreak(), text("The GNPS Export module was designed for the "), boldText("GC "),
-        text("workflow on "), hyperlinkText("GNPS ", "https://gnps.ucsd.edu"),
-        text("See the GNPS-GC-MS documentation "),
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
+        boldText("Export/Submit to GNPS-GC:"), linebreak(),
+        text("The GNPS Export module was designed for the "), boldText("GC "), text("workflow on "),
+        hyperlinkText("GNPS ", "https://gnps.ucsd.edu"), text("See the GNPS-GC-MS documentation "),
         hyperlinkText("here ", "https://ccms-ucsd.github.io/GNPSDocumentation/gc-ms-documentation"),
         text("and please cite"), linebreak(), boldText("FBMN-GC paper: "), hyperlinkText(
             "Aksenov, A.A., Laponogov, I., Zhang, Z. et al. Nat Biotechnol 39, 169–173 (2021)",
             "https://www.nature.com/articles/s41587-020-0700-3"), linebreak(),
-        boldText("GNPS paper: "), gnpsPaper, linebreak(), boldText("mzmine paper: "), mzminePaper);
+        boldText("GNPS paper: "), ArticleReferences.GNPS.hyperlinkText(), linebreak(),
+        boldText("mzmine paper: "), ArticleReferences.MZMINE3.hyperlinkText());
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();

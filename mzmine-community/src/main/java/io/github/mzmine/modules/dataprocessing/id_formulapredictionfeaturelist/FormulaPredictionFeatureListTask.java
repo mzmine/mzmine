@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -66,13 +66,14 @@ import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
 public class FormulaPredictionFeatureListTask extends AbstractTask {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(
+      FormulaPredictionFeatureListTask.class.getName());
+
   private final MolecularFormulaRange elementCounts;
   private final Double minIsotopeScore;
   private final Double isotopeNoiseLevel;
   private final MZTolerance isotopeMZTolerance;
   private final IonizationType ionType;
-  private final int charge;
   private final ModularFeatureList featureList;
   private final boolean checkIsotopes;
   private final boolean checkMSMS;
@@ -107,7 +108,6 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.featureList = featureList;
-    charge = parameters.getParameter(FormulaPredictionFeatureListParameters.charge).getValue();
     ionType = parameters.getParameter(FormulaPredictionFeatureListParameters.ionization).getValue();
     mzTolerance = parameters.getParameter(FormulaPredictionFeatureListParameters.mzTolerance)
         .getValue();
@@ -209,7 +209,8 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       }
       this.resultingFormulas = new ArrayList<>();
 
-      double searchedMass = (row.getAverageMZ() - ionType.getAddedMass()) * charge;
+      double searchedMass =
+          (row.getAverageMZ() - ionType.getAddedMass()) * Math.abs(ionType.getCharge());
 
       message = "Formula prediction for " + MZmineCore.getConfiguration().getMZFormat()
           .format(searchedMass);
@@ -241,13 +242,14 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
         return;
       }
 
-
       // Add the new formula entry top results
       if (!resultingFormulas.isEmpty()) {
         FormulaUtils.sortFormulaList(resultingFormulas, sortPPMFactor, sortIsotopeFactor,
             sortMSMSFactor);
-        row.setFormulas(resultingFormulas.subList(0,
+        // do not set sublist directly as this will keep the original full list
+        var topNFormulas = new ArrayList<>(resultingFormulas.subList(0,
             Math.min(resultingFormulas.size(), maxBestFormulasPerFeature)));
+        row.setFormulas(topNFormulas);
       }
 
       if (isCanceled()) {
@@ -304,7 +306,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       final double minPredictedAbundance = isotopeNoiseLevel / detectedPatternHeight;
 
       predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(clonedFormula,
-          minPredictedAbundance, charge, ionType.getPolarity());
+          minPredictedAbundance, ionType.getCharge(), ionType.getPolarity());
 
       isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(detectedPattern,
           predictedIsotopePattern, isotopeMZTolerance, isotopeNoiseLevel);

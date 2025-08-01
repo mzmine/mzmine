@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,9 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesModule;
+import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesParameters;
+import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -53,10 +56,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceDialog;
@@ -103,6 +108,9 @@ public class BatchComponentController implements LastFilesComponent {
 
   @FXML
   public ComboBox<OriginalFeatureListOption> cmbHandleFlists;
+
+  @FXML
+  public Button btnCloneStep;
 
   private BatchQueue batchQueue;
 
@@ -308,7 +316,11 @@ public class BatchComponentController implements LastFilesComponent {
   }
 
   public void clearPressed() {
-    batchQueue.clear();
+    boolean result = DialogLoggerUtil.showDialogYesNo("Clear batch queue?",
+        "Do you want to remove all steps from the current batch queue?");
+    if (result) {
+      batchQueue.clear();
+    }
   }
 
   /**
@@ -449,6 +461,32 @@ public class BatchComponentController implements LastFilesComponent {
 
     // add to last used files
     addLastUsedFile(file);
+  }
+
+  public void changeOutputFiles(final ActionEvent event) {
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(ChangeOutputFilesModule.class);
+    var code = parameters.showSetupDialog(true);
+    if (code != ExitCode.OK) {
+      return;
+    }
+    File baseFile = parameters.getValue(ChangeOutputFilesParameters.outBaseFile);
+    ChangeOutputFilesUtils.applyTo(currentStepsList.getItems(), baseFile);
+  }
+
+  public void cloneParametersPressed(ActionEvent e) {
+    final var indices = currentStepsList.getSelectionModel().getSelectedIndices()
+        .toArray(Integer[]::new);
+    final MZmineProcessingStep<MZmineProcessingModule>[] newSteps = Arrays.stream(indices)
+        .map(i -> BatchUtils.cloneStep(currentStepsList.getItems().get(i)))
+        .toArray(MZmineProcessingStep[]::new);
+
+//    currentStepsList.getSelectionModel().clearSelection();
+    for (int r = indices.length - 1; r >= 0; r--) {
+      int insertIndex = indices[r] + 1;
+      var clonedStep = newSteps[r];
+      currentStepsList.getItems().add(insertIndex, clonedStep);
+    }
   }
 
   // Queue operations.

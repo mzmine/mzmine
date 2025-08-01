@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,12 +28,14 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionid
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary.CheckMode;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementTask;
@@ -43,10 +45,10 @@ import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListUtils;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -80,7 +82,8 @@ public class IonNetworkingTask extends AbstractTask {
    * @param parameterSet the parameters.
    */
   public IonNetworkingTask(final MZmineProject project, final ParameterSet parameterSet,
-      final ModularFeatureList featureLists, MinimumFeatureFilter minFeaturesFilter, @NotNull Instant moduleCallDate) {
+      final ModularFeatureList featureLists, MinimumFeatureFilter minFeaturesFilter,
+      @NotNull Instant moduleCallDate) {
     super(featureLists.getMemoryMapStorage(), moduleCallDate);
     this.project = project;
     this.featureList = featureLists;
@@ -92,8 +95,8 @@ public class IonNetworkingTask extends AbstractTask {
     minHeight = parameterSet.getParameter(IonNetworkingParameters.MIN_HEIGHT).getValue();
     checkMode = parameterSet.getParameter(IonNetworkingParameters.CHECK_MODE).getValue();
 
-    performAnnotationRefinement = parameterSet
-        .getParameter(IonNetworkingParameters.ANNOTATION_REFINEMENTS).getValue();
+    performAnnotationRefinement = parameterSet.getParameter(
+        IonNetworkingParameters.ANNOTATION_REFINEMENTS).getValue();
     refineParam = parameterSet.getParameter(IonNetworkingParameters.ANNOTATION_REFINEMENTS)
         .getEmbeddedParameters();
   }
@@ -111,30 +114,52 @@ public class IonNetworkingTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return "Identification of adducts, in-source fragments and clusters in " + featureList.getName()
-        + " ";
+           + " ";
   }
 
   @Override
   public void run() {
     try {
+      if (featureList.isEmpty()) {
+        // nothing to do
+        setStatus(TaskStatus.FINISHED);
+        return;
+      }
+      List<RowGroup> groups = featureList.getGroups();
+      if (groups == null || groups.isEmpty()) {
+        // check if processing contains metaCorrelate - otherwise error out
+
+        final boolean missesGroupingStep = featureList.getAppliedMethods().stream()
+            .noneMatch(m -> m.getModule() instanceof CorrelateGroupingModule);
+
+        if (missesGroupingStep) {
+          error("Run %s step before: No groups found for feature List %s".formatted(
+              CorrelateGroupingModule.NAME, featureList.getName()));
+        } else {
+          setStatus(TaskStatus.FINISHED);
+          return;
+        }
+      }
+
       setStatus(TaskStatus.PROCESSING);
       // create library
       LOG.info("Creating annotation library");
       // add types
       featureList.addRowType(new IonIdentityListType());
 
+      PolarityType polarity = FeatureListUtils.getPolarity(featureList, PolarityType.ANY);
+
       IonLibraryParameterSet p = parameters.getParameter(IonNetworkingParameters.LIBRARY)
           .getEmbeddedParameters();
-      library = new IonNetworkLibrary(p, mzTolerance);
+      library = new IonNetworkLibrary(p, polarity, mzTolerance);
       annotateGroups(library);
-      featureList.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod(IonNetworkingModule.class, parameters, getModuleCallDate()));
+      featureList.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(IonNetworkingModule.class, parameters,
+              getModuleCallDate()));
       setStatus(TaskStatus.FINISHED);
     } catch (Exception t) {
-      LOG.log(Level.SEVERE, "Adduct search error", t);
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage(t.getMessage());
-      throw new MSDKRuntimeException(t);
+      // just nothing found. no exception actually
+      setStatus(TaskStatus.FINISHED);
     }
   }
 
@@ -207,8 +232,8 @@ public class IonNetworkingTask extends AbstractTask {
     // refinement
     if (performAnnotationRefinement) {
       LOG.info("Corr: Refine annotations");
-      IonNetworkRefinementTask ref = new IonNetworkRefinementTask(project, refineParam,
-          featureList, getModuleCallDate());
+      IonNetworkRefinementTask ref = new IonNetworkRefinementTask(project, refineParam, featureList,
+          getModuleCallDate());
       ref.refine();
     }
     if (isCanceled()) {
