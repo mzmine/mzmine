@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.StringUtils;
@@ -55,15 +56,23 @@ public class ProjectMetadataReader {
   private final boolean skipColOnError;
   private final boolean removeAttributesPrefix;
   private final List<String> errors = new ArrayList<>();
+  private final boolean usePlaceholderForMissingFiles;
   private String[] titles;
   private String[] descriptions;
   private AvailableTypes[] dataTypes;
 
   public ProjectMetadataReader(final boolean skipColOnError, final boolean removeAttributesPrefix) {
-    this.skipColOnError = skipColOnError;
-    this.removeAttributesPrefix = removeAttributesPrefix;
+    this(skipColOnError, removeAttributesPrefix, false);
   }
 
+  public ProjectMetadataReader(final boolean skipColOnError, final boolean removeAttributesPrefix,
+      final boolean usePlaceholderForMissingFiles) {
+    this.skipColOnError = skipColOnError;
+    this.removeAttributesPrefix = removeAttributesPrefix;
+    this.usePlaceholderForMissingFiles = usePlaceholderForMissingFiles;
+  }
+
+  @NotNull
   public List<String> getErrors() {
     return errors;
   }
@@ -76,7 +85,7 @@ public class ProjectMetadataReader {
     descriptions = null;
     dataTypes = null;
 
-    if (ProjectService.getProject().getNumberOfDataFiles() == 0) {
+    if (!usePlaceholderForMissingFiles && ProjectService.getProject().getNumberOfDataFiles() == 0) {
       errors.add("Import data files before importing metadata.");
       return null;
     }
@@ -97,6 +106,7 @@ public class ProjectMetadataReader {
       // same length as data
       var fileNames = lines.stream().map(line -> line[0]).toArray(String[]::new);
       RawDataFile[] rawFiles = findProjectRawFiles(fileNames);
+
       if (!errors.isEmpty()) {
         return null;
       }
@@ -130,7 +140,7 @@ public class ProjectMetadataReader {
             if (!skipColOnError) {
               logger.warning(
                   "Stopped metadata import because of incompatibility of provided data type and values for column "
-                  + type);
+                      + type);
               return null;
             } else {
               continue; // next column
@@ -261,14 +271,18 @@ public class ProjectMetadataReader {
   @NotNull
   private RawDataFile[] findProjectRawFiles(final String[] fileNames) {
     // match raw data files with or without file format
-    var rawFiles = Arrays.stream(fileNames)
-        .map(name -> ProjectService.getProject().getDataFileByName(name))
-        .toArray(RawDataFile[]::new);
+    var rawFiles = Arrays.stream(fileNames).map(name -> {
+      final RawDataFile actualFile = ProjectService.getProject().getDataFileByName(name);
+      // may use placeholders instead of real files
+      // mostly if loading is done as a precheck
+      return actualFile == null && usePlaceholderForMissingFiles ? new RawDataFilePlaceholder(name,
+          null) : actualFile;
+    }).toArray(RawDataFile[]::new);
 
     if (Arrays.stream(rawFiles).allMatch(Objects::isNull)) {
       errors.add(
           "Found no matching raw data files in metadata and imported project files. Make sure filenames in metadata are correct and in the first column: "
-          + String.join(", ", fileNames));
+              + String.join(", ", fileNames));
     } else {
       long nProjectFiles = Arrays.stream(rawFiles).filter(Objects::nonNull).count();
       long nMetadataFiles = Arrays.stream(fileNames).filter(StringUtils::hasValue).count();

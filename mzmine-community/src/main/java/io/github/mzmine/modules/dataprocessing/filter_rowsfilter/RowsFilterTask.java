@@ -114,6 +114,7 @@ public class RowsFilterTask extends AbstractTask {
   private final MinimumSamplesFilter minSamplesInGroup;
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
+  private final MinimumSamplesFilter minSamplesInOneGroup;
   private FeatureList filteredFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
@@ -165,6 +166,9 @@ public class RowsFilterTask extends AbstractTask {
     minSamples = parameters.getOptionalValue(RowsFilterParameters.MIN_FEATURE_COUNT)
         .map(min -> new MinimumSamplesFilterConfig(min).createFilter(rawFiles)).orElse(null);
     minSamplesInGroup = parameters.getOptionalValue(RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT)
+        .map(config -> config.createFilter(rawFiles)).orElse(null);
+    minSamplesInOneGroup = parameters.getOptionalValue(
+            RowsFilterParameters.MIN_FEATURE_IN_ONE_GROUP_COUNT)
         .map(config -> config.createFilter(rawFiles)).orElse(null);
 
     renumber = parameters.getValue(RowsFilterParameters.Reset_ID);
@@ -293,21 +297,12 @@ public class RowsFilterTask extends AbstractTask {
     boolean removeFailed = RowsFilterChoices.KEEP_MATCHING == filterOption;
 
     // check if min samples filter is valid
-    if (minSamples != null) {
-      String message = minSamples.getInvalidConfigMessage(
-          RowsFilterParameters.MIN_FEATURE_COUNT.getName(), featureList);
-      if (message != null) {
-        error(message);
-        return null;
-      }
-    }
-    if (minSamplesInGroup != null) {
-      String message = minSamplesInGroup.getInvalidConfigMessage(
-          RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT.getName(), featureList);
-      if (message != null) {
-        error(message);
-        return null;
-      }
+    final List<String> errors = prechecks(featureList);
+    if (!errors.isEmpty()) {
+      final String message = String.join("\n\n", errors);
+
+      error(message);
+      return null;
     }
 
     // Filter rows.
@@ -376,6 +371,50 @@ public class RowsFilterTask extends AbstractTask {
     return newFeatureList;
   }
 
+  /**
+   * @param featureList
+   * @return list of errors if any
+   */
+  @NotNull
+  private List<String> prechecks(FeatureList featureList) {
+    List<String> errors = new ArrayList<>();
+
+    if (minSamples != null) {
+      String message = minSamples.getInvalidConfigMessage(
+          RowsFilterParameters.MIN_FEATURE_COUNT.getName(), featureList);
+      if (message != null) {
+        errors.add(message);
+      }
+    }
+    if (minSamplesInGroup != null) {
+      String message = minSamplesInGroup.getInvalidConfigMessage(
+          RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT.getName(), featureList);
+      if (message != null) {
+        errors.add(message);
+      }
+    }
+    if (minSamplesInOneGroup != null) {
+      String message = minSamplesInOneGroup.getInvalidConfigMessage(
+          RowsFilterParameters.MIN_FEATURE_IN_ONE_GROUP_COUNT.getName(), featureList);
+      if (message != null) {
+        errors.add(message);
+      }
+    }
+
+    // rsd filters
+    if (cvFilter != null) {
+      final boolean noGroupFiles = cvFilter.getGroupDataFiles().isEmpty();
+      if (noGroupFiles) {
+        errors.add("""
+            No raw data files match the "%s" filter's metadata group "%s" in column "%s".""".formatted(
+            RowsFilterParameters.cvFilter.getName(), cvFilter.group().groupStr(),
+            cvFilter.group().columnName()));
+      }
+    }
+
+    return errors;
+  }
+
   private boolean isFilterRowCriteriaFailed(FeatureListRow row, int rowIndex, boolean hasMS2) {
 
     // Check ms2 filter .
@@ -385,15 +424,14 @@ public class RowsFilterTask extends AbstractTask {
 
     // Check number of features.
     final int featureCount = row.getNumberOfFeatures();
-    if (minSamples != null) {
-      if (!minSamples.matches(row)) {
-        return true;
-      }
+    if (minSamples != null && !minSamples.matches(row)) {
+      return true;
     }
-    if (minSamplesInGroup != null) {
-      if (!minSamplesInGroup.matches(row)) {
-        return true;
-      }
+    if (minSamplesInGroup != null && !minSamplesInGroup.matches(row)) {
+      return true;
+    }
+    if (minSamplesInOneGroup != null && !minSamplesInOneGroup.matches(row)) {
+      return true;
     }
 
     // Check identities.

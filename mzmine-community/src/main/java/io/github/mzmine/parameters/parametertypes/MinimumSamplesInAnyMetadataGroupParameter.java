@@ -32,10 +32,10 @@ import java.util.Collection;
 import java.util.Map;
 import org.jetbrains.annotations.Nullable;
 
-public class MinimumSamplesInMetadataParameter extends
-    CompositeParametersParameter<MinimumSamplesFilterConfig, MinimumSamplesInMetadataComponent> {
+public class MinimumSamplesInAnyMetadataGroupParameter extends
+    CompositeParametersParameter<MinimumSamplesFilterConfig, MinimumSamplesInAnyMetadataGroupComponent> {
 
-  public static final String DEFAULT_NAME = "Minimum aligned samples (in group)";
+  public static final String DEFAULT_NAME = "Minimum aligned samples (in any group)";
   public static final String DEFAULT_DESCRIPTION = "Minimum number of samples a feature was detected and aligned in any GROUP in one metadata column. So if the minimum was selected as 3 samples in column sample_type, then any group in this column needs to have at least 3 detections. Both the absolute threshold and a percentage is applied. The value will be rounded down to the nearest whole number.";
 
   private final MinimumSamplesParameter minSamples;
@@ -44,20 +44,20 @@ public class MinimumSamplesInMetadataParameter extends
   private MinimumSamplesFilterConfig value;
 
 
-  public MinimumSamplesInMetadataParameter() {
+  public MinimumSamplesInAnyMetadataGroupParameter() {
     this(DEFAULT_NAME, DEFAULT_DESCRIPTION);
   }
 
-  public MinimumSamplesInMetadataParameter(final String name, final String description) {
+  public MinimumSamplesInAnyMetadataGroupParameter(final String name, final String description) {
     this(name, description, MinimumSamplesFilterConfig.DEFAULT);
   }
 
-  public MinimumSamplesInMetadataParameter(final String name, final String description,
+  public MinimumSamplesInAnyMetadataGroupParameter(final String name, final String description,
       final Integer minAbsolute) {
     this(name, description, MinimumSamplesFilterConfig.DEFAULT, minAbsolute);
   }
 
-  public MinimumSamplesInMetadataParameter(final String name, final String description,
+  public MinimumSamplesInAnyMetadataGroupParameter(final String name, final String description,
       final MinimumSamplesFilterConfig value) {
     this(name, description, value, 0);
   }
@@ -67,7 +67,7 @@ public class MinimumSamplesInMetadataParameter extends
     return new Parameter[]{minSamples, metadata};
   }
 
-  public MinimumSamplesInMetadataParameter(final String name, final String description,
+  public MinimumSamplesInAnyMetadataGroupParameter(final String name, final String description,
       final MinimumSamplesFilterConfig value, final Integer minAbsolute) {
     super(name, description);
     this.value = value;
@@ -78,23 +78,23 @@ public class MinimumSamplesInMetadataParameter extends
   }
 
   @Override
-  public MinimumSamplesInMetadataParameter cloneParameter() {
-    return new MinimumSamplesInMetadataParameter(name, description, value, minAbsolute);
+  public MinimumSamplesInAnyMetadataGroupParameter cloneParameter() {
+    return new MinimumSamplesInAnyMetadataGroupParameter(name, description, value, minAbsolute);
   }
 
   @Override
-  public MinimumSamplesInMetadataComponent createEditingComponent() {
-    return new MinimumSamplesInMetadataComponent(minSamples.createEditingComponent(),
+  public MinimumSamplesInAnyMetadataGroupComponent createEditingComponent() {
+    return new MinimumSamplesInAnyMetadataGroupComponent(minSamples.createEditingComponent(),
         metadata.createEditingComponent(), value);
   }
 
   @Override
-  public void setValueFromComponent(MinimumSamplesInMetadataComponent comp) {
+  public void setValueFromComponent(MinimumSamplesInAnyMetadataGroupComponent comp) {
     setValue(comp.getValue());
   }
 
   @Override
-  public void setValueToComponent(MinimumSamplesInMetadataComponent comp,
+  public void setValueToComponent(MinimumSamplesInAnyMetadataGroupComponent comp,
       @Nullable MinimumSamplesFilterConfig newValue) {
     comp.setValue(newValue);
   }

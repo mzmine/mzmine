@@ -23,15 +23,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.chartbasics.simplechart.providers;
+package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.dbscan_clustering;
 
-import java.awt.Paint;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
-public interface ZCategoryProvider extends XYZValueProvider {
+public class DBScanClusteringParameters extends SimpleParameterSet {
 
-  int getNumberOfCategories();
+  public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter();
 
-  String getLegendLabel(int category);
+  public static final IntegerParameter MIN_NUMBER_OF_SIGNALS = new IntegerParameter(
+      "Minimum signals in pseudo spectrum",
+      "Minimum number of deconvoluted signals in pseudo spectrum", 6, true, 1, 5000);
 
-  Paint getLegendItemColor(int category);
+  public DBScanClusteringParameters() {
+    super(RT_TOLERANCE, MIN_NUMBER_OF_SIGNALS);
+  }
 }

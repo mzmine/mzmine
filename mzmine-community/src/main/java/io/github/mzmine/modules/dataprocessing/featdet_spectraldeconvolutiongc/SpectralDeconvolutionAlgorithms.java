@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
+import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.dbscan_clustering.DBScanClusteringAlgorithm;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.rtgroupingandsharecorrelation.RtGroupingAndShapeCorrelationAlgorithm;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
@@ -32,7 +33,8 @@ import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters
 public enum SpectralDeconvolutionAlgorithms implements
     ModuleOptionsEnum<SpectralDeconvolutionAlgorithm> {
 
-  RT_GROUPING_AND_SHAPE_CORRELATION//
+  RT_GROUPING_AND_SHAPE_CORRELATION,//
+  DBSCAN_CLUSTERING //
   ; //
 
 
@@ -41,6 +43,7 @@ public enum SpectralDeconvolutionAlgorithms implements
     return switch (deconParams.value()) {
       case RT_GROUPING_AND_SHAPE_CORRELATION ->
           new RtGroupingAndShapeCorrelationAlgorithm(deconParams.parameters());
+      case DBSCAN_CLUSTERING -> new DBScanClusteringAlgorithm(deconParams.parameters());
     };
   }
 
@@ -48,6 +51,7 @@ public enum SpectralDeconvolutionAlgorithms implements
   public Class<? extends SpectralDeconvolutionAlgorithm> getModuleClass() {
     return switch (this) {
       case RT_GROUPING_AND_SHAPE_CORRELATION -> RtGroupingAndShapeCorrelationAlgorithm.class;
+      case DBSCAN_CLUSTERING -> DBScanClusteringAlgorithm.class;
     };
   }
 
@@ -55,12 +59,16 @@ public enum SpectralDeconvolutionAlgorithms implements
   public String getStableId() {
     return switch (this) {
       case RT_GROUPING_AND_SHAPE_CORRELATION -> "rt grouping and shape correlation";
+      case DBSCAN_CLUSTERING -> "dbscan";
     };
   }
 
   @Override
   public String toString() {
-    return getStableId();
+    return switch (this) {
+      case RT_GROUPING_AND_SHAPE_CORRELATION -> "RT grouping and shape correlation";
+      case DBSCAN_CLUSTERING -> "DBSCAN clustering";
+    };
   }
 
 }

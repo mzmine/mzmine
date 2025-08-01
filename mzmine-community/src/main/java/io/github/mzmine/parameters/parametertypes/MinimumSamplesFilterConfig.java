@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRe
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.StringUtils;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,12 +44,18 @@ import org.jetbrains.annotations.Nullable;
  * @param minSamples min samples
  * @param columnName metadata column can be null to apply to all samples. The column name that will
  *                   be converted to an actual column.
+ * @param group      if not null then filter for only this group
  */
 public record MinimumSamplesFilterConfig(@NotNull AbsoluteAndRelativeInt minSamples,
-                                         @Nullable String columnName) {
+                                         @Nullable String columnName, @Nullable String group) {
 
   public MinimumSamplesFilterConfig(@NotNull AbsoluteAndRelativeInt minSamples) {
     this(minSamples, null);
+  }
+
+  public MinimumSamplesFilterConfig(@NotNull AbsoluteAndRelativeInt minSamples,
+      @Nullable String columnName) {
+    this(minSamples, columnName, null);
   }
 
   public static final MinimumSamplesFilterConfig DEFAULT = new MinimumSamplesFilterConfig(
@@ -60,21 +67,41 @@ public record MinimumSamplesFilterConfig(@NotNull AbsoluteAndRelativeInt minSamp
    */
   public @NotNull MinimumSamplesFilter createFilter(List<RawDataFile> files)
       throws MetadataColumnDoesNotExistException {
+    return createFilter(files, ProjectService.getMetadata());
+  }
+
+  /**
+   * @return a filter that can be applied to filter rows
+   * @throws MetadataColumnDoesNotExistException if column is missing
+   */
+  public @NotNull MinimumSamplesFilter createFilter(List<RawDataFile> files,
+      @NotNull MetadataTable metadata) throws MetadataColumnDoesNotExistException {
     if (StringUtils.hasValue(columnName)) {
       // group by column
-      final MetadataTable metadata = ProjectService.getMetadata();
       final MetadataColumn<?> column = metadata.getColumnByName(columnName);
       if (column == null) {
         throw new MetadataColumnDoesNotExistException(columnName);
       }
-      final List<List<RawDataFile>> groupedFiles = List.copyOf(
-          metadata.groupFilesByColumn(files, column).values());
+      final Map<?, List<RawDataFile>> groups = metadata.groupFilesByColumn(files, column);
 
-      return new MinimumSamplesFilter(minSamples, column, files, groupedFiles);
+      // only use one group or all groups depending on group field
+      final List<List<RawDataFile>> groupedFiles;
+      if (group != null) {
+        final List<RawDataFile> g = groups.get(group);
+        if (g == null) {
+          throw new IllegalArgumentException(
+              "Group " + group + " does not exist in metadata in column " + columnName);
+        }
+        groupedFiles = List.of(g);
+      } else {
+        groupedFiles = List.copyOf(groups.values());
+      }
+
+      return new MinimumSamplesFilter(minSamples, column, group, files, groupedFiles);
     }
 
     // all samples no grouping
-    return new MinimumSamplesFilter(minSamples, null, files, null);
+    return new MinimumSamplesFilter(minSamples, null, null, files, null);
   }
 
 }

@@ -166,9 +166,12 @@ public class IntegrationTests {
         "rawdatafiles/integration_tests/mse/expected_results_project.csv", exportedFlist,
         "mse_project.mzmine").size());
 
+    // expected_results_project_direct_batch.csv is the results of the project after batch processing
+    // expected_results.csv changed a bit because the MSe processing changed from 10% to 1% intensity factor
+    // just using the old project still with the old results
     Assertions.assertEquals(2, IntegrationTestUtils.getCsvComparisonResults(
-        "rawdatafiles/integration_tests/mse/expected_results.csv", exportedFlist,
-        "mse_project.mzmine").size());
+        "rawdatafiles/integration_tests/mse/expected_results_project_direct_batch.csv",
+        exportedFlist, "mse_project.mzmine").size());
   }
 
   @Test

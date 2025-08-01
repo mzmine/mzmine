@@ -111,7 +111,7 @@ public class DiaMs2CorrTask extends AbstractTask {
   private final int minCorrPoints;
   private final MZTolerance mzTolerance;
   private final double minPearson;
-  private final double correlationThreshold = 0.1d;
+  private final double correlationThreshold = 0.01d;
 
   private final ParameterSet parameters;
   private final ParameterSet adapParameters;

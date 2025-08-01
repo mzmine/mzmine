@@ -26,28 +26,53 @@
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
+import io.github.mzmine.parameters.dialogs.GroupedParameterSetupPane.GroupView;
+import io.github.mzmine.parameters.dialogs.GroupedParameterSetupPane.ParameterGroup;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.MinimumSamplesInMetadataParameter;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilterConfig;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesInAnyMetadataGroupParameter;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesInOneMetadataGroupParameter;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
+import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt.Mode;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelection;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.ExitCode;
+import java.util.List;
 import java.util.Map;
+import javafx.application.Platform;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.Element;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
@@ -60,12 +85,15 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final OptionalParameter<MinimumSamplesParameter> MIN_FEATURE_COUNT = new OptionalParameter<>(
       new MinimumSamplesParameter(), false);
 
-  public static final OptionalParameter<MinimumSamplesInMetadataParameter> MIN_FEATURE_IN_GROUP_COUNT = new OptionalParameter<>(
-      new MinimumSamplesInMetadataParameter(), false);
+  public static final OptionalParameter<MinimumSamplesInAnyMetadataGroupParameter> MIN_FEATURE_IN_GROUP_COUNT = new OptionalParameter<>(
+      new MinimumSamplesInAnyMetadataGroupParameter(), false);
+
+  public static final OptionalParameter<MinimumSamplesInOneMetadataGroupParameter> MIN_FEATURE_IN_ONE_GROUP_COUNT = new OptionalParameter<>(
+      new MinimumSamplesInOneMetadataGroupParameter(), false);
 
   public static final OptionalParameter<IntegerParameter> MIN_ISOTOPE_PATTERN_COUNT = new OptionalParameter<>(
-      new IntegerParameter("Minimum features in an isotope pattern",
-          "Minimum number of features required in an isotope pattern", 2), false);
+      new IntegerParameter("Minimum signals in an isotope pattern",
+          "Minimum number of detected signals required in an isotope pattern", 2), false);
 
   public static final OptionalModuleParameter<Isotope13CFilterParameters> ISOTOPE_FILTER_13C = new OptionalModuleParameter<>(
       "Validate 13C isotope pattern",
@@ -86,8 +114,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
       new RTRangeParameter(), false);
 
   public static final OptionalParameter<DoubleRangeParameter> FEATURE_DURATION = new OptionalParameter<>(
-      new DoubleRangeParameter("features duration range",
-          "Permissible range of (average) feature durations per row",
+      new DoubleRangeParameter("Chromatographic width",
+          "Permissible range of (average) row retention time widths. The full width including all detected data points.",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 3d)), false);
 
   public static final OptionalParameter<DoubleRangeParameter> FWHM = new OptionalParameter<>(
@@ -131,11 +159,11 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
       true);
 
-  public static final BooleanParameter MS2_Filter = new BooleanParameter("Feature with MS2 scan",
+  public static final BooleanParameter MS2_Filter = new BooleanParameter("Require MS2 scan",
       "If checked, the rows that don't contain MS2 scan will be removed.", false);
 
   public static final BooleanParameter KEEP_ALL_MS2 = new BooleanParameter(
-      "Never remove feature with MS2",
+      "Never remove rows with MS2",
       "If checked, all rows with MS2 are retained without applying any further filters on them.",
       true);
 
@@ -144,8 +172,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
       "If checked, a feature that is annotated will never be removed from the feature list.",
       false);
 
-  public static final BooleanParameter Reset_ID = new BooleanParameter(
-      "Reset the feature number ID",
+  public static final BooleanParameter Reset_ID = new BooleanParameter("Reset the row ID",
       "If checked, the row number of original feature list will be reset.", false);
 
   public static final OptionalParameter<MassDefectParameter> massDefect = new OptionalParameter<>(
@@ -159,13 +186,13 @@ public class RowsFilterParameters extends SimpleParameterSet {
       false);
 
   // resorted parameters to be more grouped
-  // TODO maybe make the dialog similar to the preferences by grouping up parameters
   public RowsFilterParameters() {
     super(new Parameter[]{
             // general parameters
             FEATURE_LISTS, SUFFIX, REMOVE_ROW, handleOriginal,
             // sample filtering
-            MIN_FEATURE_COUNT, MIN_FEATURE_IN_GROUP_COUNT, cvFilter, foldChangeFilter,
+            MIN_FEATURE_COUNT, MIN_FEATURE_IN_GROUP_COUNT, MIN_FEATURE_IN_ONE_GROUP_COUNT, cvFilter,
+            foldChangeFilter,
             // isotopes
             // TODO what does redundant do?
             MIN_ISOTOPE_PATTERN_COUNT, ISOTOPE_FILTER_13C, removeRedundantRows,
@@ -175,6 +202,109 @@ public class RowsFilterParameters extends SimpleParameterSet {
             HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, MS2_Filter, onlyCorrelatedWithOtherDetectors,
             KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
+  }
+
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    return showSetupDialog(valueCheckRequired, "");
+  }
+
+  public ExitCode showSetupDialog(boolean valueCheckRequired, @Nullable String filterParameters) {
+    assert Platform.isFxApplicationThread();
+
+    final List<UserParameter<?, ? extends Region>> fixed = List.of(FEATURE_LISTS, SUFFIX,
+        REMOVE_ROW, handleOriginal);
+
+    final List<ParameterGroup> groups = List.of( //
+        new ParameterGroup("Sample-based filters", MIN_FEATURE_COUNT, MIN_FEATURE_IN_GROUP_COUNT,
+            MIN_FEATURE_IN_ONE_GROUP_COUNT, cvFilter, foldChangeFilter), //
+        new ParameterGroup("Isotope filters", MIN_ISOTOPE_PATTERN_COUNT, ISOTOPE_FILTER_13C,
+            removeRedundantRows), //
+        new ParameterGroup("Feature properties", MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
+            massDefect, KENDRICK_MASS_DEFECT), //
+        new ParameterGroup("Annotations & MS2 filter", KEEP_ALL_MS2, MS2_Filter, KEEP_ALL_ANNOTATED,
+            HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT), //
+        new ParameterGroup("Other options", onlyCorrelatedWithOtherDetectors, Reset_ID) //
+    );
+
+    GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this,
+        true, fixed, groups, GroupView.GROUPED);
+
+    // add groups
+    dialog.setFilterText(filterParameters);
+
+    dialog.setMinWidth(800);
+    dialog.setMinHeight(800);
+
+    // check
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
+
+
+  /**
+   * A default parameter set with all options off
+   */
+  public static ParameterSet createDefaultAllOff() {
+    final ParameterSet param = new RowsFilterParameters().cloneParameterSet();
+    param.setParameter(RowsFilterParameters.FEATURE_LISTS,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(RowsFilterParameters.SUFFIX, "row_filtered");
+    param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, false,
+        new AbsoluteAndRelativeInt(1, 0, Mode.ROUND_DOWN));
+    param.setParameter(RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT, false,
+        MinimumSamplesFilterConfig.DEFAULT);
+    // just set the filter to false and allow to use the recent parameters internally
+    param.setParameter(RowsFilterParameters.MIN_FEATURE_IN_ONE_GROUP_COUNT, false);
+
+    param.setParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT, false);
+    param.setParameter(RowsFilterParameters.ISOTOPE_FILTER_13C, false);
+
+    final Isotope13CFilterParameters filterIsoParam = param.getParameter(
+        RowsFilterParameters.ISOTOPE_FILTER_13C).getEmbeddedParameters();
+    filterIsoParam.setParameter(Isotope13CFilterParameters.mzTolerance,
+        MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.maxCharge, 2);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.applyMinCEstimation, true);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.removeIfMainIs13CIsotope, true);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.elements, List.of(new Element("O")));
+
+    param.setParameter(RowsFilterParameters.cvFilter, false);
+    final RsdFilterParameters cvFilter = param.getParameter(RowsFilterParameters.cvFilter)
+        .getEmbeddedParameters();
+    cvFilter.setAll(AbundanceMeasure.Area, ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION, 0.2, 0.2,
+        false,
+        new MetadataGroupSelection(MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()));
+
+    param.setParameter(RowsFilterParameters.foldChangeFilter, false);
+    final FoldChangeSignificanceRowFilterParameters fcParams = param.getParameter(
+        RowsFilterParameters.foldChangeFilter).getEmbeddedParameters();
+
+    fcParams.setAll(AbundanceMeasure.Area, ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION,
+        Metadata2GroupsSelection.NONE, SignificanceTests.WELCHS_T_TEST, 0.05, 1d,
+        FoldChangeFilterSides.ABS_BOTH_SIDES);
+
+    //
+    param.setParameter(RowsFilterParameters.removeRedundantRows, false);
+    param.setParameter(RowsFilterParameters.MZ_RANGE, false);
+    param.setParameter(RowsFilterParameters.RT_RANGE, false);
+    param.setParameter(RowsFilterParameters.FEATURE_DURATION, false);
+    param.setParameter(RowsFilterParameters.FWHM, false);
+    param.setParameter(RowsFilterParameters.CHARGE, false);
+    param.setParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT, false);
+    param.setParameter(RowsFilterParameters.HAS_IDENTITIES, false);
+    param.setParameter(RowsFilterParameters.IDENTITY_TEXT, false);
+    param.setParameter(RowsFilterParameters.COMMENT_TEXT, false);
+    param.setParameter(RowsFilterParameters.REMOVE_ROW, RowsFilterChoices.KEEP_MATCHING);
+    param.setParameter(RowsFilterParameters.MS2_Filter, false);
+    param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, true);
+    param.setParameter(RowsFilterParameters.KEEP_ALL_ANNOTATED, false);
+    param.setParameter(RowsFilterParameters.Reset_ID, false);
+    param.setParameter(RowsFilterParameters.massDefect, false);
+    param.setParameter(RowsFilterParameters.onlyCorrelatedWithOtherDetectors, false);
+    param.setParameter(RowsFilterParameters.handleOriginal, OriginalFeatureListOption.KEEP);
+    return param;
   }
 
   @Override
@@ -206,6 +336,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
     if (!loadedParams.containsKey(MIN_FEATURE_IN_GROUP_COUNT.getName())) {
       setParameter(MIN_FEATURE_IN_GROUP_COUNT, false);
     }
+    if (!loadedParams.containsKey(MIN_FEATURE_IN_ONE_GROUP_COUNT.getName())) {
+      setParameter(MIN_FEATURE_IN_ONE_GROUP_COUNT, false);
+    }
     if (!loadedParams.containsKey(cvFilter.getName())) {
       setParameter(cvFilter, false);
     }
@@ -219,6 +352,11 @@ public class RowsFilterParameters extends SimpleParameterSet {
     var map = super.getNameParameterMap();
     map.put("Only other detector correlated", getParameter(onlyCorrelatedWithOtherDetectors));
     map.put("Minimum aligned features (samples)", getParameter(MIN_FEATURE_COUNT));
+    map.put("Reset the feature number ID", getParameter(Reset_ID));
+    map.put("Never remove feature with MS2", getParameter(KEEP_ALL_MS2));
+    map.put("Feature with MS2 scan", getParameter(MS2_Filter));
+    map.put("Minimum features in an isotope pattern", getParameter(MIN_ISOTOPE_PATTERN_COUNT));
+    map.put("features duration range", getParameter(FEATURE_DURATION));
     return map;
   }
 }

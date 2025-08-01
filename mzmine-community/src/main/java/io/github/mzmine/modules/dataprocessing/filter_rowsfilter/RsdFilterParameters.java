@@ -126,7 +126,7 @@ public class RsdFilterParameters extends SimpleParameterSet {
     final List<RawDataFile> groupFiles = group.getMatchingFiles(dataTable.getRawDataFiles());
     final FeaturesDataTable subsetTable = dataTable.subsetBySamples(groupFiles);
 
-    return new RsdFilter(subsetTable, maxMissing, maxCV, keepUndedected);
+    return new RsdFilter(group, subsetTable, maxMissing, maxCV, keepUndedected);
   }
 
 }

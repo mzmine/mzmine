@@ -521,4 +521,12 @@ public class MetadataTable {
 
     return data.get(col);
   }
+
+  /**
+   * @return unsorted list of all raw data files with values
+   */
+  public List<RawDataFile> getRawDataFilesUnsorted() {
+    return data.values().stream()
+        .<RawDataFile>mapMulti((d, consumer) -> d.keySet().forEach(consumer)).distinct().toList();
+  }
 }
