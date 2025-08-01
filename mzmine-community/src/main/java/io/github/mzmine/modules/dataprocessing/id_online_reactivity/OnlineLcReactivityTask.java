@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,11 +44,12 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTabl
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.collections.BinarySearch;
-import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.io.CsvReader;
 import java.io.File;
 import java.io.IOException;
@@ -75,15 +76,15 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
   private final FeatureList flist;
   private final boolean onlyGroupedRows;
 
+  private final String undefinedId = "UNDEFINED_REACTION_SAMPLE_ID";
   private final String description;
   private final List<IonModification> eductAdducts;
   private final List<IonModification> productAdducts;
-  private final MetadataColumn<String> sampleIdColumn;
-  private final MetadataColumn<String> sampleTypeColumn;
+  private final MetadataColumn<?> sampleIdColumn;
+  private final MetadataColumn<?> sampleTypeColumn;
   private final @NotNull MetadataTable metadata;
   private @Nullable Map<RawDataFile, ReactionSampleType> sampleTypeMap;
   private Map<String, List<RawDataFile>> controlsSampleIdMap;
-  private final String undefinedId = "UNDEFINED_REACTION_SAMPLE_ID";
 
   public OnlineLcReactivityTask(@NotNull ParameterSet parameters, FeatureList flist,
       @NotNull Instant moduleCallDate) {
@@ -95,12 +96,11 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
     eductAdducts = parameters.getValue(OnlineLcReactivityParameters.eductAdducts);
     productAdducts = parameters.getValue(OnlineLcReactivityParameters.productAdducts);
 
-    this.metadata = MZmineCore.getProjectMetadata();
-    sampleIdColumn = (MetadataColumn<String>) parameters.getOptionalValue(
-        OnlineLcReactivityParameters.uniqueSampleId).map(metadata::getColumnByName).orElse(null);
-    sampleTypeColumn = (MetadataColumn<String>) parameters.getOptionalValue(
-            OnlineLcReactivityParameters.reactionSampleType).map(metadata::getColumnByName)
-        .orElse(null);
+    this.metadata = ProjectService.getMetadata();
+    sampleIdColumn = parameters.getOptionalValue(OnlineLcReactivityParameters.uniqueSampleId)
+        .map(metadata::getColumnByName).orElse(null);
+    sampleTypeColumn = parameters.getOptionalValue(OnlineLcReactivityParameters.reactionSampleType)
+        .map(metadata::getColumnByName).orElse(null);
 
     description = "Online reactivity task on " + flist.getName();
   }
@@ -136,7 +136,7 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
    *
    * @return new list
    */
-  public static List<ReactionMatchingRawFiles> createAdductReactions(
+  static List<ReactionMatchingRawFiles> createAdductReactions(
       final List<ReactionMatchingRawFiles> reactions, final List<IonModification> eductAdducts,
       final List<IonModification> productAdducts) {
     return reactions.stream().<ReactionMatchingRawFiles>mapMulti((reaction, consumer) -> {
@@ -161,6 +161,9 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
       return;
     }
 
+    // reset all rows and delete old results
+    resetClearOldResults(rows);
+
     R2RMap<RowsRelationship> correlationMap = flist.getMs1CorrelationMap().orElse(null);
     if (onlyGroupedRows && (correlationMap == null || correlationMap.isEmpty())) {
       MZmineCore.getDesktop()
@@ -171,6 +174,7 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
 
     List<RawDataFile> raws = flist.getRawDataFiles();
 
+    // first create types map before controls map
     if (sampleTypeColumn != null) {
       if (!createSampleTypeMap(raws)) {
         return;
@@ -186,19 +190,13 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
     List<ReactionMatchingRawFiles> reactions = loadReactionsFilteredByRawFiles(raws);
 
     if (reactions.isEmpty()) {
-      if (!isCanceled()) {
-        setStatus(TaskStatus.FINISHED);
-      }
+      error(
+          "No reactions found to match the substrings in the reactions file column 'filename_contains' to any of the raw data files"
+              + reactionsFile.getName());
       return;
     }
 
-    // TODO add a map that links raw data files to their unreacted controls
-    // user input by metadata sheet or filename pattern
-    // unreacted_control_mix32_pos_suid.mzml is the control of, including,
-    // mix32_pos_REACTION.mzml
     // if products are found in control - then remove annotation
-
-    // may create even more reactions if adducts are set by the user
     // needs at least one adduct for both educt and product to create new reactions like
     // reaction, [M+H]+ → [M+Na]+
     if (!(eductAdducts.isEmpty() || productAdducts.isEmpty())) {
@@ -206,7 +204,9 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
     }
 
     // sort rows by mz and reactions by delta mz
-    reactions.sort(Comparator.comparingDouble(reaction -> reaction.reaction().deltaMz()));
+    // only use reactions with deltaMZ greater 0
+    reactions = reactions.stream().filter(r -> r.reaction().deltaMz() > 0)
+        .sorted(Comparator.comparingDouble(r -> r.reaction().deltaMz())).toList();
 
     flist.addRowType(DataTypes.get(OnlineLcReactionMatchType.class));
 
@@ -218,14 +218,14 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
     int numRows = rows.size();
     final var finalReactions = reactions;
     long comparedPairs = IntStream.range(0, numRows - 1).parallel().mapToLong(
-        i -> processRowAddMatches(i, rows, raws, finalReactions, correlationMap,
-            productMatchesToAdd)).sum();
+            i -> processRowAddMatches(i, rows, finalReactions, correlationMap, productMatchesToAdd))
+        .sum();
 
     if (isCanceled()) {
       return;
     }
 
-    // add all products, rowA is always to row to add to
+    // add all products, rowA is always the row to add to
     Map<FeatureListRow, List<OnlineReactionMatch>> groupedByRow = productMatchesToAdd.stream()
         .collect(Collectors.groupingBy(OnlineReactionMatch::getProductRow));
 
@@ -251,28 +251,42 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
     flist.getRowMaps().addAllRowsRelationships(r2rMap, RowsRelationship.Type.ONLINE_REACTION);
   }
 
+  private void resetClearOldResults(List<FeatureListRow> rows) {
+    rows.forEach(row -> row.set(OnlineLcReactionMatchType.class, null));
+    flist.getRowMaps().removeAllRowRelationships(RowsRelationship.Type.ONLINE_REACTION);
+  }
+
   /**
+   * Creates a map of all raw data files to their {@link ReactionSampleType} sample types
+   *
    * @return false on error true success
    */
   private boolean createSampleTypeMap(final List<RawDataFile> raws) {
     sampleTypeMap = raws.stream().collect(toMap(raw -> raw,
-        raw -> metadata.get(sampleTypeColumn, raw).map(ReactionSampleType::parse)
+        raw -> metadata.getAsString(sampleTypeColumn, raw).map(ReactionSampleType::parse)
             .orElse(ReactionSampleType.UNKNOWN)));
+
+    // log undefined samples
     String undefinedRawDataFiles = sampleTypeMap.entrySet().stream()
         .filter(e -> e.getValue() == ReactionSampleType.UNKNOWN).map(Entry::getKey)
         .map(Objects::toString).collect(Collectors.joining("\n"));
     if (!undefinedRawDataFiles.isBlank()) {
-      error(STR."""
-          Sample type is NOT set for all samples. The column name is \{sampleTypeColumn.getTitle()}.
-          Use \{ReactionSampleType.CONTROL.toString()} or \{ReactionSampleType.REACTED.toString()}
+      error("""
+          Sample type is NOT set for all samples. The column name is %s.
+          Use %s or %s
           Samples that were undefined are:
-          \{undefinedRawDataFiles}""");
+          %s""".formatted(sampleTypeColumn.getTitle(), ReactionSampleType.CONTROL,
+          ReactionSampleType.REACTED, undefinedRawDataFiles));
       return false;
     }
     return true;
   }
 
   /**
+   * Create map of control samples looking into the {@link #sampleTypeMap} for control samples.
+   * Result is {@link #controlsSampleIdMap} with the metadata group from {@link #sampleIdColumn}
+   * mapping a list of all controls.
+   *
    * @return false on error true success
    */
   private boolean createControlsMap(final List<RawDataFile> raws) {
@@ -281,16 +295,19 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
         .collect(groupingBy(this::getMetadataSampleId));
 
     if (controlsSampleIdMap.isEmpty()) {
-      error(
-          STR."No control samples defined. Make sure that unique sample IDs were defined in column \{sampleIdColumn.getTitle()}");
+      error("""
+          No control samples defined. Make sure to define control samples as "control" in the metadata column "%s".""".formatted(
+          sampleIdColumn.getTitle()));
       return false;
     }
     List<RawDataFile> undefinedSamples = controlsSampleIdMap.get(undefinedId);
     if (undefinedSamples != null && !undefinedSamples.isEmpty()) {
-      error(STR."""
-          There were samples without set uinique ID in column \{sampleIdColumn.getTitle()}
-          \{undefinedSamples.stream().map(RawDataFile::getName).collect(Collectors.joining("\n"))}
-          """);
+
+      error("""
+          There were samples without set unique ID in column %s
+          %s
+          """.formatted(sampleIdColumn.getTitle(),
+          undefinedSamples.stream().map(RawDataFile::getName).collect(Collectors.joining("\n"))));
       return false;
     }
     // additional check that all reacted samples have a non reacted control
@@ -298,21 +315,25 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
         .filter(raw -> !controlsSampleIdMap.containsKey(getMetadataSampleId(raw)))
         .collect(groupingBy(this::getMetadataSampleId));
     if (!missingControls.isEmpty()) {
-      error(STR."""
+      error("""
           Some reacted sample are missing their control samples. Make sure that the unique sample IDs are matching
           and that the samples are defined as control in the metadata type column. Samples without control are:
           unique ID: [samples],
-          \{missingControls.entrySet().stream().map(
-          e -> STR."\{e.getKey()}, [\{e.getValue().stream().map(RawDataFile::getName)
-              .collect(Collectors.joining(", "))}]").collect(Collectors.joining("\n"))}
-          """);
+          %s
+          """.formatted(missingControls.entrySet().stream().map(
+          e -> e.getKey() + ", [" + e.getValue().stream().map(RawDataFile::getName)
+              .collect(Collectors.joining(", ")) + "]").collect(Collectors.joining("\n"))));
       return false;
     }
     return true;
   }
 
+  /**
+   * @return the unique sample id that groups samples together to bind controls to reacted samples.
+   * Or {@link #undefinedId}
+   */
   private String getMetadataSampleId(final RawDataFile raw) {
-    return metadata.get(sampleIdColumn, raw).orElse(undefinedId);
+    return metadata.getAsString(sampleIdColumn, raw).orElse(undefinedId);
   }
 
   private boolean isControl(final RawDataFile raw) {
@@ -340,10 +361,8 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
   }
 
   private int processRowAddMatches(final int indexA, final List<FeatureListRow> rows,
-      final List<RawDataFile> raws, final List<ReactionMatchingRawFiles> reactions,
-      final R2RMap<RowsRelationship> correlationMap,
+      final List<ReactionMatchingRawFiles> reactions, final R2RMap<RowsRelationship> correlationMap,
       final ConcurrentLinkedQueue<OnlineReactionMatch> productMatchesToAdd) {
-    int numRows = rows.size();
 
     int matches = 0;
     if (isCanceled()) {
@@ -353,13 +372,13 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
     final FeatureListRow rowA = rows.get(indexA);
     final double mzA = rowA.getAverageMZ();
 
+    // in case module ran before keep the old results as well
     // results in this list and add later
-    List<OnlineReactionMatch> matchesToAdd = new ArrayList<>(rowA.getOnlineReactionMatches());
+    List<OnlineReactionMatch> matchesToAdd = new ArrayList<>();
 
     // filter reactions by filenames that need to contain a specific string
-    // only beneficial if more raw data files to filter
-    final List<ReactionMatchingRawFiles> filteredReactions =
-        raws.size() > 2 ? filterReactionsByRowRawFiles(reactions, rowA) : reactions;
+    final List<ReactionMatchingRawFiles> filteredReactions = filterReactionsByRowRawFiles(reactions,
+        rowA);
 
     // short circuit
     if (filteredReactions.isEmpty()) {
@@ -367,47 +386,51 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
     }
 
     // reactions and rows are sorted by mz so jump to the first reaction mz
-    Range<Double>[] mzRanges = filteredReactions.stream()
+    Range<Double>[] mzRangesReactions = filteredReactions.stream()
         .map(reaction -> mzTol.getToleranceRange(mzA + reaction.reaction().deltaMz()))
-        .toArray(Range[]::new);
+        .<Range<Double>>toArray(Range[]::new);
     int startReaction = 0;
 
     // binary search first with lowest mz
-    int indexB = BinarySearch.binarySearch(mzRanges[0].lowerEndpoint(), DefaultTo.GREATER_EQUALS,
-        indexA + 1, rows.size(), index -> rows.get(index).getAverageMZ());
+    final IndexRange indexRange = BinarySearch.indexRange(mzRangesReactions[0], indexA + 1,
+        rows.size(), index -> rows.get(index).getAverageMZ());
 
-    if (indexB == -1) {
+    if (indexRange.isEmpty()) {
       // out of range already
       return matches;
     }
 
-    for (; indexB < numRows && startReaction < filteredReactions.size(); indexB++) {
+    final List<FeatureListRow> searchRows = indexRange.sublist(rows);
+
+    for (FeatureListRow rowB : searchRows) {
       if (isCanceled()) {
         return matches;
       }
-
-      FeatureListRow rowB = rows.get(indexB);
 
       // filter rows that are correlated
       if (onlyGroupedRows && !correlationMap.contains(rowA, rowB)) {
         continue; // no correlation between rows
       }
       double mzB = rowB.getAverageMZ();
+      // reactions are sorted by mz, therefore skip some with start reaction in case mz increases
       for (int reactIndex = startReaction; reactIndex < filteredReactions.size(); reactIndex++) {
         ReactionMatchingRawFiles reaction = filteredReactions.get(reactIndex);
-        Range<Double> mzRange = mzRanges[reactIndex];
-        if (mzB < mzRange.lowerEndpoint()) {
+        Range<Double> mzRangeReaction = mzRangesReactions[reactIndex];
+        if (mzB < mzRangeReaction.lowerEndpoint()) {
           break; // mz is less than lowest reaction --> check next row
-        } else if (mzB > mzRange.upperEndpoint()) {
+        } else if (mzB > mzRangeReaction.upperEndpoint()) {
           startReaction++;
+          if (startReaction >= filteredReactions.size()) {
+            break;
+          }
         } else if (anyRawFileOverlapWithReaction(reaction, rowA, rowB)) {
+          // mz is matching but
           // match needs to happen also in the same raw data file
           // a is educt b is product
           matchesToAdd.add(new OnlineReactionMatch(rowA, rowB, reaction.reaction(), Type.Educt));
           matches++;
 
           // add products later on one thread
-          // can use the same object
           productMatchesToAdd.add(
               new OnlineReactionMatch(rowA, rowB, reaction.reaction(), Type.Product));
         }

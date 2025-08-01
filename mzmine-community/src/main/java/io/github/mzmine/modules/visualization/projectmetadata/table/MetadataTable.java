@@ -245,12 +245,13 @@ public class MetadataTable {
 
     return null;
   }
+
   /**
-   * Return parameter value of the corresponding RawData file.
+   * Return metadata value of the corresponding RawData file.
    *
-   * @param column      project parameter column
+   * @param column      project metadata column
    * @param rawDataFile RawData file
-   * @param <T>         type of the project parameter
+   * @param <T>         type of the project metadata column
    * @return parameter value
    */
   @SuppressWarnings("unchecked")
@@ -258,6 +259,23 @@ public class MetadataTable {
     var row = data.get(column);
     if (row != null) {
       return Optional.ofNullable((T) row.get(rawDataFile));
+    }
+
+    return Optional.empty();
+  }
+
+  /**
+   * Return metadata value of the corresponding RawData file as a String
+   *
+   * @param column      project metadata column
+   * @param rawDataFile RawData file
+   * @return metadata value as string
+   */
+  public Optional<String> getAsString(MetadataColumn<?> column, RawDataFile rawDataFile) {
+    var row = data.get(column);
+    if (row != null) {
+      final Object value = row.get(rawDataFile);
+      return Optional.ofNullable(value == null ? null : value.toString());
     }
 
     return Optional.empty();

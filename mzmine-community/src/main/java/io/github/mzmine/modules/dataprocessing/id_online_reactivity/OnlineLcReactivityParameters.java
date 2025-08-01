@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
 
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -41,6 +42,7 @@ import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -91,9 +93,8 @@ public class OnlineLcReactivityParameters extends SimpleParameterSet {
           Go to Project/Metadata to load a metadata sheet and reload this module to select this column."""));
 
   public OnlineLcReactivityParameters() {
-    super(flists, reactionsFile,
-         uniqueSampleId, reactionSampleType,
-        onlyGroupedRows, mzTol, eductAdducts, productAdducts);
+    super(flists, reactionsFile, uniqueSampleId, reactionSampleType, onlyGroupedRows, mzTol,
+        eductAdducts, productAdducts);
   }
 
 
@@ -108,5 +109,13 @@ public class OnlineLcReactivityParameters extends SimpleParameterSet {
     } catch (IOException e) {
       logger.log(Level.WARNING, "Cannot write example file", e);
     }
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    final Map<String, Parameter<?>> map = super.getNameParameterMap();
+    map.put("Unreacted controls metadata", getParameter(reactionSampleType));
+    map.put("Unique sample ID metadata", getParameter(uniqueSampleId));
+    return map;
   }
 }
