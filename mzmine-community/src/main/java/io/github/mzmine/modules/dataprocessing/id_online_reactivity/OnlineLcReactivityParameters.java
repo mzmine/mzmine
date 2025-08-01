@@ -63,8 +63,10 @@ public class OnlineLcReactivityParameters extends SimpleParameterSet {
       type is either REACTION, EDUCT, PRODUCT""", ExtensionFilters.CSV_TSV_IMPORT,
       OnlineLcReactivityParameters::exportExample);
 
+  // currently only allows single charge ions
   private static final List<IonModification> adducts = List.of(IonModification.H,
-      IonModification.NA, IonModification.H2plus, IonModification.H_H2O_1);
+      IonModification.NA, IonModification.H_H2O_1);
+  // currently only allows single charge ions
   private static final List<IonModification> defaultSelectedAdducts = List.of(IonModification.H,
       IonModification.NA);
 
