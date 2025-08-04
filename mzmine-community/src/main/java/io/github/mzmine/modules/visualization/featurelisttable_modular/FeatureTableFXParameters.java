@@ -63,7 +63,7 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
 
   public static final IntegerParameter deactivateShapesGreaterNSamples = new IntegerParameter(
       "Deactivate shapes >N samples", "Deactivate shapes for better performance above N samples.",
-      12);
+      20);
 
   public static final BooleanParameter lockImagesToAspectRatio = new BooleanParameter(
       "Lock images to aspect ratio",
