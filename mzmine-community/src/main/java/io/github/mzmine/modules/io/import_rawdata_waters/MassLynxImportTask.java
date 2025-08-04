@@ -93,6 +93,29 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
     this.processor = processor;
   }
 
+  private static void correctDdaIsolationMz(SimpleScan scan) {
+    // correct the quadrupole set mass for DDA spectra
+    // support.waters.com/KB_Inf/MassLynx/WKB28313_Why_doesnt_the_MSMS_set_mass_in_the_header_of_the_spectrum_window_match_the_peak_mass
+    if (scan.getMsMsInfo() != null && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
+      final double isolationMz = dda.getIsolationMz();
+      final Scan precursorScan = ScanUtils.findPrecursorScan(scan);
+      if (precursorScan == null) {
+        return;
+      }
+
+      // let's take a reasonable range of 3 Da. Use base peak instead of binary search,
+      // there may be noise
+      final DataPoint actualPrecursor = ScanUtils.findBasePeak(precursorScan,
+          RangeUtils.rangeAround(isolationMz, 3d));
+
+      final DDAMsMsInfoImpl correctedMsMsInfo = new DDAMsMsInfoImpl(actualPrecursor.getMZ(),
+          dda.getPrecursorCharge(), dda.getActivationEnergy(), dda.getMsMsScan(),
+          dda.getParentScan(), scan.getMSLevel(), dda.getActivationMethod(),
+          dda.getIsolationWindow());
+      scan.setMsMsInfo(correctedMsMsInfo);
+    }
+  }
+
   @Override
   public String getTaskDescription() {
     return "Importing Waters (MassLynx) raw data file %s. Scan %d/%d".formatted(rawFolder.getName(),
@@ -109,6 +132,9 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
     setStatus(TaskStatus.PROCESSING);
     final boolean centroid = parameters.getValue(
         AllSpectralDataImportParameters.applyVendorCentroiding);
+    logger.finest(
+        "Importing %s data for file %s.".formatted(centroid ? "centroid" : "profile (if available)",
+            rawFolder.getName()));
 
     try (final MassLynxDataAccess ml = new MassLynxDataAccess(rawFolder, centroid, storage,
         processor)) {
@@ -158,26 +184,7 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
         scan.setScanNumber(i + 1);
         dataFile.addScan(scan);
 
-        // correct the quadrupole set mass for DDA spectra
-        // support.waters.com/KB_Inf/MassLynx/WKB28313_Why_doesnt_the_MSMS_set_mass_in_the_header_of_the_spectrum_window_match_the_peak_mass
-        if (scan.getMsMsInfo() != null && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
-          final double isolationMz = dda.getIsolationMz();
-          final Scan precursorScan = ScanUtils.findPrecursorScan(scan);
-          if (precursorScan == null) {
-            continue;
-          }
-
-          // let's take a reasonable range of 3 Da. Use base peak instead of binary search,
-          // there may be noise
-          final DataPoint actualPrecursor = ScanUtils.findBasePeak(precursorScan,
-              RangeUtils.rangeAround(isolationMz, 3d));
-
-          final DDAMsMsInfoImpl correctedMsMsInfo = new DDAMsMsInfoImpl(actualPrecursor.getMZ(),
-              dda.getPrecursorCharge(), dda.getActivationEnergy(), dda.getMsMsScan(),
-              dda.getParentScan(), scan.getMSLevel(), dda.getActivationMethod(),
-              dda.getIsolationWindow());
-          scan.setMsMsInfo(correctedMsMsInfo);
-        }
+        correctDdaIsolationMz(scan);
       }
 
       final var appliedMethod = new SimpleFeatureListAppliedMethod(module, parameters,
@@ -217,10 +224,9 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
   }
 
   private void tryReadingImsCalibration() {
-    if(dataFile instanceof IMSRawDataFile ims) {
+    if (dataFile instanceof IMSRawDataFile ims) {
       try {
-        final CCSCalibration ccsCal = WatersImsCalibrationReader.readCalibrationFile(
-            rawFolder);
+        final CCSCalibration ccsCal = WatersImsCalibrationReader.readCalibrationFile(rawFolder);
         ims.setCCSCalibration(ccsCal);
       } catch (RuntimeException e) {
         logger.info("No IMS calibration found for IMS file %s".formatted(dataFile.getName()));
