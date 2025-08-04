@@ -25,18 +25,22 @@
 package io.github.mzmine.modules.io.import_rawdata_waters;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.WatersImsCalibrationReader;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
@@ -111,7 +115,6 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
       readTotalItems(ml);
 
       dataFile = ml.createDataFile();
-      OtherTimeSeriesDataImpl mrmData = null;
       OtherDataFileImpl mrmFileDataFile = null;
 
       final List<SimpleScan> scans = new ArrayList<>();
@@ -123,20 +126,7 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
         switch (ml.getFunctionType(function)) {
           case MS -> readMsFunction(ml, function, dataFile, scans);
           case IMS_MS -> readImsFunction(ml, function, (IMSRawDataFileImpl) dataFile, scans);
-          case MRM -> {
-            if (mrmData == null) {
-              mrmFileDataFile = new OtherDataFileImpl(dataFile);
-              mrmFileDataFile.setDescription("MRM/SRM");
-              mrmData = new OtherTimeSeriesDataImpl(mrmFileDataFile);
-              mrmData.setChromatogramType(ChromatogramType.MRM_SRM);
-              mrmData.setTimeSeriesRangeLabel("Intensity");
-              mrmData.setTimeSeriesRangeUnit("cts");
-              mrmData.setTimeSeriesDomainLabel("RT");
-              mrmData.setTimeSeriesDomainUnit("min");
-              mrmFileDataFile.setOtherTimeSeriesData(mrmData);
-            }
-            readMrmFunction(ml, function, mrmData);
-          }
+          case MRM -> mrmFileDataFile = readMrmFunction(mrmFileDataFile, ml, function);
           case LOCKMASS -> {
             // skip lock mass loading
           }
@@ -145,6 +135,12 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
           }
         }
       }
+
+      if (mrmFileDataFile != null && mrmFileDataFile.hasTimeSeries()) {
+        dataFile.addOtherDataFiles(List.of(mrmFileDataFile));
+      }
+
+      tryReadingImsCalibration();
 
       if (isCanceled()) {
         return;
@@ -184,10 +180,6 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
         }
       }
 
-      if (mrmFileDataFile != null && mrmFileDataFile.hasTimeSeries()) {
-        dataFile.addOtherDataFiles(List.of(mrmFileDataFile));
-      }
-
       final var appliedMethod = new SimpleFeatureListAppliedMethod(module, parameters,
           getModuleCallDate());
       dataFile.getAppliedMethods().add(appliedMethod);
@@ -203,6 +195,36 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
       logger.log(Level.SEVERE, "Error while reading waters raw file " + rawFolder.getAbsolutePath(),
           e);
       error(e.getMessage());
+    }
+  }
+
+  private @NotNull OtherDataFileImpl readMrmFunction(OtherDataFileImpl mrmFileDataFile,
+      MassLynxDataAccess ml, int function) {
+    if (mrmFileDataFile == null) {
+      mrmFileDataFile = new OtherDataFileImpl(dataFile);
+      mrmFileDataFile.setDescription("MRM/SRM");
+      OtherTimeSeriesDataImpl mrmData = new OtherTimeSeriesDataImpl(mrmFileDataFile);
+      mrmData.setChromatogramType(ChromatogramType.MRM_SRM);
+      mrmData.setTimeSeriesRangeLabel("Intensity");
+      mrmData.setTimeSeriesRangeUnit("cts");
+      mrmData.setTimeSeriesDomainLabel("RT");
+      mrmData.setTimeSeriesDomainUnit("min");
+      mrmFileDataFile.setOtherTimeSeriesData(mrmData);
+    }
+    readMrmFunction(ml, function,
+        (OtherTimeSeriesDataImpl) mrmFileDataFile.getOtherTimeSeriesData());
+    return mrmFileDataFile;
+  }
+
+  private void tryReadingImsCalibration() {
+    if(dataFile instanceof IMSRawDataFile ims) {
+      try {
+        final CCSCalibration ccsCal = WatersImsCalibrationReader.readCalibrationFile(
+            rawFolder);
+        ims.setCCSCalibration(ccsCal);
+      } catch (RuntimeException e) {
+        logger.info("No IMS calibration found for IMS file %s".formatted(dataFile.getName()));
+      }
     }
   }
 

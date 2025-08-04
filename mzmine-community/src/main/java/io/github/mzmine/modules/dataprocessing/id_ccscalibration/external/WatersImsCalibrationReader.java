@@ -40,14 +40,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class WatersImsCalibrationReader {
 
-  private WatersImsCalibrationReader() {
-  }
-
-  private static final Logger logger = Logger.getLogger(WatersImsCalibrationReader.class.getName());
-
   public static final String WATERS_MOB_CAL = "mob_cal.csv";
   public static final String WATERS_EXTERN_INF = "_extern.inf";
-
+  private static final Logger logger = Logger.getLogger(WatersImsCalibrationReader.class.getName());
   private static final Pattern coefficientPattern = Pattern.compile(
       "(\\*\\sCoefficient:\\s)(\\d+.\\d+)");
   private static final Pattern exponentPattern = Pattern.compile("(\\*\\sExponent:\\s)(\\d+.\\d+)");
@@ -59,6 +54,8 @@ public class WatersImsCalibrationReader {
       "(Transfer.EDCCoefficientLow.Setting)(\\s+)(\\d+.\\d+)");
   private static final Pattern edcHighPattern = Pattern.compile(
       "(Transfer.EDCCoefficientHigh.Setting)(\\s+)(\\d+.\\d+)");
+  private WatersImsCalibrationReader() {
+  }
 
   public static CCSCalibration readCalibrationFile(@NotNull final File file)
       throws RuntimeException {
@@ -153,8 +150,8 @@ public class WatersImsCalibrationReader {
   }
 
   /**
-   * Finds the calibration file from a file path. The path can be the .d directory, the AcqData
-   * directory or the OverrideImsCal.xml.
+   * Finds the calibration file from a file path. The path can be the .raw directory or the
+   * mob_cal.csv.
    *
    * @param file The initial file path.
    * @return The path to the OverrideImsCal.xml.
