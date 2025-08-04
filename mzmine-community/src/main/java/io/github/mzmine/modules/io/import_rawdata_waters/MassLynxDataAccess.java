@@ -25,11 +25,11 @@
 package io.github.mzmine.modules.io.import_rawdata_waters;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MetadataOnlyScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
@@ -39,8 +39,11 @@ import io.github.mzmine.datamodel.impl.SimpleImagingScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
+import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
 import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
@@ -61,8 +64,11 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -109,6 +115,15 @@ public class MassLynxDataAccess implements AutoCloseable {
    * contains floats
    */
   private MemorySegment mrmIntensityBuffer = arena.allocate(0);
+
+  /**
+   * contains floats
+   */
+  private MemorySegment analogRtBuffer = arena.allocate(0);
+  /**
+   * contains floats
+   */
+  private MemorySegment analogIntensityBuffer = arena.allocate(0);
 
   public MassLynxDataAccess(@NotNull File rawFolder, boolean centroid,
       @Nullable MemoryMapStorage storage, @Nullable ScanImportProcessorConfig processor) {
@@ -324,13 +339,13 @@ public class MassLynxDataAccess implements AutoCloseable {
     if (isImagingFile && metadata != null) {
       final Coordinates coordinates = metadata.getCoordinates(scanInfo);
       return new SimpleImagingScan(file, scan, scanInfo.msLevel(), scanInfo.rt(), 0, 0,
-          dataPoints.mzs(), dataPoints.intensities(), spectrumType,
-          scanInfo.polarityType(), scanDefinition, getAcquisitionMassRange(function), coordinates);
+          dataPoints.mzs(), dataPoints.intensities(), spectrumType, scanInfo.polarityType(),
+          scanDefinition, getAcquisitionMassRange(function), coordinates);
     } else {
       return new SimpleScan(file, scan, scanInfo.msLevel(), scanInfo.rt(),
           scanInfo.msLevel() > 1 ? scanInfo.msMsInfo(isDdaFile, isImsFile) : null, dataPoints.mzs(),
-          dataPoints.intensities(), spectrumType, scanInfo.polarityType(),
-          scanDefinition, getAcquisitionMassRange(function));
+          dataPoints.intensities(), spectrumType, scanInfo.polarityType(), scanDefinition,
+          getAcquisitionMassRange(function));
     }
 
   }
@@ -396,15 +411,15 @@ public class MassLynxDataAccess implements AutoCloseable {
     if (isImagingFile && metadata != null) {
       final Coordinates coordinates = metadata.getCoordinates(scanInfo);
       frame = new SimpleImagingFrame(file, scan, scanInfo.msLevel(), scanInfo.rt(),
-          dataPoints.mzs(), dataPoints.intensities(), spectrumType,
-          scanInfo.polarityType(), scanDefinition, getAcquisitionMassRange(function),
-          MobilityType.TRAVELING_WAVE, scanInfo.msLevel() > 1 ? Set.of(
-          (IonMobilityMsMsInfo) scanInfo.msMsInfo(isDdaFile, isImsFile)) : null, null);
+          dataPoints.mzs(), dataPoints.intensities(), spectrumType, scanInfo.polarityType(),
+          scanDefinition, getAcquisitionMassRange(function), MobilityType.TRAVELING_WAVE,
+          scanInfo.msLevel() > 1 ? Set.of(
+              (IonMobilityMsMsInfo) scanInfo.msMsInfo(isDdaFile, isImsFile)) : null, null);
       ((SimpleImagingFrame) frame).setCoordinates(coordinates);
     } else {
       frame = new SimpleFrame(file, scan, scanInfo.msLevel(), scanInfo.rt(), dataPoints.mzs(),
-          dataPoints.intensities(), spectrumType, scanInfo.polarityType(),
-          scanDefinition, getAcquisitionMassRange(function), MobilityType.TRAVELING_WAVE,
+          dataPoints.intensities(), spectrumType, scanInfo.polarityType(), scanDefinition,
+          getAcquisitionMassRange(function), MobilityType.TRAVELING_WAVE,
           scanInfo.msLevel() > 1 ? Set.of(
               (IonMobilityMsMsInfo) scanInfo.msMsInfo(isDdaFile, isImsFile)) : null, null);
     }
@@ -533,5 +548,58 @@ public class MassLynxDataAccess implements AutoCloseable {
 
   public boolean isImagingFile() {
     return isImagingFile;
+  }
+
+  public void readAndAddAnalogChannels(RawDataFile file) {
+
+    final Map<String, OtherTimeSeriesDataImpl> unitToData = new HashMap<>();
+    final int bufferSize = 1024;
+    final MemorySegment stringBuffer = arena.allocate(MassLynxLib.C_CHAR, bufferSize);
+
+    int channelCounter = 0;
+    AtomicInteger unitsCounter = new AtomicInteger();
+    for (int channel = 0; channel < MassLynxLib.getAnalogChannelCount(handle); channel++) {
+      int length = MassLynxLib.getAnalogChannelDescription(handle, channel, stringBuffer,
+          bufferSize);
+      final String description = stringBuffer.asSlice(0, length)
+          .getString(0, StandardCharsets.UTF_8);
+
+      length = MassLynxLib.getAnalogChannelUnits(handle, channel, stringBuffer, bufferSize);
+      final String units = stringBuffer.asSlice(0, length).getString(0, StandardCharsets.UTF_8);
+
+      int numDp = MassLynxLib.getAnalogDataPoints(handle, channel, analogRtBuffer,
+          analogIntensityBuffer, (int) analogRtBuffer.byteSize());
+      if (numDp * MassLynxLib.C_FLOAT.byteSize() > analogRtBuffer.byteSize()) {
+        analogRtBuffer = arena.allocate(MassLynxLib.C_FLOAT, 2L * numDp);
+        analogIntensityBuffer = arena.allocate(MassLynxLib.C_FLOAT, 2L * numDp);
+        numDp = MassLynxLib.getAnalogDataPoints(handle, channel, analogRtBuffer,
+            analogIntensityBuffer, (int) analogRtBuffer.byteSize());
+      }
+
+      final OtherTimeSeriesDataImpl timeSeriesData = unitToData.computeIfAbsent(units, u -> {
+        final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
+        final OtherTimeSeriesDataImpl tsd = new OtherTimeSeriesDataImpl(otherFile);
+        otherFile.setOtherTimeSeriesData(tsd);
+        otherFile.setDescription(u + "_Waters_Analog");
+        tsd.setTimeSeriesRangeUnit(u);
+        unitsCounter.getAndIncrement();
+        return tsd;
+      });
+
+      final SimpleOtherTimeSeries trace = new SimpleOtherTimeSeries(storage,
+          analogRtBuffer.asSlice(0, numDp * MassLynxLib.C_FLOAT.byteSize())
+              .toArray(MassLynxLib.C_FLOAT), ConversionUtils.convertFloatsToDoubles(
+          analogIntensityBuffer.asSlice(0, numDp * MassLynxLib.C_FLOAT.byteSize())
+              .toArray(MassLynxLib.C_FLOAT)), channel + "_" + description, timeSeriesData);
+      final OtherFeatureImpl feature = new OtherFeatureImpl(trace);
+      timeSeriesData.addRawTrace(feature);
+      channelCounter++;
+    }
+
+    logger.finest(
+        "Added %d analog channels with %d different units to file %s".formatted(channelCounter,
+            unitsCounter.get(), file.getName()));
+    ((RawDataFileImpl) file).addOtherDataFiles(
+        unitToData.values().stream().map(OtherTimeSeriesDataImpl::getOtherDataFile).toList());
   }
 }

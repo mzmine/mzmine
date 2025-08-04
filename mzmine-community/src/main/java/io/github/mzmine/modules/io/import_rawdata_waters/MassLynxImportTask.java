@@ -150,6 +150,8 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
         return;
       }
 
+      ml.readAndAddAnalogChannels(dataFile);
+
       // scan definition starts with func=xy, so we effectively compare the function number
       // unlikely that the func >= 9
       final List<SimpleScan> sortedScans = scans.stream().sorted(
@@ -169,7 +171,8 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
             continue;
           }
 
-          // let's take a reasonable range of 3 Da
+          // let's take a reasonable range of 3 Da. Use base peak instead of binary search,
+          // there may be noise
           final DataPoint actualPrecursor = ScanUtils.findBasePeak(precursorScan,
               RangeUtils.rangeAround(isolationMz, 3d));
 
@@ -246,7 +249,7 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
       switch (ml.getFunctionType(i)) {
         case MS, IMS_MS -> totalItems += ml.getNumberOfScansInFunction(i);
         case MRM -> totalItems += ml.getNumberOfMrmsInFunction(i);
-        case LOCKMASS -> {
+        case LOCKMASS, NOT_MS -> {
           // skip
         }
       }
