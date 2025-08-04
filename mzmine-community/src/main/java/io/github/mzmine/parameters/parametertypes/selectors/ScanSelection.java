@@ -75,9 +75,9 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
         MsLevelFilter.of(msLevel), null);
   }
 
-  public ScanSelection(Range<Double> scanRTRange, Integer msLevel, PolarityType polarity) {
-    this(null, null, scanRTRange, null, polarity, MassSpectrumType.ANY, MsLevelFilter.of(msLevel),
-        null);
+  public ScanSelection(Integer msLevel, Range<Float> scanRTRange, PolarityType polarity) {
+    this(null, null, scanRTRange == null ? null : RangeUtils.toDoubleRange(scanRTRange), null,
+        polarity, MassSpectrumType.ANY, MsLevelFilter.of(msLevel), null);
   }
 
   public ScanSelection(final int msLevel, final Range<Float> scanRTRange) {
@@ -86,7 +86,7 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
   }
 
   public ScanSelection(int msLevel, @NotNull PolarityType polarity) {
-    this(null, msLevel, polarity);
+    this(msLevel, null, polarity);
   }
 
   public Range<Integer> getScanNumberRange() {

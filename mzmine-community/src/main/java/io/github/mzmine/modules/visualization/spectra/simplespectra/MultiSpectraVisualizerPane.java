@@ -25,9 +25,12 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -250,7 +253,8 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     ModularFeature peak = (ModularFeature) row.getFeature(activeRaw);
 
     // scan selection
-    ScanSelection scanSelection = new ScanSelection(1, activeRaw.getDataRTRange(1));
+    final PolarityType polarity = requireNonNullElse(scan.getPolarity(), PolarityType.ANY);
+    ScanSelection scanSelection = new ScanSelection(1, activeRaw.getDataRTRange(1), polarity);
 
     // mz range
     Range<Double> mzRange = null;
