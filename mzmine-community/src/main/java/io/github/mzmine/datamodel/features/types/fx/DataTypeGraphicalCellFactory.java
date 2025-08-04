@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,7 +47,8 @@ import org.jetbrains.annotations.Nullable;
 public class DataTypeGraphicalCellFactory<S, T extends DataType<S> & GraphicalColumType<S>> implements
     Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
 
-  private static final Logger logger = Logger.getLogger(DataTypeGraphicalCellFactory.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      DataTypeGraphicalCellFactory.class.getName());
   @NotNull
   private final DataType type;
   @Nullable
@@ -91,7 +92,9 @@ public class DataTypeGraphicalCellFactory<S, T extends DataType<S> & GraphicalCo
 
           if (type instanceof GraphicalColumType graphicalColumType) {
             Node node = graphicalColumType.getCellNode(this, param, type, item, raw);
-            getTableColumn().setPrefWidth(graphicalColumType.getColumnWidth());
+            // for graphical types with fixed width, set min width to force columns to open with correct size
+            // consider also setting min width to the actual chart node
+            getTableColumn().setMinWidth(graphicalColumType.getColumnWidth());
             setGraphic(node);
           }
 
