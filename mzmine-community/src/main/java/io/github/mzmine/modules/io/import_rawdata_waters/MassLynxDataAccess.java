@@ -67,6 +67,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
@@ -97,6 +98,8 @@ public class MassLynxDataAccess implements AutoCloseable {
   @Nullable
   private final ImagingMetadata metadata;
   private double[] mobilities = null;
+  @Nullable
+  private Float threshold = null;
 
   /**
    * contains doubles
@@ -601,5 +604,15 @@ public class MassLynxDataAccess implements AutoCloseable {
             unitsCounter.get(), file.getName()));
     ((RawDataFileImpl) file).addOtherDataFiles(
         unitToData.values().stream().map(OtherTimeSeriesDataImpl::getOtherDataFile).toList());
+  }
+
+  @Nullable
+  public Float getThreshold() {
+    return threshold;
+  }
+
+  public void setThreshold(@Nullable Float threshold) {
+    this.threshold = threshold;
+    MassLynxLib.setAbsoluteThreshold(handle, Objects.requireNonNullElse(threshold, -1f));
   }
 }
