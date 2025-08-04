@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.impl.AbstractStorableSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -97,6 +98,12 @@ public class SimpleMassList extends AbstractStorableSpectrum implements MassList
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
 
+    writeSpectralArrays(writer);
+
+    writer.writeEndElement();
+  }
+
+  protected void writeSpectralArrays(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
     writer.writeCharacters(
         ParsingUtils.doubleArrayToString(DataPointUtils.getDoubleBufferAsArray(mzValues)));
@@ -104,8 +111,6 @@ public class SimpleMassList extends AbstractStorableSpectrum implements MassList
     writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
     writer.writeCharacters(
         ParsingUtils.doubleArrayToString(DataPointUtils.getDoubleBufferAsArray(intensityValues)));
-    writer.writeEndElement();
-
     writer.writeEndElement();
   }
 
@@ -115,6 +120,19 @@ public class SimpleMassList extends AbstractStorableSpectrum implements MassList
       throw new IllegalStateException("Wrong element.");
     }
 
+    final SimpleSpectralArrays spec = loadSpectralArrays(reader);
+
+    return new SimpleMassList(storage, spec.mzs(), spec.intensities());
+  }
+
+  /**
+   * Expects to still have the reader at the xml element of this mass list with the local name
+   * {@link #XML_ELEMENT}
+   *
+   * @return the spectral arrays
+   */
+  protected static @NotNull SimpleSpectralArrays loadSpectralArrays(XMLStreamReader reader)
+      throws XMLStreamException {
     double[] intensities = null;
     double[] mzs = null;
 
@@ -133,7 +151,6 @@ public class SimpleMassList extends AbstractStorableSpectrum implements MassList
             intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
       }
     }
-
-    return new SimpleMassList(storage, mzs, intensities);
+    return new SimpleSpectralArrays(mzs, intensities);
   }
 }

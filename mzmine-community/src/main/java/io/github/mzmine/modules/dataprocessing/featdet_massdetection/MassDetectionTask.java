@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.impl.masslist.SimpleFactorMassList;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -116,17 +117,20 @@ public class MassDetectionTask extends AbstractTask {
           // denormalize scan intensities if injection time of trapped instrument was used.
           // this is only done for MS2 because absolute intensities do not matter there
           // MS1 needs to be normalized by injection time, which is already done during data acquisition
-          if (denormalizeMSnScans && scan.getMSLevel() > 1) {
-            ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzPeaks[1],
-                scan.getInjectionTime());
+          final Float injectTimeFactor = scan.getInjectionTime();
+          if (denormalizeMSnScans && scan.getMSLevel() > 1 && injectTimeFactor != null
+              && injectTimeFactor > 0) {
+            ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzPeaks[1], injectTimeFactor);
+            scan.addMassList(new SimpleFactorMassList(getMemoryMapStorage(), mzPeaks[0], mzPeaks[1],
+                injectTimeFactor));
+          } else {
+            // add mass list to scans and frames
+            scan.addMassList(new SimpleMassList(getMemoryMapStorage(), mzPeaks[0], mzPeaks[1]));
           }
-
-          // add mass list to scans and frames
-          scan.addMassList(new SimpleMassList(getMemoryMapStorage(), mzPeaks[0], mzPeaks[1]));
         }
 
         if (scan instanceof SimpleFrame frame && (scanTypes == SelectedScanTypes.MOBLITY_SCANS
-                                                  || scanTypes == SelectedScanTypes.SCANS)) {
+            || scanTypes == SelectedScanTypes.SCANS)) {
           // for ion mobility, detect subscans, too
           frame.getMobilityScanStorage()
               .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector,

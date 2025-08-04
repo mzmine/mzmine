@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.impl.masslist.SimpleFactorMassList;
 import java.util.Arrays;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
@@ -49,10 +50,15 @@ public class MassListDataSet extends AbstractXYDataset implements IntervalXYData
   }
 
   public MassListDataSet(MassList massList, boolean normalize) {
-    this.mzValues = new double[massList.getNumberOfDataPoints()];
-    this.intensityValues = new double[massList.getNumberOfDataPoints()];
-    massList.getMzValues(this.mzValues);
-    massList.getIntensityValues(this.intensityValues);
+    final int size = massList.getNumberOfDataPoints();
+    if (massList instanceof SimpleFactorMassList factorMasses) {
+      this.mzValues = factorMasses.getMzValues(new double[size]);
+      this.intensityValues = factorMasses.getOriginalIntensityValues();
+    } else {
+      this.mzValues = massList.getMzValues(new double[size]);
+      this.intensityValues = massList.getIntensityValues(new double[size]);
+    }
+
     maxIntensity = Arrays.stream(intensityValues).max().orElse(1d);
     this.normalize = normalize;
   }
