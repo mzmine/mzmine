@@ -159,7 +159,7 @@ public class MultiSpectraVisualizerPane extends BorderPane {
   private void nextRaw() {
     logger.log(Level.INFO, "All MS/MS scans window: next raw file");
     int n = indexOfRaw(activeRaw) + 1;
-    while (!setRawFileAndShow(rawFiles.get(n)) && n + 1 < rawFiles.size()) {
+    while (n < rawFiles.size() && !setRawFileAndShow(rawFiles.get(n))) {
       n++;
     }
   }
@@ -170,7 +170,7 @@ public class MultiSpectraVisualizerPane extends BorderPane {
   private void prevRaw() {
     logger.log(Level.INFO, "All MS/MS scans window: previous raw file");
     int n = indexOfRaw(activeRaw) - 1;
-    while (!setRawFileAndShow(rawFiles.get(n)) && n - 1 >= 0) {
+    while (n >= 0 && !setRawFileAndShow(rawFiles.get(n))) {
       n--;
     }
   }
