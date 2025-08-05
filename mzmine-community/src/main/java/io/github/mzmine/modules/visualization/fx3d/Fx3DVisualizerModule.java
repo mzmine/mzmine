@@ -25,8 +25,11 @@
 
 package io.github.mzmine.modules.visualization.fx3d;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.main.MZmineCore;
@@ -78,6 +81,14 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
   public static void setupNew3DVisualizer(final RawDataFile[] dataFiles,
       final Range<Double> mzRange, final Range<Float> rtRange, final List<Feature> featuresToShow) {
 
+    if (featuresToShow.isEmpty()) {
+      return;
+    }
+
+    final Feature firstFeature = featuresToShow.getFirst();
+    final PolarityType polarity = requireNonNullElse(firstFeature.getRepresentativePolarity(),
+        PolarityType.ANY);
+
     final ParameterSet myParameters = MZmineCore.getConfiguration()
         .getModuleParameters(Fx3DVisualizerModule.class);
     final Fx3DVisualizerModule myInstance = MZmineCore.getModuleInstance(
@@ -85,7 +96,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
     myParameters.getParameter(Fx3DVisualizerParameters.dataFiles)
         .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, dataFiles);
     myParameters.getParameter(Fx3DVisualizerParameters.scanSelection)
-        .setValue(new ScanSelection(1, rtRange));
+        .setValue(new ScanSelection(1, rtRange, polarity));
     myParameters.getParameter(Fx3DVisualizerParameters.mzRange).setValue(mzRange);
     myParameters.getParameter(Fx3DVisualizerParameters.features).setValue(featuresToShow);
 
