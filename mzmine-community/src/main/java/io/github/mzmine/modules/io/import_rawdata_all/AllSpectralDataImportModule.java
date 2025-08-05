@@ -58,6 +58,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoImportTaskDelegator;
 import io.github.mzmine.modules.io.import_rawdata_waters.MassLynxImportTask;
+import io.github.mzmine.modules.io.import_rawdata_waters.MassLynxImportTaskDelegator;
 import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportTask;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
@@ -423,8 +424,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
       case WATERS_RAW, WATERS_RAW_IMS ->
-          new MassLynxImportTask(storage, moduleCallDate, file, module, parameters, project,
-              scanProcessorConfig);
+          new MassLynxImportTaskDelegator(storage, moduleCallDate, file, scanProcessorConfig,
+              project, parameters, module);
     };
   }
 
@@ -466,8 +467,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
               scanProcessorConfig);
       case WATERS_RAW, WATERS_RAW_IMS ->
-          new MassLynxImportTask(storage, moduleCallDate, file, module, parameters, project,
-              scanProcessorConfig);
+          new MassLynxImportTaskDelegator(storage, moduleCallDate, file, scanProcessorConfig,
+              project, parameters, module);
       // When adding a new file type, also add to MSConvertImportTask#getSupportedFileTypes()
       case AGILENT_D, AGILENT_D_IMS, SCIEX_WIFF, SCIEX_WIFF2, SHIMADZU_LCD, MBI ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
