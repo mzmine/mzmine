@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -82,7 +82,8 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
       if (rows.isEmpty()) {
         return;
       }
-      final TreeItem<ModularFeatureListRow> rowItem = table.getRoot().getChildren().stream()
+      // use filtered row items to only select actually visible rows
+      final TreeItem<ModularFeatureListRow> rowItem = table.getFilteredRowItems().stream()
           .filter(item -> item.getValue().equals(rows.getFirst())).findFirst().orElse(null);
       if (rowItem == null) {
         return;

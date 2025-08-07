@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -50,27 +51,33 @@ public class FxTextFields {
 
   public static TextField newTextField(@Nullable Integer columnCount,
       @Nullable StringProperty textProperty, @Nullable String tooltip) {
-    return newTextField(columnCount, textProperty, null, tooltip);
+    return newTextField(columnCount, textProperty, (StringProperty) null, tooltip);
   }
 
   public static TextField newTextField(@Nullable Integer columnCount,
       @Nullable StringProperty textProperty, @Nullable String prompt, @Nullable String tooltip) {
+    return newTextField(columnCount, textProperty, new SimpleStringProperty(prompt), tooltip);
+  }
+
+  public static TextField newTextField(@Nullable Integer columnCount,
+      @Nullable StringProperty textProperty, @Nullable StringProperty prompt,
+      @Nullable String tooltip) {
     return applyToField(new TextField(), columnCount, textProperty, prompt, tooltip);
   }
 
-  private static TextField applyToField(@NotNull final TextField field,
+  public static TextField applyToField(@NotNull final TextField field,
       final @Nullable Integer columnCount, final @Nullable StringProperty textProperty,
-      final @Nullable String prompt, final @Nullable String tooltip) {
+      final @Nullable StringProperty prompt, final @Nullable String tooltip) {
     if (textProperty != null) {
       field.textProperty().bindBidirectional(textProperty);
     }
     if (prompt != null) {
-      field.setPromptText(prompt);
+      field.promptTextProperty().bind(prompt);
     }
     if (tooltip != null) {
       field.setTooltip(new Tooltip(tooltip));
     }
-    if (columnCount == null) {
+    if (columnCount != null) {
       field.setPrefColumnCount(columnCount);
     }
     return field;
@@ -79,8 +86,8 @@ public class FxTextFields {
   public static PasswordField newPasswordField(@Nullable Integer columnCount,
       @Nullable Property<StringBuilder> passwordProperty, @Nullable String prompt,
       @Nullable String tooltip) {
-    var passField = (PasswordField) applyToField(new PasswordField(), columnCount, null, prompt,
-        tooltip);
+    var passField = (PasswordField) applyToField(new PasswordField(), columnCount, null,
+        new SimpleStringProperty(prompt), tooltip);
     if (passwordProperty != null) {
       passwordProperty.setValue((StringBuilder) passField.getCharacters());
     }
@@ -218,11 +225,48 @@ public class FxTextFields {
    * @return the same as input
    */
   public static TextField autoGrowFitText(final TextField field) {
+    return autoGrowFitText(field, 8, -1);
+  }
+
+  /**
+   * Auto grows the pref column count property to fit the current text
+   *
+   * @return the same as input
+   */
+  public static TextField autoGrowFitText(final TextField field, final int minColumnCount,
+      final int maxColumnCount) {
     // pref column is wider than one char on windows at least
     // so multiply by factor
-    field.prefColumnCountProperty()
-        .bind(field.textProperty().map(text -> Math.max(text.length() * 0.7, 8)));
+    field.prefColumnCountProperty().bind(field.textProperty().map(text -> {
+      final int columns = (int) Math.max(text.length() * 0.7, minColumnCount);
+      if (maxColumnCount <= 0) {
+        return columns;
+      }
+      return Math.min(maxColumnCount, columns);
+    }));
     return field;
   }
 
+  public static TextField newAutoGrowTextField() {
+    return newAutoGrowTextField(null, null);
+  }
+
+  public static TextField newAutoGrowTextField(@Nullable StringProperty valueProperty,
+      @Nullable String tooltip) {
+    return autoGrowFitText(newTextField(null, valueProperty, tooltip));
+  }
+
+  public static TextField newAutoGrowTextField(@Nullable StringProperty valueProperty,
+      @Nullable String prompt, @Nullable String tooltip, final int minColumnCount,
+      final int maxColumnCount) {
+    return newAutoGrowTextField(valueProperty, new SimpleStringProperty(prompt), tooltip,
+        minColumnCount, maxColumnCount);
+  }
+
+  public static TextField newAutoGrowTextField(@Nullable StringProperty valueProperty,
+      @Nullable StringProperty promptProperty, @Nullable String tooltip, final int minColumnCount,
+      final int maxColumnCount) {
+    return autoGrowFitText(newTextField(null, valueProperty, promptProperty, tooltip),
+        minColumnCount, maxColumnCount);
+  }
 }

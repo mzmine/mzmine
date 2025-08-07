@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ import io.github.mzmine.modules.dataanalysis.pca_new.PCAController;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
@@ -57,7 +58,8 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
 
   public StatsDashboardController(FeatureTableFX table) {
     super(new StatsDashboardModel());
-    this.table = table == null ? new FeatureTableFX() : table;
+    final FxFeatureTableController tableController = new FxFeatureTableController();
+    this.table = table == null ? tableController.getFeatureTable() : table;
     builder = new StatsDashboardViewBuilder(model, table, pcaController, volcanoController,
         boxplotController);
 
@@ -69,7 +71,7 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
   }
 
   public StatsDashboardController() {
-    this(new FeatureTableFX());
+    this(null);
   }
 
 

@@ -109,12 +109,22 @@ public class FxComboBox {
    */
   public static <T> ComboBox<T> newAutoCompleteComboBox(@Nullable String tooltip,
       @Nullable Collection<T> items) {
-    final ComboBox<T> combo = createComboBox(tooltip, items);
+    return newAutoCompleteComboBox(tooltip, items, null);
+  }
+
+  public static <T> ComboBox<T> newAutoCompleteComboBox(@Nullable String tooltip,
+      @Nullable Collection<T> items, @Nullable final Property<T> selectedItem) {
+    final ComboBox<T> combo = createComboBox(tooltip, items, selectedItem);
     // auto grow with input
-    combo.setSkin(new DynamicWidthComboBoxSkin<>(combo));
+    applyAutoGrow(combo);
     combo.setEditable(true);
     // auto complete for items
     FxComboBox.bindAutoCompletion(combo);
+    return combo;
+  }
+
+  public static <T> ComboBox<T> applyAutoGrow(ComboBox<T> combo) {
+    combo.setSkin(new DynamicWidthComboBoxSkin<>(combo));
     return combo;
   }
 
