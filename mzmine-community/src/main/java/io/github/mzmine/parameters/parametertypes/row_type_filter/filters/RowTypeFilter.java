@@ -1,0 +1,74 @@
+/*
+ * Copyright (c) 2004-2025 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
+
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
+import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
+
+public interface RowTypeFilter {
+
+
+  static RowTypeFilter create(RowTypeFilterOption selectedType, MatchingMode matchingMode,
+      String query) {
+    return switch (selectedType) {
+      // numerics
+      case ION_IDENTITY_ID -> new NumericRowTypeFilter(selectedType, matchingMode, query, row -> {
+        final IonIdentity iin = row.getBestIonIdentity();
+        return iin == null ? null : iin.getNetID();
+      });
+      case FRAGMENT_SCANS -> new NumericRowTypeFilter(selectedType, matchingMode, query,
+          row -> row.getAllFragmentScans().size());
+      // simple string matching
+      case ION_TYPE -> new IonTypeRowTypeFilter(selectedType, matchingMode, query);
+      case COMPOUND_NAME ->
+          new AnnotationAsStringRowTypeFilter(selectedType, matchingMode, query, false,
+              FeatureAnnotation::getCompoundName);
+      case FORMULA -> new FormulaRowTypeFilter(selectedType, matchingMode, query);
+      // special cases
+      // allow substructure matching
+      case SMILES, INCHI, SMARTS -> new StructureRowTypeFilter(selectedType, matchingMode, query);
+      // allow matching to special cases like
+      // >C30:>2 or :>2 for more than two double bonds
+      // direct matching to names, classes
+      // TODO implement smarter matching
+      case LIPID -> new SimpleStringRowTypeFilter(selectedType, matchingMode, query, true,
+          row -> row.getLipidMatches().stream().findFirst().orElse(null));
+    };
+  }
+
+  RowTypeFilterOption selectedType();
+
+  MatchingMode matchingMode();
+
+  String query();
+
+  boolean matches(FeatureListRow row);
+
+
+}

@@ -36,6 +36,7 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.IndexRange;
 import java.util.List;
@@ -108,6 +109,10 @@ public class FxFeatureTableFilterMenu extends BorderPane {
         "Select any data type column and filter for substring matches",
         model.getChoicesColumnFilter(), model.selectedTypeColumnFilterProperty());
 
+    final ComboBox<DataType> specificTypeCombo = FxComboBox.newAutoCompleteComboBox(
+        "Select any data type column and filter for substring matches",
+        model.getChoicesColumnFilter(), model.selectedTypeColumnFilterProperty());
+
     final TextField idField = newAutoGrowTextField(model.idFilterProperty(), "1,5-6",
         "Filter for feature row IDs by index ranges defined as a list of single indices and ranges,e.g, 1,5-6 or 1,5,6",
         4, 10);
@@ -172,6 +177,10 @@ public class FxFeatureTableFilterMenu extends BorderPane {
     private final StringProperty rtFilter = new SimpleStringProperty("");
     private final StringProperty mzFilterPrompt = new SimpleStringProperty("");
     private final StringProperty rtFilterPrompt = new SimpleStringProperty("");
+    // specific
+    private final ObservableList<RowTypeFilterOption> specificColumnFilter = FXCollections.observableArrayList();
+    private final ObjectProperty<RowTypeFilterOption> selectedSpecificColumnFilter = new SimpleObjectProperty<>();
+
     // any column
     private final ObservableList<DataType> choicesColumnFilter = FXCollections.observableArrayList();
     private final ObjectProperty<@Nullable DataType> selectedColumnFilter = new SimpleObjectProperty<>();
@@ -179,6 +188,19 @@ public class FxFeatureTableFilterMenu extends BorderPane {
 
     // the actual filter
     private final ReadOnlyObjectWrapper<@Nullable TableFeatureListRowFilter> rowFilter = new ReadOnlyObjectWrapper<>();
+
+
+    public ObservableList<RowTypeFilterOption> getSpecificColumnFilter() {
+      return specificColumnFilter;
+    }
+
+    public RowTypeFilterOption getSelectedSpecificColumnFilter() {
+      return selectedSpecificColumnFilter.get();
+    }
+
+    public ObjectProperty<RowTypeFilterOption> selectedSpecificColumnFilterProperty() {
+      return selectedSpecificColumnFilter;
+    }
 
     public String getIdFilter() {
       return idFilter.get();
