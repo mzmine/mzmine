@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.structures;
 
-public enum StructureInputType {
-  SMILES, INCHI
+import org.openscience.cdk.smarts.SmartsPattern;
+
+public record SmartsMolecularStructure(SmartsPattern pattern, String smarts) {
+
 }
