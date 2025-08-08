@@ -29,14 +29,14 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newAutoGrowTextField;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.gui.DesktopService;
-import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
+import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterComponent;
+import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterParameter;
+import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.RowTypeFilter;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.IndexRange;
 import java.util.List;
@@ -47,11 +47,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.control.ButtonBase;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -78,40 +74,31 @@ public class FxFeatureTableFilterMenu extends BorderPane {
 
     PropertyUtils.onChangeDelayedSubscription(this::updateFilter,
         PropertyUtils.DEFAULT_TEXT_FIELD_DELAY, model.idFilterProperty(), model.mzFilterProperty(),
-        model.rtFilterProperty(), model.selectedTypeColumnFilterProperty(),
-        model.columnFilterProperty());
+        model.rtFilterProperty(), model.specialRowTypeFilterProperty());
   }
 
   private void updateFilter() {
     final String id = model.idFilterProperty().get();
     final String mz = model.mzFilterProperty().get();
     final String rt = model.rtFilterProperty().get();
-    final DataType column = model.selectedTypeColumnFilterProperty().get();
-    final String columnFilter = model.columnFilterProperty().get().trim();
+    final RowTypeFilter rowTypeFilter = model.specialRowTypeFilter.get();
 
     try {
       final List<IndexRange> idRanges = id.isBlank() ? List.of() : IndexRange.parseRanges(id);
       final Range<Double> mzRange = RangeUtils.getSingleValueToCeilDecimalRangeOrRange(mz);
       final Range<Double> rtRange = RangeUtils.getSingleValueToCeilDecimalRangeOrRange(rt);
 
-      final var filter = new TableFeatureListRowFilter(idRanges, mzRange, rtRange, column,
-          columnFilter);
-      model.rowFilter.set(filter);
+      final var filter = new TableFeatureListRowFilter(idRanges, mzRange, rtRange, rowTypeFilter);
+      model.combinedRowFilter.set(filter);
 
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not parse filter: " + e.getMessage(), e);
-      model.rowFilter.set(null);
+      model.combinedRowFilter.set(null);
     }
   }
 
   private FlowPane createFilters() {
-    final ComboBox<DataType> anyTypeCombo = FxComboBox.newAutoCompleteComboBox(
-        "Select any data type column and filter for substring matches",
-        model.getChoicesColumnFilter(), model.selectedTypeColumnFilterProperty());
-
-    final ComboBox<DataType> specificTypeCombo = FxComboBox.newAutoCompleteComboBox(
-        "Select any data type column and filter for substring matches",
-        model.getChoicesColumnFilter(), model.selectedTypeColumnFilterProperty());
+    RowTypeFilterComponent rowTypeFilter = new RowTypeFilterParameter().createEditingComponent();
 
     final TextField idField = newAutoGrowTextField(model.idFilterProperty(), "1,5-6",
         "Filter for feature row IDs by index ranges defined as a list of single indices and ranges,e.g, 1,5-6 or 1,5,6",
@@ -121,8 +108,6 @@ public class FxFeatureTableFilterMenu extends BorderPane {
         model.mzFilterPromptProperty(), "Filter for feature row m/z", 5, 10);
     final TextField rtField = newAutoGrowTextField(model.rtFilterProperty(),
         model.rtFilterPromptProperty(), "Filter for feature row RT", 4, 10);
-    final TextField anyTypeField = newAutoGrowTextField(model.columnFilterProperty(), (String) null,
-        "Filter for other feature row properties like annotations", 4, 10);
 
     // layout
     return FxLayout.newFlowPane( //
@@ -130,8 +115,7 @@ public class FxFeatureTableFilterMenu extends BorderPane {
         newBoldLabel("ID="), idField, //
         newBoldLabel("m/z="), mzField, //
         newBoldLabel("RT="), rtField, //
-        anyTypeCombo, new Label("contains"), anyTypeField //
-    );
+        rowTypeFilter);
   }
 
 
@@ -178,29 +162,10 @@ public class FxFeatureTableFilterMenu extends BorderPane {
     private final StringProperty mzFilterPrompt = new SimpleStringProperty("");
     private final StringProperty rtFilterPrompt = new SimpleStringProperty("");
     // specific
-    private final ObservableList<RowTypeFilterOption> specificColumnFilter = FXCollections.observableArrayList();
-    private final ObjectProperty<RowTypeFilterOption> selectedSpecificColumnFilter = new SimpleObjectProperty<>();
-
-    // any column
-    private final ObservableList<DataType> choicesColumnFilter = FXCollections.observableArrayList();
-    private final ObjectProperty<@Nullable DataType> selectedColumnFilter = new SimpleObjectProperty<>();
-    private final StringProperty columnFilter = new SimpleStringProperty("");
+    private final ObjectProperty<RowTypeFilter> specialRowTypeFilter = new SimpleObjectProperty<>();
 
     // the actual filter
-    private final ReadOnlyObjectWrapper<@Nullable TableFeatureListRowFilter> rowFilter = new ReadOnlyObjectWrapper<>();
-
-
-    public ObservableList<RowTypeFilterOption> getSpecificColumnFilter() {
-      return specificColumnFilter;
-    }
-
-    public RowTypeFilterOption getSelectedSpecificColumnFilter() {
-      return selectedSpecificColumnFilter.get();
-    }
-
-    public ObjectProperty<RowTypeFilterOption> selectedSpecificColumnFilterProperty() {
-      return selectedSpecificColumnFilter;
-    }
+    private final ReadOnlyObjectWrapper<@Nullable TableFeatureListRowFilter> combinedRowFilter = new ReadOnlyObjectWrapper<>();
 
     public String getIdFilter() {
       return idFilter.get();
@@ -238,30 +203,6 @@ public class FxFeatureTableFilterMenu extends BorderPane {
       this.rtFilter.set(rtFilter);
     }
 
-    public ObservableList<DataType> getChoicesColumnFilter() {
-      return choicesColumnFilter;
-    }
-
-    public DataType<?> getSelectedColumnFilter() {
-      return selectedColumnFilter.get();
-    }
-
-    public ObjectProperty<DataType> selectedTypeColumnFilterProperty() {
-      return selectedColumnFilter;
-    }
-
-    public String getColumnFilter() {
-      return columnFilter.get();
-    }
-
-    public StringProperty columnFilterProperty() {
-      return columnFilter;
-    }
-
-    public void setColumnFilter(String columnFilter) {
-      this.columnFilter.set(columnFilter);
-    }
-
     public String getRtFilterPrompt() {
       return rtFilterPrompt.get();
     }
@@ -278,13 +219,20 @@ public class FxFeatureTableFilterMenu extends BorderPane {
       return mzFilterPrompt;
     }
 
-    public TableFeatureListRowFilter getRowFilter() {
-      return rowFilter.get();
+    public @Nullable TableFeatureListRowFilter getCombinedRowFilter() {
+      return combinedRowFilter.get();
     }
 
-    public ReadOnlyObjectWrapper<@Nullable TableFeatureListRowFilter> rowFilterProperty() {
-      return rowFilter;
+    public ReadOnlyObjectWrapper<@Nullable TableFeatureListRowFilter> combinedRowFilterProperty() {
+      return combinedRowFilter;
     }
 
+    public RowTypeFilter getSpecialRowTypeFilter() {
+      return specialRowTypeFilter.get();
+    }
+
+    public ObjectProperty<RowTypeFilter> specialRowTypeFilterProperty() {
+      return specialRowTypeFilter;
+    }
   }
 }

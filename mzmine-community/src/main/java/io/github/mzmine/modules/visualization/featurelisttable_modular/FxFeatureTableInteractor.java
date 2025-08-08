@@ -58,7 +58,7 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
     PropertyUtils.onChange(this::updateFilterPrompts, model.rowsMzRangeProperty(),
         model.rowsRetentionTimeRangeProperty());
 
-    model.getFilterModel().rowFilterProperty().subscribe(this::applyRowsFilter);
+    model.getFilterModel().combinedRowFilterProperty().subscribe(this::applyRowsFilter);
   }
 
   private void applyRowsFilter(@Nullable TableFeatureListRowFilter filter) {

@@ -30,6 +30,8 @@ import io.github.mzmine.javafx.properties.PropertyUtils;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -237,13 +239,17 @@ public class FxTextFields {
       final int maxColumnCount) {
     // pref column is wider than one char on windows at least
     // so multiply by factor
-    field.prefColumnCountProperty().bind(field.textProperty().map(text -> {
-      final int columns = (int) Math.max(text.length() * 0.7, minColumnCount);
+    final IntegerBinding columnsBinding = Bindings.createIntegerBinding(() -> {
+      // both text and prompt
+      final int length = Math.max(field.getText().length(), field.getPromptText().length());
+      final int columns = (int) Math.max(length * 0.71, minColumnCount);
       if (maxColumnCount <= 0) {
         return columns;
       }
       return Math.min(maxColumnCount, columns);
-    }));
+    }, field.textProperty(), field.promptTextProperty());
+
+    field.prefColumnCountProperty().bind(columnsBinding);
     return field;
   }
 

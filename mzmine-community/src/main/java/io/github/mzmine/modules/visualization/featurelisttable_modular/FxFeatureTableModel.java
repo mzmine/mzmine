@@ -34,7 +34,6 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeature
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.Comparator;
 import java.util.function.Predicate;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -91,9 +90,6 @@ public class FxFeatureTableModel {
       rowsMzRange.set(flist.getRowsMZRange());
       rowsRetentionTimeRange.set(flist.getRowsRTRange());
     });
-
-    // reflect row types to filter
-    Bindings.bindContent(filterModel.getChoicesColumnFilter(), rowTypes);
   }
 
   public void setOnOpenParameterDialogAction(Runnable onOpenParameterDialogAction) {

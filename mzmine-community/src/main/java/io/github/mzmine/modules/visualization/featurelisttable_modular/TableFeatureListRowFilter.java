@@ -27,8 +27,7 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.util.StringUtils;
+import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.RowTypeFilter;
 import io.github.mzmine.util.collections.IndexRange;
 import java.util.List;
 import java.util.function.Predicate;
@@ -37,22 +36,20 @@ import java.util.function.Predicate;
  * The filter used in the feature table
  */
 public record TableFeatureListRowFilter(List<IndexRange> idRanges, Range<Double> mzRange,
-                                        Range<Double> rtRange, DataType rowType,
-                                        String rowTypeContainsStr) implements
+                                        Range<Double> rtRange,
+                                        RowTypeFilter rowTypeFilter) implements
     Predicate<FeatureListRow> {
 
   @Override
   public boolean test(FeatureListRow row) {
-    return matchesId(row) && matchesRT(row) && matchesMZ(row) && matcheAnyRowTypeFilter(row);
+    return matchesId(row) && matchesRT(row) && matchesMZ(row) && matchAnyRowTypeFilter(row);
   }
 
-  private boolean matcheAnyRowTypeFilter(FeatureListRow row) {
-    if (rowType == null || StringUtils.isBlank(rowTypeContainsStr)) {
+  private boolean matchAnyRowTypeFilter(FeatureListRow row) {
+    if (rowTypeFilter == null) {
       return true;
     }
-    Object value = row.get(rowType);
-    return value != null && rowType.getFormattedStringCheckType(value).toLowerCase().trim()
-        .contains(rowTypeContainsStr.toLowerCase().trim());
+    return rowTypeFilter.matches(row);
   }
 
   private boolean matchesMZ(FeatureListRow row) {

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.row_type_filter;
 
+import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.parameters.ValuePropertyComponent;
@@ -55,6 +56,8 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
     this.optionCombo = optionCombo;
     this.matchingModeCombo = matchingModeCombo;
     this.queryField = queryField;
+
+    FxTextFields.autoGrowFitText(queryField, 4, 12);
 
     PropertyUtils.onChange(this::updateValue, optionCombo.valueProperty(),
         matchingModeCombo.valueProperty(), queryField.textProperty());
