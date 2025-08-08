@@ -35,6 +35,7 @@ class StructureUtilsTest {
   @Test
   void testEqual() {
     test(true, true, "CCO", "CC(OH)");
+    test(false, false, "CCO", "CCC(OH)");
     // glucose
     test(true, false, "OCC1OC(O)C(O)C(O)C1O", "C([C@H]1[C@@H]([C@H]([C@@H](C(O1)O)O)O)O)O");
   }

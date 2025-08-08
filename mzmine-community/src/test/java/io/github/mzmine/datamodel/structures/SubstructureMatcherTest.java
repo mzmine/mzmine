@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.structures;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,8 +36,7 @@ import org.junit.jupiter.api.Test;
 class SubstructureMatcherTest {
 
   @Test
-  void testSmartsSubstructure2() {
-//    matchSmarts("C1=CC=CC=C1", "[#6]1[#6](=[#8])[#6]1");
+  void testSmarts() {
     assertTrue(matchSmarts("CC(O)C", "[OH]"));
     assertTrue(matchSmarts("CC(O)C", "[#6][OH]"));
     assertTrue(matchSmarts("CC(N)C", "[NH2]"));
@@ -58,54 +58,42 @@ class SubstructureMatcherTest {
   }
 
   @Test
-  void testSmilesSubstructure() {
-    var target = StructureParser.silent()
-        .parseStructure("CCC(C)CC1=CC=C(C=C1)C(C)C(=O)O", StructureInputType.SMILES);
-    var failing = StructureParser.silent()
-        .parseStructure("CC1=CC=C(C=C1)C(C)C(=O)O", StructureInputType.SMILES);
-    var query = StructureParser.silent().parseStructure("CC(C)C", StructureInputType.SMILES);
-
-    final SubstructureMatcher matcher = SubstructureMatcher.fromStructure(query,
+  void testSmilesSub() {
+    testSmiles(true, "CCC(C)CC1=CC=C(C=C1)C(C)C(=O)O", "C(C)C(=O)O",
         StructureMatchMode.SUBSTRUCTURE);
-    assertTrue(matcher.matches(target));
-    assertFalse(matcher.matches(failing));
+    testSmiles(false, "CC1=CC=C(C=C1)C(C)C(=N)O", "C(C)C(=O)O", StructureMatchMode.SUBSTRUCTURE);
   }
 
   @Test
   void testSmilesExact() {
     // should fail
-    var target = StructureParser.silent()
-        .parseStructure("CC(C)CC1=CC=C(C=C1)C(C)C(=O)O", StructureInputType.SMILES);
-    var query = StructureParser.silent().parseStructure("CC(C)C", StructureInputType.SMILES);
-
-    SubstructureMatcher matcher = SubstructureMatcher.fromStructure(query,
+    testSmiles(false, "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O", "CC(C)C", StructureMatchMode.EXACT);
+    testSmiles(true, "CC(OH)", "CCO", StructureMatchMode.EXACT);
+    testSmiles(true, "CCO", "CC(OH)", StructureMatchMode.EXACT);
+    testSmiles(true, "C([C@H]1[C@@H]([C@H]([C@@H](C(O1)O)O)O)O)O", "OCC1OC(O)C(O)C(O)C1O",
         StructureMatchMode.EXACT);
-    assertFalse(matcher.matches(target));
+    testSmiles(true, "OCC1OC(O)C(O)C(O)C1O", "C([C@H]1[C@@H]([C@H]([C@@H](C(O1)O)O)O)O)O",
+        StructureMatchMode.EXACT);
 
-    // second case
-    target = StructureParser.silent().parseStructure("CC(OH)", StructureInputType.SMILES);
-    query = StructureParser.silent().parseStructure("CCO", StructureInputType.SMILES);
+    // this is a substructure but not exact
+    testSmiles(true, "CCC(C)CC1=CC=C(C=C1)C(C)C(=O)O", "C(C)C(=O)O",
+        StructureMatchMode.SUBSTRUCTURE);
+    testSmiles(false, "CCC(C)CC1=CC=C(C=C1)C(C)C(=O)O", "C(C)C(=O)O", StructureMatchMode.EXACT);
+  }
 
-    matcher = SubstructureMatcher.fromStructure(query, StructureMatchMode.EXACT);
-    assertTrue(matcher.matches(target));
+  private static void testSmiles(boolean expected, String smiles, String querySmiles,
+      StructureMatchMode matching) {
+    var target = StructureParser.silent().parseStructure(smiles, StructureInputType.SMILES);
+    var query = StructureParser.silent().parseStructure(querySmiles, StructureInputType.SMILES);
 
-    // glucose stereo matches non-stereo
-    target = StructureParser.silent()
-        .parseStructure("C([C@H]1[C@@H]([C@H]([C@@H](C(O1)O)O)O)O)O", StructureInputType.SMILES);
-    query = StructureParser.silent()
-        .parseStructure("OCC1OC(O)C(O)C(O)C1O", StructureInputType.SMILES);
+    SubstructureMatcher matcher = SubstructureMatcher.fromStructure(query, matching);
+    assertEquals(expected, matcher.matches(target));
 
-    matcher = SubstructureMatcher.fromStructure(query, StructureMatchMode.EXACT);
-    assertTrue(matcher.matches(target));
-
-    // flipped target: non-stereo matches glucose stereo
-    target = StructureParser.silent()
-        .parseStructure("OCC1OC(O)C(O)C(O)C1O", StructureInputType.SMILES);
-    query = StructureParser.silent()
-        .parseStructure("C([C@H]1[C@@H]([C@H]([C@@H](C(O1)O)O)O)O)O", StructureInputType.SMILES);
-
-    matcher = SubstructureMatcher.fromStructure(query, StructureMatchMode.EXACT);
-    assertTrue(matcher.matches(target));
+    if (matching == StructureMatchMode.EXACT && expected) {
+      // also needs to be a substructure match if exact is true
+      matcher = SubstructureMatcher.fromStructure(query, StructureMatchMode.SUBSTRUCTURE);
+      assertTrue(matcher.matches(target));
+    }
   }
 
 
