@@ -50,7 +50,7 @@ public class OptionsStringConverter<T> extends StringConverter<T> {
   @Override
   public String toString(T t) {
     // uses to string not unique ID
-    return t.toString();
+    return t == null ? "" : t.toString();
   }
 
   @Override

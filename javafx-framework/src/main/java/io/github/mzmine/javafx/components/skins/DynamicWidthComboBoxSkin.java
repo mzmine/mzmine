@@ -59,7 +59,7 @@ public class DynamicWidthComboBoxSkin<T> extends ComboBoxListViewSkin<T> {
 
     // default arrow glyph + padding
     // total = insets + text + arrow area
-    return Math.max(leftInset + textW + arrowButtonWidth + rightInset, 80);
+    return Math.max(leftInset + textW + arrowButtonWidth + rightInset, 50);
   }
 
   ComboBox<T> getCombo() {
