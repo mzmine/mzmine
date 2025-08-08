@@ -25,38 +25,37 @@
 
 package io.github.mzmine.parameters.parametertypes.row_type_filter;
 
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
-import io.github.mzmine.datamodel.features.types.annotations.SmartsEductStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.SmartsStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.SmilesIsomericStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
-import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
-import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
-import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
-import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
-import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public enum RowTypeFilterOption implements UniqueIdSupplier {
-  ION_IDENTITY_ID, ION_TYPE, COMPOUND_NAME, FORMULA, SMILES, INCHI, SMARTS, LIPID, FRAGMENT_SCANS;
+  ION_IDENTITY_ID, ION_TYPE, COMPOUND_NAME, IUPAC_NAME, FORMULA, FORMULA_RANGE, SMILES, INCHI, SMARTS, LIPID, FRAGMENT_SCANS;
 
 
   @Override
   public String toString() {
-    return super.toString();
+    return switch (this) {
+      case ION_IDENTITY_ID -> "Ion identity ID";
+      case ION_TYPE -> "Ion type";
+      case COMPOUND_NAME -> "Compound name";
+      case IUPAC_NAME -> "IUPAC name";
+      case FORMULA -> "Formula";
+      case FORMULA_RANGE -> "Formula range";
+      case SMILES -> "SMILES";
+      case INCHI -> "InChI";
+      case SMARTS -> "SMARTS";
+      case LIPID -> "Lipid";
+      case FRAGMENT_SCANS -> "Fragment scans";
+    };
   }
 
   @Override
   public @NotNull String getUniqueID() {
     return switch (this) {
+      case IUPAC_NAME -> "iupac";
       case FORMULA -> "formula";
+      case FORMULA_RANGE -> "formula_range";
       case SMILES -> "smiles";
       case INCHI -> "inchi";
       case SMARTS -> "smarts";
@@ -71,39 +70,43 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
   public boolean isNumeric() {
     return switch (this) {
       case FRAGMENT_SCANS, ION_IDENTITY_ID -> true;
-      case FORMULA, SMILES, INCHI, SMARTS, LIPID, ION_TYPE, COMPOUND_NAME -> false;
+      case FORMULA, SMILES, INCHI, SMARTS, LIPID, ION_TYPE, COMPOUND_NAME, FORMULA_RANGE,
+           IUPAC_NAME -> false;
     };
   }
-
-  public List<MatchingMode> getMatchingModes() {
-    return switch (this) {
-      case ION_IDENTITY_ID, FRAGMENT_SCANS ->
-          List.of(MatchingMode.EQUAL, MatchingMode.GREATER_EQUAL, MatchingMode.LESSER_EQUAL,
-              MatchingMode.NOT_EQUAL);
-      case FORMULA, SMILES, INCHI, SMARTS, LIPID ->
-          List.of(MatchingMode.EQUAL, MatchingMode.GREATER_EQUAL, MatchingMode.NOT_EQUAL);
-      case ION_TYPE, COMPOUND_NAME -> List.of(MatchingMode.EQUAL, MatchingMode.CONTAINS);
-    };
-  }
-
 
   /**
-   * DataTypes that may contain the asked for information
+   * The first element of the list is the preferred {@link MatchingMode}
    *
-   * @return
+   * @return list of matching modes applicable for option
    */
-  public @NotNull List<DataType> getDataTypes() {
+  public List<MatchingMode> getMatchingModes() {
     return switch (this) {
-      case FORMULA -> DataTypes.getAll(FormulaType.class, FormulaListType.class);
-      case SMILES -> DataTypes.getAll(SmilesStructureType.class, SmilesIsomericStructureType.class);
-      case INCHI -> DataTypes.getAll(InChIStructureType.class);
-      case SMARTS -> DataTypes.getAll(SmartsStructureType.class, SmartsEductStructureType.class);
-      case FRAGMENT_SCANS -> DataTypes.getAll(FragmentScanNumbersType.class);
-      case LIPID -> DataTypes.getAll(LipidMatchListType.class);
-      case ION_IDENTITY_ID -> DataTypes.getAll(IonIdentityListType.class);
-      case ION_TYPE ->
-          DataTypes.getAll(IonIdentityListType.class, IonTypeType.class, IonAdductType.class);
-      case COMPOUND_NAME -> DataTypes.getAll(CompoundNameType.class);
+      case ION_IDENTITY_ID ->
+          List.of(MatchingMode.EQUAL, MatchingMode.GREATER_EQUAL, MatchingMode.LESSER_EQUAL,
+              MatchingMode.NOT_EQUAL);
+      case FRAGMENT_SCANS ->
+          List.of(MatchingMode.GREATER_EQUAL, MatchingMode.EQUAL, MatchingMode.LESSER_EQUAL,
+              MatchingMode.NOT_EQUAL);
+      case SMILES, INCHI ->
+          List.of(MatchingMode.CONTAINS, MatchingMode.EQUAL, MatchingMode.NOT_EQUAL);
+      case LIPID -> List.of(MatchingMode.CONTAINS, MatchingMode.EQUAL, MatchingMode.NOT_EQUAL);
+      case SMARTS -> List.of(MatchingMode.CONTAINS);
+      case ION_TYPE, COMPOUND_NAME, IUPAC_NAME ->
+          List.of(MatchingMode.EQUAL, MatchingMode.CONTAINS);
+      case FORMULA ->
+          List.of(MatchingMode.GREATER_EQUAL, MatchingMode.EQUAL, MatchingMode.LESSER_EQUAL);
+      case FORMULA_RANGE -> List.of(MatchingMode.CONTAINS);
+    };
+  }
+
+  /**
+   * Prompt text shown in query text field
+   */
+  public String getQueryPromptText() {
+    return switch (this) {
+      case FORMULA_RANGE -> "C5Br - C9Br3";
+      default -> "";
     };
   }
 }

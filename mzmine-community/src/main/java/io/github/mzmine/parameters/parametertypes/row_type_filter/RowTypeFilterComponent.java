@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.row_type_filter;
 
+import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
@@ -36,6 +37,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,6 +59,12 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
     this.matchingModeCombo = matchingModeCombo;
     this.queryField = queryField;
 
+    FxComboBox.bindAutoCompletion(optionCombo, true);
+    FxComboBox.bindAutoCompletion(matchingModeCombo, true);
+
+    matchingModeCombo.tooltipProperty()
+        .bind(matchingModeCombo.valueProperty().map(mode -> new Tooltip(mode.getDescription())));
+
     FxTextFields.autoGrowFitText(queryField, 4, 12);
 
     PropertyUtils.onChange(this::updateValue, optionCombo.valueProperty(),
@@ -65,11 +73,21 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
     // adjust matching modes to selected type
     optionCombo.valueProperty().subscribe((nv) -> {
       final MatchingMode old = matchingModeCombo.getValue();
+      if (nv == null) {
+        matchingModeCombo.getItems().clear();
+        matchingModeCombo.getSelectionModel().clearSelection();
+        queryField.setPromptText("");
+        return;
+      }
+
+      queryField.setPromptText(nv.getQueryPromptText());
+
       matchingModeCombo.getItems().setAll(nv.getMatchingModes());
       if (old != null && nv.getMatchingModes().contains(old)) {
         matchingModeCombo.setValue(old);
       } else {
-        matchingModeCombo.getSelectionModel().clearSelection();
+        // select first as it is the preferred
+        matchingModeCombo.getSelectionModel().select(0);
       }
     });
 

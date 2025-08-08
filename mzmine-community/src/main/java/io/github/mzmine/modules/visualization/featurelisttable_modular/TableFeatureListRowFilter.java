@@ -31,13 +31,15 @@ import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.RowTyp
 import io.github.mzmine.util.collections.IndexRange;
 import java.util.List;
 import java.util.function.Predicate;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The filter used in the feature table
  */
-public record TableFeatureListRowFilter(List<IndexRange> idRanges, Range<Double> mzRange,
-                                        Range<Double> rtRange,
-                                        RowTypeFilter rowTypeFilter) implements
+public record TableFeatureListRowFilter(@Nullable List<IndexRange> idRanges,
+                                        @Nullable Range<Double> mzRange,
+                                        @Nullable Range<Double> rtRange,
+                                        @Nullable RowTypeFilter rowTypeFilter) implements
     Predicate<FeatureListRow> {
 
   @Override

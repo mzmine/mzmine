@@ -30,12 +30,23 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
+import org.jetbrains.annotations.Nullable;
 
 public interface RowTypeFilter {
 
 
+  /**
+   * @param selectedType
+   * @param matchingMode
+   * @param query        if null then no filter
+   * @return null if query is empty
+   */
+  @Nullable
   static RowTypeFilter create(RowTypeFilterOption selectedType, MatchingMode matchingMode,
-      String query) {
+      @Nullable String query) {
+    if (query == null || query.isBlank()) {
+      return null;
+    }
     return switch (selectedType) {
       // numerics
       case ION_IDENTITY_ID -> new NumericRowTypeFilter(selectedType, matchingMode, query, row -> {
@@ -49,7 +60,11 @@ public interface RowTypeFilter {
       case COMPOUND_NAME ->
           new AnnotationAsStringRowTypeFilter(selectedType, matchingMode, query, false,
               FeatureAnnotation::getCompoundName);
+      case IUPAC_NAME ->
+          new AnnotationAsStringRowTypeFilter(selectedType, matchingMode, query, false,
+              FeatureAnnotation::getIupacName);
       case FORMULA -> new FormulaRowTypeFilter(selectedType, matchingMode, query);
+      case FORMULA_RANGE -> new FormulaRangeRowTypeFilter(selectedType, matchingMode, query);
       // special cases
       // allow substructure matching
       case SMILES, INCHI, SMARTS -> new StructureRowTypeFilter(selectedType, matchingMode, query);

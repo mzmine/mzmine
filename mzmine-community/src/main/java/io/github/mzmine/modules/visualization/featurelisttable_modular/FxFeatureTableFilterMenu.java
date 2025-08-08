@@ -52,6 +52,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.util.Duration;
 import org.jetbrains.annotations.Nullable;
 
 public class FxFeatureTableFilterMenu extends BorderPane {
@@ -72,16 +73,16 @@ public class FxFeatureTableFilterMenu extends BorderPane {
     setCenter(filterFlow);
     setRight(rightButtonMenu);
 
-    PropertyUtils.onChangeDelayedSubscription(this::updateFilter,
-        PropertyUtils.DEFAULT_TEXT_FIELD_DELAY, model.idFilterProperty(), model.mzFilterProperty(),
-        model.rtFilterProperty(), model.specialRowTypeFilterProperty());
+    PropertyUtils.onChangeDelayedSubscription(this::updateFilter, Duration.millis(1000),
+        model.idFilterProperty(), model.mzFilterProperty(), model.rtFilterProperty(),
+        model.specialRowTypeFilterProperty());
   }
 
   private void updateFilter() {
     final String id = model.idFilterProperty().get();
     final String mz = model.mzFilterProperty().get();
     final String rt = model.rtFilterProperty().get();
-    final RowTypeFilter rowTypeFilter = model.specialRowTypeFilter.get();
+    final RowTypeFilter rowTypeFilter = model.getSpecialRowTypeFilter();
 
     try {
       final List<IndexRange> idRanges = id.isBlank() ? List.of() : IndexRange.parseRanges(id);
@@ -99,6 +100,7 @@ public class FxFeatureTableFilterMenu extends BorderPane {
 
   private FlowPane createFilters() {
     RowTypeFilterComponent rowTypeFilter = new RowTypeFilterParameter().createEditingComponent();
+    model.specialRowTypeFilterProperty().bindBidirectional(rowTypeFilter.valueProperty());
 
     final TextField idField = newAutoGrowTextField(model.idFilterProperty(), "1,5-6",
         "Filter for feature row IDs by index ranges defined as a list of single indices and ranges,e.g, 1,5-6 or 1,5,6",
