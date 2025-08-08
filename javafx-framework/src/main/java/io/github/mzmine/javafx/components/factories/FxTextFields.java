@@ -160,8 +160,8 @@ public class FxTextFields {
    * @param options   options in an ObservableValue
    * @return AutoCompletionBinding of the string representation
    */
-  public static AutoCompletionBinding<String> bindAutoCompletion(TextField textField,
-      ObservableValue<List<?>> options) {
+  public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
+      ObservableValue<List<T>> options) {
     return bindAutoCompletion(textField, options::getValue);
   }
 
@@ -173,8 +173,8 @@ public class FxTextFields {
    * @param optionsSupplier options
    * @return AutoCompletionBinding of the string representation
    */
-  public static AutoCompletionBinding<String> bindAutoCompletion(TextField textField,
-      @NotNull final Supplier<List<?>> optionsSupplier) {
+  public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
+      @NotNull final Supplier<List<T>> optionsSupplier) {
 
     return TextFields.bindAutoCompletion(textField, iSuggestionRequest -> {
       final String input = iSuggestionRequest.getUserText();
@@ -190,8 +190,8 @@ public class FxTextFields {
    * @param options   options
    * @return AutoCompletionBinding of the string representation
    */
-  public static AutoCompletionBinding<String> bindAutoCompletion(TextField textField,
-      @Nullable final List<?> options) {
+  public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
+      @Nullable final List<T> options) {
 
     return TextFields.bindAutoCompletion(textField, iSuggestionRequest -> {
       final String input = iSuggestionRequest.getUserText();
@@ -204,16 +204,17 @@ public class FxTextFields {
    * Only matches substrings. If there is only one match that is exactly the input then the result
    * is an empty list to not show suggestions in TextFields
    */
-  public static @NotNull List<String> autoCompleteSubMatch(@Nullable final List<?> options,
+  public static <T> @NotNull List<T> autoCompleteSubMatch(@Nullable final List<T> options,
       final String input) {
     if (options == null || options.isEmpty()) {
       return List.of();
     }
     final String lowerInput = input.toLowerCase();
 
-    final List<String> matches = options.stream().filter(Objects::nonNull).map(Object::toString)
-        .filter(str -> str.toLowerCase().contains(lowerInput)).sorted().toList();
-    if (matches.size() == 1 && matches.getFirst().equals(input)) {
+    // need to return the
+    final List<T> matches = options.stream().filter(Objects::nonNull)
+        .filter(obj -> obj.toString().toLowerCase().trim().contains(lowerInput)).toList();
+    if (matches.size() == 1 && matches.getFirst().toString().trim().equalsIgnoreCase(lowerInput)) {
       // exact input match - return empty
       return List.of();
     }

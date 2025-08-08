@@ -25,6 +25,7 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import io.github.mzmine.javafx.components.converters.OptionsStringConverter;
 import io.github.mzmine.javafx.components.skins.DynamicWidthComboBoxSkin;
 import java.util.Collection;
 import java.util.List;
@@ -115,11 +116,8 @@ public class FxComboBox {
   public static <T> ComboBox<T> newAutoCompleteComboBox(@Nullable String tooltip,
       @Nullable Collection<T> items, @Nullable final Property<T> selectedItem) {
     final ComboBox<T> combo = createComboBox(tooltip, items, selectedItem);
-    // auto grow with input
-    applyAutoGrow(combo);
-    combo.setEditable(true);
     // auto complete for items
-    FxComboBox.bindAutoCompletion(combo);
+    FxComboBox.bindAutoCompletion(combo, true);
     return combo;
   }
 
@@ -134,8 +132,23 @@ public class FxComboBox {
    * @param combo the target for auto-completion. Only works if set to editable
    * @return AutoCompletionBinding of the string representation
    */
-  public static AutoCompletionBinding<String> bindAutoCompletion(ComboBox<?> combo) {
+  public static <T> AutoCompletionBinding<T> bindAutoCompletion(ComboBox<T> combo,
+      boolean autoGrow) {
+    if (autoGrow) {
+      // auto grow with input
+      applyAutoGrow(combo);
+    }
+    getSetEditable(combo);
     return FxTextFields.bindAutoCompletion(combo.getEditor(), combo.getItems());
+  }
+
+  /**
+   * Also sets a {@link OptionsStringConverter}
+   */
+  public static <T> void getSetEditable(ComboBox<T> combo) {
+    combo.setEditable(true);
+    // needs a different converter then!
+    combo.setConverter(new OptionsStringConverter<>(combo));
   }
 
 }
