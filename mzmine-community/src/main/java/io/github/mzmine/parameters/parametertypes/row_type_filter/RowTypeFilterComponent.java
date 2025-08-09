@@ -77,9 +77,11 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
         matchingModeCombo.getItems().clear();
         matchingModeCombo.getSelectionModel().clearSelection();
         queryField.setPromptText("");
+        optionCombo.setTooltip(null);
         return;
       }
 
+      optionCombo.setTooltip(new Tooltip(nv.getDescription()));
       queryField.setPromptText(nv.getQueryPromptText());
 
       matchingModeCombo.getItems().setAll(nv.getMatchingModes());
@@ -98,8 +100,7 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
   private void setToComponents() {
     final RowTypeFilter filter = value.get();
     if (filter == null) {
-      optionCombo.getSelectionModel().clearSelection();
-      matchingModeCombo.getSelectionModel().clearSelection();
+      // do not reset the combos, keep selection
       queryField.setText("");
       return;
     }

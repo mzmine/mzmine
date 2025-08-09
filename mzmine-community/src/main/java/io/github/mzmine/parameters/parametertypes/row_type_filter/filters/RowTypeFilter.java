@@ -72,8 +72,7 @@ public interface RowTypeFilter {
       // >C30:>2 or :>2 for more than two double bonds
       // direct matching to names, classes
       // TODO implement smarter matching
-      case LIPID -> new SimpleStringRowTypeFilter(selectedType, matchingMode, query, true,
-          row -> row.getLipidMatches().stream().findFirst().orElse(null));
+      case LIPID -> new LipidRowTypeFilter(selectedType, matchingMode, query);
     };
   }
 

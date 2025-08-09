@@ -67,6 +67,26 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
     };
   }
 
+  public @NotNull String getDescription() {
+    return switch (this) {
+      case ION_IDENTITY_ID -> "Filter for the ion identity network ID";
+      case ION_TYPE -> "Filter for the ion type (adduct, in-source, and clusters) like [M+H]+";
+      case COMPOUND_NAME -> "Filter for the compound name in any annotation";
+      case IUPAC_NAME -> "Filter for the IUPAC name in any annotation";
+      case FORMULA ->
+          "Filter for the molecular formula like a direct match or minimum match like >C10Br2.";
+      case FORMULA_RANGE ->
+          "Filter for the molecular formula ranges by defining the minimum - maximum formula, e.g., C9Br - Br3 (only defines 9C and 1Br as minimum and 3Br as upper bound).";
+      case SMILES ->
+          "Filter for the SMILES structure or substructure matches, e.g., CNC=O for amides";
+      case INCHI -> "Filter for the InChI structure or substructure matches.";
+      case SMARTS -> "Filter for the SMARTS substructure matches, e.g., [#6]NC=O for amides";
+      case LIPID ->
+          "Filter for the Lipids, e.g., C10:1 or PC18:2_18:0 or define thresholds like: PC>9:>2 for at least 9C and 2 double bonds.";
+      case FRAGMENT_SCANS -> "Filter for the number of fragment scans";
+    };
+  }
+
   public boolean isNumeric() {
     return switch (this) {
       case FRAGMENT_SCANS, ION_IDENTITY_ID -> true;
@@ -90,7 +110,7 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
               MatchingMode.NOT_EQUAL);
       case SMILES, INCHI ->
           List.of(MatchingMode.CONTAINS, MatchingMode.EQUAL, MatchingMode.NOT_EQUAL);
-      case LIPID -> List.of(MatchingMode.CONTAINS, MatchingMode.EQUAL, MatchingMode.NOT_EQUAL);
+      case LIPID -> List.of(MatchingMode.CONTAINS, MatchingMode.EQUAL);
       case SMARTS -> List.of(MatchingMode.CONTAINS);
       case ION_TYPE, COMPOUND_NAME, IUPAC_NAME ->
           List.of(MatchingMode.EQUAL, MatchingMode.CONTAINS);
@@ -106,6 +126,7 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
   public String getQueryPromptText() {
     return switch (this) {
       case FORMULA_RANGE -> "C5Br - C9Br3";
+      case LIPID -> "C10:1 or PC>9:>2";
       default -> "";
     };
   }
