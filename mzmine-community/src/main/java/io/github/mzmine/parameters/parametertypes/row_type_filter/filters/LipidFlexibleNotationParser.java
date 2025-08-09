@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
 
 import static io.github.mzmine.util.maths.MathOperator.EQUAL;
+import static io.github.mzmine.util.maths.MathOperator.GREATER_EQ;
 
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.ILipidChain;
@@ -242,8 +243,8 @@ class LipidFlexibleNotationParser {
    * format is Carbons:double bonds; Oxygens as in 18:2;O2
    */
   @NotNull
-  private static LipidFlexibleChain parseChain(String chain, boolean requireDoubleBondDefinition)
-      throws QueryFormatException {
+  private static LipidFlexibleNotationParser.LipidFlexibleChain parseChain(String chain,
+      boolean requireDoubleBondDefinition) throws QueryFormatException {
     if (chain.isBlank()) {
       throw new IllegalStateException("Should stop before passing blank chain");
     }
@@ -256,10 +257,11 @@ class LipidFlexibleNotationParser {
     }
 
     CountOperator carbons = parseNumber(parts[0]);
+    // if not defined than allow any
     CountOperator doubleBonds =
-        parts.length > 1 ? parseNumber(parts[1]) : new CountOperator(0, EQUAL);
+        parts.length > 1 ? parseNumber(parts[1]) : new CountOperator(0, GREATER_EQ);
     CountOperator oxygens =
-        parts.length > 2 ? parseNumber(parts[2], "o") : new CountOperator(0, EQUAL);
+        parts.length > 2 ? parseNumber(parts[2], "o") : new CountOperator(0, GREATER_EQ);
 
     return new LipidFlexibleChain(carbons, doubleBonds, oxygens);
   }

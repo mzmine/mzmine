@@ -81,8 +81,15 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
           "Filter for the SMILES structure or substructure matches, e.g., CNC=O for amides";
       case INCHI -> "Filter for the InChI structure or substructure matches.";
       case SMARTS -> "Filter for the SMARTS substructure matches, e.g., [#6]NC=O for amides";
-      case LIPID ->
-          "Filter for the Lipids, e.g., C10:1 or PC18:2_18:0 or define thresholds like: PC>9:>2 for at least 9C and 2 double bonds.";
+      case LIPID -> """
+          Filter for the lipid matches from rule-based annotation, e.g., C10:1 or PC18:2_18:0 or define thresholds like: PC>9:>2;>=1 for  >9C, >2 double bonds, and >=1 oxygen.
+          'C' matches all lipids and is used as no class definition.
+          'PC' matches the PC class without other constraints.
+          'PC36:4' matches PC class with a chain total of 36 carbons and 4 double bonds.
+          'PC>20:>=2' matches PC class with a chain total of >20 carbons and at least 2 double bonds.
+          'PC>9:>2;>=1' also requires at least 1 oxygen.
+          'C20:0 - C40:6' matches all lipids within range. Class is matched only for first entry.
+          'C18:2_18:0;1O' matches lipid with specific chains separated by _ or /.""";
       case FRAGMENT_SCANS -> "Filter for the number of fragment scans";
     };
   }
@@ -110,7 +117,7 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
               MatchingMode.NOT_EQUAL);
       case SMILES, INCHI ->
           List.of(MatchingMode.CONTAINS, MatchingMode.EQUAL, MatchingMode.NOT_EQUAL);
-      case LIPID -> List.of(MatchingMode.CONTAINS, MatchingMode.EQUAL);
+      case LIPID -> List.of(MatchingMode.EQUAL);
       case SMARTS -> List.of(MatchingMode.CONTAINS);
       case ION_TYPE, COMPOUND_NAME, IUPAC_NAME ->
           List.of(MatchingMode.EQUAL, MatchingMode.CONTAINS);
@@ -126,7 +133,7 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
   public String getQueryPromptText() {
     return switch (this) {
       case FORMULA_RANGE -> "C5Br - C9Br3";
-      case LIPID -> "C10:1 or PC>9:>2";
+      case LIPID -> "C10:1 or PC>9:>2;>1";
       default -> "";
     };
   }
