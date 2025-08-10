@@ -242,7 +242,10 @@ public class FxTextFields {
     // so multiply by factor
     final IntegerBinding columnsBinding = Bindings.createIntegerBinding(() -> {
       // both text and prompt
-      final int length = Math.max(field.getText().length(), field.getPromptText().length());
+      int length = field.getText().length();
+      if (length == 0) {
+        length = field.getPromptText().length();
+      }
       final int columns = (int) Math.max(length * 0.71, minColumnCount);
       if (maxColumnCount <= 0) {
         return columns;
