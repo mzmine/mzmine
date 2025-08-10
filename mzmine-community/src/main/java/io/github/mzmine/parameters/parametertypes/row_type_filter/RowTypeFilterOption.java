@@ -117,7 +117,7 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
               MatchingMode.NOT_EQUAL);
       case SMILES, INCHI ->
           List.of(MatchingMode.CONTAINS, MatchingMode.EQUAL, MatchingMode.NOT_EQUAL);
-      case LIPID -> List.of(MatchingMode.EQUAL);
+      case LIPID -> List.of(MatchingMode.CONTAINS, MatchingMode.EQUAL);
       case SMARTS -> List.of(MatchingMode.CONTAINS);
       case ION_TYPE, COMPOUND_NAME, IUPAC_NAME ->
           List.of(MatchingMode.EQUAL, MatchingMode.CONTAINS);

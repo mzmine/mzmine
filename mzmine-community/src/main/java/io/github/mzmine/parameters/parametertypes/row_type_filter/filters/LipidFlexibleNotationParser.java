@@ -108,8 +108,12 @@ class LipidFlexibleNotationParser {
 
     @NotNull
     public LipidFlexibleChain withOperator(MathOperator operator) {
-      return new LipidFlexibleChain(carbons.withOperator(operator),
-          doubleBonds.withOperator(operator), oxygens.withOperator(operator));
+      // if zero or more then it was undefined
+      final CountOperator nc = carbons.isGreaterEqZero() ? carbons : carbons.withOperator(operator);
+      final CountOperator ndb =
+          doubleBonds.isGreaterEqZero() ? doubleBonds : doubleBonds.withOperator(operator);
+      final CountOperator no = oxygens.isGreaterEqZero() ? oxygens : oxygens.withOperator(operator);
+      return new LipidFlexibleChain(nc, ndb, no);
     }
 
   }

@@ -42,4 +42,8 @@ public record CountOperator(int value, MathOperator operator) {
   public CountOperator withOperator(MathOperator operator) {
     return new CountOperator(value, operator);
   }
+
+  public boolean isGreaterEqZero() {
+    return operator == MathOperator.GREATER_EQ && value == 0;
+  }
 }

@@ -41,37 +41,50 @@ class LipidRowTypeFilterTest {
    */
   enum LipidNotationType {
     // Lipid class only
-    CLASS_ONLY("PC", "PC30:0", true), CLASS_ONLY2("PC", "PC18:0_22:2", true), ANY_LIPID("C",
-        "PC36:2", true), ANY_LIPID2("C", "PC36:0;0", true), ANY_LIPID3("C", "PC36:0;0O", true),
+
+    CLASS_ONLY("PC", "PC30:0", true), //
+    CLASS_ONLY2("PC", "PC18:0_22:2", true), //
+    ANY_LIPID("C", "PC36:2", true), //
+    ANY_LIPID2("C", "PC36:0;0", true), //
+    ANY_LIPID3("C", "PC36:0;0O", true), //
 
     // Species level notation
-    SPECIES_CARBONS_ONLY("C20", "PC20:1", true), SPECIES_SIMPLE("PC36:2", "PC36:2",
-        true), SPECIES_ANY_CLASS("C36:2", "PC36:2", true), SPECIES_WITH_OXYGEN("PC36:2;1",
-        "PC36:2;1", true),
+    SPECIES_CARBONS_ONLY("C20", "PC20:1", true), //
+    SPECIES_SIMPLE("PC36:2", "PC36:2", true), //
+    SPECIES_ANY_CLASS("C36:2", "PC36:2", true), //
+    SPECIES_WITH_OXYGEN("PC36:2;1", "PC36:2;1", true), //
 
     // Ranges and operators
-    CARBONS_GREATER_THAN("C>20:2", "PC22:2", true), CARBONS_GREATER_EQUAL("C>=20:2", "PC20:2",
-        true), DOUBLE_BONDS_GREATER("C20:>2", "PC20:3", true), DOUBLE_BONDS_LESS_EQUAL("PC36:<=2",
-        "PC36:1", true), OXYGEN_SPECIFICATION("PC36:2;>1", "PC36:2;2", true), COMPLEX_RANGE(
-        "PC>34:>=2;<=1", "PC36:2;1", true),
+    CARBONS_GREATER_THAN("C>20:2", "PC22:2", true), //
+    CARBONS_GREATER_EQUAL("C>=20:2", "PC20:2", true), //
+    DOUBLE_BONDS_GREATER("C20:>2", "PC20:3", true), //
+    DOUBLE_BONDS_LESS_EQUAL("PC36:<=2", "PC36:1", true), //
+    OXYGEN_SPECIFICATION("PC36:2;>1", "PC36:2;2", true), //
+    COMPLEX_RANGE("PC>34:>=2;<=1", "PC36:2;1", true), //
 
     // Molecular species level (chains)
-    MOLECULAR_SPECIES("PC18:2_18:0", "PC18:2_18:0", true), MOLECULAR_SPECIES_SLASH("PC18:2/18:0",
-        "PC18:2_18:0", true), MOLECULAR_SPECIES_ANY_CLASS("C18:2_18:0", "PC18:2_18:0",
-        true), MOLECULAR_SPECIES_OXYGEN("PC18:2;1_18:0", "PC18:2;1_18:0",
-        true), MOLECULAR_CHAINS_RANGE("PC>16:>1_>18:0", "PC18:2_20:0", true),
+    MOLECULAR_SPECIES("PC18:2_18:0", "PC18:2_18:0", true), //
+    MOLECULAR_SPECIES_SLASH("PC18:2/18:0", "PC18:2_18:0", true), //
+    MOLECULAR_SPECIES_ANY_CLASS("C18:2_18:0", "PC18:2_18:0", true), //
+    MOLECULAR_SPECIES_OXYGEN("PC18:2;1_18:0", "PC18:2;1_18:0", true), //
+    MOLECULAR_CHAINS_RANGE("PC>16:>1_>18:0", "PC18:2_20:0", true), //
 
     // Ranges with hyphen
-    RANGE_SPECIES("PC32:0 - PC36:2", "PC34:1", true), RANGE_COMPLEX("C>30:>0 - PC40:6", "PC36:2",
-        true),
+    RANGE_SPECIES("PC32:0 - PC36:2", "PC34:1", true), //
+    RANGE_SPECIES2("PC32:0 - PC34:6", "PC32:0", true), //
+    RANGE_SPECIES3("PC32:0 - PC34:6", "PC34:6", true), //
+    RANGE_SPECIES_WITH_OXYGEN("PC32:0 - PC36:2", "PC34:1;4", true), //
+    RANGE_COMPLEX("C>30:>0 - PC40:6", "PC36:2", true), //
+    RANGE_CLASS("Cer - Cer40:6", "Cer36:2;2O", true), //
+    RANGE_CLASS_MISMATCH("Cer - Cer40:6;1O", "Cer36:2;2O", false), //
 
     // Non-matching examples
-    NON_MATCHING_CLASS("PC", "PE36:2", false), NON_MATCHING_CARBONS("PC34:2", "PC36:2",
-        false), NON_MATCHING_DOUBLE_BONDS("PC36:4", "PC36:2", false), NON_MATCHING_COMPLEX(
-        "PC>36:>2", "PC36:2", false), NON_MATCHING_RANGE("PC32:0 - PC34:6", "PC36:2",
-        false), NON_MATCHING_RANGE2("PC32:0 - PC34:6", "PC32:0", false), NON_MATCHING_RANGE3(
-        "PC32:0 - PC34:6", "PC34:6", false), NON_MATCHING_CHAINS("PC18:2_18:0", "PC16:0_18:2",
-        false);
+    NON_MATCHING_CLASS("PC", "PE36:2", false), //
+    NON_MATCHING_CARBONS("PC34:2", "PC36:2", false), //
+    NON_MATCHING_DOUBLE_BONDS("PC36:4", "PC36:2", false), //
+    NON_MATCHING_COMPLEX("PC>36:>2", "PC36:2", false), //
+    NON_MATCHING_RANGE("PC32:0 - PC34:6", "PC36:2", false), //
+    NON_MATCHING_CHAINS("PC18:2_18:0", "PC16:0_18:2", false); //
 
     private final String filterPattern;
     private final String testLipidName;
