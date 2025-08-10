@@ -38,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.row_type_filter.QueryFormatExc
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.LipidFlexibleNotationParser.LipidFlexibleNotation;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
+import io.github.mzmine.util.maths.MathOperator;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -63,18 +64,33 @@ class LipidRowTypeFilter extends AbstractRowTypeFilter {
   // only present if actual range
   private final @Nullable LipidFlexibleNotation rangeEnd;
 
-  LipidRowTypeFilter(@NotNull RowTypeFilterOption selectedType, @NotNull MatchingMode matchingMode,
-      @NotNull String query) throws QueryFormatException {
-    super(selectedType, matchingMode, query);
+  LipidRowTypeFilter(@NotNull String query) throws QueryFormatException {
+    this(query, MatchingMode.EQUAL);
+  }
+
+  LipidRowTypeFilter(@NotNull String query, @NotNull MatchingMode mode)
+      throws QueryFormatException {
+    // so far we only allow equal
+    super(RowTypeFilterOption.LIPID, MatchingMode.EQUAL, query);
+
+    if (!(mode == MatchingMode.EQUAL || mode == MatchingMode.CONTAINS)) {
+      throw new IllegalArgumentException(
+          "Unsupported matching mode, only supports equals and contains: " + mode);
+    }
 
     // - separates ranges
     String[] ranges = query.split("-");
     if (ranges.length == 1) {
-      rangeStart = parseLipidNotation(ranges[0].trim(), false, false);
+      final LipidFlexibleNotation internal = parseLipidNotation(ranges[0].trim(), false, false);
+      // apply greater equal if mode is contains
+      rangeStart =
+          mode == MatchingMode.EQUAL ? internal : internal.withOperator(MathOperator.GREATER_EQ);
       rangeEnd = null;
     } else if (ranges.length == 2) {
-      rangeStart = parseLipidNotation(ranges[0].trim(), false, false);
-      rangeEnd = parseLipidNotation(ranges[1].trim(), false, false);
+      rangeStart = parseLipidNotation(ranges[0].trim(), false, false).withOperator(
+          MathOperator.GREATER_EQ);
+      rangeEnd = parseLipidNotation(ranges[1].trim(), false, false).withOperator(
+          MathOperator.LESS_EQ);
     } else {
       throw new QueryFormatException(
           "Invalid format. Either enter a class PC, range PC20:2 - PC40:6, or special formats C>20:>2");
@@ -145,7 +161,7 @@ class LipidRowTypeFilter extends AbstractRowTypeFilter {
         || rangeEnd.matchesSpeciesLevel(c, db, oxy));
   }
 
-  private boolean matchesLipidName(String name) {
+  public boolean matchesLipidName(String name) {
     try {
       final LipidFlexibleNotation flexible = parseLipidNotation(name, true, true);
       return matchesFlexible(flexible, true);

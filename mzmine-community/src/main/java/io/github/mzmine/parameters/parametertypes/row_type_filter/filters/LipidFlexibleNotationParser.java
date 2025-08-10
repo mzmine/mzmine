@@ -31,9 +31,12 @@ import static io.github.mzmine.util.maths.MathOperator.GREATER_EQ;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.QueryFormatException;
+import io.github.mzmine.util.maths.CountOperator;
 import io.github.mzmine.util.maths.MathOperator;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 class LipidFlexibleNotationParser {
@@ -76,13 +79,6 @@ class LipidFlexibleNotationParser {
     }
   }
 
-  record CountOperator(int value, MathOperator operator) {
-
-    public boolean matches(int num) {
-      return operator.checkValue(value, num);
-    }
-  }
-
   record LipidFlexibleChain(CountOperator carbons, CountOperator doubleBonds,
                             CountOperator oxygens) {
 
@@ -104,6 +100,18 @@ class LipidFlexibleNotationParser {
     public boolean matches(LipidFlexibleChain other) {
       return matches(other.carbons.value(), other.doubleBonds.value(), other.oxygens.value());
     }
+
+    @Override
+    public @NotNull String toString() {
+      return "%s:%s;%s".formatted(carbons, doubleBonds, oxygens);
+    }
+
+    @NotNull
+    public LipidFlexibleChain withOperator(MathOperator operator) {
+      return new LipidFlexibleChain(carbons.withOperator(operator),
+          doubleBonds.withOperator(operator), oxygens.withOperator(operator));
+    }
+
   }
 
   record LipidFlexibleNotation(LipidFlexibleNotationParser.LipidClass lipidClass,
@@ -113,9 +121,10 @@ class LipidFlexibleNotationParser {
       int totalCarbons = 0;
       int totalDB = 0;
       int totalOxy = 0;
-      MathOperator cOp = null;
-      MathOperator dbOp = null;
-      MathOperator oxyOp = null;
+      // default is greater eq also if there is no chain definition
+      MathOperator cOp = GREATER_EQ;
+      MathOperator dbOp = GREATER_EQ;
+      MathOperator oxyOp = GREATER_EQ;
       for (LipidFlexibleChain chain : chains) {
         totalCarbons += chain.carbons().value();
         cOp = chain.carbons.operator();
@@ -177,8 +186,8 @@ class LipidFlexibleNotationParser {
       }
       if (isSpeciesLevel()) {
         // only sum needs to match
-        return matchesSpeciesLevel(other.totalCount.carbons.value,
-            other.totalCount.doubleBonds.value, other.totalCount.oxygens.value);
+        return matchesSpeciesLevel(other.totalCount.carbons.value(),
+            other.totalCount.doubleBonds.value(), other.totalCount.oxygens.value());
       }
       // molecular species level all chains need matching
       if (chains.size() != other.chains.size()) {
@@ -192,10 +201,37 @@ class LipidFlexibleNotationParser {
       }
       return true;
     }
+
+    @Override
+    public String toString() {
+      final String chainsString = chains.stream().map(Objects::toString)
+          .collect(Collectors.joining("_"));
+      return lipidClass.name() + chainsString;
+    }
+
+    public @NotNull LipidFlexibleNotation withOperator(MathOperator operator) {
+      final List<LipidFlexibleChain> chainsCopy = chains.stream()
+          .map(chain -> chain.withOperator(operator)).toList();
+      return new LipidFlexibleNotation(lipidClass, chainsCopy);
+    }
   }
 
 
   /**
+   * Options for input are many:
+   * <pre>
+   *   - PC only define class
+   *   - C for any lipid class
+   *   - C20 for 20 C and any number of double bonds and oxygen
+   *   - C20:2 for 20 C and 2 double bonds
+   *   - PC20:2 also specifying the lipid class as PC
+   *   - C>20:2 for more than 20 C and exactly 2 double bonds
+   *   - C>20:>2 also more than 2 double bonds
+   *   - PC18:2_18:0 defining chains
+   *   - PC>18:>2_>18:0 defining ranges as well
+   *   - Ranges PC20:2 - PC40:6
+   * </pre>
+   *
    * @param notation                    the name
    * @param requireMoreThanClass        true to force more information than just lipid class. Chains
    *                                    need to be present which means either one sum definition or
@@ -267,14 +303,13 @@ class LipidFlexibleNotationParser {
   }
 
   @NotNull
-  private static LipidFlexibleNotationParser.CountOperator parseNumber(@NotNull String number)
-      throws QueryFormatException {
+  private static CountOperator parseNumber(@NotNull String number) throws QueryFormatException {
     return parseNumber(number, "");
   }
 
   @NotNull
-  private static LipidFlexibleNotationParser.CountOperator parseNumber(@NotNull String number,
-      @NotNull String potentialSuffix) throws QueryFormatException {
+  private static CountOperator parseNumber(@NotNull String number, @NotNull String potentialSuffix)
+      throws QueryFormatException {
     number = number.trim();
     // remove suffix
     if (!potentialSuffix.isEmpty() && number.toLowerCase()
@@ -304,10 +339,10 @@ class LipidFlexibleNotationParser {
     }
 
     try {
-      return new LipidFlexibleNotationParser.CountOperator(Integer.parseInt(number.trim()),
-          operator);
+      return new CountOperator(Integer.parseInt(number.trim()), operator);
     } catch (NumberFormatException e) {
       throw new QueryFormatException("Invalid number format");
     }
   }
+
 }

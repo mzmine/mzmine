@@ -71,7 +71,7 @@ public interface RowTypeFilter {
       // allow matching to special cases like
       // >C30:>2 or :>2 for more than two double bonds
       // direct matching to names, classes
-      case LIPID -> new LipidRowTypeFilter(selectedType, matchingMode, query);
+      case LIPID -> new LipidRowTypeFilter(query, matchingMode);
     };
   }
 
