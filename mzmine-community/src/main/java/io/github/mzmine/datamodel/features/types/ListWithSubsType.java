@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.features.types;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
+import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import java.util.ArrayList;
@@ -65,14 +66,18 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements Sub
     // create column per name
     for (int index = 0; index < getNumberOfSubColumns(); index++) {
       DataType type = subTypes.get(index);
+      if (type instanceof NullColumnType) {
+        continue;
+      }
+
       if (this.equals(type)) {
         // create a special column for this type that actually represents the list of data
         cols.add(DataType.createStandardColumn(type, raw, this, index));
       } else {
         // create all other columns
         var col = type.createColumn(raw, this, index);
-        // override type in CellValueFactory with this parent type
-        cols.add(col);
+          // override type in CellValueFactory with this parent type
+          cols.add(col);
       }
     }
 
