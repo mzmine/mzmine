@@ -60,6 +60,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
+import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
@@ -167,6 +168,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
       "If checked, all rows with MS2 are retained without applying any further filters on them.",
       true);
 
+  public static final OptionalParameter<RowTypeFilterParameter> ROW_TYPE_FILTER = new OptionalParameter<>(
+      new RowTypeFilterParameter());
+
   public static final BooleanParameter KEEP_ALL_ANNOTATED = new BooleanParameter(
       "Never remove annotated rows",
       "If checked, a feature that is annotated will never be removed from the feature list.",
@@ -199,8 +203,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
             // feature properties
             MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE, massDefect, KENDRICK_MASS_DEFECT,
             // identities / annotations
-            HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, MS2_Filter, onlyCorrelatedWithOtherDetectors,
-            KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID},
+            ROW_TYPE_FILTER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, MS2_Filter,
+            onlyCorrelatedWithOtherDetectors, KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
   }
 
@@ -224,7 +228,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
         new ParameterGroup("Feature properties", MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
             massDefect, KENDRICK_MASS_DEFECT), //
         new ParameterGroup("Annotations & MS2 filter", KEEP_ALL_MS2, MS2_Filter, KEEP_ALL_ANNOTATED,
-            HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT), //
+            ROW_TYPE_FILTER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT), //
         new ParameterGroup("Other options", onlyCorrelatedWithOtherDetectors, Reset_ID) //
     );
 
