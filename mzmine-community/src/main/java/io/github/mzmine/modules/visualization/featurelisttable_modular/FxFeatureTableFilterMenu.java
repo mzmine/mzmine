@@ -34,13 +34,14 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.javafx.validation.FxValidation;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterComponent;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterParameter;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.RowTypeFilter;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.collections.IndexRange;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -53,6 +54,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
+import org.controlsfx.validation.ValidationSupport;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FxFeatureTableFilterMenu extends BorderPane {
@@ -85,17 +88,26 @@ public class FxFeatureTableFilterMenu extends BorderPane {
     final RowTypeFilter rowTypeFilter = model.getSpecialRowTypeFilter();
 
     try {
-      final List<IndexRange> idRanges = id.isBlank() ? List.of() : IndexRange.parseRanges(id);
-      final Range<Double> mzRange = RangeUtils.getSingleValueToCeilDecimalRangeOrRange(mz);
-      final Range<Double> rtRange = RangeUtils.getSingleValueToCeilDecimalRangeOrRange(rt);
+      final List<IndexRange> idRanges = parseIndexRanges(id);
+      final Range<Double> mzRange = parseDoubleRange(mz);
+      final Range<Double> rtRange = parseDoubleRange(rt);
 
       final var filter = new TableFeatureListRowFilter(idRanges, mzRange, rtRange, rowTypeFilter);
       model.combinedRowFilter.set(filter);
 
     } catch (Exception e) {
-      logger.log(Level.WARNING, "Could not parse filter: " + e.getMessage(), e);
+      // has validations on field
+//      logger.log(Level.WARNING, "Could not parse filter: " + e.getMessage(), e);
       model.combinedRowFilter.set(null);
     }
+  }
+
+  private static @NotNull List<IndexRange> parseIndexRanges(String id) {
+    return id.isBlank() ? List.of() : IndexRange.parseRanges(id);
+  }
+
+  private static @NotNull Range<Double> parseDoubleRange(String mz) {
+    return RangeUtils.getSingleValueToCeilDecimalRangeOrRange(mz);
   }
 
   private FlowPane createFilters() {
@@ -111,6 +123,8 @@ public class FxFeatureTableFilterMenu extends BorderPane {
     final TextField rtField = newAutoGrowTextField(model.rtFilterProperty(),
         model.rtFilterPromptProperty(), "Filter for feature row RT", 4, 10);
 
+    initValidation(idField, mzField, rtField);
+
     // layout
     return FxLayout.newFlowPane( //
         FxIconUtil.getFontIcon(FxIcons.SEARCH), //
@@ -118,6 +132,21 @@ public class FxFeatureTableFilterMenu extends BorderPane {
         newBoldLabel("m/z="), mzField, //
         newBoldLabel("RT="), rtField, //
         rowTypeFilter);
+  }
+
+  private void initValidation(TextField idField, TextField mzField, TextField rtField) {
+    final ValidationSupport support = FxValidation.newValidationSupport();
+    // blank value is also ok
+    FxValidation.registerOnException(support, idField,
+        s -> StringUtils.isBlank(s) || !parseIndexRanges(s).isEmpty(),
+        s -> "Cannot parse index ranges from " + s);
+
+    FxValidation.registerOnException(support, mzField,
+        s -> StringUtils.isBlank(s) || parseDoubleRange(s) != null,
+        s -> "Cannot parse single value or value range from " + s);
+    FxValidation.registerOnException(support, rtField,
+        s -> StringUtils.isBlank(s) || parseDoubleRange(s) != null,
+        s -> "Cannot parse single value or value range from " + s);
   }
 
 

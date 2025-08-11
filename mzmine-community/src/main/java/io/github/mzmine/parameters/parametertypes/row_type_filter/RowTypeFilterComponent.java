@@ -29,6 +29,7 @@ import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.javafx.validation.FxValidation;
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.ComboComponent;
 import io.github.mzmine.parameters.parametertypes.StringParameterComponent;
@@ -36,6 +37,8 @@ import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.RowTyp
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.geometry.Insets;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
@@ -48,16 +51,20 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
   private final ComboComponent<RowTypeFilterOption> optionCombo;
   private final ComboComponent<MatchingMode> matchingModeCombo;
   private final StringParameterComponent queryField;
+  private final StringProperty queryFormatErrorMessage = new SimpleStringProperty();
 
   public RowTypeFilterComponent(RowTypeFilter value,
       ComboComponent<RowTypeFilterOption> optionCombo,
       ComboComponent<MatchingMode> matchingModeCombo, StringParameterComponent queryField) {
     super(FxLayout.DEFAULT_SPACE, optionCombo, matchingModeCombo, queryField);
+
     FxLayout.applyDefaults(this, Insets.EMPTY);
 
     this.optionCombo = optionCombo;
     this.matchingModeCombo = matchingModeCombo;
     this.queryField = queryField;
+
+    setupValidation(queryField);
 
     FxComboBox.bindAutoCompletion(optionCombo, true);
     FxComboBox.bindAutoCompletion(matchingModeCombo, true);
@@ -97,6 +104,10 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
     this.value.subscribe(nv -> setToComponents());
   }
 
+  private void setupValidation(StringParameterComponent queryField) {
+    FxValidation.registerErrorValidator(queryField, queryFormatErrorMessage);
+  }
+
   private void setToComponents() {
     final RowTypeFilter filter = value.get();
     if (filter == null) {
@@ -117,7 +128,14 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
       value.set(null);
       return;
     }
-    value.set(RowTypeFilter.create(type, mode, query));
+    try {
+      value.set(RowTypeFilter.create(type, mode, query));
+      queryFormatErrorMessage.set(null);
+    } catch (QueryFormatException e) {
+      queryFormatErrorMessage.set(e.getMessage());
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public void setValue(@Nullable RowTypeFilter value) {

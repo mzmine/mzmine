@@ -59,6 +59,20 @@
 .text-field {
   -fx-prompt-text-fill: gray;
 }
+/* controlsfx ValidationSupport uses this */
+.error {
+    -fx-effect: dropshadow(three-pass-box, darkred, 7, 0, 0, 0);
+}
+
+/* controlsfx ValidationSupport uses this */
+.warning {
+    -fx-effect: dropshadow(three-pass-box, gold, 14, 0, 0, 0);
+}
+
+/* controlsfx ValidationSupport uses this */
+.info {
+    -fx-effect: dropshadow(three-pass-box, skyblue, 14, 0, 0, 0);
+}
 
 .popover {
   -fx-background-color: transparent;
