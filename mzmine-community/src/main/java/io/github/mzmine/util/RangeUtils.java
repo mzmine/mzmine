@@ -91,24 +91,17 @@ public class RangeUtils {
    * string is invalid
    */
   @NotNull
-  public static Range<Double> getSingleValueToCeilDecimalRangeOrRange(@NotNull String filterStr) {
+  public static Range<Double> getSingleValueToCeilDecimalRangeOrRange(@NotNull String filterStr)
+      throws IllegalArgumentException {
     // need to remove spaces around the range definition
     filterStr = filterStr.trim().replace(" ", "");
 
     if (filterStr.isEmpty()) { // Empty filter
       return Range.all();
     } else if (filterStr.contains("-") && filterStr.indexOf("-") > 0) { // Filter by range
-      try {
-        return RangeUtils.parseDoubleRange(filterStr);
-      } catch (Exception exception) {
-        return RangeUtils.DOUBLE_NAN_RANGE;
-      }
+      return RangeUtils.parseDoubleRange(filterStr);
     } else { // Filter by single value
-      try {
-        return RangeUtils.getRangeToCeilDecimal(filterStr);
-      } catch (Exception exception) {
-        return RangeUtils.DOUBLE_NAN_RANGE;
-      }
+      return RangeUtils.getRangeToCeilDecimal(filterStr);
     }
   }
 

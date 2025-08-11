@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
+import io.github.mzmine.parameters.parametertypes.row_type_filter.QueryFormatException;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +42,11 @@ final class NumericRowTypeFilter extends AbstractRowTypeFilter {
       @NotNull MatchingMode matchingMode, @NotNull String query,
       @NotNull Function<FeatureListRow, ? extends @Nullable Number> valueFunction) {
     super(selectedType, matchingMode, query);
-    this.queryNumber = Double.parseDouble(query);
+    try {
+      this.queryNumber = Double.parseDouble(query);
+    } catch (NumberFormatException e) {
+      throw new QueryFormatException("Invalid numeric query: " + query + ". ");
+    }
     this.valueFunction = valueFunction;
   }
 
