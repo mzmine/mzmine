@@ -348,6 +348,9 @@ public class MZminePreferences extends SimpleParameterSet {
     dialog.setTitle("mzmine preferences");
     dialog.setFilterText(filterParameters);
 
+    dialog.setWidth(800);
+    dialog.setHeight(800);
+    
     // check
     dialog.showAndWait();
     final ExitCode retVal = dialog.getExitCode();
