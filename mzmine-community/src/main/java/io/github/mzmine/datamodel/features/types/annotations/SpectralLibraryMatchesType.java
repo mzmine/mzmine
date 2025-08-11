@@ -159,6 +159,9 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       case MzPpmDifferenceType _ -> match.getMzPpmError();
       case CommentType _ -> entry.getOrElse(DBEntryField.COMMENT, null);
       case EntryIdType _ -> entry.getOrElse(DBEntryField.ENTRY_ID, null);
+      case CASType _ -> entry.getOrElse(DBEntryField.CAS, null);
+      case InternalIdType _ -> entry.getOrElse(DBEntryField.INTERNAL_ID, null);
+      case JsonStringType _ -> entry.getOrElse(DBEntryField.JSON_STRING, null);
       default -> throw new UnsupportedOperationException(
           "DataType %s is not covered in map".formatted(subType.toString()));
     };
