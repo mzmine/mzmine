@@ -302,4 +302,7 @@ public class FxIconUtil {
     return stack;
   }
 
+  public static Image getIconImage(IconCodeSupplier code) {
+    return fontIconToImage(getFontIcon(code));
+  }
 }

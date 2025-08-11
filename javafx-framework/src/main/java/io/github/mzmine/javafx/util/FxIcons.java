@@ -29,6 +29,9 @@ public enum FxIcons implements IconCodeSupplier {
   // status
   CHECK_CIRCLE, X, X_CIRCLE, EXCLAMATION_TRIANGLE, EXCLAMATION_CIRCLE, INFO_CIRCLE, QUESTION_CIRCLE,
 
+  // filled, for example for overlays
+  X_CIRCLE_FILL, EXCLAMATION_CIRCLE_FILL, INFO_CIRCLE_FILL,
+
   // control flow
   ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, COLUMNS_DOTS, PLUS_CIRCLE, PLUS, ADD, EDIT, QUESTIONMARK, ARROW_IN_RIGHT,
 
@@ -53,9 +56,12 @@ public enum FxIcons implements IconCodeSupplier {
       case CHECK_CIRCLE -> "bi-check2-circle";
       case X -> "bi-x";
       case X_CIRCLE -> "bi-x-circle";
+      case X_CIRCLE_FILL -> "bi-x-circle-fill";
       case INFO_CIRCLE -> "bi-info-circle";
+      case INFO_CIRCLE_FILL -> "bi-info-circle-fill";
       case EXCLAMATION_TRIANGLE -> "bi-exclamation-triangle";
       case EXCLAMATION_CIRCLE -> "bi-exclamation-circle";
+      case EXCLAMATION_CIRCLE_FILL -> "bi-exclamation-circle-fill";
       case LIST -> "bi-list-ul";
       case GROUPED_PARAMETERS -> "bi-menu-app-fill";
       case COLLECTION -> "bi-collection-fill";
