@@ -333,6 +333,10 @@ public final class MZmineCore {
     throw new IllegalStateException("Desktop was not initialized. Requires mzmineDesktop");
   }
 
+  /**
+   * @deprecated replaced by {@link ConfigService#getConfiguration()}
+   */
+  @Deprecated
   @NotNull
   public static MZmineConfiguration getConfiguration() {
     return ConfigService.getConfiguration();

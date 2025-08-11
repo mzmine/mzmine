@@ -25,33 +25,6 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
+public record WindowSettings(double x, double y, double width, double height, boolean maximized) {
 
-public class WindowSettingsParameter extends ParameterSetParameter<WindowSettingsParameters> {
-
-  public WindowSettingsParameter() {
-    super("Window startup state",
-        "Window startup state defines where to place the window on startup.",
-        new WindowSettingsParameters());
-  }
-
-  public WindowSettings createSettings() {
-    return getEmbeddedParameters().createSettings();
-  }
-
-  public void setSettings(WindowSettings settings) {
-    getEmbeddedParameters().setSettings(settings);
-  }
-
-  @Override
-  public WindowSettingsParameter cloneParameter() {
-    final WindowSettingsParameters embeddedParametersClone = (WindowSettingsParameters) getEmbeddedParameters().cloneParameterSet();
-    final WindowSettingsParameter copy = new WindowSettingsParameter();
-    copy.setValue(embeddedParametersClone);
-    return copy;
-  }
-
-  public boolean isAutoUpdate() {
-    return getEmbeddedParameters().getValue(WindowSettingsParameters.autoUpdate);
-  }
 }
