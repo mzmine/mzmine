@@ -25,6 +25,7 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import impl.org.controlsfx.skin.AutoCompletePopup;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import java.util.List;
@@ -176,10 +177,13 @@ public class FxTextFields {
   public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
       @NotNull final Supplier<List<T>> optionsSupplier) {
 
-    return TextFields.bindAutoCompletion(textField, iSuggestionRequest -> {
-      final String input = iSuggestionRequest.getUserText();
-      return autoCompleteSubMatch(optionsSupplier.get(), input);
-    });
+    final AutoCompletionBinding<T> acb = TextFields.bindAutoCompletion(textField,
+        iSuggestionRequest -> {
+          final String input = iSuggestionRequest.getUserText();
+          return autoCompleteSubMatch(optionsSupplier.get(), input);
+        });
+    autoShowAutoComplete(textField, acb);
+    return acb;
   }
 
   /**
@@ -193,9 +197,33 @@ public class FxTextFields {
   public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
       @Nullable final List<T> options) {
 
-    return TextFields.bindAutoCompletion(textField, iSuggestionRequest -> {
-      final String input = iSuggestionRequest.getUserText();
-      return autoCompleteSubMatch(options, input);
+    final AutoCompletionBinding<T> acb = TextFields.bindAutoCompletion(textField,
+        iSuggestionRequest -> {
+          final String input = iSuggestionRequest.getUserText();
+          return autoCompleteSubMatch(options, input);
+        });
+    autoShowAutoComplete(textField, acb);
+
+    return acb;
+  }
+
+  private static <T> void autoShowAutoComplete(TextField textField, AutoCompletionBinding<T> acb) {
+    acb.setVisibleRowCount(25);
+    // Show all suggestions when the user clicks or when field gains focus
+    textField.setOnMouseClicked(_ -> {
+      // auto show completion
+//      final String text = textField.getText();
+//      acb.setUserInput(text == null || text.isBlank() ? "*" : text);
+      // use this to always show full selection on first click
+      acb.setUserInput("*");
+    });
+    textField.focusedProperty().subscribe((_, isNowFocused) -> {
+      final AutoCompletePopup<T> pop = acb.getAutoCompletionPopup();
+      if (isNowFocused && !pop.isShowing()) {
+        // use this to always show full selection on first click
+        acb.setUserInput("*");
+//        pop.show(textField);
+      }
     });
   }
 
@@ -209,6 +237,10 @@ public class FxTextFields {
     if (options == null || options.isEmpty()) {
       return List.of();
     }
+    if (input.equals("*")) {
+      return options;
+    }
+
     final String lowerInput = input.toLowerCase();
 
     // need to return the

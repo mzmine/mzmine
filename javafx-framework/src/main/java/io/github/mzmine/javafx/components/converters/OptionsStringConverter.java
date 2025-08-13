@@ -28,12 +28,19 @@ package io.github.mzmine.javafx.components.converters;
 import java.util.Collection;
 import javafx.scene.control.ComboBox;
 import javafx.util.StringConverter;
+import javafx.util.converter.DefaultStringConverter;
 
 /**
  * Uses the options of a combobox or other list of options to convert to actually selected element.
  * <p>
  * The issue is that if a ComboBox is editable then the text entered is used as value and not the
- * actual value object that may be selected. Need to set the string converter in this case.
+ * actual value object that may be selected. Need to set the string converter in this case to all
+ * ComboBoxes that have values different from type String.
+ * <p>
+ * IMPORTANT: ComboBox of String do not need this converter. But can help to reduce values to
+ * actually available values. For ComboBoxes that can also take free text values like the metadata
+ * group, where values are not known ahead of time, use a different component or use the regular
+ * {@link DefaultStringConverter}.
  */
 public class OptionsStringConverter<T> extends StringConverter<T> {
 
@@ -63,7 +70,9 @@ public class OptionsStringConverter<T> extends StringConverter<T> {
         return option;
       }
     }
-    // might be not an option so return null
+
+    // need to return null here otherwise there will be ClassCastExceptions
+    // in ComboBox.getValue - which will be String instead of T if we return the input s
     return null;
   }
 }

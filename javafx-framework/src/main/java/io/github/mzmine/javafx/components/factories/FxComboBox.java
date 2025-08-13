@@ -37,6 +37,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import javafx.util.converter.DefaultStringConverter;
 import org.controlsfx.control.SearchableComboBox;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.jetbrains.annotations.NotNull;
@@ -138,16 +139,23 @@ public class FxComboBox {
       // auto grow with input
       applyAutoGrow(combo);
     }
-    getSetEditable(combo);
+    setEditable(combo);
     return FxTextFields.bindAutoCompletion(combo.getEditor(), combo.getItems());
   }
 
   /**
-   * Also sets a {@link OptionsStringConverter}
+   * Also sets a {@link OptionsStringConverter} to be sure that values are converted properly. This
+   * is only needed for combobox of type different from String but works also for String ComboBoxes.
+   * At this point we do not know the type of T.
+   *
+   * <p>
+   * IMPORTANT: ComboBox of String do not need this converter. But can help to reduce values to
+   * actually available values. For ComboBoxes that can also take free text values like the metadata
+   * group, where values are not known ahead of time, use a different component or use the regular
+   * {@link DefaultStringConverter}. Or even better use TextField with auto complete.
    */
-  public static <T> void getSetEditable(ComboBox<T> combo) {
+  public static <T> void setEditable(ComboBox<T> combo) {
     combo.setEditable(true);
-    // needs a different converter then!
     combo.setConverter(new OptionsStringConverter<>(combo));
   }
 
