@@ -30,6 +30,7 @@ import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,6 +43,17 @@ public abstract class AbstractPresetStore<T extends Preset> implements PresetSto
   private static final Logger logger = Logger.getLogger(AbstractPresetStore.class.getName());
 
   private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
+
+  public AbstractPresetStore() {
+    currentPresets.addListener((ListChangeListener<? super T>) change -> {
+      if (!change.next()) {
+        return;
+      }
+      for (T removed : change.getRemoved()) {
+        deletePresetFile(removed);
+      }
+    });
+  }
 
   @Override
   public @NotNull ObservableList<T> getCurrentPresets() {

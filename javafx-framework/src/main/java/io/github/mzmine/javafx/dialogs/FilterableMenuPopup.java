@@ -25,10 +25,13 @@
 
 package io.github.mzmine.javafx.dialogs;
 
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Predicate;
 import javafx.beans.property.ObjectProperty;
@@ -49,8 +52,10 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.stage.Popup;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A popup that
@@ -68,38 +73,81 @@ public abstract class FilterableMenuPopup<T> extends Popup {
       Comparator.comparing(Object::toString));
   private final ObjectProperty<Predicate<T>> filterPredicate = new SimpleObjectProperty<>(
       _ -> true);
+  private final Pane top;
 
-  public FilterableMenuPopup(ObservableList<T> items, Node... buttons) {
+  public FilterableMenuPopup(ObservableList<T> items, boolean addRemoveButton, Node... buttons) {
+    super();
     this.originalItems = items;
 
     listView = createListView();
 
     searchField = FxTextFields.newTextField(10, searchText, "Search...");
-    final BorderPane top = createTopMenu(buttons);
+
+    if (addRemoveButton) {
+      buttons = buttons == null ? new Node[1] : Arrays.copyOf(buttons, buttons.length + 1);
+      buttons[buttons.length - 1] = FxButtons.createButton("Remove", FxIcons.X_CIRCLE,
+          "Remove selected preset", this::askRemoveSelected); //
+    }
+
+    top = createTopMenu(buttons);
 
     // property.map somehow did not work
-    searchText.subscribe((_, nv) -> {
-      filterPredicate.setValue(createPredicate(nv));
-    });
+    searchText.subscribe((_, nv) -> filterPredicate.setValue(createPredicate(nv)));
 
     contentPane = FxLayout.newBorderPane(listView);
     contentPane.setTop(top);
     getContent().add(contentPane);
 
+    PropertyUtils.onChange(this::recalcHeight, items, top.heightProperty());
+
     setAutoHide(true);
     initEventListeners();
   }
 
-  private @NotNull BorderPane createTopMenu(Node[] buttons) {
-    final HBox searchBox = new HBox(
+  private void askRemoveSelected() {
+    final T selectedItem = listView.getSelectionModel().getSelectedItem();
+    if (selectedItem == null) {
+      return;
+    }
+    final String name = selectedItem.toString();
+    boolean remove = DialogLoggerUtil.showDialogYesNo("Remove preset %s?".formatted(name),
+        "Are you sure you want to remove " + name);
+    if (remove) {
+      removeItem(selectedItem);
+    }
+  }
+
+  /**
+   * Default just removes from originalItems list. This will not work for unmodifiable lists - then
+   * overwrite
+   */
+  public void removeItem(@Nullable T selectedItem) {
+    if (selectedItem == null) {
+      return;
+    }
+    try {
+      originalItems.remove(selectedItem);
+    } catch (Exception ex) {
+      // silent as this is the most likely unmodifiable list exception
+    }
+  }
+
+  private void recalcHeight() {
+    final double height = top.getHeight();
+    contentPane.setPrefHeight(height + originalItems.size() * 25 + 40);
+  }
+
+  private @NotNull Pane createTopMenu(Node[] buttons) {
+    final Insets insets = new Insets(0, 2, 5, 2);
+    final HBox searchBox = FxLayout.newHBox(insets,
         FxIconUtil.newIconButton(FxIcons.X_CIRCLE, () -> searchText.setValue("")), searchField);
     HBox.setHgrow(searchField, javafx.scene.layout.Priority.ALWAYS);
 
-    final BorderPane top = new BorderPane(searchBox);
+    final var top = new BorderPane(searchBox);
 
     if (buttons.length > 0) {
-      var buttonPane = FxLayout.newFlowPane(Pos.CENTER, Insets.EMPTY, buttons);
-      top.setTop(buttonPane);
+      var buttonPane = FxLayout.newFlowPane(Pos.CENTER, insets, buttons);
+      top.setBottom(buttonPane);
     }
     return top;
   }
@@ -118,6 +166,9 @@ public abstract class FilterableMenuPopup<T> extends Popup {
     return listView;
   }
 
+  public ListView<T> getListView() {
+    return listView;
+  }
 
   public void setComparator(Comparator<T> comparator) {
     this.comparator.set(comparator);
@@ -158,9 +209,9 @@ public abstract class FilterableMenuPopup<T> extends Popup {
       }
     };
     searchField.addEventHandler(KeyEvent.KEY_PRESSED, arrowHandler);
-    ;
+
     // auto close when clicked somewhere
-    focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+    focusedProperty().addListener((_, _, isNowFocused) -> {
       if (!isNowFocused) {
         hide();
       }
@@ -189,6 +240,7 @@ public abstract class FilterableMenuPopup<T> extends Popup {
     }
     searchText.setValue("");
     super.show(node, v, v1);
+
     searchField.requestFocus();
   }
 

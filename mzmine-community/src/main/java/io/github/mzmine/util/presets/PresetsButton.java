@@ -73,7 +73,7 @@ public class PresetsButton<T extends Preset> extends StackPane {
             presetStore::loadPresetsInDialog) //
     };
 
-    popup = new FilterableMenuPopup<>(presetStore.getCurrentPresets(), buttons) {
+    popup = new FilterableMenuPopup<>(presetStore.getCurrentPresets(), true, buttons) {
       @Override
       public void onItemActivated(@NotNull T item) {
         onClick.accept(item);
