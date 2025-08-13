@@ -140,7 +140,7 @@ public class FxComboBox {
       applyAutoGrow(combo);
     }
     setEditable(combo);
-    return FxTextFields.bindAutoCompletion(combo.getEditor(), combo.getItems());
+    return FxTextFields.bindAutoCompletion(combo.getEditor(), false, combo.getItems());
   }
 
   /**

@@ -36,7 +36,6 @@ import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -155,18 +154,6 @@ public class FxTextFields {
   }
 
   /**
-   * Automatically bind auto completion to a text field based on a Observable
-   *
-   * @param textField the target
-   * @param options   options in an ObservableValue
-   * @return AutoCompletionBinding of the string representation
-   */
-  public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
-      ObservableValue<List<T>> options) {
-    return bindAutoCompletion(textField, options::getValue);
-  }
-
-  /**
    * Automatically bind auto completion to a text field based on a list, e.g., ObservableList or
    * static
    *
@@ -176,13 +163,30 @@ public class FxTextFields {
    */
   public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
       @NotNull final Supplier<List<T>> optionsSupplier) {
+    return bindAutoCompletion(textField, true, optionsSupplier);
+  }
+
+  /**
+   * Automatically bind auto completion to a text field based on a list, e.g., ObservableList or
+   * static
+   *
+   * @param textField       the target
+   * @param autoShowOnFocus shows the full list on focus and click
+   * @param optionsSupplier options
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
+      boolean autoShowOnFocus, @NotNull final Supplier<List<T>> optionsSupplier) {
 
     final AutoCompletionBinding<T> acb = TextFields.bindAutoCompletion(textField,
         iSuggestionRequest -> {
           final String input = iSuggestionRequest.getUserText();
           return autoCompleteSubMatch(optionsSupplier.get(), input);
         });
-    autoShowAutoComplete(textField, acb);
+
+    if (autoShowOnFocus) {
+      autoShowAutoComplete(textField, acb);
+    }
     return acb;
   }
 
@@ -196,15 +200,21 @@ public class FxTextFields {
    */
   public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
       @Nullable final List<T> options) {
+    return bindAutoCompletion(textField, true, options);
+  }
 
-    final AutoCompletionBinding<T> acb = TextFields.bindAutoCompletion(textField,
-        iSuggestionRequest -> {
-          final String input = iSuggestionRequest.getUserText();
-          return autoCompleteSubMatch(options, input);
-        });
-    autoShowAutoComplete(textField, acb);
-
-    return acb;
+  /**
+   * Automatically bind auto completion to a text field based on a list, e.g., ObservableList or
+   * static
+   *
+   * @param textField       the target
+   * @param autoShowOnFocus shows the full list on focus and click
+   * @param options         options
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
+      boolean autoShowOnFocus, @Nullable final List<T> options) {
+    return bindAutoCompletion(textField, autoShowOnFocus, () -> options);
   }
 
   private static <T> void autoShowAutoComplete(TextField textField, AutoCompletionBinding<T> acb) {
