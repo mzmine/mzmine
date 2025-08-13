@@ -24,20 +24,29 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_diams2;
 
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import java.util.Map;
 
 public class DiaMs2CorrAdvancedParameters extends SimpleParameterSet {
 
   public static final double DEFAULT_CORR_THRESHOLD = 0.001;
 
   public static final OptionalParameter<PercentParameter> correlationThreshold = new OptionalParameter<>(
-      new PercentParameter("Correlation threshold",
+      new PercentParameter("Relative intensity threshold",
           "Specify a percentage of the maximum intensity below which no further correlation will be performed. The default is 0.1% (0.1% mzmine ≥ 4.8 and 10% mzmine < 4.8)",
           DEFAULT_CORR_THRESHOLD, 0d, 1d));
 
   public DiaMs2CorrAdvancedParameters() {
     super(correlationThreshold);
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var map =  super.getNameParameterMap();
+    map.put("Correlation threshold", getParameter(correlationThreshold));
+    return map;
   }
 }
