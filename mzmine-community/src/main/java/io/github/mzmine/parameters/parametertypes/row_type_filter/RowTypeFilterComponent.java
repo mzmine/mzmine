@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.ComboComponent;
 import io.github.mzmine.parameters.parametertypes.StringParameterComponent;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.RowTypeFilter;
+import io.github.mzmine.util.presets.PresetsButton;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
@@ -56,9 +57,13 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
   public RowTypeFilterComponent(RowTypeFilter value,
       ComboComponent<RowTypeFilterOption> optionCombo,
       ComboComponent<MatchingMode> matchingModeCombo, StringParameterComponent queryField) {
+
     super(FxLayout.DEFAULT_SPACE, optionCombo, matchingModeCombo, queryField);
 
     FxLayout.applyDefaults(this, Insets.EMPTY);
+
+    // manage presets
+    addPresetsMenuButton();
 
     this.optionCombo = optionCombo;
     this.matchingModeCombo = matchingModeCombo;
@@ -72,7 +77,7 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
     matchingModeCombo.tooltipProperty()
         .bind(matchingModeCombo.valueProperty().map(mode -> new Tooltip(mode.getDescription())));
 
-    FxTextFields.autoGrowFitText(queryField, 4, 12);
+    FxTextFields.autoGrowFitText(queryField, 4, 18);
 
     PropertyUtils.onChange(this::updateValue, optionCombo.valueProperty(),
         matchingModeCombo.valueProperty(), queryField.textProperty());
@@ -102,6 +107,14 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
 
     setValue(value);
     this.value.subscribe(nv -> setToComponents());
+  }
+
+  private void addPresetsMenuButton() {
+    final PresetsButton<RowTypeFilterPreset> button = new PresetsButton<>(
+        new RowTypeFilterPresetStore(),
+        name -> value.get() == null ? null : new RowTypeFilterPreset(name, value.get()),
+        preset -> value.set(preset.filter()));
+    getChildren().add(button);
   }
 
   private void setupValidation(StringParameterComponent queryField) {

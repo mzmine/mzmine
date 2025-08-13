@@ -23,40 +23,47 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.utils;
+package io.github.mzmine.util.presets;
 
-import com.fasterxml.jackson.annotation.JsonValue;
+import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import java.util.Optional;
+import java.util.logging.Logger;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface UniqueIdSupplier {
+/**
+ * @param <T>
+ */
+public abstract class AbstractPresetStore<T extends Preset> implements PresetStore<T> {
 
-  /**
-   * This value should not change throughout versions
-   *
-   * @return a stable unique ID that may be used in save and load
-   */
-  @JsonValue // use uniqueID as identifier in json
-  @NotNull String getUniqueID();
+  private static final Logger logger = Logger.getLogger(AbstractPresetStore.class.getName());
 
-  /**
-   * parsing by enum.name and unique ID ignore case
-   *
-   * @param toParse      value to parse
-   * @param values       all values
-   * @param defaultValue the default value to return if not found or input is null
-   */
+  private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
+
+  @Override
+  public @NotNull ObservableList<T> getCurrentPresets() {
+    return currentPresets;
+  }
+
+
   @Nullable
-  static <T extends Enum<?> & UniqueIdSupplier> T parseOrElse(@Nullable String toParse,
-      @NotNull T[] values, @Nullable T defaultValue) {
-    if (toParse == null) {
-      return defaultValue;
+  public T userKeepsOld(T filter) {
+    if (DesktopService.isHeadLess()) {
+      // always overwrite in headless
+      return null;
     }
-    for (final T type : values) {
-      if (type.name().equalsIgnoreCase(toParse) || type.getUniqueID().equalsIgnoreCase(toParse)) {
-        return type;
-      }
+
+    Optional<T> old = getPresetForName(filter);
+    if (old.isEmpty() ||
+        // user wants to keep old
+        !DialogLoggerUtil.showDialogYesNo("Duplicate preset for name: " + filter.name(),
+            "Overwrite preset?")) {
+      return null;
     }
-    return defaultValue;
+
+    return old.get();
   }
 }

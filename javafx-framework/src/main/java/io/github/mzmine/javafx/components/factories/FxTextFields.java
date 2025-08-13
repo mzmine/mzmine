@@ -246,7 +246,7 @@ public class FxTextFields {
       if (length == 0) {
         length = field.getPromptText().length();
       }
-      final int columns = (int) Math.max(length * 0.71, minColumnCount);
+      final int columns = (int) Math.max(length * 0.72, minColumnCount);
       if (maxColumnCount <= 0) {
         return columns;
       }

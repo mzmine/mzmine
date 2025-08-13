@@ -25,6 +25,11 @@
 
 package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
@@ -32,6 +37,8 @@ import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
 import org.jetbrains.annotations.Nullable;
 
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
 public interface RowTypeFilter {
 
 
@@ -41,9 +48,11 @@ public interface RowTypeFilter {
    * @param query        if null then no filter
    * @return null if query is empty
    */
+  @JsonCreator
   @Nullable
-  static RowTypeFilter create(RowTypeFilterOption selectedType, MatchingMode matchingMode,
-      @Nullable String query) {
+  static RowTypeFilter create(@JsonProperty("selectedType") RowTypeFilterOption selectedType,
+      @JsonProperty("matchingMode") MatchingMode matchingMode,
+      @JsonProperty("query") @Nullable String query) {
     if (query == null || query.isBlank()) {
       return null;
     }
@@ -75,10 +84,13 @@ public interface RowTypeFilter {
     };
   }
 
+  @JsonProperty("selectedType")
   RowTypeFilterOption selectedType();
 
+  @JsonProperty("matchingMode")
   MatchingMode matchingMode();
 
+  @JsonProperty("query")
   String query();
 
   boolean matches(FeatureListRow row);

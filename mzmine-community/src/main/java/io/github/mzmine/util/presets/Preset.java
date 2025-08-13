@@ -23,40 +23,44 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.utils;
+package io.github.mzmine.util.presets;
 
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface UniqueIdSupplier {
+public interface Preset extends Comparable<Preset> {
+
+  @NotNull String name();
 
   /**
-   * This value should not change throughout versions
+   * Path safe name
    *
-   * @return a stable unique ID that may be used in save and load
+   * @return name but path save encoding
    */
-  @JsonValue // use uniqueID as identifier in json
-  @NotNull String getUniqueID();
-
-  /**
-   * parsing by enum.name and unique ID ignore case
-   *
-   * @param toParse      value to parse
-   * @param values       all values
-   * @param defaultValue the default value to return if not found or input is null
-   */
-  @Nullable
-  static <T extends Enum<?> & UniqueIdSupplier> T parseOrElse(@Nullable String toParse,
-      @NotNull T[] values, @Nullable T defaultValue) {
-    if (toParse == null) {
-      return defaultValue;
-    }
-    for (final T type : values) {
-      if (type.name().equalsIgnoreCase(toParse) || type.getUniqueID().equalsIgnoreCase(toParse)) {
-        return type;
-      }
-    }
-    return defaultValue;
+  @JsonIgnore
+  default @NotNull String getFileName() {
+    return FileAndPathUtil.safePathEncode(name());
   }
+
+  @Override
+  default int compareTo(@Nullable Preset o) {
+    if (o == null) {
+      return 1;
+    } else if (this == o) {
+      return 0;
+    }
+    return name().compareTo(o.name());
+  }
+
+  /**
+   * @return true if filename or name equal case insensitive
+   */
+  default boolean equalsIgnoreCaseName(Preset preset) {
+    return getFileName().equalsIgnoreCase(preset.getFileName()) || name().equalsIgnoreCase(
+        preset.name());
+  }
+
+  @NotNull <T extends Preset> T withName(String name);
 }

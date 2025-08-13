@@ -23,40 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.utils;
+package io.github.mzmine.util.presets;
 
-import com.fasterxml.jackson.annotation.JsonValue;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public interface UniqueIdSupplier {
+/**
+ * Defines a category which is the first folder in the presets directory
+ */
+public enum PresetCategory implements UniqueIdSupplier {
+  MODULES, FILTERS;
 
-  /**
-   * This value should not change throughout versions
-   *
-   * @return a stable unique ID that may be used in save and load
-   */
-  @JsonValue // use uniqueID as identifier in json
-  @NotNull String getUniqueID();
 
-  /**
-   * parsing by enum.name and unique ID ignore case
-   *
-   * @param toParse      value to parse
-   * @param values       all values
-   * @param defaultValue the default value to return if not found or input is null
-   */
-  @Nullable
-  static <T extends Enum<?> & UniqueIdSupplier> T parseOrElse(@Nullable String toParse,
-      @NotNull T[] values, @Nullable T defaultValue) {
-    if (toParse == null) {
-      return defaultValue;
-    }
-    for (final T type : values) {
-      if (type.name().equalsIgnoreCase(toParse) || type.getUniqueID().equalsIgnoreCase(toParse)) {
-        return type;
-      }
-    }
-    return defaultValue;
+  public @NotNull String getFolderName() {
+    return getUniqueID();
+  }
+
+  @Override
+  public String toString() {
+    return getUniqueID();
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case MODULES -> "modules";
+      case FILTERS -> "filters";
+    };
   }
 }

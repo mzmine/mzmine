@@ -25,13 +25,25 @@
 
 package io.github.mzmine.parameters.parametertypes.row_type_filter;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
 public enum RowTypeFilterOption implements UniqueIdSupplier {
   ION_IDENTITY_ID, ION_TYPE, COMPOUND_NAME, IUPAC_NAME, FORMULA, FORMULA_RANGE, SMILES, INCHI, SMARTS, LIPID, FRAGMENT_SCANS;
 
+  @JsonCreator
+  @Nullable
+  public static RowTypeFilterOption fromUniqueID(String uniqueId) {
+    return UniqueIdSupplier.parseOrElse(uniqueId, values(), null);
+  }
 
   @Override
   public String toString() {

@@ -25,65 +25,32 @@
 
 package io.github.mzmine.parameters.parametertypes.row_type_filter;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
-import java.util.List;
+import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.RowTypeFilter;
+import io.github.mzmine.util.presets.Preset;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
-public enum MatchingMode implements UniqueIdSupplier {
+public record RowTypeFilterPreset(String name, RowTypeFilter filter) implements Preset {
 
-  EQUAL, GREATER_EQUAL, LESSER_EQUAL, NOT_EQUAL, CONTAINS;
-
-  @JsonCreator
-  @Nullable
-  public static MatchingMode fromUniqueID(String uniqueId) {
-    return UniqueIdSupplier.parseOrElse(uniqueId, values(), null);
-  }
-
-
-  public List<MatchingMode> getNumericMatchingModes() {
-    return List.of(EQUAL, GREATER_EQUAL, LESSER_EQUAL, NOT_EQUAL);
-  }
-
-  public List<MatchingMode> getStringMatchingModes() {
-    return List.of(EQUAL, NOT_EQUAL, CONTAINS);
+  public static RowTypeFilterPreset createPreset(String name, RowTypeFilterOption option,
+      MatchingMode mode, String query) {
+    return new RowTypeFilterPreset(name, RowTypeFilter.create(option, mode, query));
   }
 
   @Override
-  public String toString() {
-    return switch (this) {
-      case EQUAL -> "=";
-      case GREATER_EQUAL -> "≥";
-      case LESSER_EQUAL -> "≤";
-      case NOT_EQUAL -> "≠";
-      case CONTAINS -> "⊂";
-    };
-  }
-
-  public String getDescription() {
-    return switch (this) {
-      case EQUAL -> "Equal";
-      case GREATER_EQUAL -> "Greater or equal";
-      case LESSER_EQUAL -> "Lesser or equal";
-      case NOT_EQUAL -> "Not equal";
-      case CONTAINS -> "Contains (e.g., substring, substructure)";
-    };
+  public @NotNull String toString() {
+    return "%s: %s %s %s".formatted(filter.selectedType(), name, filter.matchingMode(),
+        filter.query());
   }
 
   @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case EQUAL -> "equal";
-      case GREATER_EQUAL -> "greater_equal";
-      case LESSER_EQUAL -> "lesser_equal";
-      case NOT_EQUAL -> "not_equal";
-      case CONTAINS -> "contains";
-    };
+  public @NotNull RowTypeFilterPreset withName(String name) {
+    return new RowTypeFilterPreset(name, filter);
   }
+
 }

@@ -29,12 +29,52 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class StringUtils {
+
+  /**
+   * Split input into words and all need to match. Uses object.toString for conversion
+   */
+  public static <T> @NotNull Predicate<T> allWordsSubMatchPredicate(final String input) {
+    return allWordsSubMatchPredicate(input, Object::toString);
+  }
+
+  /**
+   * Split input into words and all need to match
+   */
+  public static <T> @NotNull Predicate<T> allWordsSubMatchPredicate(final String input,
+      Function<T, String> toStringFunction) {
+    if (input == null || input.isBlank()) {
+      return _ -> true;
+    }
+
+    final String[] words = input.toLowerCase().split("\\s+");
+    return obj -> {
+      if (obj == null) {
+        return false;
+      }
+      String text = toStringFunction.apply(obj);
+      if (text == null) {
+        return false;
+      }
+      text = text.toLowerCase();
+      for (String word : words) {
+        if (isBlank(word)) {
+          continue;
+        }
+        if (!text.contains(word.trim())) {
+          return false;
+        }
+      }
+      return true;
+    };
+  }
+
 
   /**
    * @param str           input
