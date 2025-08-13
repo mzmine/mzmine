@@ -60,7 +60,7 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
     super(new StatsDashboardModel());
     final FxFeatureTableController tableController = new FxFeatureTableController();
     this.table = table == null ? tableController.getFeatureTable() : table;
-    builder = new StatsDashboardViewBuilder(model, table, pcaController, volcanoController,
+    builder = new StatsDashboardViewBuilder(model, this.table, pcaController, volcanoController,
         boxplotController);
 
     FxControllerBinding.bindExposedProperties(this, volcanoController);
