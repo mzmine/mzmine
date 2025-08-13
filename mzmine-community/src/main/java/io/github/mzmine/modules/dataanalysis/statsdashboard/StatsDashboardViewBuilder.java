@@ -33,6 +33,7 @@ import io.github.mzmine.modules.dataanalysis.pca_new.PCAController;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.List;
 import javafx.geometry.Orientation;
@@ -49,12 +50,14 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
   private final PCAController pcaController;
   private final VolcanoPlotController volcanoPlotController;
   private final RowsBoxplotController boxplotController;
+  private final FxFeatureTableController tableController;
 
-  public StatsDashboardViewBuilder(StatsDashboardModel model, FeatureTableFX table,
-      PCAController pcaController, VolcanoPlotController controller,
-      RowsBoxplotController boxplotController) {
+  public StatsDashboardViewBuilder(StatsDashboardModel model,
+      FxFeatureTableController tableController, PCAController pcaController,
+      VolcanoPlotController controller, RowsBoxplotController boxplotController) {
     super(model);
-    this.table = table;
+    this.tableController = tableController;
+    this.table = tableController.getFeatureTable();
     this.pcaController = pcaController;
     this.volcanoPlotController = controller;
     this.boxplotController = boxplotController;
@@ -66,7 +69,7 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
     main.setOrientation(Orientation.VERTICAL);
     main.setDividerPositions(0.75);
     final SplitPane stats = buildStatsPane();
-    main.getItems().addAll(stats, table);
+    main.getItems().addAll(stats, tableController.buildView());
 
     initFeatureListListeners();
     return main;

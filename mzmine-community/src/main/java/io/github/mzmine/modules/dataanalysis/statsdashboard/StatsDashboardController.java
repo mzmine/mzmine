@@ -38,7 +38,6 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAController;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotController;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
@@ -53,25 +52,20 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
   private final PCAController pcaController = new PCAController();
   private final VolcanoPlotController volcanoController = new VolcanoPlotController(null);
   private final RowsBoxplotController boxplotController = new RowsBoxplotController();
-  private final FeatureTableFX table;
   private final StatsDashboardViewBuilder builder;
+  private final FxFeatureTableController tableController;
 
-  public StatsDashboardController(FeatureTableFX table) {
+  public StatsDashboardController() {
     super(new StatsDashboardModel());
-    final FxFeatureTableController tableController = new FxFeatureTableController();
-    this.table = table == null ? tableController.getFeatureTable() : table;
-    builder = new StatsDashboardViewBuilder(model, this.table, pcaController, volcanoController,
-        boxplotController);
+    tableController = new FxFeatureTableController();
+    builder = new StatsDashboardViewBuilder(model, tableController, pcaController,
+        volcanoController, boxplotController);
 
     FxControllerBinding.bindExposedProperties(this, volcanoController);
     FxControllerBinding.bindExposedProperties(this, boxplotController);
     FxControllerBinding.bindExposedProperties(this, pcaController);
     pcaController.waitAndUpdate();
     // feature table bindings in view builder
-  }
-
-  public StatsDashboardController() {
-    this(null);
   }
 
 
