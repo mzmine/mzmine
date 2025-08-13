@@ -25,12 +25,15 @@
 
 package io.github.mzmine.util.presets;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.util.files.ExtensionFilters;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.JsonUtils;
+import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
@@ -57,12 +60,18 @@ public abstract class AbstractJsonPresetStore<T extends Preset> extends Abstract
 
   @Override
   public void saveToFile(@NotNull T preset) {
-    final File presetFile = getPresetFile(preset);
+    super.ensureDirectoryExists();
+    final File file = getPresetFile(preset);
 
-    try {
-      JsonUtils.writeToFileReplaceOrThrow(presetFile, preset);
+    final File parentFile = file.getParentFile();
+    if (parentFile != null) {
+      FileAndPathUtil.createDirectory(parentFile);
+    }
+    try (var writer = Files.newBufferedWriter(file.toPath(),
+        WriterOptions.REPLACE.toOpenOption())) {
+      writer.write(getMapper().writeValueAsString(preset));
     } catch (Exception e) {
-      logger.log(Level.WARNING, "Could not save preset to file " + presetFile.getAbsolutePath(), e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -70,10 +79,18 @@ public abstract class AbstractJsonPresetStore<T extends Preset> extends Abstract
   public @Nullable T loadFromFile(@NotNull File file) {
     try {
       // make sure to add all json Presets to the annotation on {@link Preset} class
-      return (T) JsonUtils.MAPPER.readValue(file, Preset.class);
+      return (T) getMapper().readValue(file, Preset.class);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      logger.warning("Preset file is broken: %s\n%s".formatted(file.getName(), e.getMessage()));
+      return null;
     }
+  }
+
+  /**
+   * May overwrite to provide different mapper for serialization control
+   */
+  protected @NotNull ObjectMapper getMapper() {
+    return JsonUtils.MAPPER;
   }
 
 }

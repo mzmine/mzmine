@@ -114,7 +114,7 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
   }
 
   private void addPresetsMenuButton() {
-    final PresetsButton<RowTypeFilterPreset> button = new PresetsButton<>(
+    final PresetsButton<RowTypeFilterPreset> button = new PresetsButton<>(false,
         new RowTypeFilterPresetStore(),
         name -> value.get() == null ? null : new RowTypeFilterPreset(name, value.get()),
         preset -> value.set(preset.filter()));

@@ -47,7 +47,6 @@ public interface PresetStore<T extends Preset> {
     // make sure this exists
     final File dir = FileAndPathUtil.PRESETS_DIR.toPath().resolve(getPresetCategory().getUniqueID())
         .resolve(getPresetGroup()).toFile();
-    FileAndPathUtil.createDirectory(dir);
     return dir;
   }
 
@@ -57,8 +56,9 @@ public interface PresetStore<T extends Preset> {
   }
 
   default File getPresetFile(@NotNull T preset) {
-    return FileAndPathUtil.getRealFilePath(getPresetStoreFilePath(), preset.getFileName(),
-        getFileExtension());
+    final File path = getPresetStoreFilePath();
+    final String name = preset.getFileName();
+    return FileAndPathUtil.getRealFilePath(new File(path, name), getFileExtension());
   }
 
   /**
@@ -110,7 +110,8 @@ public interface PresetStore<T extends Preset> {
    */
   default void loadAllPresetsOrDefaults() {
     final @NotNull File[] files = getAllPresetFiles();
-    List<T> presets = Arrays.stream(files).map(this::loadFromFile).toList();
+    List<T> presets = Arrays.stream(files).map(this::loadFromFile).filter(Objects::nonNull)
+        .toList();
 
     if (presets.isEmpty()) {
       // empty --> create defaults and save
@@ -136,7 +137,7 @@ public interface PresetStore<T extends Preset> {
   default void setAllAndSavePreset(List<T> presets, boolean save, boolean autoOverwrite) {
     final List<T> items = presets.stream()
         .map(preset -> autoOverwrite ? preset : requireNonNullElse(userKeepsOld(preset), preset))
-        .toList();
+        .filter(Objects::nonNull).toList();
 
     getCurrentPresets().setAll(items);
     if (save) {
@@ -198,6 +199,9 @@ public interface PresetStore<T extends Preset> {
    */
   @Nullable
   default T addAndSavePreset(T preset, boolean save, boolean autoOverwrite) {
+    if (preset == null) {
+      return null;
+    }
     if (!autoOverwrite && userKeepsOld(preset) != null) {
       return null;
     }
@@ -225,4 +229,7 @@ public interface PresetStore<T extends Preset> {
         .findAny();
   }
 
+  default void ensureDirectoryExists() {
+    FileAndPathUtil.createDirectory(getPresetStoreFilePath());
+  }
 }

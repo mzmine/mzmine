@@ -438,7 +438,7 @@ public class FileAndPathUtil {
       boolean allowDirectoryMatches, boolean searchSubdir) {
     int maxDepth = searchSubdir ? 10 : 1;
 
-    if (dir == null || !dir.isDirectory()) {
+    if (dir == null || !dir.exists() || !dir.isDirectory()) {
       return new File[0];
     }
 

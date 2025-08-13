@@ -52,17 +52,19 @@ public class PresetsButton<T extends Preset> extends StackPane {
   private final PresetStore<T> presetStore;
   private final Function<String, T> presetNameFactory;
   private final FilterableMenuPopup<T> popup;
+  private final boolean showText;
 
 
-  public PresetsButton(@NotNull PresetStore<T> presetStore,
+  public PresetsButton(boolean showText, @NotNull PresetStore<T> presetStore,
       @NotNull Function<String, T> presetNameFactory, Consumer<T> onClick) {
-    this(FxIcons.GROUPED_PARAMETERS, presetStore, presetNameFactory, onClick);
+    this(showText, FxIcons.GROUPED_PARAMETERS, presetStore, presetNameFactory, onClick);
   }
 
-  public PresetsButton(FxIcons fxIcons, @NotNull PresetStore<T> presetStore,
+  public PresetsButton(boolean showText, FxIcons fxIcons, @NotNull PresetStore<T> presetStore,
       @NotNull Function<String, T> presetNameFactory, Consumer<T> onClick) {
     this.presetStore = presetStore;
     this.presetNameFactory = presetNameFactory;
+    this.showText = showText;
 
     final Button[] buttons = new Button[]{
         FxButtons.createButton("Save preset", FxIcons.SAVE, "Save preset to .mzmine/presets folder",
@@ -86,8 +88,12 @@ public class PresetsButton<T extends Preset> extends StackPane {
     // start by loading all presets or defaults
     presetStore.loadAllPresetsOrDefaults();
 
-    final ButtonBase presetButton = FxIconUtil.newIconButton(fxIcons, "Manage presets");
-    presetButton.setOnAction(_ -> showMenu());
+    final ButtonBase presetButton;
+    if (showText) {
+      presetButton = FxButtons.createButton("Presets", fxIcons, "Manage presets", this::showMenu);
+    } else {
+      presetButton = FxIconUtil.newIconButton(fxIcons, "Manage presets", this::showMenu);
+    }
     getChildren().add(presetButton);
   }
 

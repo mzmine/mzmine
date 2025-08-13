@@ -30,7 +30,9 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.RowTypeFilter;
 import io.github.mzmine.util.presets.Preset;
+import io.github.mzmine.util.presets.PresetCategory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -41,6 +43,7 @@ public record RowTypeFilterPreset(String name, RowTypeFilter filter) implements 
       MatchingMode mode, String query) {
     return new RowTypeFilterPreset(name, RowTypeFilter.create(option, mode, query));
   }
+
 
   @Override
   public @NotNull String toString() {
@@ -53,4 +56,13 @@ public record RowTypeFilterPreset(String name, RowTypeFilter filter) implements 
     return new RowTypeFilterPreset(name, filter);
   }
 
+  @Override
+  public @NotNull PresetCategory presetCategory() {
+    return PresetCategory.FILTERS;
+  }
+
+  @Override
+  public @Nullable String presetGroup() {
+    return RowTypeFilterPresetStore.PRESET_GROUP;
+  }
 }
