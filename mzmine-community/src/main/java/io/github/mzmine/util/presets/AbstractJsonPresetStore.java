@@ -47,7 +47,7 @@ public abstract class AbstractJsonPresetStore<T extends Preset> extends Abstract
 
   @Override
   public @NotNull List<ExtensionFilter> getExtensionFilters() {
-    return List.of(ExtensionFilters.JSON, ExtensionFilters.ALL_FILES);
+    return List.of(ExtensionFilters.MZ_PRESETS, ExtensionFilters.ALL_FILES);
   }
 
   @Override
