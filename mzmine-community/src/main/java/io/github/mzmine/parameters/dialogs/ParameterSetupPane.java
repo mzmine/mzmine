@@ -28,15 +28,19 @@ package io.github.mzmine.parameters.dialogs;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.presets.ModulePreset;
+import io.github.mzmine.modules.presets.ModulePresetStore;
 import io.github.mzmine.parameters.EmbeddedParameterComponentProvider;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionComponent;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComponent;
+import io.github.mzmine.util.presets.PresetsButton;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -100,6 +104,8 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
    */
   protected HelpWindow helpWindow = null;
   private GridPane paramsPane;
+  // null if no presets can be stored
+  private @Nullable ModulePresetStore modulePresetStore;
 
   public ParameterSetupPane(boolean valueCheckRequired, boolean addOkButton,
       ParameterSet parameters) {
@@ -179,6 +185,15 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
       btnOK.setOnAction(e -> callOkButton());
       pnlButtons.getButtons().addAll(btnOK);
       ButtonBar.setButtonData(btnOK, ButtonData.OK_DONE);
+
+      // add presets button if available for this parameterset
+      MZmineCore.getModuleForParameterSetIfUnique(parameterSet).ifPresent(module -> {
+        modulePresetStore = new ModulePresetStore(module, parameterSet);
+        final PresetsButton<ModulePreset> presetButton = new PresetsButton<>(true,
+            modulePresetStore, this::createPreset, this::setPreset);
+        ButtonBar.setButtonData(presetButton, ButtonData.OK_DONE);
+        pnlButtons.getButtons().add(presetButton);
+      });
     }
     if (addCancelButton) {
       btnCancel = new Button("Cancel");
@@ -232,6 +247,20 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
     // do not set min height - this works badly with {@link ModuleOptionsEnumComponent}
     // which then does not scale well or when too small crunches multiple components above each other
     setMinWidth(300.0);
+  }
+
+  private ModulePreset createPreset(String name) {
+    if (modulePresetStore == null) {
+      return null;
+    }
+    ParameterSet clone = parameterSet.cloneParameterSet();
+    clone = updateParameterSetFromComponents(clone);
+    return modulePresetStore.createPreset(name, clone);
+  }
+
+  private void setPreset(ModulePreset preset) {
+    ParameterUtils.copyParameters(preset.parameters(), parameterSet);
+    setParameterValuesToComponents();
   }
 
   /**
@@ -331,6 +360,11 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   public ParameterSet updateParameterSetFromComponents() {
+    return updateParameterSetFromComponents(parameterSet);
+  }
+
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  public ParameterSet updateParameterSetFromComponents(ParameterSet parameterSet) {
     for (Parameter<?> p : parameterSet.getParameters()) {
       if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
         continue;
