@@ -28,6 +28,7 @@ package io.github.mzmine.util.presets;
 import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.io.JsonUtils;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,12 +47,12 @@ public abstract class AbstractJsonPresetStore<T extends Preset> extends Abstract
 
   @Override
   public @NotNull List<ExtensionFilter> getExtensionFilters() {
-    return List.of(ExtensionFilters.JSON);
+    return List.of(ExtensionFilters.JSON, ExtensionFilters.ALL_FILES);
   }
 
   @Override
   public @NotNull String getFileExtension() {
-    return "json";
+    return "mzpresets";
   }
 
   @Override
@@ -68,13 +69,11 @@ public abstract class AbstractJsonPresetStore<T extends Preset> extends Abstract
   @Override
   public @Nullable T loadFromFile(@NotNull File file) {
     try {
-      return JsonUtils.readValueOrThrow(file, getValueClass());
-    } catch (Exception e) {
-      logger.log(Level.WARNING, "Could not load preset from file " + file.getAbsolutePath(), e);
-      return null;
+      // make sure to add all json Presets to the annotation on {@link Preset} class
+      return (T) JsonUtils.MAPPER.readValue(file, Preset.class);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
-
-  protected abstract Class<T> getValueClass();
 
 }

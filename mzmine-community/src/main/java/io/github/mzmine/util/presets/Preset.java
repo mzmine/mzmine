@@ -26,10 +26,28 @@
 package io.github.mzmine.util.presets;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Preset defines presets in mzmine. They may be save in json format with the
+ * {@link AbstractJsonPresetStore} or to other formats with other {@link PresetStore}.
+ * <p>
+ * For jackson useage, add new preset classes to the JsonSubTypes annotation below. This adds a
+ * field into
+ */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME,   // Use a logical name for the type
+    include = JsonTypeInfo.As.PROPERTY,     // Include it as a property in the JSON
+    property = "preset_type_class"          // The property name will be "preset_type_class"
+)
+@JsonSubTypes({
+    // map names to classes
+    @JsonSubTypes.Type(value = RowTypeFilterPreset.class, name = "row_type_filter") //
+})
 public interface Preset extends Comparable<Preset> {
 
   @NotNull String name();
