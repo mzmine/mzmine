@@ -140,7 +140,10 @@ public abstract class FilterableMenuPopup<T> extends Popup {
         hide();
         event.consume();
       } else if (event.getCode() == KeyCode.ENTER) {
-        itemClickedAndHide(listView.getSelectionModel().getSelectedItem());
+        final T selectedItem = listView.getSelectionModel().getSelectedItem();
+        if (selectedItem != null) {
+          itemClickedAndHide(selectedItem);
+        }
         event.consume();
       }
     });

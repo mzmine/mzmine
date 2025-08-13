@@ -40,6 +40,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class RowTypeFilterPresetStore extends AbstractJsonPresetStore<RowTypeFilterPreset> {
 
+  public static final String PRESET_GROUP = "flexible_row_type_filter";
+
   @Override
   public @NotNull PresetCategory getPresetCategory() {
     return PresetCategory.FILTERS;
@@ -47,7 +49,7 @@ public class RowTypeFilterPresetStore extends AbstractJsonPresetStore<RowTypeFil
 
   @Override
   public @NotNull String getPresetGroup() {
-    return "flexible_row_type_filter";
+    return PRESET_GROUP;
   }
 
   @Override

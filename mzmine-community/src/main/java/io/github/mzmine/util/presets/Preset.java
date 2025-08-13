@@ -73,6 +73,17 @@ public interface Preset extends Comparable<Preset> {
   }
 
   /**
+   * a category (category>group) that acts as the first folder in presets directory
+   */
+  @NotNull PresetCategory presetCategory();
+
+
+  /**
+   * The group name (category>group). For modules this is the Module class name.
+   */
+  @Nullable String presetGroup();
+
+  /**
    * @return true if filename or name equal case insensitive
    */
   default boolean equalsIgnoreCaseName(Preset preset) {
