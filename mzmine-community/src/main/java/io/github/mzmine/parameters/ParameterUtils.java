@@ -43,9 +43,11 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
+import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -63,10 +65,14 @@ import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleButton;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 public class ParameterUtils {
 
@@ -540,6 +546,41 @@ public class ParameterUtils {
       param.saveValueToXML(paramElement);
 
     }
+  }
+
+  /**
+   * Creates XML string from parameters
+   *
+   * @param parameterSet
+   * @return
+   */
+  public static String saveValuesToXMLString(ParameterSet parameterSet) {
+    try {
+      final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+          .newDocument();
+      final Element element = document.createElement("step_parameters");
+      document.appendChild(element);
+
+      // Serialize batch queue.
+      parameterSet.saveValuesToXML(element);
+      return XMLUtils.saveToString(document);
+    } catch (Exception exception) {
+      logger.log(Level.SEVERE,
+          "Error while creating XML string for parameter set " + parameterSet.getClass().getName(),
+          exception);
+      return null;
+    }
+  }
+
+  public static void loadValuesFromXMLString(ParameterSet parameterSet, String xml)
+      throws ParserConfigurationException, IOException, SAXException {
+    final Document document = XMLUtils.load(xml);
+    final NodeList stepParameters = document.getElementsByTagName("step_parameters");
+    if (stepParameters.getLength() == 0) {
+      throw new IllegalArgumentException("No step_parameters element found in xml string.");
+    }
+    final org.w3c.dom.Node element = stepParameters.item(0);
+    parameterSet.loadValuesFromXML((Element) element);
   }
 
   /**
