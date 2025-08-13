@@ -137,7 +137,7 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
     final int caretPosition = queryField.getCaretPosition();
     queryField.setText(filter.query());
     if (caretPosition >= 0) {
-      queryField.positionCaret(Math.max(filter.query().length(), caretPosition));
+      queryField.positionCaret(Math.min(filter.query().length(), caretPosition));
     }
   }
 
