@@ -23,41 +23,35 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules;
+package io.github.mzmine.modules.presets;
 
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.presets.Preset;
+import io.github.mzmine.util.presets.PresetCategory;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
 
 /**
- * This interface represents any component of MZmine that has a ParameterSet, and therefore can
- * store its settings.
+ * @param name
+ * @param presetGroup the module uniqueID
+ * @param parameters
  */
-public interface MZmineModule {
+public record ModulePreset(String name, @NotNull String presetGroup,
+                           ParameterSet parameters) implements Preset {
 
-  /**
-   * Returns module name
-   *
-   * @return Module name
-   */
-  @NotNull
-  public String getName();
-
-  /**
-   * Unique ID is used for loading and saving module-related information. This ID should never
-   * change.
-   *
-   * @return a unique ID that should never change
-   */
-  @NotNull
-  default String getUniqueID() {
-    return getClass().getSimpleName();
+  @Override
+  public @NotNull String toString() {
+    return name;
   }
 
-  /**
-   * Returns module's parameter class. If the module has no parameters, it can return null. The
-   * returned class must provide a public constructor without parameters.
-   */
-  public @Nullable Class<? extends ParameterSet> getParameterSetClass();
+  @Override
+  public @NotNull ModulePreset withName(String name) {
+    return new ModulePreset(name, presetGroup, parameters);
+  }
+
+  @Override
+  public @NotNull PresetCategory presetCategory() {
+    return PresetCategory.MODULES;
+  }
 
 }

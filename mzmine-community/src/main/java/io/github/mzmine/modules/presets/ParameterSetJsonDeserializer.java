@@ -23,41 +23,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules;
+package io.github.mzmine.modules.presets;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import io.github.mzmine.parameters.ParameterSet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.parameters.ParameterUtils;
+import java.io.IOException;
+import javax.xml.parsers.ParserConfigurationException;
+import org.xml.sax.SAXException;
 
-/**
- * This interface represents any component of MZmine that has a ParameterSet, and therefore can
- * store its settings.
- */
-public interface MZmineModule {
+public class ParameterSetJsonDeserializer extends JsonDeserializer<ParameterSet> {
 
-  /**
-   * Returns module name
-   *
-   * @return Module name
-   */
-  @NotNull
-  public String getName();
+  private final ParameterSet helper;
 
-  /**
-   * Unique ID is used for loading and saving module-related information. This ID should never
-   * change.
-   *
-   * @return a unique ID that should never change
-   */
-  @NotNull
-  default String getUniqueID() {
-    return getClass().getSimpleName();
+  public ParameterSetJsonDeserializer(ParameterSet helper) {
+    this.helper = helper;
   }
 
-  /**
-   * Returns module's parameter class. If the module has no parameters, it can return null. The
-   * returned class must provide a public constructor without parameters.
-   */
-  public @Nullable Class<? extends ParameterSet> getParameterSetClass();
+  @Override
+  public ParameterSet deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+    String xml = p.getValueAsString();
+
+    final ParameterSet clone = helper.cloneParameterSet();
+    try {
+      ParameterUtils.loadValuesFromXMLString(clone, xml);
+    } catch (ParserConfigurationException | SAXException e) {
+      return null;
+    }
+    return clone;
+  }
 
 }

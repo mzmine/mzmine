@@ -23,41 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules;
+package io.github.mzmine.modules.presets;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import io.github.mzmine.parameters.ParameterSet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.parameters.ParameterUtils;
+import java.io.IOException;
 
-/**
- * This interface represents any component of MZmine that has a ParameterSet, and therefore can
- * store its settings.
- */
-public interface MZmineModule {
+public class ParameterSetJsonSerializer extends JsonSerializer<ParameterSet> {
 
-  /**
-   * Returns module name
-   *
-   * @return Module name
-   */
-  @NotNull
-  public String getName();
-
-  /**
-   * Unique ID is used for loading and saving module-related information. This ID should never
-   * change.
-   *
-   * @return a unique ID that should never change
-   */
-  @NotNull
-  default String getUniqueID() {
-    return getClass().getSimpleName();
+  @Override
+  public void serialize(ParameterSet parameterSet, JsonGenerator gen, SerializerProvider provider)
+      throws IOException {
+    final String xml = ParameterUtils.saveValuesToXMLString(parameterSet);
+    gen.writeString(xml);
   }
-
-  /**
-   * Returns module's parameter class. If the module has no parameters, it can return null. The
-   * returned class must provide a public constructor without parameters.
-   */
-  public @Nullable Class<? extends ParameterSet> getParameterSetClass();
 
 }
