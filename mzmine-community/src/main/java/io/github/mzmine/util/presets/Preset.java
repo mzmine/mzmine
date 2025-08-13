@@ -28,6 +28,7 @@ package io.github.mzmine.util.presets;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.github.mzmine.modules.presets.ModulePreset;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +47,8 @@ import org.jetbrains.annotations.Nullable;
 )
 @JsonSubTypes({
     // map names to classes
-    @JsonSubTypes.Type(value = RowTypeFilterPreset.class, name = "row_type_filter") //
+    @JsonSubTypes.Type(value = RowTypeFilterPreset.class, name = "row_type_filter"), //
+    @JsonSubTypes.Type(value = ModulePreset.class, name = "module_preset") //
 })
 public interface Preset extends Comparable<Preset> {
 
