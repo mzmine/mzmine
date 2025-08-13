@@ -36,9 +36,12 @@ import static io.github.mzmine.parameters.parametertypes.row_type_filter.RowType
 import io.github.mzmine.util.presets.AbstractJsonPresetStore;
 import io.github.mzmine.util.presets.PresetCategory;
 import java.util.List;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class RowTypeFilterPresetStore extends AbstractJsonPresetStore<RowTypeFilterPreset> {
+
+  private static final Logger logger = Logger.getLogger(RowTypeFilterPresetStore.class.getName());
 
   @Override
   public @NotNull PresetCategory getPresetCategory() {
@@ -60,5 +63,11 @@ public class RowTypeFilterPresetStore extends AbstractJsonPresetStore<RowTypeFil
         createPreset("PFAS", FORMULA, GREATER_EQUAL, "F4"), //
         createPreset("High oxygen", FORMULA, GREATER_EQUAL, "O4")//
     );
+  }
+
+
+  @Override
+  protected Class<RowTypeFilterPreset> getValueClass() {
+    return RowTypeFilterPreset.class;
   }
 }

@@ -43,6 +43,7 @@ import javafx.beans.property.StringProperty;
 import javafx.geometry.Insets;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import javafx.util.Duration;
 import org.jetbrains.annotations.Nullable;
 
 public class RowTypeFilterComponent extends HBox implements ValuePropertyComponent<RowTypeFilter> {
@@ -79,8 +80,9 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
 
     FxTextFields.autoGrowFitText(queryField, 4, 18);
 
-    PropertyUtils.onChange(this::updateValue, optionCombo.valueProperty(),
-        matchingModeCombo.valueProperty(), queryField.textProperty());
+    // needs delay to not update too early when all properties are set for a new filter
+    PropertyUtils.onChangeDelayedSubscription(this::updateValue, Duration.millis(100),
+        optionCombo.valueProperty(), matchingModeCombo.valueProperty(), queryField.textProperty());
 
     // adjust matching modes to selected type
     optionCombo.valueProperty().subscribe((nv) -> {

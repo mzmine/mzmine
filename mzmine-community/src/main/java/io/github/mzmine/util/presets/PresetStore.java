@@ -43,13 +43,12 @@ import org.jetbrains.annotations.Nullable;
 
 public interface PresetStore<T extends Preset> {
 
-  static File getPresetsParentDir() {
-    return FileAndPathUtil.PRESETS_DIR;
-  }
-
   default File getPresetStoreFilePath() {
-    return getPresetsParentDir().toPath().resolve(getPresetCategory().getUniqueID())
+    // make sure this exists
+    final File dir = FileAndPathUtil.PRESETS_DIR.toPath().resolve(getPresetCategory().getUniqueID())
         .resolve(getPresetGroup()).toFile();
+    FileAndPathUtil.createDirectory(dir);
+    return dir;
   }
 
   default @NotNull File[] getAllPresetFiles() {
@@ -160,7 +159,7 @@ public interface PresetStore<T extends Preset> {
         .toList();
     for (T preset : presets) {
       // make sure the preset is also in
-      saveToFile(preset);
+      addAndSavePreset(preset, true, false);
     }
 
     return presets;

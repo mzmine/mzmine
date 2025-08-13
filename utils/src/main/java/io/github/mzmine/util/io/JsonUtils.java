@@ -119,6 +119,31 @@ public class JsonUtils {
     }
   }
 
+  public static <T> T readValueOrThrow(final File file, final Class<T> clazz) {
+    try {
+      return MAPPER.readValue(file, clazz);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static <T> T readValueOrNull(final File file, final Class<T> clazz) {
+    try {
+      return MAPPER.readValue(file, clazz);
+    } catch (IOException e) {
+      return null;
+    }
+  }
+
+  public static <T> T readValueOrElse(final File file, final T defaultValue) {
+    try {
+      return MAPPER.readValue(file, new TypeReference<T>() {
+      });
+    } catch (IOException e) {
+      return defaultValue;
+    }
+  }
+
   public static <T> T readValueOrThrow(final File file) {
     try {
       return MAPPER.readValue(file, new TypeReference<T>() {
@@ -137,12 +162,4 @@ public class JsonUtils {
     }
   }
 
-  public static <T> T readValueOrElse(final File file, final T defaultValue) {
-    try {
-      return MAPPER.readValue(file, new TypeReference<T>() {
-      });
-    } catch (IOException e) {
-      return defaultValue;
-    }
-  }
 }

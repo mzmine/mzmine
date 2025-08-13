@@ -68,11 +68,13 @@ public abstract class AbstractJsonPresetStore<T extends Preset> extends Abstract
   @Override
   public @Nullable T loadFromFile(@NotNull File file) {
     try {
-      return JsonUtils.readValueOrThrow(file);
+      return JsonUtils.readValueOrThrow(file, getValueClass());
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not load preset from file " + file.getAbsolutePath(), e);
       return null;
     }
   }
+
+  protected abstract Class<T> getValueClass();
 
 }

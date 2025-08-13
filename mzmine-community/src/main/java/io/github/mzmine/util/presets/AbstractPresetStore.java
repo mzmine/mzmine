@@ -59,7 +59,7 @@ public abstract class AbstractPresetStore<T extends Preset> implements PresetSto
     Optional<T> old = getPresetForName(filter);
     if (old.isEmpty() ||
         // user wants to keep old
-        !DialogLoggerUtil.showDialogYesNo("Duplicate preset for name: " + filter.name(),
+        DialogLoggerUtil.showDialogYesNo("Duplicate preset for name: " + filter.name(),
             "Overwrite preset?")) {
       return null;
     }
