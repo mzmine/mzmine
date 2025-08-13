@@ -38,13 +38,24 @@ public class TooltipFixGraphicDecoration extends GraphicDecoration {
 
   private Tooltip savedTooltip;
 
+  /**
+   * @param decorationNode the node used as decoration on a target
+   */
   public TooltipFixGraphicDecoration(Node decorationNode) {
     super(decorationNode);
   }
 
+
+  /**
+   * @param decorationNode the node used as decoration on a target
+   */
   public TooltipFixGraphicDecoration(Node decorationNode, Pos position) {
     super(decorationNode, position);
   }
+
+  /**
+   * @param decorationNode the node used as decoration on a target
+   */
 
   public TooltipFixGraphicDecoration(Node decorationNode, Pos position, double xOffset,
       double yOffset) {

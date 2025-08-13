@@ -304,6 +304,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
     param.setParameter(RowsFilterParameters.MS2_Filter, false);
     param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, true);
     param.setParameter(RowsFilterParameters.KEEP_ALL_ANNOTATED, false);
+    param.setParameter(RowsFilterParameters.ROW_TYPE_FILTER, false);
     param.setParameter(RowsFilterParameters.Reset_ID, false);
     param.setParameter(RowsFilterParameters.massDefect, false);
     param.setParameter(RowsFilterParameters.onlyCorrelatedWithOtherDetectors, false);
@@ -337,6 +338,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
     super.handleLoadedParameters(loadedParams, loadedVersion);
 
     // deactivate new parameter that may not be available
+    if (!loadedParams.containsKey(ROW_TYPE_FILTER.getName())) {
+      setParameter(ROW_TYPE_FILTER, false);
+    }
     if (!loadedParams.containsKey(MIN_FEATURE_IN_GROUP_COUNT.getName())) {
       setParameter(MIN_FEATURE_IN_GROUP_COUNT, false);
     }

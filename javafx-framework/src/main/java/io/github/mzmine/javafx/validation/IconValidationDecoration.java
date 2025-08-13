@@ -27,8 +27,8 @@ package io.github.mzmine.javafx.validation;
 
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -106,13 +106,12 @@ public class IconValidationDecoration extends AbstractValidationDecoration {
 
   @Override
   protected Collection<Decoration> createValidationDecorations(ValidationMessage message) {
-    return Arrays.asList(
-        new TooltipFixGraphicDecoration(createDecorationNode(message), Pos.TOP_RIGHT));
+    return List.of(new TooltipFixGraphicDecoration(createDecorationNode(message), Pos.TOP_RIGHT));
   }
 
   @Override
   protected Collection<Decoration> createRequiredDecorations(Control target) {
-    return Arrays.asList(new GraphicDecoration(new ImageView(REQUIRED_IMAGE), Pos.TOP_LEFT,
+    return List.of(new GraphicDecoration(new ImageView(REQUIRED_IMAGE), Pos.TOP_LEFT,
         REQUIRED_IMAGE.getWidth() / 2, REQUIRED_IMAGE.getHeight() / 2));
   }
 
