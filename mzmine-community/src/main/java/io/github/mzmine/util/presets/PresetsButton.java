@@ -25,37 +25,17 @@
 
 package io.github.mzmine.util.presets;
 
-import static java.util.Objects.requireNonNullElse;
-
-import io.github.mzmine.javafx.components.factories.FxTextFields;
-import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.dialogs.FilterableMenuPopup;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.util.StringUtils;
-import io.github.mzmine.util.javafx.FxMenuUtil;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.logging.Logger;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
-import javafx.collections.transformation.SortedList;
-import javafx.geometry.Bounds;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 
@@ -68,17 +48,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PresetsButton<T extends Preset> extends StackPane {
 
-  private static final Logger logger = Logger.getLogger(PresetsButton.class.getName());
-  private final BooleanProperty saveReady = new SimpleBooleanProperty(false);
-  private final ObservableList<MenuItem> fixedItems = FXCollections.observableArrayList();
-  private final ObservableList<PresetMenuItem<T>> presetItems = FXCollections.observableArrayList();
-  private final StringProperty searchText = new SimpleStringProperty();
-  private final TextField searchField;
-  private final ContextMenu contextMenu;
   // handles storage in files
   private final PresetStore<T> presetStore;
   private final Function<String, T> presetNameFactory;
-  private final Consumer<T> onClick;
+  private final FilterableMenuPopup<T> popup;
 
 
   public PresetsButton(@NotNull PresetStore<T> presetStore,
@@ -90,61 +63,32 @@ public class PresetsButton<T extends Preset> extends StackPane {
       @NotNull Function<String, T> presetNameFactory, Consumer<T> onClick) {
     this.presetStore = presetStore;
     this.presetNameFactory = presetNameFactory;
-    this.onClick = onClick;
 
-    searchField = FxTextFields.newTextField(15, searchText, "Search...", null);
+    final Button[] buttons = new Button[]{
+        FxButtons.createButton("Save preset", FxIcons.SAVE, "Save preset to .mzmine/presets folder",
+            this::showSaveDialog),
+        FxButtons.createButton("Load presets", FxIcons.LOAD, "Load presets from file",
+            presetStore::loadPresetsInDialog) //
+    };
 
-    final SortedList<PresetMenuItem<T>> sortedList = new SortedList<>(presetItems,
-        Comparator.comparing(PresetMenuItem::getText));
+    popup = new FilterableMenuPopup<>(presetStore.getCurrentPresets(), buttons) {
+      @Override
+      public void onItemActivated(@NotNull T item) {
+        onClick.accept(item);
+      }
 
-    final FilteredList<PresetMenuItem<T>> filteredItems = new FilteredList<>(sortedList);
-
-    // property.map somehow did not work
-    searchText.subscribe((_, nv) -> {
-      filteredItems.setPredicate(createPredicate(nv));
-    });
-
-    contextMenu = new ContextMenu();
-    createFixedMenu();
-
-    // update list in case presets change
-    filteredItems.addListener((ListChangeListener<? super PresetMenuItem<T>>) (_) -> {
-      final ObservableList<MenuItem> items = contextMenu.getItems();
-      List<MenuItem> combined = new ArrayList<>(fixedItems.size() + filteredItems.size());
-      combined.addAll(fixedItems);
-      combined.addAll(filteredItems);
-      // set in one go
-      items.setAll(combined);
-    });
-
-    presetStore.getCurrentPresets().addListener((ListChangeListener<? super T>) (_) -> {
-      final List<PresetMenuItem<T>> items = presetStore.getCurrentPresets().stream()
-          .map(this::createPresetItem).toList();
-      presetItems.setAll(items);
-    });
+      @Override
+      public @NotNull Predicate<T> createPredicate(String searchText) {
+        return StringUtils.allWordsSubMatchPredicate(searchText, T::toString);
+      }
+    };
 
     // start by loading all presets or defaults
     presetStore.loadAllPresetsOrDefaults();
 
     final ButtonBase presetButton = FxIconUtil.newIconButton(fxIcons, "Manage presets");
     presetButton.setOnAction(_ -> showMenu());
-    presetButton.setContextMenu(contextMenu);
     getChildren().add(presetButton);
-  }
-
-  private Predicate<MenuItem> createPredicate(String searchText) {
-    return StringUtils.allWordsSubMatchPredicate(searchText, MenuItem::getText);
-  }
-
-  private void createFixedMenu() {
-    fixedItems.addAll( //
-        FxMenuUtil.newMenuItem(FxLayout.newStackPane(searchField)), //
-        FxMenuUtil.newMenuItem("Save preset", this::showSaveDialog), //
-        FxMenuUtil.newMenuItem("Load presets", presetStore::loadPresetsInDialog), //
-        // TODO later add dialog to manage presets like delete old redefine etc
-//    FxMenuUtil.newMenuItem("Manage preset", this::managePreset), //
-        new SeparatorMenuItem() //
-    );
   }
 
   private void showSaveDialog() {
@@ -153,61 +97,16 @@ public class PresetsButton<T extends Preset> extends StackPane {
     if (testPreset == null) {
       return;
     }
-    presetStore.showSaveDialog(name -> testPreset.withName(name));
+    // rename the test preset. this way we know the current value is not null
+    presetStore.showSaveDialog(testPreset::withName);
   }
-
-  private PresetMenuItem<T> createPresetItem(T preset) {
-    final PresetMenuItem<T> menuItem = new PresetMenuItem<>(preset);
-    menuItem.setUserData(preset); // needed for sorting
-    menuItem.setOnAction(e -> {
-      onClick.accept(preset);
-    });
-    return menuItem;
-  }
-
 
   public void showMenu() {
     showMenu(this);
   }
 
   public void showMenu(@NotNull Node parent) {
-    final Bounds boundsInScreen = parent.localToScreen(parent.getBoundsInLocal());
-    contextMenu.show(parent, boundsInScreen.getCenterX(), boundsInScreen.getCenterY());
-    searchField.requestFocus();
+    popup.show(parent);
   }
 
-  public ContextMenu getContextMenu() {
-    return contextMenu;
-  }
-
-  public void setSearchText(String searchText) {
-    this.searchText.set(requireNonNullElse(searchText, ""));
-  }
-
-  public ObservableList<MenuItem> getFixedItems() {
-    return fixedItems;
-  }
-
-  public boolean isSaveReady() {
-    return saveReady.get();
-  }
-
-  public BooleanProperty saveReadyProperty() {
-    return saveReady;
-  }
-
-  private static final class PresetMenuItem<T> extends MenuItem {
-
-    private final T filter;
-
-    private PresetMenuItem(T filter) {
-      super(filter.toString());
-      this.filter = filter;
-      setUserData(filter);
-    }
-
-    public T getFilter() {
-      return filter;
-    }
-  }
 }
