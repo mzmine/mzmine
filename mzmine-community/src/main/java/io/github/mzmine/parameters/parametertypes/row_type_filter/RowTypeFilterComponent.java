@@ -78,9 +78,11 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
     matchingModeCombo.tooltipProperty()
         .bind(matchingModeCombo.valueProperty().map(mode -> new Tooltip(mode.getDescription())));
 
-    FxTextFields.autoGrowFitText(queryField, 4, 18);
+    FxTextFields.autoGrowFitText(queryField, 4, 40);
 
     // needs delay to not update too early when all properties are set for a new filter
+//    PropertyUtils.onChange(this::updateValue, optionCombo.valueProperty(),
+//        matchingModeCombo.valueProperty(), queryField.textProperty());
     PropertyUtils.onChangeDelayedSubscription(this::updateValue, Duration.millis(100),
         optionCombo.valueProperty(), matchingModeCombo.valueProperty(), queryField.textProperty());
 
@@ -132,7 +134,11 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
     }
     optionCombo.getSelectionModel().select(filter.selectedType());
     matchingModeCombo.getSelectionModel().select(filter.matchingMode());
+    final int caretPosition = queryField.getCaretPosition();
     queryField.setText(filter.query());
+    if (caretPosition >= 0) {
+      queryField.positionCaret(Math.max(filter.query().length(), caretPosition));
+    }
   }
 
   private void updateValue() {
