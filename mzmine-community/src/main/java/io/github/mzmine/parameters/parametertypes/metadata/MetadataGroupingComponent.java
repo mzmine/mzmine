@@ -25,7 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.metadata;
 
-import io.github.mzmine.javafx.components.factories.FxComboBox;
+import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
@@ -40,12 +40,12 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.SingleSelectionModel;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
@@ -57,7 +57,8 @@ public class MetadataGroupingComponent extends HBox implements
   private final List<AvailableTypes> availableTypes;
 
   private final ObjectProperty<@Nullable MetadataColumn<?>> columnProperty = new SimpleObjectProperty<>();
-  private final ComboBox<String> comboBox;
+  private final TextField columnField;
+  private final StringProperty columnName = new SimpleStringProperty("");
   private final @NotNull ObservableList<String> uniqueColumnValues = FXCollections.observableArrayList();
 
   public MetadataGroupingComponent() {
@@ -80,8 +81,11 @@ public class MetadataGroupingComponent extends HBox implements
         .filter(col -> availableTypes.contains(col.getType())).map(MetadataColumn::getTitle)
         .toList();
 
-    comboBox = FxComboBox.newAutoCompleteComboBox("Define a column in the sample metadata.",
-        FXCollections.observableArrayList(columns));
+    // better use a textfield for this
+    // editable combobox behaves weird when entered values that are not within the items
+    columnField = FxTextFields.newAutoGrowTextField(columnName, "",
+        "Define a column in the sample metadata.", 4, 20);
+    FxTextFields.bindAutoCompletion(columnField, columns);
 
     var icon = FxIconUtil.newIconButton(FxIcons.METADATA_TABLE,
         "Open project metadata. (Import data files and metadata to then modify project metadata)",
@@ -89,10 +93,10 @@ public class MetadataGroupingComponent extends HBox implements
           MZmineCore.getDesktop().addTab(new ProjectMetadataTab());
         });
 
-    getChildren().addAll(comboBox, icon);
+    getChildren().addAll(columnField, icon);
 
-    Bindings.bindBidirectional(comboBox.getEditor().textProperty(), valueProperty(),
-        new StringConverter<MetadataColumn<?>>() {
+    Bindings.bindBidirectional(columnField.textProperty(), valueProperty(),
+        new StringConverter<>() {
           @Override
           public String toString(MetadataColumn<?> object) {
             return object != null ? object.getTitle() : "";
@@ -120,21 +124,12 @@ public class MetadataGroupingComponent extends HBox implements
   /**
    * @return a combobox with auto completion of the selected column groups
    */
-  public ComboBox<String> createLinkedGroupCombo(String tooltip) {
-    final ComboBox<String> combo = FxComboBox.newAutoCompleteComboBox(tooltip);
-
-    // bind items to the unique ccolumn values by mapping the values to strings
-    uniqueColumnValuesProperty().addListener((ListChangeListener<? super String>) change -> {
-      final String value = combo.getValue();
-      // combo should not directly use the unique list as this may overwrite the value property as well
-      // therefore set items on change
-      combo.getItems().setAll(uniqueColumnValues);
-      // need to keep value for now in the editor even if it is not a valid selection
-      // at least for parameters this is important
-      combo.getEditor().setText(value);
-    });
-
-    return combo;
+  public TextField createLinkedGroupCombo(String tooltip) {
+    // better use a textfield for this
+    // editable combobox behaves weird when entered values that are not within the items
+    final TextField subField = FxTextFields.newAutoGrowTextField(null, "", tooltip, 4, 20);
+    FxTextFields.bindAutoCompletion(subField, uniqueColumnValues);
+    return subField;
   }
 
   @Override
@@ -143,11 +138,11 @@ public class MetadataGroupingComponent extends HBox implements
   }
 
   public void setValue(String value) {
-    comboBox.getEditor().setText(value);
+    columnField.setText(value);
   }
 
   public String getValue() {
-    return comboBox.getEditor().getText();
+    return columnField.getText();
   }
 
   /**
@@ -157,11 +152,4 @@ public class MetadataGroupingComponent extends HBox implements
     return uniqueColumnValues;
   }
 
-  public SingleSelectionModel<String> getSelectionModel() {
-    return comboBox.getSelectionModel();
-  }
-
-  public ComboBox<String> getComboBox() {
-    return comboBox;
-  }
 }
