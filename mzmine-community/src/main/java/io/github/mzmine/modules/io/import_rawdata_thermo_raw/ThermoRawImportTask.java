@@ -181,14 +181,7 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
   private @Nullable ProcessBuilder createProcessFromThermoFileParser() throws IOException {
     taskDescription = "Opening file " + fileToOpen;
 
-    if (!checkParserExistenceAndUnzipBlocking()) {
-      return null;
-    }
-
-    final File parserPath = ConfigService.getPreference(MZminePreferences.thermoRawFileParserPath);
-    if (!isValidParserPathForOs(parserPath)) {
-      return null;
-    }
+    final File parserPath = getParserPathForForOs();
     final String thermoRawFileParserCommand = parserPath.getAbsolutePath();
 
     if (Platform.isWindows() && !thermoRawFileParserCommand.endsWith("ThermoRawFileParser.exe")) {
@@ -226,102 +219,9 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
     return builder;
   }
 
-  /**
-   * Checks if the raw file parser is already unzipped. If not, the parser is either unzipped or the
-   * user is prompted to download the parser. If a zip is selected, the zip is unpacked to the raw
-   * file parser dir in the mzmine folder.
-   *
-   * @return
-   * @throws IOException
-   */
-  private boolean checkParserExistenceAndUnzipBlocking() throws IOException {
-    File parserPath = null;
-
-    try (var _ = unzipLock.lockWrite()) {
-      // update after acquiring lock
-      parserPath = ConfigService.getPreference(MZminePreferences.thermoRawFileParserPath);
-      if (!isValidParserPathForOs(parserPath)) {
-        logger.fine("Invalid thermo raw file parser path (%s).".formatted(parserPath));
-        // check if an older version is available in the mzmine dir
-        final File defaultLocation = new File(DEFAULT_PARSER_DIR, getParserNameForOs());
-        if (defaultLocation.exists() && defaultLocation.canRead() && isValidParserPathForOs(
-            defaultLocation)) {
-
-          logger.fine(() -> "Thermo raw file parser found in default location %s.".formatted(
-              defaultLocation.getAbsolutePath()));
-
-          ConfigService.getPreferences()
-              .setParameter(MZminePreferences.thermoRawFileParserPath, defaultLocation);
-          return true;
-        }
-
-        // instructions for headless mode.
-        if (DesktopService.isHeadLess()) {
-          logger.severe(
-              "Cannot find thermo raw file parser. Download the parser from %s and unzip the content into %s or edit the mzmine config file (parameter %s).".formatted(
-                  StringUtils.inQuotes(AssetGroup.ThermoRawFileParser.getDownloadInfoPage()),
-                  StringUtils.inQuotes(DEFAULT_PARSER_DIR.toString()),
-                  StringUtils.inQuotes(MZminePreferences.thermoRawFileParserPath.getName())));
-          return false;
-        }
-
-        logger.fine(
-            () -> "Parser not found in default location. Waiting for user to set the parser location.");
-
-        // make the user download and set the parser location
-        AtomicReference<ExitCode> exitCode = new AtomicReference<>(ExitCode.UNKNOWN);
-        FxThread.runOnFxThreadAndWait(() -> {
-          DialogLoggerUtil.showErrorDialog("Thermo raw file parser not found.", """
-              Thermo raw file parser not found. Please download the parser (link provided in the preferences)
-              and set the file path or install and use MSConvert.""");
-          exitCode.set(ConfigService.getPreferences().showSetupDialog(true, "Thermo raw file"));
-        });
-
-        if (exitCode.get() != ExitCode.OK) {
-          logger.fine(() -> "User aborted raw file parser location setting. Aborting import.");
-          return false;
-        }
-        parserPath = ConfigService.getPreference(MZminePreferences.thermoRawFileParserPath);
-        logger.fine("Raw file parser path updated to %s.".formatted(parserPath.getAbsolutePath()));
-      }
-
-      if (parserPath.getName().endsWith(".zip")) {
-        final File unzipped = unzipThermoRawFileParser(parserPath);
-        ConfigService.getPreferences()
-            .setParameter(MZminePreferences.thermoRawFileParserPath, unzipped);
-      }
-    }
-    return true;
-  }
-
   @Override
   public String getTaskDescription() {
     return taskDescription;
-  }
-
-  private File unzipThermoRawFileParser(File zipPath) throws IOException {
-
-    final File thermoRawFileParserFolder = DEFAULT_PARSER_DIR;
-
-    final File thermoRawFileParserExe = new File(thermoRawFileParserFolder, getParserNameForOs());
-
-    // Check if it has already been unzipped
-    if (thermoRawFileParserFolder.exists() && thermoRawFileParserFolder.isDirectory()
-        && thermoRawFileParserFolder.canRead() && thermoRawFileParserExe.exists()
-        && thermoRawFileParserExe.isFile() && thermoRawFileParserExe.canExecute()) {
-      logger.finest("ThermoRawFileParser found in folder " + thermoRawFileParserFolder);
-      return thermoRawFileParserExe;
-    }
-
-    logger.finest(
-        "Unpacking ThermoRawFileParser to folder %s".formatted(thermoRawFileParserFolder));
-    taskDescription = "Unpacking thermo raw file parser.";
-
-    ZipUtils.unzipFile(zipPath, thermoRawFileParserFolder);
-    logger.finest(
-        "Finished unpacking ThermoRawFileParser to folder %s".formatted(thermoRawFileParserFolder));
-
-    return thermoRawFileParserExe;
   }
 
 
@@ -339,28 +239,17 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
     }
   }
 
-  private String getParserNameForOs() {
+  private File getParserPathForForOs() {
     if (Platform.isWindows()) {
-      return "ThermoRawFileParser.exe";
+      return new File("external_tools/thermo_raw_file_parser/ThermoRawFileParser.exe");
     }
     if (Platform.isLinux()) {
-      return "ThermoRawFileParserLinux";
+      return new File("external_tools/thermo_raw_file_parser/ThermoRawFileParserLinux");
     }
     if (Platform.isMac()) {
-      return "ThermoRawFileParserMac";
+      return new File("external_tools/thermo_raw_file_parser/ThermoRawFileParserMac");
     }
-    throw new IllegalStateException("Invalid operating system for parsing thermo files.");
-  }
-
-  /**
-   * checks if the path matches the OS and the files exist.
-   */
-  private boolean isValidParserPathForOs(File path) {
-    if (path != null && path.exists() && (path.toPath().endsWith(getParserNameForOs())
-        || path.toPath().endsWith("ThermoRawFileParser.zip"))) {
-      return true;
-    }
-    return false;
+    throw new IllegalStateException("Invalid operating system for parsing thermo files via the ThermoRawFileParser.");
   }
 
   @Override

@@ -25,9 +25,20 @@
 
 package io.github.mzmine.util.dependencylicenses;
 
+import java.io.File;
+import org.bouncycastle.math.raw.Mod;
 import org.jetbrains.annotations.NotNull;
 
 public record ModuleLicense(String moduleLicense, String moduleLicenseUrl) implements Comparable<ModuleLicense> {
+
+  /**
+   *
+   * @param moduleLicense
+   * @param relativePath relative path to distributed license file. e.g. place in external_tools.
+   */
+  public ModuleLicense(String moduleLicense, @NotNull File relativePath) {
+    this(moduleLicense, relativePath.getAbsolutePath());
+  }
 
   @Override
   public int compareTo(@NotNull ModuleLicense o) {
