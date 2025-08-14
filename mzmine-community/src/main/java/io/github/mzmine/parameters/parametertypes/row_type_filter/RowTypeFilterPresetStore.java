@@ -64,7 +64,7 @@ public class RowTypeFilterPresetStore extends AbstractJsonPresetStore<RowTypeFil
         createPreset("Amino acid", SMARTS, CONTAINS, "[NX3,NX4+][CX4H]([*])[CX3](=[OX1])[O,N]"), //
         createPreset("Sulfate", SMARTS, CONTAINS,
             "[$([#16X4](=[OX1])(=[OX1])([OX2H,OX1H0-])[OX2][#6]),$([#16X4+2]([OX1-])([OX1-])([OX2H,OX1H0-])[OX2][#6])]"),
-        createPreset("Solfone", SMARTS, CONTAINS,
+        createPreset("Sulfone", SMARTS, CONTAINS,
             "[$([#16X4](=[OX1])=[OX1]),$([#16X4+2]([OX1-])[OX1-])]"),
         //
         createPreset("Amide", SMILES, CONTAINS, "CNC=O"), //
