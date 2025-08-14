@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.dialogs;
 
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.presets.ModulePreset;
 import io.github.mzmine.modules.presets.ModulePresetStore;
@@ -45,7 +46,10 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -104,6 +108,17 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
    */
   protected HelpWindow helpWindow = null;
   private GridPane paramsPane;
+  /**
+   * Usually opens a dialog to ask for overwrite. BatchModeDialog for example changes that behavior.
+   * Is called on selected presets
+   */
+  private final ObjectProperty<@NotNull Consumer<ParameterSet>> askApplyParameterSet = new SimpleObjectProperty<>(
+      (params) -> {
+        if (DialogLoggerUtil.showDialogYesNo("Overwrite parameters?",
+            "Do you want to overwrite the current parameters?")) {
+          setParametersDirect(params);
+        }
+      });
   // null if no presets can be stored
   private @Nullable ModulePresetStore modulePresetStore;
 
@@ -190,7 +205,8 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
       MZmineCore.getModuleForParameterSetIfUnique(parameterSet).ifPresent(module -> {
         modulePresetStore = new ModulePresetStore(module, parameterSet);
         final PresetsButton<ModulePreset> presetButton = new PresetsButton<>(true,
-            modulePresetStore, this::createPreset, this::setPreset);
+            modulePresetStore, this::createPreset,
+            activePreset -> askApplyParameterSet.get().accept(activePreset.parameters()));
         ButtonBar.setButtonData(presetButton, ButtonData.OK_DONE);
         pnlButtons.getButtons().add(presetButton);
       });
@@ -258,9 +274,18 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
     return modulePresetStore.createPreset(name, clone);
   }
 
-  private void setPreset(ModulePreset preset) {
-    ParameterUtils.copyParameters(preset.parameters(), parameterSet);
+  public void setParametersDirect(ParameterSet parameters) {
+    ParameterUtils.copyParameters(parameters, parameterSet);
     setParameterValuesToComponents();
+  }
+
+  /**
+   * Defines the behavior when a new parameter set is applied like from presets. Default is to ask
+   * user and copy parameter values to actual parameterset. Batch dialog for example redefines
+   * this.
+   */
+  public void setAskApplyParameterSet(@NotNull Consumer<ParameterSet> askApplyParameterSet) {
+    this.askApplyParameterSet.set(askApplyParameterSet);
   }
 
   /**

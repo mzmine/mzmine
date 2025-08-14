@@ -147,7 +147,7 @@ public class EmptyParameterSetupDialogBase extends Stage {
     });
 
     // Use main CSS
-    if(DesktopService.isGUI()) {
+    if (DesktopService.isGUI()) {
       // may be called in headless mode for graphics export
       scene.getStylesheets()
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
@@ -160,6 +160,15 @@ public class EmptyParameterSetupDialogBase extends Stage {
     setMinHeight(400.0);
 
     centerOnScreen();
+  }
+
+  /**
+   * Defines the behavior when a new parameter set is applied like from presets. Default is to ask
+   * user and copy parameter values to actual parameterset. Batch dialog for example redefines
+   * this.
+   */
+  public void setAskApplyParameterSet(@NotNull Consumer<ParameterSet> askApplyParameterSet) {
+    paramPane.setAskApplyParameterSet(askApplyParameterSet);
   }
 
   private static double calcMaxHeight() {

@@ -52,7 +52,6 @@ public class PresetsButton<T extends Preset> extends StackPane {
   private final PresetStore<T> presetStore;
   private final Function<String, T> presetNameFactory;
   private final FilterableMenuPopup<T> popup;
-  private final boolean showText;
 
 
   public PresetsButton(boolean showText, @NotNull PresetStore<T> presetStore,
@@ -64,7 +63,6 @@ public class PresetsButton<T extends Preset> extends StackPane {
       @NotNull Function<String, T> presetNameFactory, Consumer<T> onClick) {
     this.presetStore = presetStore;
     this.presetNameFactory = presetNameFactory;
-    this.showText = showText;
 
     final Button[] buttons = new Button[]{
         FxButtons.createButton("Save preset", FxIcons.SAVE, "Save preset to .mzmine/presets folder",
