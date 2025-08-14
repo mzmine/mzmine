@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.JsonStringType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
@@ -43,7 +44,9 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassi
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierSuperclassType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
+import io.github.mzmine.datamodel.features.types.identifiers.CASType;
 import io.github.mzmine.datamodel.features.types.identifiers.EntryIdType;
+import io.github.mzmine.datamodel.features.types.identifiers.InternalIdType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -100,7 +103,11 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       new CCSType(),//
       new CCSRelativeErrorType(),//
       new CommentType(), //
-      new EntryIdType());
+      new EntryIdType(), //
+      new CASType(),  //
+      new InternalIdType(), //
+      new JsonStringType()
+      );
 
   @NotNull
   @Override
@@ -152,6 +159,9 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       case MzPpmDifferenceType _ -> match.getMzPpmError();
       case CommentType _ -> entry.getOrElse(DBEntryField.COMMENT, null);
       case EntryIdType _ -> entry.getOrElse(DBEntryField.ENTRY_ID, null);
+      case CASType _ -> entry.getOrElse(DBEntryField.CAS, null);
+      case InternalIdType _ -> entry.getOrElse(DBEntryField.INTERNAL_ID, null);
+      case JsonStringType _ -> entry.getOrElse(DBEntryField.JSON_STRING, null);
       default -> throw new UnsupportedOperationException(
           "DataType %s is not covered in map".formatted(subType.toString()));
     };
