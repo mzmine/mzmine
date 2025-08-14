@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.structures;
 
+import io.github.mzmine.datamodel.structures.StructureUtils.HydrogenFlavor;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,7 +75,8 @@ public interface SubstructureMatcher {
    */
   @NotNull
   static SubstructureMatcher fromSmarts(@NotNull SmartsMolecularStructure subStructure) {
-    return new CdkPatternSubstructureMatcher(subStructure.pattern());
+    // always use stereo here for smarts as the submatcher will figure it out
+    return new CdkPatternSubstructureMatcher(subStructure.pattern(), false);
   }
 
   @NotNull
@@ -86,23 +88,34 @@ public interface SubstructureMatcher {
   @NotNull
   static SubstructureMatcher fromStructure(@NotNull IAtomContainer subStructure,
       StructureMatchMode mode) {
-    subStructure = StructureUtils.harmonizeRemoveStereoChemistry(subStructure);
+    // if the input search structure has stereo chemistry then use that also for target structure
+    // otherwise remove stereo for all structures in harmonize method
+    final boolean removeStereoChemistry = !StructureUtils.hasStereoChemistry(subStructure);
+    final HydrogenFlavor hydrogenFlavor = switch (mode) {
+      case SUBSTRUCTURE -> HydrogenFlavor.UNCHANGED;
+      case EXACT -> HydrogenFlavor.CONVERT_IMPLICIT_TO_EXPLICIT;
+    };
+    subStructure = StructureUtils.harmonize(subStructure, hydrogenFlavor, removeStereoChemistry,
+        false);
 
     final Pattern pattern = mode == StructureMatchMode.EXACT ? Pattern.findIdentical(subStructure)
         : Pattern.findSubstructure(subStructure);
 
-    return new CdkPatternSubstructureMatcher(pattern);
+    return new CdkPatternSubstructureMatcher(pattern, removeStereoChemistry);
   }
 
 
-  record CdkPatternSubstructureMatcher(Pattern subStructure) implements SubstructureMatcher {
+  record CdkPatternSubstructureMatcher(Pattern subStructure,
+                                       boolean removeStereoChemistry) implements
+      SubstructureMatcher {
 
     @Override
     public boolean matches(IAtomContainer structure) {
       if (structure == null) {
         return false;
       }
-      structure = StructureUtils.harmonizeRemoveStereoChemistry(structure);
+      structure = StructureUtils.harmonize(structure, HydrogenFlavor.CONVERT_IMPLICIT_TO_EXPLICIT,
+          removeStereoChemistry, false);
 
       return subStructure.matches(structure);
     }

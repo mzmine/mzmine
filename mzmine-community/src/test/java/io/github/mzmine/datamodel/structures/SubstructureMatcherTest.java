@@ -36,6 +36,34 @@ import org.junit.jupiter.api.Test;
 class SubstructureMatcherTest {
 
   @Test
+  void testSmartsWithStereo() {
+
+    assertTrue(matchSmarts("C[C@H](O)C", "C[CH]"));
+    assertTrue(matchSmarts("C[C@H](O)C", "C[C@H]"));
+    assertTrue(matchSmarts("C[C@H](O)C", "C[C@H]"));
+    assertTrue(matchSmarts("C[C@@H](O)C", "C[C@@H]"));
+    assertTrue(matchSmarts("C/C=C/C", "C=C"));
+    assertTrue(matchSmarts("C/C=C\\C", "C=C"));
+    assertTrue(matchSmarts("C/C=C\\C", "C/C"));
+    assertTrue(matchSmarts("C/C=C\\C", "C-C"));
+    assertTrue(matchSmarts("C/C=C\\C", "C=C\\C"));
+
+    // correct mismatch
+    assertFalse(matchSmarts("C\\C=C\\C", "C/C=C\\C"));
+    assertFalse(matchSmarts("C[C@H](F)O", "C[C@@H](F)O"));
+    assertFalse(matchSmarts("C[C@@H](F)O", "C[C@H](F)O"));
+
+    // aromatic
+    assertTrue(matchSmarts("c1ccccc1", "c"));
+    assertFalse(matchSmarts("c1ccccc1", "ccccccccc"));
+    assertFalse(matchSmarts("CCCC", "a"));
+    // aliphatic
+    assertFalse(matchSmarts("c1ccccc1", "AAA"));
+    assertTrue(matchSmarts("CCCC", "AAA"));
+
+  }
+
+  @Test
   void testSmarts() {
     assertTrue(matchSmarts("CC(O)C", "[OH]"));
     assertTrue(matchSmarts("CC(O)C", "[#6][OH]"));
@@ -58,9 +86,36 @@ class SubstructureMatcherTest {
   }
 
   @Test
+  void testSmilesSubMultipleMolecules() {
+    String glycerol = "C(C(CO)O)O";
+
+    // contains 3 OH
+    testSmiles(true, glycerol, "OH.OH.OH", StructureMatchMode.SUBSTRUCTURE);
+    testSmiles(true, glycerol, "OH.OH", StructureMatchMode.SUBSTRUCTURE);
+    testSmiles(true, glycerol, "COH.COH.COH", StructureMatchMode.SUBSTRUCTURE);
+    // this also match COC as there is no H provided
+    testSmiles(true, glycerol, "O.O.O", StructureMatchMode.SUBSTRUCTURE);
+    testSmiles(true, glycerol, "O.O", StructureMatchMode.SUBSTRUCTURE);
+
+    // not 4OH
+    testSmiles(false, glycerol, "O.O.O.OH", StructureMatchMode.SUBSTRUCTURE);
+    testSmiles(false, glycerol, "OH.OH.OH.OH", StructureMatchMode.SUBSTRUCTURE);
+    testSmiles(false, glycerol, "O.O.O.O", StructureMatchMode.SUBSTRUCTURE);
+
+    // contains 1 OH
+    String Carboxy_PEG5_t_butyl_ester = "CC(C)(C)OC(=O)CCOCCOCCOCCOCCOCCC(=O)O";
+    testSmiles(false, Carboxy_PEG5_t_butyl_ester, "OH.OH.OH", StructureMatchMode.SUBSTRUCTURE);
+    testSmiles(false, Carboxy_PEG5_t_butyl_ester, "COH.COH.COH", StructureMatchMode.SUBSTRUCTURE);
+    testSmiles(true, Carboxy_PEG5_t_butyl_ester, "O.O.O", StructureMatchMode.SUBSTRUCTURE);
+    testSmiles(true, Carboxy_PEG5_t_butyl_ester, "O.O.O.OH", StructureMatchMode.SUBSTRUCTURE);
+    testSmiles(true, Carboxy_PEG5_t_butyl_ester, "O.O.O.OH.C=O", StructureMatchMode.SUBSTRUCTURE);
+  }
+
+  @Test
   void testSmilesSub() {
     testSmiles(true, "CCC(C)CC1=CC=C(C=C1)C(C)C(=O)O", "C(C)C(=O)O",
         StructureMatchMode.SUBSTRUCTURE);
+    testSmiles(false, "CC1=CC=C(C=C1)C(C)C(=N)O", "C(C)C(=O)O", StructureMatchMode.SUBSTRUCTURE);
     testSmiles(false, "CC1=CC=C(C=C1)C(C)C(=N)O", "C(C)C(=O)O", StructureMatchMode.SUBSTRUCTURE);
   }
 
@@ -72,7 +127,9 @@ class SubstructureMatcherTest {
     testSmiles(true, "CCO", "CC(OH)", StructureMatchMode.EXACT);
     testSmiles(true, "C([C@H]1[C@@H]([C@H]([C@@H](C(O1)O)O)O)O)O", "OCC1OC(O)C(O)C(O)C1O",
         StructureMatchMode.EXACT);
-    testSmiles(true, "OCC1OC(O)C(O)C(O)C1O", "C([C@H]1[C@@H]([C@H]([C@@H](C(O1)O)O)O)O)O",
+
+    // isomeric query will ask for isomeric answer
+    testSmiles(false, "OCC1OC(O)C(O)C(O)C1O", "C([C@H]1[C@@H]([C@H]([C@@H](C(O1)O)O)O)O)O",
         StructureMatchMode.EXACT);
 
     // this is a substructure but not exact

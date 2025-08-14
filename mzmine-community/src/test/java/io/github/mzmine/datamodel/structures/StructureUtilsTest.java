@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.structures;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import io.github.mzmine.datamodel.structures.StructureUtils.HydrogenFlavor;
 import io.github.mzmine.datamodel.structures.StructureUtils.SmilesFlavor;
 import org.junit.jupiter.api.Test;
 
@@ -52,9 +53,17 @@ class StructureUtilsTest {
       MolecularStructure b) {
     assertEquals(isomericExpected, StructureUtils.equalsInchiKey(a.structure(), b.structure()));
 
-    assertEquals(expected,
-        StructureUtils.equalsInchiKey(StructureUtils.harmonizeRemoveStereoChemistry(a.structure()),
-            StructureUtils.harmonizeRemoveStereoChemistry(b.structure())));
+    assertEquals(expected, StructureUtils.equalsInchiKey(a.structure(), b.structure(), true));
+    // hydrogens should not change anything
+    assertEquals(expected, StructureUtils.equalsInchiKey(
+        StructureUtils.harmonize(a.structure(), HydrogenFlavor.CONVERT_IMPLICIT_TO_EXPLICIT, true,
+            false),
+        StructureUtils.harmonize(b.structure(), HydrogenFlavor.UNCHANGED, true, false)));
+    assertEquals(expected, StructureUtils.equalsInchiKey(
+        StructureUtils.harmonize(a.structure(), HydrogenFlavor.REMOVE_NON_CHIRAL_HYDROGENS, true,
+            false),
+        StructureUtils.harmonize(b.structure(), HydrogenFlavor.REMOVE_NON_CHIRAL_HYDROGENS, true,
+            false)));
   }
 
   void testEqualSmiles(boolean expected, boolean isomericExpected, MolecularStructure a,
