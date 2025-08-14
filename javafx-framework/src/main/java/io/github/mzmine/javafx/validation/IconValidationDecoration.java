@@ -27,8 +27,8 @@ package io.github.mzmine.javafx.validation;
 
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -43,6 +43,7 @@ import org.controlsfx.control.decoration.GraphicDecoration;
 import org.controlsfx.validation.Severity;
 import org.controlsfx.validation.ValidationMessage;
 import org.controlsfx.validation.decoration.AbstractValidationDecoration;
+import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 public class IconValidationDecoration extends AbstractValidationDecoration {
@@ -51,19 +52,6 @@ public class IconValidationDecoration extends AbstractValidationDecoration {
       org.controlsfx.validation.decoration.GraphicValidationDecoration.class.getResource(
               "/impl/org/controlsfx/control/validation/required-indicator.png")
           .toExternalForm()); //$NON-NLS-1$
-
-  private static final String SHADOW_EFFECT = "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 0, 0);"; //$NON-NLS-1$
-  private static final String POPUP_SHADOW_EFFECT = "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 5);"; //$NON-NLS-1$
-  private static final String TOOLTIP_COMMON_EFFECTS = "-fx-font-weight: bold; -fx-padding: 5; -fx-border-width:1;"; //$NON-NLS-1$
-
-  private static final String ERROR_TOOLTIP_EFFECT = POPUP_SHADOW_EFFECT + TOOLTIP_COMMON_EFFECTS
-      + "-fx-background-color: FBEFEF; -fx-text-fill: cc0033; -fx-border-color:cc0033;"; //$NON-NLS-1$
-
-  private static final String WARNING_TOOLTIP_EFFECT = POPUP_SHADOW_EFFECT + TOOLTIP_COMMON_EFFECTS
-      + "-fx-background-color: FFFFCC; -fx-text-fill: CC9900; -fx-border-color: CC9900;"; //$NON-NLS-1$
-
-  private static final String INFO_TOOLTIP_EFFECT = POPUP_SHADOW_EFFECT + TOOLTIP_COMMON_EFFECTS
-      + "-fx-background-color: c4d0ef; -fx-text-fill: FFFFFF; -fx-border-color: a8c8ff;"; //$NON-NLS-1$
 
   public IconValidationDecoration() {
 
@@ -92,27 +80,30 @@ public class IconValidationDecoration extends AbstractValidationDecoration {
     Tooltip tooltip = new Tooltip(message.getText());
     tooltip.setOpacity(.9);
     tooltip.setAutoFix(true);
-    tooltip.setStyle(getStyleBySeverity(message.getSeverity()));
+    final String style = getStyleBySeverity(message.getSeverity());
+    if (style != null) {
+      tooltip.getStyleClass().add(style);
+    }
     return tooltip;
   }
 
+  @Nullable
   protected String getStyleBySeverity(Severity severity) {
     return switch (severity) {
-      case ERROR -> ERROR_TOOLTIP_EFFECT;
-      case WARNING -> WARNING_TOOLTIP_EFFECT;
-      default -> INFO_TOOLTIP_EFFECT;
+      case ERROR -> "tooltip-error";
+      case WARNING -> "tooltip-warning";
+      default -> null;
     };
   }
 
   @Override
   protected Collection<Decoration> createValidationDecorations(ValidationMessage message) {
-    return Arrays.asList(
-        new TooltipFixGraphicDecoration(createDecorationNode(message), Pos.TOP_RIGHT));
+    return List.of(new TooltipFixGraphicDecoration(createDecorationNode(message), Pos.TOP_RIGHT));
   }
 
   @Override
   protected Collection<Decoration> createRequiredDecorations(Control target) {
-    return Arrays.asList(new GraphicDecoration(new ImageView(REQUIRED_IMAGE), Pos.TOP_LEFT,
+    return List.of(new GraphicDecoration(new ImageView(REQUIRED_IMAGE), Pos.TOP_LEFT,
         REQUIRED_IMAGE.getWidth() / 2, REQUIRED_IMAGE.getHeight() / 2));
   }
 

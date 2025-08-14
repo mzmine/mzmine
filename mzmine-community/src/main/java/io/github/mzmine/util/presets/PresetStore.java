@@ -31,6 +31,7 @@ import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxFileChooser;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +39,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import javafx.collections.ObservableList;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,6 +61,15 @@ public interface PresetStore<T extends Preset> {
     final File path = getPresetStoreFilePath();
     final String name = preset.getFileName();
     return FileAndPathUtil.getRealFilePath(new File(path, name), getFileExtension());
+  }
+
+
+  default void deletePresetFile(T removed) {
+    try {
+      final File file = getPresetFile(removed);
+      FileUtils.delete(file);
+    } catch (IOException e) {
+    }
   }
 
   /**

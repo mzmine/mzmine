@@ -72,8 +72,8 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
 
     setupValidation(queryField);
 
-    FxComboBox.bindAutoCompletion(optionCombo, true);
-    FxComboBox.bindAutoCompletion(matchingModeCombo, true);
+    FxComboBox.bindAutoCompletion(optionCombo, true, 4, -1);
+    FxComboBox.bindAutoCompletion(matchingModeCombo, true, 1, -1);
 
     matchingModeCombo.tooltipProperty()
         .bind(matchingModeCombo.valueProperty().map(mode -> new Tooltip(mode.getDescription())));
@@ -137,7 +137,7 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
     final int caretPosition = queryField.getCaretPosition();
     queryField.setText(filter.query());
     if (caretPosition >= 0) {
-      queryField.positionCaret(Math.max(filter.query().length(), caretPosition));
+      queryField.positionCaret(Math.min(filter.query().length(), caretPosition));
     }
   }
 

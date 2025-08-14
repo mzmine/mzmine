@@ -25,17 +25,16 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import impl.org.controlsfx.skin.AutoCompletePopup;
+import io.github.mzmine.javafx.components.skins.DynamicTextFieldSkin;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -154,18 +153,6 @@ public class FxTextFields {
   }
 
   /**
-   * Automatically bind auto completion to a text field based on a Observable
-   *
-   * @param textField the target
-   * @param options   options in an ObservableValue
-   * @return AutoCompletionBinding of the string representation
-   */
-  public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
-      ObservableValue<List<T>> options) {
-    return bindAutoCompletion(textField, options::getValue);
-  }
-
-  /**
    * Automatically bind auto completion to a text field based on a list, e.g., ObservableList or
    * static
    *
@@ -175,11 +162,31 @@ public class FxTextFields {
    */
   public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
       @NotNull final Supplier<List<T>> optionsSupplier) {
+    return bindAutoCompletion(textField, true, optionsSupplier);
+  }
 
-    return TextFields.bindAutoCompletion(textField, iSuggestionRequest -> {
-      final String input = iSuggestionRequest.getUserText();
-      return autoCompleteSubMatch(optionsSupplier.get(), input);
-    });
+  /**
+   * Automatically bind auto completion to a text field based on a list, e.g., ObservableList or
+   * static
+   *
+   * @param textField       the target
+   * @param autoShowOnFocus shows the full list on focus and click
+   * @param optionsSupplier options
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
+      boolean autoShowOnFocus, @NotNull final Supplier<List<T>> optionsSupplier) {
+
+    final AutoCompletionBinding<T> acb = TextFields.bindAutoCompletion(textField,
+        iSuggestionRequest -> {
+          final String input = iSuggestionRequest.getUserText();
+          return autoCompleteSubMatch(optionsSupplier.get(), input);
+        });
+
+    if (autoShowOnFocus) {
+      autoShowAutoComplete(textField, acb);
+    }
+    return acb;
   }
 
   /**
@@ -192,10 +199,40 @@ public class FxTextFields {
    */
   public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
       @Nullable final List<T> options) {
+    return bindAutoCompletion(textField, true, options);
+  }
 
-    return TextFields.bindAutoCompletion(textField, iSuggestionRequest -> {
-      final String input = iSuggestionRequest.getUserText();
-      return autoCompleteSubMatch(options, input);
+  /**
+   * Automatically bind auto completion to a text field based on a list, e.g., ObservableList or
+   * static
+   *
+   * @param textField       the target
+   * @param autoShowOnFocus shows the full list on focus and click
+   * @param options         options
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
+      boolean autoShowOnFocus, @Nullable final List<T> options) {
+    return bindAutoCompletion(textField, autoShowOnFocus, () -> options);
+  }
+
+  private static <T> void autoShowAutoComplete(TextField textField, AutoCompletionBinding<T> acb) {
+    acb.setVisibleRowCount(25);
+    // Show all suggestions when the user clicks or when field gains focus
+    textField.setOnMouseClicked(_ -> {
+      // auto show completion
+//      final String text = textField.getText();
+//      acb.setUserInput(text == null || text.isBlank() ? "*" : text);
+      // use this to always show full selection on first click
+      acb.setUserInput("*");
+    });
+    textField.focusedProperty().subscribe((_, isNowFocused) -> {
+      final AutoCompletePopup<T> pop = acb.getAutoCompletionPopup();
+      if (isNowFocused && !pop.isShowing()) {
+        // use this to always show full selection on first click
+        acb.setUserInput("*");
+//        pop.show(textField);
+      }
     });
   }
 
@@ -209,6 +246,10 @@ public class FxTextFields {
     if (options == null || options.isEmpty()) {
       return List.of();
     }
+    if (input.equals("*")) {
+      return options;
+    }
+
     final String lowerInput = input.toLowerCase();
 
     // need to return the
@@ -228,7 +269,7 @@ public class FxTextFields {
    * @return the same as input
    */
   public static TextField autoGrowFitText(final TextField field) {
-    return autoGrowFitText(field, 8, -1);
+    return autoGrowFitText(field, 6, -1);
   }
 
   /**
@@ -238,24 +279,10 @@ public class FxTextFields {
    */
   public static TextField autoGrowFitText(final TextField field, final int minColumnCount,
       final int maxColumnCount) {
-    // pref column is wider than one char on windows at least
-    // so multiply by factor
-    final IntegerBinding columnsBinding = Bindings.createIntegerBinding(() -> {
-      // both text and prompt
-      int length = field.getText().length();
-      if (length == 0) {
-        length = field.getPromptText().length();
-      }
-      final int columns = (int) Math.max(length * 0.72, minColumnCount);
-      if (maxColumnCount <= 0) {
-        return columns;
-      }
-      return Math.min(maxColumnCount, columns);
-    }, field.textProperty(), field.promptTextProperty());
-
-    field.prefColumnCountProperty().bind(columnsBinding);
+    field.setSkin(new DynamicTextFieldSkin(field, minColumnCount, maxColumnCount));
     return field;
   }
+
 
   public static TextField newAutoGrowTextField() {
     return newAutoGrowTextField(null, null);

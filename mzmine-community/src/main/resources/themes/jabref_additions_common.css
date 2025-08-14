@@ -74,6 +74,42 @@
     -fx-effect: dropshadow(three-pass-box, skyblue, 14, 0, 0, 0);
 }
 
+
+.tooltip-error {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 5);
+    -fx-font-weight: bold;
+    -fx-padding: 5;
+    -fx-border-width: 1;
+
+    -fx-background-color: #FBEFEF;
+    -fx-text-fill: #cc0033;
+    -fx-border-color: #cc0033;
+}
+
+.tooltip-warning {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 5);
+    -fx-font-weight: bold;
+    -fx-padding: 5;
+    -fx-border-width: 1;
+
+    -fx-background-color: #FFFFCC;
+    -fx-text-fill: #CC9900;
+    -fx-border-color: #CC9900;
+}
+
+.tooltip-info {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 5);
+    -fx-font-weight: bold;
+    -fx-padding: 5;
+    -fx-border-width: 1;
+
+    -fx-background-color: #c4d0ef;
+    -fx-text-fill: #232121;
+    -fx-border-color: #a8c8ff;
+}
+
+
+
 .popover {
   -fx-background-color: transparent;
 }
