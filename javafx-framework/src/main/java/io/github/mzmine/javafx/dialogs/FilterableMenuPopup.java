@@ -147,7 +147,7 @@ public abstract class FilterableMenuPopup<T> extends Popup {
 
     if (buttons.length > 0) {
       var buttonPane = FxLayout.newFlowPane(Pos.CENTER, insets, buttons);
-      top.setBottom(buttonPane);
+      top.setTop(buttonPane);
     }
     return top;
   }
