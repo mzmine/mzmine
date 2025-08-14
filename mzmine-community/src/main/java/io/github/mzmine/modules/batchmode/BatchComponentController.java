@@ -64,7 +64,6 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
@@ -440,13 +439,9 @@ public class BatchComponentController implements LastFilesComponent {
     }
 
     // Append, prepend, insert or replace.
-    List<QueueOperations> operations = List.of(QueueOperations.values());
-    ChoiceDialog<QueueOperations> choiceDialog = new ChoiceDialog<>(QueueOperations.Replace,
-        operations);
-    choiceDialog.setTitle("Add Batch Steps");
-    choiceDialog.setContentText("How should the loaded batch steps be added to the queue?");
-    choiceDialog.showAndWait();
-    QueueOperations option = choiceDialog.getResult();
+    final QueueOperations option = DialogLoggerUtil.showAndWaitChoiceDialog(QueueOperations.Replace,
+        QueueOperations.values(), "Add Batch Steps",
+        "How should the loaded batch steps be added to the queue?");
     if (option == null) {
       return;
     }

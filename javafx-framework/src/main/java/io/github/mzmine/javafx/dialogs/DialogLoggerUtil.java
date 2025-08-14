@@ -30,6 +30,7 @@ import io.github.mzmine.gui.JavaFxDesktop;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.javafx.util.FxTextUtils;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
@@ -40,6 +41,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
@@ -272,6 +274,28 @@ public class DialogLoggerUtil {
   }
 
 
+  /**
+   * @return the selected option or null if cancelled
+   */
+  @Nullable
+  public static <T> T showAndWaitChoiceDialog(T selected, T[] options, String title,
+      String content) {
+    return showAndWaitChoiceDialog(selected, List.of(options), title, content);
+  }
+
+  /**
+   * @return the selected option or null if cancelled
+   */
+  @Nullable
+  public static <T> T showAndWaitChoiceDialog(T selected, List<T> options, String title,
+      String content) {
+    ChoiceDialog<T> choiceDialog = new ChoiceDialog<>(selected, options);
+    choiceDialog.setTitle(title);
+    choiceDialog.setContentText(content);
+    choiceDialog.showAndWait();
+    return choiceDialog.getResult();
+  }
+
   public static TextInputDialog createTextInputDialog(@NotNull String title, @NotNull String header,
       @NotNull String content) {
     TextInputDialog dialog = new TextInputDialog();
@@ -302,5 +326,4 @@ public class DialogLoggerUtil {
   public static void showPlainNotification(@NotNull String title, @NotNull String message) {
     showNotification(NotificationType.PLAIN, title, message);
   }
-
 }
