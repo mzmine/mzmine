@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.masslist.SimpleFactorMassList;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -149,6 +150,8 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
         case MsMsInfo.XML_ELEMENT -> info = MsMsInfo.loadFromXML(reader, file, List.of(file));
         case SimpleMassList.XML_ELEMENT ->
             SimpleMassList.loadFromXML(reader, file.getMemoryMapStorage());
+        case SimpleFactorMassList.XML_ELEMENT ->
+            SimpleFactorMassList.loadFromXML(reader, file.getMemoryMapStorage());
       }
     }
 

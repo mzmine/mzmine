@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.impl.AbstractStorableSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -120,19 +119,6 @@ public class SimpleMassList extends AbstractStorableSpectrum implements MassList
       throw new IllegalStateException("Wrong element.");
     }
 
-    final SimpleSpectralArrays spec = loadSpectralArrays(reader);
-
-    return new SimpleMassList(storage, spec.mzs(), spec.intensities());
-  }
-
-  /**
-   * Expects to still have the reader at the xml element of this mass list with the local name
-   * {@link #XML_ELEMENT}
-   *
-   * @return the spectral arrays
-   */
-  protected static @NotNull SimpleSpectralArrays loadSpectralArrays(XMLStreamReader reader)
-      throws XMLStreamException {
     double[] intensities = null;
     double[] mzs = null;
 
@@ -151,6 +137,8 @@ public class SimpleMassList extends AbstractStorableSpectrum implements MassList
             intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
       }
     }
-    return new SimpleSpectralArrays(mzs, intensities);
+
+    return new SimpleMassList(storage, mzs, intensities);
   }
+
 }

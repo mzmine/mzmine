@@ -27,9 +27,10 @@ package io.github.mzmine.datamodel.impl.masslist;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.ParsingUtils;
 import java.lang.foreign.MemorySegment;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -144,8 +145,25 @@ public class SimpleFactorMassList extends SimpleMassList {
 
     final double factor = Double.parseDouble(reader.getAttributeValue(null, XML_ATTR_FACTOR));
 
-    final SimpleSpectralArrays spec = SimpleMassList.loadSpectralArrays(reader);
+    double[] intensities = null;
+    double[] mzs = null;
 
-    return new SimpleFactorMassList(storage, spec.mzs(), spec.intensities(), factor);
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(XML_ELEMENT))) {
+      reader.next();
+
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      switch (reader.getLocalName()) {
+        case CONST.XML_MZ_VALUES_ELEMENT ->
+            mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
+            intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
+      }
+    }
+
+    return new SimpleFactorMassList(storage, mzs, intensities, factor);
   }
 }
