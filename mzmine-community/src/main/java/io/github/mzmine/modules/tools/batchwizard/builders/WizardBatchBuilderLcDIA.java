@@ -31,6 +31,7 @@ import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerParameters;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrAdvancedParameters;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
@@ -159,6 +160,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
         Math.max(minFeatureHeight * 0.1, massDetectorOption.getMs1NoiseLevel()));
     param.setParameter(DiaMs2CorrParameters.ms2ScanSelection,
         new ScanSelection(MsLevelFilter.of(2)));
+    param.setParameter(DiaMs2CorrParameters.advanced, false);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(DiaMs2CorrModule.class),
         param));
