@@ -111,19 +111,26 @@ public class FxComboBox {
    */
   public static <T> ComboBox<T> newAutoCompleteComboBox(@Nullable String tooltip,
       @Nullable Collection<T> items) {
-    return newAutoCompleteComboBox(tooltip, items, null);
+    return newAutoCompleteComboBox(tooltip, items, null, 4, -1);
   }
 
   public static <T> ComboBox<T> newAutoCompleteComboBox(@Nullable String tooltip,
-      @Nullable Collection<T> items, @Nullable final Property<T> selectedItem) {
+      @Nullable Collection<T> items, @Nullable final Property<T> selectedItem, int minColumnCount,
+      int maxColumnCount) {
     final ComboBox<T> combo = createComboBox(tooltip, items, selectedItem);
     // auto complete for items
-    FxComboBox.bindAutoCompletion(combo, true);
+    FxComboBox.bindAutoCompletion(combo, true, minColumnCount, maxColumnCount);
     return combo;
   }
 
-  public static <T> ComboBox<T> applyAutoGrow(ComboBox<T> combo) {
-    combo.setSkin(new DynamicWidthComboBoxSkin<>(combo));
+  /**
+   * @param minColumnCount -1 to deactivate
+   * @param maxColumnCount -1 to deactivate
+   */
+  public static <T> ComboBox<T> applyAutoGrow(ComboBox<T> combo, final int minColumnCount,
+      final int maxColumnCount) {
+    combo.setEditable(true);
+    combo.setSkin(new DynamicWidthComboBoxSkin<>(combo, minColumnCount, maxColumnCount));
     return combo;
   }
 
@@ -135,9 +142,22 @@ public class FxComboBox {
    */
   public static <T> AutoCompletionBinding<T> bindAutoCompletion(ComboBox<T> combo,
       boolean autoGrow) {
+    return bindAutoCompletion(combo, autoGrow, 4, -1);
+  }
+
+  /**
+   * Automatically bind auto-completion to a combobox
+   *
+   * @param minColumnCount -1 to deactivate
+   * @param maxColumnCount -1 to deactivate
+   * @param combo          the target for auto-completion. Only works if set to editable
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static <T> AutoCompletionBinding<T> bindAutoCompletion(ComboBox<T> combo, boolean autoGrow,
+      int minColumnCount, int maxColumnCount) {
     if (autoGrow) {
       // auto grow with input
-      applyAutoGrow(combo);
+      applyAutoGrow(combo, minColumnCount, maxColumnCount);
     }
     setEditable(combo);
     return FxTextFields.bindAutoCompletion(combo.getEditor(), false, combo.getItems());
