@@ -30,6 +30,7 @@ import static io.github.mzmine.parameters.parametertypes.row_type_filter.Matchin
 import static io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode.GREATER_EQUAL;
 import static io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption.FORMULA;
 import static io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption.LIPID;
+import static io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption.SMARTS;
 import static io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption.SMILES;
 import static io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset.createPreset;
 
@@ -57,9 +58,20 @@ public class RowTypeFilterPresetStore extends AbstractJsonPresetStore<RowTypeFil
     return List.of( //
         createPreset("Any lipid", LIPID, EQUAL, "C"), //
         createPreset("PC", LIPID, EQUAL, "PC"), //
+        createPreset("Unsaturated lipids", LIPID, EQUAL, "C>0:>0"), //
+        createPreset("Oxidized lipids", LIPID, EQUAL, "C>0:>=0;>0"), //
+        createPreset("Halide (F, Cl, Br, I)", SMARTS, CONTAINS, "[#6][F,Cl,Br,I]"), //
+        createPreset("Amino acid", SMARTS, CONTAINS, "[NX3,NX4+][CX4H]([*])[CX3](=[OX1])[O,N]"), //
+        createPreset("Sulfate", SMARTS, CONTAINS,
+            "[$([#16X4](=[OX1])(=[OX1])([OX2H,OX1H0-])[OX2][#6]),$([#16X4+2]([OX1-])([OX1-])([OX2H,OX1H0-])[OX2][#6])]"),
+        createPreset("Solfone", SMARTS, CONTAINS,
+            "[$([#16X4](=[OX1])=[OX1]),$([#16X4+2]([OX1-])[OX1-])]"),
+        //
         createPreset("Amide", SMILES, CONTAINS, "CNC=O"), //
         createPreset("Acid", SMILES, CONTAINS, "C(=O)OH"), //
-        createPreset("PFAS", FORMULA, GREATER_EQUAL, "F4"), //
+        createPreset("OH (at least 3)", SMILES, CONTAINS, "OH.OH.OH"), //
+        createPreset("PFAS CF2", SMILES, CONTAINS, "CF2"), //
+        createPreset("PFAS simple", FORMULA, GREATER_EQUAL, "F4"), //
         createPreset("High oxygen", FORMULA, GREATER_EQUAL, "O4")//
     );
   }

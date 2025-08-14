@@ -48,6 +48,14 @@ class SubstructureMatcherTest {
     assertTrue(matchSmarts("C/C=C\\C", "C-C"));
     assertTrue(matchSmarts("C/C=C\\C", "C=C\\C"));
 
+    // sulfate
+    assertTrue(matchSmarts("CCOS(=O)(=O)O",
+        "[$([#16X4](=[OX1])(=[OX1])([OX2H,OX1H0-])[OX2][#6]),$([#16X4+2]([OX1-])([OX1-])([OX2H,OX1H0-])[OX2][#6])]"));
+    // sulfone
+    assertTrue(matchSmarts("CS(=O)(=O)O", "[$([#16X4](=[OX1])=[OX1]),$([#16X4+2]([OX1-])[OX1-])]"));
+    assertTrue(
+        matchSmarts("CS(=O)(=O)OC", "[$([#16X4](=[OX1])=[OX1]),$([#16X4+2]([OX1-])[OX1-])]"));
+
     // correct mismatch
     assertFalse(matchSmarts("C\\C=C\\C", "C/C=C\\C"));
     assertFalse(matchSmarts("C[C@H](F)O", "C[C@@H](F)O"));
