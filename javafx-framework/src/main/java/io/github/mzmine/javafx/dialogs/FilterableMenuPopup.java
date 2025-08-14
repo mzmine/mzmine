@@ -86,7 +86,8 @@ public abstract class FilterableMenuPopup<T> extends Popup {
     if (addRemoveButton) {
       buttons = buttons == null ? new Node[1] : Arrays.copyOf(buttons, buttons.length + 1);
       buttons[buttons.length - 1] = FxButtons.createButton("Remove", FxIcons.X_CIRCLE,
-          "Remove selected preset", this::askRemoveSelected); //
+          "Remove selected preset (use arrow keys up/down to select) or press delete key to remove.",
+          this::askRemoveSelected); //
     }
 
     top = createTopMenu(buttons);
@@ -104,7 +105,7 @@ public abstract class FilterableMenuPopup<T> extends Popup {
     initEventListeners();
   }
 
-  private void askRemoveSelected() {
+  public void askRemoveSelected() {
     final T selectedItem = listView.getSelectionModel().getSelectedItem();
     if (selectedItem == null) {
       return;
@@ -195,6 +196,9 @@ public abstract class FilterableMenuPopup<T> extends Popup {
         if (selectedItem != null) {
           itemClickedAndHide(selectedItem);
         }
+        event.consume();
+      } else if (event.getCode() == KeyCode.DELETE) {
+        askRemoveSelected();
         event.consume();
       }
     });
