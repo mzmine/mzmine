@@ -25,36 +25,13 @@
 
 package io.github.mzmine.util.presets;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * Defines a category which is the first folder in the presets directory
+ * Just the definition of a local preset file
  */
-public enum PresetCategory implements UniqueIdSupplier {
-  MODULES, FILTERS;
+public record LocalStoredPresetGroup(@NotNull File groupFile, @NotNull PresetCategory category,
+                                     @NotNull String group) {
 
-
-  @Nullable
-  public static PresetCategory parse(String name) {
-    return UniqueIdSupplier.parseOrElse(name, values(), null);
-  }
-
-  public @NotNull String getFolderName() {
-    return getUniqueID();
-  }
-
-  @Override
-  public String toString() {
-    return getUniqueID();
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case MODULES -> "modules";
-      case FILTERS -> "filters";
-    };
-  }
 }

@@ -111,7 +111,6 @@ public interface PresetStore<T extends Preset> {
 
   @Nullable T loadFromFile(@NotNull File file);
 
-
   /**
    * Loads all presets. If the presets are empty, then:
    * <pre>
@@ -242,5 +241,30 @@ public interface PresetStore<T extends Preset> {
 
   default void ensureDirectoryExists() {
     FileAndPathUtil.createDirectory(getPresetStoreFilePath());
+  }
+
+  default void addDefaults() {
+    final List<T> defaults = createDefaults();
+    if (defaults.isEmpty()) {
+      return;
+    }
+    for (T preset : defaults) {
+      addAndSavePreset(preset, true, false);
+    }
+  }
+
+  /**
+   * @return true if category and name match
+   */
+  default boolean matches(PresetCategory category, String name) {
+    return getPresetCategory().equals(category) && getPresetGroup().equals(name);
+  }
+
+  /**
+   * Identifies the store uniquely
+   */
+  @NotNull
+  default PresetStoreKey getKey() {
+    return new PresetStoreKey(getPresetCategory(), getPresetGroup());
   }
 }

@@ -26,15 +26,18 @@
 package io.github.mzmine.util.presets;
 
 import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.dialogs.FilterableMenuPopup;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.util.StringUtils;
+import io.github.mzmine.util.presets.manage.ManagePresetTab;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +54,7 @@ public class PresetsButton<T extends Preset> extends StackPane {
   // handles storage in files
   private final PresetStore<T> presetStore;
   private final Function<String, T> presetNameFactory;
-  private final FilterableMenuPopup<T> popup;
+  private final ObjectProperty<FilterableMenuPopup<T>> popup = new SimpleObjectProperty<>();
 
 
   public PresetsButton(boolean showText, @NotNull PresetStore<T> presetStore,
@@ -64,14 +67,20 @@ public class PresetsButton<T extends Preset> extends StackPane {
     this.presetStore = presetStore;
     this.presetNameFactory = presetNameFactory;
 
-    final Button[] buttons = new Button[]{
-        FxButtons.createButton("Save preset", FxIcons.SAVE, "Save preset to .mzmine/presets folder",
+    final Node[] nodes = new Node[]{ //
+        FxLabels.newBoldLabel("Presets (beta)"), //
+        FxButtons.createButton("Save", FxIcons.SAVE, "Save preset to .mzmine/presets folder",
             this::showSaveDialog),
-        FxButtons.createButton("Load presets", FxIcons.LOAD, "Load presets from file",
-            presetStore::loadPresetsInDialog) //
+        FxButtons.createButton("Load", FxIcons.LOAD, "Load presets from file",
+            presetStore::loadPresetsInDialog), //
+        FxButtons.createButton("Remove", FxIcons.X_CIRCLE,
+            "Remove selected preset (select with arrow keys up/down) or press delete key to remove.",
+            () -> popup.get().askRemoveSelected()), //
+        FxIconUtil.newIconButton(FxIcons.GEAR_PREFERENCES, "Manage presets",
+            () -> ManagePresetTab.show(presetStore)), //
     };
 
-    popup = new FilterableMenuPopup<>(presetStore.getCurrentPresets(), true, buttons) {
+    popup.set(new FilterableMenuPopup<>(presetStore.getCurrentPresets(), false, nodes) {
       @Override
       public void onItemActivated(@NotNull T item) {
         onClick.accept(item);
@@ -81,7 +90,7 @@ public class PresetsButton<T extends Preset> extends StackPane {
       public @NotNull Predicate<T> createPredicate(String searchText) {
         return StringUtils.allWordsSubMatchPredicate(searchText, T::toString);
       }
-    };
+    });
 
     // start by loading all presets or defaults
     presetStore.loadAllPresetsOrDefaults();
@@ -110,7 +119,11 @@ public class PresetsButton<T extends Preset> extends StackPane {
   }
 
   public void showMenu(@NotNull Node parent) {
-    popup.show(parent);
+    final FilterableMenuPopup<T> pop = popup.get();
+    if (pop == null) {
+      return;
+    }
+    pop.show(parent);
   }
 
 }

@@ -25,36 +25,23 @@
 
 package io.github.mzmine.util.presets;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * Defines a category which is the first folder in the presets directory
+ * Key to identify a {@link PresetStoreFactory}
  */
-public enum PresetCategory implements UniqueIdSupplier {
-  MODULES, FILTERS;
+public record PresetStoreFactoryKey(@NotNull String key) {
 
-
-  @Nullable
-  public static PresetCategory parse(String name) {
-    return UniqueIdSupplier.parseOrElse(name, values(), null);
+  public static PresetStoreFactoryKey create(@NotNull PresetCategory category,
+      @NotNull String group) {
+    if (category == PresetCategory.MODULES) {
+      // module category uses the same factory for all modules so no group in key
+      return new PresetStoreFactoryKey(category.getFolderName());
+    }
+    return new PresetStoreFactoryKey(category.getFolderName() + "_" + group);
   }
 
-  public @NotNull String getFolderName() {
-    return getUniqueID();
-  }
-
-  @Override
-  public String toString() {
-    return getUniqueID();
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case MODULES -> "modules";
-      case FILTERS -> "filters";
-    };
+  public static PresetStoreFactoryKey MODULE() {
+    return PresetStoreFactoryKey.create(PresetCategory.MODULES, "");
   }
 }

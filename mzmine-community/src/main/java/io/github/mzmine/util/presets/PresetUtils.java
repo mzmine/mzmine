@@ -25,36 +25,37 @@
 
 package io.github.mzmine.util.presets;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import java.util.ArrayList;
+import java.util.List;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-/**
- * Defines a category which is the first folder in the presets directory
- */
-public enum PresetCategory implements UniqueIdSupplier {
-  MODULES, FILTERS;
+public class PresetUtils {
 
-
-  @Nullable
-  public static PresetCategory parse(String name) {
-    return UniqueIdSupplier.parseOrElse(name, values(), null);
-  }
-
-  public @NotNull String getFolderName() {
-    return getUniqueID();
-  }
-
-  @Override
-  public String toString() {
-    return getUniqueID();
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case MODULES -> "modules";
-      case FILTERS -> "filters";
-    };
+  /**
+   * Only keep new presets from toFilter that are not present in currentPresets. Uses equals to
+   * compare.
+   *
+   * @param currentPresets
+   * @param toFilter
+   * @return new list of presets
+   */
+  @NotNull
+  public static <T extends Preset> List<? extends T> filterDifferent(
+      @NotNull ObservableList<? extends T> currentPresets, @NotNull List<? extends T> toFilter) {
+    final List<T> keep = new ArrayList<>();
+    for (T preset : toFilter) {
+      boolean exists = false;
+      for (T current : currentPresets) {
+        if (preset.equals(current)) {
+          exists = true;
+          break;
+        }
+      }
+      if (!exists) {
+        keep.add(preset);
+      }
+    }
+    return keep;
   }
 }

@@ -23,38 +23,41 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.modules.presets;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.presets.PresetCategory;
+import io.github.mzmine.util.presets.PresetStore;
+import io.github.mzmine.util.presets.PresetStoreFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Defines a category which is the first folder in the presets directory
+ * Searches for initialized modules to create {@link ModulePresetStore}. Modules should be
+ * initialized already from loading the config and working on modules.
+ * <p>
+ * TODO maybe optimize by having a list of modules like the list of datatypes
  */
-public enum PresetCategory implements UniqueIdSupplier {
-  MODULES, FILTERS;
-
-
-  @Nullable
-  public static PresetCategory parse(String name) {
-    return UniqueIdSupplier.parseOrElse(name, values(), null);
-  }
-
-  public @NotNull String getFolderName() {
-    return getUniqueID();
-  }
+public class ModulePresetStoreFactory implements PresetStoreFactory<ModulePreset> {
 
   @Override
-  public String toString() {
-    return getUniqueID();
-  }
+  public @Nullable PresetStore<ModulePreset> createStore(@NotNull PresetCategory category,
+      @NotNull String group) {
+    for (MZmineModule module : MZmineCore.getAllModules()) {
+      if (module.getUniqueID().equals(group)) {
+        final ParameterSet params = ConfigService.getConfiguration()
+            .getModuleParameters(module.getClass());
+        if (params == null) {
+          return null;
+        }
 
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case MODULES -> "modules";
-      case FILTERS -> "filters";
-    };
+        return new ModulePresetStore(module, params);
+      }
+    }
+
+    return null;
   }
 }
