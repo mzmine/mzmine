@@ -35,13 +35,12 @@ import static io.github.mzmine.parameters.parametertypes.row_type_filter.RowType
 import static io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset.createPreset;
 
 import io.github.mzmine.util.presets.AbstractJsonPresetStore;
+import io.github.mzmine.util.presets.KnownPresetGroup;
 import io.github.mzmine.util.presets.PresetCategory;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class RowTypeFilterPresetStore extends AbstractJsonPresetStore<RowTypeFilterPreset> {
-
-  public static final String PRESET_GROUP = "flexible_row_type_filter";
 
   @Override
   public @NotNull PresetCategory getPresetCategory() {
@@ -50,7 +49,7 @@ public class RowTypeFilterPresetStore extends AbstractJsonPresetStore<RowTypeFil
 
   @Override
   public @NotNull String getPresetGroup() {
-    return PRESET_GROUP;
+    return KnownPresetGroup.ROW_TYPE_FILTER_PRESET.getUniqueID();
   }
 
   @Override
@@ -70,7 +69,7 @@ public class RowTypeFilterPresetStore extends AbstractJsonPresetStore<RowTypeFil
         createPreset("Amide", SMILES, CONTAINS, "CNC=O"), //
         createPreset("Acid", SMILES, CONTAINS, "C(=O)OH"), //
         createPreset("OH (at least 3)", SMILES, CONTAINS, "OH.OH.OH"), //
-        createPreset("PFAS CF2", SMILES, CONTAINS, "CF2"), //
+        createPreset("PFAS CF2", SMARTS, CONTAINS, "C(F)(F)C(F)(F)C(F)(F)"), //
         createPreset("PFAS simple", FORMULA, GREATER_EQUAL, "F4"), //
         createPreset("High oxygen", FORMULA, GREATER_EQUAL, "O4")//
     );

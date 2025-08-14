@@ -81,6 +81,10 @@ class SubstructureMatcherTest {
     assertTrue(matchSmarts("c1ccccc1C", "c1ccccc1"));
     assertTrue(matchSmarts("CC#CC", "[#6X2]"));
     assertFalse(matchSmarts("CCCC", "[#6X2]"));
+    assertTrue(matchSmarts("C(F)(F)C(F)(F)C(F)(F)C", "C(F)(F)C(F)(F)C(F)(F)"));
+
+    // not enough CF2
+    assertFalse(matchSmarts("C(F)(F)C(F)CC", "C(F)(F)C(F)(F)C(F)(F)"));
   }
 
   boolean matchSmarts(String smiles, String smarts) {
