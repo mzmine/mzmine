@@ -27,6 +27,7 @@ package io.github.mzmine.util.presets;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxFileChooser;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -149,7 +150,8 @@ public interface PresetStore<T extends Preset> {
         .map(preset -> autoOverwrite ? preset : requireNonNullElse(userKeepsOld(preset), preset))
         .filter(Objects::nonNull).toList();
 
-    getCurrentPresets().setAll(items);
+    FxThread.runLater(() -> getCurrentPresets().setAll(items));
+
     if (save) {
       for (T item : items) {
         saveToFile(item);
@@ -215,9 +217,10 @@ public interface PresetStore<T extends Preset> {
     if (!autoOverwrite && userKeepsOld(preset) != null) {
       return null;
     }
-
-    removePresetsWithName(preset);
-    getCurrentPresets().add(preset);
+    FxThread.runLater(() -> {
+      removePresetsWithName(preset);
+      getCurrentPresets().add(preset);
+    });
     if (save) {
       saveToFile(preset);
     }
@@ -225,7 +228,7 @@ public interface PresetStore<T extends Preset> {
   }
 
   default void removePresetsWithName(T preset) {
-    getCurrentPresets().removeIf(p -> p.equalsIgnoreCaseName(preset));
+    FxThread.runLater(() -> getCurrentPresets().removeIf(p -> p.equalsIgnoreCaseName(preset)));
   }
 
 
