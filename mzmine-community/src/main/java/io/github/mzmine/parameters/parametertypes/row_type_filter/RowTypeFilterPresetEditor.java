@@ -49,6 +49,6 @@ public class RowTypeFilterPresetEditor extends SimplePresetEditor<RowTypeFilterP
 
   @Override
   protected void setPresetInComponent(RowTypeFilterPreset originalPreset) {
-    comp.setValue(originalPreset.filter());
+    comp.setValue(originalPreset == null ? null : originalPreset.filter());
   }
 }

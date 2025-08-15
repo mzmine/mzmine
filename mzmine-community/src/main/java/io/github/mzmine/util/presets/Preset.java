@@ -71,7 +71,7 @@ public interface Preset extends Comparable<Preset> {
     } else if (this == o) {
       return 0;
     }
-    return name().compareTo(o.name());
+    return toString().compareTo(o.toString());
   }
 
   /**
