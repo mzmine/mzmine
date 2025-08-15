@@ -41,6 +41,7 @@ import javafx.scene.Node;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Preset button that shows a menu with fixed items like save, load; and items for presets.
@@ -130,4 +131,8 @@ public class PresetsButton<T extends Preset> extends StackPane {
     }
   }
 
+  @Nullable
+  public FilterableMenuPopup getPopup() {
+    return popup.get();
+  }
 }

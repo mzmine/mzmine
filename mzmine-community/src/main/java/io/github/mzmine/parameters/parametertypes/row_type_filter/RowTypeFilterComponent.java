@@ -26,8 +26,12 @@
 package io.github.mzmine.parameters.parametertypes.row_type_filter;
 
 import io.github.mzmine.javafx.components.factories.FxComboBox;
+import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.factories.FxLabels.Styles;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.dialogs.FilterableMenuPopup;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.validation.FxValidation;
 import io.github.mzmine.parameters.ValuePropertyComponent;
@@ -35,12 +39,17 @@ import io.github.mzmine.parameters.parametertypes.ComboComponent;
 import io.github.mzmine.parameters.parametertypes.StringParameterComponent;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.RowTypeFilter;
 import io.github.mzmine.util.presets.PresetsButton;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
@@ -122,6 +131,36 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
         name -> value.get() == null ? null : new RowTypeFilterPreset(name, value.get()),
         preset -> value.set(preset.filter()));
     getChildren().add(button);
+
+    final FilterableMenuPopup popup = button.getPopup();
+    if (popup != null) {
+      setListCellFactory(popup);
+    }
+  }
+
+  private static void setListCellFactory(FilterableMenuPopup popup) {
+    popup.getListView().setCellFactory(view -> new ListCell<RowTypeFilterPreset>() {
+      {
+        Node content = buildNode();
+        graphicProperty().bind(
+            Bindings.createObjectBinding(() -> !isEmpty() ? content : null, emptyProperty()));
+        setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+      }
+
+      private Node buildNode() {
+        final ObservableValue<String> name = itemProperty().map(RowTypeFilterPreset::name);
+        final ObservableValue<String> selectedType = itemProperty().map(
+            p -> p == null ? "" : p.filter().selectedType() + ":");
+        final ObservableValue<String> query = itemProperty().map(
+            p -> p == null ? "" : p.filter().matchingMode() + " " + p.filter().query());
+
+        return FxTextFlows.newTextFlow( //
+            FxLabels.newLabel(selectedType), //
+            FxLabels.newLabel(Styles.BOLD, name), //
+            FxLabels.newLabel(query) //
+        );
+      }
+    });
   }
 
   private void setupValidation(StringParameterComponent queryField) {

@@ -154,7 +154,6 @@ public abstract class FilterableMenuPopup<T> extends Popup {
   }
 
   private @NotNull ListView<T> createListView() {
-    final ListView<T> listView;
     final SortedList<T> sortedList = new SortedList<>(originalItems, comparator.get());
     sortedList.comparatorProperty().bind(comparator);
 
@@ -163,7 +162,7 @@ public abstract class FilterableMenuPopup<T> extends Popup {
     final FilteredList<T> filteredItems = new FilteredList<>(sortedList);
     filteredItems.predicateProperty().bind(filterPredicate);
 
-    listView = new ListView<>(filteredItems);
+    final ListView<T> listView = new ListView<>(filteredItems);
     return listView;
   }
 

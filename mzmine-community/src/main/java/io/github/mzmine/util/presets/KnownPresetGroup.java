@@ -39,7 +39,7 @@ public enum KnownPresetGroup implements UniqueIdSupplier {
   @Override
   public @NotNull String getUniqueID() {
     return switch (this) {
-      case ROW_TYPE_FILTER_PRESET -> "flexible_row_type_filter";
+      case ROW_TYPE_FILTER_PRESET -> "feature_table_filters";
     };
   }
 }
