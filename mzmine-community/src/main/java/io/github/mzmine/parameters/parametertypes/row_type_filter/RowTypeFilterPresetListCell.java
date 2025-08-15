@@ -48,7 +48,7 @@ class RowTypeFilterPresetListCell extends ListCell<RowTypeFilterPreset> {
     final ObservableValue<String> selectedType = itemProperty().map(
         p -> p == null ? "" : " " + p.filter().selectedType() + ": ");
     final ObservableValue<String> query = itemProperty().map(
-        p -> p == null ? "" : p.filter().matchingMode() + " " + p.filter().query());
+        p -> p == null ? "" : " " + p.filter().matchingMode() + " " + p.filter().query());
 
     return FxTextFlows.newTextFlow( //
         FxLabels.newLabel(selectedType), //
