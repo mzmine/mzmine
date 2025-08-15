@@ -116,7 +116,7 @@ class ManagePresetsInteractor extends FxInteractor<ManagePresetsModel> implement
         ObservableList<Preset> defaults = model.getSelectedStoreDefaults();
         List<Preset> unique = PresetUtils.filterDifferent(store.getCurrentPresets(), defaults);
         for (Preset preset : unique) {
-          store.addAndSavePreset(preset, true, false);
+          store.addAndSavePreset(preset, false);
         }
         model.getSelectedStoreDefaults().clear();
       }
@@ -142,7 +142,8 @@ class ManagePresetsInteractor extends FxInteractor<ManagePresetsModel> implement
         if (rename) {
           preset.setInvalid();
           store.removePresetsWithName(preset.getPreset());
-          store.addAndSavePreset(preset.createModified(), true, false);
+          Preset actual = store.addAndSavePreset(preset.createModified(), false);
+          model.setSelectedPreset(actual);
         }
       }
     }

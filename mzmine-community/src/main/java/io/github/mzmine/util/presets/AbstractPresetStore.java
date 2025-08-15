@@ -25,15 +25,10 @@
 
 package io.github.mzmine.util.presets;
 
-import io.github.mzmine.gui.DesktopService;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
-import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @param <T>
@@ -45,14 +40,6 @@ public abstract class AbstractPresetStore<T extends Preset> implements PresetSto
   private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
 
   public AbstractPresetStore() {
-    currentPresets.addListener((ListChangeListener<? super T>) change -> {
-      if (!change.next()) {
-        return;
-      }
-      for (T removed : change.getRemoved()) {
-        deletePresetFile(removed);
-      }
-    });
   }
 
   @Override
@@ -61,21 +48,4 @@ public abstract class AbstractPresetStore<T extends Preset> implements PresetSto
   }
 
 
-  @Nullable
-  public T userKeepsOld(T filter) {
-    if (DesktopService.isHeadLess()) {
-      // always overwrite in headless
-      return null;
-    }
-
-    Optional<T> old = getPresetForName(filter);
-    if (old.isEmpty() ||
-        // user wants to keep old
-        DialogLoggerUtil.showDialogYesNo("Duplicate preset for name: " + filter.name(),
-            "Overwrite preset?")) {
-      return null;
-    }
-
-    return old.get();
-  }
 }

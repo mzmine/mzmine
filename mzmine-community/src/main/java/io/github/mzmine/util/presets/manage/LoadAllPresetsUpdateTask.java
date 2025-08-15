@@ -86,7 +86,7 @@ class LoadAllPresetsUpdateTask extends FxUpdateTask<ManagePresetsModel> {
         continue;
       }
       //  overwrite in list
-      store.addAndSavePreset(preset, false, true);
+      store.addAndSavePreset(preset, true);
       allPresets.add(preset);
     }
   }

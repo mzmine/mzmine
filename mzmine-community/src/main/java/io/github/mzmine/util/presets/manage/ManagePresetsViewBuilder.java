@@ -47,6 +47,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringExpression;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -158,7 +159,9 @@ class ManagePresetsViewBuilder extends FxViewBuilder<ManagePresetsModel> {
   }
 
   private @NotNull Pane createSelectedGroupPane() {
-    ListView<Preset> presetsView = new ListView<>(model.getSelectedGroupStorePresets());
+    final SortedList<Preset> sorted = model.getSelectedGroupStorePresets()
+        .sorted(Preset::compareTo);
+    ListView<Preset> presetsView = new ListView<>(sorted);
     final BorderPane selectedGroupPane = FxLayout.newBorderPane(
         new Insets(DEFAULT_SPACE, DEFAULT_SPACE, 0, DEFAULT_SPACE), presetsView);
 

@@ -25,8 +25,7 @@
 
 package io.github.mzmine.util.presets;
 
-import static java.util.Objects.requireNonNullElse;
-
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxFileChooser;
@@ -127,13 +126,10 @@ public interface PresetStore<T extends Preset> {
     if (presets.isEmpty()) {
       // empty --> create defaults and save
       presets = createDefaults();
-      for (T preset : presets) {
-        saveToFile(preset);
-      }
     }
 
     // already saved
-    setAllAndSavePreset(presets, false, true);
+    addAllAndSavePreset(presets, true);
   }
 
 
@@ -141,22 +137,15 @@ public interface PresetStore<T extends Preset> {
    * Replaces all presets
    *
    * @param presets       all presets to set
-   * @param save          if true then save to store
    * @param autoOverwrite if true then just use the new presets, if false then user will see dialog
    *                      for each duplicate
    */
-  default void setAllAndSavePreset(List<T> presets, boolean save, boolean autoOverwrite) {
-    final List<T> items = presets.stream()
-        .map(preset -> autoOverwrite ? preset : requireNonNullElse(userKeepsOld(preset), preset))
-        .filter(Objects::nonNull).toList();
-
-    FxThread.runLater(() -> getCurrentPresets().setAll(items));
-
-    if (save) {
-      for (T item : items) {
-        saveToFile(item);
+  default void addAllAndSavePreset(List<T> presets, boolean autoOverwrite) {
+    FxThread.runLater(() -> {
+      for (T preset : presets) {
+        addAndSavePreset(preset, autoOverwrite);
       }
-    }
+    });
   }
 
 
@@ -172,7 +161,7 @@ public interface PresetStore<T extends Preset> {
         .toList();
     for (T preset : presets) {
       // make sure the preset is also in
-      addAndSavePreset(preset, true, false);
+      addAndSavePreset(preset, false);
     }
 
     return presets;
@@ -191,7 +180,7 @@ public interface PresetStore<T extends Preset> {
         "Enter a name for the preset", "Name:").showAndWait().orElse(null);
     if (name != null && !name.isBlank()) {
       final T preset = presetFactory.apply(name);
-      return addAndSavePreset(preset, true, false);
+      return addAndSavePreset(preset, false);
     }
     return null;
   }
@@ -201,39 +190,69 @@ public interface PresetStore<T extends Preset> {
    *
    * @return if duplicate and user wants to keep old - return old. otherwise null
    */
-  @Nullable T userKeepsOld(T preset);
+  default @Nullable T userKeepsOld(T preset, boolean autoOverwrite) {
+    if (DesktopService.isHeadLess()) {
+      // always overwrite in headless
+      return null;
+    }
+
+    List<T> existing = getPresetsForName(preset);
+    final boolean presetAlreadyExists = existing.size() == 1 && existing.contains(preset);
+    if (presetAlreadyExists) {
+      return existing.getFirst(); // no modification detected so return preset
+    }
+
+    if (existing.isEmpty() || autoOverwrite) {
+      return null;
+    }
+
+    if (DialogLoggerUtil.showDialogYesNo("Duplicate preset for name: " + preset.name(),
+        "Overwrite preset?")) {
+      return null; // overwrite so do not return old
+    }
+
+    return existing.getFirst();
+  }
 
   /**
    * @param preset        to save
-   * @param save          save to file
    * @param autoOverwrite do not ask user
    * @return the input preset if successful. Or null, e.g., if user decided to cancel
    */
   @Nullable
-  default T addAndSavePreset(T preset, boolean save, boolean autoOverwrite) {
+  default T addAndSavePreset(T preset, boolean autoOverwrite) {
     if (preset == null) {
       return null;
     }
-    if (!autoOverwrite && userKeepsOld(preset) != null) {
-      return null;
+
+    final T old = userKeepsOld(preset, autoOverwrite);
+    if (old != null) {
+      return old;
     }
+
     FxThread.runLater(() -> {
       removePresetsWithName(preset);
       getCurrentPresets().add(preset);
+      saveToFile(preset); // on same thread as the remove part
     });
-    if (save) {
-      saveToFile(preset);
-    }
     return preset;
   }
 
   default void removePresetsWithName(T preset) {
+    // delete file first
+    deletePresetFile(preset);
+
+    // then remove from list
     FxThread.runLater(() -> getCurrentPresets().removeIf(p -> p.equalsIgnoreCaseName(preset)));
   }
 
 
-  default Optional<T> getPresetForName(T preset) {
-    return getCurrentPresets().stream().filter(f -> f.equalsIgnoreCaseName(preset)).findAny();
+  /**
+   * @param preset to search
+   * @return list of existing presets with name also itself
+   */
+  default List<T> getPresetsForName(T preset) {
+    return getCurrentPresets().stream().filter(f -> f.equalsIgnoreCaseName(preset)).toList();
   }
 
   default Optional<T> getPresetForName(String name) {
@@ -252,7 +271,7 @@ public interface PresetStore<T extends Preset> {
       return;
     }
     for (T preset : defaults) {
-      addAndSavePreset(preset, true, false);
+      addAndSavePreset(preset, false);
     }
   }
 
