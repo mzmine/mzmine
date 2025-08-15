@@ -37,6 +37,7 @@ import static io.github.mzmine.parameters.parametertypes.row_type_filter.RowType
 import io.github.mzmine.util.presets.AbstractJsonPresetStore;
 import io.github.mzmine.util.presets.KnownPresetGroup;
 import io.github.mzmine.util.presets.PresetCategory;
+import io.github.mzmine.util.presets.PresetGroup;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,8 +49,8 @@ public class RowTypeFilterPresetStore extends AbstractJsonPresetStore<RowTypeFil
   }
 
   @Override
-  public @NotNull String getPresetGroup() {
-    return KnownPresetGroup.ROW_TYPE_FILTER_PRESET.getUniqueID();
+  public @NotNull PresetGroup getPresetGroup() {
+    return KnownPresetGroup.ROW_TYPE_FILTER_PRESET;
   }
 
   @Override

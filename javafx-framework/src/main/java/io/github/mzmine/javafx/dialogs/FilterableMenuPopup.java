@@ -118,6 +118,10 @@ public abstract class FilterableMenuPopup<T> extends Popup {
     }
   }
 
+  public String getSearchText() {
+    return searchText.get();
+  }
+
   /**
    * Default just removes from originalItems list. This will not work for unmodifiable lists - then
    * overwrite
@@ -259,4 +263,7 @@ public abstract class FilterableMenuPopup<T> extends Popup {
   public abstract @NotNull Predicate<T> createPredicate(String searchText);
 
 
+  public void setSearchText(String text) {
+    searchText.setValue(text);
+  }
 }

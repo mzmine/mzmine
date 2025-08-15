@@ -32,17 +32,18 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.presets.AbstractJsonPresetStore;
 import io.github.mzmine.util.presets.FxPresetEditor;
 import io.github.mzmine.util.presets.PresetCategory;
+import io.github.mzmine.util.presets.PresetGroup;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class ModulePresetStore extends AbstractJsonPresetStore<ModulePreset> {
 
-  private final MZmineModule module;
   private final ParameterSet serializationHelper;
   private final ObjectMapper mapper;
+  private final ModulePresetGroup group;
 
   public ModulePresetStore(MZmineModule moduleClass, ParameterSet serializationHelper) {
-    this.module = moduleClass;
+    group = new ModulePresetGroup(moduleClass);
     // safe copy
     this.serializationHelper = serializationHelper.cloneParameterSet();
 
@@ -77,11 +78,11 @@ public class ModulePresetStore extends AbstractJsonPresetStore<ModulePreset> {
   }
 
   @Override
-  public @NotNull String getPresetGroup() {
-    return module.getUniqueID();
+  public @NotNull PresetGroup getPresetGroup() {
+    return group;
   }
 
   public ModulePreset createPreset(String name, ParameterSet parameterSet) {
-    return new ModulePreset(name, getPresetGroup(), parameterSet);
+    return new ModulePreset(name, getPresetGroup().getUniqueID(), parameterSet);
   }
 }

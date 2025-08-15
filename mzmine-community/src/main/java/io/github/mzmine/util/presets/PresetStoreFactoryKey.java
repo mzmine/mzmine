@@ -32,6 +32,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public record PresetStoreFactoryKey(@NotNull String key) {
 
+  /**
+   * @param group group is the {@link PresetGroup#getUniqueID()} which is the folder name
+   */
   public static PresetStoreFactoryKey create(@NotNull PresetCategory category,
       @NotNull String group) {
     if (category == PresetCategory.MODULES) {

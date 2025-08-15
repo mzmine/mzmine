@@ -23,40 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.presets;
+package io.github.mzmine.util.presets;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.presets.Preset;
-import io.github.mzmine.util.presets.PresetCategory;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
 
-
 /**
- * @param name
- * @param presetGroup the module uniqueID
- * @param parameters
+ * Defines the {@link Preset} group. Also see  {@link PresetCategory}. use toString for display
+ * name
  */
-public record ModulePreset(String name, @NotNull String presetGroup,
-                           ParameterSet parameters) implements Preset {
+public interface PresetGroup extends UniqueIdSupplier {
 
-  @Override
-  public @NotNull String toString() {
-    return name;
-  }
-
-  @Override
-  public @NotNull ModulePreset withName(String name) {
-    return new ModulePreset(name, presetGroup, parameters);
-  }
-
-
-  // constant is set to read only - will save but not read it
-  @Override
-  @JsonProperty(access = Access.READ_ONLY)
-  public @NotNull PresetCategory presetCategory() {
-    return PresetCategory.MODULES;
+  /**
+   * Often same as {@link #getUniqueID()}. Use toString for a display name.
+   *
+   * @return the folder name of this group in {@link PresetCategory} / {@link PresetGroup}
+   */
+  default @NotNull String getFolderName() {
+    return getUniqueID();
   }
 
 }

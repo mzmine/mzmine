@@ -25,38 +25,19 @@
 
 package io.github.mzmine.modules.presets;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.presets.Preset;
-import io.github.mzmine.util.presets.PresetCategory;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.util.presets.PresetGroup;
 import org.jetbrains.annotations.NotNull;
 
-
-/**
- * @param name
- * @param presetGroup the module uniqueID
- * @param parameters
- */
-public record ModulePreset(String name, @NotNull String presetGroup,
-                           ParameterSet parameters) implements Preset {
+public record ModulePresetGroup(MZmineModule module) implements PresetGroup {
 
   @Override
   public @NotNull String toString() {
-    return name;
+    return module.getName();
   }
 
   @Override
-  public @NotNull ModulePreset withName(String name) {
-    return new ModulePreset(name, presetGroup, parameters);
+  public @NotNull String getUniqueID() {
+    return module.getUniqueID();
   }
-
-
-  // constant is set to read only - will save but not read it
-  @Override
-  @JsonProperty(access = Access.READ_ONLY)
-  public @NotNull PresetCategory presetCategory() {
-    return PresetCategory.MODULES;
-  }
-
 }

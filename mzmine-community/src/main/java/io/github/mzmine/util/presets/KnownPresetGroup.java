@@ -29,17 +29,28 @@ import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset;
 import org.jetbrains.annotations.NotNull;
 
-public enum KnownPresetGroup implements UniqueIdSupplier {
+public enum KnownPresetGroup implements PresetGroup {
 
   /**
    * {@link RowTypeFilterPreset}
    */
   ROW_TYPE_FILTER_PRESET;
 
+  public KnownPresetGroup parse(String name) {
+    return UniqueIdSupplier.parseOrElse(name, values(), null);
+  }
+
   @Override
   public @NotNull String getUniqueID() {
     return switch (this) {
       case ROW_TYPE_FILTER_PRESET -> "feature_table_filters";
+    };
+  }
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case ROW_TYPE_FILTER_PRESET -> "Feature table filters";
     };
   }
 }

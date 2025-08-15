@@ -26,6 +26,7 @@
 package io.github.mzmine.util.presets;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.github.mzmine.modules.presets.ModulePreset;
@@ -83,6 +84,7 @@ public interface Preset extends Comparable<Preset> {
   /**
    * The group name (category>group). For modules this is the Module class name.
    */
+  @JsonInclude
   @Nullable String presetGroup();
 
   /**

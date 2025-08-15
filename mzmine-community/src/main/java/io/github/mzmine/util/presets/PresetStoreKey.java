@@ -30,6 +30,6 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Key to identify a {@link PresetStore}
  */
-public record PresetStoreKey(@NotNull PresetCategory category, @NotNull String group) {
+public record PresetStoreKey(@NotNull PresetCategory category, @NotNull PresetGroup group) {
 
 }

@@ -38,6 +38,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import javafx.collections.ObservableList;
+import javafx.scene.control.TextInputDialog;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +49,7 @@ public interface PresetStore<T extends Preset> {
   default File getPresetStoreFilePath() {
     // make sure this exists
     final File dir = FileAndPathUtil.PRESETS_DIR.toPath().resolve(getPresetCategory().getUniqueID())
-        .resolve(getPresetGroup()).toFile();
+        .resolve(getPresetGroup().getFolderName()).toFile();
     return dir;
   }
 
@@ -81,7 +82,7 @@ public interface PresetStore<T extends Preset> {
   /**
    * The group name (category>group). For modules this is the Module class name.
    */
-  @NotNull String getPresetGroup();
+  @NotNull PresetGroup getPresetGroup();
 
   @NotNull List<ExtensionFilter> getExtensionFilters();
 
@@ -176,10 +177,28 @@ public interface PresetStore<T extends Preset> {
    */
   @Nullable
   default T showSaveDialog(@NotNull Function<String, @NotNull T> presetFactory) {
-    final String name = DialogLoggerUtil.createTextInputDialog("Save Preset",
-        "Enter a name for the preset", "Name:").showAndWait().orElse(null);
+    return showSaveDialog(null, presetFactory);
+  }
+
+  /**
+   * Opens dialog asking for name, then saving the preset, adding it to the list. If the name is a
+   * duplicate also ask for overwrite permission.
+   *
+   * @param presetFactory generates the preset for a given name
+   * @return the new preset or null if user decided to cancel or did not overwrite
+   */
+  @Nullable
+  default T showSaveDialog(@Nullable String startName,
+      @NotNull Function<String, @NotNull T> presetFactory) {
+    final TextInputDialog dialog = DialogLoggerUtil.createTextInputDialog("Save Preset",
+        "Enter a name for the preset", "Name:");
+    if (startName != null) {
+      dialog.getEditor().setText(startName);
+    }
+
+    final String name = dialog.showAndWait().orElse(null);
     if (name != null && !name.isBlank()) {
-      final T preset = presetFactory.apply(name);
+      final T preset = presetFactory.apply(name.trim());
       return addAndSavePreset(preset, false);
     }
     return null;
@@ -278,8 +297,13 @@ public interface PresetStore<T extends Preset> {
   /**
    * @return true if category and name match
    */
-  default boolean matches(PresetCategory category, String name) {
-    return getPresetCategory().equals(category) && getPresetGroup().equals(name);
+  default boolean matches(PresetCategory category, PresetGroup group) {
+    return getPresetCategory().equals(category) && getPresetGroup().equals(group);
+  }
+
+  default boolean matches(PresetCategory category, String groupUniqueId) {
+    return getPresetCategory().equals(category) && getPresetGroup().getUniqueID()
+        .equals(groupUniqueId);
   }
 
   /**

@@ -78,7 +78,7 @@ public class PresetsButton<T extends Preset> extends StackPane {
             "Remove selected preset (select with arrow keys up/down) or press delete key to remove.",
             () -> popup.get().askRemoveSelected()), //
         FxIconUtil.newIconButton(FxIcons.GEAR_PREFERENCES, "Manage presets",
-            () -> ManagePresetTab.show(presetStore)), //
+            () -> showManageTab(presetStore)), //
     };
 
     popup.set(new FilterableMenuPopup<>(presetStore.getCurrentPresets(), false, nodes) {
@@ -105,14 +105,33 @@ public class PresetsButton<T extends Preset> extends StackPane {
     getChildren().add(presetButton);
   }
 
+  private <T extends Preset> void showManageTab(@NotNull PresetStore<T> presetStore) {
+    ManagePresetTab.show(presetStore);
+    final FilterableMenuPopup<T> pop = (FilterableMenuPopup<T>) popup.get();
+    if (pop != null) {
+      pop.hide();
+    }
+  }
+
   private void showSaveDialog() {
     // create a preset to see if saving is valid
     final T testPreset = presetNameFactory.apply("placeholder");
     if (testPreset == null) {
       return;
     }
+    final String name = popup.get().getSearchText().trim();
+    if (!name.isBlank()) {
+      if (presetStore.getPresetForName(name).isEmpty()) {
+        // no existing, save directly
+        presetStore.addAndSavePreset(testPreset.withName(name), true);
+        popup.get().setSearchText("");
+        return;
+      }
+    }
+
     // rename the test preset. this way we know the current value is not null
     presetStore.showSaveDialog(testPreset::withName);
+    popup.get().setSearchText("");
   }
 
   public void showMenu() {
