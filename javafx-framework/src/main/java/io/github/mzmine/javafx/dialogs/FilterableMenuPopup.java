@@ -230,7 +230,7 @@ public abstract class FilterableMenuPopup<T> extends Popup {
 
   public void show(Node node) {
     final Bounds boundsInScreen = node.localToScreen(node.getBoundsInLocal());
-    show(node, boundsInScreen.getCenterX(), boundsInScreen.getCenterY());
+    show(node, boundsInScreen.getMinX(), boundsInScreen.getMinY());
   }
 
   @Override
@@ -239,6 +239,7 @@ public abstract class FilterableMenuPopup<T> extends Popup {
       return;
     }
     searchText.setValue("");
+    super.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_LEFT);
     super.show(node, v, v1);
 
     searchField.requestFocus();

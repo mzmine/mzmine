@@ -76,7 +76,7 @@ public class FxFeatureTableFilterMenu extends BorderPane {
     setCenter(filterFlow);
     setRight(rightButtonMenu);
 
-    PropertyUtils.onChangeDelayedSubscription(this::updateFilter, Duration.millis(1000),
+    PropertyUtils.onChangeDelayedSubscription(this::updateFilter, Duration.millis(150),
         model.idFilterProperty(), model.mzFilterProperty(), model.rtFilterProperty(),
         model.specialRowTypeFilterProperty());
   }

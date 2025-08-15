@@ -112,7 +112,15 @@ public class PresetsButton<T extends Preset> extends StackPane {
   }
 
   public void showMenu(@NotNull Node parent) {
-    popup.show(parent);
+    final FilterableMenuPopup<T> pop = popup;
+    if (pop == null) {
+      return;
+    }
+    if (pop.isShowing()) {
+      pop.hide();
+    } else {
+      pop.show(parent);
+    }
   }
 
 }
