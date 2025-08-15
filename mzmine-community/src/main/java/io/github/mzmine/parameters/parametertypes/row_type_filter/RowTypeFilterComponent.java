@@ -34,7 +34,6 @@ import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.ComboComponent;
 import io.github.mzmine.parameters.parametertypes.StringParameterComponent;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.RowTypeFilter;
-import io.github.mzmine.util.presets.FxPresetEditor;
 import io.github.mzmine.util.presets.PresetsButton;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -47,11 +46,10 @@ import javafx.scene.layout.HBox;
 import javafx.util.Duration;
 import org.jetbrains.annotations.Nullable;
 
-public class RowTypeFilterComponent extends HBox implements ValuePropertyComponent<RowTypeFilter>,
-    FxPresetEditor {
-
+public class RowTypeFilterComponent extends HBox implements ValuePropertyComponent<RowTypeFilter> {
 
   private final ObjectProperty<RowTypeFilter> value = new SimpleObjectProperty<>();
+
   private final ComboComponent<RowTypeFilterOption> optionCombo;
   private final ComboComponent<MatchingMode> matchingModeCombo;
   private final StringParameterComponent queryField;

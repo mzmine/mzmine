@@ -23,25 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.parameters.parametertypes.row_type_filter;
 
-import io.github.mzmine.util.presets.manage.EditPresetModel;
-import javafx.beans.property.ObjectProperty;
-import javafx.scene.Node;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.util.presets.PresetStore;
+import io.github.mzmine.util.presets.manage.SimplePresetEditor;
 
-public interface FxPresetEditor {
+/**
+ * This is the editor shown in the preset management tab. It uses the {@link RowTypeFilterComponent}
+ * and adds an apply button to it.
+ */
+public class RowTypeFilterPresetEditor extends SimplePresetEditor<RowTypeFilterPreset> {
 
-  Node getEditorNode();
+  private final RowTypeFilterComponent comp;
 
+  public RowTypeFilterPresetEditor(PresetStore store) {
+    super(store);
 
-  ObjectProperty<EditPresetModel> presetProperty();
+    comp = RowTypeFilterParameter.createDefaultEditingComponent(false);
+    getChildren().addFirst(comp);
 
-  default void setPreset(@Nullable EditPresetModel selected) {
-    presetProperty().set(selected);
+    comp.valueProperty().subscribe((nv) -> {
+      setModifiedPreset(RowTypeFilterPreset.createPreset("placeholder", nv));
+    });
   }
 
-  default EditPresetModel getPreset() {
-    return presetProperty().get();
+  @Override
+  protected void setPresetInComponent(RowTypeFilterPreset originalPreset) {
+    comp.setValue(originalPreset.filter());
   }
 }

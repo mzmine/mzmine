@@ -77,8 +77,8 @@ public class RowTypeFilterPresetStore extends AbstractJsonPresetStore<RowTypeFil
 
 
   @Override
-  public RowTypeFilterComponent createPresetEditor() {
-    return RowTypeFilterParameter.createDefaultEditingComponent(false);
+  public RowTypeFilterPresetEditor createPresetEditor() {
+    return new RowTypeFilterPresetEditor(this);
   }
 
 }

@@ -214,6 +214,14 @@ class ManagePresetsViewBuilder extends FxViewBuilder<ManagePresetsModel> {
         defaultsButton //
     );
 
+    model.presetEditorProperty().subscribe(editor -> {
+      if (editor == null) {
+        presetEditorHolder.getChildren().clear();
+        return;
+      }
+      presetEditorHolder.getChildren().setAll(editor.getEditorNode());
+    });
+
     bindSelectedPreset(presetsView, nameField);
 
     final VBox vBox = FxLayout.newVBox(Pos.TOP_LEFT, buttonBar, presetEditorHolder, presetsView);
@@ -231,7 +239,7 @@ class ManagePresetsViewBuilder extends FxViewBuilder<ManagePresetsModel> {
       if (nv != null) {
         nameField.textProperty().bindBidirectional(nv.nameProperty());
       }
-      presetsView.getSelectionModel().select(nv == null ? null : nv.getPreset());
+      presetsView.getSelectionModel().select(nv == null ? null : nv.getOriginalPreset());
     });
   }
 

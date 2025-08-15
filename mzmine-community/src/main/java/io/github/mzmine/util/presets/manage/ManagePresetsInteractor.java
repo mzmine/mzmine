@@ -27,6 +27,7 @@ package io.github.mzmine.util.presets.manage;
 
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.mvci.FxInteractor;
+import io.github.mzmine.util.presets.FxPresetEditor;
 import io.github.mzmine.util.presets.Preset;
 import io.github.mzmine.util.presets.PresetStore;
 import io.github.mzmine.util.presets.PresetStoreKey;
@@ -82,7 +83,12 @@ class ManagePresetsInteractor extends FxInteractor<ManagePresetsModel> implement
 
     // old was modified and changed to other selection
     // ask if save
-    model.selectedPresetProperty().subscribe((old, _) -> {
+    model.selectedPresetProperty().subscribe((old, selected) -> {
+      final FxPresetEditor editor = model.getPresetEditor();
+      if (editor != null) {
+        editor.setPreset(selected);
+      }
+
       if (old == null || !old.isModified()) {
         return;
       }
@@ -139,8 +145,8 @@ class ManagePresetsInteractor extends FxInteractor<ManagePresetsModel> implement
 
         if (rename) {
           preset.setInvalid();
-          store.removePresetsWithName(preset.getPreset());
-          Preset actual = store.addAndSavePreset(preset.createModified(), false);
+          store.removePresetsWithName(preset.getOriginalPreset());
+          Preset actual = store.addAndSavePreset(preset.createModifiedWithName(), false);
           model.setSelectedPreset(actual);
         }
       }

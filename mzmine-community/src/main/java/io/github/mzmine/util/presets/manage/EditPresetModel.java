@@ -25,40 +25,63 @@
 
 package io.github.mzmine.util.presets.manage;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.util.presets.Preset;
+import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Properties are not bound to the preset but initialized with its values. On change the modified
  * property will be true.
  */
-class EditPresetModel {
+public class EditPresetModel {
 
-  private final ObjectProperty<@Nullable Preset> preset = new SimpleObjectProperty<>();
+  private static final Logger logger = Logger.getLogger(EditPresetModel.class.getName());
+  private final ObjectProperty<@NotNull Preset> originalPreset = new SimpleObjectProperty<>();
+  /**
+   * Editor may modify this preset
+   */
+  private final ObjectProperty<@Nullable Preset> modifiedPreset = new SimpleObjectProperty<>();
+
   private final StringProperty name = new SimpleStringProperty();
   private final BooleanProperty modified = new SimpleBooleanProperty(false);
   private final BooleanProperty invalid = new SimpleBooleanProperty(false);
 
-  public EditPresetModel(Preset preset) {
-    this.preset.set(preset);
-    name.set(preset.name());
+  public EditPresetModel(@NotNull Preset originalPreset) {
+    this.originalPreset.set(originalPreset);
+    name.set(originalPreset.name());
     modified.set(false);
     PropertyUtils.onChange(() -> modified.set(true), name);
+    modifiedPreset.subscribe(nv -> setModifiedIfDifferent(nv));
   }
 
-  public @Nullable Preset getPreset() {
-    return preset.get();
+  private void setModifiedIfDifferent(@Nullable Preset modPreset) {
+    if (originalPreset.get() == null) {
+      logger.info("original preset is null, cannot compare");
+      return;
+    }
+    if (modPreset == null || modified.get()) {
+      return;
+    }
+    // has changed
+    modified.set(!modPreset.equalsByContent(getOriginalPreset()));
   }
 
-  public ObjectProperty<@Nullable Preset> presetProperty() {
-    return preset;
+  public Preset getOriginalPreset() {
+    return originalPreset.get();
+  }
+
+  public ObjectProperty<@Nullable Preset> presetOriginalProperty() {
+    return originalPreset;
   }
 
   public String getName() {
@@ -78,11 +101,14 @@ class EditPresetModel {
   }
 
   public String getOriginalName() {
-    return preset.getName();
+    return originalPreset.getName();
   }
 
-  public Preset createModified() {
-    return getPreset().withName(getName());
+  @Nullable
+  public Preset createModifiedWithName() {
+    final Preset modified = getModifiedPreset();
+    // set name for modified if available
+    return requireNonNullElse(modified, getOriginalPreset()).withName(getName());
   }
 
   /**
@@ -99,5 +125,17 @@ class EditPresetModel {
 
   public BooleanProperty invalidProperty() {
     return invalid;
+  }
+
+  public void setModifiedPreset(Preset modified) {
+    modifiedPreset.set(modified);
+  }
+
+  public @Nullable Preset getModifiedPreset() {
+    return modifiedPreset.get();
+  }
+
+  public ObjectProperty<@Nullable Preset> modifiedPresetProperty() {
+    return modifiedPreset;
   }
 }

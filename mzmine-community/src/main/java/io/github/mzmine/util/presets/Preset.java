@@ -94,4 +94,19 @@ public interface Preset extends Comparable<Preset> {
   }
 
   @NotNull <T extends Preset> T withName(String name);
+
+  /**
+   * Exclude name during check to only focus on preset content
+   *
+   * @return true if content equals (exculding name)
+   */
+  default boolean equalsByContent(@Nullable Preset other) {
+    if (other == null) {
+      return false;
+    }
+    if (other == this) {
+      return true;
+    }
+    return this.withName(other.name()).equals(other);
+  }
 }

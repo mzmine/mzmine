@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.presets.AbstractJsonPresetStore;
+import io.github.mzmine.util.presets.FxPresetEditor;
 import io.github.mzmine.util.presets.PresetCategory;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -62,6 +63,12 @@ public class ModulePresetStore extends AbstractJsonPresetStore<ModulePreset> {
   @Override
   public @NotNull List<ModulePreset> createDefaults() {
     return List.of();
+  }
+
+  @Override
+  public FxPresetEditor createPresetEditor() {
+    // currently no editor. user should just save same name in the batch dialog
+    return null;
   }
 
   @Override

@@ -41,7 +41,12 @@ public record RowTypeFilterPreset(String name, RowTypeFilter filter) implements 
 
   public static RowTypeFilterPreset createPreset(String name, RowTypeFilterOption option,
       MatchingMode mode, String query) {
-    return new RowTypeFilterPreset(name, RowTypeFilter.create(option, mode, query));
+    final RowTypeFilter filter = RowTypeFilter.create(option, mode, query);
+    return createPreset(name, filter);
+  }
+
+  public static @NotNull RowTypeFilterPreset createPreset(String name, RowTypeFilter filter) {
+    return new RowTypeFilterPreset(name, filter);
   }
 
 
@@ -53,7 +58,7 @@ public record RowTypeFilterPreset(String name, RowTypeFilter filter) implements 
 
   @Override
   public @NotNull RowTypeFilterPreset withName(String name) {
-    return new RowTypeFilterPreset(name, filter);
+    return createPreset(name, filter);
   }
 
   @Override
