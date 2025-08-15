@@ -123,7 +123,11 @@ public class PresetsButton<T extends Preset> extends StackPane {
     if (pop == null) {
       return;
     }
-    pop.show(parent);
+    if (pop.isShowing()) {
+      pop.hide();
+    } else {
+      pop.show(parent);
+    }
   }
 
 }
