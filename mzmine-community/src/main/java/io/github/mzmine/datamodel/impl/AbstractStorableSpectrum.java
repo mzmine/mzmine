@@ -65,7 +65,14 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
     setDataPoints(storage, mzValues, intensityValues);
   }
 
-  public AbstractStorableSpectrum(@Nullable MemorySegment mzValues,
+  /**
+   * Constructor that can use already stored mz and intensity values. Must be checked for being
+   * sorted by mz prior to storing, not done in this constructor (hence it is protected).
+   *
+   * @param mzValues        ascending mz sorted mz values
+   * @param intensityValues intensities for sorted mz values
+   */
+  protected AbstractStorableSpectrum(@Nullable MemorySegment mzValues,
       @Nullable MemorySegment intensityValues) {
     if (mzValues == null ^ intensityValues == null) {
       // one is null the other not
@@ -146,7 +153,8 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    MemorySegment.copy(intensityValues, ValueLayout.JAVA_DOUBLE, 0, dst, 0, getNumberOfDataPoints());
+    MemorySegment.copy(intensityValues, ValueLayout.JAVA_DOUBLE, 0, dst, 0,
+        getNumberOfDataPoints());
     return dst;
   }
 

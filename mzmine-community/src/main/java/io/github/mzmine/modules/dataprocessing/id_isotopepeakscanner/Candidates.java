@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,7 +48,8 @@ import javafx.collections.ObservableList;
  */
 public class Candidates {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(Candidates.class.getName());
+
   private IsotopePattern pattern;
   private MZTolerance mzTolerance;
   private double minHeight;
@@ -225,8 +226,8 @@ public class Candidates {
       return candidate[index].checkForBetterRating(parent, cand, pattern, index, minRating,
           checkIntensity);
     } else if (ratingType == RatingType.TEMPAVG) {
-      DataPoint dpParent =
-          new SimpleDataPoint(parent.getAverageMZ(), calcAvgPeakHeight(parent.getID()));
+      DataPoint dpParent = new SimpleDataPoint(parent.getAverageMZ(),
+          calcAvgPeakHeight(parent.getID()));
       double candidateIntensity = calcAvgPeakHeight(cand.getID());
 
       if (candidateIntensity == -1.0) {
@@ -287,8 +288,8 @@ public class Candidates {
     }
 
     for (int i = 0; i < candidate.length; i++) {
-      avgRating[i] =
-          candidate[i].recalcRatingWithAvgIntensities(candidate[0].getMZ(), pattern, i, avgHeight);
+      avgRating[i] = candidate[i].recalcRatingWithAvgIntensities(candidate[0].getMZ(), pattern, i,
+          avgHeight);
     }
     return avgRating;
   }
@@ -394,8 +395,8 @@ public class Candidates {
         boolean allFound = true;
 
         for (int j = 0; j < mzs.length; j++) {
-          DataPoint[] points =
-              getMassListDataPointsByMass(list, mzTolerance.getToleranceRange(mzs[j]));
+          DataPoint[] points = getMassListDataPointsByMass(list,
+              mzTolerance.getToleranceRange(mzs[j]));
 
           if (points.length == 0) {
             continue;

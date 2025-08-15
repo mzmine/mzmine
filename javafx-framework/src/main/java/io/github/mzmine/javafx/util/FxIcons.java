@@ -33,7 +33,7 @@ public enum FxIcons implements IconCodeSupplier {
   ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, PLUS, ADD, EDIT, QUESTIONMARK, ARROW_IN_RIGHT,
 
   // icons
-  FILE,
+  FILE, FOLDER, LIST, GROUPED_PARAMETERS,
 
   // UI
   DARK_MODE_SWITCH, BATCH,
@@ -43,7 +43,7 @@ public enum FxIcons implements IconCodeSupplier {
   ROCKET, LIGHTBULB, METADATA_TABLE, TABLE, SPREADSHEET,
 
   // ACTIONS
-  SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD;
+  SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD, SEARCH;
 
 
   @Override
@@ -56,6 +56,8 @@ public enum FxIcons implements IconCodeSupplier {
       case INFO_CIRCLE -> "bi-info-circle";
       case EXCLAMATION_TRIANGLE -> "bi-exclamation-triangle";
       case EXCLAMATION_CIRCLE -> "bi-exclamation-circle";
+      case LIST -> "bi-list-ul";
+      case GROUPED_PARAMETERS -> "bi-menu-app-fill";
       case DARK_MODE_SWITCH -> "bi-mask";
       case USER -> "bi-person-circle";
       case BUG -> "bi-bug";
@@ -92,6 +94,8 @@ public enum FxIcons implements IconCodeSupplier {
       case QUESTIONMARK -> "bi-question-circle";
       case ARROW_IN_RIGHT -> "bi-box-arrow-in-right";
       case FILE -> "bi-file-earmark-text";
+      case FOLDER -> "bi-folder";
+      case SEARCH -> "bi-search";
     };
   }
 }

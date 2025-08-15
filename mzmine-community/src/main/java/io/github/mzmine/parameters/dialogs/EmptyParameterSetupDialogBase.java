@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.dialogs;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
@@ -57,6 +58,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class represents an empty base parameter setup dialog. Implementations of this dialog should
@@ -91,12 +93,12 @@ public class EmptyParameterSetupDialogBase extends Stage {
    * @param message: html-formatted text
    */
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters,
-      Region message) {
+      @Nullable Region message) {
     this(valueCheckRequired, parameters, true, true, message);
   }
 
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, Region message) {
+      boolean addOkButton, boolean addCancelButton, @Nullable Region message) {
     super();
     Image mzmineIcon = FxIconUtil.loadImageFromResources("mzmineIcon.png");
     this.getIcons().add(mzmineIcon);
@@ -145,8 +147,11 @@ public class EmptyParameterSetupDialogBase extends Stage {
     });
 
     // Use main CSS
-    scene.getStylesheets()
-        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    if(DesktopService.isGUI()) {
+      // may be called in headless mode for graphics export
+      scene.getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    }
     setScene(scene);
 
     setTitle(parameterSet.getModuleNameAttribute());
@@ -297,6 +302,11 @@ public class EmptyParameterSetupDialogBase extends Stage {
    * @return false if parameters are set incorrectly
    */
   public boolean checkParameterValues(boolean updateParametersFirst, boolean showSuccessDialog) {
+    return checkParameterValues(updateParametersFirst, showSuccessDialog, false);
+  }
+
+  public boolean checkParameterValues(boolean updateParametersFirst, boolean showSuccessDialog,
+      boolean skipRawDataAndFeatureListParameters) {
     // commit the changes to the parameter set
     if (updateParametersFirst) {
       updateParameterSetFromComponents();
@@ -304,7 +314,8 @@ public class EmptyParameterSetupDialogBase extends Stage {
 
     if (isValueCheckRequired()) {
       ArrayList<String> messages = new ArrayList<>();
-      boolean allParametersOK = paramPane.getParameterSet().checkParameterValues(messages);
+      boolean allParametersOK = paramPane.getParameterSet()
+          .checkParameterValues(messages, skipRawDataAndFeatureListParameters);
 
       if (!allParametersOK) {
         StringBuilder message = new StringBuilder("Please check the parameter settings:\n");

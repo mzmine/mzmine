@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,19 +25,18 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.dialogs.AxesSetupDialog;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.util.dialogs.AxesSetupDialog;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToggleButton;
@@ -53,21 +52,19 @@ import org.jetbrains.annotations.NotNull;
  */
 public class TwoDVisualizerTab extends MZmineTab {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private static final Image paletteIcon =
-      FxIconUtil.loadImageFromResources("icons/colorbaricon.png");
-  private static final Image dataPointsIcon =
-      FxIconUtil.loadImageFromResources("icons/datapointsicon.png");
+  private static final Image paletteIcon = FxIconUtil.loadImageFromResources(
+      "icons/colorbaricon.png");
+  private static final Image dataPointsIcon = FxIconUtil.loadImageFromResources(
+      "icons/datapointsicon.png");
   private static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
-  private static final Image centroidIcon =
-      FxIconUtil.loadImageFromResources("icons/centroidicon.png");
-  private static final Image continuousIcon =
-      FxIconUtil.loadImageFromResources("icons/continuousicon.png");
-  private static final Image tooltipsIcon =
-      FxIconUtil.loadImageFromResources("icons/tooltips2dploticon.png");
-  private static final Image notooltipsIcon =
-      FxIconUtil.loadImageFromResources("icons/notooltips2dploticon.png");
+  private static final Image centroidIcon = FxIconUtil.loadImageFromResources(
+      "icons/centroidicon.png");
+  private static final Image continuousIcon = FxIconUtil.loadImageFromResources(
+      "icons/continuousicon.png");
+  private static final Image tooltipsIcon = FxIconUtil.loadImageFromResources(
+      "icons/tooltips2dploticon.png");
+  private static final Image notooltipsIcon = FxIconUtil.loadImageFromResources(
+      "icons/notooltips2dploticon.png");
   private static final Image logScaleIcon = FxIconUtil.loadImageFromResources("icons/logicon.png");
 
   //private final Scene mainScene;
@@ -123,10 +120,9 @@ public class TwoDVisualizerTab extends MZmineTab {
       twoDPlot.getXYPlot().switchPalette();
     });
 
-
     Button toggleContinuousModeButton = new Button(null, new ImageView(dataPointsIcon));
-    toggleContinuousModeButton
-        .setTooltip(new Tooltip("Toggle displaying of data points in continuous mode"));
+    toggleContinuousModeButton.setTooltip(
+        new Tooltip("Toggle displaying of data points in continuous mode"));
     toggleContinuousModeButton.setOnAction(e -> {
       twoDPlot.switchDataPointsVisible();
     });
@@ -134,13 +130,14 @@ public class TwoDVisualizerTab extends MZmineTab {
     Button axesButton = new Button(null, new ImageView(axesIcon));
     axesButton.setTooltip(new Tooltip("Setup ranges for axes"));
     axesButton.setOnAction(e -> {
-      AxesSetupDialog dialog = new AxesSetupDialog(getTabPane().getScene().getWindow(), twoDPlot.getXYPlot());
+      AxesSetupDialog dialog = new AxesSetupDialog(getTabPane().getScene().getWindow(),
+          twoDPlot.getXYPlot());
       dialog.showAndWait();
     });
 
     Button centroidContinuousButton = new Button(null, new ImageView(centroidIcon));
-    centroidContinuousButton
-        .setTooltip(new Tooltip("Switch between continuous and centroided mode"));
+    centroidContinuousButton.setTooltip(
+        new Tooltip("Switch between continuous and centroided mode"));
     centroidContinuousButton.setOnAction(e -> {
       if (twoDPlot.getPlotMode() == PlotMode.CENTROID) {
         centroidContinuousButton.setGraphic(new ImageView(centroidIcon));
@@ -173,8 +170,9 @@ public class TwoDVisualizerTab extends MZmineTab {
       twoDPlot.setLogScale(logScale);
     });
 
-    toolBar.getItems().addAll(paletteBtn, toggleContinuousModeButton, axesButton,
-        centroidContinuousButton, toggleTooltipButton, logScaleButton);
+    toolBar.getItems()
+        .addAll(paletteBtn, toggleContinuousModeButton, axesButton, centroidContinuousButton,
+            toggleTooltipButton, logScaleButton);
 
     mainPane.setRight(toolBar);
 
@@ -238,7 +236,7 @@ public class TwoDVisualizerTab extends MZmineTab {
 
   @Override
   public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-    if(rawDataFiles == null || rawDataFiles.isEmpty()) {
+    if (rawDataFiles == null || rawDataFiles.isEmpty()) {
       return;
     }
 
@@ -249,8 +247,8 @@ public class TwoDVisualizerTab extends MZmineTab {
     }
 
     // add new dataset
-    ScanSelection scanSel =
-        parameters.getParameter(TwoDVisualizerParameters.scanSelection).getValue();
+    ScanSelection scanSel = parameters.getParameter(TwoDVisualizerParameters.scanSelection)
+        .getValue();
     Scan newScans[] = scanSel.getMatchingScans(newFile);
     TwoDDataSet newDataset = new TwoDDataSet(newFile, newScans, rtRange, mzRange, this);
     twoDPlot.addTwoDDataSet(newDataset);
@@ -267,8 +265,7 @@ public class TwoDVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featureLists) {
+  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 }

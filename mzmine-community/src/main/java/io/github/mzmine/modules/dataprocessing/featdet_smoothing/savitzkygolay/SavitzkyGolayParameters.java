@@ -46,7 +46,7 @@ public class SavitzkyGolayParameters extends SimpleParameterSet {
           new Integer[]{0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5), false);
 
   public SavitzkyGolayParameters() {
-    super(new Parameter[]{rtSmoothing, mobilitySmoothing});
+    super("https://mzmine.github.io/mzmine_documentation/module_docs/featdet_smoothing/smoothing.html#savitzky-golay-smoothing", rtSmoothing, mobilitySmoothing);
   }
 
   @Override

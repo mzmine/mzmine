@@ -52,6 +52,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
@@ -268,7 +269,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
   @NotNull
   public static List<FeatureList> getSelectedFeatureLists() {
     final GroupableListView<FeatureList> featureListView = mainWindowController.getFeatureListsList();
-    return ImmutableList.copyOf(featureListView.getSelectedValues());
+    return ImmutableList.copyOf(featureListView.getSelectedValues().stream().distinct().toList());
   }
 
   @NotNull
@@ -309,6 +310,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
     Dragboard dragboard = event.getDragboard();
     boolean hasFileDropped = false;
+    File lastBatchFile = null;
     if (dragboard.hasFiles()) {
       hasFileDropped = true;
 
@@ -318,6 +320,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
       final List<File> rawDataFiles = new ArrayList<>();
       final List<File> libraryFiles = new ArrayList<>();
+      lastBatchFile = null;
 
       for (File selectedFile : dragboard.getFiles()) {
         final String extension = FilenameUtils.getExtension(selectedFile.getName()).toLowerCase();
@@ -359,9 +362,9 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
           }
         }
 
-//        if(selectedFile.getName().strip().toLowerCase().endsWith("mzbatch")) {
-//          lastBatchFile = selectedFile;
-//        }
+        if (selectedFile.getName().trim().toLowerCase().endsWith("mzbatch")) {
+          lastBatchFile = selectedFile;
+        }
       }
 
 //      if (lastBatchFile != null) {
@@ -396,8 +399,15 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         }
       }
     }
+
     event.setDropCompleted(hasFileDropped);
     event.consume();
+
+    // needs to be last after completing the drag event
+    // load last batch file - only one
+    if (lastBatchFile != null) {
+      BatchModeParameters.showSetupDialogLoadFile(lastBatchFile);
+    }
   }
 
   private static void askChangeUser(final String fileName) {

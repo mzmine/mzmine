@@ -69,7 +69,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GNPSResultsImportTask extends AbstractTask {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(GNPSResultsImportTask.class.getName());
 
   private final ModularFeatureList featureList;
   private final File file;

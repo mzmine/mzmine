@@ -39,6 +39,8 @@ public class ExtensionFilters {
   public static final ExtensionFilter MZ_BATCH = new ExtensionFilter("mzmine batch", "*.mzbatch");
   public static final ExtensionFilter MZ_WIZARD = new ExtensionFilter("mzmine mzwizard",
       "*.mzmwizard");
+  public static final ExtensionFilter MZ_PROJECT = new ExtensionFilter("mzmine project file",
+      "*.mzmine");
   public static final ExtensionFilter MZ_LOG = new ExtensionFilter("mzmine log file", "*.log");
 
   /**
@@ -111,9 +113,13 @@ public class ExtensionFilters {
   public static final ExtensionFilter MZML_ZIP_GZIP = new ExtensionFilter("zip", "*.zip", "*.gz");
   public static final ExtensionFilter WIFF = new ExtensionFilter("wiff", "*.wiff");
   public static final ExtensionFilter WIFF2 = new ExtensionFilter("wiff2", "*.wiff2");
+  public static final ExtensionFilter SHIMADZU = new ExtensionFilter(".lcd", "*.lcd");
+  public static final ExtensionFilter MBI = new ExtensionFilter("MOBILion", "*.mbi");
+
   public static final ExtensionFilter ALL_MS_DATA_FILTER = new ExtensionFilter("MS data", "*.mzML",
       "*.mzml", "*.mzXML", "*.mzxml", "*.imzML", "*.imzml", "*.d", "*.tdf", "*.tsf", "*.raw",
-      "*.RAW", "*.mzData", "*.netcdf", "*.mzdata", /*"*.aird",*/ "*.wiff", "*.wiff2");
+      "*.RAW", "*.mzData", "*.netcdf", "*.mzdata", /*"*.aird",*/ "*.wiff", "*.wiff2", "*.lcd",
+      "*.mbi");
   public static final List<ExtensionFilter> MS_RAW_DATA = List.of( //
       ALL_MS_DATA_FILTER, //
       MZML, //
@@ -130,6 +136,8 @@ public class ExtensionFilters {
       MZML_ZIP_GZIP, //
       WIFF, //
       WIFF2, //
+      MBI, //
+      SHIMADZU, //
       ALL_FILES);
   private static final ExtensionFilter ALL_SPECTRAL_LIBRARY_FILTER = new ExtensionFilter(
       "All spectral libraries", "*.json", "*.msp", "*.mgf", "*.jdx");

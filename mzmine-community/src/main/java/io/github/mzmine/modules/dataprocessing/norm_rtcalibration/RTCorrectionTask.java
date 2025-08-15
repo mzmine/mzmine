@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,9 +56,10 @@ import org.jetbrains.annotations.Nullable;
 
 class RTCorrectionTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(RTCorrectionTask.class.getName());
+
   private final OriginalFeatureListOption handleOriginal;
   private final MZmineProject project;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final ModularFeatureList[] originalFeatureLists;
   private ModularFeatureList[] normalizedFeatureLists;
 
@@ -103,8 +104,7 @@ class RTCorrectionTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running retention time normalizer");
-    Arrays.sort(originalFeatureLists,
-        Comparator.comparingInt(featureList -> featureList.getRows().size()));
+    Arrays.sort(originalFeatureLists, Comparator.comparingInt(ModularFeatureList::getNumberOfRows));
     totalRows = originalFeatureLists[0].getNumberOfRows();
     normalizedFeatureLists = new ModularFeatureList[originalFeatureLists.length];
 
@@ -212,8 +212,7 @@ class RTCorrectionTask extends AbstractTask {
       }
 
       ModularFeatureListRow normalizedRow = normalizeRow(normalizedFeatureList,
-          (ModularFeatureListRow) originalRow,
-          standards, normalizedStdRTs);
+          (ModularFeatureListRow) originalRow, standards, normalizedStdRTs);
       normalizedFeatureList.addRow(normalizedRow);
       processedRows++;
     }

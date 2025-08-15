@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,6 +24,11 @@
  */
 
 package io.github.mzmine.modules.io.import_rawdata_all;
+
+import static io.github.mzmine.util.RawDataFileTypeDetector.BAF_SUFFIX;
+import static io.github.mzmine.util.RawDataFileTypeDetector.BRUKER_FOLDER_SUFFIX;
+import static io.github.mzmine.util.RawDataFileTypeDetector.TDF_SUFFIX;
+import static io.github.mzmine.util.RawDataFileTypeDetector.TSF_SUFFIX;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -59,10 +65,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileType;
-import static io.github.mzmine.util.RawDataFileTypeDetector.BAF_SUFFIX;
-import static io.github.mzmine.util.RawDataFileTypeDetector.BRUKER_FOLDER_SUFFIX;
-import static io.github.mzmine.util.RawDataFileTypeDetector.TDF_SUFFIX;
-import static io.github.mzmine.util.RawDataFileTypeDetector.TSF_SUFFIX;
+import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
@@ -133,6 +136,24 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   }
 
   /**
+   * Applies remapping of bruker paths and conversion paths. The result should be the actual file
+   * name displayed in mzmine.
+   *
+   * @param file          file to validate
+   * @param keepConverted in case conversion is applied keep converted file will change the format
+   *                      of the imported file
+   * @return the valid file that will be imported
+   */
+  public static ImportFile validateToActualPath(File file, boolean keepConverted) {
+    file = validateBrukerPath(file);
+
+    final RawDataFileType type = RawDataFileTypeDetector.detectDataFileType(file);
+    final File importedFile = MSConvertImportTask.applyMsConvertImportNameChanges(file,
+        keepConverted, type);
+    return new ImportFile(file, type, importedFile);
+  }
+
+  /**
    * Checks if the file and its parent both start with .d
    *
    * @param f file to validate
@@ -182,7 +203,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       String msg = """
           Stopped import as there were duplicate %s.
           Make sure to use unique names as mzmine and many downstream tools depend on this. Duplicates are:
-          %s""".formatted(context, String.join("\n", duplicates));
+          %s""".formatted(context, java.lang.String.join("\n", duplicates));
       DialogLoggerUtil.showErrorDialog("Duplicate files", msg);
       return true;
     }
@@ -350,7 +371,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       String msg = """
           Stopped import as there were %s files that cannot be found.
           Make sure to use full file paths of existing files:
-          %s""".formatted(context, String.join("\n", missingFiles));
+          %s""".formatted(context, java.lang.String.join("\n", missingFiles));
       DialogLoggerUtil.showErrorDialog("Missing files", msg);
       return true;
     }
@@ -398,7 +419,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
               scanProcessorConfig);
 //      case AIRD -> throw new IllegalStateException("Unexpected value: " + fileType);
       // When adding a new file type, also add to MSConvertImportTask#getSupportedFileTypes()
-      case WATERS_RAW, WATERS_RAW_IMS, SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D, AGILENT_D_IMS ->
+      case WATERS_RAW, WATERS_RAW_IMS, SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D, AGILENT_D_IMS,
+           SHIMADZU_LCD, MBI ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
     };
@@ -442,7 +464,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
               scanProcessorConfig);
       // When adding a new file type, also add to MSConvertImportTask#getSupportedFileTypes()
-      case AGILENT_D, AGILENT_D_IMS, SCIEX_WIFF, SCIEX_WIFF2, WATERS_RAW, WATERS_RAW_IMS ->
+      case AGILENT_D, AGILENT_D_IMS, SCIEX_WIFF, SCIEX_WIFF2, WATERS_RAW, WATERS_RAW_IMS,
+           SHIMADZU_LCD, MBI ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
       // all unsupported tasks are wrapped to apply import and mass detection separately

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,16 +25,19 @@
 
 package io.github.mzmine.datamodel.data_access;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonSeries;
-import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,6 +71,9 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   protected Feature feature;
   protected IonTimeSeries<Scan> featureData;
 
+  // mobilogram binning - only present for mobility data
+  protected final @Nullable BinningMobilogramDataAccess mobilogramBinning;
+
   protected int currentFeatureIndex = -1;
   protected int currentRowIndex = -1;
   protected int currentRawFileIndex = -1;
@@ -91,8 +97,23 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
    * @param dataFile define the data file in an aligned feature list
    */
   protected FeatureDataAccess(FeatureList flist, @Nullable RawDataFile dataFile) {
+    this(flist, dataFile, null);
+  }
+
+  /**
+   * Access the chromatographic data of features in a feature list sorted by scan ID (usually sorted
+   * by retention time)
+   *
+   * @param flist             target feature list. Loops through all features in dataFile
+   * @param dataFile          define the data file in an aligned feature list
+   * @param mobilogramBinning access mobilogram data, only present for mobility data, null
+   *                          otherwise
+   */
+  protected FeatureDataAccess(FeatureList flist, @Nullable RawDataFile dataFile,
+      @Nullable BinningMobilogramDataAccess mobilogramBinning) {
     this.flist = flist;
     this.dataFile = dataFile;
+    this.mobilogramBinning = mobilogramBinning;
 
     // set rows and number of features
     int totalFeatures = 0;
@@ -257,6 +278,54 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   }
 
   /**
+   * Method to create subseries from this FeatureDataAccess or its underlying original series.
+   * {@link FeatureFullDataAccess} uses this for optimizations in reusing scan lists that are kept
+   * alive already as sublist. Base implementation just calls the original series.
+   *
+   * @param startIndex         the start index in {@link FeatureDataAccess}
+   * @param endIndexExclusive  the end index in {@link FeatureDataAccess}
+   * @param originalIndexRange the index range in the original series used internally of access
+   * @return a subseries
+   */
+  protected IonTimeSeries<Scan> subSeries(final MemoryMapStorage storage, final int startIndex,
+      final int endIndexExclusive, final IndexRange originalIndexRange) {
+    // default is to just apply to original series
+    final IonTimeSeries<? extends Scan> originalSeries = getOriginalSeries();
+    return (IonTimeSeries<Scan>) FeatureDataUtils.subSeries(storage, originalSeries,
+        originalIndexRange.min(), originalIndexRange.maxExclusive(), mobilogramBinning);
+  }
+
+  @Override
+  public IonTimeSeries<Scan> subSeries(final MemoryMapStorage storage, final int startIndex,
+      final int endIndexExclusive) {
+    if (endIndexExclusive - startIndex <= 0) {
+      return emptySeries();
+    }
+    // the default implementation will redirect to either the ion mobility data or other ion time series
+    // this usually creates not sublist views of scans but new lists
+    // When working on {@link FeatureFullDataAccess} - sublists are okay to save memory. See implementation there
+
+    // find indices in original data - feature data access may use other data points as well
+    final List<Scan> allSpectra = getSpectraModifiable();
+    List<Scan> subFromAll = allSpectra.subList(startIndex, endIndexExclusive);
+    final float startNumber = subFromAll.getFirst().getScanNumber();
+    final float endNumber = subFromAll.getLast().getScanNumber();
+
+    // from original series - different indices - use RT
+    final IonTimeSeries<? extends Scan> original = getOriginalSeries();
+    final List<? extends Scan> originalSpectra = original.getSpectraModifiable();
+    final IndexRange indexRangeOriginal = BinarySearch.indexRange(Range.closed(startNumber, endNumber),
+        originalSpectra, Scan::getScanNumber);
+
+    return subSeries(storage, startIndex, endIndexExclusive, indexRangeOriginal);
+  }
+
+
+  public IonTimeSeries<? extends Scan> getOriginalSeries() {
+    return getFeature().getFeatureData();
+  }
+
+  /**
    * Keeps mzs and scans and replaces intensities
    *
    * @param storage
@@ -375,6 +444,13 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
 
+  @Override
+  public void saveValueToXML(XMLStreamWriter writer, List<Scan> allScans, boolean includeRt)
+      throws XMLStreamException {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all features and data points in a feature list");
+  }
+
   /**
    * Usage of this method is strongly discouraged because it returns the internal buffer of this
    * data access. However, in exceptional use-cases such as resolving or smoothing XICs, a direct
@@ -427,4 +503,5 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
     System.arraycopy(intensities, 0, copy, 0, copy.length);
     return copy;
   }
+
 }

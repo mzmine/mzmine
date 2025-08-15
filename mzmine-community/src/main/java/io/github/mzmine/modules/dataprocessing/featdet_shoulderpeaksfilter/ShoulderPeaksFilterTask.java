@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,7 +45,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ShoulderPeaksFilterTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(ShoulderPeaksFilterTask.class.getName());
+
   private RawDataFile dataFile;
 
   // scan counter
@@ -78,10 +79,11 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
   public double getFinishedPercentage() {
-    if (totalScans == 0)
+    if (totalScans == 0) {
       return 0;
-    else
+    } else {
       return (double) processedScans / totalScans;
+    }
   }
 
   public RawDataFile getDataFile() {
@@ -119,8 +121,9 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
     // Process all scans
     for (int i = 0; i < totalScans; i++) {
 
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       Scan scan = scanNumbers.get(i);
 
@@ -136,15 +139,15 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
 
       DataPoint newMzPeaks[] = ShoulderPeaksFilter.filterMassValues(mzPeaks, parameters);
 
-      MassList newMassList =
-          SimpleMassList.create(storage, newMzPeaks);
+      MassList newMassList = SimpleMassList.create(storage, newMzPeaks);
       scan.addMassList(newMassList);
 
       processedScans++;
     }
 
-    dataFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ShoulderPeaksFilterModule.class, parameters, getModuleCallDate()));
+    dataFile.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(ShoulderPeaksFilterModule.class, parameters,
+            getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 

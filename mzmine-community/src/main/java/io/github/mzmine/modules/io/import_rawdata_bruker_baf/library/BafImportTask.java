@@ -34,6 +34,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.builders.SimpleBuildingScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
@@ -108,7 +110,7 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
         getMemoryMapStorage());
 
     try (BafDataAccess baf = new BafDataAccess(
-        parameters.getValue(AllSpectralDataImportParameters.applyVendorCentroiding))) {
+        !parameters.getValue(AllSpectralDataImportParameters.applyVendorCentroiding))) {
 
       final boolean b = baf.openBafFile(folderPath);
       if (!b) {
@@ -124,13 +126,24 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
       totalScans = scanTable.getNumberOfScans();
       for (int i = 0; i < scanTable.getNumberOfScans(); i++) {
         final int id = scanTable.getId(i);
+        final MassSpectrumType availableSpectrumType = scanTable.getSpectrumType(i);
+        if (availableSpectrumType == null) {
+          // it is possible that no data was recorded for a specific spectrum (e.g. during column wash. Skip that spectrum.)
+          continue;
+        }
 
-        final MsMsInfo msMsInfo = ms2Table.getMsMsInfo(id);
+        MsMsInfo msMsInfo = ms2Table.getMsMsInfo(id);
+        if(msMsInfo == null && scanTable.getMsLevel(i) == 2 && scanTable.getFallbackCe(i) != null) {
+          // in dia data, the Steps table is empty, but we can determine the ms level from the
+          // regular scans table (by using the acquisition keys)
+          // We can then use the fallback CE we have loaded in the scans table and assume that nothing was isolated
+          msMsInfo = new DIAMsMsInfoImpl(scanTable.getFallbackCe(i).floatValue(), null, 2, ActivationMethod.CID, null);
+        }
         final SimpleBuildingScan metadataScan = new SimpleBuildingScan(id, scanTable.getMsLevel(i),
-            scanTable.getPolarity(i), scanTable.getSpectrumType(), scanTable.getRt(i), 0d, 0);
+            scanTable.getPolarity(i), availableSpectrumType, scanTable.getRt(i), 0d, 0);
 
         if (scanProcessorConfig.scanFilter().matches(metadataScan)) {
-          final SimpleSpectralArrays mzIntensities = baf.loadPeakData(i);
+          final SimpleSpectralArrays mzIntensities = baf.loadPeakData(i, availableSpectrumType);
           final SimpleSpectralArrays arrays = scanProcessorConfig.processor()
               .processScan(metadataScan,
                   new SimpleSpectralArrays(mzIntensities.mzs(), mzIntensities.intensities()));

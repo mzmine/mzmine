@@ -31,10 +31,15 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.numbers.scores.CorrelationCoefficientType;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.text.NumberFormat;
+import java.util.List;
 import java.util.Map.Entry;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -42,10 +47,13 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record MsOtherCorrelationResult(OtherFeature otherFeature, MsOtherCorrelationType type) {
+public record MsOtherCorrelationResult(@NotNull OtherFeature otherFeature,
+                                       @NotNull MsOtherCorrelationType type,
+                                       @Nullable Float correlation) {
 
   public static final String XML_ELEMENT_NAME = "msothercorrelationresult";
   public static final String XML_CORRELATION_TYPE_ATTR = "msothercorrelationtype";
+  public static final String XML_PEARSON_ATTR = new CorrelationCoefficientType().getUniqueID();
 
   public static MsOtherCorrelationResult loadFromXML(@NotNull XMLStreamReader reader,
       @Nullable MemoryMapStorage storage, MZmineProject project, @NotNull ModularFeatureList flist,
@@ -57,6 +65,16 @@ public record MsOtherCorrelationResult(OtherFeature otherFeature, MsOtherCorrela
     final String correlationTypeStr = reader.getAttributeValue(null, XML_CORRELATION_TYPE_ATTR);
     final MsOtherCorrelationType correlationType = MsOtherCorrelationType.valueOf(
         correlationTypeStr);
+
+    final String correlationStr = reader.getAttributeValue(null, XML_PEARSON_ATTR);
+    Float correlation = null;
+    if (correlationStr != null) {
+      try {
+        correlation = Float.parseFloat(correlationStr);
+      } catch (NumberFormatException e) {
+        // ignore
+      }
+    }
 
     OtherFeature otherFeature = new OtherFeatureImpl();
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
@@ -70,7 +88,7 @@ public record MsOtherCorrelationResult(OtherFeature otherFeature, MsOtherCorrela
         while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
             .equals(CONST.XML_OTHER_FEATURE_ELEMENT))) {
           reader.next();
-          if(!reader.isStartElement()) {
+          if (!reader.isStartElement()) {
             continue;
           }
 
@@ -93,7 +111,7 @@ public record MsOtherCorrelationResult(OtherFeature otherFeature, MsOtherCorrela
       }
     }
 
-    return new MsOtherCorrelationResult(otherFeature, correlationType);
+    return new MsOtherCorrelationResult(otherFeature, correlationType, correlation);
   }
 
   public void saveToXML(@NotNull XMLStreamWriter writer, @NotNull ModularFeatureList flist,
@@ -102,9 +120,13 @@ public record MsOtherCorrelationResult(OtherFeature otherFeature, MsOtherCorrela
     // main element
     writer.writeStartElement(XML_ELEMENT_NAME);
     writer.writeAttribute(XML_CORRELATION_TYPE_ATTR, type.name());
+    if (correlation != null) {
+      writer.writeAttribute(XML_PEARSON_ATTR, String.valueOf(correlation));
+    }
 
     writer.writeStartElement(CONST.XML_OTHER_FEATURE_ELEMENT);
-    for (Entry<DataType, Object> entry : otherFeature.getMap().entrySet()) {
+    final List<Entry<DataType, Object>> entries = otherFeature.stream().toList();
+    for (Entry<DataType, Object> entry : entries) {
       FeatureListSaveTask.writeDataType(writer, entry.getKey(), entry.getValue(), flist, row, null,
           file);
     }
@@ -112,5 +134,14 @@ public record MsOtherCorrelationResult(OtherFeature otherFeature, MsOtherCorrela
 //
     // main element
     writer.writeEndElement();
+  }
+
+  @Override
+  public String toString() {
+    final ChromatogramType chromType = otherFeature.getChromatogramType();
+    final NumberFormat score = ConfigService.getGuiFormats().scoreFormat();
+
+    return "%s, %s (%s)".formatted(chromType.toString(), type.toString(),
+        correlation != null ? score.format(correlation) : "?");
   }
 }

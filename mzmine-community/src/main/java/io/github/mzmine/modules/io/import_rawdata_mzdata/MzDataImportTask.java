@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -64,9 +64,10 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class MzDataImportTask extends AbstractTask implements RawDataImportTask {
 
+  private static final Logger logger = Logger.getLogger(MzDataImportTask.class.getName());
+
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private File file;
   private MZmineProject project;

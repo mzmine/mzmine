@@ -25,11 +25,22 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
-public enum FeatureLimitOptions {
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import org.jetbrains.annotations.NotNull;
+
+public enum FeatureLimitOptions implements UniqueIdSupplier {
   USE_FEATURE_EDGES, USE_TOLERANCE;
 
   @Override
   public String toString() {
+    return switch (this) {
+      case USE_FEATURE_EDGES -> "Use feature edges";
+      case USE_TOLERANCE -> "Use tolerance";
+    };
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
     return switch (this) {
       case USE_FEATURE_EDGES -> "Use feature edges";
       case USE_TOLERANCE -> "Use tolerance";

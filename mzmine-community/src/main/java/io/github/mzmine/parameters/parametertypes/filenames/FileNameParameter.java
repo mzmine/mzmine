@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -125,6 +126,19 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
   @Override
   public File getValue() {
     return value;
+  }
+
+  /**
+   * @return lists all unique extensions excluding "*.*" and will list extensions as .csv (without
+   * the *.csv that is used in extension filters)
+   */
+  public @NotNull List<String> getFormatExtensionList() {
+    if (filters == null) {
+      return List.of();
+    }
+    return filters.stream()
+        .<String>mapMulti((filter, consumer) -> filter.getExtensions().forEach(consumer)).distinct()
+        .filter(f -> !f.equalsIgnoreCase("*.*")).map(f -> f.substring(1)).toList();
   }
 
   @Override

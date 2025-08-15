@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.gui.preferences;
 
 import static io.github.mzmine.util.files.ExtensionFilters.MSCONVERT;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
@@ -37,7 +38,10 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
+import io.github.mzmine.parameters.dialogs.GroupedParameterSetupPane.GroupView;
+import io.github.mzmine.parameters.dialogs.GroupedParameterSetupPane.ParameterGroup;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -55,6 +59,7 @@ import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePalettePa
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -73,6 +78,7 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
+import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.Nullable;
@@ -191,6 +197,14 @@ public class MZminePreferences extends SimpleParameterSet {
       KeepInMemory.ALL, KeepInMemory.MASSES_AND_FEATURES), KeepInMemory.values(),
       KeepInMemory.NONE);
 
+  public static final ComboParameter<ImsOptimization> imsOptimization = new ComboParameter<>(
+      "Optimize IMS processing", """
+      Optimizes processing of IMS files for speed or memory efficiency. Changes to this parameter will affect
+      feature lists created after the parameter was changed.
+      Speed: References to the individual mobilograms of IMS features will be stored in RAM.
+      Memory efficiency: References to the individual mobilograms of IMS features will be stored in a temporary file.""",
+      ImsOptimization.values(), ImsOptimization.MEMORY_EFFICIENCY);
+
   /*public static final BooleanParameter applyTimsPressureCompensation = new BooleanParameter(
       "Use MALDI-TIMS pressure compensation", """
       Specifies if mobility values from Bruker timsTOF fleX MALDI raw data shall be recalibrated using a Bruker algorithm.
@@ -203,8 +217,8 @@ public class MZminePreferences extends SimpleParameterSet {
       "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
       true);
 
-  public static final BooleanParameter showTempFolderAlert = new BooleanParameter("Show temp alert",
-      "Show temp folder alert", true);
+  public static final HiddenParameter<Boolean> showTempFolderAlert = new HiddenParameter<>(
+      new BooleanParameter("Show temp alert", "Show temp folder alert", true));
 
   public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<ImageNormalization>(
       "Normalize images",
@@ -220,6 +234,16 @@ public class MZminePreferences extends SimpleParameterSet {
       new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
       new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.####"),
       new DecimalFormat("0.###"), UnitFormat.DIVIDE);
+
+  /**
+   * Set of formats that will never be changed. For example to generate stable row IDs with a fixed
+   * precision for mz etc. See {@link FeatureUtils#rowToFullId(FeatureListRow)}
+   */
+  private static final NumberFormats stableFormat = new NumberFormats(new DecimalFormat("0.000000"),
+      new DecimalFormat("0.0000"), new DecimalFormat("0.0000"), new DecimalFormat("0.000"),
+      new DecimalFormat("0.0000E0"), new DecimalFormat("0.00"), new DecimalFormat("0.0000"),
+      new DecimalFormat("0.0000"), UnitFormat.DIVIDE);
+
   private final BooleanProperty darkModeProperty = new SimpleBooleanProperty(false);
   private NumberFormats guiFormat = exportFormat; // default value
 
@@ -263,24 +287,23 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public MZminePreferences() {
     super(// start with performance
-        new Parameter[]{numOfThreads, memoryOption, tempDirectory, runGCafterBatchStep,
-            deleteTempFiles,
-        proxySettings,
-        /*applyTimsPressureCompensation,*/
-        // visuals
-        // number formats
-        mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat, scoreFormat,
-        percentFormat,
-        // how to format unit strings
-        unitFormat,
-        // other preferences
-        defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
-        imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
-        windowSetttings, useTabSubtitles,
-        // silent parameters without controls
-        showTempFolderAlert, username, showQuickStart,
-        //
-        applyVendorCentroiding, msConvertPath, keepConvertedFile, watersLockmass,
+        new Parameter[]{numOfThreads, memoryOption, imsOptimization, tempDirectory,
+            runGCafterBatchStep, deleteTempFiles, proxySettings,
+            /*applyTimsPressureCompensation,*/
+            // visuals
+            // number formats
+            mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat, scoreFormat,
+            percentFormat,
+            // how to format unit strings
+            unitFormat,
+            // other preferences
+            defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
+            imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
+            windowSetttings, useTabSubtitles,
+            // silent parameters without controls
+            showTempFolderAlert, username, showQuickStart,
+            //
+            applyVendorCentroiding, msConvertPath, keepConvertedFile, watersLockmass,
             thermoRawFileParserPath, thermoImportChoice},
         "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
@@ -303,22 +326,26 @@ public class MZminePreferences extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired, String filterParameters) {
     assert Platform.isFxApplicationThread();
     final Themes previousTheme = getValue(MZminePreferences.theme);
-    GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this);
 
-    // add groups
-    dialog.addParameterGroup("General", numOfThreads, memoryOption, tempDirectory,
-        runGCafterBatchStep, deleteTempFiles, proxySettings
-        /*, applyTimsPressureCompensation*/);
-    dialog.addParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
-        intensityFormat, ppmFormat, scoreFormat, unitFormat);
-    dialog.addParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
-        chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
-        imageNormalization);
-    dialog.addParameterGroup("MS data import", applyVendorCentroiding, msConvertPath,
-        keepConvertedFile, watersLockmass, thermoRawFileParserPath, thermoImportChoice);
-//    dialog.addParameterGroup("Other", new Parameter[]{
+    final List<UserParameter<?, ? extends Region>> fixed = List.of();
+
+    final List<ParameterGroup> groups = List.of( //
+        new ParameterGroup("General", numOfThreads, memoryOption, imsOptimization, tempDirectory,
+            runGCafterBatchStep, deleteTempFiles, proxySettings
+            /*, applyTimsPressureCompensation*/), //
+        new ParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
+            intensityFormat, ppmFormat, scoreFormat, percentFormat, unitFormat), //
+        new ParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
+            chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
+            imageNormalization), //
+        new ParameterGroup("MS data import", applyVendorCentroiding, msConvertPath,
+            keepConvertedFile, watersLockmass, thermoRawFileParserPath, thermoImportChoice) //
+    );
     // imsModuleWarnings, showTempFolderAlert, windowSetttings, showQuickStart  are hidden parameters
-//    });
+
+    GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this,
+        false, fixed, groups, GroupView.GROUPED);
+    dialog.setTitle("mzmine preferences");
     dialog.setFilterText(filterParameters);
 
     // check
@@ -376,6 +403,9 @@ public class MZminePreferences extends SimpleParameterSet {
     }
     // delete temp files as soon as possible
     FileAndPathUtil.setEarlyTempFileCleanup(getValue(MZminePreferences.deleteTempFiles));
+
+    ConfigService.getConfiguration()
+        .setCachedImsOptimization(getValue(MZminePreferences.imsOptimization));
   }
 
   private void showDialogToAdjustColorsToTheme(Themes previousTheme, Themes theme) {
@@ -498,7 +528,8 @@ public class MZminePreferences extends SimpleParameterSet {
   }
 
   @Override
-  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
     updateSystemProxySettings();
     updateGuiFormat();
     darkModeProperty.set(getValue(MZminePreferences.theme).isDark());
@@ -538,6 +569,14 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public NumberFormats getExportFormats() {
     return exportFormat;
+  }
+
+  /**
+   * Set of formats that will never be changed. For example to generate stable row IDs with a fixed
+   * precision for mz etc. See {@link FeatureUtils#rowToFullId(FeatureListRow)}
+   */
+  public NumberFormats getStableFormats() {
+    return stableFormat;
   }
 
   public NumberFormats getGuiFormats() {

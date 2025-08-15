@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -30,6 +31,7 @@ import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunction
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
@@ -40,14 +42,16 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import java.awt.geom.Point2D;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class PCALoadingsExtractionParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flist = new FeatureListsParameter();
   public static final ComboParameter<ScalingFunctions> scaling = new ComboParameter<>(
-      "Scaling function", "Select the scaling function.", ScalingFunctions.values());
+      "Scaling function", "Select the scaling function.", ScalingFunctions.valuesPCAOptions);
   public static final ComboParameter<ImputationFunctions> imputations = new ComboParameter<>(
-      "Imputation function", "Select the imputation function.", ImputationFunctions.values());
+      "Imputation function", "Select the imputation function.",
+      ImputationFunctions.valuesExcludeNone);
   public static final IntegerParameter domainPc = new IntegerParameter("Domain PC",
       "Select the domain PC to build the plot.");
   public static final IntegerParameter rangePc = new IntegerParameter("Range PC",
@@ -59,7 +63,9 @@ public class PCALoadingsExtractionParameters extends SimpleParameterSet {
   public static final RegionsParameter regions = new RegionsParameter();
 
   public PCALoadingsExtractionParameters() {
-    super(flist, scaling, imputations, domainPc, rangePc, abundance, sampleTypes, regions);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/statistics_dashboard/statistics_dashboard.html#principal-component-analysis-pca",
+        flist, scaling, imputations, domainPc, rangePc, abundance, sampleTypes, regions);
   }
 
   public static PCALoadingsExtractionParameters fromPcaModel(PCAModel pcaModel,
@@ -88,5 +94,10 @@ public class PCALoadingsExtractionParameters extends SimpleParameterSet {
     pcaModel.setAbundance(getValue(abundance));
     pcaModel.setSampleTypeFilter(new SampleTypeFilter(getValue(sampleTypes)));
     return pcaModel;
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

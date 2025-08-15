@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,7 +49,9 @@ public class MsnTreeFeatureDetectionParameters extends SimpleParameterSet {
       "Suffix added to the raw file name to create feature list name", "msn trees");
 
   public MsnTreeFeatureDetectionParameters() {
-    super(dataFiles, scanSelection, mzTol, suffix);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featuredet_msn_tree/msn_tree_builder.html",
+        dataFiles, scanSelection, mzTol, suffix);
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -25,10 +26,12 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
@@ -166,7 +169,7 @@ public class FeatureResolverTask extends AbstractTask {
           // resolving finished
 
           // sort and reset IDs here to ahve the same sorting for every feature list
-          FeatureListUtils.sortByDefaultRT(newPeakList, true);
+          FeatureListUtils.sortByDefault(newPeakList, true);
 
           // group MS2 with features
           var groupMs2Param = parameters.getParameter(GeneralResolverParameters.groupMS2Parameters);
@@ -216,8 +219,14 @@ public class FeatureResolverTask extends AbstractTask {
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
 
+    final BinningMobilogramDataAccess binningIms = dataFile instanceof IMSRawDataFile imsFile
+        ? BinningMobilogramDataAccess.createWithPreviousParameters(imsFile, originalFeatureList)
+        : null;
+    // use the same in resolver and data access:
+    resolver.setMobilogramDataAccess(binningIms);
+
     final FeatureDataAccess access = EfficientDataAccess.of(originalFeatureList,
-        EfficientDataAccess.FeatureDataType.INCLUDE_ZEROS, dataFile);
+        EfficientDataAccess.FeatureDataType.INCLUDE_ZEROS, dataFile, binningIms);
 
     processedRows = 0;
     totalRows = originalFeatureList.getNumberOfRows();
@@ -250,7 +259,7 @@ public class FeatureResolverTask extends AbstractTask {
       processedRows++;
     }
     logger.info(c + "/" + resolvedFeatureList.getNumberOfRows()
-        + " have less than 4 scans (frames for IMS data)");
+                + " have less than 4 scans (frames for IMS data)");
     //    QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
@@ -303,11 +312,14 @@ public class FeatureResolverTask extends AbstractTask {
     }
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
 
+    // estimate number of resolved rows
+    int estimatedRows = originalFeatureList.getNumberOfRows() * 4;
     // create a new feature list and don't copy. Previous annotations of features are invalidated
     // during resolution
     final ModularFeatureList resolvedFeatureList = new ModularFeatureList(
         originalFeatureList.getName() + " " + parameters.getParameter(
-            GeneralResolverParameters.SUFFIX).getValue(), storage, dataFile);
+            GeneralResolverParameters.SUFFIX).getValue(), storage, estimatedRows, estimatedRows,
+        dataFile);
 
     //    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
     resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));

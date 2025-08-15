@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,8 @@
 package io.github.mzmine.modules.visualization.projectmetadata.color;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -35,7 +37,9 @@ import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParam
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class ColorByMetadataParameters extends SimpleParameterSet {
@@ -43,8 +47,10 @@ public class ColorByMetadataParameters extends SimpleParameterSet {
   public static final RawDataFilesParameter rawFiles = new RawDataFilesParameter(
       new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES));
 
-  public static final OptionalParameter<MetadataGroupingParameter> colorByColumn = new OptionalParameter<>(
-      new MetadataGroupingParameter());
+
+  public static OptionalModuleParameter<ColorByMetadataColumnParameters> columnSelection = new OptionalModuleParameter<>(
+      "Metadata selection", "Select column and how to handle coloring",
+      new ColorByMetadataColumnParameters(), false, false);
 
   // use a medium range so that colors are not to light or dark
   public static final PercentParameter brightnessPercentRange = new PercentParameter(
@@ -57,18 +63,49 @@ public class ColorByMetadataParameters extends SimpleParameterSet {
   public static final BooleanParameter applySorting = new BooleanParameter("Sort data files",
       "Sort raw data files", true);
 
+  // OLD PARAMETER FOR MAPPING
+  public final OptionalParameter<MetadataGroupingParameter> colorByColumn = new OptionalParameter<>(
+      new MetadataGroupingParameter());
 
   public ColorByMetadataParameters() {
-    super(rawFiles, colorByColumn, brightnessPercentRange, separateBlankQcs, applySorting);
+    super(rawFiles, columnSelection, brightnessPercentRange, separateBlankQcs, applySorting);
   }
 
   public static ParameterSet createDefault(final @NotNull List<RawDataFile> selected) {
     ParameterSet params = new ColorByMetadataParameters().cloneParameterSet();
     params.setParameter(rawFiles, new RawDataFilesSelection(selected.toArray(RawDataFile[]::new)));
-    params.setParameter(colorByColumn, false);
+    params.setParameter(columnSelection, false);
+    final var columnSelect = params.getParameter(columnSelection).getEmbeddedParameters();
+
+    columnSelect.setParameter(ColorByMetadataColumnParameters.gradientTransform,
+        PaintScaleTransform.LINEAR);
+    columnSelect.setParameter(ColorByMetadataColumnParameters.colorNumericValues,
+        ColorByNumericOption.AUTO);
+
     params.setParameter(brightnessPercentRange, 0.4);
     params.setParameter(separateBlankQcs, true);
     params.setParameter(applySorting, true);
     return params;
   }
+
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var map = super.getNameParameterMap();
+    map.put(colorByColumn.getName(), colorByColumn);
+    return map;
+  }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, final int loadedVersion) {
+    // transfer old parameter type to new type
+    if (loadedParams.containsKey(colorByColumn.getName())) {
+      getParameter(columnSelection).setValue(colorByColumn.getValue());
+      getParameter(columnSelection).getEmbeddedParameters()
+          .setParameter(ColorByMetadataColumnParameters.colorByColumn,
+              colorByColumn.getEmbeddedParameter().getValue());
+    }
+  }
+
+
 }
