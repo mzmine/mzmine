@@ -558,7 +558,7 @@ public class ParameterUtils {
     try {
       final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
           .newDocument();
-      final Element element = document.createElement("step_parameters");
+      final Element element = document.createElement("parameterset");
       document.appendChild(element);
 
       // Serialize batch queue.
@@ -575,7 +575,7 @@ public class ParameterUtils {
   public static void loadValuesFromXMLString(ParameterSet parameterSet, String xml)
       throws ParserConfigurationException, IOException, SAXException {
     final Document document = XMLUtils.load(xml);
-    final NodeList stepParameters = document.getElementsByTagName("step_parameters");
+    final NodeList stepParameters = document.getElementsByTagName("parameterset");
     if (stepParameters.getLength() == 0) {
       throw new IllegalArgumentException("No step_parameters element found in xml string.");
     }
