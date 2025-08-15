@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.ComboComponent;
 import io.github.mzmine.parameters.parametertypes.StringParameterComponent;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.RowTypeFilter;
+import io.github.mzmine.util.presets.FxPresetEditor;
 import io.github.mzmine.util.presets.PresetsButton;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -46,7 +47,8 @@ import javafx.scene.layout.HBox;
 import javafx.util.Duration;
 import org.jetbrains.annotations.Nullable;
 
-public class RowTypeFilterComponent extends HBox implements ValuePropertyComponent<RowTypeFilter> {
+public class RowTypeFilterComponent extends HBox implements ValuePropertyComponent<RowTypeFilter>,
+    FxPresetEditor {
 
 
   private final ObjectProperty<RowTypeFilter> value = new SimpleObjectProperty<>();
@@ -57,14 +59,17 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
 
   public RowTypeFilterComponent(RowTypeFilter value,
       ComboComponent<RowTypeFilterOption> optionCombo,
-      ComboComponent<MatchingMode> matchingModeCombo, StringParameterComponent queryField) {
+      ComboComponent<MatchingMode> matchingModeCombo, StringParameterComponent queryField,
+      boolean addPresetsMenuButton) {
 
     super(FxLayout.DEFAULT_SPACE, optionCombo, matchingModeCombo, queryField);
 
     FxLayout.applyDefaults(this, Insets.EMPTY);
 
     // manage presets
-    addPresetsMenuButton();
+    if (addPresetsMenuButton) {
+      addPresetsMenuButton();
+    }
 
     this.optionCombo = optionCombo;
     this.matchingModeCombo = matchingModeCombo;

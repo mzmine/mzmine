@@ -68,10 +68,19 @@ public class RowTypeFilterParameter extends
     return new Parameter[]{matchingMode, selectedType, searchValue};
   }
 
+  public static RowTypeFilterComponent createDefaultEditingComponent(boolean addPresetButton) {
+    return new RowTypeFilterParameter().createEditingComponent(addPresetButton);
+  }
+
   @Override
   public RowTypeFilterComponent createEditingComponent() {
+    return createEditingComponent(true);
+  }
+
+  public RowTypeFilterComponent createEditingComponent(boolean addPresetButton) {
     return new RowTypeFilterComponent(value, selectedType.createEditingComponent(),
-        matchingMode.createEditingComponent(), searchValue.createEditingComponent());
+        matchingMode.createEditingComponent(), searchValue.createEditingComponent(),
+        addPresetButton);
   }
 
   @Override

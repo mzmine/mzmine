@@ -26,6 +26,7 @@
 package io.github.mzmine.util.presets.manage;
 
 import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_SPACE;
+import static io.github.mzmine.javafx.components.util.FxLayout.newBorderPane;
 
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
@@ -44,14 +45,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringExpression;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
@@ -60,7 +62,9 @@ import javafx.scene.control.TreeView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,15 +76,26 @@ class ManagePresetsViewBuilder extends FxViewBuilder<ManagePresetsModel> {
 
   @Override
   public Region build() {
-    final TreeView<Object> treeView = createCategoryTreeView();
+    final Node treeView = createCategoryTreeView();
 
     final Pane selectedGroupPane = createSelectedGroupPane();
     SplitPane splitPane = new SplitPane(treeView, selectedGroupPane);
     splitPane.setDividerPositions(0.25);
-    return FxLayout.newBorderPane(splitPane);
+    SplitPane.setResizableWithParent(treeView, false); // focus resize on center
+
+    final BorderPane content = FxLayout.newBorderPane(splitPane);
+    content.setTop(createTitle());
+    return content;
   }
 
-  private @NotNull TreeView<Object> createCategoryTreeView() {
+  private Node createTitle() {
+    final StringExpression title = Bindings.concat(
+        "(Presets are in beta phase) Selected preset group: ", model.selectedGroupStoreProperty()
+            .map(store -> store != null ? store.getPresetGroup() : ""));
+    return FxLabels.newBoldTitle(title);
+  }
+
+  private @NotNull Node createCategoryTreeView() {
     final TreeItem<Object> root = new TreeItem<>("Preset categories & groups:");
     TreeView<Object> treeView = new TreeView<>(root);
     treeView.setShowRoot(true);
@@ -98,7 +113,7 @@ class ManagePresetsViewBuilder extends FxViewBuilder<ManagePresetsModel> {
         model.setSelectedGroupStore(storeItem.getStore());
       }
     });
-    return treeView;
+    return newBorderPane(treeView);
   }
 
   private static void scrollToStoreTreeItem(TreeView<Object> treeView,
@@ -158,31 +173,24 @@ class ManagePresetsViewBuilder extends FxViewBuilder<ManagePresetsModel> {
     root.setExpanded(true);
   }
 
+  /**
+   * Center pane
+   */
   private @NotNull Pane createSelectedGroupPane() {
+    // auto sort
     final SortedList<Preset> sorted = model.getSelectedGroupStorePresets()
         .sorted(Preset::compareTo);
     ListView<Preset> presetsView = new ListView<>(sorted);
-    final BorderPane selectedGroupPane = FxLayout.newBorderPane(
-        new Insets(DEFAULT_SPACE, DEFAULT_SPACE, 0, DEFAULT_SPACE), presetsView);
+    presetsView.setPrefWidth(500);
 
-    final StringExpression title = Bindings.concat(
-        "(Presets are in beta phase) Selected preset group: ", model.selectedGroupStoreProperty()
-            .map(store -> store != null ? store.getPresetGroup() : ""));
-
-    presetsView.getSelectionModel().selectedItemProperty().subscribe(model::setSelectedPreset);
+    // create placeholder for preset edit component
+    final StackPane presetEditorHolder = new StackPane();
+    final BooleanExpression visible = Bindings.isNotEmpty(presetEditorHolder.getChildren());
+    presetEditorHolder.visibleProperty().bind(visible);
+    presetEditorHolder.managedProperty().bind(visible);
 
     final TextField nameField = FxTextFields.newAutoGrowTextField(null,
         "Change the name and click rename");
-
-    model.selectedPresetProperty().subscribe((old, nv) -> {
-      if (old != null) {
-        nameField.textProperty().unbindBidirectional(old.nameProperty());
-      }
-      if (nv != null) {
-        nameField.textProperty().bindBidirectional(nv.nameProperty());
-      }
-      presetsView.getSelectionModel().select(nv == null ? null : nv.getPreset());
-    });
 
     final Button renameButton = FxButtons.createButton("Rename", FxIcons.EDIT,
         "Edit name of selected preset (select with arrow keys up/down).",
@@ -206,11 +214,25 @@ class ManagePresetsViewBuilder extends FxViewBuilder<ManagePresetsModel> {
         defaultsButton //
     );
 
-    final Label titleLabel = FxLabels.newBoldTitle(title);
-    final VBox top = FxLayout.newVBox(Pos.CENTER_LEFT, Insets.EMPTY, titleLabel, buttonBar);
+    bindSelectedPreset(presetsView, nameField);
 
-    selectedGroupPane.setTop(top);
-    return selectedGroupPane;
+    final VBox vBox = FxLayout.newVBox(Pos.TOP_LEFT, buttonBar, presetEditorHolder, presetsView);
+    VBox.setVgrow(presetsView, Priority.ALWAYS);
+    return vBox;
+  }
+
+  private void bindSelectedPreset(ListView<Preset> presetsView, TextField nameField) {
+    presetsView.getSelectionModel().selectedItemProperty().subscribe(model::setSelectedPreset);
+
+    model.selectedPresetProperty().subscribe((old, nv) -> {
+      if (old != null) {
+        nameField.textProperty().unbindBidirectional(old.nameProperty());
+      }
+      if (nv != null) {
+        nameField.textProperty().bindBidirectional(nv.nameProperty());
+      }
+      presetsView.getSelectionModel().select(nv == null ? null : nv.getPreset());
+    });
   }
 
   private void addDefaultsClicked() {

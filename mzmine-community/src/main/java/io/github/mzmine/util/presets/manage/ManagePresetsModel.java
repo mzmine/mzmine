@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.presets.manage;
 
+import io.github.mzmine.util.presets.FxPresetEditor;
 import io.github.mzmine.util.presets.Preset;
 import io.github.mzmine.util.presets.PresetStore;
 import java.util.function.Consumer;
@@ -56,6 +57,8 @@ class ManagePresetsModel {
    * The selected group / preset store
    */
   private final ObjectProperty<PresetStore<?>> selectedGroupStore = new SimpleObjectProperty<>();
+
+  private final ObjectProperty<FxPresetEditor> presetEditor = new SimpleObjectProperty<>();
 
   private final ObservableList<Preset> selectedStoreDefaults = FXCollections.observableArrayList();
   private final BooleanBinding storeHasDefaults;
@@ -137,5 +140,17 @@ class ManagePresetsModel {
 
   public ObservableList<Preset> getSelectedStoreDefaults() {
     return selectedStoreDefaults;
+  }
+
+  public FxPresetEditor getPresetEditor() {
+    return presetEditor.get();
+  }
+
+  public ObjectProperty<FxPresetEditor> presetEditorProperty() {
+    return presetEditor;
+  }
+
+  public void setPresetEditor(FxPresetEditor presetEditor) {
+    this.presetEditor.set(presetEditor);
   }
 }

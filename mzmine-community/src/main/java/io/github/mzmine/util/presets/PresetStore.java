@@ -289,4 +289,6 @@ public interface PresetStore<T extends Preset> {
   default PresetStoreKey getKey() {
     return new PresetStoreKey(getPresetCategory(), getPresetGroup());
   }
+
+  FxPresetEditor createPresetEditor();
 }

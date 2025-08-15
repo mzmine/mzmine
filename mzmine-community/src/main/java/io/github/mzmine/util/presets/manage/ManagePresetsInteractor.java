@@ -67,7 +67,9 @@ class ManagePresetsInteractor extends FxInteractor<ManagePresetsModel> implement
 
     model.selectedGroupStoreProperty().subscribe(store -> {
       model.setSelectedGroupStorePresets(store == null ? null : store.getCurrentPresets());
+      model.setPresetEditor(store == null ? null : store.createPresetEditor());
       if (store == null) {
+        model.getSelectedStoreDefaults().clear();
         return;
       }
       List<? extends Preset> defaults = store.createDefaults();
@@ -135,10 +137,6 @@ class ManagePresetsInteractor extends FxInteractor<ManagePresetsModel> implement
         final boolean rename = !askUser || DialogLoggerUtil.showDialogYesNo("Renaming preset",
             "Rename preset '%s' to '%s'?".formatted(preset.getOriginalName(), newName));
 
-//        if()
-//        DialogLoggerUtil.showDialogYesNo("Conflict with existing preset '%s'".formatted(newName),
-//            "New preset name '%s' already exists. Remove other preset and continue renaming?".formatted(
-//                newName));
         if (rename) {
           preset.setInvalid();
           store.removePresetsWithName(preset.getPreset());
