@@ -25,6 +25,7 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import io.github.mzmine.javafx.components.converters.OptionsStringConverter;
 import io.github.mzmine.javafx.components.skins.DynamicWidthComboBoxSkin;
 import java.util.Collection;
 import java.util.List;
@@ -36,6 +37,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import javafx.util.converter.DefaultStringConverter;
 import org.controlsfx.control.SearchableComboBox;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.jetbrains.annotations.NotNull;
@@ -109,12 +111,26 @@ public class FxComboBox {
    */
   public static <T> ComboBox<T> newAutoCompleteComboBox(@Nullable String tooltip,
       @Nullable Collection<T> items) {
-    final ComboBox<T> combo = createComboBox(tooltip, items);
-    // auto grow with input
-    combo.setSkin(new DynamicWidthComboBoxSkin<>(combo));
-    combo.setEditable(true);
+    return newAutoCompleteComboBox(tooltip, items, null, 4, -1);
+  }
+
+  public static <T> ComboBox<T> newAutoCompleteComboBox(@Nullable String tooltip,
+      @Nullable Collection<T> items, @Nullable final Property<T> selectedItem, int minColumnCount,
+      int maxColumnCount) {
+    final ComboBox<T> combo = createComboBox(tooltip, items, selectedItem);
     // auto complete for items
-    FxComboBox.bindAutoCompletion(combo);
+    FxComboBox.bindAutoCompletion(combo, true, minColumnCount, maxColumnCount);
+    return combo;
+  }
+
+  /**
+   * @param minColumnCount -1 to deactivate
+   * @param maxColumnCount -1 to deactivate
+   */
+  public static <T> ComboBox<T> applyAutoGrow(ComboBox<T> combo, final int minColumnCount,
+      final int maxColumnCount) {
+    combo.setEditable(true);
+    combo.setSkin(new DynamicWidthComboBoxSkin<>(combo, minColumnCount, maxColumnCount));
     return combo;
   }
 
@@ -124,8 +140,43 @@ public class FxComboBox {
    * @param combo the target for auto-completion. Only works if set to editable
    * @return AutoCompletionBinding of the string representation
    */
-  public static AutoCompletionBinding<String> bindAutoCompletion(ComboBox<?> combo) {
-    return FxTextFields.bindAutoCompletion(combo.getEditor(), combo.getItems());
+  public static <T> AutoCompletionBinding<T> bindAutoCompletion(ComboBox<T> combo,
+      boolean autoGrow) {
+    return bindAutoCompletion(combo, autoGrow, 4, -1);
+  }
+
+  /**
+   * Automatically bind auto-completion to a combobox
+   *
+   * @param minColumnCount -1 to deactivate
+   * @param maxColumnCount -1 to deactivate
+   * @param combo          the target for auto-completion. Only works if set to editable
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static <T> AutoCompletionBinding<T> bindAutoCompletion(ComboBox<T> combo, boolean autoGrow,
+      int minColumnCount, int maxColumnCount) {
+    if (autoGrow) {
+      // auto grow with input
+      applyAutoGrow(combo, minColumnCount, maxColumnCount);
+    }
+    setEditable(combo);
+    return FxTextFields.bindAutoCompletion(combo.getEditor(), false, combo.getItems());
+  }
+
+  /**
+   * Also sets a {@link OptionsStringConverter} to be sure that values are converted properly. This
+   * is only needed for combobox of type different from String but works also for String ComboBoxes.
+   * At this point we do not know the type of T.
+   *
+   * <p>
+   * IMPORTANT: ComboBox of String do not need this converter. But can help to reduce values to
+   * actually available values. For ComboBoxes that can also take free text values like the metadata
+   * group, where values are not known ahead of time, use a different component or use the regular
+   * {@link DefaultStringConverter}. Or even better use TextField with auto complete.
+   */
+  public static <T> void setEditable(ComboBox<T> combo) {
+    combo.setEditable(true);
+    combo.setConverter(new OptionsStringConverter<>(combo));
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -80,6 +80,31 @@ public class RangeUtils {
     return Range.closedOpen(lower, upper);
   }
 
+
+  /**
+   * Parses string of the given filter text field and returns a range of values satisfying the
+   * filter. Examples: "5.34" -> [5.34 - epsilon, 5.34 + epsilon] "2.37 - 6" -> [2.37 - epsilon,
+   * 6.00 + epsilon]
+   *
+   * @param filterStr filter string, either a single value or a range as 1-2
+   * @return Range of values satisfying the filter or RangeUtils.DOUBLE_NAN_RANGE if the filter
+   * string is invalid
+   */
+  @NotNull
+  public static Range<Double> getSingleValueToCeilDecimalRangeOrRange(@NotNull String filterStr)
+      throws IllegalArgumentException {
+    // need to remove spaces around the range definition
+    filterStr = filterStr.trim().replace(" ", "");
+
+    if (filterStr.isEmpty()) { // Empty filter
+      return Range.all();
+    } else if (filterStr.contains("-") && filterStr.indexOf("-") > 0) { // Filter by range
+      return RangeUtils.parseDoubleRange(filterStr);
+    } else { // Filter by single value
+      return RangeUtils.getRangeToCeilDecimal(filterStr);
+    }
+  }
+
   /**
    * Converts given range to Float range.
    *
@@ -87,8 +112,9 @@ public class RangeUtils {
    * @return Converted Float range
    */
   @Contract("null -> null")
-  public static <N extends Number & Comparable<N>> Range<Float> toFloatRange(@Nullable Range<N> range) {
-    if(range == null) {
+  public static <N extends Number & Comparable<N>> Range<Float> toFloatRange(
+      @Nullable Range<N> range) {
+    if (range == null) {
       return null;
     }
     if (!(range.hasLowerBound() && range.hasUpperBound())) {
@@ -105,7 +131,7 @@ public class RangeUtils {
    */
   @Contract("null -> null")
   public static <N extends Number & Comparable<N>> Range<Double> toDoubleRange(Range<N> range) {
-    if(range == null) {
+    if (range == null) {
       return null;
     }
     return Range.closed(range.lowerEndpoint().doubleValue(), range.upperEndpoint().doubleValue());
@@ -413,5 +439,13 @@ public class RangeUtils {
    */
   public static <T extends Number & Comparable<?>> Range<T> min(Range<T> a, Range<T> b) {
     return rangeLength(a).doubleValue() < rangeLength(b).doubleValue() ? a : b;
+  }
+
+  /**
+   * Same like {@link #formatRange(Range, NumberFormat)}
+   */
+  public static <T extends Number & Comparable<?>> String toString(Range<T> range,
+      NumberFormat format) {
+    return formatRange(range, format);
   }
 }

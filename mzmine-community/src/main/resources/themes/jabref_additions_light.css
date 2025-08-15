@@ -23,10 +23,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-.text-field {
-  -fx-prompt-text-fill: derive(-fx-text-fill, -50%);
-}
-
 .region-match-chart-bg, .tool-bar, .status-bar, .button-bar {
   -fx-background-color: -jr-menu-background;
 }
