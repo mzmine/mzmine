@@ -114,7 +114,7 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
     if (!checkParameters()) {
       return;
     }
-    resultPeakList = FeatureListUtils.createCopy(peakList, suffix, getMemoryMapStorage());
+    resultPeakList = FeatureListUtils.createCopy(peakList, suffix, getMemoryMapStorage(), false);
 
     if (getPeakListPolarity(peakList) != polarityType) {
       logger.warning(

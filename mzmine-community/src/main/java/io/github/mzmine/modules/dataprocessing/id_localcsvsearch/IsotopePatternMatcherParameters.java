@@ -72,8 +72,8 @@ public class IsotopePatternMatcherParameters extends SimpleParameterSet {
   }
 
   @Override
-  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams) {
-    super.handleLoadedParameters(loadedParams);
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
 
     Parameter<?> removeIsos = loadedParams.get(removeIsotopes.getName());
     getParameter(suffix).setSelected((Boolean)removeIsos.getValue());
