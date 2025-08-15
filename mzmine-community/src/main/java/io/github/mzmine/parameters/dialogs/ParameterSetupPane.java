@@ -331,6 +331,11 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   public ParameterSet updateParameterSetFromComponents() {
+    return updateParameterSetFromComponents(parameterSet);
+  }
+
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  public ParameterSet updateParameterSetFromComponents(ParameterSet parameterSet) {
     for (Parameter<?> p : parameterSet.getParameters()) {
       if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
         continue;
