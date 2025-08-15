@@ -413,6 +413,13 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
   }
 
   public void setParameterValuesToComponents() {
+    setParameterValuesToComponents(this.parameterSet);
+  }
+
+  /**
+   * May want to apply other parameters to components
+   */
+  public void setParameterValuesToComponents(ParameterSet parameterSet) {
     for (Parameter<?> p : parameterSet.getParameters()) {
       if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
         continue;
