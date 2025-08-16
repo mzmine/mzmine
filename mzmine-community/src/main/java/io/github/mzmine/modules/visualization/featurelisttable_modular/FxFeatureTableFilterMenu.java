@@ -62,7 +62,7 @@ public class FxFeatureTableFilterMenu extends BorderPane {
 
   private static final Logger logger = Logger.getLogger(FxFeatureTableFilterMenu.class.getName());
   private final FxFeatureTableFilterMenuModel model;
-  @org.jetbrains.annotations.NotNull
+  @NotNull
   private final FxFeatureTableModel parentModel;
   private final FlowPane filterFlow;
   private final HBox rightButtonMenu;

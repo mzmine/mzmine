@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.javafx.mvci.FxCachedViewController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableFilterMenu.FxFeatureTableFilterMenuModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +40,9 @@ public class FxFeatureTableController extends FxCachedViewController<FxFeatureTa
   private final FxFeatureTableInteractor interactor;
 
   public FxFeatureTableController() {
-    var params = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
+    // use a clone, will set parameters to module params after tab close
+    var params = ConfigService.getConfiguration().getModuleParameters(FeatureTableFXModule.class)
+        .cloneParameterSet();
     super(new FxFeatureTableModel(params));
 
     // interactor before view is built
@@ -58,6 +60,9 @@ public class FxFeatureTableController extends FxCachedViewController<FxFeatureTa
     super.close();
     final FeatureTableFX table = model.getFeatureTable();
     table.closeTable();
+    // save parameters
+    ConfigService.getConfiguration()
+        .setModuleParameters(FeatureTableFXModule.class, model.getParameters());
   }
 
   public void setFeatureList(@Nullable FeatureList featureList) {

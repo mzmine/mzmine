@@ -198,13 +198,19 @@ public class TableColumnMenuHelper {
     } else {
       // Show the menu
       final ContextMenu newColumnPopupMenu = createContextMenu();
-      newColumnPopupMenu.setOnHidden(ev -> columnPopupMenu = null);
+      newColumnPopupMenu.setOnHidden(ev -> {
+        columnPopupMenu = null;
+        onPopupClosed();
+      });
       columnPopupMenu = newColumnPopupMenu;
       columnPopupMenu.show(buttonNode, Side.BOTTOM, 0, 0);
       // Repositioning the menu to be aligned by its right side (keeping inside the table view)
       columnPopupMenu.setX(buttonNode.localToScreen(buttonNode.getBoundsInLocal()).getMaxX()
           - columnPopupMenu.getWidth());
     }
+  }
+
+  protected void onPopupClosed() {
   }
 
   private void setFixedHeader() {
