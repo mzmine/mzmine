@@ -192,16 +192,6 @@ public class TwoDVisualizerTab extends MZmineTab {
 
     // pack();
 
-    // get the window settings parameter
-    //ParameterSet paramSet =
-    //    MZmineCore.getConfiguration().getModuleParameters(TwoDVisualizerModule.class);
-    //WindowSettingsParameter settings =
-    //    paramSet.getParameter(TwoDVisualizerParameters.windowSettings);
-
-    // update the window and listen for changes
-    // settings.applySettingsToWindow(this);
-    // this.addComponentListener(settings);
-
   }
 
   void updateTitle() {
