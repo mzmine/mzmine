@@ -97,7 +97,8 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
       if (exitCode == ExitCode.OK) {
         updateWindowToParameterSetValues();
         // set to module
-        ConfigService.getConfiguration().setModuleParameters(FeatureTableFXModule.class, param);
+        ConfigService.getConfiguration()
+            .setModuleParameters(FeatureTableFXModule.class, param.cloneParameterSet());
       }
     });
   }
