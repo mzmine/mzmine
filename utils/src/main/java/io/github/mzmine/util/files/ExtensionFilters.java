@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,9 @@ public class ExtensionFilters {
   public static final ExtensionFilter MZ_BATCH = new ExtensionFilter("mzmine batch", "*.mzbatch");
   public static final ExtensionFilter MZ_WIZARD = new ExtensionFilter("mzmine mzwizard",
       "*.mzmwizard");
+  public static final ExtensionFilter MZ_PROJECT = new ExtensionFilter("mzmine project file",
+      "*.mzmine");
+  public static final ExtensionFilter MZ_LOG = new ExtensionFilter("mzmine log file", "*.log");
 
   /**
    * PyTorch DJL specific
@@ -88,39 +91,53 @@ public class ExtensionFilters {
       "*.mzxml");
   public static final ExtensionFilter IMZML = new ExtensionFilter("imzML MS imaging data",
       "*.imzML", "*.imzml");
-  public static final ExtensionFilter BRUKER_D = new ExtensionFilter("Bruker .d files", "*.d",
-      ".tsf", "*.tdf");
-  public static final ExtensionFilter AGILENT_D = new ExtensionFilter("Agilent .d files", "*.d");
-  public static final ExtensionFilter THERMO_RAW = new ExtensionFilter("Thermo RAW files", "*.raw",
-      "*.RAW");
-  public static final ExtensionFilter WATERS_RAW = new ExtensionFilter("Waters RAW folders",
-      "*.raw", "*.RAW");
+  // Bruker formats - each format in separate filter to add buttons for each to FileNamesComponent
+  public static final ExtensionFilter BRUKER_OR_AGILENT_D = new ExtensionFilter(
+      "Bruker .d folders or Agilent .d folders", "*.d");
+  public static final ExtensionFilter BRUKER_TSF = new ExtensionFilter("Bruker .tsf files",
+      "*.tsf");
+  public static final ExtensionFilter BRUKER_TDF = new ExtensionFilter("Bruker .tdf files",
+      "*.tdf");
+  // Waters is .raw folder thermo is file
+  public static final ExtensionFilter THERMO_OR_WATERS_RAW = new ExtensionFilter(
+      "Thermo RAW files or Waters RAW folders", "*.raw", "*.RAW");
   public static final ExtensionFilter MZDATA = new ExtensionFilter("mzData MS data", "*.mzData",
       "*.mzdata");
   //  public static final ExtensionFilter AIRD = new ExtensionFilter("aird MS data", "*.aird",
 //      "*.Aird", "*.AIRD");
+  // additional cdf formats extensions - but different extensions will not be shown as button in FileNamesComponent
   public static final ExtensionFilter NETCDF = new ExtensionFilter("netCDF", "*.cdf", "*.CDF",
       "*.netcdf", "*.NETCDF", "*.nc", "*.NC");
+  // just CDF to generate All .cdf button
+  public static final ExtensionFilter CDF = new ExtensionFilter("netCDF", "*.cdf", "*.CDF");
   public static final ExtensionFilter MZML_ZIP_GZIP = new ExtensionFilter("zip", "*.zip", "*.gz");
   public static final ExtensionFilter WIFF = new ExtensionFilter("wiff", "*.wiff");
   public static final ExtensionFilter WIFF2 = new ExtensionFilter("wiff2", "*.wiff2");
+  public static final ExtensionFilter SHIMADZU = new ExtensionFilter(".lcd", "*.lcd");
+  public static final ExtensionFilter MBI = new ExtensionFilter("MOBILion", "*.mbi");
+
   public static final ExtensionFilter ALL_MS_DATA_FILTER = new ExtensionFilter("MS data", "*.mzML",
       "*.mzml", "*.mzXML", "*.mzxml", "*.imzML", "*.imzml", "*.d", "*.tdf", "*.tsf", "*.raw",
-      "*.RAW", "*.mzData", "*.netcdf", "*.mzdata", /*"*.aird",*/ "*.wiff", "*.wiff2");
+      "*.RAW", "*.mzData", "*.netcdf", "*.mzdata", /*"*.aird",*/ "*.wiff", "*.wiff2", "*.lcd",
+      "*.mbi");
   public static final List<ExtensionFilter> MS_RAW_DATA = List.of( //
       ALL_MS_DATA_FILTER, //
       MZML, //
       MZXML, //
       IMZML, //
-      BRUKER_D, //
-      THERMO_RAW, //
-      WATERS_RAW, //
+      THERMO_OR_WATERS_RAW, //
+      BRUKER_OR_AGILENT_D, //
+      BRUKER_TSF, //
+      BRUKER_TDF, //
       MZDATA, //
 //      AIRD, //
+      CDF, //
       NETCDF, //
       MZML_ZIP_GZIP, //
       WIFF, //
       WIFF2, //
+      MBI, //
+      SHIMADZU, //
       ALL_FILES);
   private static final ExtensionFilter ALL_SPECTRAL_LIBRARY_FILTER = new ExtensionFilter(
       "All spectral libraries", "*.json", "*.msp", "*.mgf", "*.jdx");

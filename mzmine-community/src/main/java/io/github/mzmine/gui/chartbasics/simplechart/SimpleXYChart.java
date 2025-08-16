@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,7 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleXYLabelGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ExampleXYProvider;
@@ -95,7 +96,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   private static final Logger logger = Logger.getLogger(SimpleXYChart.class.getName());
 
   protected final JFreeChart chart;
-  protected final ObjectProperty<XYItemRenderer> defaultRenderer;
+  protected final ObjectProperty<XYItemRenderer> defaultRenderer = new SimpleObjectProperty<>();
   protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(true);
   protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
 
@@ -108,9 +109,9 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   private final List<DatasetChangeListener> datasetListeners;
   protected EStandardChartTheme theme;
   protected SimpleXYLabelGenerator defaultLabelGenerator;
-  protected SimpleToolTipGenerator defaultToolTipGenerator;
-  protected ColoredXYLineRenderer defaultLineRenderer;
-  protected ColoredAreaShapeRenderer defaultShapeRenderer;
+  protected SimpleToolTipGenerator defaultToolTipGenerator = new SimpleToolTipGenerator();
+  protected ColoredXYLineRenderer defaultLineRenderer = new ColoredXYLineRenderer();
+  protected ColoredAreaShapeRenderer defaultShapeRenderer = new ColoredAreaShapeRenderer();
 
   private int nextDataSetNum;
 
@@ -164,10 +165,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     }
 
     defaultLabelGenerator = new SimpleXYLabelGenerator(this);
-    defaultToolTipGenerator = new SimpleToolTipGenerator();
-    defaultShapeRenderer = new ColoredAreaShapeRenderer();
-    defaultLineRenderer = new ColoredXYLineRenderer();
-    defaultRenderer = new SimpleObjectProperty<>();
     defaultRenderer.addListener((obs, old, newValue) -> {
       newValue.setDefaultItemLabelsVisible(true);
       newValue.setDefaultToolTipGenerator(defaultToolTipGenerator);
@@ -326,6 +323,13 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
       }
       // todo maybe notify for each dataset
       notifyDatasetChangeListeners(new DatasetChangeEvent(this, null));
+    });
+  }
+
+  public void setDatasets(@NotNull List<@NotNull DatasetAndRenderer> datasets) {
+    applyWithNotifyChanges(false, () -> {
+      removeAllDatasets();
+      datasets.forEach(ds -> addDataset(ds.dataset(), ds.renderer()));
     });
   }
 
@@ -524,4 +528,5 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
 
     addDataset(new XYSeriesCollection(trend), regressionRenderer);
   }
+
 }

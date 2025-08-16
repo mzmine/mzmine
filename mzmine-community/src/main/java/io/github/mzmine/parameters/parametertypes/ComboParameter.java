@@ -62,7 +62,8 @@ public class ComboParameter<ValueType> implements
       ValueType defaultValue) {
     this.name = name;
     this.description = description;
-    this.choices = FXCollections.observableList(choices);
+    // requires defensive copy of choices otherwise may share choices between clones
+    this.choices = FXCollections.observableArrayList(choices);
     this.value = defaultValue;
     if (defaultValue == null && !choices.isEmpty()) {
       this.value = choices.get(0);
@@ -96,14 +97,18 @@ public class ComboParameter<ValueType> implements
   }
 
   public void setChoices(ValueType[] newChoices) {
-    choices.clear();
-    choices.addAll(newChoices);
+    choices.setAll(newChoices);
+  }
+
+  public void setChoices(ValueType[] newChoices, ValueType active) {
+    setChoices(newChoices);
+    setValue(active);
   }
 
   @Override
   public ComboParameter<ValueType> cloneParameter() {
-    ComboParameter<ValueType> copy = new ComboParameter<ValueType>(name, description, choices);
-    copy.value = this.value;
+    ComboParameter<ValueType> copy = new ComboParameter<ValueType>(name, description, choices,
+        value);
     return copy;
   }
 
@@ -129,7 +134,7 @@ public class ComboParameter<ValueType> implements
       return;
     }
     for (ValueType option : choices) {
-      if ((value instanceof UniqueIdSupplier uis && uis.getUniqueID().equals(elementString))
+      if ((option instanceof UniqueIdSupplier uis && uis.getUniqueID().equals(elementString))
           || option.toString().equals(elementString)) {
         value = option;
         return;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,21 +28,45 @@ package io.github.mzmine.parameters;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
+import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javafx.beans.property.BooleanProperty;
+import javafx.scene.Node;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.ToggleButton;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 public class ParameterUtils {
 
@@ -71,8 +95,8 @@ public class ParameterUtils {
     }
     if (nFlistParams > 1) {
       throw new IllegalStateException(
-          STR."There are too many (\{nFlistParams}) FeatureListsParameter in class \{parameters.getClass()
-              .getName()}. Can only have 1. Coding error.");
+          "There are too many (" + nFlistParams + ") FeatureListsParameter in class "
+              + parameters.getClass().getName() + ". Can only have 1. Coding error.");
     }
     // exactly one parameter for feature lists found
     return parameters.getValue(featureListParameters.getFirst()).getMatchingFeatureLists();
@@ -98,8 +122,8 @@ public class ParameterUtils {
     }
     if (nRawFiles > 1) {
       throw new IllegalStateException(
-          STR."There are too many (\{nRawFiles}) RawDataFilesParameter in class \{parameters.getClass()
-              .getName()}. Can only have 1. Coding error.");
+          "There are too many (" + nRawFiles + ") RawDataFilesParameter in class "
+              + parameters.getClass().getName() + ". Can only have 1. Coding error.");
     }
     // exactly one parameter for RawDataFiles found
     return parameters.getValue(rawFilesParameter.getFirst()).getMatchingRawDataFiles();
@@ -261,5 +285,299 @@ public class ParameterUtils {
       }
     }
     return false;
+  }
+
+  /**
+   * Stream all parameters and embedded parameters depth first
+   *
+   * @param params input parameters
+   * @return flat stream of parameters
+   */
+  public static Stream<Parameter<?>> streamParametersDeep(final ParameterSet params) {
+    if (params == null) {
+      return Stream.empty();
+    }
+
+    return Arrays.stream(params.getParameters()).flatMap(ParameterUtils::streamThisAndEmbeddedDeep);
+  }
+
+  /**
+   * Stream all parameters and embedded parameters depth first
+   *
+   * @param params input parameters
+   * @return flat stream of parameters of specific type
+   */
+  public static <T extends Parameter<?>> Stream<T> streamParametersDeep(final ParameterSet params,
+      final Class<T> paramClass) {
+    return streamParametersDeep(params).filter(paramClass::isInstance).map(paramClass::cast);
+  }
+
+  /**
+   * Stream this parameter and its embedded parameters depth first
+   *
+   * @param parameter input parameter
+   * @return flat stream of this parameter first followed by any embedded parameters
+   */
+  public static Stream<Parameter<?>> streamThisAndEmbeddedDeep(final Parameter<?> parameter) {
+    if (parameter == null) {
+      return Stream.empty();
+    }
+    Stream<Parameter<?>> paramStream = Stream.of(parameter);
+    // search for embedded parameters
+    switch (parameter) {
+      case EmbeddedParameterSet<?, ?> parent -> {
+        ParameterSet embedded = parent.getEmbeddedParameters();
+        return Stream.concat(paramStream, streamParametersDeep(embedded));
+      }
+      // optional?
+      case EmbeddedParameter<?, ?, ?> parent -> {
+        UserParameter<?, ?> embedded = parent.getEmbeddedParameter();
+        return Stream.concat(paramStream, streamThisAndEmbeddedDeep(embedded));
+      }
+      case HiddenParameter<?> parent -> {
+        var embedded = parent.getEmbeddedParameter();
+        return Stream.concat(paramStream, streamThisAndEmbeddedDeep(embedded));
+      }
+      default -> {
+      }
+    }
+    return paramStream;
+  }
+
+
+  public static <M extends Class<? extends MZmineModule>> List<FeatureListAppliedMethod> getModuleCalls(
+      @NotNull List<@Nullable FeatureListAppliedMethod> appliedMethods, @NotNull M module) {
+    final List<FeatureListAppliedMethod> calls = new ArrayList<>();
+    for (final FeatureListAppliedMethod method : appliedMethods) {
+      if (method != null && module.isInstance(method.getModule())) {
+        calls.add(method);
+      }
+    }
+    return calls;
+  }
+
+  @Nullable
+  public static <M extends Class<? extends MZmineModule>> FeatureListAppliedMethod getLatestModuleCall(
+      @NotNull List<@Nullable FeatureListAppliedMethod> appliedMethods, @NotNull M module) {
+    for (int i = appliedMethods.size() - 1; i >= 0; i--) {
+      final FeatureListAppliedMethod method = appliedMethods.get(i);
+      if (method != null && module.isInstance(method.getModule())) {
+        return method;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public static <T, P extends Parameter<T>, M extends Class<? extends MZmineModule>> T getParameterValueOfLatestMethodCall(
+      @NotNull List<@Nullable FeatureListAppliedMethod> methods, @NotNull M module,
+      @NotNull P parameter) {
+    final Parameter<T> param = getParameterOfLatestMethodCall(methods, module, parameter);
+    return param != null ? param.getValue() : null;
+  }
+
+  @Nullable
+  public static <T, M extends Class<? extends MZmineModule>> Parameter<T> getParameterOfLatestMethodCall(
+      @NotNull List<@Nullable FeatureListAppliedMethod> methods, @NotNull M module,
+      @NotNull Parameter<T> parameter) {
+    final FeatureListAppliedMethod method = getLatestModuleCall(methods, module);
+    if (method == null) {
+      return null;
+    }
+
+    return method.getParameters().getParameter(parameter);
+  }
+
+  public static <T, M extends Class<MZmineModule>> Parameter<T> getEmbeddedParameterOfLatestMethodCall(
+      @NotNull List<@Nullable FeatureListAppliedMethod> methods, @NotNull M module,
+      EmbeddedParameterSet<ParameterSet, ?> embedded, @NotNull Parameter<T> parameter) {
+    final FeatureListAppliedMethod method = getLatestModuleCall(methods, module);
+    if (method == null) {
+      return null;
+    }
+    final ParameterSet parameters = method.getParameters();
+    final ParameterSet embeddedParameterValue = parameters.getEmbeddedParameterValue(embedded);
+    if (embeddedParameterValue == null) {
+      return null;
+    }
+    return embeddedParameterValue.getParameter(parameter);
+  }
+
+  public static <T, M extends Class<MZmineModule>> T getEmbeddedParameterValueOfLatestMethodCall(
+      @NotNull List<@Nullable FeatureListAppliedMethod> methods, @NotNull M module,
+      EmbeddedParameterSet<ParameterSet, ?> embedded, @NotNull Parameter<T> parameter) {
+    final Parameter<T> param = getEmbeddedParameterOfLatestMethodCall(methods, module, embedded,
+        parameter);
+    if (param == null) {
+      return null;
+    }
+    return param.getValue();
+  }
+
+  /**
+   * @param batch A list of {@link MZmineProcessingStep}s, e.g.,
+   *              {@link io.github.mzmine.modules.batchmode.BatchQueue} or a pre-filtered batch.
+   * @return The most-used export path from the {@link FileNameSuffixExportParameter}s.
+   */
+  @Nullable
+  public static <S extends MZmineProcessingStep<?>, T extends Collection<S>> File extractMajorityExportPath(
+      T batch) {
+    final List<File> allExportPaths = batch.stream().map(MZmineProcessingStep::getParameterSet)
+        .<File>mapMulti((paramSet, c) -> streamParametersDeep(paramSet,
+            FileNameSuffixExportParameter.class).forEach(fnp -> {
+          if (fnp.getValue() != null) {
+            c.accept(fnp.getValue().getParentFile());
+          }
+        })).filter(Objects::nonNull).toList();
+
+    return FileAndPathUtil.getMajorityFilePath(allExportPaths);
+  }
+
+  /**
+   * @param batch A list of {@link MZmineProcessingStep}s, e.g.,
+   *              {@link io.github.mzmine.modules.batchmode.BatchQueue} or a pre-filtered batch.
+   * @return The most-used raw file import path. The batch is searched for modules where the
+   * {@link MZmineProcessingModule#getModuleCategory()}  is
+   * {@link MZmineModuleCategory#RAWDATAIMPORT} is used.
+   */
+  public static <M extends MZmineProcessingModule, S extends MZmineProcessingStep<M>, T extends List<S>> File extractMajorityRawFileImportFilePath(
+      T batch) {
+    final List<File> allImportedFiles = batch.stream()
+        .filter(step -> step.getModule().getModuleCategory() == MZmineModuleCategory.RAWDATAIMPORT)
+        .map(MZmineProcessingStep::getParameterSet).<File>mapMulti((paramSet, c) -> {
+          streamParametersDeep(paramSet, FileNamesParameter.class).flatMap(
+                  p -> Arrays.stream(p.getValue() != null ? p.getValue() : new File[0]))
+              .filter(Objects::nonNull).forEach(c);
+        }).toList();
+    return FileAndPathUtil.getMajorityFilePath(
+        allImportedFiles.stream().map(File::getParentFile).toList());
+  }
+
+
+  /**
+   * Maps the names of parameters to the parameter for
+   * {@link #loadValuesFromXML(Class, Element, Map)}.
+   * <p>
+   * Extend this method to map old parameter names (maybe saved to batch files) to the parameter.
+   * Only works if the old and new parameters are of the same type (save and load the parameter
+   * values the same way).
+   * <p></p>
+   * Intended usage is: <p></p>
+   * {@code nameParameterMap.put("m/z tolerance", getParameter(mzTolerance));}
+   * <p>
+   * It is important to use {@link ParameterSet#getParameter(Parameter)} instead of directly passing
+   * the static final parameter. Otherwise, new parameter set instances will always use the same
+   * instance of the parameter.
+   *
+   * @return map of name to parameter
+   */
+  public static Map<String, Parameter<?>> getNameParameterMap(Parameter<?>... parameters) {
+    Map<String, Parameter<?>> nameParameterMap = HashMap.newHashMap(parameters.length);
+    for (final Parameter<?> p : parameters) {
+      nameParameterMap.put(p.getName(), p);
+    }
+    return nameParameterMap;
+  }
+
+  /**
+   * Load all parameters in name map from xmlElement.
+   *
+   * @param callerClass      for logging
+   * @param nameParameterMap parameter name -> parameter; make sure to use the correct parameters
+   *                         here and not the static instance
+   * @return A map of loaded parameters with name, parameter
+   */
+  @NotNull
+  public static Map<String, Parameter<?>> loadValuesFromXML(@NotNull Class<?> callerClass,
+      @NotNull Element xmlElement, @NotNull Map<String, Parameter<?>> nameParameterMap) {
+    // cannot use getElementsByTagName, this goes recursively through all levels
+    // finding nested ParameterSets
+//    NodeList list = xmlElement.getElementsByTagName(parameterElement);
+
+    Map<String, Parameter<?>> loadedParameters = HashMap.newHashMap(nameParameterMap.size());
+
+    var childNodes = xmlElement.getChildNodes();
+    for (int i = 0; i < childNodes.getLength(); i++) {
+      if (!(childNodes.item(i) instanceof Element nextElement)
+          || !SimpleParameterSet.parameterElement.equals(nextElement.getTagName())) {
+        continue;
+      }
+
+      String paramName = nextElement.getAttribute(SimpleParameterSet.nameAttribute);
+      Parameter<?> param = nameParameterMap.get(paramName);
+      if (param != null) {
+        try {
+          param.loadValueFromXML(nextElement);
+          // keep track of all parameters that were actually loaded - this means that some may be missing
+          loadedParameters.put(param.getName(), param);
+        } catch (Exception e) {
+          logger.log(Level.WARNING, "Error while loading parameter values for " + param.getName(),
+              e);
+        }
+      } else {
+        // load config reads the EncryptionKeyParameter in a second go
+        if (nameParameterMap.values().stream()
+            .noneMatch(p -> p instanceof EncryptionKeyParameter)) {
+          logger.warning(
+              "Cannot find parameter of name %s in ParameterSet %s. This might indicate changes of the parameterset and parameter types".formatted(
+                  paramName, callerClass.getName()));
+        }
+      }
+    }
+    return loadedParameters;
+  }
+
+  public static void saveValuesToXML(Element xmlElement, boolean skipSensitiveParameters,
+      Parameter<?>... parameters) {
+    Document parentDocument = xmlElement.getOwnerDocument();
+    for (Parameter<?> param : parameters) {
+      if (skipSensitiveParameters && param.isSensitive()) {
+        continue;
+      }
+      Element paramElement = parentDocument.createElement(SimpleParameterSet.parameterElement);
+      paramElement.setAttribute(SimpleParameterSet.nameAttribute, param.getName());
+      xmlElement.appendChild(paramElement);
+      param.saveValueToXML(paramElement);
+
+    }
+  }
+
+  /**
+   * Useful to check if all parameters are {@link UserParameter} with an editing component.
+   */
+  public static void assertAllUserParameters(Parameter<?>... parameters) {
+    for (Parameter<?> parameter : parameters) {
+      if (!(parameter instanceof UserParameter<?, ?>)) {
+        throw new IllegalArgumentException(
+            "All parameters must be of type UserParameter. Parameter " + parameter.getName()
+                + " is of type " + parameter.getClass().getName());
+      }
+    }
+  }
+
+  public static @Nullable BooleanProperty getSelectedProperty(Node comp) {
+    return switch (comp) {
+      case CheckBox c -> c.selectedProperty();
+      case OptionalParameterComponent<?> c -> c.selectedProperty();
+      case OptionalModuleComponent c -> c.selectedProperty();
+      case RadioButton c -> c.selectedProperty();
+      case ToggleButton c -> c.selectedProperty();
+      case null, default -> null;
+    };
+  }
+
+  public static List<? extends Parameter<?>> mapToActualParameters(ParameterSet parameterSet,
+      List<? extends Parameter<?>> searchParameters) {
+    List<Parameter<?>> actualParameters = new ArrayList<>();
+    for (Parameter<?> searchParameter : searchParameters) {
+      final Parameter<?> parameter = parameterSet.getParameter(searchParameter);
+      if (parameter == null) {
+        throw new IllegalArgumentException(
+            "Parameter " + searchParameter.getName() + " not found in parameter set "
+                + parameterSet.getClass().getName());
+      }
+      actualParameters.add(parameter);
+    }
+    return actualParameters;
   }
 }

@@ -44,7 +44,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
-public class OtherTraceSelection {
+public record OtherTraceSelection(@Nullable ChromatogramType chromatogramType,
+                                  @Nullable String rangeUnitFilter,
+                                  @Nullable String rangeLabelFilter,
+                                  @Nullable String descriptionFilter,
+                                  @NotNull OtherRawOrProcessed rawOrProcessed) {
 
   private static final Logger logger = Logger.getLogger(OtherTraceSelection.class.getName());
 
@@ -53,17 +57,6 @@ public class OtherTraceSelection {
   private static final String XML_RANGE_LABEL_FILTER_ATTR = "rangeLabelFilter";
   private static final String XML_DESCRIPTION_FILTER_ATTR = "descriptionFilter";
   private static final String XML_RAW_OR_PROCESSED_ATTR = "rawOrProcessed";
-
-  @Nullable
-  private final ChromatogramType chromatogramType;
-  @Nullable
-  private final String rangeUnitFilter;
-  @Nullable
-  private final String rangeLabelFilter;
-  @Nullable
-  private final String descriptionFilter;
-  @NotNull
-  private final OtherRawOrProcessed rawOrProcessed;
 
   public OtherTraceSelection(@Nullable ChromatogramType chromatogramType,
       @Nullable String rangeUnitFilter, @Nullable String rangeLabelFilter,
@@ -121,9 +114,11 @@ public class OtherTraceSelection {
   }
 
   public Stream<OtherFeature> streamMatchingTraces(OtherTimeSeriesData otherTimeSeriesData) {
-    // go from top level to make sure everything matches. if not, the stream will simply be empty.
-    return streamMatchingTraces(
-        List.of(otherTimeSeriesData.getOtherDataFile().getCorrespondingRawDataFile()));
+    // make sure everything matches. if not, the stream will simply be empty.
+    if(!matchesTimeSeriesData(otherTimeSeriesData)) {
+      return Stream.empty();
+    }
+    return rawOrProcessed.streamMatching(otherTimeSeriesData);
   }
 
   public List<OtherFeature> getMatchingTraces(OtherTimeSeriesData otherTimeSeriesData) {
@@ -146,15 +141,15 @@ public class OtherTraceSelection {
   public Stream<OtherTimeSeriesData> streamMatchingTimeSeriesData(Collection<RawDataFile> msFiles) {
     return msFiles.stream().flatMap(f -> f.getOtherDataFiles().stream())
         .filter(OtherDataFile::hasTimeSeries).map(OtherDataFile::getOtherTimeSeriesData)
-        .filter(Objects::nonNull)//
-        .filter(
-            data -> chromatogramType == null || data.getChromatogramType() == chromatogramType)//
-        .filter(data -> rangeUnitFilter == null || data.getTimeSeriesRangeUnit()
-            .matches(rangeUnitFilter))//
-        .filter(data -> rangeLabelFilter == null || data.getTimeSeriesRangeLabel()
-            .matches(rangeLabelFilter))//
-        .filter(data -> descriptionFilter == null || data.getOtherDataFile().getDescription()
-            .matches(descriptionFilter)); //
+        .filter(this::matchesTimeSeriesData); //
+  }
+
+  private boolean matchesTimeSeriesData(OtherTimeSeriesData obj) {
+    return Objects.nonNull(obj) && (chromatogramType == null
+        || obj.getChromatogramType() == chromatogramType) && (rangeUnitFilter == null
+        || obj.getTimeSeriesRangeUnit().matches(rangeUnitFilter)) && (rangeLabelFilter == null
+        || obj.getTimeSeriesRangeLabel().matches(rangeLabelFilter)) && (descriptionFilter == null
+        || obj.getOtherDataFile().getDescription().matches(descriptionFilter));
   }
 
   /**
@@ -199,28 +194,34 @@ public class OtherTraceSelection {
     return b.toString();
   }
 
-  public @Nullable ChromatogramType getChromatogramType() {
-    return chromatogramType;
-  }
-
-  public @Nullable String getRangeUnitFilter() {
-    return rangeUnitFilter;
-  }
-
-  public @Nullable String getRangeLabelFilter() {
-    return rangeLabelFilter;
-  }
-
-  public @Nullable String getDescriptionFilter() {
-    return descriptionFilter;
-  }
-
-  public @NotNull OtherRawOrProcessed getRawOrProcessed() {
-    return rawOrProcessed;
-  }
-
   public OtherTraceSelection copy() {
     return new OtherTraceSelection(chromatogramType, rangeUnitFilter, rangeLabelFilter,
         descriptionFilter, rawOrProcessed);
   }
+
+  public OtherTraceSelection withChromatogramType(@Nullable ChromatogramType chromatogramType) {
+    return new OtherTraceSelection(chromatogramType, rangeUnitFilter, rangeLabelFilter,
+        descriptionFilter, rawOrProcessed);
+  }
+
+  public OtherTraceSelection withRangeUnitFilter(@Nullable String rangeUnitFilter) {
+    return new OtherTraceSelection(chromatogramType, rangeUnitFilter, rangeLabelFilter,
+        descriptionFilter, rawOrProcessed);
+  }
+
+  public OtherTraceSelection withRangeLabelFilter(@Nullable String rangeLabelFilter) {
+    return new OtherTraceSelection(chromatogramType, rangeUnitFilter, rangeLabelFilter,
+        descriptionFilter, rawOrProcessed);
+  }
+
+  public OtherTraceSelection withDescriptionFilter(@Nullable String descriptionFilter) {
+    return new OtherTraceSelection(chromatogramType, rangeUnitFilter, rangeLabelFilter,
+        descriptionFilter, rawOrProcessed);
+  }
+
+  public OtherTraceSelection withRawOrProcessed(@NotNull OtherRawOrProcessed rawOrProcessed) {
+    return new OtherTraceSelection(chromatogramType, rangeUnitFilter, rangeLabelFilter,
+        descriptionFilter, rawOrProcessed);
+  }
+
 }

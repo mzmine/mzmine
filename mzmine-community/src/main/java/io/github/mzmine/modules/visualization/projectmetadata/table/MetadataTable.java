@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,18 +36,27 @@ import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
+import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.util.StringUtils;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Holds the metadata of a project and represents it as a table (parameters are columns).
@@ -205,6 +214,11 @@ public class MetadataTable {
    * the metadata table
    */
   public MetadataColumn<?> getColumnByName(String name) {
+    // filename column is not added because this would duplicate the RawDataFile.name method
+    if (FILENAME_HEADER.equals(name)) {
+      return createDataFileColumn();
+    }
+    //
     for (MetadataColumn<?> column : getColumns()) {
       if (column.getTitle().equals(name)) {
         return column;
@@ -309,6 +323,110 @@ public class MetadataTable {
   }
 
   /**
+   * Groups the files by the value in the metadata column. If raw data files have no mapping (null)
+   * they will be put into a group at first index. Sorted by doubleValue ascending.
+   *
+   * @param <T>
+   * @return If the column is null, a list with the input files is returned. If the column is not in
+   * the table, an error is thrown. If values are null - the first entry will be a list for all null
+   * value entries. Each list has at least 1 element.
+   * @throws MetadataColumnDoesNotExistException If the column does not exist. Does not throw if the
+   *                                             column is null.
+   */
+  @NotNull
+  public <T> List<SamplesGroupedBy<T>> groupFilesByColumnIncludeNull(
+      @Nullable MetadataColumn<T> column) throws MetadataColumnDoesNotExistException {
+    final List<RawDataFile> files = ProjectService.getProject().getCurrentRawDataFiles();
+    return groupFilesByColumnIncludeNull(files, column);
+  }
+
+  /**
+   * Groups the files by the value in the metadata column. If raw data files have no mapping (null)
+   * they will be put into a group at first index. Sorted by doubleValue ascending.
+   *
+   * @param <T>
+   * @return If the column is null, a list with the input files is returned. If the column is not in
+   * the table, an error is thrown. If values are null - the first entry will be a list for all null
+   * value entries. Each list has at least 1 element.
+   * @throws MetadataColumnDoesNotExistException If the column does not exist. Does not throw if the
+   *                                             column is null.
+   */
+  @NotNull
+  public <T> List<SamplesGroupedBy<T>> groupFilesByColumnIncludeNull(
+      @NotNull Collection<RawDataFile> raws, @Nullable MetadataColumn<T> column)
+      throws MetadataColumnDoesNotExistException {
+    if (column == null) {
+      return List.of(new SamplesGroupedBy<>(null, List.copyOf(raws), 0));
+    }
+    final Map<RawDataFile, Object> fileValueMap = data.get(column);
+    if (fileValueMap == null) {
+      throw new MetadataColumnDoesNotExistException(column.getTitle());
+    }
+
+    final Map<Object, @NotNull List<RawDataFile>> nonNullMap = new HashMap<>();
+    List<RawDataFile> nullsList = new ArrayList<>();
+    for (RawDataFile raw : raws) {
+      final Object value = fileValueMap.get(raw);
+      if (value == null || StringUtils.isBlank(value.toString())) {
+        nullsList.add(raw);
+      } else {
+        // add to specific list
+        final List<RawDataFile> list = nonNullMap.computeIfAbsent(value, _ -> new ArrayList<>());
+        list.add(raw);
+      }
+    }
+    boolean hasNulls = !nullsList.isEmpty();
+    final List<SamplesGroupedBy<T>> groups = new ArrayList<>(
+        nonNullMap.size() + (hasNulls ? 1 : 0));
+
+    int counter = hasNulls ? 1 : 0;
+
+    // in case we have string values - sort by toString as we will then just number each group.
+    // numbers and dates will be sorted after the convertToDouble conversion
+    final List<Entry<Object, @NotNull List<RawDataFile>>> entries = nonNullMap.entrySet().stream()
+        .sorted(Comparator.comparing(e -> e.getKey().toString())).toList();
+
+    for (Entry<Object, @NotNull List<RawDataFile>> e : entries) {
+      final List<RawDataFile> rawFiles = e.getValue();
+      final Object value = e.getKey();
+      final double doubleValue = convertValueToDouble(value, counter);
+      groups.add(new SamplesGroupedBy<>((T) value, rawFiles, doubleValue));
+      counter++;
+    }
+    // requires sorting by value which is always comparable in table
+    groups.sort(Comparator.comparing(SamplesGroupedBy::doubleValue));
+
+    if (hasNulls) {
+      // add null always first if present
+      final DoubleSummaryStatistics summary = groups.stream()
+          .mapToDouble(SamplesGroupedBy::doubleValue).summaryStatistics();
+      double nullValue = summary.getCount() == 0 ? 0
+          // min - step
+          : summary.getMin() - (summary.getMax() - summary.getMin()) / summary.getCount();
+      groups.addFirst(new SamplesGroupedBy<>(null, nullsList, nullValue));
+    }
+
+    return groups;
+  }
+
+  /**
+   * Date or number value is converted to double and other objects will use default
+   *
+   * @return Double.NaN for null values, doubles for dates and number, and string default for not
+   * empty strings (blank strings are handled like null as NaN)
+   */
+  public static double convertValueToDouble(@Nullable Object value, double stringDefaultValue) {
+    return switch (value) {
+      case null -> Double.NaN;
+      case Number n -> n.doubleValue();
+      case LocalDateTime date -> date.toEpochSecond(ZoneOffset.UTC);
+      case String s -> s.isBlank() ? Double.NaN : stringDefaultValue;
+      default -> stringDefaultValue;
+    };
+  }
+
+
+  /**
    * @param column The column
    * @param value  The column value to match to.
    * @return A list of files associated to the column value or null, if the column value does not
@@ -337,10 +455,21 @@ public class MetadataTable {
         colVal -> Optional.ofNullable(groupedFiles.get(colVal)).orElse(List.of())));
   }
 
-  public <T> List<T> getDistinctColumnValues(MetadataColumn<T> column) {
+  public <T> List<T> getDistinctColumnValuesOrThrow(MetadataColumn<T> column) {
     final Map<RawDataFile, Object> fileValueMap = data.get(column);
     if (fileValueMap == null) {
       throw new MetadataColumnDoesNotExistException(column.getTitle());
+    }
+    return fileValueMap.values().stream().distinct().map(o -> (T) o).toList();
+  }
+
+  /**
+   * @return the list of distinct unique values or an empty list if column does not exist
+   */
+  public <T> List<T> getDistinctColumnValues(MetadataColumn<T> column) {
+    final Map<RawDataFile, Object> fileValueMap = data.get(column);
+    if (fileValueMap == null) {
+      return List.of();
     }
     return fileValueMap.values().stream().distinct().map(o -> (T) o).toList();
   }
@@ -369,13 +498,35 @@ public class MetadataTable {
    */
   @NotNull
   public MetadataTable merge(final MetadataTable newMetadata) {
-    newMetadata.getData().forEach((column, data) -> {
+    newMetadata.getData().forEach((columnInNewTable, data) -> {
       data.forEach((raw, value) -> {
         if (value != null) {
-          setValue((MetadataColumn) column, raw, value);
+          setValue((MetadataColumn) columnInNewTable, raw, value);
         }
       });
     });
     return this;
+  }
+
+  @Nullable
+  public Map<RawDataFile, Object> getColumnData(final MetadataColumn<?> col) {
+    if (col == null) {
+      return null;
+    }
+    // filename column is not in data so create it here
+    if (FILENAME_HEADER.equals(col.getTitle())) {
+      return ProjectService.getProject().getCurrentRawDataFiles().stream()
+          .collect(Collectors.toMap(Function.identity(), RawDataFile::getName));
+    }
+
+    return data.get(col);
+  }
+
+  /**
+   * @return unsorted list of all raw data files with values
+   */
+  public List<RawDataFile> getRawDataFilesUnsorted() {
+    return data.values().stream()
+        .<RawDataFile>mapMulti((d, consumer) -> d.keySet().forEach(consumer)).distinct().toList();
   }
 }

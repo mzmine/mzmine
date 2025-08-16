@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.javafx.components.util;
 
+import java.util.List;
+import java.util.stream.IntStream;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -136,10 +138,45 @@ public class FxLayout {
   }
 
   public static HBox newHBox(Pos alignment, Insets padding, Node... children) {
-    var pane = new HBox(DEFAULT_SPACE, children);
+    return newHBox(alignment, padding, DEFAULT_SPACE, children);
+  }
+
+  public static HBox newHBox(Pos alignment, Insets padding, int spacing, Node... children) {
+    var pane = new HBox(spacing, children);
     pane.setAlignment(alignment);
     pane.setPadding(padding);
     return pane;
+  }
+
+  public static void applyDefaults(VBox pane, Insets padding) {
+    apply(pane, DEFAULT_SPACE, padding, Pos.CENTER_LEFT);
+  }
+
+  public static void applyDefaults(HBox pane, Insets padding) {
+    apply(pane, DEFAULT_SPACE, padding, Pos.CENTER_LEFT);
+  }
+
+  public static void applyDefaults(FlowPane pane, Insets padding) {
+    apply(pane, DEFAULT_SPACE, DEFAULT_SPACE, padding, Pos.CENTER_LEFT);
+  }
+
+  public static void apply(VBox pane, int space, Insets padding, Pos pos) {
+    pane.setPadding(padding);
+    pane.setSpacing(space);
+    pane.setAlignment(pos);
+  }
+
+  public static void apply(HBox pane, int space, Insets padding, Pos pos) {
+    pane.setPadding(padding);
+    pane.setSpacing(space);
+    pane.setAlignment(pos);
+  }
+
+  public static void apply(FlowPane pane, int vGap, int hGap, Insets padding, Pos pos) {
+    pane.setPadding(padding);
+    pane.setVgap(vGap);
+    pane.setHgap(hGap);
+    pane.setAlignment(pos);
   }
 
   public static StackPane newStackPane(Node... children) {
@@ -194,8 +231,18 @@ public class FxLayout {
     return scroll;
   }
 
+  /**
+   * A non animated pane
+   */
   public static TitledPane newTitledPane(String title, Node node) {
-    return new TitledPane(title, node);
+    return newTitledPane(title, node, false);
+  }
+
+  public static TitledPane newTitledPane(String title, Node node, boolean animated) {
+    final TitledPane pane = new TitledPane(title, node);
+    // default disable animation - slows down when plots are shown with many data points
+    pane.setAnimated(animated);
+    return pane;
   }
 
   public static Accordion newAccordion(TitledPane... panes) {
@@ -245,7 +292,19 @@ public class FxLayout {
   public static GridPane newGrid2Col(@NotNull GridColumnGrow grow, Insets padding, int space,
       final Node... children) {
     var grid = new GridPane(space, space);
+    return applyGrid2Col(grid, grow, padding, space, children);
+  }
+
+  public static GridPane applyGrid2Col(@NotNull GridPane grid, final Node... children) {
+    return applyGrid2Col(grid, GridColumnGrow.RIGHT, DEFAULT_PADDING_INSETS, DEFAULT_SPACE,
+        children);
+  }
+
+  public static GridPane applyGrid2Col(@NotNull GridPane grid, @NotNull GridColumnGrow grow,
+      Insets padding, int space, final Node... children) {
     grid.setPadding(padding);
+    grid.setVgap(space);
+    grid.setHgap(space);
 
     ColumnConstraints column1 = new ColumnConstraints();
     ColumnConstraints column2 = new ColumnConstraints();
@@ -268,6 +327,7 @@ public class FxLayout {
     return grid;
   }
 
+
   public static void setGrowColumn(final ColumnConstraints... columns) {
     for (final ColumnConstraints column : columns) {
       column.setFillWidth(true);
@@ -277,5 +337,30 @@ public class FxLayout {
 
   public enum GridColumnGrow {
     LEFT, RIGHT, BOTH, NONE
+  }
+
+  public static ColumnConstraints newFillWidthColumn() {
+    final ColumnConstraints cc = new ColumnConstraints();
+    setGrowColumn(cc);
+    return cc;
+  }
+
+  public static List<ColumnConstraints> newFillWidthColumns(int numColumns) {
+    return IntStream.range(0, numColumns).mapToObj(i -> newFillWidthColumn()).toList();
+  }
+
+  public static RowConstraints newFillHeightRow() {
+    final RowConstraints rc = new RowConstraints();
+    setFillHeightRow(rc);
+    return rc;
+  }
+
+  public static List<RowConstraints> newFillHeightRows(int numRows) {
+    return IntStream.range(0, numRows).mapToObj(i -> newFillHeightRow()).toList();
+  }
+
+  private static void setFillHeightRow(RowConstraints rc) {
+    rc.setFillHeight(true);
+    rc.setVgrow(Priority.ALWAYS);
   }
 }

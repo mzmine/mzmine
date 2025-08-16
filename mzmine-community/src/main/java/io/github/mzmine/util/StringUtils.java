@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,12 @@
 
 package io.github.mzmine.util;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -260,8 +263,97 @@ public class StringUtils {
     return s.split(", |[\\t, ]");
   }
 
-  public static <T> String join(final List<T> values, @NotNull String delimiter,
+  public static <T> String join(final @NotNull T[] values, @NotNull String delimiter,
       @NotNull final Function<T, String> mapper) {
-    return values.stream().map(mapper::apply).collect(Collectors.joining(delimiter));
+    return join(Arrays.stream(values), delimiter, mapper);
+  }
+
+  public static <T> String join(final @NotNull List<T> values, @NotNull String delimiter,
+      @NotNull final Function<T, String> mapper) {
+    return join(values.stream(), delimiter, mapper);
+  }
+
+  public static <T> String join(final @NotNull Stream<T> stream, @NotNull String delimiter,
+      @NotNull final Function<T, String> mapper) {
+    return stream.map(mapper).collect(Collectors.joining(delimiter));
+  }
+
+  @Nullable
+  public static Double parseDoubleOrElse(final @Nullable String s,
+      final @Nullable Double defaultValue) {
+    if (s == null) {
+      return defaultValue;
+    }
+    try {
+      return Double.parseDouble(s);
+    } catch (Exception ex) {
+      return defaultValue;
+    }
+  }
+
+  public static boolean anyBlank(String... values) {
+    return !hasValues(values);
+  }
+
+  /**
+   * All require non blank value
+   */
+  public static boolean hasValues(String... values) {
+    for (String value : values) {
+      if (isBlank(value)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Checks for equality by string values
+   *
+   * @return true if equal by toString()
+   */
+  public static boolean isEqualToString(@Nullable Object a, @Nullable Object b) {
+    if (a == b) {
+      // also if both are null
+      return true;
+    }
+    if (a == null || b == null) {
+      return false;
+    }
+    return Objects.equals(a.toString(), b.toString());
+  }
+
+  /**
+   * @return true if all values are blank or null
+   */
+  public static boolean allBlank(String... values) {
+    for (String value : values) {
+      if (hasValue(value)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * @return true if the content is equal, this means that blank or null strings will be always
+   * false
+   */
+  public static boolean equalContent(@Nullable String a, @Nullable String b) {
+    if (isBlank(a) || isBlank(b)) {
+      return false;
+    }
+    return a.equals(b);
+  }
+
+  /**
+   * @return true if the content is equal (ignoring case), this means that blank or null strings
+   * will be always false
+   */
+  public static boolean equalContentIgnoreCase(@Nullable String a, @Nullable String b) {
+    if (isBlank(a) || isBlank(b)) {
+      return false;
+    }
+    return a.equalsIgnoreCase(b);
   }
 }

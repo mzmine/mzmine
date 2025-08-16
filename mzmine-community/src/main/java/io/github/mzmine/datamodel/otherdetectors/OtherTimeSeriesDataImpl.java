@@ -122,7 +122,7 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
 
   @Override
   public @NotNull String getTimeSeriesDomainUnit() {
-    return timeSeriesRangeLabel;
+    return timeSeriesDomainUnit;
   }
 
   public void setTimeSeriesDomainUnit(@Nullable String timeSeriesDomainUnit) {
@@ -184,6 +184,20 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
     try (var _ = writeLock.lockRead()) {
       return processedFeatures.stream()
           .filter(f -> Objects.equals(f.get(RawTraceType.class), rawTrace)).toList();
+    }
+  }
+
+  @Nullable
+  public OtherFeature getPreProcessedFeatureForTrace(@Nullable OtherFeature rawTrace) {
+    if (rawTrace == null) {
+      return null;
+    }
+    // in case a baseline corrected raw trace was given, get the raw trace of the baseline corrected one.
+    final OtherFeature original = Objects.requireNonNullElse(rawTrace.get(RawTraceType.class),
+        rawTrace);
+    try (var _ = writeLock.lockRead()) {
+      return preprocessedTraces.stream().filter(f -> Objects.equals(f.get(RawTraceType.class), original)).findFirst()
+          .orElse(null);
     }
   }
 

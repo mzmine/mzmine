@@ -31,6 +31,7 @@ import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerParameters;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrAdvancedParameters;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
@@ -120,6 +121,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     }
 
     makeAndAddDeisotopingStep(q, intraSampleRtTol);
+    makeAndAddFeatureFilterStep(q);
     makeAndAddDiaMs2GroupingStep(q);
 
     makeAndAddIsotopeFinderStep(q);
@@ -133,12 +135,14 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     makeAndAddIinStep(q);
 
     // annotation
+    makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, false);
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
     makeAndAddLipidAnnotationStep(q);
     // export
     makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
-        exportAnnotationGraphics);
+        exportAnnotationGraphics, mzTolScans);
+    makeAndAddBatchExportStep(q, isExportActive, exportPath);
     return q;
   }
 
@@ -152,10 +156,11 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     param.setParameter(DiaMs2CorrParameters.ms2ScanToScanAccuracy, mzTolScans);
     param.setParameter(DiaMs2CorrParameters.minMs1Intensity, minFeatureHeight);
     param.setParameter(DiaMs2CorrParameters.numCorrPoints, minCorrelatedPoints);
-    param.setParameter(DiaMs2CorrParameters.minMs2Intensity, Math.max(minFeatureHeight * 0.1,
-        massDetectorOption.getMs1NoiseLevel()));
+    param.setParameter(DiaMs2CorrParameters.minMs2Intensity,
+        Math.max(minFeatureHeight * 0.1, massDetectorOption.getMs1NoiseLevel()));
     param.setParameter(DiaMs2CorrParameters.ms2ScanSelection,
         new ScanSelection(MsLevelFilter.of(2)));
+    param.setParameter(DiaMs2CorrParameters.advanced, false);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(DiaMs2CorrModule.class),
         param));
@@ -205,6 +210,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
 
   /**
    * Specific for dia wizard: use ms1 and ms2
+   *
    * @param q
    */
   protected void makeAndAddMobilityScanMergerStep(final BatchQueue q) {
@@ -213,7 +219,8 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
         .getModuleParameters(MobilityScanMergerModule.class).cloneParameterSet();
 
     param.setParameter(MobilityScanMergerParameters.mzTolerance, mzTolScans);
-    param.setParameter(MobilityScanMergerParameters.scanSelection, new ScanSelection(MsLevelFilter.ALL_LEVELS));
+    param.setParameter(MobilityScanMergerParameters.scanSelection,
+        new ScanSelection(MsLevelFilter.ALL_LEVELS));
     param.setParameter(MobilityScanMergerParameters.noiseLevel,
         0d); // the noise level of the mass detector already did all the filtering we want (at least in the wizard)
     param.setParameter(MobilityScanMergerParameters.mergingType, IntensityMergingType.SUMMED);

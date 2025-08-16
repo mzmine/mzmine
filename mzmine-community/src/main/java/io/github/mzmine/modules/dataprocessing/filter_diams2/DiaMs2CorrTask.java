@@ -39,7 +39,6 @@ import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
-import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
@@ -49,9 +48,12 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.CorrelationData;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.main.MZmineCore;
@@ -94,6 +96,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -108,7 +111,7 @@ public class DiaMs2CorrTask extends AbstractTask {
   private final int minCorrPoints;
   private final MZTolerance mzTolerance;
   private final double minPearson;
-  private final double correlationThreshold = 0.1d;
+  private final double correlationThreshold;
 
   private final ParameterSet parameters;
   private final ParameterSet adapParameters;
@@ -121,6 +124,7 @@ public class DiaMs2CorrTask extends AbstractTask {
 
   private double isolationWindowMergingProgress = 0d;
   private double adapTaskProgess = 0d;
+  private boolean discriminateByCE;
 
   protected DiaMs2CorrTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       ModularFeatureList flist, ParameterSet parameters) {
@@ -134,6 +138,9 @@ public class DiaMs2CorrTask extends AbstractTask {
     minCorrPoints = parameters.getValue(DiaMs2CorrParameters.numCorrPoints);
     mzTolerance = parameters.getValue(DiaMs2CorrParameters.ms2ScanToScanAccuracy);
     minPearson = parameters.getValue(DiaMs2CorrParameters.minPearson);
+    correlationThreshold = parameters.getParameter(DiaMs2CorrParameters.advanced)
+        .getValueOrDefault(DiaMs2CorrAdvancedParameters.correlationThreshold,
+            DiaMs2CorrAdvancedParameters.DEFAULT_CORR_THRESHOLD);
     numRows = flist.getNumberOfRows();
 
     adapParameters = MZmineCore.getConfiguration()
@@ -193,8 +200,9 @@ public class DiaMs2CorrTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     if (flist.getNumberOfRawDataFiles() != 1) {
-      setErrorMessage("Cannot build DIA MS2 for feature lists with more than one raw data file.");
-      setStatus(TaskStatus.ERROR);
+      error(
+          "Cannot build DIA MS2 for feature lists with more than one raw data file. Run DIA pseudo MS2 builder before alignment.");
+      return;
     }
 
     final RawDataFile file = flist.getRawDataFile(0);
@@ -226,9 +234,14 @@ public class DiaMs2CorrTask extends AbstractTask {
       final List<@NotNull PseudoSpectrum> correlatedMs2s = processIsolationWindows(feature,
           matchingWindows, isoWindowEicsMap, isolationWindowScanMap);
 
-      PseudoSpectrum reoccurringIons = refineMs2s(correlatedMs2s);
-      feature.setAllMS2FragmentScans(
-          reoccurringIons != null ? List.of(reoccurringIons) : List.of());
+      if (!discriminateByCE) {
+        // we can only refine if we don't discriminate by CE, otherwise we compare spectra of different CEs
+        PseudoSpectrum reoccurringIons = refineMs2s(correlatedMs2s);
+        feature.setAllMS2FragmentScans(
+            reoccurringIons != null ? List.of(reoccurringIons) : List.of());
+      } else {
+        feature.setAllMS2FragmentScans((List<Scan>) (List<? extends Scan>) correlatedMs2s);
+      }
     }
 
     flist.getAppliedMethods().add(
@@ -291,8 +304,11 @@ public class DiaMs2CorrTask extends AbstractTask {
       return null;
     }
 
+    final MsMsInfo msMsInfo = correlatedMs2s.stream().map(PseudoSpectrum::getMsMsInfo)
+        .filter(Objects::nonNull).map(MsMsInfo::createCopy).findFirst().orElse(null);
+
     return new SimplePseudoSpectrum(mostIntense.getDataFile(), mostIntense.getMSLevel(),
-        mostIntense.getRetentionTime(), null, mzs.toDoubleArray(), intensities.toDoubleArray(),
+        mostIntense.getRetentionTime(), msMsInfo, mzs.toDoubleArray(), intensities.toDoubleArray(),
         mostIntense.getPolarity(), mostIntense.getScanDefinition(),
         mostIntense.getPseudoSpectrumType());
   }
@@ -362,22 +378,29 @@ public class DiaMs2CorrTask extends AbstractTask {
       List<IonTimeSeries<?>> eligibleEics, double[] ms1Rts, double[] ms1Intensities) {
     DoubleArrayList ms2Mzs = new DoubleArrayList();
     DoubleArrayList ms2Intensities = new DoubleArrayList();
+    DoubleArrayList collisionEnergies = new DoubleArrayList();
     MergedMassSpectrum mergedMobilityScan = null; // lazy initialization
+    ActivationMethod activationMethod = ActivationMethod.UNKNOWN;
 
     for (IonTimeSeries<?> ms2Eic : eligibleEics) {
-      final IntensityTimeSeries subSeries = ms2Eic.subSeries(getMemoryMapStorage(),
+      final IonTimeSeries<?> subSeries = ms2Eic.subSeries(getMemoryMapStorage(),
           correlationRange.lowerEndpoint(), correlationRange.upperEndpoint());
       if (subSeries.getNumberOfValues() < minCorrPoints) {
         continue;
+      }
+      if (activationMethod == ActivationMethod.UNKNOWN) {
+        activationMethod = ScanUtils.streamMsMsInfos(subSeries.getSpectra(), feature.getMZ())
+            .map(MsMsInfo::getActivationMethod).findFirst().orElse(ActivationMethod.UNKNOWN);
       }
       final double[] rts = new double[subSeries.getNumberOfValues()];
       for (int i = 0; i < subSeries.getNumberOfValues(); i++) {
         rts[i] = subSeries.getRetentionTime(i);
       }
+      final double[] ms2Intensity = subSeries.getIntensityValueBuffer()
+          .toArray(ValueLayout.JAVA_DOUBLE);
 
       final CorrelationData correlationData = DIA.corrFeatureShape(ms1Rts, ms1Intensities, rts,
-          subSeries.getIntensityValueBuffer().toArray(ValueLayout.JAVA_DOUBLE), minCorrPoints, 2,
-          minMs2Intensity / 5);
+          ms2Intensity, minCorrPoints, 2, minMs2Intensity / 5);
       if (correlationData == null || !correlationData.isValid()
           || correlationData.getPearsonR() < minPearson) {
         continue;
@@ -416,15 +439,23 @@ public class DiaMs2CorrTask extends AbstractTask {
 
       ms2Mzs.add(mz);
       ms2Intensities.add(maxIntensity);
+      ScanUtils.streamMsMsInfos(subSeries.getSpectra(), feature.getMZ())
+          .map(MsMsInfo::getActivationEnergy).filter(Objects::nonNull)
+          .mapToDouble(Float::doubleValue).average().ifPresent(collisionEnergies::add);
     }
 
     if (ms2Mzs.isEmpty()) {
       return null;
     }
 
+    final DDAMsMsInfo info = new DDAMsMsInfoImpl(feature.getMZ(), feature.getCharge(),
+        collisionEnergies.isEmpty() ? null
+            : (float) collisionEnergies.doubleStream().average().getAsDouble(), null, null, 2,
+        activationMethod, null);
+
     return new SimplePseudoSpectrum(feature.getRawDataFile(),
         Objects.requireNonNullElse(ms2ScanSelection.msLevel().getSingleMsLevelOrNull(), 2),
-        feature.getRT(), null, ms2Mzs.toDoubleArray(), ms2Intensities.toDoubleArray(),
+        feature.getRT(), info, ms2Mzs.toDoubleArray(), ms2Intensities.toDoubleArray(),
         feature.getRepresentativeScan().getPolarity(),
         String.format("Pseudo MS2 (R >= %.2f)", minPearson), PseudoSpectrumType.LC_DIA);
   }
@@ -565,11 +596,22 @@ public class DiaMs2CorrTask extends AbstractTask {
               mobilityScansInWindow.stream().map(MobilityScan::getMassList).toList(), mzTolerance,
               IntensityMergingType.SUMMED, SpectraMerging.DEFAULT_CENTER_FUNCTION, null, null, 2);
 
+          // all scans have the same msmsInfo - therefore ok to use just one of them
+          final Optional<IonMobilityMsMsInfo> msMsInfo = mobilityScansInWindow.stream()
+              .map(MobilityScan::getMsMsInfo).filter(IonMobilityMsMsInfo.class::isInstance)
+              .map(IonMobilityMsMsInfo.class::cast).findFirst().map(
+                  info -> (IonMobilityMsMsInfo) info.createCopy()); // copy to secure original from changes
+
+          // also set the msmsinfo as the precursorInfos - will be just one representative
+          final Set<IonMobilityMsMsInfo> precursorInfos = msMsInfo.map(Set::of).orElse(null);
+
           final SimpleFrame newFrame = new SimpleFrame(windowFile, scan.getScanNumber(),
               scan.getMSLevel(), scan.getRetentionTime(), mzIntensities[0], mzIntensities[1],
               scan.getSpectrumType(), scan.getPolarity(), scan.getScanDefinition(),
-              scan.getScanningMZRange(), ((Frame) scan).getMobilityType(), null,
+              scan.getScanningMZRange(), ((Frame) scan).getMobilityType(), precursorInfos,
               scan.getInjectionTime());
+          //set to regular msmsinfo so we can extract for later CE setting
+          newFrame.setMsMsInfo(msMsInfo.orElse(null));
           newFrame.addMassList(new ScanPointerMassList(newFrame));
           windowFile.addScan(newFrame);
 
@@ -699,14 +741,26 @@ public class DiaMs2CorrTask extends AbstractTask {
 
   private Map<IsolationWindow, List<Scan>> extractIsolationWindows(
       @NotNull final RawDataFile file) {
+    final long numberOfCEs = ScanUtils.streamMsMsInfos(file.getScans(), null)
+        .filter(Objects::nonNull).map(MsMsInfo::getActivationEnergy).filter(Objects::nonNull)
+        .distinct().count();
+    if (numberOfCEs < 5 && !(file instanceof IMSRawDataFile)) {
+      // if we can find multiple collision energies in a non ims file, the likelyhood is that there
+      // were multiple CEs acquired and we must discriminate by CEs.
+      discriminateByCE = true;
+    } else {
+      discriminateByCE = false;
+    }
+
     Map<IsolationWindow, List<Scan>> windowScanMap = new HashMap<>();
     for (Scan scan : ms2ScanSelection.getMatchingScans(file)) {
 
       if (scan instanceof Frame frame) {
         final Set<IonMobilityMsMsInfo> imsMsMsInfos = frame.getImsMsMsInfos();
         for (IonMobilityMsMsInfo info : imsMsMsInfos) {
+          // set CE of IsolationWindow to null to never discriminate by CE in IMS data. May be ramped along the mobility axis.
           IsolationWindow window = new IsolationWindow(info.getIsolationWindow(),
-              info.getMobilityRange());
+              info.getMobilityRange(), null);
           final List<Scan> scans = windowScanMap.computeIfAbsent(window, w -> new ArrayList<>());
           // have to extract some mocked frames later
           scans.add(scan);
@@ -718,14 +772,22 @@ public class DiaMs2CorrTask extends AbstractTask {
         }
 
         final Range<Double> mzRange = msMsInfo.getIsolationWindow();
-        IsolationWindow window = new IsolationWindow(mzRange, null);
+        IsolationWindow window = new IsolationWindow(mzRange, null,
+            discriminateByCE ? msMsInfo.getActivationEnergy() : null);
         final List<Scan> scans = windowScanMap.computeIfAbsent(window, w -> new ArrayList<>());
         scans.add(scan);
       }
     }
 
+    if (windowScanMap.isEmpty()) {
+      // in case no isolation window was found, use one single isolation window that encloses everything
+      windowScanMap.put(new IsolationWindow(Range.closed(0d, Double.MAX_VALUE), null, null),
+          ms2ScanSelection.getMatchingScans(file.getScans()));
+    }
+
     logger.finest(() -> "%s: Extracted %d raw isolation windows.".formatted(file.getName(),
         windowScanMap.size()));
+
     // now merge some isolation windows, if they are largely overlapping (e.g. MSConvert converted Agilent AllIons files.)
     final List<Entry<IsolationWindow, List<Scan>>> sortedWindowEntries = new ArrayList<>(
         windowScanMap.entrySet().stream().sorted(Comparator.comparingDouble(

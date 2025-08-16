@@ -384,6 +384,15 @@ public class RawDataFileImpl implements RawDataFile {
     return scans;
   }
 
+  public void clearScans() {
+    scans.clear();
+    maxRawDataPoints = -1;
+    dataMaxTIC.clear();
+    dataMaxBasePeakIntensity.clear();
+    dataMZRange.clear();
+    dataRTRange.clear();
+  }
+
   @NotNull
   @Override
   public ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
@@ -421,6 +430,10 @@ public class RawDataFileImpl implements RawDataFile {
     return ImmutableList.copyOf(otherDataFiles);
   }
 
+  public boolean removeOtherDataFileByName(final @NotNull String fileName) {
+    return otherDataFiles.removeIf(f -> f.getDescription().equals(fileName));
+  }
+
   public void setOtherDataFiles(@NotNull List<@NotNull OtherDataFile> otherDataFiles) {
     this.otherDataFiles.clear();
     this.otherDataFiles.addAll(otherDataFiles);
@@ -428,5 +441,12 @@ public class RawDataFileImpl implements RawDataFile {
 
   public void addOtherDataFiles(@NotNull List<@NotNull OtherDataFile> otherDataFiles) {
     this.otherDataFiles.addAll(otherDataFiles);
+  }
+
+  public void clearCaches() {
+    dataRTRange.clear();
+    dataMaxTIC.clear();
+    dataMaxBasePeakIntensity.clear();
+    dataMZRange.clear();
   }
 }

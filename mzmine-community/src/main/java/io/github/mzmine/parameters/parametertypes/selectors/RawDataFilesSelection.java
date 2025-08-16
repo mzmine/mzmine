@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.TextUtils;
+import io.github.mzmine.util.io.JsonUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -126,8 +127,10 @@ public class RawDataFilesSelection implements Cloneable {
       RawDataFile matchingFile = matchingFiles[i];
       evaluatedSelection[i] = new RawDataFilePlaceholder(matchingFile);
     }
-    logger.finest(
-        () -> "Setting file selection. Evaluated files: " + Arrays.toString(evaluatedSelection));
+    // only debugging
+    // the RawDataFilesComponent auto updates the selection every second so this would spam
+//    logger.finest(
+//        () -> "Setting file selection. Evaluated files: " + Arrays.toString(evaluatedSelection));
 
     return matchingFiles;
   }
@@ -141,11 +144,11 @@ public class RawDataFilesSelection implements Cloneable {
   }
 
   public void resetSelection() {
-    if (evaluatedSelection != null) {
-      logger.finest(
-          () -> "Resetting file selection. Previously evaluated files: " + Arrays.toString(
-              evaluatedSelection));
-    }
+//    if (evaluatedSelection != null) {
+//      logger.finest(
+//          () -> "Resetting file selection. Previously evaluated files: " + Arrays.toString(
+//              evaluatedSelection));
+//    }
     evaluatedSelection = null;
   }
 
@@ -156,7 +159,7 @@ public class RawDataFilesSelection implements Cloneable {
     }
 
     if (specificFiles == null) {
-      return null;
+      return new RawDataFile[0];
     }
 
     return Arrays.stream(specificFiles).<RawDataFile>mapMulti((specificFile, c) -> {
@@ -224,17 +227,10 @@ public class RawDataFilesSelection implements Cloneable {
 
   public String toString() {
     if (evaluatedSelection != null) {
-      StringBuilder str = new StringBuilder();
-      RawDataFile[] files = getEvaluationResult();
-      for (int i = 0; i < files.length; i++) {
-        if (i > 0) {
-          str.append("\n");
-        }
-        str.append(files[i].getName());
-      }
-      return str.toString();
+      return selectionType + ", " + JsonUtils.writeStringOrElse(
+          Arrays.stream(evaluatedSelection).map(RawDataFilePlaceholder::getName).toList(), "[]");
     }
-    return "Evaluation not executed.";
+    return selectionType + ", Evaluation not executed.";
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,6 +35,7 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
+import org.jetbrains.annotations.Nullable;
 
 public class ArrayUtils {
 
@@ -348,5 +351,31 @@ public class ArrayUtils {
       }
     }
     return Optional.of(max);
+  }
+
+  /**
+   * Combines multiple arrays into a single array, filtering nulls that were passed as array and
+   * null array elements.
+   */
+  public static File[] combine(final @Nullable File[]... arrays) {
+    return Arrays.stream(arrays).filter(Objects::nonNull).flatMap(Arrays::stream)
+        .filter(Objects::nonNull).toArray(File[]::new);
+  }
+
+  public static Optional<SimpleDoubleRange> rangeOf(final double @Nullable [] data) {
+    if (data == null || data.length == 0) {
+      return Optional.empty();
+    }
+    double min = data[0];
+    double max = data[0];
+    for (int i = 1; i < data.length; i++) {
+      if (data[i] < min) {
+        min = data[i];
+      }
+      if (data[i] > max) {
+        max = data[i];
+      }
+    }
+    return Optional.of(new SimpleDoubleRange(min, max));
   }
 }

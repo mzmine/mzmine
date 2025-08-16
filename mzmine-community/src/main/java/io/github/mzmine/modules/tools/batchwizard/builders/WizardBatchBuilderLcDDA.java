@@ -99,6 +99,7 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     }
 
     makeAndAddDeisotopingStep(q, intraSampleRtTol);
+    makeAndAddFeatureFilterStep(q);
     makeAndAddIsotopeFinderStep(q);
     makeAndAddJoinAlignmentStep(q, interSampleRtTol);
     makeAndAddRowFilterStep(q);
@@ -120,7 +121,8 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     }
 
     // export
-    makeAndAddDdaExportSteps(q, steps);
+    makeAndAddDdaExportSteps(q, steps, mzTolScans);
+    makeAndAddBatchExportStep(q, isExportActive, exportPath);
     return q;
   }
 

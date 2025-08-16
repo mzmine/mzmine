@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,11 @@
 
 package io.github.mzmine.modules.tools.timstofmaldiacq.imaging;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -46,14 +51,15 @@ import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
 import javafx.application.Platform;
+import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 
 public class SimsefImagingSchedulerParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
-  public static final DirectoryParameter savePathDir = new DirectoryParameter("Data location",
-      "Path to where acquired measurements shall be saved.");
+  public static final DirectoryParameter savePathDir = new DirectoryParameter("Export directory",
+      "Path to where the MS2 schedules will be exported to. The MS2 spectra will saved into the same folder.");
   public static final FileNameParameter acquisitionControl = new FileNameParameter(
       "Path to SIMSEF executable",
       "Path to the SIMSEF executable to automatically launch MS2 acquisition after scheduling.\n"
@@ -108,7 +114,10 @@ public class SimsefImagingSchedulerParameters extends SimpleParameterSet {
     if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new TimsTOFImageMsMsDialog(valueCheckRequired, this, null);
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
+        text("When using the SIMSEF workflow please cite:"), linebreak(),
+        ArticleReferences.SIMSEF.hyperlinkText());
+    ParameterSetupDialog dialog = new TimsTOFImageMsMsDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
@@ -122,6 +131,7 @@ public class SimsefImagingSchedulerParameters extends SimpleParameterSet {
     nameParameterMap.put("Minimum distance of MS/MS spectra", getParameter(minimumDistance));
     nameParameterMap.put("Number of MS/MS spectra", getParameter(numMsMs));
     nameParameterMap.put("Path to msmsmaldi.exe", getParameter(acquisitionControl));
+    nameParameterMap.put("Data location", getParameter(savePathDir));
     return nameParameterMap;
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -67,7 +67,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   public SimpleFrame(@NotNull RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, @Nullable double[] mzValues, @Nullable double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
-      @NotNull Range<Double> scanMZRange, MobilityType mobilityType,
+      @Nullable Range<Double> scanMZRange, MobilityType mobilityType,
       @Nullable Set<IonMobilityMsMsInfo> precursorInfos, Float accumulationTime) {
     super(dataFile, scanNumber, msLevel, retentionTime, null, /*
          * fragmentScans,
@@ -207,6 +207,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   public void setPrecursorInfos(@Nullable Set<IonMobilityMsMsInfo> precursorInfos) {
+    // precursorInfos needs to be modifiable
     this.precursorInfos = precursorInfos != null ? precursorInfos : new HashSet<>(0);
     this.precursorInfos.forEach(i -> i.setMsMsScan(this));
   }

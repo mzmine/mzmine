@@ -116,8 +116,7 @@ public class MatchedLipid implements FeatureAnnotation {
     String comment = "";
     MatchedLipidStatus status = null;
     while (reader.hasNext() && !(reader.isEndElement() && (reader.getLocalName().equals(XML_ELEMENT)
-                                                           || reader.getLocalName().equals(
-        FeatureAnnotation.XML_ELEMENT)))) {
+        || reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
@@ -147,7 +146,8 @@ public class MatchedLipid implements FeatureAnnotation {
             }
           }
         }
-        case XML_STATUS -> status = MatchedLipidStatus.valueOf(reader.getElementText());
+        case XML_STATUS -> status = MatchedLipidStatus.parseOrElse(reader.getElementText(),
+            MatchedLipidStatus.UNCONFIRMED);
         default -> {
         }
       }
@@ -319,6 +319,21 @@ public class MatchedLipid implements FeatureAnnotation {
   }
 
   @Override
+  public @Nullable String getIupacName() {
+    return null;
+  }
+
+  @Override
+  public @Nullable String getCAS() {
+    return null;
+  }
+
+  @Override
+  public @Nullable String getInternalId() {
+    return null;
+  }
+
+  @Override
   public @Nullable String getFormula() {
     return MolecularFormulaManipulator.getString(getLipidAnnotation().getMolecularFormula());
   }
@@ -328,7 +343,7 @@ public class MatchedLipid implements FeatureAnnotation {
     try {
       return IonTypeParser.parse(getIonizationType().toString());
     } catch (Exception e) {
-      logger.fine(() -> STR."Error parsing ion type \{getIonizationType().toString()}");
+      logger.fine(() -> "Error parsing ion type " + getIonizationType().toString());
       return null;
     }
   }

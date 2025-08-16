@@ -66,6 +66,7 @@ public class ComboWithInputComponent<EnumValue> extends HBox implements ValueCha
           onValueChanged();
         });
     comboBox.setItems(choices);
+    comboBox.setMinWidth(USE_PREF_SIZE);
     setValue(defaultValue);
 
     if (choices.contains(inputTrigger)) {

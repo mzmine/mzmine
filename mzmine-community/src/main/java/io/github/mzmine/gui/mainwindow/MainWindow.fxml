@@ -86,10 +86,9 @@
             <tabs>
               <Tab fx:id="tabMsData" closable="false" text="MS data files">
                 <content>
-                  <AnchorPane minHeight="0.0" minWidth="0.0">
-                    <children>
-                      <GroupableListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                        AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"
+                  <BorderPane minHeight="0.0" minWidth="0.0">
+                    <center>
+                      <GroupableListView
                         editable="true" fx:id="rawDataList">
                         <contextMenu>
                           <ContextMenu fx:id="rawDataContextMenu">
@@ -140,8 +139,8 @@
                           </ContextMenu>
                         </contextMenu>
                       </GroupableListView>
-                    </children>
-                  </AnchorPane>
+                    </center>
+                  </BorderPane>
                 </content>
               </Tab>
               <Tab fx:id="tabFeatureLists" closable="false" text="Feature lists">
@@ -160,8 +159,8 @@
                                 text="Show feature list summary"
                                 fx:id="showFeatureListSummaryMenuItem"/>
                               <MenuItem onAction="#handleShowStatisticsDashboard" text="Show statistics dashboard"/>
-                              <MenuItem onAction="#handleShowScatterPlot"
-                                text="Show scatter plot"/>
+                              <MenuItem onAction="#handleShowIntegrationDashboard"
+                                text="Show integration dashboard"/>
                               <SeparatorMenuItem/>
                               <MenuItem onAction="#handleFeatureListsSort"
                                 text="Sort alphabetically"/>
@@ -193,6 +192,8 @@
                                 text="Sort alphabetically"/>
                               <MenuItem onAction="#handleSpectralLibraryRemove"
                                 text="Remove library" fx:id="spectralLibraryRemoveMenuItem"/>
+                              <MenuItem onAction="#handleMergeLibraries"
+                                text="Merge and export libraries" fx:id="mergeLibrariesMenuItem"/>
                             </items>
                           </ContextMenu>
                         </contextMenu>

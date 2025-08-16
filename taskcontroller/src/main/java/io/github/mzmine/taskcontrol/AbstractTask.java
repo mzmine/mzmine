@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import static java.util.Objects.requireNonNullElse;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.SimpleStringProperty;
@@ -107,7 +108,8 @@ public abstract class AbstractTask implements Task {
   }
 
   @Override
-  public void error(@NotNull String message, @Nullable Exception exceptionToLog) {
+  public void error(@Nullable String message, @Nullable Exception exceptionToLog) {
+    message = requireNonNullElse(message, "");
     if (exceptionToLog != null) {
       logger.log(Level.SEVERE, message, exceptionToLog);
     }
@@ -142,9 +144,10 @@ public abstract class AbstractTask implements Task {
   /**
    * error and finished cannot be overwritten
    */
+  @Override
   public final void setStatus(TaskStatus newStatus) {
     TaskStatus old = status;
-    if (old == TaskStatus.ERROR || old == TaskStatus.FINISHED) {
+    if (old.isUnmodifiable()) {
       return;
     }
 
@@ -195,6 +198,6 @@ public abstract class AbstractTask implements Task {
 
   @Override
   public String toString() {
-    return STR."Task (\{getName()}) description: \{getTaskDescription()}";
+    return "Task (%s) description: %s".formatted(getName(), getTaskDescription());
   }
 }

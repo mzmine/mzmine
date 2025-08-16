@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.batchmode;
 
 import com.vdurmont.semver4j.Semver;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -70,7 +71,8 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
   private static final String BATCH_STEP_ELEMENT = "batchstep";
   // Method element name.
   private static final String METHOD_ELEMENT = "method";
-  private static final String MODULE_VERSION_ATTR = "parameter_version";
+  private static final String MODULE_NAME_ATTR = "module_name";
+  public static final String MODULE_VERSION_ATTR = "parameter_version";
 
   /**
    * De-serialize from XML.
@@ -95,7 +97,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
         case 0 -> "the same";
         default -> "";
       };
-      String msg = "The batch file was created with %s version of MZmine%s (this version is %s).".formatted(
+      String msg = "The batch file was created with %s version of mzmine %s (this version is %s).".formatted(
           vstring, batchMzmineVersion, mzmineVersion);
       logger.info(msg);
       //
@@ -110,13 +112,6 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
           mzmineVersion);
       logger.warning(mzmineVersionError);
     }
-
-    // Set the parameter choice for the RowsFilterModule
-    String[] choices;
-    choices = new String[1];
-    choices[0] = "No parameters defined";
-    MZmineCore.getConfiguration().getModuleParameters(RowsFilterModule.class)
-        .getParameter(RowsFilterParameters.GROUPSPARAMETER).setChoices(choices);
 
     // Create an empty queue.
     final BatchQueue queue = new BatchQueue();
@@ -251,6 +246,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       if (parameters != null) {
         // save version, since MZmine 3.4.0
         stepElement.setAttribute(MODULE_VERSION_ATTR, String.valueOf(parameters.getVersion()));
+        stepElement.setAttribute(MODULE_NAME_ATTR, step.getModule().getName());
         parameters.saveValuesToXML(stepElement);
       }
     }
@@ -283,8 +279,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
     if (!extraImportSteps.isEmpty()) {
       logger.severe(potentialErrorMessage);
       var message = "There were too many raw data import modules in the batch list:"
-                    + extraImportSteps.stream().map(MZmineModule::getName)
-                        .collect(Collectors.joining("\n"));
+          + extraImportSteps.stream().map(MZmineModule::getName).collect(Collectors.joining("\n"));
       logger.severe(message);
       return false;
     }
@@ -325,8 +320,11 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
         return false;
       }
 
-      ParameterSet parameters = AllSpectralDataImportParameters.create(allDataFiles, metadataFile,
-          allLibraryFiles);
+      ParameterSet parameters = AllSpectralDataImportParameters.create(
+          // use the last set value, not the preference
+          ConfigService.getConfiguration().getModuleParameters(AllSpectralDataImportModule.class)
+              .getValue(AllSpectralDataImportParameters.applyVendorCentroiding), //
+          allDataFiles, metadataFile, allLibraryFiles);
       addFirst(new MZmineProcessingStepImpl<>(module, parameters));
 
       return true;

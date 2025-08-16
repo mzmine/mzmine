@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RIToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import java.util.Collection;
 
@@ -45,6 +46,11 @@ public class AdvancedSpectralLibrarySearchParameters extends SimpleParameterSet 
 
   public static final OptionalParameter<RTToleranceParameter> rtTolerance = new OptionalParameter<>(
       new RTToleranceParameter());
+
+  public static final OptionalParameter<RIToleranceParameter> riTolerance = new OptionalParameter<>(
+          new RIToleranceParameter("Retention index tolerance", "Maximum difference in retention index for spectral library entries to be matched against a feature."));
+
+  public static final BooleanParameter ignoreWithoutRI = new BooleanParameter("Skip library entries without RIs", "Only use library entries that have a numerical retention index");
 
   public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping = new OptionalModuleParameter<>(
       "13C deisotoping",
@@ -62,7 +68,7 @@ public class AdvancedSpectralLibrarySearchParameters extends SimpleParameterSet 
           3, 0, 1000), false);
 
   public AdvancedSpectralLibrarySearchParameters() {
-    super(rtTolerance, ccsTolerance, deisotoping, needsIsotopePattern, cropSpectraToOverlap);
+    super(rtTolerance, riTolerance, ignoreWithoutRI, ccsTolerance, deisotoping, needsIsotopePattern, cropSpectraToOverlap);
   }
 
 

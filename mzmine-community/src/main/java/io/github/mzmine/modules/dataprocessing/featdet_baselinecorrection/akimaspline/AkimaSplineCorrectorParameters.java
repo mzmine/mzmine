@@ -30,6 +30,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Abstra
 public class AkimaSplineCorrectorParameters extends AbstractBaselineCorrectorParameters {
 
   public AkimaSplineCorrectorParameters() {
-    super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter());
+    super(applyPeakRemoval.cloneParameter(), samplePercentage.cloneParameter());
   }
 }

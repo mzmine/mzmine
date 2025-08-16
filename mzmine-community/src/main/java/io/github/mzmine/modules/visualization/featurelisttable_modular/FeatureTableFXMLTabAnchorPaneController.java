@@ -25,12 +25,16 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
+import static io.github.mzmine.javafx.components.factories.FxLabels.newLabelNoWrap;
+import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
@@ -39,6 +43,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.RangeUtils;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,6 +52,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
@@ -82,9 +88,9 @@ public class FeatureTableFXMLTabAnchorPaneController {
     param = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
 
     // Filters hbox
-    HBox filtersRow = new HBox();
+    HBox filtersRow = newHBox(new Insets(0));
+    filtersRow.setSpacing(0);
     filtersRow.setAlignment(Pos.CENTER_LEFT);
-    filtersRow.setSpacing(10.0);
     Separator separator = new Separator(Orientation.VERTICAL);
 
     // Filter icon
@@ -97,11 +103,12 @@ public class FeatureTableFXMLTabAnchorPaneController {
     mzSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
     rtSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
     idSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
-    HBox mzFilter = new HBox(new Label("m/z: "), mzSearchField);
+
+    HBox mzFilter = newHBox(newLabelNoWrap("m/z:"), mzSearchField);
     mzFilter.setAlignment(filtersRow.getAlignment());
-    HBox rtFilter = new HBox(new Label("RT: "), rtSearchField);
+    HBox rtFilter = newHBox(newLabelNoWrap("RT:"), rtSearchField);
     rtFilter.setAlignment(filtersRow.getAlignment());
-    HBox idFilter = new HBox(new Label("ID: "), idSearchField);
+    HBox idFilter = newHBox(newLabelNoWrap("ID:"), idSearchField);
     idFilter.setAlignment(filtersRow.getAlignment());
 
     filtersRow.getChildren().addAll(filterIcon, idFilter, mzFilter, separator, rtFilter);
@@ -124,12 +131,14 @@ public class FeatureTableFXMLTabAnchorPaneController {
 
     typeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> filterRows());
     featureTable.featureListProperty().addListener(((observable, oldValue, newValue) -> {
-      if(newValue == null) {
+      if (newValue == null) {
         return;
       }
-      typeComboBox.setItems(FXCollections.observableArrayList(newValue.getRowTypes()));
+      typeComboBox.setItems(FXCollections.observableArrayList(
+          newValue.getRowTypes().stream().filter(type -> !(type instanceof NoTextColumn))
+              .sorted(Comparator.comparing(DataType::getHeaderString)).toList()));
       if (!typeComboBox.getItems().isEmpty()) {
-        typeComboBox.setValue(typeComboBox.getItems().get(0));
+        typeComboBox.setValue(typeComboBox.getItems().getFirst());
       }
     }));
     anySearchField = new TextField();

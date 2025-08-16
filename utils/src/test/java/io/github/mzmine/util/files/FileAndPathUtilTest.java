@@ -53,14 +53,14 @@ class FileAndPathUtilTest {
   void existingFile() {
 
     logger.info("Testing existing file");
-    Path tmp = Path.of("D:\\mzminetemp2\\test.tmp");
+    Path tmp = tempDir.resolve("test.tmp");
     tmp.toFile().getParentFile().mkdirs();
     try (var writer = Files.newBufferedWriter(tmp, StandardCharsets.UTF_8,
         WriterOptions.REPLACE.toOpenOption())) {
 
       try {
         MemorySegment segment = FileAndPathUtil.memoryMapSparseTempFile("test", ".tmp",
-            Path.of("D:\\mzminetemp2"), Arena.ofAuto(), 1L << 20);
+            tempDir, Arena.ofAuto(), 1L << 20);
         Assertions.assertNotNull(segment);
       } catch (Exception e) {
         logger.warning("Issue memory mapping new file");

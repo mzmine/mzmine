@@ -27,20 +27,10 @@ package io.github.mzmine.parameters.parametertypes;
 
 import static java.util.Objects.requireNonNullElse;
 
-import io.github.mzmine.parameters.UserParameter;
-import java.util.Collection;
 import javafx.scene.control.TextField;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
 
-public class StringParameter implements UserParameter<String, TextField> {
-
-  protected final boolean sensitive;
-  protected String name, description;
-  protected @NotNull String value = "";
-  protected int inputsize = 20;
-  protected boolean valueRequired = true;
+public class StringParameter extends StringValueParameter<StringParameterComponent> {
 
   public StringParameter(String name, String description) {
     this(name, description, "");
@@ -51,10 +41,7 @@ public class StringParameter implements UserParameter<String, TextField> {
   }
 
   public StringParameter(String name, String description, int inputsize) {
-    this.name = name;
-    this.description = description;
-    this.inputsize = inputsize;
-    this.sensitive = false;
+    this(name, description, "", true, false, inputsize);
   }
 
   public StringParameter(String name, String description, @Nullable String defaultValue) {
@@ -68,38 +55,29 @@ public class StringParameter implements UserParameter<String, TextField> {
 
   public StringParameter(String name, String description, @Nullable String defaultValue,
       boolean valueRequired, boolean isSensitive) {
-    this.name = name;
-    this.description = description;
-    this.value = requireNonNullElse(defaultValue, "");
-    this.valueRequired = valueRequired;
-    this.sensitive = isSensitive;
+    this(name, description, defaultValue, valueRequired, isSensitive, 20);
+  }
+
+  public StringParameter(String name, String description, @Nullable String defaultValue,
+      boolean valueRequired, boolean isSensitive, int inputsize) {
+    super(name, description, defaultValue, valueRequired, isSensitive, inputsize);
   }
 
   @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public String getDescription() {
-    return description;
-  }
-
-  @Override
-  public TextField createEditingComponent() {
-    TextField stringComponent = new TextField();
+  public StringParameterComponent createEditingComponent() {
+    StringParameterComponent stringComponent = new StringParameterComponent();
     stringComponent.setPrefColumnCount(inputsize);
     return stringComponent;
   }
 
   @Override
-  public @NotNull String getValue() {
-    return value;
+  public void setValueFromComponent(StringParameterComponent component) {
+    value = component.getText();
   }
 
   @Override
-  public void setValue(String value) {
-    this.value = requireNonNullElse(value, "");
+  public void setValueToComponent(StringParameterComponent component, @Nullable String newValue) {
+    component.setText(requireNonNullElse(newValue, ""));
   }
 
   @Override
@@ -111,45 +89,4 @@ public class StringParameter implements UserParameter<String, TextField> {
     return copy;
   }
 
-  @Override
-  public String toString() {
-    return name;
-  }
-
-  @Override
-  public void setValueFromComponent(TextField component) {
-    value = component.getText();
-  }
-
-  @Override
-  public void setValueToComponent(TextField component, @Nullable String newValue) {
-    component.setText(requireNonNullElse(newValue, ""));
-  }
-
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-    value = requireNonNullElse(xmlElement.getTextContent(), "");
-  }
-
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    xmlElement.setTextContent(value);
-  }
-
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    if (!valueRequired) {
-      return true;
-    }
-    if (value.isBlank()) {
-      errorMessages.add(name + " is not set properly");
-      return false;
-    }
-    return true;
-  }
-
-  @Override
-  public boolean isSensitive() {
-    return sensitive;
-  }
 }

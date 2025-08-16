@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.main;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -36,6 +38,9 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.dialogs.NotificationService;
+import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
@@ -58,6 +63,8 @@ import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
 import io.mzio.users.gui.fx.LoginOptions;
 import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.user.CurrentUserService;
+import io.mzio.users.user.MZmineUser;
+import io.mzio.users.user.UserNotificationUtils;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -73,6 +80,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -115,7 +124,6 @@ public final class MZmineCore {
    * Loads the configuration, parses the arguments and initializes everything, but does not launch
    * the batch or gui. Note: not static so it ensures that the {@link MZmineCore#init()} method is
    * called.
-   *
    */
   public void startUp(@NotNull final MZmineCoreArgumentParser argsParser) {
     ArgsToConfigUtils.applyArgsToConfig(argsParser);
@@ -123,6 +131,8 @@ public final class MZmineCore {
     CurrentUserService.subscribe(user -> {
       var nickname = user == null ? null : user.getNickname();
       ConfigService.getPreferences().setParameter(MZminePreferences.username, nickname);
+
+      checkUserRemainingDays(user);
     });
 
     addUserRequiredListener();
@@ -131,13 +141,27 @@ public final class MZmineCore {
     TaskService.init(ConfigService.getConfiguration().getNumOfThreads());
   }
 
+  public static void checkUserRemainingDays(MZmineUser user) {
+    if (user != null) {
+      final EventHandler<ActionEvent> openUserTabAction = _ -> UsersTab.showTab();
+
+      var notification = UserNotificationUtils.getNotificationMessage(user);
+      if (notification != null) {
+        NotificationService.show(NotificationType.INFO, notification.title(), notification.text(),
+            openUserTabAction);
+      }
+    }
+  }
+
   /**
    * Adds a listener to prompt the user to login if he/she is not logged in.
    */
   private static void addUserRequiredListener() {
     // add event listener
     EventService.subscribe(mzEvent -> {
-      if (mzEvent instanceof AuthRequiredEvent) {
+      if (mzEvent instanceof AuthRequiredEvent(String message)) {
+        DialogLoggerUtil.showMessageDialog("Invalid user", requireNonNullElse(message, ""));
+
         if (DesktopService.isGUI()) {
           getDesktop().addTab(UsersTab.showTab());
         } else {
@@ -168,7 +192,8 @@ public final class MZmineCore {
 
   public static void printDebugInfo(String[] args) {
     Semver version = SemverVersionReader.getMZmineVersion();
-    logger.info("Starting mzmine %s".formatted(version));
+    logger.info("Starting mzmine %s libraries: %s".formatted(version,
+        SemverVersionReader.getMZmineProVersion()));
     /*
      * Dump the MZmine and JVM arguments for debugging purposes
      */
@@ -187,11 +212,13 @@ public final class MZmineCore {
     logger.finest("Working directory is %s".formatted(cwd));
     logger.finest(
         "Default temporary directory is %s".formatted(System.getProperty("java.io.tmpdir")));
+
+    final File logFile = ConfigService.getConfiguration().getLogFile();
+    logger.finest("Writing log file to %s".formatted(logFile.getAbsolutePath()));
   }
 
   /**
-   *
-   * @param args the program arguments, required to launch the gui.
+   * @param args       the program arguments, required to launch the gui.
    * @param argsParser Args parser for easy access to e.g. the batch file.
    */
   public static void launchBatchOrGui(String[] args, MZmineCoreArgumentParser argsParser) {
@@ -243,7 +270,7 @@ public final class MZmineCore {
       final File[] overrideSpectralLibraryFiles = argsParser.getOverrideSpectralLibrariesFiles();
 
       // run batch file
-      batchTask = BatchModeModule.runBatch(ProjectService.getProject(), batchFile,
+      batchTask = BatchModeModule.runBatchFile(ProjectService.getProject(), batchFile,
           overrideDataFiles, overrideMetadataFile, overrideSpectralLibraryFiles, outBaseFile,
           Instant.now());
     }

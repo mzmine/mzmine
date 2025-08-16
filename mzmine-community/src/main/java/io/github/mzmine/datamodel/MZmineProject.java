@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,41 +63,6 @@ public interface MZmineProject {
    * Return the filename of the project file
    */
   File getProjectFile();
-
-  /**
-   * Adds a new experimental parameter to the project
-   */
-  void addParameter(UserParameter<?, ?> parameter);
-
-  /**
-   * Removes an experimental parameter from the project
-   */
-  void removeParameter(UserParameter<?, ?> parameter);
-
-  /**
-   * Returns true if project contains the experimental parameter
-   */
-  boolean hasParameter(UserParameter<?, ?> parameter);
-
-  /**
-   * Returns all experimental parameter of the project
-   */
-  UserParameter<?, ?>[] getParameters();
-
-  UserParameter<?, ?> getParameterByName(String name);
-
-  /**
-   * Sets experimental parameter's value corresponding to a RawDataFile.
-   * <p>
-   * If the parameter does not exists in the project, it is added to the project. If parameter
-   * already has a value corresponding the given file, previous value is replaced.
-   */
-  void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile, Object value);
-
-  /**
-   * Returns experimental parameter's value corresponding to a RawDataFile.
-   */
-  Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile);
 
   /**
    * Adds a new RawDataFile to the project.
@@ -203,6 +168,11 @@ public interface MZmineProject {
    * @param library library to be removed
    */
   void removeSpectralLibrary(SpectralLibrary... library);
+
+  /**
+   * Remove all preloaded spectral libraries
+   */
+  void clearSpectralLibrary();
 
   int getNumberOfFeatureLists();
 

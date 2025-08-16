@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,12 +63,13 @@ import org.jfree.data.xy.XYZDataset;
 /**
  * Enhanced ChartPanel with extra chart gestures (drag mouse over entities (e.g., axis, titles)
  * ZoomHistory, GraphicsExportDialog, axesRangeListener included
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class EChartPanel extends ChartPanel {
+
   private static final long serialVersionUID = 1L;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(EChartPanel.class.getName());
 
   protected ZoomHistory zoomHistory;
   protected List<AxesRangeChangedListener> axesRangeListener;
@@ -81,9 +82,8 @@ public class EChartPanel extends ChartPanel {
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
-   * stickyZeroForRangeAxis = false <br>
-   * Graphics and data export menu are added
-   * 
+   * stickyZeroForRangeAxis = false <br> Graphics and data export menu are added
+   *
    * @param chart
    */
   public EChartPanel(JFreeChart chart) {
@@ -92,9 +92,8 @@ public class EChartPanel extends ChartPanel {
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
-   * stickyZeroForRangeAxis = false <br>
-   * Graphics and data export menu are added
-   * 
+   * stickyZeroForRangeAxis = false <br> Graphics and data export menu are added
+   *
    * @param chart
    */
   public EChartPanel(JFreeChart chart, boolean useBuffer) {
@@ -104,11 +103,11 @@ public class EChartPanel extends ChartPanel {
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
    * stickyZeroForRangeAxis = false
-   * 
+   *
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
-   * @param standardGestures adds the standard ChartGestureHandlers
-   * @param dataExportMenu adds data export menu
+   * @param standardGestures   adds the standard ChartGestureHandlers
+   * @param dataExportMenu     adds data export menu
    */
   public EChartPanel(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
       boolean standardGestures) {
@@ -118,11 +117,11 @@ public class EChartPanel extends ChartPanel {
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
    * stickyZeroForRangeAxis = false
-   * 
+   *
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
-   * @param standardGestures adds the standard ChartGestureHandlers
-   * @param dataExportMenu adds data export menu
+   * @param standardGestures   adds the standard ChartGestureHandlers
+   * @param dataExportMenu     adds data export menu
    */
   public EChartPanel(JFreeChart chart, boolean useBuffer, boolean graphicsExportMenu,
       boolean dataExportMenu, boolean standardGestures) {
@@ -131,11 +130,11 @@ public class EChartPanel extends ChartPanel {
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
-   * 
+   *
    * @param chart
-   * @param graphicsExportMenu adds graphics export menu
-   * @param dataExportMenu adds data export menu
-   * @param standardGestures adds the standard ChartGestureHandlers
+   * @param graphicsExportMenu     adds graphics export menu
+   * @param dataExportMenu         adds data export menu
+   * @param standardGestures       adds the standard ChartGestureHandlers
    * @param stickyZeroForRangeAxis
    */
   public EChartPanel(JFreeChart chart, boolean useBuffer, boolean graphicsExportMenu,
@@ -146,11 +145,11 @@ public class EChartPanel extends ChartPanel {
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
-   * 
+   *
    * @param chart
-   * @param graphicsExportMenu adds graphics export menu
-   * @param dataExportMenu adds data export menu
-   * @param standardGestures adds the standard ChartGestureHandlers
+   * @param graphicsExportMenu     adds graphics export menu
+   * @param dataExportMenu         adds data export menu
+   * @param standardGestures       adds the standard ChartGestureHandlers
    * @param stickyZeroForRangeAxis
    */
   public EChartPanel(JFreeChart chart, boolean useBuffer, boolean graphicsExportMenu,
@@ -164,8 +163,9 @@ public class EChartPanel extends ChartPanel {
     // setDoubleBuffered(useBuffer);
     // setRefreshBuffer(useBuffer);
     // Add Export to Excel and graphics export menu
-    if (graphicsExportMenu || dataExportMenu)
+    if (graphicsExportMenu || dataExportMenu) {
       addExportMenu(graphicsExportMenu, dataExportMenu);
+    }
   }
 
   /**
@@ -176,8 +176,9 @@ public class EChartPanel extends ChartPanel {
     ChartGestureMouseAdapter m = getGestureAdapter();
     if (m != null) {
       m.clearHandlers();
-      for (GestureHandlerFactory f : ChartGestureHandler.getStandardGestures())
+      for (GestureHandlerFactory f : ChartGestureHandler.getStandardGestures()) {
         m.addGestureHandler(f.createHandler());
+      }
 
       logger.log(Level.FINEST, "Added standard gestures: " + m.getGestureHandlers().size());
     }
@@ -219,8 +220,8 @@ public class EChartPanel extends ChartPanel {
       }
 
       Plot p = getChart().getPlot();
-      if (addZoomHistory && (p instanceof XYPlot)
-          && !(p instanceof CombinedDomainXYPlot || p instanceof CombinedRangeXYPlot)) {
+      if (addZoomHistory && (p instanceof XYPlot) && !(p instanceof CombinedDomainXYPlot
+          || p instanceof CombinedRangeXYPlot)) {
         // zoom history
         zoomHistory = new ZoomHistory(this, 20);
 
@@ -233,9 +234,11 @@ public class EChartPanel extends ChartPanel {
             public void axisRangeChanged(ChartViewWrapper chart, ValueAxis axis, Range lastR,
                 Range newR) {
               // notify listeners of changed range
-              if (axesRangeListener != null)
-                for (AxesRangeChangedListener l : axesRangeListener)
+              if (axesRangeListener != null) {
+                for (AxesRangeChangedListener l : axesRangeListener) {
                   l.axesRangeChanged(chart, axis, lastR, newR);
+                }
+              }
             }
           });
         }
@@ -245,9 +248,11 @@ public class EChartPanel extends ChartPanel {
             public void axisRangeChanged(ChartViewWrapper chart, ValueAxis axis, Range lastR,
                 Range newR) {
               // notify listeners of changed range
-              if (axesRangeListener != null)
-                for (AxesRangeChangedListener l : axesRangeListener)
+              if (axesRangeListener != null) {
+                for (AxesRangeChangedListener l : axesRangeListener) {
                   l.axesRangeChanged(chart, axis, lastR, newR);
+                }
+              }
             }
           });
         }
@@ -274,10 +279,9 @@ public class EChartPanel extends ChartPanel {
   }
 
   /**
-   * Default tries to extract all series from an XYDataset or XYZDataset<br>
-   * series 1 | Series 2 <br>
-   * x y x y x y z x y z
-   * 
+   * Default tries to extract all series from an XYDataset or XYZDataset<br> series 1 | Series 2
+   * <br> x y x y x y z x y z
+   *
    * @return Data array[columns][rows]
    */
   public Object[][] getDataArrayForExport() {
@@ -317,8 +321,9 @@ public class EChartPanel extends ChartPanel {
               model[s * 3 + 2] = z;
             }
 
-            for (Object[] o : model)
+            for (Object[] o : model) {
               modelList.add(o);
+            }
           } else {
             int series = data.getSeriesCount();
             Object[][] model = new Object[series * 2][];
@@ -342,8 +347,9 @@ public class EChartPanel extends ChartPanel {
               model[s * 2 + 1] = y;
             }
 
-            for (Object[] o : model)
+            for (Object[] o : model) {
               modelList.add(o);
+            }
           }
         }
 
@@ -358,6 +364,7 @@ public class EChartPanel extends ChartPanel {
   /*
    * ############################################################### Export Graphics
    */
+
   /**
    * Adds the GraphicsExportDialog menu and the data export menu
    */
@@ -371,8 +378,8 @@ public class EChartPanel extends ChartPanel {
       // General data export
       JMenu export = new JMenu("Export data ...");
       // Excel XY
-      JMenuExportToExcel exportXY =
-          new JMenuExportToExcel(new XSSFExcelWriterReader(), "to Excel", this);
+      JMenuExportToExcel exportXY = new JMenuExportToExcel(new XSSFExcelWriterReader(), "to Excel",
+          this);
       export.add(exportXY);
       // clip board
       JMenuExportToClipboard exportXYClipboard = new JMenuExportToClipboard("to Clipboard", this);
@@ -399,8 +406,8 @@ public class EChartPanel extends ChartPanel {
   public void doSaveAs() throws IOException {
     JFileChooser fileChooser = new JFileChooser();
     fileChooser.setCurrentDirectory(this.getDefaultDirectoryForSaveAs());
-    FileNameExtensionFilter filter =
-        new FileNameExtensionFilter(localizationResources.getString("PNG_Image_Files"), "png");
+    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+        localizationResources.getString("PNG_Image_Files"), "png");
     fileChooser.addChoosableFileFilter(filter);
     fileChooser.setFileFilter(filter);
 
@@ -418,19 +425,22 @@ public class EChartPanel extends ChartPanel {
   }
 
   public void addAxesRangeChangedListener(AxesRangeChangedListener l) {
-    if (axesRangeListener == null)
+    if (axesRangeListener == null) {
       axesRangeListener = new ArrayList<AxesRangeChangedListener>(1);
+    }
     axesRangeListener.add(l);
   }
 
   public void removeAxesRangeChangedListener(AxesRangeChangedListener l) {
-    if (axesRangeListener != null)
+    if (axesRangeListener != null) {
       axesRangeListener.remove(l);
+    }
   }
 
   public void clearAxesRangeChangedListeners() {
-    if (axesRangeListener != null)
+    if (axesRangeListener != null) {
       axesRangeListener.clear();
+    }
   }
 
   public boolean isMouseZoomable() {
@@ -443,13 +453,13 @@ public class EChartPanel extends ChartPanel {
 
   /**
    * Returns the {@link ChartGestureMouseAdapter} alternatively for other ChartPanel classes use:
-   * 
+   *
    * <pre>
    * for(MouseListener l : getMouseListeners())
    * 	if(ChartGestureMouseAdapter.class.isInstance(l)){
    * 		ChartGestureMouseAdapter m = (ChartGestureMouseAdapter) l;
    * </pre>
-   * 
+   *
    * @return
    */
   public ChartGestureMouseAdapter getGestureAdapter() {

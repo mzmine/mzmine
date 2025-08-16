@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.align_common;
 
-import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingInt;
 
 import io.github.mzmine.datamodel.RawDataFile;
@@ -43,6 +42,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FeatureListUtils;
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.mzio.links.MzioMZmineLinks;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
@@ -68,6 +68,7 @@ public class BaseFeatureListAligner {
   private final String featureListName;
   private final MemoryMapStorage storage;
   private final FeatureRowAlignScorer rowAligner;
+  private final FeatureAlignmentPostProcessor postProcessor;
   private final FeatureCloner featureCloner;
   private final FeatureListRowSorter baseRowSorter;
   private final TotalFinishedItemsProgress progress = new TotalFinishedItemsProgress();
@@ -76,7 +77,8 @@ public class BaseFeatureListAligner {
   public BaseFeatureListAligner(final Task parentTask, final List<FeatureList> featureLists,
       final String featureListName, final @Nullable MemoryMapStorage storage,
       final FeatureRowAlignScorer rowAligner, final FeatureCloner featureCloner,
-      final FeatureListRowSorter baseRowSorter) {
+      final FeatureListRowSorter baseRowSorter,
+      final @Nullable FeatureAlignmentPostProcessor postProcessor) {
 
     this.parentTask = parentTask;
     this.featureLists = featureLists;
@@ -85,6 +87,7 @@ public class BaseFeatureListAligner {
     this.rowAligner = rowAligner;
     this.featureCloner = featureCloner;
     this.baseRowSorter = baseRowSorter;
+    this.postProcessor = postProcessor;
   }
 
   /**
@@ -104,10 +107,30 @@ public class BaseFeatureListAligner {
     if (allDataFiles.isEmpty()) {
       return null;
     }
+    // estimated rows after alignment
+    final var stats = featureLists.stream().mapToInt(FeatureList::getNumberOfRows)
+        .summaryStatistics();
+    // hard to estimate but rather stay too low than over commit
+    // 1 raw = max
+    // 10 raws = max + average (roughly double)
+    // 100 raws = max + 2 * average (roughly triple)
+    // avoid int overflow
+    final int estimatedRows = MathUtils.capMaxInt(
+        (long) (stats.getMax() + stats.getAverage() * 2 * Math.log10(stats.getCount())));
+
+    if (stats.getSum() > Integer.MAX_VALUE) {
+      throw new IllegalArgumentException(
+          "Too many features in aligned feature list. Please revisit the feature detection parameters like feature shape constraints, minimum height, etc. Total: %d; Max: %d".formatted(
+              stats.getSum(), Integer.MAX_VALUE));
+    }
+
+    // input rows equal the number of total features after alignment
+    final int exactFeatures = (int) (stats.getSum());
 
     // Create a new aligned feature list based on the baseList and renumber IDs
-    var alignedFeatureList = new ModularFeatureList(featureListName, storage, allDataFiles);
-    FeatureListUtils.transferRowTypes(alignedFeatureList, featureLists);
+    var alignedFeatureList = new ModularFeatureList(featureListName, storage, estimatedRows,
+        exactFeatures, allDataFiles);
+    FeatureListUtils.transferRowTypes(alignedFeatureList, featureLists, true);
     FeatureListUtils.transferSelectedScans(alignedFeatureList, featureLists);
     FeatureListUtils.copyPeakListAppliedMethods(featureLists.getFirst(), alignedFeatureList);
     return alignedFeatureList;
@@ -134,6 +157,9 @@ public class BaseFeatureListAligner {
           final RawDataFile dataFile = feature.getRawDataFile();
           if (!alignedRow.hasFeature(dataFile)) {
             var newFeature = featureCloner.cloneFeature(feature, alignedFeatureList, alignedRow);
+            // very important to not trigger row bindings - GC-EI currently has features with different mz
+            // this is resolved later by a GCConsensunsPostProcessor
+            // row bindings are then updated at last
             alignedRow.addFeature(dataFile, newFeature, false);
             alignedRowsMap.put(row, true);
             alignedRows.getAndIncrement();
@@ -197,9 +223,9 @@ public class BaseFeatureListAligner {
 
     // sort feature lists by name to make reproducible
     // this is needed if 2 feature lists have the same number of rows, which will lead to different results
-    featureLists.stream().sorted(comparing(FeatureList::getName)).forEach(flist -> {
-      allRows.add(new ArrayList<>(flist.getRows()));
-    });
+    allRows.addAll(featureLists.stream().sorted(
+            comparingInt(FeatureList::getNumberOfRows).reversed().thenComparing(FeatureList::getName))
+        .map(FeatureList::getRowsCopy).toList());
 
     // still contains rows from unaligned feature lists
     while (!allRows.isEmpty()) {
@@ -213,12 +239,22 @@ public class BaseFeatureListAligner {
       iteration++;
     }
 
-    // sort by RT and reset IDs
-    FeatureListUtils.sortByDefaultRT(alignedFeatureList, true);
+    // apply special handling - like GC-EI consensus feature finding
+    if (postProcessor != null) {
+      postProcessor.handlePostAlignment(alignedFeatureList);
+    }
 
-    // update row bindings
-    alignedFeatureList.parallelStream().filter(row -> row.getNumberOfFeatures() > 1)
-        .forEach(FeatureListRow::applyRowBindings);
+    // first update row bindings
+    final long appliedBindings = alignedFeatureList.parallelStream()
+        .filter(row -> row.getNumberOfFeatures() > 1).mapToLong(row -> {
+          row.applyRowBindings();
+          return 1L;
+        }).sum();
+    logger.info(() -> "Applied " + appliedBindings + " row bindings to new feature list "
+        + alignedFeatureList.getName());
+
+    // then sort by RT and reset IDs
+    FeatureListUtils.sortByDefault(alignedFeatureList, true);
 
     // score alignment by the number of features that fall within the mz, RT, mobility range
     // do not apply all the advanced filters to keep it simple
@@ -231,30 +267,30 @@ public class BaseFeatureListAligner {
    * Check the estimated memory requirements for this run
    */
   private void checkTotalWorkloadAndMemory(final long totalRows) {
-    // after alignment:  25000 rows x 250 samples = 7 GB
-    // before alignment: 250 feature lists: 4,011,743 features to be aligned 9 GB
-    // during end of alignment (both aligned and non aligned lists present): 15 GB
+    // 586478 rows across 250 samples
+    // result aligned list 76108 rows
+    // Join aligner - data import = 1.4 GB
     final int rowsPerList = (int) (totalRows / featureLists.size());
     final double imsCorrectionFactor = featureLists.stream()
         .mapToDouble(FeatureListUtils::getImsRamFactor).average().orElse(1d);
-    final double gbMemoryPerMillionFeatures =
-        3.74 * imsCorrectionFactor; // this is from 15 GB per 4M features
+    final double gbMemoryPerMillionFeatures = 1.5 * imsCorrectionFactor;
     final double maxMemoryGB = ConfigService.getConfiguration().getMaxMemoryGB();
     final double expectedRamUsage = gbMemoryPerMillionFeatures / 1_000_000 * totalRows;
 
     logger.info("""
         Alignment started on a total of %d rows across %d samples (mean %d rows). \
-        Max memory available: %.1f GB. Expecting to use %.1f GB.""".formatted(totalRows,
-        featureLists.size(), rowsPerList, maxMemoryGB, expectedRamUsage));
+        Max memory available: %.1f GB. Expecting to use %.1f GB just for alignment.""".formatted(
+        totalRows, featureLists.size(), rowsPerList, maxMemoryGB, expectedRamUsage));
 
     // estimate if there might be an issue with this size and memory
     if (expectedRamUsage > maxMemoryGB * 0.85) {
       DialogLoggerUtil.showMessageDialog("Large dataset feature alignment", false,
           FxTextFlows.newTextFlow(FxTexts.text("""
-                  mzmine feature alignment started on %d total features across %d samples.
+                  mzmine feature alignment started on %d total features across %d samples. \
                   This may result in a large aligned feature list and memory constraints.
-                  Consider applying higher thresholds during chromatogram builder and feature resolving, /
-                  such as increased minimum height, chromatographic threshold, and feature top/edge ratio in the local minimum resolver.
+                  When possible run modules with PROCESS_IN_PLACE where available or with REMOVE option to clear previous results. \
+                  Consider applying higher thresholds during chromatogram builder and feature resolving,
+                  such as increased minimum height, chromatographic threshold, and feature top/edge ratio in the local minimum resolver. \
                   When working on large datasets, consult the performance documentation for tuning options:
                   """.formatted(totalRows, featureLists.size())),
               FxTexts.hyperlinkText(MzioMZmineLinks.PERFORMANCE_DOCU.getUrl())));

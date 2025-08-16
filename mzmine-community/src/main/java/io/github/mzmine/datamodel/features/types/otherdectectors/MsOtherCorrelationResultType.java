@@ -30,7 +30,10 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
@@ -41,7 +44,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MsOtherCorrelationResultType extends ListDataType<MsOtherCorrelationResult> {
+public class MsOtherCorrelationResultType extends ListWithSubsType<MsOtherCorrelationResult> {
 
   @Override
   public @NotNull String getUniqueID() {
@@ -107,5 +110,24 @@ public class MsOtherCorrelationResultType extends ListDataType<MsOtherCorrelatio
     }
 
     return corrResults.isEmpty() ? null : corrResults;
+  }
+
+  @Override
+  public @NotNull List<DataType> getSubDataTypes() {
+    return List.of(new MsOtherCorrelationResultType(), new ChromatogramTypeType(), new AreaType(),
+        new HeightType(), new AreaPercentType());
+  }
+
+  @Override
+  public <K> @Nullable K map(@NotNull DataType<K> subType, MsOtherCorrelationResult parentItem) {
+    return (K)switch (subType) {
+      case MsOtherCorrelationResultType _ -> parentItem;
+      case AreaType a -> parentItem.otherFeature().get(a);
+      case HeightType h -> parentItem.otherFeature().get(h);
+      case ChromatogramTypeType c -> parentItem.otherFeature().getChromatogramType();
+      case AreaPercentType a -> parentItem.otherFeature().get(a);
+      default -> throw new UnsupportedOperationException(
+          "DataType %s is not covered in map ".formatted(subType.toString()));
+    };
   }
 }

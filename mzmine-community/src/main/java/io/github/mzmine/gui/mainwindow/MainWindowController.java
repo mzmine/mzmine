@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,8 +49,12 @@ import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
+import io.github.mzmine.modules.io.export_merge_libraries.MergeLibrariesModule;
+import io.github.mzmine.modules.io.export_merge_libraries.MergeLibrariesParameters;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
+import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
+import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardParameters;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
@@ -68,9 +72,11 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionType;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
@@ -96,8 +102,11 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -157,7 +166,7 @@ public class MainWindowController {
   private static final Image featureListAlignedIcon = FxIconUtil.loadImageFromResources(
       "icons/peaklisticon_aligned.png");
   private static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MainWindowController.class.getName());
 
   @FXML
   public ContextMenu rawDataContextMenu;
@@ -181,6 +190,8 @@ public class MainWindowController {
   @FXML
   public MenuItem featureListsRemoveMenuItem;
   public ColorPickerMenuItem rawDataFileColorPicker;
+  @FXML
+  public MenuItem mergeLibrariesMenuItem;
 
   @FXML
   public NotificationPane notificationPane;
@@ -238,6 +249,7 @@ public class MainWindowController {
   private final PauseTransition manualGcDelay = new PauseTransition(Duration.millis(500));
 
   private Workspace activeWorkspace;
+  private final DoubleProperty dragDropOpacity = new SimpleDoubleProperty(0.3);
 
   @NotNull
   private static Pane getRawGraphic(RawDataFile rawDataFile) {
@@ -348,7 +360,9 @@ public class MainWindowController {
   }
 
   public void setActiveWorkspace(@NotNull Workspace workspace, EnumSet<WorkspaceTags> tags) {
+    logger.fine("Setting active workspace to " + workspace.getName());
     activeWorkspace = workspace;
+    // rebuild the menu here, needed for updates after user changes
     mainPane.setTop(workspace.buildMainMenu(tags));
   }
 
@@ -444,6 +458,17 @@ public class MainWindowController {
   }
 
   private void initRawDataList() {
+    final BorderPane parent = (BorderPane) rawDataList.getParent();
+    final StackPane dragAndDropWrapper = FxIconUtil.createDragAndDropWrapper(rawDataList,
+        Bindings.createBooleanBinding(() -> rawDataList.getItems().isEmpty(),
+            rawDataList.getListItems(), rawDataList.itemsProperty()),
+        "Drag & drop MS data files, mzmine projects, and/or spectral libraries here",
+        dragDropOpacity);
+    parent.setCenter(dragAndDropWrapper);
+    rawDataList.setOnDragEntered(_ -> dragDropOpacity.set(0.6));
+    rawDataList.setOnDragExited(_ -> dragDropOpacity.set(0.3));
+    rawDataList.setOnDragDropped(_ -> dragDropOpacity.set(0.3));
+
     rawDataList.setCellFactory(
         rawDataListView -> new GroupableListViewCell<>(rawDataGroupMenuItem) {
 
@@ -604,7 +629,7 @@ public class MainWindowController {
 
   public void selectTab(String title) {
     final Optional<Tab> first = mainTabPane.getTabs().stream()
-        .filter(f -> f.getText().equals(title)).findFirst();
+        .filter(f -> MZmineTab.getText(f).equals(title)).findFirst();
     first.ifPresent(tab -> mainTabPane.getSelectionModel().select(tab));
   }
 
@@ -905,8 +930,15 @@ public class MainWindowController {
     }
   }
 
-  public void handleShowScatterPlot(Event event) {
-    // TODO
+  public void handleShowIntegrationDashboard(Event event) {
+    final List<FeatureList> selected = getFeatureListsList().getSelectedValues().stream().distinct()
+        .toList();
+    if (!selected.isEmpty()) {
+      final ParameterSet param = new IntegrationDashboardParameters().cloneParameterSet();
+      param.setParameter(IntegrationDashboardParameters.flists,
+          new FeatureListsSelection((ModularFeatureList) selected.getFirst()));
+      MZmineCore.runMZmineModule(IntegrationDashboardModule.class, param);
+    }
   }
 
   public void handleRenameFeatureList(Event event) {
@@ -939,6 +971,8 @@ public class MainWindowController {
       new Thread(() -> {
         logger.info("Freeing unused memory");
         System.gc();
+        logger.fine("Used heap memory after manual GC: %.2f GB".formatted(
+            ConfigService.getConfiguration().getUsedMemoryGB()));
         // temporary logs
 //        var raws = ProjectService.getProject().getCurrentRawDataFiles();
 //        var total = raws.stream().map(RawDataFile::getScans).flatMap(Collection::stream)
@@ -1103,5 +1137,9 @@ public class MainWindowController {
 
   public void handleShowStatisticsDashboard(final ActionEvent e) {
     MZmineCore.setupAndRunModule(StatsDasboardModule.class);
+  }
+
+  public void handleMergeLibraries(ActionEvent e) {
+    MZmineCore.setupAndRunModule(MergeLibrariesModule.class);
   }
 }

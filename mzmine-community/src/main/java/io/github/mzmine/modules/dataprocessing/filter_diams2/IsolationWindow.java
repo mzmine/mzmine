@@ -29,25 +29,33 @@ package io.github.mzmine.modules.dataprocessing.filter_diams2;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.maths.Precision;
 import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
 
 public record IsolationWindow(@Nullable Range<Double> mzIsolation,
-                              @Nullable Range<Float> mobilityIsolation) {
+                              @Nullable Range<Float> mobilityIsolation,
+                              @Nullable Float collisionEnergy) {
 
   private static final NumberFormats formats = ConfigService.getExportFormats();
 
-  boolean containsMobility(MobilityScan scan) {
+  public IsolationWindow(IonMobilityMsMsInfo info, final boolean discriminateByCe) {
+    this(info.getIsolationWindow(), info.getMobilityRange(),
+        discriminateByCe ? info.getActivationEnergy() : null);
+  }
+
+  public boolean containsMobility(MobilityScan scan) {
     if (mobilityIsolation != null && !mobilityIsolation.contains((float) scan.getMobility())) {
       return false;
     }
     return true;
   }
 
-  boolean contains(Feature f) {
+  public boolean contains(Feature f) {
     final Double mz = f.getMZ();
     final Float mobility = f.getMobility();
 
@@ -66,6 +74,11 @@ public record IsolationWindow(@Nullable Range<Double> mzIsolation,
    */
   double overlap(IsolationWindow other) {
 
+    if (!Precision.equalFloatSignificance(collisionEnergy, other.collisionEnergy())) {
+      // if any CE is given, also discriminate by it
+      return 0d;
+    }
+
     if (Objects.equals(mzIsolation, other.mzIsolation()) && Objects.equals(mobilityIsolation,
         other.mobilityIsolation())) {
       return 1d;
@@ -83,6 +96,7 @@ public record IsolationWindow(@Nullable Range<Double> mzIsolation,
         overlap = 0d;
       }
     } else {
+      // one has mobility isolation, the other does not. -> no overlap.
       overlap = 0d;
     }
 
@@ -104,7 +118,7 @@ public record IsolationWindow(@Nullable Range<Double> mzIsolation,
     return overlap;
   }
 
-  IsolationWindow merge(IsolationWindow other) {
+  public IsolationWindow merge(IsolationWindow other) {
     Range<Double> mz = null;
     if (mzIsolation != null && other.mzIsolation() != null) {
       mz = mzIsolation.span(other.mzIsolation());
@@ -113,12 +127,15 @@ public record IsolationWindow(@Nullable Range<Double> mzIsolation,
     if (mobilityIsolation != null && other.mobilityIsolation() != null) {
       mobility = mobilityIsolation.span(other.mobilityIsolation());
     }
-    return new IsolationWindow(mz, mobility);
+    if (!Precision.equalFloatSignificance(collisionEnergy, other.collisionEnergy())) {
+      throw new IllegalStateException("Cannot merge windows of different collision energies.");
+    }
+    return new IsolationWindow(mz, mobility, collisionEnergy);
   }
 
   @Override
   public String toString() {
-    return "IsolationWindow{" + "mz=" + formats.mz(mzIsolation) + ", mobility="
-        + formats.mobility(mobilityIsolation) + '}';
+    return "IsolationWindow{" + "mzIsolation=" + mzIsolation + ", mobilityIsolation="
+        + mobilityIsolation + ", collisionEnergy=" + collisionEnergy + '}';
   }
 }

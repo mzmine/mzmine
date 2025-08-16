@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,7 +55,8 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
       boolean defaultVal) {
     this.name = name;
     this.description = description;
-    this.embeddedParameters = embeddedParameters;
+    // requires cloning to avoid usage of static parameters
+    this.embeddedParameters = (T) embeddedParameters.cloneParameterSet();
     value = defaultVal;
   }
 
@@ -190,16 +191,24 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
         false, false);
   }
 
+  /**
+   * @param parameter    The parameter in this advanced parameter set. This set must be selected and
+   *                     if the parameter is an {@link OptionalParameter}, it must also be
+   *                     selected.
+   * @param defaultValue The default value in case not all necessary options are selected.
+   * @param <V>
+   * @return The value or the default.
+   */
   public <V> V getValueOrDefault(Parameter parameter, V defaultValue) {
     if (!this.getValue()) {
       return defaultValue;
     }
 
     if (parameter instanceof OptionalParameter<?> optional) {
-      if (!optional.getValue()) {
+      if (!getEmbeddedParameters().getParameter(optional).getValue()) {
         return defaultValue;
       } else {
-        return (V) optional.getEmbeddedParameter().getValue();
+        return (V) getEmbeddedParameters().getParameter(optional).getEmbeddedParameter().getValue();
       }
     } else {
       return (V) getEmbeddedParameters().getParameter(parameter).getValue();

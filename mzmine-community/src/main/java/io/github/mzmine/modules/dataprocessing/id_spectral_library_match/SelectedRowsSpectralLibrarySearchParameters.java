@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,8 +30,8 @@ import io.github.mzmine.parameters.Parameter;
 public class SelectedRowsSpectralLibrarySearchParameters extends SpectralLibrarySearchParameters {
 
   public SelectedRowsSpectralLibrarySearchParameters() {
-    super(new Parameter[]{libraries, scanMatchingSelection, mzTolerancePrecursor, removePrecursor,
-        mzTolerance, minMatch, similarityFunction, advanced});
+    super(new Parameter[]{libraries, spectraMergeSelect, msLevelFilter, mzTolerancePrecursor,
+        removePrecursor, mzTolerance, minMatch, similarityFunction, advanced});
   }
 
 }

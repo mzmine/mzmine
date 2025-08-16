@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MobilityScan;
@@ -39,15 +40,20 @@ import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
+import io.github.mzmine.datamodel.otherdetectors.MrmTransition;
+import io.github.mzmine.datamodel.otherdetectors.MrmTransitionList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -66,7 +72,6 @@ public class SmoothingTask extends AbstractTask {
   private final MZmineProject project;
 
   private final AtomicInteger processedFeatures = new AtomicInteger(0);
-  private final SmoothingDimension dimension = SmoothingDimension.RETENTION_TIME;
 
   private final int numFeatures;
   private final ZeroHandlingType zht;
@@ -77,7 +82,6 @@ public class SmoothingTask extends AbstractTask {
       @Nullable MemoryMapStorage storage, @NotNull ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
-
     this.flist = flist;
     this.parameters = parameters;
     this.project = project;
@@ -108,16 +112,13 @@ public class SmoothingTask extends AbstractTask {
       return;
     }
 
-    if (dimension != SmoothingDimension.RETENTION_TIME) {
-      return;
-    }
-
     final ModularFeatureList smoothedList = flist.createCopy(flist.getName() + " " + suffix,
         getMemoryMapStorage(), false);
     DataTypeUtils.copyTypes(flist, smoothedList, true, true);
     // init a new smoother instance, since the parameters have to be stored in the smoother itself.
     final SmoothingAlgorithm smoother = FeatureSmoothingOptions.createSmoother(parameters);
     if (smoother == null) {
+      logger.warning("Smoothing algorithm returned null");
       return;
     }
 
@@ -125,6 +126,8 @@ public class SmoothingTask extends AbstractTask {
     final FeatureDataAccess dataAccess = EfficientDataAccess.of(smoothedList,
         FeatureDataType.INCLUDE_ZEROS);
 
+    logger.info("Smoothing %d features in feature list %s.".formatted(dataAccess.getNumOfFeatures(),
+        flist.getName()));
     while (dataAccess.hasNextFeature()) {
       final ModularFeature feature = (ModularFeature) dataAccess.nextFeature();
 
@@ -133,20 +136,52 @@ public class SmoothingTask extends AbstractTask {
       feature.set(io.github.mzmine.datamodel.features.types.FeatureDataType.class, smoothedSeries);
       FeatureDataUtils.recalculateIonSeriesDependingTypes(feature);
 
+      handleMrmTraces(feature, smoother);
+
       processedFeatures.getAndIncrement();
     }
 
     if (isCanceled()) {
+      logger.finest("Smoothing task for feature list %s canceled".formatted(flist.getName()));
       return;
     }
 
     smoothedList.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(SmoothingModule.class, parameters, getModuleCallDate()));
 
+    logger.info("Smoothing task finished");
     // add new / remove old
     handleOriginal.reflectNewFeatureListToProject(suffix, project, smoothedList, flist);
 
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void handleMrmTraces(ModularFeature feature, SmoothingAlgorithm smoother) {
+    if (!(feature.get(MrmTransitionListType.class) instanceof MrmTransitionList transitions)) {
+      return;
+    }
+
+    List<MrmTransition> smoothedTransitions = new ArrayList<>();
+    for (MrmTransition transition : transitions.transitions()) {
+      final IonTimeSeries<Scan> remapped = IonTimeSeriesUtils.remapRtAxis(transition.chromatogram(),
+          flist.getSeletedScans(feature.getRawDataFile()));
+      final @Nullable double[] intensities = smoother.smoothRt(remapped);
+      if (intensities == null) {
+        throw new RuntimeException("Error while smoothing MRMs of feature %s".formatted(
+            FeatureUtils.featureToString(feature)));
+      }
+
+      final Range<Float> rtRange = feature.getRawDataPointsRTRange();
+      // replace the intensities in the full series, cut to original length right after. Only need
+      // to save the second one.
+      final IonTimeSeries<Scan> smoothed = remapped.copyAndReplace(null, intensities)
+          .subSeries(getMemoryMapStorage(), rtRange.lowerEndpoint(), rtRange.upperEndpoint());
+
+      smoothedTransitions.add(transition.with(smoothed));
+    }
+    final MrmTransitionList mrmTransitionList = new MrmTransitionList(smoothedTransitions);
+    feature.set(MrmTransitionListType.class, mrmTransitionList);
+    mrmTransitionList.setQuantifier(mrmTransitionList.quantifier(), feature);
   }
 
   // -----------------------------

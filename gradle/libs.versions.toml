@@ -1,6 +1,6 @@
 [versions]
-jdk = { strictly = "22" }
-javafx = { strictly = "22.0.1" }
+jdk = { strictly = "23" }
+javafx = { strictly = "23.0.2" }
 javafx-plugin = "0.1.0"
 log4j-core = { strictly = "[2.23.0, 2.23.0[", prefer = "2.23.0" }
 
@@ -12,14 +12,14 @@ msdk = "0.0.27"
 cdk = "2.9"
 swagger = "1.5.22"
 okhttp = "2.7.5"
-slf4j = '1.7.32'
+slf4j = '1.7.36'
 poi = '5.0.0'
 batik = '1.17'
 controlsfx = '11.1.1'
 jmzTabm = "1.0.6"
 jna = '5.12.1'
-junit = '5.10.0'
-mockito = '5.8.0'
+junit = '5.12.0'
+mockito = '5.16.0'
 jackson = '2.18.0'
 ikonli = "12.3.1"
 graphstream = "2.0"
@@ -69,6 +69,7 @@ jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", ver
 jackson-datetime = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 jackson-dataformat-csv = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-csv", version = "jackson" }
+jackson-datatype = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8", version.ref = "jackson" }
 woodstox-core = "com.fasterxml.woodstox:woodstox-core:6.6.0"
 aalto-xml = "com.fasterxml:aalto-xml:1.3.2"
 # chemistry
@@ -131,7 +132,7 @@ slf4j = ["slf4j-api", "slf4j-jdk14"]
 poi = ["poi", "poi-ooxml"]
 okhttp = ["okhttp", "okhttp-logging-interceptor"]
 junit-mockito = ["junit-jupiter", "junit-platform", "mockito"]
-jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv", "jackson-datetime"]
+jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv", "jackson-datetime", "jackson-datatype"]
 batik = ["batik-anim", "batik-svggen", "batik-swing"]
 
 

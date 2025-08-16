@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,7 +39,7 @@ import org.w3c.dom.NodeList;
  * Used to allow a list of types to be imported from a csv. Provides a mapping of selection state,
  * mzmine data type and column name in the csv.
  */
-public class ImportTypeParameter implements UserParameter<List<ImportType>, ImportTypeComponent> {
+public class ImportTypeParameter implements UserParameter<List<ImportType<?>>, ImportTypeComponent> {
 
   private static final String SELECTED = "selected";
   private static final String COL_NAME = "column";
@@ -46,12 +47,14 @@ public class ImportTypeParameter implements UserParameter<List<ImportType>, Impo
   private static final String SUB_ELEMENT = "importtype";
   private final String name;
   private final String description;
-  private final List<ImportType> values = new ArrayList<>();
+  private final List<ImportType<?>> values = new ArrayList<>();
 
-  public ImportTypeParameter(String name, String description, List<ImportType> values) {
+  public ImportTypeParameter(String name, String description, List<ImportType<?>> values) {
     this.name = name;
     this.description = description;
-    this.values.addAll(values);
+    this.values.addAll(values.stream().<ImportType<?>>map(
+        it -> new ImportType<>(it.isSelected(), it.getCsvColumnName(), (DataType)it.getDataType(),
+            it.getMapper())).toList());
   }
 
   @Override
@@ -60,12 +63,12 @@ public class ImportTypeParameter implements UserParameter<List<ImportType>, Impo
   }
 
   @Override
-  public List<ImportType> getValue() {
+  public List<ImportType<?>> getValue() {
     return values;
   }
 
   @Override
-  public void setValue(List<ImportType> newValue) {
+  public void setValue(List<ImportType<?>> newValue) {
     values.clear();
     values.addAll(newValue);
   }
@@ -80,18 +83,18 @@ public class ImportTypeParameter implements UserParameter<List<ImportType>, Impo
     final NodeList childNodes = xmlElement.getElementsByTagName(SUB_ELEMENT);
 
     for (int i = 0; i < childNodes.getLength(); i++) {
-        final Element typeElement = (Element) childNodes.item(i);
-        boolean selected = Boolean.valueOf(typeElement.getAttribute(SELECTED));
-        String columnName = typeElement.getAttribute(COL_NAME);
-        String typeName = typeElement.getAttribute(TYPE_NAME);
+      final Element typeElement = (Element) childNodes.item(i);
+      boolean selected = Boolean.valueOf(typeElement.getAttribute(SELECTED));
+      String columnName = typeElement.getAttribute(COL_NAME);
+      String typeName = typeElement.getAttribute(TYPE_NAME);
 
-        for (ImportType val : values) {
-          if (val.getDataType().getClass().getName().equals(typeName)) {
-            val.setSelected(selected);
-            val.setCsvColumnName(columnName);
-            break;
-          }
+      for (ImportType val : values) {
+        if (val.getDataType().getClass().getName().equals(typeName)) {
+          val.setSelected(selected);
+          val.setCsvColumnName(columnName);
+          break;
         }
+      }
     }
   }
 
@@ -126,17 +129,17 @@ public class ImportTypeParameter implements UserParameter<List<ImportType>, Impo
 
   @Override
   public void setValueToComponent(ImportTypeComponent importTypeComponent,
-      @Nullable List<ImportType> newValue) {
+      @Nullable List<ImportType<?>> newValue) {
     importTypeComponent.setValue(newValue);
   }
 
   @Override
-  public UserParameter<List<ImportType>, ImportTypeComponent> cloneParameter() {
+  public UserParameter<List<ImportType<?>>, ImportTypeComponent> cloneParameter() {
 
-    List<ImportType> newValue = new ArrayList<>(values.size());
-    for (ImportType importType : values) {
+    List<ImportType<?>> newValue = new ArrayList<>(values.size());
+    for (ImportType<?> importType : values) {
       newValue.add(new ImportType(importType.isSelected(), importType.getCsvColumnName(),
-          importType.getDataType()));
+          importType.getDataType(), importType.getMapper()));
     }
 
     return new ImportTypeParameter(name, description, newValue);

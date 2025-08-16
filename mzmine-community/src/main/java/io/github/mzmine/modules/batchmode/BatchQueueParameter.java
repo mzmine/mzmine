@@ -147,7 +147,8 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
 
         if (!newErrors.isEmpty()) {
           // add module name and
-          errorMessages.add("\n%s:".formatted(batchStep.getModule().getName()));
+          errorMessages.add("\n%s (step %d):".formatted(batchStep.getModule().getName(),
+              value.indexOf(batchStep) + 1));
           errorMessages.addAll(newErrors);
           newErrors.clear();
         }
@@ -155,7 +156,7 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
 
       // do meta checks through all parameters
       // check min samples filter
-      String warning = BatchUtils.checkMinSamplesFilter(value);
+      String warning = BatchUtils.checkBatchParameters(value);
       if (warning != null) {
         if (DesktopService.isGUI()) {
           final boolean continueAnyway = DialogLoggerUtil.showDialogYesNo("Warning", """
