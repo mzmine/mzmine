@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,10 +38,11 @@ import org.jetbrains.annotations.Nullable;
  *                      across samples was off, or only one sample, then bySample is also used as
  *                      across samples to facilitate downstream selection of scans
  * @param msnPseudoMs2  a spectrum merged all MSn to a pseudo MS2 - only for MSn data
+ * @param acrossMethods a spectrum merged across all methods and energies
  */
-public record SpectraMergingResults(@NotNull List<SpectraMergingResultsNode> bySample,
-                                    @NotNull List<SpectraMergingResultsNode> acrossSamples,
-                                    @Nullable Scan msnPseudoMs2) {
+record SpectraMergingResults(@NotNull List<SpectraMergingResultsNode> bySample,
+                             @NotNull List<SpectraMergingResultsNode> acrossSamples,
+                             @Nullable Scan msnPseudoMs2, @Nullable Scan acrossMethods) {
 
   /**
    * Merging results for one MS2 precursor or one MSn tree
@@ -54,9 +55,11 @@ public record SpectraMergingResults(@NotNull List<SpectraMergingResultsNode> byS
    * @param msnPseudoMs2  a spectrum merged all MSn to a pseudo MS2 - only for MSn data
    */
   public SpectraMergingResults(@NotNull final List<SpectraMergingResultsNode> bySample,
-      @Nullable List<SpectraMergingResultsNode> acrossSamples, @Nullable final Scan msnPseudoMs2) {
+      @Nullable List<SpectraMergingResultsNode> acrossSamples, @Nullable final Scan msnPseudoMs2,
+      @Nullable Scan acrossMethods) {
     this.bySample = bySample;
     this.msnPseudoMs2 = msnPseudoMs2;
+    this.acrossMethods = acrossMethods;
 
     // replace empty across samples with by sample to have representative scans during selection
     if (acrossSamples == null || acrossSamples.isEmpty()) {
@@ -66,7 +69,7 @@ public record SpectraMergingResults(@NotNull List<SpectraMergingResultsNode> byS
   }
 
   public SpectraMergingResults(final List<SpectraMergingResultsNode> bySample) {
-    this(bySample, null, null);
+    this(bySample, null, null, null);
   }
 
   /**
@@ -74,7 +77,7 @@ public record SpectraMergingResults(@NotNull List<SpectraMergingResultsNode> byS
    */
   public SpectraMergingResults(final List<SpectraMergingResultsNode> bySample,
       final @Nullable SpectraMergingResultsNode acrossSamples) {
-    this(bySample, acrossSamples == null ? null : List.of(acrossSamples), null);
+    this(bySample, acrossSamples == null ? null : List.of(acrossSamples), null, null);
   }
 
 
