@@ -331,6 +331,11 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   public ParameterSet updateParameterSetFromComponents() {
+    return updateParameterSetFromComponents(parameterSet);
+  }
+
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  public ParameterSet updateParameterSetFromComponents(ParameterSet parameterSet) {
     for (Parameter<?> p : parameterSet.getParameters()) {
       if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
         continue;
@@ -354,6 +359,15 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
   }
 
   public void setParameterValuesToComponents() {
+    setParameterValuesToComponents(this.parameterSet);
+  }
+
+  /**
+   * May want to apply other parameters to components, similar to other parameters this means that
+   * the embedded parameterset in this pane is not updated or changed by this. Still needs to call
+   * {@link #updateParameterSetFromComponents()} for this.
+   */
+  public void setParameterValuesToComponents(ParameterSet parameterSet) {
     for (Parameter<?> p : parameterSet.getParameters()) {
       if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
         continue;

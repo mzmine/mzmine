@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import javafx.scene.control.Button;
@@ -56,7 +57,7 @@ public class ScanSelectionComponent extends OptionalModuleComponent {
 
   private void setSelection(final ScanSelection selection) {
     getSelectionParameters().setFilter(selection);
-    setParameterValuesToComponents();
+    setParameterValuesToComponents(getEmbeddedParameters());
   }
 
   public ScanSelection createSelection() {
@@ -78,23 +79,23 @@ public class ScanSelectionComponent extends OptionalModuleComponent {
   @Override
   public void onViewStateChange(final boolean hidden) {
     super.onViewStateChange(hidden);
-    updateParameterSetFromComponents();
+    updateParameterSetFromComponents(getEmbeddedParameters());
   }
 
   @Override
-  public void updateParameterSetFromComponents() {
+  public void updateParameterSetFromComponents(ParameterSet embeddedParameters) {
     // not yet initialized
     if (textDescription == null) {
       return;
     }
-    super.updateParameterSetFromComponents();
+    super.updateParameterSetFromComponents(embeddedParameters);
     var selection = createSelection();
     textDescription.setText(selection.toShortDescription());
   }
 
   @Override
-  public void setParameterValuesToComponents() {
-    super.setParameterValuesToComponents();
+  public void setParameterValuesToComponents(ParameterSet embeddedParameters) {
+    super.setParameterValuesToComponents(embeddedParameters);
     var selection = createSelection();
     textDescription.setText(selection != null ? selection.toShortDescription() : "");
   }
