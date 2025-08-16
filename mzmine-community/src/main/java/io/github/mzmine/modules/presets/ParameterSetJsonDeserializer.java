@@ -23,36 +23,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.featurelisttable_modular;
+package io.github.mzmine.modules.presets;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.modules.MZmineModule;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.FeatureTableFXUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.parameters.ParameterUtils;
+import java.io.IOException;
+import javax.xml.parsers.ParserConfigurationException;
+import org.xml.sax.SAXException;
 
-public class FeatureTableFXModule implements MZmineModule {
+public class ParameterSetJsonDeserializer extends JsonDeserializer<ParameterSet> {
 
-  /**
-   * Opens a new FeateTable window on the FX thread
-   *
-   * @param flist target feature list
-   */
-  public static void createFeatureListTable(ModularFeatureList flist) {
-    FxThread.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
+  private final ParameterSet helper;
+
+  public ParameterSetJsonDeserializer(ParameterSet helper) {
+    this.helper = helper;
   }
 
-  @NotNull
   @Override
-  public String getName() {
-    return "Feature table";
+  public ParameterSet deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+    String xml = p.getValueAsString();
+
+    final ParameterSet clone = helper.cloneParameterSet();
+    try {
+      ParameterUtils.loadValuesFromXMLString(clone, xml);
+    } catch (ParserConfigurationException | SAXException e) {
+      return null;
+    }
+    return clone;
   }
 
-  @Nullable
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureTableFXParameters.class;
-  }
 }

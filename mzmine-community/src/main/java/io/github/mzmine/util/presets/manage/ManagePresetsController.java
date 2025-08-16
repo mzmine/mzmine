@@ -23,36 +23,52 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.featurelisttable_modular;
+package io.github.mzmine.util.presets.manage;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.FeatureTableFXUtil;
+import io.github.mzmine.javafx.mvci.FxController;
+import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.util.presets.Preset;
+import io.github.mzmine.util.presets.PresetStore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureTableFXModule implements MZmineModule {
+public class ManagePresetsController extends FxController<ManagePresetsModel> {
+
+  private final ManagePresetsViewBuilder viewBuilder;
+  private final ManagePresetsInteractor interactor;
+
+  protected ManagePresetsController() {
+    super(new ManagePresetsModel());
+    interactor = new ManagePresetsInteractor(this, model);
+    viewBuilder = new ManagePresetsViewBuilder(model);
+  }
 
   /**
-   * Opens a new FeateTable window on the FX thread
-   *
-   * @param flist target feature list
+   * Select group by name
    */
-  public static void createFeatureListTable(ModularFeatureList flist) {
-    FxThread.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
+  public <T extends Preset> void selectGroup(@Nullable PresetStore<T> store) {
+    model.setSelectedGroupStore(store);
   }
 
-  @NotNull
   @Override
-  public String getName() {
-    return "Feature table";
+  protected @NotNull FxViewBuilder<ManagePresetsModel> getViewBuilder() {
+    return viewBuilder;
   }
 
-  @Nullable
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureTableFXParameters.class;
+  public void loadAllPresets() {
+    onTaskThread(new LoadAllPresetsUpdateTask(model));
+  }
+
+  public <T extends Preset> void loadWithExisting(@Nullable PresetStore<T> presetStore) {
+    if (presetStore != null) {
+      model.getAllStores().add(presetStore);
+    }
+
+    // load all other presets
+    loadAllPresets();
+
+    if (presetStore != null) {
+      selectGroup(presetStore);
+    }
   }
 }

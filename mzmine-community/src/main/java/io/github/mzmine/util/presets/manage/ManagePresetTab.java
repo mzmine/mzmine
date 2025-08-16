@@ -23,36 +23,34 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.featurelisttable_modular;
+package io.github.mzmine.util.presets.manage;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.FeatureTableFXUtil;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.presets.Preset;
+import io.github.mzmine.util.presets.PresetStore;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureTableFXModule implements MZmineModule {
+public class ManagePresetTab extends SimpleTab {
 
-  /**
-   * Opens a new FeateTable window on the FX thread
-   *
-   * @param flist target feature list
-   */
-  public static void createFeatureListTable(ModularFeatureList flist) {
-    FxThread.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
+  private final ManagePresetsController controller;
+
+  private ManagePresetTab(ManagePresetsController controller) {
+    super("Manage presets");
+    this.controller = controller;
+    setContent(this.controller.buildView());
   }
 
-  @NotNull
-  @Override
-  public String getName() {
-    return "Feature table";
+  public static <T extends Preset> void show(@Nullable PresetStore<T> presetStore) {
+    ManagePresetsController controller = new ManagePresetsController();
+
+    // reuse existing preset store
+    controller.loadWithExisting(presetStore);
+
+    MZmineCore.getDesktop().addTab(new ManagePresetTab(controller));
   }
 
-  @Nullable
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureTableFXParameters.class;
+  public ManagePresetsController getController() {
+    return controller;
   }
 }

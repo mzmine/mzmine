@@ -30,17 +30,22 @@ import io.github.dan2097.jnainchi.InchiKeyStatus;
 import io.github.dan2097.jnainchi.InchiStatus;
 import io.github.dan2097.jnainchi.JnaInchi;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.aromaticity.Aromaticity;
+import org.openscience.cdk.aromaticity.Aromaticity.Model;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.graph.Cycles;
 import org.openscience.cdk.inchi.InChIGenerator;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
+import org.openscience.cdk.interfaces.IBond.Stereo;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.interfaces.IStereoElement;
 import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -51,6 +56,26 @@ public class StructureUtils {
 
   public enum SmilesFlavor {
     CANONICAL, ISOMERIC
+  }
+
+  public enum HydrogenFlavor {
+    /**
+     * convenience to keep previous
+     */
+    UNCHANGED,
+    /**
+     * Suppresses all hydrogens. Do not do this on target structures in substructure search
+     */
+    SUPRESS_HYDROGENS,
+    /**
+     * Removes only non chiral
+     */
+    REMOVE_NON_CHIRAL_HYDROGENS,
+    /**
+     * Convert implicit (not shown) to explicit hydrogens. This can help in substructure search:
+     * Query structure will ask for x hydrogens and target structure needs explicit hydrogens
+     */
+    CONVERT_IMPLICIT_TO_EXPLICIT;
   }
 
 
@@ -170,7 +195,15 @@ public class StructureUtils {
    */
   @Nullable
   public static String getInchiKey(IAtomContainer structure) {
+    return getInchiKey(structure, false);
+  }
+
+  @Nullable
+  public static String getInchiKey(IAtomContainer structure, boolean removeStereoChemistry) {
     try {
+      if (removeStereoChemistry) {
+        structure = removeStereoChemistry(structure, false);
+      }
       var generator = getInchiGeneratorOrThrow(structure);
       if (generator != null && generator.getStatus() != InchiStatus.ERROR) {
         return generator.getInchiKey();
@@ -197,20 +230,61 @@ public class StructureUtils {
     return AtomContainerManipulator.getTotalFormalCharge(structure);
   }
 
-  public static IAtomContainer harmonize(IAtomContainer structure) {
-    structure = AtomContainerManipulator.copyAndSuppressedHydrogens(structure);
-    Cycles.markRingAtomsAndBonds(structure);
-    Aromaticity.apply(Aromaticity.Model.Daylight, structure);
-    return structure;
+  /**
+   * @return true if there are stereo elements
+   */
+  public static boolean hasStereoChemistry(@NotNull IAtomContainer structure) {
+    final Iterator<IStereoElement> iterator = structure.stereoElements().iterator();
+    if (iterator.hasNext()) {
+      return true;
+    }
+
+    for (IBond bond : structure.bonds()) {
+      if (Stereo.NONE != bond.getStereo()) {
+        return true;
+      }
+    }
+    return false;
   }
 
-  public static IAtomContainer harmonizeRemoveStereoChemistry(IAtomContainer mol) {
+  /**
+   * KEEPS stereochemistry, applies hydrogen flavor that may be important for visualization and for
+   * substructure matching
+   *
+   * @param inPlace change input mol in place
+   * @return may return input mol or a clone
+   */
+  public static IAtomContainer harmonize(IAtomContainer mol, @NotNull HydrogenFlavor flavor,
+      boolean removeStereoChemistry, boolean inPlace) {
     // 1. Clone
-    try {
-      mol = mol.clone();
-    } catch (CloneNotSupportedException e) {
-      logger.log(Level.WARNING, "Failed to clone structure. " + e.getMessage(), e);
-      throw new IllegalStateException("Failed to clone structure", e);
+    if (!inPlace) {
+      mol = cloneStructure(mol);
+    }
+
+    if (removeStereoChemistry) {
+      // already copied so work in place
+      mol = removeStereoChemistry(mol, true);
+    }
+
+    // handle hydrogens
+    mol = applyHydrogenFlavor(mol, flavor, true);
+
+    // aromaticity
+    Cycles.markRingAtomsAndBonds(mol);
+    Aromaticity.apply(Model.Daylight, mol);
+    return mol;
+  }
+
+  /**
+   * Remove stereochemistry
+   *
+   * @param inPlace change input mol in place
+   * @return may return input mol or a clone
+   */
+  public static IAtomContainer removeStereoChemistry(IAtomContainer mol, boolean inPlace) {
+    // 1. Clone
+    if (!inPlace) {
+      mol = cloneStructure(mol);
     }
 
     // 2. Remove all StereoElement objects
@@ -218,14 +292,43 @@ public class StructureUtils {
 
     // 3. Reset bond stereochemistry
     for (IBond bond : mol.bonds()) {
-      bond.setStereo(IBond.Stereo.NONE);
+      bond.setStereo(Stereo.NONE);
     }
 
-    // 5. (Optional) remove explicit hydrogens
-    AtomContainerManipulator.suppressHydrogens(mol);
-    Cycles.markRingAtomsAndBonds(mol);
-    Aromaticity.apply(Aromaticity.Model.Daylight, mol);
+    return mol;
+  }
 
+  /**
+   * Applies hydrogen flavor that may be important for visualization and for substructure matching
+   *
+   * @param inPlace change input mol in place
+   * @return may return input mol or a clone
+   */
+  public static IAtomContainer applyHydrogenFlavor(IAtomContainer mol, HydrogenFlavor flavor,
+      boolean inPlace) {
+    // 1. Clone
+    if (!inPlace) {
+      mol = cloneStructure(mol);
+    }
+    return switch (flavor) {
+      case UNCHANGED -> mol;
+      case SUPRESS_HYDROGENS -> AtomContainerManipulator.suppressHydrogens(mol);
+      case REMOVE_NON_CHIRAL_HYDROGENS -> AtomContainerManipulator.removeNonChiralHydrogens(mol);
+      case CONVERT_IMPLICIT_TO_EXPLICIT -> {
+        AtomContainerManipulator.convertImplicitToExplicitHydrogens(mol);
+        yield mol;
+      }
+    };
+  }
+
+
+  private static IAtomContainer cloneStructure(IAtomContainer mol) {
+    try {
+      mol = mol.clone();
+    } catch (CloneNotSupportedException e) {
+      logger.log(Level.WARNING, "Failed to clone structure. " + e.getMessage(), e);
+      throw new IllegalStateException("Failed to clone structure", e);
+    }
     return mol;
   }
 
@@ -233,13 +336,18 @@ public class StructureUtils {
       SmilesFlavor smilesFlavor) {
     final String a = getSmiles(smilesFlavor, structure1);
     final String b = getSmiles(smilesFlavor, structure2);
-    return a.equals(b);
+    return Objects.equals(a, b);
   }
 
   public static boolean equalsInchiKey(IAtomContainer structure1, IAtomContainer structure2) {
-    final String a = getInchiKey(structure1);
-    final String b = getInchiKey(structure2);
-    return a.equals(b);
+    return equalsInchiKey(structure1, structure2, false);
+  }
+
+  public static boolean equalsInchiKey(IAtomContainer structure1, IAtomContainer structure2,
+      boolean removeStereoChemistry) {
+    final String a = getInchiKey(structure1, removeStereoChemistry);
+    final String b = getInchiKey(structure2, removeStereoChemistry);
+    return Objects.equals(a, b);
   }
 
 }

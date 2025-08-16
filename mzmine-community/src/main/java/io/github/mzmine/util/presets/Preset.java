@@ -26,8 +26,10 @@
 package io.github.mzmine.util.presets;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.github.mzmine.modules.presets.ModulePreset;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +48,8 @@ import org.jetbrains.annotations.Nullable;
 )
 @JsonSubTypes({
     // map names to classes
-    @JsonSubTypes.Type(value = RowTypeFilterPreset.class, name = "row_type_filter") //
+    @JsonSubTypes.Type(value = RowTypeFilterPreset.class, name = "row_type_filter"), //
+    @JsonSubTypes.Type(value = ModulePreset.class, name = "module_preset") //
 })
 public interface Preset extends Comparable<Preset> {
 
@@ -69,7 +72,7 @@ public interface Preset extends Comparable<Preset> {
     } else if (this == o) {
       return 0;
     }
-    return name().compareTo(o.name());
+    return toString().compareTo(o.toString());
   }
 
   /**
@@ -81,6 +84,7 @@ public interface Preset extends Comparable<Preset> {
   /**
    * The group name (category>group). For modules this is the Module class name.
    */
+  @JsonInclude
   @Nullable String presetGroup();
 
   /**
@@ -92,4 +96,19 @@ public interface Preset extends Comparable<Preset> {
   }
 
   @NotNull <T extends Preset> T withName(String name);
+
+  /**
+   * Exclude name during check to only focus on preset content
+   *
+   * @return true if content equals (exculding name)
+   */
+  default boolean equalsByContent(@Nullable Preset other) {
+    if (other == null) {
+      return false;
+    }
+    if (other == this) {
+      return true;
+    }
+    return this.withName(other.name()).equals(other);
+  }
 }

@@ -27,6 +27,7 @@ package io.github.mzmine.util.presets;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Defines a category which is the first folder in the presets directory
@@ -34,6 +35,11 @@ import org.jetbrains.annotations.NotNull;
 public enum PresetCategory implements UniqueIdSupplier {
   MODULES, FILTERS;
 
+
+  @Nullable
+  public static PresetCategory parse(String name) {
+    return UniqueIdSupplier.parseOrElse(name, values(), null);
+  }
 
   public @NotNull String getFolderName() {
     return getUniqueID();

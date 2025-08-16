@@ -23,36 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.featurelisttable_modular;
+package io.github.mzmine.modules.presets;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.modules.MZmineModule;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.FeatureTableFXUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.parameters.ParameterUtils;
+import java.io.IOException;
 
-public class FeatureTableFXModule implements MZmineModule {
+public class ParameterSetJsonSerializer extends JsonSerializer<ParameterSet> {
 
-  /**
-   * Opens a new FeateTable window on the FX thread
-   *
-   * @param flist target feature list
-   */
-  public static void createFeatureListTable(ModularFeatureList flist) {
-    FxThread.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
-  }
-
-  @NotNull
   @Override
-  public String getName() {
-    return "Feature table";
+  public void serialize(ParameterSet parameterSet, JsonGenerator gen, SerializerProvider provider)
+      throws IOException {
+    final String xml = ParameterUtils.saveValuesToXMLString(parameterSet);
+    gen.writeString(xml);
   }
 
-  @Nullable
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureTableFXParameters.class;
-  }
 }

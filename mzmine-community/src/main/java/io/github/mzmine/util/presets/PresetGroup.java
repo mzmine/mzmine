@@ -23,36 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.featurelisttable_modular;
+package io.github.mzmine.util.presets;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.FeatureTableFXUtil;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class FeatureTableFXModule implements MZmineModule {
+/**
+ * Defines the {@link Preset} group. Also see  {@link PresetCategory}. use toString for display
+ * name
+ */
+public interface PresetGroup extends UniqueIdSupplier {
 
   /**
-   * Opens a new FeateTable window on the FX thread
+   * Often same as {@link #getUniqueID()}. Use toString for a display name.
    *
-   * @param flist target feature list
+   * @return the folder name of this group in {@link PresetCategory} / {@link PresetGroup}
    */
-  public static void createFeatureListTable(ModularFeatureList flist) {
-    FxThread.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
+  default @NotNull String getFolderName() {
+    return getUniqueID();
   }
 
-  @NotNull
-  @Override
-  public String getName() {
-    return "Feature table";
-  }
-
-  @Nullable
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureTableFXParameters.class;
-  }
 }

@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.row_type_filter;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.dialogs.FilterableMenuPopup;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.validation.FxValidation;
 import io.github.mzmine.parameters.ValuePropertyComponent;
@@ -48,8 +49,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class RowTypeFilterComponent extends HBox implements ValuePropertyComponent<RowTypeFilter> {
 
-
   private final ObjectProperty<RowTypeFilter> value = new SimpleObjectProperty<>();
+
   private final ComboComponent<RowTypeFilterOption> optionCombo;
   private final ComboComponent<MatchingMode> matchingModeCombo;
   private final StringParameterComponent queryField;
@@ -57,14 +58,17 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
 
   public RowTypeFilterComponent(RowTypeFilter value,
       ComboComponent<RowTypeFilterOption> optionCombo,
-      ComboComponent<MatchingMode> matchingModeCombo, StringParameterComponent queryField) {
+      ComboComponent<MatchingMode> matchingModeCombo, StringParameterComponent queryField,
+      boolean addPresetsMenuButton) {
 
     super(FxLayout.DEFAULT_SPACE, optionCombo, matchingModeCombo, queryField);
 
     FxLayout.applyDefaults(this, Insets.EMPTY);
 
     // manage presets
-    addPresetsMenuButton();
+    if (addPresetsMenuButton) {
+      addPresetsMenuButton();
+    }
 
     this.optionCombo = optionCombo;
     this.matchingModeCombo = matchingModeCombo;
@@ -119,6 +123,15 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
         name -> value.get() == null ? null : new RowTypeFilterPreset(name, value.get()),
         preset -> value.set(preset.filter()));
     getChildren().add(button);
+
+    final FilterableMenuPopup popup = button.getPopup();
+    if (popup != null) {
+      setListCellFactory(popup);
+    }
+  }
+
+  private static void setListCellFactory(FilterableMenuPopup popup) {
+    popup.getListView().setCellFactory(_ -> new RowTypeFilterPresetListCell());
   }
 
   private void setupValidation(StringParameterComponent queryField) {
@@ -171,4 +184,5 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
   public Property<RowTypeFilter> valueProperty() {
     return value;
   }
+
 }

@@ -23,36 +23,40 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.featurelisttable_modular;
+package io.github.mzmine.modules.presets;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.modules.MZmineModule;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.FeatureTableFXUtil;
+import io.github.mzmine.util.presets.Preset;
+import io.github.mzmine.util.presets.PresetCategory;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class FeatureTableFXModule implements MZmineModule {
 
-  /**
-   * Opens a new FeateTable window on the FX thread
-   *
-   * @param flist target feature list
-   */
-  public static void createFeatureListTable(ModularFeatureList flist) {
-    FxThread.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
-  }
+/**
+ * @param name
+ * @param presetGroup the module uniqueID
+ * @param parameters
+ */
+public record ModulePreset(String name, @NotNull String presetGroup,
+                           ParameterSet parameters) implements Preset {
 
-  @NotNull
   @Override
-  public String getName() {
-    return "Feature table";
+  public @NotNull String toString() {
+    return name;
   }
 
-  @Nullable
   @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureTableFXParameters.class;
+  public @NotNull ModulePreset withName(String name) {
+    return new ModulePreset(name, presetGroup, parameters);
   }
+
+
+  // constant is set to read only - will save but not read it
+  @Override
+  @JsonProperty(access = Access.READ_ONLY)
+  public @NotNull PresetCategory presetCategory() {
+    return PresetCategory.MODULES;
+  }
+
 }

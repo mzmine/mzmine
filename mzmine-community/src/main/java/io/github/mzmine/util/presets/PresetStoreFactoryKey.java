@@ -23,36 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.featurelisttable_modular;
+package io.github.mzmine.util.presets;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.FeatureTableFXUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class FeatureTableFXModule implements MZmineModule {
+/**
+ * Key to identify a {@link PresetStoreFactory}
+ */
+public record PresetStoreFactoryKey(@NotNull String key) {
 
   /**
-   * Opens a new FeateTable window on the FX thread
-   *
-   * @param flist target feature list
+   * @param group group is the {@link PresetGroup#getUniqueID()} which is the folder name
    */
-  public static void createFeatureListTable(ModularFeatureList flist) {
-    FxThread.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
+  public static PresetStoreFactoryKey create(@NotNull PresetCategory category,
+      @NotNull String group) {
+    if (category == PresetCategory.MODULES) {
+      // module category uses the same factory for all modules so no group in key
+      return new PresetStoreFactoryKey(category.getFolderName());
+    }
+    return new PresetStoreFactoryKey(category.getFolderName() + "_" + group);
   }
 
-  @NotNull
-  @Override
-  public String getName() {
-    return "Feature table";
-  }
-
-  @Nullable
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureTableFXParameters.class;
+  public static PresetStoreFactoryKey MODULE() {
+    return PresetStoreFactoryKey.create(PresetCategory.MODULES, "");
   }
 }

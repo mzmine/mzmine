@@ -23,36 +23,41 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.featurelisttable_modular;
+package io.github.mzmine.modules.presets;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.FeatureTableFXUtil;
+import io.github.mzmine.util.presets.PresetCategory;
+import io.github.mzmine.util.presets.PresetStore;
+import io.github.mzmine.util.presets.PresetStoreFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureTableFXModule implements MZmineModule {
+/**
+ * Searches for initialized modules to create {@link ModulePresetStore}. Modules should be
+ * initialized already from loading the config and working on modules.
+ * <p>
+ * TODO maybe optimize by having a list of modules like the list of datatypes
+ */
+public class ModulePresetStoreFactory implements PresetStoreFactory<ModulePreset> {
 
-  /**
-   * Opens a new FeateTable window on the FX thread
-   *
-   * @param flist target feature list
-   */
-  public static void createFeatureListTable(ModularFeatureList flist) {
-    FxThread.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
-  }
-
-  @NotNull
   @Override
-  public String getName() {
-    return "Feature table";
-  }
+  public @Nullable PresetStore<ModulePreset> createStore(@NotNull PresetCategory category,
+      @NotNull String group) {
+    for (MZmineModule module : MZmineCore.getAllModules()) {
+      if (module.getUniqueID().equals(group)) {
+        final ParameterSet params = ConfigService.getConfiguration()
+            .getModuleParameters(module.getClass());
+        if (params == null) {
+          return null;
+        }
 
-  @Nullable
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureTableFXParameters.class;
+        return new ModulePresetStore(module, params);
+      }
+    }
+
+    return null;
   }
 }

@@ -23,36 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.featurelisttable_modular;
+package io.github.mzmine.util.presets.manage;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.FeatureTableFXUtil;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.util.presets.Preset;
+import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureTableFXModule implements MZmineModule {
+sealed interface ManagePresetsEvent {
 
-  /**
-   * Opens a new FeateTable window on the FX thread
-   *
-   * @param flist target feature list
-   */
-  public static void createFeatureListTable(ModularFeatureList flist) {
-    FxThread.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
+  record AddDefaultPresetsEvent() implements ManagePresetsEvent {
+
   }
 
-  @NotNull
-  @Override
-  public String getName() {
-    return "Feature table";
+  record RemoveSelectedPresetsEvent(List<Preset> presets) implements ManagePresetsEvent {
+
   }
 
-  @Nullable
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureTableFXParameters.class;
+  record RenameSelectedPresetEvent(@Nullable EditPresetModel preset, boolean askUser) implements
+      ManagePresetsEvent {
+
   }
+
 }

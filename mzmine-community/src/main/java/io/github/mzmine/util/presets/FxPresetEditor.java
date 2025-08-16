@@ -23,36 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.featurelisttable_modular;
+package io.github.mzmine.util.presets;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.FeatureTableFXUtil;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.util.presets.manage.EditPresetModel;
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.Node;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureTableFXModule implements MZmineModule {
+public interface FxPresetEditor {
 
-  /**
-   * Opens a new FeateTable window on the FX thread
-   *
-   * @param flist target feature list
-   */
-  public static void createFeatureListTable(ModularFeatureList flist) {
-    FxThread.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
+  Node getEditorNode();
+
+
+  ObjectProperty<EditPresetModel> presetProperty();
+
+  default void setPreset(@Nullable EditPresetModel selected) {
+    presetProperty().set(selected);
   }
 
-  @NotNull
-  @Override
-  public String getName() {
-    return "Feature table";
-  }
-
-  @Nullable
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureTableFXParameters.class;
+  default EditPresetModel getPreset() {
+    return presetProperty().get();
   }
 }

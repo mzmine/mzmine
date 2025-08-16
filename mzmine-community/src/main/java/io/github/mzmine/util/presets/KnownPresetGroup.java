@@ -23,36 +23,34 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.featurelisttable_modular;
+package io.github.mzmine.util.presets;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.FeatureTableFXUtil;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class FeatureTableFXModule implements MZmineModule {
+public enum KnownPresetGroup implements PresetGroup {
 
   /**
-   * Opens a new FeateTable window on the FX thread
-   *
-   * @param flist target feature list
+   * {@link RowTypeFilterPreset}
    */
-  public static void createFeatureListTable(ModularFeatureList flist) {
-    FxThread.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
+  ROW_TYPE_FILTER_PRESET;
+
+  public KnownPresetGroup parse(String name) {
+    return UniqueIdSupplier.parseOrElse(name, values(), null);
   }
 
-  @NotNull
   @Override
-  public String getName() {
-    return "Feature table";
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case ROW_TYPE_FILTER_PRESET -> "feature_table_filters";
+    };
   }
 
-  @Nullable
   @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureTableFXParameters.class;
+  public String toString() {
+    return switch (this) {
+      case ROW_TYPE_FILTER_PRESET -> "Feature table filters";
+    };
   }
 }

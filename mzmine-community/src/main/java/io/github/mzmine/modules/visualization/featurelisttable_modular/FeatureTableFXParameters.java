@@ -27,20 +27,22 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
+import java.util.Map;
 
 public class FeatureTableFXParameters extends SimpleParameterSet {
 
   public static final DataTypeCheckListParameter showRowTypeColumns = new DataTypeCheckListParameter(
-      "Row type columns",
+      "Feature summary columns",
       "Specify which data type columns shall be displayed in the feature list table");
 
   public static final DataTypeCheckListParameter showFeatureTypeColumns = new DataTypeCheckListParameter(
-      "Feature type columns",
+      "Sample-specific columns",
       "Specify which data type columns shall be displayed in the feature list table");
 
   public static final ComboParameter<AbundanceMeasure> defaultAbundanceMeasure = new ComboParameter<>(
@@ -63,7 +65,7 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
 
   public static final IntegerParameter deactivateShapesGreaterNSamples = new IntegerParameter(
       "Deactivate shapes >N samples", "Deactivate shapes for better performance above N samples.",
-      12);
+      35);
 
   public static final BooleanParameter lockImagesToAspectRatio = new BooleanParameter(
       "Lock images to aspect ratio",
@@ -80,4 +82,11 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
         deactivateShapesGreaterNSamples, lockImagesToAspectRatio, hideImageAxes);
   }
 
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    final Map<String, Parameter<?>> map = super.getNameParameterMap();
+    map.put("Feature type columns", getParameter(showFeatureTypeColumns));
+    map.put("Row type columns", getParameter(showRowTypeColumns));
+    return map;
+  }
 }

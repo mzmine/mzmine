@@ -23,36 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.featurelisttable_modular;
+package io.github.mzmine.parameters.parametertypes.row_type_filter;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.FeatureTableFXUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.util.presets.PresetStore;
+import io.github.mzmine.util.presets.manage.SimplePresetEditor;
 
-public class FeatureTableFXModule implements MZmineModule {
+/**
+ * This is the editor shown in the preset management tab. It uses the {@link RowTypeFilterComponent}
+ * and adds an apply button to it.
+ */
+public class RowTypeFilterPresetEditor extends SimplePresetEditor<RowTypeFilterPreset> {
 
-  /**
-   * Opens a new FeateTable window on the FX thread
-   *
-   * @param flist target feature list
-   */
-  public static void createFeatureListTable(ModularFeatureList flist) {
-    FxThread.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
+  private final RowTypeFilterComponent comp;
+
+  public RowTypeFilterPresetEditor(PresetStore store) {
+    super(store);
+
+    comp = RowTypeFilterParameter.createDefaultEditingComponent(false);
+    getChildren().addFirst(comp);
+
+    comp.valueProperty().subscribe((nv) -> {
+      setModifiedPreset(RowTypeFilterPreset.createPreset("placeholder", nv));
+    });
   }
 
-  @NotNull
   @Override
-  public String getName() {
-    return "Feature table";
-  }
-
-  @Nullable
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureTableFXParameters.class;
+  protected void setPresetInComponent(RowTypeFilterPreset originalPreset) {
+    comp.setValue(originalPreset == null ? null : originalPreset.filter());
   }
 }

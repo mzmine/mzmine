@@ -64,7 +64,6 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
@@ -76,6 +75,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -416,22 +416,32 @@ public class BatchComponentController implements LastFilesComponent {
     // allow missing modules but report them as error messages
     final BatchQueue queue = BatchQueue.loadFromXml(XMLUtils.load(file).getDocumentElement(),
         errorMessages, true);
+
+    logger.info("Loaded " + queue.size() + " batch step(s) from " + file.getName());
+
+    askApplyBatchQueue(queue, errorMessages);
+
+    // add to last used files
+    addLastUsedFile(file);
+  }
+
+  /**
+   * Shows dialog on how to apply batch queue
+   *
+   * @param queue         the new queue
+   * @param errorMessages from parsing or empty
+   */
+  public void askApplyBatchQueue(@NotNull BatchQueue queue, @NotNull List<String> errorMessages) {
     // check error messages and show dialog
     if (!errorMessages.isEmpty()) {
       DialogLoggerUtil.showMessageDialog("Check batch parameters carefully.",
           String.join("\n", errorMessages));
     }
 
-    logger.info("Loaded " + queue.size() + " batch step(s) from " + file.getName());
-
     // Append, prepend, insert or replace.
-    List<QueueOperations> operations = List.of(QueueOperations.values());
-    ChoiceDialog<QueueOperations> choiceDialog = new ChoiceDialog<>(QueueOperations.Replace,
-        operations);
-    choiceDialog.setTitle("Add Batch Steps");
-    choiceDialog.setContentText("How should the loaded batch steps be added to the queue?");
-    choiceDialog.showAndWait();
-    QueueOperations option = choiceDialog.getResult();
+    final QueueOperations option = DialogLoggerUtil.showAndWaitChoiceDialog(QueueOperations.Replace,
+        QueueOperations.values(), "Add Batch Steps",
+        "How should the loaded batch steps be added to the queue?");
     if (option == null) {
       return;
     }
@@ -441,7 +451,7 @@ public class BatchComponentController implements LastFilesComponent {
       case Replace -> {
         index = 0;
         batchQueue.clear();
-        batchQueue.addAll(queue);
+        batchQueue.setAll(queue);
       }
       case Prepend -> {
         index = 0;
@@ -458,9 +468,6 @@ public class BatchComponentController implements LastFilesComponent {
     }
 
     selectStep(index);
-
-    // add to last used files
-    addLastUsedFile(file);
   }
 
   public void changeOutputFiles(final ActionEvent event) {
