@@ -363,7 +363,9 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
   }
 
   /**
-   * May want to apply other parameters to components
+   * May want to apply other parameters to components, similar to other parameters this means that
+   * the embedded parameterset in this pane is not updated or changed by this. Still needs to call
+   * {@link #updateParameterSetFromComponents()} for this.
    */
   public void setParameterValuesToComponents(ParameterSet parameterSet) {
     for (Parameter<?> p : parameterSet.getParameters()) {
