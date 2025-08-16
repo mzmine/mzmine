@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
 import java.util.Comparator;
 import java.util.Map;
@@ -79,6 +80,13 @@ public class FeatureTableColumnMenuHelper extends TableColumnMenuHelper {
   public FeatureTableColumnMenuHelper(FeatureTableFX featureTable) {
     super(featureTable.getTable());
     this.featureTable = featureTable;
+  }
+
+  @Override
+  protected void onPopupClosed() {
+    super.onPopupClosed();
+    ConfigService.getConfiguration().setModuleParameters(FeatureTableFXModule.class,
+        featureTable.getParameters().cloneParameterSet());
   }
 
   /**

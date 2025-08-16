@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableFilterMenu.FxFeatureTableFilterMenuModel;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
@@ -95,6 +96,9 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
       ExitCode exitCode = param.showSetupDialog(true);
       if (exitCode == ExitCode.OK) {
         updateWindowToParameterSetValues();
+        // set to module
+        ConfigService.getConfiguration()
+            .setModuleParameters(FeatureTableFXModule.class, param.cloneParameterSet());
       }
     });
   }
