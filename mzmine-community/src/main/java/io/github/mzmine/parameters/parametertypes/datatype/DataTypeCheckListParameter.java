@@ -168,7 +168,7 @@ public class DataTypeCheckListParameter implements
    * @param map Map containing new data types and their values
    */
   public void setDataTypesAndVisibility(Map<String, Boolean> map) {
-    value.putAll(map);
+    value = new HashMap<>(map);
   }
 
   @Override
@@ -211,7 +211,7 @@ public class DataTypeCheckListParameter implements
 
   @Override
   public void setValue(Map<String, Boolean> newValue) {
-    this.value.putAll(newValue);
+    this.value = new HashMap<>(newValue);
   }
 
   @Override
