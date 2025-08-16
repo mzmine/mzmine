@@ -25,6 +25,18 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import javafx.geometry.Rectangle2D;
+import javafx.stage.Screen;
+import org.jetbrains.annotations.NotNull;
+
 public record WindowSettings(double x, double y, double width, double height, boolean maximized) {
 
+  /**
+   * creates a maximized setting on the primary screen
+   */
+  public static @NotNull WindowSettings createDefaultMaximized() {
+    final Rectangle2D bounds = Screen.getPrimary().getBounds();
+    return new WindowSettings(bounds.getMinX() + 10, bounds.getMinY() + 10, bounds.getWidth() - 20,
+        bounds.getHeight() - 20, true);
+  }
 }
