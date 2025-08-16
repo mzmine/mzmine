@@ -138,7 +138,8 @@ repositories {
     // maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
 
     maven {
-        url "artifactregistry://europe-west4-maven.pkg.dev/bright-giant/maven-public"
+        url 'https://gitlab.com/api/v4/projects/66031889/packages/maven'
+        name "BG GitLab Common Public"
     }
 }
 
@@ -238,7 +239,7 @@ dependencies {
 
     // sirius api
     dependencies {
-        implementation 'io.sirius-ms:sirius-sdk:6.0.6'
+        implementation 'io.sirius-ms:sirius-sdk:3.1+sirius6.3.0'
     }
 }
 
