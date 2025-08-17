@@ -105,17 +105,21 @@ public abstract class FilterableMenuPopup<T> extends Popup {
     initEventListeners();
   }
 
-  public void askRemoveSelected() {
+  /**
+   * @return the removed item or null if none was removed
+   */
+  public T askRemoveSelected() {
     final T selectedItem = listView.getSelectionModel().getSelectedItem();
     if (selectedItem == null) {
-      return;
+      return null;
     }
     final String name = selectedItem.toString();
     boolean remove = DialogLoggerUtil.showDialogYesNo("Remove preset %s?".formatted(name),
         "Are you sure you want to remove " + name);
     if (remove) {
-      removeItem(selectedItem);
+      return removeItem(selectedItem);
     }
+    return null;
   }
 
   public String getSearchText() {
@@ -125,16 +129,20 @@ public abstract class FilterableMenuPopup<T> extends Popup {
   /**
    * Default just removes from originalItems list. This will not work for unmodifiable lists - then
    * overwrite
+   *
+   * @return the removed item or null if none was removed
    */
-  public void removeItem(@Nullable T selectedItem) {
+  public @Nullable T removeItem(@Nullable T selectedItem) {
     if (selectedItem == null) {
-      return;
+      return null;
     }
     try {
       originalItems.remove(selectedItem);
+      return selectedItem;
     } catch (Exception ex) {
       // silent as this is the most likely unmodifiable list exception
     }
+    return null;
   }
 
   private void recalcHeight() {

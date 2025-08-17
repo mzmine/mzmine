@@ -275,8 +275,10 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
   }
 
   public void setParametersDirect(ParameterSet parameters) {
+    // first set parameters to components - otherwise components tend to auto trigger updates on change
+    setParameterValuesToComponents(parameters);
+    // then set parameters to the parameterset
     ParameterUtils.copyParameters(parameters, parameterSet);
-    setParameterValuesToComponents();
   }
 
   /**

@@ -76,7 +76,7 @@ public class PresetsButton<T extends Preset> extends StackPane {
             presetStore::loadPresetsInDialog), //
         FxButtons.createButton("Remove", FxIcons.X_CIRCLE,
             "Remove selected preset (select with arrow keys up/down) or press delete key to remove.",
-            () -> popup.get().askRemoveSelected()), //
+            this::askRemovePreset), //
         FxIconUtil.newIconButton(FxIcons.GEAR_PREFERENCES, "Manage presets",
             () -> showManageTab(presetStore)), //
     };
@@ -103,6 +103,17 @@ public class PresetsButton<T extends Preset> extends StackPane {
       presetButton = FxIconUtil.newIconButton(fxIcons, "Manage presets", this::showMenu);
     }
     getChildren().add(presetButton);
+  }
+
+  /**
+   * @return the removed preset or null if none was removed
+   */
+  private T askRemovePreset() {
+    final T removed = popup.get().askRemoveSelected();
+    if (removed != null) {
+      presetStore.deletePresetFile(removed);
+    }
+    return removed;
   }
 
   private <T extends Preset> void showManageTab(@NotNull PresetStore<T> presetStore) {

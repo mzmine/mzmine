@@ -252,7 +252,8 @@ class ManagePresetsViewBuilder extends FxViewBuilder<ManagePresetsModel> {
     if (selected.isEmpty()) {
       return;
     }
-    model.consumeEvent(new RemoveSelectedPresetsEvent(selected));
+    // list copy of otherwise inplace will cause exception
+    model.consumeEvent(new RemoveSelectedPresetsEvent(List.copyOf(selected)));
   }
 
   private void renameClicked(ListView<Preset> presetsView) {
