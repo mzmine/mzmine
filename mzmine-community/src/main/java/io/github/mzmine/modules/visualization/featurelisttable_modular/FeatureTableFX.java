@@ -178,7 +178,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   /**
    * Package private to centralize creation in {@link FxFeatureTableController}
    */
-  FeatureTableFX() {
+  FeatureTableFX(@NotNull ParameterSet parameters) {
     dataChangedNotification = new NotificationPane(table);
     setCenter(dataChangedNotification);
 
@@ -200,9 +200,9 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
 
     initFeatureListListener();
 
-    parameters = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
-    rowTypesParameter = parameters.getParameter(FeatureTableFXParameters.showRowTypeColumns);
-    featureTypesParameter = parameters.getParameter(
+    this.parameters = parameters;
+    rowTypesParameter = this.parameters.getParameter(FeatureTableFXParameters.showRowTypeColumns);
+    featureTypesParameter = this.parameters.getParameter(
         FeatureTableFXParameters.showFeatureTypeColumns);
 
     rowItems = FXCollections.observableArrayList();
@@ -1350,5 +1350,9 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
 
   public TreeTableView<ModularFeatureListRow> getTable() {
     return table;
+  }
+
+  public ParameterSet getParameters() {
+    return parameters;
   }
 }

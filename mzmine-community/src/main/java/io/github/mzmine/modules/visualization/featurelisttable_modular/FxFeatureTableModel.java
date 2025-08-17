@@ -54,7 +54,7 @@ public class FxFeatureTableModel {
 
   // for now we need to expose the feature table as it is used in many places
   // usually better to not put view classes into the model
-  private final @NotNull FeatureTableFX featureTable = new FeatureTableFX();
+  private final @NotNull FeatureTableFX featureTable;
 
   // derived properties from feature table
   private final ReadOnlyObjectWrapper<ModularFeatureList> featureList = new ReadOnlyObjectWrapper<>();
@@ -67,6 +67,7 @@ public class FxFeatureTableModel {
 
   public FxFeatureTableModel(@NotNull ParameterSet parameters) {
     this.parameters = parameters;
+    featureTable = new FeatureTableFX(parameters);
 
     internalBindings();
   }
