@@ -126,6 +126,11 @@ repositories {
     maven { url = "https://repo.maven.apache.org/maven2" }
     // local repo needs to be early before other repos otherwise the resolving of local libs failed
     maven { url = uri("file://" + layout.projectDirectory.dir("../local-repo")) }
+    // sirius sdk
+    maven {
+        url 'https://gitlab.com/api/v4/projects/66031889/packages/maven'
+        name "BG GitLab Common Public"
+    }
     // For jmzml, etc.
     maven { url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/" }
     // For SIRIUS ID modules
@@ -136,11 +141,6 @@ repositories {
 //    maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
     // For jimzml
     // maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
-
-    maven {
-        url 'https://gitlab.com/api/v4/projects/66031889/packages/maven'
-        name "BG GitLab Common Public"
-    }
 }
 
 ext {
@@ -238,9 +238,7 @@ dependencies {
     testImplementation(libs.bundles.mzio.test)
 
     // sirius api
-    dependencies {
-        implementation 'io.sirius-ms:sirius-sdk:3.1+sirius6.3.0'
-    }
+    implementation 'io.sirius-ms:sirius-sdk:3.1+sirius6.3.0'
 }
 
 /*
@@ -444,10 +442,12 @@ task signApp(dependsOn: jpackage) {
             getLogger().info("entitlementsPth " + entitlementsPth)
 
             // Define codesign command
-            Consumer<Path> codesign = { Path p -> exec {
-                commandLine(["codesign", "--deep", "--force", "--timestamp", "-s", "${developerID}", "--options",
-                             "runtime", "--entitlements", "${entitlementsPth}", "-f", "-v", "${p}"])
-            } }
+            Consumer<Path> codesign = { Path p ->
+                exec {
+                    commandLine(["codesign", "--deep", "--force", "--timestamp", "-s", "${developerID}", "--options",
+                                 "runtime", "--entitlements", "${entitlementsPth}", "-f", "-v", "${p}"])
+                }
+            }
 
             getLogger().lifecycle('Deleting unused "non-notarizable" libraries...')
 
@@ -465,7 +465,7 @@ task signApp(dependsOn: jpackage) {
             Path runtimeDir = imageDir.resolve('Contents').resolve('runtime')
             for (Path nativeLib : Files.find(imageDir, 999, (p, bfa)  // 999 is a recursive depth
                     -> bfa.isRegularFile() && p.getFileName().toString().matches(".*\\.dylib|.*\\.so|.*\\.dll|.*\\.a|.*\\.lib")
-                        && !p.toAbsolutePath().startsWith(runtimeDir.toAbsolutePath()))) {
+                    && !p.toAbsolutePath().startsWith(runtimeDir.toAbsolutePath()))) {
                 getLogger().lifecycle("Signing native lib '${nativeLib}'")
                 codesign(nativeLib.toAbsolutePath())
             }
@@ -476,7 +476,7 @@ task signApp(dependsOn: jpackage) {
             // Dynamically find and sign all native libraries in JARs
             Path tmpJarsDir = layout.buildDirectory.dir("tmp/jarLibs").get().asFile.toPath()
             Files.createDirectories(tmpJarsDir)
-            
+
             // Find all JAR files in the app directory
             jarsDir.toFile().listFiles().findAll { it.name.endsWith('.jar') }.each { jarFile ->
                 getLogger().lifecycle("Processing jar for native libraries: ${jarFile.name}")
@@ -522,24 +522,24 @@ task notarizeApp(dependsOn: signApp) {
                 commandLine(['npm', 'install', '--python=python3.11', '-g', 'appdmg'])
                 ignoreExitValue = true // In case it's already installed
             }
-            
+
             // Create DMG using appdmg with the existing configuration
             getLogger().lifecycle("Creating DMG with appdmg...")
             exec {
-                commandLine(['appdmg', 
-                            "${layout.projectDirectory.dir('gradle/appdmg.json').asFile.absolutePath}", 
-                            'mzmine_macOS_installer_academia.dmg'])
+                commandLine(['appdmg',
+                             "${layout.projectDirectory.dir('gradle/appdmg.json').asFile.absolutePath}",
+                             'mzmine_macOS_installer_academia.dmg'])
                 workingDir layout.buildDirectory.dir("jpackage").get().asFile
             }
-            
+
             // Sign the DMG itself
             getLogger().lifecycle("Signing DMG...")
             exec {
-                commandLine(['codesign', '--force', '--sign', "${developerID}", '--timestamp', 
+                commandLine(['codesign', '--force', '--sign', "${developerID}", '--timestamp',
                              '--options', 'runtime', 'mzmine_macOS_installer_academia.dmg'])
                 workingDir layout.buildDirectory.dir("jpackage").get().asFile
             }
-            
+
             getLogger().lifecycle("Notarizing DMG...")
             // Notarize the DMG
             ExecResult execResult = exec {
@@ -556,21 +556,21 @@ task notarizeApp(dependsOn: signApp) {
             // Staple the DMG directly (try with --force if regular stapling fails)
             execResult = exec {
                 commandLine(["xcrun", "stapler", "staple",
-                            "${layout.buildDirectory.dir("jpackage").get().asFile.absolutePath}/mzmine_macOS_installer_academia.dmg"])
+                             "${layout.buildDirectory.dir("jpackage").get().asFile.absolutePath}/mzmine_macOS_installer_academia.dmg"])
                 ignoreExitValue = true // Don't fail if stapling fails
             }
             if (execResult.getExitValue() != 0) {
                 getLogger().warn("Stapling failed, but DMG is still notarized and will work for users.")
             }
-            
+
             // Also create portable ZIP from the original .app for those who want it
             getLogger().lifecycle("Creating portable ZIP...")
             exec {
-                commandLine(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent', 
+                commandLine(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent',
                              'mzmine.app', 'mzmine_macOS_portable_academia.zip'])
                 workingDir layout.buildDirectory.dir("jpackage").get().asFile
             }
-            
+
             getLogger().lifecycle("DMG notarization complete!")
         }
     }
@@ -628,6 +628,8 @@ licenseReport {
                 'net.jcip:jcip-annotations', // Creative Commons Attribution License
                 'io.mzio(.*)',
                 'org.openjfx.(.*)',
+                'io.sirius-ms:sirius-sdk(.*)', // for testing, not allowed under mit
+                'de.unijena.bioinf:jjobs-core', // for testing, not allowed under mit
     ]
 
     // Don't exclude bom dependencies.

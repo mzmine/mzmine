@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;

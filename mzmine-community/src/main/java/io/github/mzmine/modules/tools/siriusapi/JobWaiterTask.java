@@ -32,7 +32,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.AbstractSimpleTask;
 import io.sirius.ms.sdk.model.Job;
-import io.sirius.ms.sdk.model.JobProgress.StateEnum;
+import io.sirius.ms.sdk.model.JobState;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -89,7 +89,7 @@ public class JobWaiterTask extends AbstractSimpleTask {
   }
 
   boolean hasFinished(Job job) {
-    final StateEnum state = job.getProgress().getState();
+    final JobState state = job.getProgress().getState();
     return switch (state) {
       case WAITING, READY, QUEUED, SUBMITTED, RUNNING -> false;
       case CANCELED, FAILED, DONE -> true;
@@ -97,7 +97,7 @@ public class JobWaiterTask extends AbstractSimpleTask {
   }
 
   boolean wasSuccessful(Job job) {
-    final StateEnum state = job.getProgress().getState();
+    final JobState state = job.getProgress().getState();
     return switch (state) {
       case WAITING, READY, QUEUED, SUBMITTED, RUNNING, CANCELED, FAILED -> false;
       case DONE -> true;

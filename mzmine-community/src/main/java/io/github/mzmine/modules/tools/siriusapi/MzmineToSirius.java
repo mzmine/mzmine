@@ -40,8 +40,10 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import io.sirius.ms.sdk.api.SearchableDatabasesApi;
 import io.sirius.ms.sdk.model.BasicSpectrum;
+import io.sirius.ms.sdk.model.BioTransformerParameters;
 import io.sirius.ms.sdk.model.FeatureImport;
 import io.sirius.ms.sdk.model.SearchableDatabase;
 import io.sirius.ms.sdk.model.SimplePeak;
@@ -122,8 +124,10 @@ public class MzmineToSirius {
   }
 
   private static BasicSpectrum generateCorrelationSpectrum(FeatureListRow row) {
-    final MassSpectrum correlated = SiriusExportTask.generateCorrelationSpectrum(row, null,
-        SpectraMerging.defaultMs1MergeTol);
+    SpectralLibraryEntryFactory factory = new SpectralLibraryEntryFactory(true, false, false,
+        false);
+    final MassSpectrum correlated = SiriusExportTask.generateCorrelationSpectrum(factory,
+        SpectraMerging.defaultMs1MergeTol, row, null, null);
 
     if (correlated == null) {
       return spectrum(row.getBestFeature().getRepresentativeScan());
@@ -155,7 +159,7 @@ public class MzmineToSirius {
 
     final SearchableDatabasesApi databases = sirius.api().databases();
     final SearchableDatabase database = databases.importIntoDatabase(
-        FileAndPathUtil.eraseFormat(dbFile).getName(), 1000, List.of(dbFile));
+        FileAndPathUtil.eraseFormat(dbFile).getName(), List.of(dbFile), 1000, null);
     database.customDb(true);
     return database;
   }

@@ -66,19 +66,19 @@ public class Sirius implements AutoCloseable {
     logger.finest(sirius.infos().getInfo(null, null).toString());
     ProjectInfo proj = null;
     try {
-      proj = sirius.projects().getProjectSpace(sessionId, List.of(ProjectInfoOptField.NONE));
+      proj = sirius.projects().getProject(sessionId, List.of(ProjectInfoOptField.NONE));
     } catch (RuntimeException e) {
     }
     projectSpace = proj != null ? proj : sirius.projects()
-        .createProjectSpace(sessionId, "/tmp/" + sessionId, List.of(ProjectInfoOptField.NONE));
-    sirius.projects().openProjectSpace(projectSpace.getProjectId(), projectSpace.getLocation(),
+        .createProject(sessionId, "/tmp/" + sessionId, List.of(ProjectInfoOptField.NONE));
+    sirius.projects().openProject(projectSpace.getProjectId(), projectSpace.getLocation(),
         List.of(ProjectInfoOptField.NONE));
   }
 
   public static void main(String[] args) {
     try (Sirius sirius = new Sirius()) {
 
-      logger.info(sirius.api().jobs().getDefaultJobConfig(true).toString());
+      logger.info(sirius.api().jobs().getDefaultJobConfig(true, false, true).toString());
 
 //    sirius.client.features().addAlignedFeatures(project.getProjectId(), )
 
@@ -124,7 +124,7 @@ public class Sirius implements AutoCloseable {
 //    client.projects().openProjectSpace(project.getProjectId(), null, List.of());
 
     final Map<Integer, String> mzmineIdToSiriusId = sirius.features()
-        .getAlignedFeatures(projectSpace.getProjectId(), List.of(AlignedFeatureOptField.NONE))
+        .getAlignedFeatures(projectSpace.getProjectId(), null, List.of(AlignedFeatureOptField.NONE))
         .stream().collect(Collectors.toMap(
             alignedFeature -> Integer.valueOf(alignedFeature.getExternalFeatureId()),
             AlignedFeature::getAlignedFeatureId));
@@ -155,7 +155,7 @@ public class Sirius implements AutoCloseable {
   public Map<FeatureListRow, String> mapFeatureToSiriusId(List<? extends FeatureListRow> rows) {
     checkLogin();
     final Map<Integer, String> mzmineIdToSiriusId = sirius.features()
-        .getAlignedFeatures(projectSpace.getProjectId(), List.of(AlignedFeatureOptField.NONE))
+        .getAlignedFeatures(projectSpace.getProjectId(), null, List.of(AlignedFeatureOptField.NONE))
         .stream().collect(Collectors.toMap(
             alignedFeature -> Integer.valueOf(alignedFeature.getExternalFeatureId()),
             AlignedFeature::getAlignedFeatureId));
@@ -166,7 +166,7 @@ public class Sirius implements AutoCloseable {
   public Job runFingerId(List<FeatureListRow> rows) {
     checkLogin();
     final Map<Integer, String> idsMap = exportToSiriusUnique(rows);
-    final JobSubmission submission = sirius.jobs().getDefaultJobConfig(false);
+    final JobSubmission submission = sirius.jobs().getDefaultJobConfig(false, false, true);
     submission.setAlignedFeatureIds(idsMap.values().stream().toList());
     final Job job = sirius.jobs()
         .startJob(projectSpace.getProjectId(), submission, List.of(JobOptField.PROGRESS));
