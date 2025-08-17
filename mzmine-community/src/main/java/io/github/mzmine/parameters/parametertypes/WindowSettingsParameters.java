@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.util.objects.ObjectUtils;
+import org.jetbrains.annotations.NotNull;
 
 public class WindowSettingsParameters extends SimpleParameterSet {
 
@@ -34,7 +35,7 @@ public class WindowSettingsParameters extends SimpleParameterSet {
   public static final DoubleParameter y = new DoubleParameter("y", "");
   public static final DoubleParameter width = new DoubleParameter("Width", "");
   public static final DoubleParameter height = new DoubleParameter("Height", "");
-  public static final BooleanParameter maximized = new BooleanParameter("Maximized", "");
+  public static final BooleanParameter maximized = new BooleanParameter("Maximized", "", true);
   public static final BooleanParameter autoUpdate = new BooleanParameter("Auto update",
       "Deactivate to fix startup window position to current settings. If active, automatically updates the parameters to reflect the current main window state. Next startup will use this window position and size.",
       true);
@@ -43,6 +44,7 @@ public class WindowSettingsParameters extends SimpleParameterSet {
     super(x, y, width, height, maximized, autoUpdate);
   }
 
+  @NotNull
   public WindowSettings createSettings() throws IllegalArgumentException {
     Double xValue = getValue(x);
     Double yValue = getValue(y);
@@ -51,7 +53,7 @@ public class WindowSettingsParameters extends SimpleParameterSet {
     Boolean maximizedValue = getValue(maximized);
 
     if (ObjectUtils.anyIsNull(xValue, yValue, widthValue, heightValue, maximizedValue)) {
-      return null;
+      return WindowSettings.createDefaultMaximized();
     }
 
     return new WindowSettings(xValue, yValue, widthValue, heightValue, maximizedValue);
@@ -59,11 +61,7 @@ public class WindowSettingsParameters extends SimpleParameterSet {
 
   public void setSettings(WindowSettings settings) {
     if (settings == null) {
-      setParameter(x, null);
-      setParameter(y, null);
-      setParameter(width, null);
-      setParameter(height, null);
-      setParameter(maximized, null);
+      setSettings(WindowSettings.createDefaultMaximized());
       return;
     }
     setParameter(x, settings.x());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,6 @@ package io.github.mzmine.modules.visualization.fx3d;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeaturesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -42,8 +41,8 @@ public class Fx3DVisualizerParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection(1));
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      new ScanSelection(1));
 
   public static final MZRangeParameter mzRange = new MZRangeParameter();
 
@@ -52,17 +51,11 @@ public class Fx3DVisualizerParameters extends SimpleParameterSet {
   public static final IntegerParameter rtResolution = new IntegerParameter(
       "Retention time resolution", "Number of data points on retention time axis", 500);
 
-  public static final IntegerParameter mzResolution =
-      new IntegerParameter("m/z resolution", "Number of data points on m/z axis", 500);
-
-  /**
-   * Windows size and position
-   */
-  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
+  public static final IntegerParameter mzResolution = new IntegerParameter("m/z resolution",
+      "Number of data points on m/z axis", 500);
 
   public Fx3DVisualizerParameters() {
-    super(new Parameter[] {dataFiles, scanSelection, mzRange, features, rtResolution, mzResolution,
-        windowSettings},
+    super(new Parameter[]{dataFiles, scanSelection, mzRange, features, rtResolution, mzResolution},
         "https://mzmine.github.io/mzmine_documentation/visualization_modules/raw_data_overview/raw_data_additional.html#3d-visualizer");
   }
 
