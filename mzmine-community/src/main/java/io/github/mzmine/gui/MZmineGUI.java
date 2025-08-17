@@ -58,6 +58,8 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.WindowSettings;
+import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.project.impl.ProjectChangeListener;
@@ -93,6 +95,7 @@ import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
@@ -503,12 +506,11 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
   public void start(Stage stage) {
 
     MZmineGUI.mainStage = stage;
-
     DesktopService.setDesktop(this);
+    MZminePreferences preferences = ConfigService.getPreferences();
 
     logger.finest("Initializing mzmine main window");
 
-    MZminePreferences preferences = MZmineCore.getConfiguration().getPreferences();
     try {
       // Load the main window
       URL mainFXML = this.getClass().getResource(mzMineFXML);
@@ -520,7 +522,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       preferences.getValue(MZminePreferences.theme).apply(rootScene.getStylesheets());
 
     } catch (Exception e) {
-      logger.log(Level.SEVERE, "Error loading MZmine GUI from FXML: " + e.getMessage(), e);
+      logger.log(Level.SEVERE, "Error loading mzmine GUI from FXML: " + e.getMessage(), e);
       Platform.exit();
     }
 
@@ -551,7 +553,14 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
     setStatusBarText("Welcome to mzmine " + SemverVersionReader.getMZmineVersion());
 
+    // apply last known position of window and bind to changes
+    final WindowSettings windowPosition = preferences.getParameter(MZminePreferences.windowSettings)
+        .createSettings();
+    StageWindowSettingsUtil.applySettingsToWindow(stage, windowPosition);
+
     stage.show();
+
+    autoUpdatePreferencesByStageWindowSettings(stage);
 
     // show message that temp folder should be setup
     if (preferences.getValue(MZminePreferences.showTempFolderAlert)) {
@@ -588,6 +597,20 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     // save configuration on exit if we only run a batch
     Runtime.getRuntime().addShutdownHook(new ShutDownHook());
     Runtime.getRuntime().addShutdownHook(new Thread(new TmpFileCleanup()));
+  }
+
+  private static void autoUpdatePreferencesByStageWindowSettings(Stage stage) {
+    final ObjectProperty<WindowSettings> boundWindowSettingsProperty = StageWindowSettingsUtil.createBoundWindowSettingsProperty(
+        stage);
+    // stage resize or move will change parameter
+    boundWindowSettingsProperty.subscribe((settings) -> {
+      final WindowSettingsParameter windowParam = ConfigService.getPreferences()
+          .getParameter(MZminePreferences.windowSettings);
+      if (windowParam.isAutoUpdate()) {
+        windowParam.setSettings(settings);
+      }
+      // otherwise keep the old parameters
+    });
   }
 
   @Override

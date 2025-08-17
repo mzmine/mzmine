@@ -40,6 +40,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -270,6 +271,16 @@ public class DialogLoggerUtil {
     });
   }
 
+
+  public static TextInputDialog createTextInputDialog(@NotNull String title, @NotNull String header,
+      @NotNull String content) {
+    TextInputDialog dialog = new TextInputDialog();
+    dialog.setTitle(title);
+    dialog.setHeaderText(header);
+    dialog.setContentText(content);
+    return dialog;
+  }
+
   public static void showNotification(@NotNull NotificationType type, @NotNull String title,
       @NotNull String message) {
     logger.info(() -> title + ": " + message);
@@ -291,4 +302,5 @@ public class DialogLoggerUtil {
   public static void showPlainNotification(@NotNull String title, @NotNull String message) {
     showNotification(NotificationType.PLAIN, title, message);
   }
+
 }

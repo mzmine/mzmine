@@ -108,6 +108,7 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -172,8 +173,12 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   private final BooleanProperty sampleColVisibleParameter = new SimpleBooleanProperty();
   private final List<TreeTableColumn<ModularFeatureListRow, String>> rawColumns = new ArrayList<>();
   private final FeatureTableContextMenu contextMenu;
+  private final FeatureTableColumnMenuHelper contextMenuHelper;
 
-  public FeatureTableFX() {
+  /**
+   * Package private to centralize creation in {@link FxFeatureTableController}
+   */
+  FeatureTableFX(@NotNull ParameterSet parameters) {
     dataChangedNotification = new NotificationPane(table);
     setCenter(dataChangedNotification);
 
@@ -184,27 +189,34 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     root.setExpanded(true);
     table.setRoot(root);
     table.setShowRoot(false);
+    // simple plus button over the scroll bar
+    // hard to change layout and add more components as layout is hard coded
+    // still use it to show the context menu from there
     table.setTableMenuButtonVisible(true);
+
     table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     table.getSelectionModel().setCellSelectionEnabled(true);
     setTableEditable(true);
 
     initFeatureListListener();
 
-    parameters = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
-    rowTypesParameter = parameters.getParameter(FeatureTableFXParameters.showRowTypeColumns);
-    featureTypesParameter = parameters.getParameter(
+    this.parameters = parameters;
+    rowTypesParameter = this.parameters.getParameter(FeatureTableFXParameters.showRowTypeColumns);
+    featureTypesParameter = this.parameters.getParameter(
         FeatureTableFXParameters.showFeatureTypeColumns);
 
     rowItems = FXCollections.observableArrayList();
     filteredRowItems = new FilteredList<>(rowItems);
+    // auto reflect filtered items to table
+    Bindings.bindContent(root.getChildren(), filteredRowItems);
+
     newColumnMap = new HashMap<>();
     initHandleDoubleClicks();
     contextMenu = new FeatureTableContextMenu(this);
     table.setContextMenu(contextMenu);
 
     // create custom button context menu to select columns
-    FeatureTableColumnMenuHelper contextMenuHelper = new FeatureTableColumnMenuHelper(this);
+    contextMenuHelper = new FeatureTableColumnMenuHelper(this);
     // Adding additional menu options
     addContextMenuItem(contextMenuHelper, "Compact table", e -> showCompactChromatographyColumns());
     addContextMenuItem(contextMenuHelper, "Toggle sample columns", e -> toggleSampleColumns());
@@ -240,6 +252,12 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     });
   }
 
+  /**
+   * Opens quick column selection menu at the top + button over the scroll bar
+   */
+  public void showQuickColumnSelectionContextMenu() {
+    contextMenuHelper.showContextMenu();
+  }
 
   private void initDataChangedNotification() {
     final Button btnUpdateTable = FxButtons.createButton("Update table", null,
@@ -538,14 +556,10 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     }
 
     FxThread.runLater(() -> {
-      table.getRoot().getChildren().clear();
-      rowItems.clear();
-      // add rows
-      for (FeatureListRow row : featureListProperty.get().getRows()) {
-        final ModularFeatureListRow mrow = (ModularFeatureListRow) row;
-        rowItems.add(new TreeItem<>(mrow));
-      }
-      table.getRoot().getChildren().addAll(filteredRowItems);
+      // create new list - filtering is applied automatically and table items updated
+      final List<TreeItem<ModularFeatureListRow>> newRows = featureListProperty.get().getRows()
+          .stream().map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
+      rowItems.setAll(newRows);
       table.sort();
     });
   }
@@ -1111,8 +1125,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   private void updateFeatureList(@Nullable ModularFeatureList oldFeatureList,
       @Nullable ModularFeatureList newFeatureList) {
     table.getSelectionModel().clearSelection(); // leads to npe or index out of bound
-    // Clear old rows and old columns
-    table.getRoot().getChildren().clear();
+    // Clear old columns - rows are bound to filtered list
     table.getColumns().clear();
     rowItems.clear();
     newColumnMap.clear();
@@ -1138,13 +1151,10 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     // add rows sorted by descending height
     final List<FeatureListRow> sortedRows = newFeatureList.getRows().stream()
         .sorted(Comparator.comparingDouble(FeatureListRow::getMaxHeight).reversed()).toList();
-    for (FeatureListRow row : sortedRows) {
-      final ModularFeatureListRow mrow = (ModularFeatureListRow) row;
-      rowItems.add(new TreeItem<>(mrow));
-    }
 
-    TreeItem<ModularFeatureListRow> root = table.getRoot();
-    root.getChildren().addAll(filteredRowItems);
+    final List<TreeItem<ModularFeatureListRow>> newRows = sortedRows.stream()
+        .map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
+    rowItems.setAll(newRows);
 
     // reflect the changes to the feature list in the table
     newFeatureList.getRows().addListener(this);
@@ -1322,7 +1332,11 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     return table.getSelectionModel();
   }
 
-  public TreeItem<ModularFeatureListRow> getRoot() {
+  /**
+   * Root should be private. The children are bound to {@link #filteredRowItems} those should be
+   * used instead
+   */
+  private TreeItem<ModularFeatureListRow> getRoot() {
     return table.getRoot();
   }
 
@@ -1336,5 +1350,9 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
 
   public TreeTableView<ModularFeatureListRow> getTable() {
     return table;
+  }
+
+  public ParameterSet getParameters() {
+    return parameters;
   }
 }

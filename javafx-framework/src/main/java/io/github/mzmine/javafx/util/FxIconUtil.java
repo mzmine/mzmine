@@ -237,6 +237,10 @@ public class FxIconUtil {
     return newIconButton(fxIcons, size, null, onAction);
   }
 
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, @Nullable String tooltip) {
+    return newIconButton(fxIcons, tooltip, null);
+  }
+
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, @Nullable String tooltip,
       @Nullable Runnable onAction) {
     return newIconButton(fxIcons, DEFAULT_ICON_SIZE, tooltip, onAction);
@@ -302,4 +306,7 @@ public class FxIconUtil {
     return stack;
   }
 
+  public static Image getIconImage(IconCodeSupplier code) {
+    return fontIconToImage(getFontIcon(code));
+  }
 }

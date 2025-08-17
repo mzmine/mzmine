@@ -28,7 +28,7 @@ package io.github.mzmine.parameters.parametertypes.metadata;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabelNoWrap;
 
 import io.github.mzmine.javafx.components.util.FxLayout;
-import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,9 +36,9 @@ import org.jetbrains.annotations.Nullable;
 public class Metadata2GroupsSelectionComponent extends GridPane {
 
   private final MetadataGroupingComponent columnField = new MetadataGroupingComponent();
-  private final ComboBox<String> groupFieldA = columnField.createLinkedGroupCombo(
+  private final TextField groupFieldA = columnField.createLinkedGroupCombo(
       "Select first group (A) from column.");
-  private final ComboBox<String> groupFieldB = columnField.createLinkedGroupCombo(
+  private final TextField groupFieldB = columnField.createLinkedGroupCombo(
       "Select second group (B) from column.");
 
   public Metadata2GroupsSelectionComponent() {
@@ -53,22 +53,22 @@ public class Metadata2GroupsSelectionComponent extends GridPane {
 
   public void setValue(@Nullable Metadata2GroupsSelection value) {
     if (value == null) {
-      groupFieldA.setValue("");
-      groupFieldB.setValue("");
+      groupFieldA.setText("");
+      groupFieldB.setText("");
       columnField.setValue("");
       return;
     }
 
-    groupFieldA.setValue(value.groupA());
-    groupFieldB.setValue(value.groupB());
+    groupFieldA.setText(value.groupA());
+    groupFieldB.setText(value.groupB());
     columnField.setValue(value.columnName());
   }
 
   @NotNull
   public Metadata2GroupsSelection getValue() {
     final String column = columnField.getValue();
-    final String groupA = groupFieldA.getValue();
-    final String groupB = groupFieldB.getValue();
+    final String groupA = groupFieldA.getText();
+    final String groupB = groupFieldB.getText();
 
     if (column == null || groupA == null || groupB == null) {
       return Metadata2GroupsSelection.NONE;

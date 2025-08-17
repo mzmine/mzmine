@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,17 +29,25 @@ import io.github.dan2097.jnainchi.InchiKeyOutput;
 import io.github.dan2097.jnainchi.InchiKeyStatus;
 import io.github.dan2097.jnainchi.InchiStatus;
 import io.github.dan2097.jnainchi.JnaInchi;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.aromaticity.Aromaticity;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.graph.Cycles;
 import org.openscience.cdk.inchi.InChIGenerator;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class StructureUtils {
+
+  private static final Logger logger = Logger.getLogger(StructureUtils.class.getName());
 
   public enum SmilesFlavor {
     CANONICAL, ISOMERIC
@@ -74,6 +82,8 @@ public class StructureUtils {
   @Nullable
   public static String getSmilesOrThrow(SmilesFlavor flavor, IAtomContainer structure)
       throws CDKException {
+    // otherwise structure CC(OH) will contain H in smiles
+    structure = AtomContainerManipulator.copyAndSuppressedHydrogens(structure);
     return getSmilesGen(flavor).create(structure);
   }
 
@@ -185,6 +195,51 @@ public class StructureUtils {
 
   public static int getTotalFormalCharge(IAtomContainer structure) {
     return AtomContainerManipulator.getTotalFormalCharge(structure);
+  }
+
+  public static IAtomContainer harmonize(IAtomContainer structure) {
+    structure = AtomContainerManipulator.copyAndSuppressedHydrogens(structure);
+    Cycles.markRingAtomsAndBonds(structure);
+    Aromaticity.apply(Aromaticity.Model.Daylight, structure);
+    return structure;
+  }
+
+  public static IAtomContainer harmonizeRemoveStereoChemistry(IAtomContainer mol) {
+    // 1. Clone
+    try {
+      mol = mol.clone();
+    } catch (CloneNotSupportedException e) {
+      logger.log(Level.WARNING, "Failed to clone structure. " + e.getMessage(), e);
+      throw new IllegalStateException("Failed to clone structure", e);
+    }
+
+    // 2. Remove all StereoElement objects
+    mol.setStereoElements(new ArrayList<>());
+
+    // 3. Reset bond stereochemistry
+    for (IBond bond : mol.bonds()) {
+      bond.setStereo(IBond.Stereo.NONE);
+    }
+
+    // 5. (Optional) remove explicit hydrogens
+    AtomContainerManipulator.suppressHydrogens(mol);
+    Cycles.markRingAtomsAndBonds(mol);
+    Aromaticity.apply(Aromaticity.Model.Daylight, mol);
+
+    return mol;
+  }
+
+  public static boolean equalsSmiles(IAtomContainer structure1, IAtomContainer structure2,
+      SmilesFlavor smilesFlavor) {
+    final String a = getSmiles(smilesFlavor, structure1);
+    final String b = getSmiles(smilesFlavor, structure2);
+    return a.equals(b);
+  }
+
+  public static boolean equalsInchiKey(IAtomContainer structure1, IAtomContainer structure2) {
+    final String a = getInchiKey(structure1);
+    final String b = getInchiKey(structure2);
+    return a.equals(b);
   }
 
 }

@@ -45,6 +45,7 @@ import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilter;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilterConfig;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectFilter;
+import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.RowTypeFilter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListUtils;
@@ -115,6 +116,7 @@ public class RowsFilterTask extends AbstractTask {
   private final boolean removeRedundantIsotopeRows;
   private final boolean keepAnnotated;
   private final MinimumSamplesFilter minSamplesInOneGroup;
+  private final RowTypeFilter rowTypeFilter;
   private FeatureList filteredFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
@@ -161,6 +163,8 @@ public class RowsFilterTask extends AbstractTask {
     filterOption = parameters.getValue(RowsFilterParameters.REMOVE_ROW);
     onlyWithOtherCorrelated = parameters.getValue(
         RowsFilterParameters.onlyCorrelatedWithOtherDetectors);
+
+    rowTypeFilter = parameters.getOptionalValue(RowsFilterParameters.ROW_TYPE_FILTER).orElse(null);
 
     // create min samples filter based on all files and on groups in column
     minSamples = parameters.getOptionalValue(RowsFilterParameters.MIN_FEATURE_COUNT)
@@ -451,6 +455,11 @@ public class RowsFilterTask extends AbstractTask {
       if (!rtRange.contains(row.getAverageRT())) {
         return true;
       }
+    }
+
+    // flexible filter like substructure filter
+    if (rowTypeFilter != null && !rowTypeFilter.matches(row)) {
+      return true;
     }
 
     // Search feature identity text.
