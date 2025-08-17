@@ -1351,4 +1351,8 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   public TreeTableView<ModularFeatureListRow> getTable() {
     return table;
   }
+
+  public ParameterSet getParameters() {
+    return parameters;
+  }
 }
