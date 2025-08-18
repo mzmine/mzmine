@@ -40,6 +40,7 @@ import io.sirius.ms.sdk.model.JobSubmission;
 import io.sirius.ms.sdk.model.ProjectInfo;
 import io.sirius.ms.sdk.model.ProjectInfoOptField;
 import io.sirius.ms.sdk.model.StructureCandidateFormula;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -49,6 +50,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 public class Sirius implements AutoCloseable {
 
@@ -65,14 +67,25 @@ public class Sirius implements AutoCloseable {
     checkLogin();
     logger.finest(sirius.infos().getInfo(null, null).toString());
     ProjectInfo proj = null;
+    File projectFile = new File(FileAndPathUtil.getTempDir(), sessionId + ".sirius");
     try {
+      sirius.projects()
+          .openProject(sessionId, projectFile.getAbsolutePath(), List.of(ProjectInfoOptField.NONE));
       proj = sirius.projects().getProject(sessionId, List.of(ProjectInfoOptField.NONE));
     } catch (RuntimeException e) {
+      switch (e) {
+        case WebClientResponseException r ->
+            logger.log(Level.SEVERE, r.getResponseBodyAsString(), e);
+        default -> logger.log(Level.SEVERE, e.getMessage(), e);
+      }
+      throw e;
     }
     projectSpace = proj != null ? proj : sirius.projects()
-        .createProject(sessionId, "/tmp/" + sessionId, List.of(ProjectInfoOptField.NONE));
-    sirius.projects().openProject(projectSpace.getProjectId(), projectSpace.getLocation(),
-        List.of(ProjectInfoOptField.NONE));
+        .createProject(sessionId, projectFile.getAbsolutePath(), List.of(ProjectInfoOptField.NONE));
+    // project already opened after creating.
+    //    sirius.projects().openProject(projectSpace.getProjectId(), projectSpace.getLocation(),
+//        List.of(ProjectInfoOptField.NONE));
+    sirius.gui().openGui(projectSpace.getProjectId());
   }
 
   public static void main(String[] args) {

@@ -27,15 +27,27 @@ package io.github.mzmine.modules.tools.siriusapi;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
+import javax.validation.constraints.Null;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 public class SiriusStaticUtil {
 
+  private static final Logger logger = Logger.getLogger(SiriusStaticUtil.class.getName());
+
+  @Nullable
   public static Map<Integer, String> exportToSiriusUnique(List<? extends FeatureListRow> rows) {
     try (Sirius s = new Sirius()) {
       return s.exportToSiriusUnique(rows);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      switch (e) {
+        case WebClientResponseException r -> logger.log(Level.SEVERE, r.getResponseBodyAsString(), e);
+        default -> logger.log(Level.SEVERE, e.getMessage(), e);
+      }
+      return null;
     }
-  }
+  };
 
 }
