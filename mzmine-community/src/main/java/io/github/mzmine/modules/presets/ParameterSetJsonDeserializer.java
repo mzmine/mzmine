@@ -23,29 +23,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.modules.presets;
 
-import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import org.jetbrains.annotations.NotNull;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
+import java.io.IOException;
+import javax.xml.parsers.ParserConfigurationException;
+import org.xml.sax.SAXException;
 
-/**
- * @param <T>
- */
-public abstract class AbstractPresetStore<T extends Preset> implements PresetStore<T> {
+public class ParameterSetJsonDeserializer extends JsonDeserializer<ParameterSet> {
 
-  private static final Logger logger = Logger.getLogger(AbstractPresetStore.class.getName());
+  private final ParameterSet helper;
 
-  private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
-
-  public AbstractPresetStore() {
+  public ParameterSetJsonDeserializer(ParameterSet helper) {
+    this.helper = helper;
   }
 
   @Override
-  public @NotNull ObservableList<T> getCurrentPresets() {
-    return currentPresets;
-  }
+  public ParameterSet deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+    String xml = p.getValueAsString();
 
+    final ParameterSet clone = helper.cloneParameterSet();
+    try {
+      ParameterUtils.loadValuesFromXMLString(clone, xml);
+    } catch (ParserConfigurationException | SAXException e) {
+      return null;
+    }
+    return clone;
+  }
 
 }

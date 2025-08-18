@@ -23,29 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.parameters.parametertypes.row_type_filter;
 
-import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.util.presets.PresetStore;
+import io.github.mzmine.util.presets.manage.SimplePresetEditor;
 
 /**
- * @param <T>
+ * This is the editor shown in the preset management tab. It uses the {@link RowTypeFilterComponent}
+ * and adds an apply button to it.
  */
-public abstract class AbstractPresetStore<T extends Preset> implements PresetStore<T> {
+public class RowTypeFilterPresetEditor extends SimplePresetEditor<RowTypeFilterPreset> {
 
-  private static final Logger logger = Logger.getLogger(AbstractPresetStore.class.getName());
+  private final RowTypeFilterComponent comp;
 
-  private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
+  public RowTypeFilterPresetEditor(PresetStore store) {
+    super(store);
 
-  public AbstractPresetStore() {
+    comp = RowTypeFilterParameter.createDefaultEditingComponent(false);
+    getChildren().addFirst(comp);
+
+    comp.valueProperty().subscribe((nv) -> {
+      setModifiedPreset(RowTypeFilterPreset.createPreset("placeholder", nv));
+    });
   }
 
   @Override
-  public @NotNull ObservableList<T> getCurrentPresets() {
-    return currentPresets;
+  protected void setPresetInComponent(RowTypeFilterPreset originalPreset) {
+    comp.setValue(originalPreset == null ? null : originalPreset.filter());
   }
-
-
 }

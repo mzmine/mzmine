@@ -29,10 +29,10 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.RowTypeFilter;
+import io.github.mzmine.util.presets.KnownPresetGroup;
 import io.github.mzmine.util.presets.Preset;
 import io.github.mzmine.util.presets.PresetCategory;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -41,7 +41,12 @@ public record RowTypeFilterPreset(String name, RowTypeFilter filter) implements 
 
   public static RowTypeFilterPreset createPreset(String name, RowTypeFilterOption option,
       MatchingMode mode, String query) {
-    return new RowTypeFilterPreset(name, RowTypeFilter.create(option, mode, query));
+    final RowTypeFilter filter = RowTypeFilter.create(option, mode, query);
+    return createPreset(name, filter);
+  }
+
+  public static @NotNull RowTypeFilterPreset createPreset(String name, RowTypeFilter filter) {
+    return new RowTypeFilterPreset(name, filter);
   }
 
 
@@ -53,7 +58,7 @@ public record RowTypeFilterPreset(String name, RowTypeFilter filter) implements 
 
   @Override
   public @NotNull RowTypeFilterPreset withName(String name) {
-    return new RowTypeFilterPreset(name, filter);
+    return createPreset(name, filter);
   }
 
   @Override
@@ -62,7 +67,7 @@ public record RowTypeFilterPreset(String name, RowTypeFilter filter) implements 
   }
 
   @Override
-  public @Nullable String presetGroup() {
-    return RowTypeFilterPresetStore.PRESET_GROUP;
+  public @NotNull String presetGroup() {
+    return KnownPresetGroup.ROW_TYPE_FILTER_PRESET.getUniqueID();
   }
 }

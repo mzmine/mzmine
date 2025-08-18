@@ -25,27 +25,32 @@
 
 package io.github.mzmine.util.presets;
 
-import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @param <T>
- */
-public abstract class AbstractPresetStore<T extends Preset> implements PresetStore<T> {
+public enum KnownPresetGroup implements PresetGroup {
 
-  private static final Logger logger = Logger.getLogger(AbstractPresetStore.class.getName());
+  /**
+   * {@link RowTypeFilterPreset}
+   */
+  ROW_TYPE_FILTER_PRESET;
 
-  private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
-
-  public AbstractPresetStore() {
+  public KnownPresetGroup parse(String name) {
+    return UniqueIdSupplier.parseOrElse(name, values(), null);
   }
 
   @Override
-  public @NotNull ObservableList<T> getCurrentPresets() {
-    return currentPresets;
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case ROW_TYPE_FILTER_PRESET -> "feature_table_filters";
+    };
   }
 
-
+  @Override
+  public String toString() {
+    return switch (this) {
+      case ROW_TYPE_FILTER_PRESET -> "Feature table filters";
+    };
+  }
 }

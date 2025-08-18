@@ -23,29 +23,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.modules.presets;
 
-import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.util.presets.PresetGroup;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @param <T>
- */
-public abstract class AbstractPresetStore<T extends Preset> implements PresetStore<T> {
+public record ModulePresetGroup(MZmineModule module) implements PresetGroup {
 
-  private static final Logger logger = Logger.getLogger(AbstractPresetStore.class.getName());
-
-  private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
-
-  public AbstractPresetStore() {
+  @Override
+  public @NotNull String toString() {
+    return module.getName();
   }
 
   @Override
-  public @NotNull ObservableList<T> getCurrentPresets() {
-    return currentPresets;
+  public @NotNull String getUniqueID() {
+    return module.getUniqueID();
   }
-
-
 }

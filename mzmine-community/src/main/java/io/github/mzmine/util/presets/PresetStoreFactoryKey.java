@@ -25,27 +25,26 @@
 
 package io.github.mzmine.util.presets;
 
-import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @param <T>
+ * Key to identify a {@link PresetStoreFactory}
  */
-public abstract class AbstractPresetStore<T extends Preset> implements PresetStore<T> {
+public record PresetStoreFactoryKey(@NotNull String key) {
 
-  private static final Logger logger = Logger.getLogger(AbstractPresetStore.class.getName());
-
-  private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
-
-  public AbstractPresetStore() {
+  /**
+   * @param group group is the {@link PresetGroup#getUniqueID()} which is the folder name
+   */
+  public static PresetStoreFactoryKey create(@NotNull PresetCategory category,
+      @NotNull String group) {
+    if (category == PresetCategory.MODULES) {
+      // module category uses the same factory for all modules so no group in key
+      return new PresetStoreFactoryKey(category.getFolderName());
+    }
+    return new PresetStoreFactoryKey(category.getFolderName() + "_" + group);
   }
 
-  @Override
-  public @NotNull ObservableList<T> getCurrentPresets() {
-    return currentPresets;
+  public static PresetStoreFactoryKey MODULE() {
+    return PresetStoreFactoryKey.create(PresetCategory.MODULES, "");
   }
-
-
 }
