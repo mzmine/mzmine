@@ -82,4 +82,5 @@ public class RowGroupSimple implements RowGroup {
   public String toString() {
     return String.valueOf(getGroupID());
   }
+
 }

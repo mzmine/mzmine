@@ -187,13 +187,13 @@ public class FoundLipid {
     }
 
     /**
-     * Method to normalize the socre between 0 and 2.
+     * Method to normalize the socre between -1 and 1.
      * @param rawScore score assigned by the drl files when firing the rules.
      * @param maxScore highest score possible if all the positive rules were to execute.
-     * @return normalized score value [0,2].
+     * @return normalized score value [-1,1].
      */
     public double normalizeScore(double rawScore, double maxScore) {
-        return Math.max(0.0, Math.min(2.0, ((double)(rawScore + maxScore) / (2.0 * maxScore)) * 2.0));
+        return Math.max(-1.0, Math.min(1.0, rawScore / maxScore));
     }
 
     /**

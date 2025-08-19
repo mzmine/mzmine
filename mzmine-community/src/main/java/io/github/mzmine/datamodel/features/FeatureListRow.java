@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
@@ -569,5 +570,7 @@ public interface FeatureListRow extends ModularDataModel {
     return streamFeatures().sorted(Comparator.comparingDouble(Feature::getHeight).reversed())
         .map(Feature::getRepresentativePolarity).filter(Objects::nonNull).findFirst().orElse(null);
   }
+
+  void addLipidValidation(FoundLipid lipid);
 
 }
