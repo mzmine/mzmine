@@ -27,8 +27,6 @@ package io.github.mzmine.datamodel.impl.masslist;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.impl.AbstractStorableSpectrum;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -39,29 +37,38 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.math.plot.utils.Array;
 
 /**
- * This class represent detected masses (ions) in one mass spectrum
+ * This class represent detected masses (ions) in one mass spectrum. But the spectrum intensities
+ * were multiplied by a factor.
  */
-public class SimpleMassList extends AbstractStorableSpectrum implements MassList {
+public class SimpleFactorMassList extends SimpleMassList {
 
-  public static final String XML_ELEMENT = "simplemasslist";
+  public static final String XML_ELEMENT = "simple_factor_masslist";
+  public static final String XML_ATTR_FACTOR = "factor";
 
-  public SimpleMassList(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
-      @NotNull double[] intensityValues) {
+  private final double factor;
+
+  public SimpleFactorMassList(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
+      @NotNull double[] intensityValues, final double factor) {
     super(storage, mzValues, intensityValues);
+    this.factor = factor;
   }
 
   /**
    * @param storage       the storage
    * @param mzIntensities 2D array with mzs[0][] an d intensities[1][].
    */
-  public SimpleMassList(@Nullable MemoryMapStorage storage, @NotNull double[][] mzIntensities) {
-    super(storage, mzIntensities[0], mzIntensities[1]);
+  public SimpleFactorMassList(@Nullable MemoryMapStorage storage, @NotNull double[][] mzIntensities,
+      final double factor) {
+    this(storage, mzIntensities[0], mzIntensities[1], factor);
   }
 
-  protected SimpleMassList(MemorySegment mzValues, MemorySegment intensityValues) {
+  protected SimpleFactorMassList(MemorySegment mzValues, MemorySegment intensityValues,
+      final double factor) {
     super(mzValues, intensityValues);
+    this.factor = factor;
   }
 
   /**
@@ -71,45 +78,62 @@ public class SimpleMassList extends AbstractStorableSpectrum implements MassList
    * @param dps
    */
   @Deprecated
-  public static MassList create(MemoryMapStorage storageMemoryMap, DataPoint[] dps) {
+  public static SimpleFactorMassList create(MemoryMapStorage storageMemoryMap, DataPoint[] dps,
+      final double factor) {
     double[][] mzIntensity = DataPointUtils.getDataPointsAsDoubleArray(dps);
-    return new SimpleMassList(storageMemoryMap, mzIntensity[0], mzIntensity[1]);
+    return new SimpleFactorMassList(storageMemoryMap, mzIntensity[0], mzIntensity[1], factor);
+  }
+
+  /**
+   * Provides the original intensity value before it was multiplied by {@link #getFactor()}
+   *
+   * @param index data point index
+   * @return intensity / factor
+   */
+  public double getOriginalIntensityValue(int index) {
+    return getIntensityValue(index) / factor;
+  }
+
+  /**
+   * Provides the original intensity value before it was multiplied by {@link #getFactor()}
+   *
+   * @param dst the array to hold the array of intensities
+   * @return intensity / factor
+   */
+  public double[] getOriginalIntensityValues(double @NotNull [] dst) {
+    // make defensive copy here
+    final double[] values = Array.copy(getIntensityValues(dst));
+    for (int i = 0; i < values.length; i++) {
+      values[i] /= factor;
+    }
+    return values;
+  }
+
+  /**
+   * Provides the original intensity value before it was multiplied by {@link #getFactor()}
+   *
+   * @return intensity / factor
+   */
+  public double[] getOriginalIntensityValues() {
+    // make defensive copy here
+    final double[] values = Array.copy(getIntensityValues(new double[getNumberOfDataPoints()]));
+    for (int i = 0; i < values.length; i++) {
+      values[i] /= factor;
+    }
+    return values;
+  }
+
+  public double getFactor() {
+    return factor;
   }
 
   @Override
-  public DataPoint[] getDataPoints() {
-    final double[][] mzIntensity = new double[2][];
-    final int numDp = getNumberOfDataPoints();
-
-    mzIntensity[0] = new double[numDp];
-    mzIntensity[1] = new double[numDp];
-    getMzValues(mzIntensity[0]);
-    getIntensityValues(mzIntensity[1]);
-
-    DataPoint[] dps = new DataPoint[numDp];
-    for (int i = 0; i < numDp; i++) {
-      dps[i] = new SimpleDataPoint(mzIntensity[0][i], mzIntensity[1][i]);
-    }
-
-    return dps;
-  }
-
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
 
-    writeSpectralArrays(writer);
+    writer.writeAttribute(XML_ATTR_FACTOR, String.valueOf(factor));
+    super.writeSpectralArrays(writer);
 
-    writer.writeEndElement();
-  }
-
-  protected void writeSpectralArrays(XMLStreamWriter writer) throws XMLStreamException {
-    writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
-    writer.writeCharacters(
-        ParsingUtils.doubleArrayToString(DataPointUtils.getDoubleBufferAsArray(mzValues)));
-    writer.writeEndElement();
-    writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
-    writer.writeCharacters(
-        ParsingUtils.doubleArrayToString(DataPointUtils.getDoubleBufferAsArray(intensityValues)));
     writer.writeEndElement();
   }
 
@@ -118,6 +142,8 @@ public class SimpleMassList extends AbstractStorableSpectrum implements MassList
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException("Wrong element.");
     }
+
+    final double factor = Double.parseDouble(reader.getAttributeValue(null, XML_ATTR_FACTOR));
 
     double[] intensities = null;
     double[] mzs = null;
@@ -138,7 +164,6 @@ public class SimpleMassList extends AbstractStorableSpectrum implements MassList
       }
     }
 
-    return new SimpleMassList(storage, mzs, intensities);
+    return new SimpleFactorMassList(storage, mzs, intensities, factor);
   }
-
 }

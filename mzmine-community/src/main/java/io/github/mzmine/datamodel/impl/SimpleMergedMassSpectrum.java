@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.datamodel.impl.masslist.SimpleFactorMassList;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -344,6 +345,8 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
         }
         case SimpleMassList.XML_ELEMENT ->
             SimpleMassList.loadFromXML(reader, file.getMemoryMapStorage());
+        case SimpleFactorMassList.XML_ELEMENT ->
+            SimpleFactorMassList.loadFromXML(reader, file.getMemoryMapStorage());
       }
     }
 
