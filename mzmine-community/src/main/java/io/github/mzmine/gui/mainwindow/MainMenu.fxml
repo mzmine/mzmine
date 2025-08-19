@@ -466,8 +466,8 @@
         <MenuItem onAction="#runModule"
           text="Lipid Annotation"
           userData="io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule"/>
-        <MenuItem onAction="#runModule"
-                  text="Lipid Validation"
+        <MenuItem text="Lipid Validation"
+                  onAction="#runModule"
                   userData="io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.LipidIDExpertKnowledgeModule"/>
         <MenuItem text="NIST MS search" onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule"/>

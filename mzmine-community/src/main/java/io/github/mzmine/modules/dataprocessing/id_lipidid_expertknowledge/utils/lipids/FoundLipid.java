@@ -3,6 +3,7 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.VirtualRowGroup;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.FoundAdduct;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Class that represents the lipids found in my features.
@@ -48,6 +50,8 @@ public class FoundLipid {
      */
     private List<FoundAdduct> adducts;
 
+    private Integer subgroupID;
+
 
     public static final String XML_ELEMENT = "lipidvalidation";
     private static final Logger logger = Logger.getLogger(FoundLipid.class.getName());
@@ -77,13 +81,14 @@ public class FoundLipid {
      * This constructor is called when the feature does not have an annotation.
      * @param foundAdducts List of FoundAdducts found for the feature.
      */
-    public FoundLipid(List<FoundAdduct> foundAdducts) {
+    public FoundLipid(List<FoundAdduct> foundAdducts, VirtualRowGroup virtualGroup) {
         this.lipid = null;
         this.score = 0.00;
         this.annotatedLipid = null;
         this.descrCorrect = "No matched lipids found";
         this.descrIncorrect = "Found adducts are assumptions!";
         this.adducts = foundAdducts;
+        this.subgroupID = virtualGroup.getSubgroupID();
     }
 
     /**
@@ -91,8 +96,9 @@ public class FoundLipid {
      * @return a String with the adducts.
      */
     public String getAdducts() {
-        String stringAdducts = this.adducts.toString();
-        return stringAdducts;
+        return adducts.stream()
+                .map(adduct -> adduct.toString().trim().replaceAll("[,;]+$", "")) // clean each adduct
+                .collect(Collectors.joining(", ", "[", "]"));
     }
 
     /**
@@ -157,6 +163,13 @@ public class FoundLipid {
      */
     public void setDescrCorrect(String descrCorrect) {
         this.descrCorrect = this.descrCorrect + descrCorrect;
+    }
+
+    public Integer getSubgroupID() {
+        return subgroupID;
+    }
+    public void setSubgroupID(Integer subgroupID) {
+        this.subgroupID = subgroupID;
     }
 
     /**

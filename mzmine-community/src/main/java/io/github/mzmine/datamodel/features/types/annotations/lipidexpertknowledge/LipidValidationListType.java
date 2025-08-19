@@ -37,11 +37,12 @@ public class LipidValidationListType extends ListWithSubsType<FoundLipid> implem
      */
     private static final List<DataType> subTypes = List.of(
             new LipidValidationListType(),
+            new LipidValidationSubgroupType(),
             new LipidValidationScoreType(),
             new LipidValidationCorrectDescriptionType(),
             new LipidValidationIncorrectDescriptionType(),
             new LipidValidationAdductsType()
-            );
+    );
 
     /**
      * Identifier for the group of columns.
@@ -84,6 +85,8 @@ public class LipidValidationListType extends ListWithSubsType<FoundLipid> implem
     public <K> @Nullable K map(@NotNull DataType<K> subType, FoundLipid lipid) {
         if (subType instanceof LipidValidationListType) {
             return (K) lipid;
+        } else if (subType instanceof LipidValidationSubgroupType){
+            return (K) Integer.valueOf(lipid.getSubgroupID());
         } else if (subType instanceof LipidValidationScoreType) {
             return (K) lipid.getScore();
         } else if (subType instanceof LipidValidationCorrectDescriptionType) {
@@ -98,6 +101,7 @@ public class LipidValidationListType extends ListWithSubsType<FoundLipid> implem
             );
         }
     }
+
 
 
     @Override

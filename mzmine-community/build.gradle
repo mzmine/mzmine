@@ -183,7 +183,7 @@ dependencies {
     implementation(libs.bundles.batik)
     implementation(libs.bundles.okhttp)
     implementation "org.postgresql:postgresql:9.3-1102-jdbc41"
-    implementation "org.rsc.chemspider:chemspider-api:1.0.0"
+    //implementation "org.rsc.chemspider:chemspider-api:1.0.0"
     implementation "org.freehep:freehep-graphicsio-emf:2.4"
     implementation("eu.hansolo.fx:charts:21.0.7")
     implementation group: 'net.sf.trove4j', name: 'trove4j', version: '3.0.3'

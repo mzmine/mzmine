@@ -16,7 +16,7 @@ when
     $adduct: FoundAdduct(adductName == "[M+H]+")
 then
     lipid.setScore(1);
-    lipid.setDescrCorrect("Contains [M+H]+; ");
+    lipid.setDescrCorrect("Contains [M+H]+, ");
 end
 rule "No presence [M+NH4]+"
 when
@@ -25,7 +25,7 @@ when
     eval($phase1 == MobilePhases.NH4)
 then
     lipid.setScore(-1);
-    lipid.setDescrIncorrect("Missing [M+NH4]+; ");
+    lipid.setDescrIncorrect("Missing [M+NH4]+, ");
 end
 
 rule "Presence [M+NH4]+"
@@ -35,7 +35,7 @@ when
     eval($phase1 == MobilePhases.NH4)
 then
     lipid.setScore(1);
-    lipid.setDescrCorrect("Contains [M+NH4]+; ");
+    lipid.setDescrCorrect("Contains [M+NH4]+, ");
 end
 
 rule "Presence [cholestadiene ion]+"
@@ -43,7 +43,7 @@ when
     $adduct: FoundAdduct(adductName == "[C27H44]+")
 then
     lipid.setScore(1);
-    lipid.setDescrCorrect("Contains [cholestadiene ion]+; ");
+    lipid.setDescrCorrect("Contains [cholestadiene ion]+, ");
 end
 
 
@@ -58,7 +58,7 @@ when
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
 then
     lipid.setScore(2);
-    lipid.setDescrCorrect("Intensity OK [M+NH4]+ > [M+H]+; ");
+    lipid.setDescrCorrect("Intensity OK [M+NH4]+ > [M+H]+, ");
 end
 
 rule "Intensity [M+NH4]+ < [M+H]+"
@@ -71,5 +71,5 @@ when
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
     lipid.setScore(-2);
-    lipid.setDescrIncorrect("Intensity NOT OK [M+NH4]+ < [M+H]+; ");
+    lipid.setDescrIncorrect("Intensity NOT OK [M+NH4]+ < [M+H]+, ");
 end
