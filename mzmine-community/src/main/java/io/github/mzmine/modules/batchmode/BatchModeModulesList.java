@@ -121,6 +121,7 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_ri.RICalculationModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
@@ -137,6 +138,7 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_features_xml.ExportFeaturesDataModule;
 import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
 import io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule;
+import io.github.mzmine.modules.io.export_merge_libraries.MergeLibrariesModule;
 import io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule;
 import io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule;
 import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportModule;
@@ -274,7 +276,6 @@ public class BatchModeModulesList {
           IonMobilityTraceBuilderModule.class, //
           RecursiveIMSBuilderModule.class, //
           ImageBuilderModule.class, //
-          MsnFeatureDetectionModule.class, //
           TargetedFeatureDetectionModule.class, //
 //      ADAPHierarchicalClusteringModule.class, //
 //      ADAPMultivariateCurveResolutionModule.class, //
@@ -337,6 +338,7 @@ public class BatchModeModulesList {
           ClearFeatureAnnotationsModule.class, //
           LinearNormalizerModule.class, //
           RTCorrectionModule.class, //
+          ScanRtCorrectionModule.class, //
           StandardCompoundNormalizerModule.class, //
           RICalculationModule.class, //
 
@@ -414,12 +416,11 @@ public class BatchModeModulesList {
           ExportFeaturesDataModule.class, //
 
           /*
-           * needed in batch mode?
-           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#VISUALIZATION}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECLIBEXPORT}
            */
+          MergeLibrariesModule.class, //
 
           /*
-           * needed in batch mode?
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#OTHER}
            */
           TimsTOFMaldiAcquisitionModule.class, //

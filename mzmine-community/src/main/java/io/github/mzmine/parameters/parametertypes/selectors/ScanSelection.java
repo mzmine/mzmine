@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -75,14 +75,18 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
         MsLevelFilter.of(msLevel), null);
   }
 
-  public ScanSelection(Range<Double> scanRTRange, Integer msLevel, PolarityType polarity) {
-    this(null, null, scanRTRange, null, polarity, MassSpectrumType.ANY, MsLevelFilter.of(msLevel),
-        null);
+  public ScanSelection(Integer msLevel, Range<Float> scanRTRange, PolarityType polarity) {
+    this(null, null, scanRTRange == null ? null : RangeUtils.toDoubleRange(scanRTRange), null,
+        polarity, MassSpectrumType.ANY, MsLevelFilter.of(msLevel), null);
   }
 
   public ScanSelection(final int msLevel, final Range<Float> scanRTRange) {
     this(null, null, scanRTRange == null ? null : RangeUtils.toDoubleRange(scanRTRange), null,
         PolarityType.ANY, MassSpectrumType.ANY, MsLevelFilter.of(msLevel), null);
+  }
+
+  public ScanSelection(int msLevel, @NotNull PolarityType polarity) {
+    this(msLevel, null, polarity);
   }
 
   public Range<Integer> getScanNumberRange() {

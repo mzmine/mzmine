@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,10 +28,13 @@ package io.github.mzmine.modules.dataanalysis.significance.anova;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfigParameter;
 
 public class AnovaParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1, 1);
+
+  public static final AbundanceDataTablePreparationConfigParameter abundanceDataTablePreparation = new AbundanceDataTablePreparationConfigParameter();
 
   public static final MetadataGroupingParameter groupingParameter = new MetadataGroupingParameter(
       "Sample parameter", """
@@ -40,6 +43,11 @@ public class AnovaParameters extends SimpleParameterSet {
       """);
 
   public AnovaParameters() {
-    super(featureLists, groupingParameter);
+    super(featureLists, groupingParameter, abundanceDataTablePreparation);
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
   }
 }

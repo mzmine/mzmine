@@ -381,4 +381,9 @@ public interface Feature {
   }
 
   boolean isMrm();
+
+  /**
+   * @return A string containing every data type currently present for the feature.
+   */
+  String toFullString();
 }

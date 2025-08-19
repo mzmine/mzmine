@@ -127,8 +127,10 @@ public class RawDataFilesSelection implements Cloneable {
       RawDataFile matchingFile = matchingFiles[i];
       evaluatedSelection[i] = new RawDataFilePlaceholder(matchingFile);
     }
-    logger.finest(
-        () -> "Setting file selection. Evaluated files: " + Arrays.toString(evaluatedSelection));
+    // only debugging
+    // the RawDataFilesComponent auto updates the selection every second so this would spam
+//    logger.finest(
+//        () -> "Setting file selection. Evaluated files: " + Arrays.toString(evaluatedSelection));
 
     return matchingFiles;
   }
@@ -142,11 +144,11 @@ public class RawDataFilesSelection implements Cloneable {
   }
 
   public void resetSelection() {
-    if (evaluatedSelection != null) {
-      logger.finest(
-          () -> "Resetting file selection. Previously evaluated files: " + Arrays.toString(
-              evaluatedSelection));
-    }
+//    if (evaluatedSelection != null) {
+//      logger.finest(
+//          () -> "Resetting file selection. Previously evaluated files: " + Arrays.toString(
+//              evaluatedSelection));
+//    }
     evaluatedSelection = null;
   }
 

@@ -38,7 +38,10 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
+import io.github.mzmine.parameters.dialogs.GroupedParameterSetupPane.GroupView;
+import io.github.mzmine.parameters.dialogs.GroupedParameterSetupPane.ParameterGroup;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -75,6 +78,7 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
+import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.Nullable;
@@ -144,7 +148,7 @@ public class MZminePreferences extends SimpleParameterSet {
 //      "Send error e-Mail notifications", "Send error e-Mail notifications",
 //      new ErrorMailSettings());
 
-  public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
+  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public static final BooleanParameter useTabSubtitles = new BooleanParameter("Show tab sub titles",
       "If enabled, the name of feature lists or raw data files will be displayed in the tab header, e.g., in for the feature list tab.",
@@ -213,8 +217,8 @@ public class MZminePreferences extends SimpleParameterSet {
       "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
       true);
 
-  public static final BooleanParameter showTempFolderAlert = new BooleanParameter("Show temp alert",
-      "Show temp folder alert", true);
+  public static final HiddenParameter<Boolean> showTempFolderAlert = new HiddenParameter<>(
+      new BooleanParameter("Show temp alert", "Show temp folder alert", true));
 
   public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<ImageNormalization>(
       "Normalize images",
@@ -295,7 +299,7 @@ public class MZminePreferences extends SimpleParameterSet {
             // other preferences
             defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
             imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
-            windowSetttings, useTabSubtitles,
+            windowSettings, useTabSubtitles,
             // silent parameters without controls
             showTempFolderAlert, username, showQuickStart,
             //
@@ -322,24 +326,31 @@ public class MZminePreferences extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired, String filterParameters) {
     assert Platform.isFxApplicationThread();
     final Themes previousTheme = getValue(MZminePreferences.theme);
-    GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this);
 
-    // add groups
-    dialog.addParameterGroup("General", numOfThreads, memoryOption, imsOptimization, tempDirectory,
-        runGCafterBatchStep, deleteTempFiles, proxySettings
-        /*, applyTimsPressureCompensation*/);
-    dialog.addParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
-        intensityFormat, ppmFormat, scoreFormat, unitFormat);
-    dialog.addParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
-        chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
-        imageNormalization);
-    dialog.addParameterGroup("MS data import", applyVendorCentroiding, msConvertPath,
-        keepConvertedFile, watersLockmass, thermoRawFileParserPath, thermoImportChoice);
-//    dialog.addParameterGroup("Other", new Parameter[]{
-    // imsModuleWarnings, showTempFolderAlert, windowSetttings, showQuickStart  are hidden parameters
-//    });
+    final List<UserParameter<?, ? extends Region>> fixed = List.of();
+
+    final List<ParameterGroup> groups = List.of( //
+        new ParameterGroup("General", numOfThreads, memoryOption, imsOptimization, tempDirectory,
+            runGCafterBatchStep, deleteTempFiles, proxySettings
+            /*, applyTimsPressureCompensation*/), //
+        new ParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
+            intensityFormat, ppmFormat, scoreFormat, percentFormat, unitFormat), //
+        new ParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
+            chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
+            imageNormalization, windowSettings), //
+        new ParameterGroup("MS data import", applyVendorCentroiding, msConvertPath,
+            keepConvertedFile, watersLockmass, thermoRawFileParserPath, thermoImportChoice) //
+    );
+    // imsModuleWarnings, showTempFolderAlert, showQuickStart  are hidden parameters
+
+    GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this,
+        false, fixed, groups, GroupView.GROUPED);
+    dialog.setTitle("mzmine preferences");
     dialog.setFilterText(filterParameters);
 
+    dialog.setWidth(800);
+    dialog.setHeight(800);
+    
     // check
     dialog.showAndWait();
     final ExitCode retVal = dialog.getExitCode();

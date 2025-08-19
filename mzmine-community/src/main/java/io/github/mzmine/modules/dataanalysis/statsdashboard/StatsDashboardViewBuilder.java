@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.modules.dataanalysis.pca_new.PCAController;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.List;
 import javafx.geometry.Orientation;
@@ -49,12 +50,14 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
   private final PCAController pcaController;
   private final VolcanoPlotController volcanoPlotController;
   private final RowsBoxplotController boxplotController;
+  private final FxFeatureTableController tableController;
 
-  public StatsDashboardViewBuilder(StatsDashboardModel model, FeatureTableFX table,
-      PCAController pcaController, VolcanoPlotController controller,
-      RowsBoxplotController boxplotController) {
+  public StatsDashboardViewBuilder(StatsDashboardModel model,
+      FxFeatureTableController tableController, PCAController pcaController,
+      VolcanoPlotController controller, RowsBoxplotController boxplotController) {
     super(model);
-    this.table = table;
+    this.tableController = tableController;
+    this.table = tableController.getFeatureTable();
     this.pcaController = pcaController;
     this.volcanoPlotController = controller;
     this.boxplotController = boxplotController;
@@ -66,7 +69,7 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
     main.setOrientation(Orientation.VERTICAL);
     main.setDividerPositions(0.75);
     final SplitPane stats = buildStatsPane();
-    main.getItems().addAll(stats, table);
+    main.getItems().addAll(stats, tableController.buildView());
 
     initFeatureListListeners();
     return main;
@@ -82,7 +85,8 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
       if (rows.isEmpty()) {
         return;
       }
-      final TreeItem<ModularFeatureListRow> rowItem = table.getRoot().getChildren().stream()
+      // use filtered row items to only select actually visible rows
+      final TreeItem<ModularFeatureListRow> rowItem = table.getFilteredRowItems().stream()
           .filter(item -> item.getValue().equals(rows.getFirst())).findFirst().orElse(null);
       if (rowItem == null) {
         return;
@@ -93,7 +97,9 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
     // listen to changes in the selected row, this updates the controllers via a binding in their
     // view builders.
     table.getSelectionModel().selectedItemProperty().addListener((_, old, row) -> {
-      if (old == null || (row.getValue() != null && !old.equals(row))) {
+      if (row == null) {
+        model.selectedRowsProperty().set(List.of());
+      } else if (old == null || (row.getValue() != null && !old.equals(row))) {
         model.selectedRowsProperty().set(List.of(row.getValue()));
       }
     });

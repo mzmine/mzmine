@@ -25,13 +25,56 @@
 
 package io.github.mzmine.util;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class StringUtils {
+
+  /**
+   * Split input into words and all need to match. Uses object.toString for conversion
+   */
+  public static <T> @NotNull Predicate<T> allWordsSubMatchPredicate(final String input) {
+    return allWordsSubMatchPredicate(input, Object::toString);
+  }
+
+  /**
+   * Split input into words and all need to match
+   */
+  public static <T> @NotNull Predicate<T> allWordsSubMatchPredicate(final String input,
+      Function<T, String> toStringFunction) {
+    if (input == null || input.isBlank()) {
+      return _ -> true;
+    }
+
+    final String[] words = input.toLowerCase().split("\\s+");
+    return obj -> {
+      if (obj == null) {
+        return false;
+      }
+      String text = toStringFunction.apply(obj);
+      if (text == null) {
+        return false;
+      }
+      text = text.toLowerCase();
+      for (String word : words) {
+        if (isBlank(word)) {
+          continue;
+        }
+        if (!text.contains(word.trim())) {
+          return false;
+        }
+      }
+      return true;
+    };
+  }
+
 
   /**
    * @param str           input
@@ -260,9 +303,19 @@ public class StringUtils {
     return s.split(", |[\\t, ]");
   }
 
-  public static <T> String join(final List<T> values, @NotNull String delimiter,
+  public static <T> String join(final @NotNull T[] values, @NotNull String delimiter,
       @NotNull final Function<T, String> mapper) {
-    return values.stream().map(mapper::apply).collect(Collectors.joining(delimiter));
+    return join(Arrays.stream(values), delimiter, mapper);
+  }
+
+  public static <T> String join(final @NotNull List<T> values, @NotNull String delimiter,
+      @NotNull final Function<T, String> mapper) {
+    return join(values.stream(), delimiter, mapper);
+  }
+
+  public static <T> String join(final @NotNull Stream<T> stream, @NotNull String delimiter,
+      @NotNull final Function<T, String> mapper) {
+    return stream.map(mapper).collect(Collectors.joining(delimiter));
   }
 
   @Nullable
@@ -292,5 +345,55 @@ public class StringUtils {
       }
     }
     return true;
+  }
+
+  /**
+   * Checks for equality by string values
+   *
+   * @return true if equal by toString()
+   */
+  public static boolean isEqualToString(@Nullable Object a, @Nullable Object b) {
+    if (a == b) {
+      // also if both are null
+      return true;
+    }
+    if (a == null || b == null) {
+      return false;
+    }
+    return Objects.equals(a.toString(), b.toString());
+  }
+
+  /**
+   * @return true if all values are blank or null
+   */
+  public static boolean allBlank(String... values) {
+    for (String value : values) {
+      if (hasValue(value)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * @return true if the content is equal, this means that blank or null strings will be always
+   * false
+   */
+  public static boolean equalContent(@Nullable String a, @Nullable String b) {
+    if (isBlank(a) || isBlank(b)) {
+      return false;
+    }
+    return a.equals(b);
+  }
+
+  /**
+   * @return true if the content is equal (ignoring case), this means that blank or null strings
+   * will be always false
+   */
+  public static boolean equalContentIgnoreCase(@Nullable String a, @Nullable String b) {
+    if (isBlank(a) || isBlank(b)) {
+      return false;
+    }
+    return a.equalsIgnoreCase(b);
   }
 }

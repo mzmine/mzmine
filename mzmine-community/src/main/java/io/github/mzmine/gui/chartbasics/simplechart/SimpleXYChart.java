@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,9 +33,9 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleXYLabelGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ExampleXYProvider;
@@ -323,6 +323,13 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
       }
       // todo maybe notify for each dataset
       notifyDatasetChangeListeners(new DatasetChangeEvent(this, null));
+    });
+  }
+
+  public void setDatasets(@NotNull List<@NotNull DatasetAndRenderer> datasets) {
+    applyWithNotifyChanges(false, () -> {
+      removeAllDatasets();
+      datasets.forEach(ds -> addDataset(ds.dataset(), ds.renderer()));
     });
   }
 

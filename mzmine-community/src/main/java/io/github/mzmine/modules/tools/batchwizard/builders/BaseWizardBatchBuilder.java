@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
@@ -78,9 +77,7 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinde
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters.ScanRange;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
-import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RsdFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.Isotope13CFilterParameters;
-import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterChoices;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
@@ -160,16 +157,15 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizar
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
-import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters.MetadataFileFormat;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilterConfig;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
@@ -180,7 +176,6 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -231,8 +226,10 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   //filter
   protected final boolean filter13C;
   protected final boolean goodPeaksOnly;
+  protected final boolean rsdQcFilter;
   protected final AbsoluteAndRelativeInt minAlignedSamples;
   protected final OriginalFeatureListOption handleOriginalFeatureLists;
+  private final OptionalValue<MinimumSamplesFilterConfig> minNumberOfSamplesInAnyGroup;
   // IMS parameter currently all the same
   protected final boolean isImsActive;
   protected final boolean isNativeIms;
@@ -289,6 +286,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     // filter
     params = steps.get(WizardPart.FILTER);
     filter13C = getValue(params, FilterWizardParameters.filter13C);
+    rsdQcFilter = getValue(params, FilterWizardParameters.rsdQcFilter);
+    minNumberOfSamplesInAnyGroup = getOptional(params,
+        FilterWizardParameters.minNumberOfSamplesInAnyGroup);
     minAlignedSamples = getValue(params, FilterWizardParameters.minNumberOfSamples);
     handleOriginalFeatureLists = getValue(params,
         FilterWizardParameters.handleOriginalFeatureLists);
@@ -372,7 +372,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(ADAPChromatogramBuilderParameters.dataFiles,
         new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     // crop rt range
-    var scanSelection = new ScanSelection(cropRtRange, 1, polarity.toScanPolaritySelection());
+    var scanSelection = new ScanSelection(1, RangeUtils.toFloatRange(cropRtRange),
+        polarity.toScanPolaritySelection());
     param.setParameter(ADAPChromatogramBuilderParameters.scanSelection, scanSelection);
 
     param.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans, minRtDataPoints);
@@ -922,55 +923,35 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
       return;
     }
 
-    final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(RowsFilterModule.class).cloneParameterSet();
+    final ParameterSet param = RowsFilterParameters.createDefaultAllOff();
     param.setParameter(RowsFilterParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     String suffix = (filter13C ? "13C" : "");
-    if (minAlignedSamples.isGreaterZero()) {
+    if (minAlignedSamples.isGreaterZero() || minNumberOfSamplesInAnyGroup.active()) {
       suffix = suffix + (suffix.isEmpty() ? "" : " ") + "peak";
     }
+    if (rsdQcFilter) {
+      suffix = suffix + (suffix.isEmpty() ? "" : " ") + "pooledQC";
+    }
+
     param.setParameter(RowsFilterParameters.SUFFIX, suffix);
-    param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, minAlignedSamples.isGreaterZero());
-    param.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT).getEmbeddedParameter()
-        .setValue(minAlignedSamples);
+    param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, minAlignedSamples.isGreaterZero(),
+        minAlignedSamples);
+    param.setParameter(RowsFilterParameters.MIN_FEATURE_IN_GROUP_COUNT,
+        minNumberOfSamplesInAnyGroup.active(),
+        minNumberOfSamplesInAnyGroup.orElse(MinimumSamplesFilterConfig.DEFAULT));
 
-    param.setParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT, false);
     param.setParameter(RowsFilterParameters.ISOTOPE_FILTER_13C, filter13C);
-
     final Isotope13CFilterParameters filterIsoParam = param.getParameter(
         RowsFilterParameters.ISOTOPE_FILTER_13C).getEmbeddedParameters();
+    // this is different to default parameters
     filterIsoParam.setParameter(Isotope13CFilterParameters.mzTolerance, mzTolFeaturesIntraSample);
     filterIsoParam.setParameter(Isotope13CFilterParameters.maxCharge, 2);
     filterIsoParam.setParameter(Isotope13CFilterParameters.applyMinCEstimation, true);
     filterIsoParam.setParameter(Isotope13CFilterParameters.removeIfMainIs13CIsotope, true);
     filterIsoParam.setParameter(Isotope13CFilterParameters.elements, List.of(new Element("O")));
 
-    final RsdFilterParameters cvFilter = param.getParameter(RowsFilterParameters.cvFilter)
-        .getEmbeddedParameters();
-    cvFilter.setParameter(RsdFilterParameters.abundanceMeasure, AbundanceMeasure.Area);
-    cvFilter.setParameter(RsdFilterParameters.grouping,
-        new MetadataGroupSelection(MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()));
-    cvFilter.setParameter(RsdFilterParameters.keepUndetected, false);
-    cvFilter.setParameter(RsdFilterParameters.maxCv, 0.2);
-    param.setParameter(RowsFilterParameters.cvFilter, false);
-
-    //
-    param.setParameter(RowsFilterParameters.MZ_RANGE, false);
-    param.setParameter(RowsFilterParameters.RT_RANGE, false);
-    param.setParameter(RowsFilterParameters.FEATURE_DURATION, false);
-    param.setParameter(RowsFilterParameters.FWHM, false);
-    param.setParameter(RowsFilterParameters.CHARGE, false);
-    param.setParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT, false);
-    param.setParameter(RowsFilterParameters.HAS_IDENTITIES, false);
-    param.setParameter(RowsFilterParameters.IDENTITY_TEXT, false);
-    param.setParameter(RowsFilterParameters.COMMENT_TEXT, false);
-    param.setParameter(RowsFilterParameters.REMOVE_ROW, RowsFilterChoices.KEEP_MATCHING);
-    param.setParameter(RowsFilterParameters.MS2_Filter, false);
-    param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, true);
-    param.setParameter(RowsFilterParameters.KEEP_ALL_ANNOTATED, false);
-    param.setParameter(RowsFilterParameters.Reset_ID, false);
-    param.setParameter(RowsFilterParameters.massDefect, false);
+    param.setParameter(RowsFilterParameters.cvFilter, rsdQcFilter);
     param.setParameter(RowsFilterParameters.handleOriginal, handleOriginalFeatureLists);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(RowsFilterModule.class),

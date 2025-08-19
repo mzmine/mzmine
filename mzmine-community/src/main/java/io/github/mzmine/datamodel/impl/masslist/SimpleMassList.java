@@ -33,6 +33,7 @@ import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
+import java.lang.foreign.MemorySegment;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -57,6 +58,10 @@ public class SimpleMassList extends AbstractStorableSpectrum implements MassList
    */
   public SimpleMassList(@Nullable MemoryMapStorage storage, @NotNull double[][] mzIntensities) {
     super(storage, mzIntensities[0], mzIntensities[1]);
+  }
+
+  protected SimpleMassList(MemorySegment mzValues, MemorySegment intensityValues) {
+    super(mzValues, intensityValues);
   }
 
   /**

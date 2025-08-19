@@ -36,6 +36,7 @@ import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.javafx.util.color.Vision;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts.ChartUtils;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -200,6 +201,29 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     next++;
 
     return clr;
+  }
+
+  public synchronized int getNumberOfColors() {
+    return this.size();
+  }
+
+  /**
+   * @return unmodifiable view of colors
+   */
+  public synchronized List<Color> getColors() {
+    return Collections.unmodifiableList(delegate);
+  }
+
+  /**
+   * @return new list of colors
+   */
+  public synchronized List<java.awt.Color> getColorsAWT() {
+    List<java.awt.Color> awtColors = new ArrayList<>(size());
+    for (Color color : delegate) {
+      awtColors.add(FxColorUtil.fxColorToAWT(color));
+    }
+
+    return awtColors;
   }
 
   /**

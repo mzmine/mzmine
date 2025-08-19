@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -110,15 +110,16 @@ public class ScanSelectionParameter extends
 
   @Override
   public void setValueFromComponent(ScanSelectionComponent component) {
-    component.updateParameterSetFromComponents();
+    component.updateParameterSetFromComponents(embeddedParameters);
     value = embeddedParameters.createFilter();
     active = component.isSelected();
   }
 
   @Override
-  public void setValueToComponent(ScanSelectionComponent component, @Nullable ScanSelection newValue) {
+  public void setValueToComponent(ScanSelectionComponent component,
+      @Nullable ScanSelection newValue) {
     embeddedParameters.setFilter(newValue);
-    component.setParameterValuesToComponents();
+    component.setParameterValuesToComponents(embeddedParameters);
   }
 
   @Override

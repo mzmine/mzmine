@@ -111,7 +111,7 @@ public class DiaMs2CorrTask extends AbstractTask {
   private final int minCorrPoints;
   private final MZTolerance mzTolerance;
   private final double minPearson;
-  private final double correlationThreshold = 0.1d;
+  private final double correlationThreshold;
 
   private final ParameterSet parameters;
   private final ParameterSet adapParameters;
@@ -138,6 +138,9 @@ public class DiaMs2CorrTask extends AbstractTask {
     minCorrPoints = parameters.getValue(DiaMs2CorrParameters.numCorrPoints);
     mzTolerance = parameters.getValue(DiaMs2CorrParameters.ms2ScanToScanAccuracy);
     minPearson = parameters.getValue(DiaMs2CorrParameters.minPearson);
+    correlationThreshold = parameters.getParameter(DiaMs2CorrParameters.advanced)
+        .getValueOrDefault(DiaMs2CorrAdvancedParameters.correlationThreshold,
+            DiaMs2CorrAdvancedParameters.DEFAULT_CORR_THRESHOLD);
     numRows = flist.getNumberOfRows();
 
     adapParameters = MZmineCore.getConfiguration()
@@ -393,11 +396,11 @@ public class DiaMs2CorrTask extends AbstractTask {
       for (int i = 0; i < subSeries.getNumberOfValues(); i++) {
         rts[i] = subSeries.getRetentionTime(i);
       }
-      final double[] ms2Intensity = subSeries.getIntensityValueBuffer().toArray(ValueLayout.JAVA_DOUBLE);
+      final double[] ms2Intensity = subSeries.getIntensityValueBuffer()
+          .toArray(ValueLayout.JAVA_DOUBLE);
 
       final CorrelationData correlationData = DIA.corrFeatureShape(ms1Rts, ms1Intensities, rts,
-          ms2Intensity, minCorrPoints, 2,
-          minMs2Intensity / 5);
+          ms2Intensity, minCorrPoints, 2, minMs2Intensity / 5);
       if (correlationData == null || !correlationData.isValid()
           || correlationData.getPearsonR() < minPearson) {
         continue;

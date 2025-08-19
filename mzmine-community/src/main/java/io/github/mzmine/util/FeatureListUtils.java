@@ -71,9 +71,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableBooleanValue;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 import org.jetbrains.annotations.NotNull;
@@ -122,7 +120,8 @@ public class FeatureListUtils {
   }
 
   public static void bindSelectedRows(WeakAdapter weak, FeatureTableFX table,
-      @NotNull ObjectProperty<List<FeatureListRow>> selectedRows, @NotNull final ObservableBooleanValue isUpdateEnabled) {
+      @NotNull ObjectProperty<List<FeatureListRow>> selectedRows,
+      @NotNull final ObservableBooleanValue isUpdateEnabled) {
     weak.addListChangeListener(table, table.getSelectedTableRows(), c -> {
       if (weak.isDisposed() || !isUpdateEnabled.get()) {
         return;
@@ -151,7 +150,8 @@ public class FeatureListUtils {
   }
 
   public static void bindSelectedFeatures(WeakAdapter weak, FeatureTableFX table,
-      ObjectProperty<List<Feature>> selectedFeatures, @NotNull final ObservableBooleanValue isUpdateEnabled) {
+      ObjectProperty<List<Feature>> selectedFeatures,
+      @NotNull final ObservableBooleanValue isUpdateEnabled) {
     weak.addListChangeListener(table, table.getSelectionModel().getSelectedCells(), c -> {
       if (weak.isDisposed() || !isUpdateEnabled.get()) {
         return;
@@ -172,11 +172,12 @@ public class FeatureListUtils {
 
   public static void bindSelectedRawDataFiles(WeakAdapter weak, FeatureTableFX table,
       ObjectProperty<List<RawDataFile>> selectedFiles) {
-   bindSelectedRawDataFiles(weak, table, selectedFiles, new SimpleBooleanProperty(true));
+    bindSelectedRawDataFiles(weak, table, selectedFiles, new SimpleBooleanProperty(true));
   }
 
   public static void bindSelectedRawDataFiles(WeakAdapter weak, FeatureTableFX table,
-      ObjectProperty<List<RawDataFile>> selectedFiles, @NotNull final ObservableBooleanValue isUpdateEnabled) {
+      ObjectProperty<List<RawDataFile>> selectedFiles,
+      @NotNull final ObservableBooleanValue isUpdateEnabled) {
     weak.addListChangeListener(table, table.getSelectionModel().getSelectedCells(), c -> {
       if (weak.isDisposed() || !isUpdateEnabled.get()) {
         return;
@@ -840,6 +841,15 @@ public class FeatureListUtils {
       return Integer.MAX_VALUE;
     }
     return (int) features;
+  }
+
+  /**
+   * @return Creates a sorter which sorts by descending number of rows. Avoids collisions by the
+   * name of the feature list.
+   */
+  public static Comparator<FeatureList> createDescendingNumberOfRowsSorter() {
+    return Comparator.comparing(FeatureList::getNumberOfRows).reversed()
+        .thenComparing(FeatureList::getName);
   }
 
 }
