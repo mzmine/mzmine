@@ -33,7 +33,13 @@ import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureTy
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ALogPType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSuperclassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierClassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierPathwayType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierSuperclassType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
@@ -43,14 +49,24 @@ import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.FormulaUtils;
+import io.sirius.ms.sdk.SiriusSDK;
+import io.sirius.ms.sdk.model.CompoundClass;
+import io.sirius.ms.sdk.model.CompoundClasses;
+import io.sirius.ms.sdk.model.ProjectInfo;
 import io.sirius.ms.sdk.model.StructureCandidateFormula;
+import java.util.List;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class SiriusToMzmine {
 
+  private static final Logger logger = Logger.getLogger(SiriusToMzmine.class.getName());
+
   public static @Nullable CompoundDBAnnotation toMzmine(
-      @Nullable StructureCandidateFormula structure) {
+      @Nullable StructureCandidateFormula structure, SiriusSDK sirius, ProjectInfo projectInfo,
+      String id) {
     if (structure == null) {
       return null;
     }
@@ -78,7 +94,45 @@ public class SiriusToMzmine {
 //        structure.getDbLinks().isEmpty() ? null : structure.getDbLinks().getFirst().getName());
     annotation.putIfNotNull(ALogPType.class, structure.getXlogP().floatValue());
 
+    transferClassyfireAnnotations(structure, sirius, projectInfo, id, annotation);
 
     return annotation;
+  }
+
+  private static void transferClassyfireAnnotations(@NotNull StructureCandidateFormula structure,
+      @NotNull final SiriusSDK sirius, @NotNull final ProjectInfo projectInfo,
+      @NotNull final String featureId, @NotNull CompoundDBAnnotation annotation) {
+
+    final String formulaId = structure.getFormulaId();
+    CompoundClasses bestCompClasses = sirius.features()
+        .getBestMatchingCompoundClasses(projectInfo.getProjectId(), featureId, formulaId);
+
+    if (bestCompClasses == null) {
+      return;
+    }
+
+    annotation.putIfNotNull(NPClassifierPathwayType.class,
+        bestCompClasses.getNpcPathway().getName());
+    annotation.putIfNotNull(NPClassifierSuperclassType.class,
+        bestCompClasses.getNpcSuperclass().getName());
+    annotation.putIfNotNull(NPClassifierClassType.class, bestCompClasses.getNpcClass().getName());
+
+    final List<CompoundClass> classyFireLineage = bestCompClasses.getClassyFireLineage();
+    if (bestCompClasses.getClassyFireLineage() != null) {
+      for (CompoundClass compoundClass : classyFireLineage) {
+        logger.finest(compoundClass.toString());
+        switch (compoundClass.getLevel()) {
+          case "Superclass" ->
+              annotation.putIfNotNull(ClassyFireSuperclassType.class, compoundClass.getName());
+          case "Class" ->
+              annotation.putIfNotNull(ClassyFireClassType.class, compoundClass.getName());
+          case "Subclass" ->
+              annotation.putIfNotNull(ClassyFireSubclassType.class, compoundClass.getName());
+//          case "Level-5" -> annotation.putIfNotNull(ClassyFireSubclassType.class, compoundClass.getName());
+          case null, default -> {
+          }
+        }
+      }
+    }
   }
 }

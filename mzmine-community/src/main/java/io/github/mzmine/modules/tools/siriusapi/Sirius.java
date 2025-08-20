@@ -34,6 +34,7 @@ import io.sirius.ms.sdk.SiriusSDK.ShutdownMode;
 import io.sirius.ms.sdk.model.AlignedFeature;
 import io.sirius.ms.sdk.model.AlignedFeatureOptField;
 import io.sirius.ms.sdk.model.FeatureImport;
+import io.sirius.ms.sdk.model.GuiInfo;
 import io.sirius.ms.sdk.model.InstrumentProfile;
 import io.sirius.ms.sdk.model.Job;
 import io.sirius.ms.sdk.model.JobOptField;
@@ -42,12 +43,14 @@ import io.sirius.ms.sdk.model.ProjectInfo;
 import io.sirius.ms.sdk.model.ProjectInfoOptField;
 import io.sirius.ms.sdk.model.StructureCandidateFormula;
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,9 +61,10 @@ public class Sirius implements AutoCloseable {
 
   private static final Logger logger = Logger.getLogger(Sirius.class.getName());
   // one session id for this mzmine session
-  private static final UUID uuid = UUID.randomUUID();
+  private static final LocalDateTime creationDate = LocalDateTime.now();
   private static final String sessionId = FileAndPathUtil.safePathEncode(
-      "mzmine_%s".formatted(uuid.toString()));
+      "mzmine_%s".formatted(creationDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm"))));
+
   private final SiriusSDK sirius;
   private final ProjectInfo projectSpace;
 
@@ -68,21 +72,54 @@ public class Sirius implements AutoCloseable {
     sirius = SiriusSDK.startAndConnectLocally(ShutdownMode.NEVER, true);
     checkLogin();
     logger.finest(sirius.infos().getInfo(null, null).toString());
-    ProjectInfo proj = null;
-    AtomicReference<ProjectInfo> projRef = new AtomicReference<>();
-    File projectFile = new File(FileAndPathUtil.getTempDir(), sessionId + ".sirius");
-    tryCatchSiriusException(() -> {
-      projRef.set(sirius.projects().openProject(sessionId, projectFile.getAbsolutePath(),
-          List.of(ProjectInfoOptField.NONE)));
-    });
-    proj = projRef.get();
+    projectSpace = activateSiriusProject();
+    showGuiForProject();
+  }
 
-    projectSpace = proj != null ? proj : sirius.projects()
-        .createProject(sessionId, projectFile.getAbsolutePath(), List.of(ProjectInfoOptField.NONE));
-    // project already opened after creating.
-    //    sirius.projects().openProject(projectSpace.getProjectId(), projectSpace.getLocation(),
-//        List.of(ProjectInfoOptField.NONE));
+  private void showGuiForProject() {
+    for (GuiInfo gui : sirius.gui().getGuis()) {
+      if(gui.getProjectId().equals(projectSpace.getProjectId())) {
+        return;
+      }
+    }
     sirius.gui().openGui(projectSpace.getProjectId());
+  }
+
+  private ProjectInfo activateSiriusProject() {
+    ProjectInfo projectSpace;
+    final File projectFile = new File(FileAndPathUtil.getTempDir(), sessionId + ".sirius");
+
+    try {
+      projectSpace = sirius.projects().getProject(sessionId, List.of(ProjectInfoOptField.NONE));
+      if (projectSpace != null) {
+        return projectSpace;
+      }
+    } catch (WebClientResponseException e) {
+      logger.log(Level.SEVERE, e.getResponseBodyAsString(), e);
+    }
+
+
+    try {
+      projectSpace = sirius.projects()
+          .openProject(sessionId, projectFile.getAbsolutePath(), List.of(ProjectInfoOptField.NONE));
+      if (projectSpace != null) {
+        return projectSpace;
+      }
+    } catch (WebClientResponseException e) {
+      logger.log(Level.SEVERE, e.getResponseBodyAsString(), e);
+    }
+
+    try {
+      projectSpace = sirius.projects()
+          .createProject(sessionId, projectFile.getAbsolutePath(), List.of(ProjectInfoOptField.NONE));
+      if (projectSpace != null) {
+        return projectSpace;
+      }
+    } catch (WebClientResponseException e) {
+      logger.log(Level.SEVERE, e.getResponseBodyAsString(), e);
+    }
+
+    throw new RuntimeException("Could not create or open project space for this mzmine session.");
   }
 
   public static void main(String[] args) {
@@ -188,15 +225,18 @@ public class Sirius implements AutoCloseable {
     final Map<FeatureListRow, String> rowToSiriusId = mapFeatureToSiriusId(rows);
     rowToSiriusId.forEach((row, id) -> {
       final List<StructureCandidateFormula> structureCandidates = api().features()
-          .getStructureCandidates(projectSpace.getProjectId(), id, List.of());
+          .getStructureCandidates(projectSpace.getProjectId(), id, List.of()).stream()
+          .sorted(Comparator.comparingInt(s -> s.getRank() != null ? s.getRank() : 100)).limit(10)
+          .toList();
 
 //      AlignedFeature alignedFeature = api().features()
-//          .getAlignedFeature(, , , List.of(AlignedFeatureOptField.TOPANNOTATIONS));
-//      alignedFeature.getTopAnnotations().
+//          .getAlignedFeature(projectSpace.getProjectId(), id, false,
+//              List.of(AlignedFeatureOptField.TOPANNOTATIONS));
 
       final List<CompoundDBAnnotation> siriusAnnotations = structureCandidates.stream()
           .sorted(Comparator.comparingInt(StructureCandidateFormula::getRank))
-          .map(SiriusToMzmine::toMzmine).toList();
+          .map(s -> SiriusToMzmine.toMzmine(s, sirius, projectSpace, id)).filter(Objects::nonNull)
+          .toList();
       final List<CompoundDBAnnotation> annotations = new ArrayList<>(row.getCompoundAnnotations());
       annotations.addAll(siriusAnnotations);
       row.setCompoundAnnotations(annotations);
