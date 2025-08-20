@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
@@ -68,6 +69,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 import org.controlsfx.control.CheckComboBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -103,6 +105,10 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
   protected Button btnCancel;
   // Buttons
   protected Button btnOK;
+
+  // parameter change delay
+  private final PauseTransition parameterChangeDelay = new PauseTransition(Duration.millis(75));
+
   /**
    * Help window for this setup dialog. Initially null, until the user clicks the Help button.
    */
@@ -169,6 +175,8 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
     this.parameterSet = parameters;
     this.helpURL = parameters.getClass().getResource("help/help.html");
     this.footerMessage = message;
+
+    parameterChangeDelay.setOnFinished(_ -> parametersChanged());
 
     // Main panel which holds all the components in a grid
     mainPane = this;
@@ -455,9 +463,17 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
 
   /**
    * This method does nothing, but it is called whenever user changes the parameters. It can be
-   * overridden in extending classes to update the preview components, for example.
+   * overridden in extending classes to update the preview components, for example. Usually this
+   * method is called with a delay that already accumulated changes.
    */
   protected void parametersChanged() {
+  }
+
+  /**
+   * adds a short delay to accumulate changes and then calls {@link #parametersChanged()}
+   */
+  private void delayParametersChanged() {
+    parameterChangeDelay.playFromStart();
   }
 
   public GridPane getParamsPane() {
@@ -470,27 +486,27 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
 
   protected void addListenersToNode(Node node) {
     if (node instanceof TextField textField) {
-      textField.textProperty().addListener(((_, _, _) -> parametersChanged()));
+      textField.textProperty().addListener(((_, _, _) -> delayParametersChanged()));
     } else if (node instanceof FeatureListsComponent fselect) {
-      fselect.currentlySelectedProperty().addListener(((_, _, _) -> parametersChanged()));
+      fselect.currentlySelectedProperty().addListener(((_, _, _) -> delayParametersChanged()));
     } else if (node instanceof RawDataFilesComponent rselect) {
-      rselect.currentlySelectedProperty().addListener(((_, _, _) -> parametersChanged()));
+      rselect.currentlySelectedProperty().addListener(((_, _, _) -> delayParametersChanged()));
     } else if (node instanceof SpectralLibrarySelectionComponent rselect) {
-      rselect.currentlySelectedProperty().addListener(((_, _, _) -> parametersChanged()));
+      rselect.currentlySelectedProperty().addListener(((_, _, _) -> delayParametersChanged()));
     } else if (node instanceof ComboBox<?> comboComp) {
-      comboComp.valueProperty().addListener(((_, _, _) -> parametersChanged()));
+      comboComp.valueProperty().addListener(((_, _, _) -> delayParametersChanged()));
     } else if (node instanceof ChoiceBox) {
       ChoiceBox<?> choiceBox = (ChoiceBox) node;
-      choiceBox.valueProperty().addListener(((_, _, _) -> parametersChanged()));
+      choiceBox.valueProperty().addListener(((_, _, _) -> delayParametersChanged()));
     } else if (node instanceof CheckBox checkBox) {
-      checkBox.selectedProperty().addListener(((_, _, _) -> parametersChanged()));
+      checkBox.selectedProperty().addListener(((_, _, _) -> delayParametersChanged()));
     } else if (node instanceof ListView listview) {
-      listview.getItems().addListener((ListChangeListener) _ -> parametersChanged());
+      listview.getItems().addListener((ListChangeListener) _ -> delayParametersChanged());
     } else if (node instanceof CheckComboBox<?> checkCombo) {
       checkCombo.getCheckModel().getCheckedIndices()
-          .addListener((ListChangeListener<? super Integer>) _ -> parametersChanged());
+          .addListener((ListChangeListener<? super Integer>) _ -> delayParametersChanged());
     } else if (node instanceof ModuleOptionsEnumComponent<?> options) {
-      options.addSubParameterChangedListener(this::parametersChanged);
+      options.addSubParameterChangedListener(this::delayParametersChanged);
     } else if (node instanceof EmbeddedParameterComponentProvider prov) {
       for (final Node child : prov.getComponents()) {
         addListenersToNode(child);
