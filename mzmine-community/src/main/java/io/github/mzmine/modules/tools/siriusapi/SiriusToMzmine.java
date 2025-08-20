@@ -30,8 +30,10 @@ import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBA
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ALogPType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
@@ -70,9 +72,12 @@ public class SiriusToMzmine {
     annotation.putIfNotNull(InChIKeyStructureType.class, structure.getInchiKey());
     annotation.putIfNotNull(PrecursorMZType.class, mz);
     annotation.putIfNotNull(NeutralMassType.class, neutralMass);
-    annotation.put(CommentType.class, "Imported from Sirius. CSI score: %s".formatted(formats.score(
-        structure.getCsiScore())));
+    annotation.put(CommentType.class,
+        "Imported from Sirius. CSI score: %s".formatted(formats.score(structure.getCsiScore())));
+//    annotation.putIfNotNull(DatabaseNameType.class,
+//        structure.getDbLinks().isEmpty() ? null : structure.getDbLinks().getFirst().getName());
     annotation.putIfNotNull(ALogPType.class, structure.getXlogP().floatValue());
+
 
     return annotation;
   }

@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotat
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.sirius.ms.sdk.SiriusSDK;
+import io.sirius.ms.sdk.SiriusSDK.ShutdownMode;
 import io.sirius.ms.sdk.model.AlignedFeature;
 import io.sirius.ms.sdk.model.AlignedFeatureOptField;
 import io.sirius.ms.sdk.model.FeatureImport;
@@ -47,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -63,23 +65,18 @@ public class Sirius implements AutoCloseable {
   private final ProjectInfo projectSpace;
 
   public Sirius() throws Exception {
-    sirius = SiriusSDK.startAndConnectLocally();
+    sirius = SiriusSDK.startAndConnectLocally(ShutdownMode.NEVER, true);
     checkLogin();
     logger.finest(sirius.infos().getInfo(null, null).toString());
     ProjectInfo proj = null;
+    AtomicReference<ProjectInfo> projRef = new AtomicReference<>();
     File projectFile = new File(FileAndPathUtil.getTempDir(), sessionId + ".sirius");
-    try {
-      sirius.projects()
-          .openProject(sessionId, projectFile.getAbsolutePath(), List.of(ProjectInfoOptField.NONE));
-      proj = sirius.projects().getProject(sessionId, List.of(ProjectInfoOptField.NONE));
-    } catch (RuntimeException e) {
-      switch (e) {
-        case WebClientResponseException r ->
-            logger.log(Level.SEVERE, r.getResponseBodyAsString(), e);
-        default -> logger.log(Level.SEVERE, e.getMessage(), e);
-      }
-      throw e;
-    }
+    tryCatchSiriusException(() -> {
+      projRef.set(sirius.projects().openProject(sessionId, projectFile.getAbsolutePath(),
+          List.of(ProjectInfoOptField.NONE)));
+    });
+    proj = projRef.get();
+
     projectSpace = proj != null ? proj : sirius.projects()
         .createProject(sessionId, projectFile.getAbsolutePath(), List.of(ProjectInfoOptField.NONE));
     // project already opened after creating.
@@ -192,6 +189,11 @@ public class Sirius implements AutoCloseable {
     rowToSiriusId.forEach((row, id) -> {
       final List<StructureCandidateFormula> structureCandidates = api().features()
           .getStructureCandidates(projectSpace.getProjectId(), id, List.of());
+
+//      AlignedFeature alignedFeature = api().features()
+//          .getAlignedFeature(, , , List.of(AlignedFeatureOptField.TOPANNOTATIONS));
+//      alignedFeature.getTopAnnotations().
+
       final List<CompoundDBAnnotation> siriusAnnotations = structureCandidates.stream()
           .sorted(Comparator.comparingInt(StructureCandidateFormula::getRank))
           .map(SiriusToMzmine::toMzmine).toList();
@@ -218,5 +220,20 @@ public class Sirius implements AutoCloseable {
 
   public SiriusSDK api() {
     return sirius;
+  }
+
+  public void tryCatchSiriusException(Runnable runnable) {
+    try {
+      runnable.run();
+    } catch (RuntimeException e) {
+      switch (e) {
+        case WebClientResponseException r ->
+            logger.log(Level.SEVERE, r.getResponseBodyAsString(), e);
+        default -> {
+          logger.log(Level.SEVERE, e.getMessage(), e);
+          throw e;
+        }
+      }
+    }
   }
 }
