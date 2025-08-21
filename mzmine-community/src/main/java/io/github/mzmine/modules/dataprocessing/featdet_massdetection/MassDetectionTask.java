@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,7 +49,7 @@ public class MassDetectionTask extends AbstractTask {
   private final RawDataFile dataFile;
   private final ScanSelection scanSelection;
   private final SelectedScanTypes scanTypes;
-  private final Boolean denormalizeMSnScans;
+  private final boolean denormalizeMSnScans;
   private final ParameterSet parameters;
   private final MassDetector detector;
   private int processedScans = 0, totalScans = 0;
@@ -126,7 +126,7 @@ public class MassDetectionTask extends AbstractTask {
         }
 
         if (scan instanceof SimpleFrame frame && (scanTypes == SelectedScanTypes.MOBLITY_SCANS
-                                                  || scanTypes == SelectedScanTypes.SCANS)) {
+            || scanTypes == SelectedScanTypes.SCANS)) {
           // for ion mobility, detect subscans, too
           frame.getMobilityScanStorage()
               .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector,

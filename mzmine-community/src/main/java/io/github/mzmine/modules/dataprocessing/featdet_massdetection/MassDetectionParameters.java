@@ -89,16 +89,6 @@ public class MassDetectionParameters extends SimpleParameterSet {
     // Check the selected mass detector
     MassDetectors detector = getValue(massDetector);
 
-    // check if denormalize was selected that it matches to the mass detection algorithm
-    boolean denorm = getValue(denormalizeMSnScans);
-    boolean illegalDenormalizeMassDetectorCombo =
-        denorm && !(detector == MassDetectors.FACTOR_OF_LOWEST);
-    if (illegalDenormalizeMassDetectorCombo) {
-      errorMessages.add("Spectral denormalization is currently only supported by the "
-          + "Factor of the lowest mass detector; selected: " + detector);
-      return false;
-    }
-
     if (skipRawDataAndFeatureListParameters) {
       return superCheck;
     }
