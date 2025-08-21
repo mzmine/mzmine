@@ -109,7 +109,7 @@ then
     lipid.setDescrCorrect("Contains [M+CH3COO-CH3COOCH3]-, ");
 end
 
-rule "Intensity [M+CH3COO+(CH3COONa)2]- > [M+CH3COO]-"
+rule "Intensity [M+CH3COO]- < [M+CH3COO+(CH3COONa)2]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)2]-")
     $adduct2: FoundAdduct(adductName == "[M+CH3COO]-")
@@ -122,7 +122,7 @@ then
     lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO+(CH3COONa)2]- > [M+CH3COO]-, ");
 end
 
-rule "Intensity [M+CH3COO+(CH3COONa)3]- > [M+CH3COO]-"
+rule "Intensity [M+CH3COO]- < [M+CH3COO+(CH3COONa)3]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)3]-")
     $adduct2: FoundAdduct(adductName == "[M+CH3COO]-")
@@ -135,7 +135,7 @@ then
     lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO+(CH3COONa)3]- > [M+CH3COO]-, ");
 end
 
-rule "Intensity [M+HCOO]- > [M+CH3COO]-"
+rule "Intensity [M+CH3COO]- < [M+HCOO]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+HCOO]-")
     $adduct2: FoundAdduct(adductName == "[M+CH3COO]-")

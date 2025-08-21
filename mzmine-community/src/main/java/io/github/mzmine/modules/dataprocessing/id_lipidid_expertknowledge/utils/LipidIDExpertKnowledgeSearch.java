@@ -4,8 +4,12 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Stream;
 
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
@@ -16,8 +20,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.
 import org.kie.api.KieServices;
 import org.kie.api.io.Resource;
 import org.kie.api.runtime.KieSession;
-import java.util.Collections;
-import java.util.Comparator;
 
 /**
  * Class that contains all the methods that search and find information for the module.
@@ -189,7 +191,7 @@ public class LipidIDExpertKnowledgeSearch {
      * @param lipid MatchedLipid for the row.
      * @param found List of FoundAdducts for the group the row is part of.
      */
-    public static void findLipidsPositive(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases, VirtualRowGroup virtualGroup) {
+    public static void findLipidsPositive(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases, VirtualRowGroup virtualGroup) throws IOException {
         // Find matching lipids based on detected adducts, re-direct to drl file depending on LipidMatched
         List<FoundLipid> detectedLipids = new ArrayList<>();
 
@@ -206,114 +208,133 @@ public class LipidIDExpertKnowledgeSearch {
         double totalMaxIntensity;
         double maxScore = 0.00;
 
-        if (abbr.equals("CAR")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.CAR);
-            path = "rules_id_lipid_expert_knowledge/positive/CAR_PositiveCheck.drl";
-            totalMaxPresence = 1;
-            totalMaxIntensity = 0;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("CE")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.CE);
-            path = "rules_id_lipid_expert_knowledge/positive/CE_PositiveCheck.drl";
-            totalMaxPresence = 6;
-            totalMaxIntensity = 4;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("Cer")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.Cer);
-            path = "rules_id_lipid_expert_knowledge/positive/Cer_PositiveCheck.drl";
-            totalMaxPresence = 5;
-            totalMaxIntensity = 3;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("Chol")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.Chol);
-            path = "rules_id_lipid_expert_knowledge/positive/Chol_PositiveCheck.drl";
-            totalMaxPresence = 3;
-            totalMaxIntensity = 1;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("DG")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.DG);
-            path = "rules_id_lipid_expert_knowledge/positive/DG_PositiveCheck.drl";
-            totalMaxPresence = 6;
-            totalMaxIntensity = 4;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("HexCer")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.HexCer);
-            path = "rules_id_lipid_expert_knowledge/positive/HexCer_PositiveCheck.drl";
-            totalMaxPresence = 4;
-            totalMaxIntensity = 2;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("LPC") && name.equals("Monoalkylglycerophosphocholines")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.LPC_OP);
-            path = "rules_id_lipid_expert_knowledge/positive/LPC_OP_PositiveCheck.drl";
-            totalMaxPresence = 5;
-            totalMaxIntensity = 1;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("LPC") && name.equals("Monoacylglycerophosphocholines")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.LPC);
-            path = "rules_id_lipid_expert_knowledge/positive/LPC_PositiveCheck.drl";
-            totalMaxPresence = 5;
-            totalMaxIntensity = 4;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("LPE") && name.equals("Monoalkylglycerophosphoethanolamines")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.LPE_OP);
-            path = "rules_id_lipid_expert_knowledge/positive/LPE_OP_PositiveCheck.drl";
-            totalMaxPresence = 5;
-            totalMaxIntensity = 0;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("LPE") && name.equals("Monoacylglycerophosphoethanolamines")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.LPE);
-            path = "rules_id_lipid_expert_knowledge/positive/LPE_PositiveCheck.drl";
-            totalMaxPresence = 5;
-            totalMaxIntensity = 1;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("LPI")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.LPI);
-            path = "rules_id_lipid_expert_knowledge/positive/LPI_PositiveCheck.drl";
-            totalMaxPresence = 6;
-            totalMaxIntensity = 0;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("PE") && !name.equals("Diacylglycerophosphoethanolamines")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.PE_OP);
-            path = "rules_id_lipid_expert_knowledge/positive/PE_OP_PositiveCheck.drl";
-            totalMaxPresence = 4;
-            totalMaxIntensity = 3;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("PE") && name.equals("Diacylglycerophosphoethanolamines")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.PE);
-            path = "rules_id_lipid_expert_knowledge/positive/PE_PositiveCheck.drl";
-            totalMaxPresence = 4;
-            totalMaxIntensity = 1;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("PI")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.PI);
-            path = "rules_id_lipid_expert_knowledge/positive/PI_PositiveCheck.drl";
-            totalMaxPresence = 5;
-            totalMaxIntensity = 4;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("SM")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.SM);
-            path = "rules_id_lipid_expert_knowledge/positive/SM_PositiveCheck.drl";
-            totalMaxPresence = 4;
-            totalMaxIntensity = 3;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("TG")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.TG);
-            path = "rules_id_lipid_expert_knowledge/positive/TG_PositiveCheck.drl";
-            totalMaxPresence = 5;
-            totalMaxIntensity = 4;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("PC") && name.equals("Diacylglycerophosphocholines")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.PC);
-            path = "rules_id_lipid_expert_knowledge/positive/PC_PositiveCheck.drl";
-            totalMaxPresence = 4;
-            totalMaxIntensity = 4;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("PC") && (name.equals("Alkylacylglycerophosphocholines") || name.equals("Dialkylglycerophosphocholines"))) {
-            lipid_ExpertKnowledge.setLipid(Lipid.PC_OP);
-            path = "rules_id_lipid_expert_knowledge/positive/PC_OP_PositiveCheck.drl";
-            totalMaxPresence = 4;
-            totalMaxIntensity = 2;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
+        String[] positiveNames = {"CAR", "CE", "Cer", "Chol", "DG", "HexCer", "LPC", "LPE", "LPI", "PC", "PE", "PI", "SM", "TG"};
+        boolean isUserFile;
+
+        if (Arrays.asList(positiveNames).contains(abbr)) { //matches one of the default drl files
+            isUserFile = false;
+            if (abbr.equals("CAR")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.CAR);
+                path = "rules_id_lipid_expert_knowledge/positive/CAR_PositiveCheck.drl";
+                totalMaxPresence = 1;
+                totalMaxIntensity = 0;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("CE")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.CE);
+                path = "rules_id_lipid_expert_knowledge/positive/CE_PositiveCheck.drl";
+                totalMaxPresence = 6;
+                totalMaxIntensity = 4;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("Cer")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.Cer);
+                path = "rules_id_lipid_expert_knowledge/positive/Cer_PositiveCheck.drl";
+                totalMaxPresence = 5;
+                totalMaxIntensity = 3;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("Chol")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.Chol);
+                path = "rules_id_lipid_expert_knowledge/positive/Chol_PositiveCheck.drl";
+                totalMaxPresence = 3;
+                totalMaxIntensity = 1;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("DG")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.DG);
+                path = "rules_id_lipid_expert_knowledge/positive/DG_PositiveCheck.drl";
+                totalMaxPresence = 6;
+                totalMaxIntensity = 4;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("HexCer")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.HexCer);
+                path = "rules_id_lipid_expert_knowledge/positive/HexCer_PositiveCheck.drl";
+                totalMaxPresence = 4;
+                totalMaxIntensity = 2;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("LPC") && name.equals("Monoalkylglycerophosphocholines")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.LPC_OP);
+                path = "rules_id_lipid_expert_knowledge/positive/LPC_OP_PositiveCheck.drl";
+                totalMaxPresence = 5;
+                totalMaxIntensity = 1;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("LPC") && name.equals("Monoacylglycerophosphocholines")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.LPC);
+                path = "rules_id_lipid_expert_knowledge/positive/LPC_PositiveCheck.drl";
+                totalMaxPresence = 5;
+                totalMaxIntensity = 4;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("LPE") && name.equals("Monoalkylglycerophosphoethanolamines")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.LPE_OP);
+                path = "rules_id_lipid_expert_knowledge/positive/LPE_OP_PositiveCheck.drl";
+                totalMaxPresence = 5;
+                totalMaxIntensity = 0;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("LPE") && name.equals("Monoacylglycerophosphoethanolamines")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.LPE);
+                path = "rules_id_lipid_expert_knowledge/positive/LPE_PositiveCheck.drl";
+                totalMaxPresence = 5;
+                totalMaxIntensity = 1;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("LPI")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.LPI);
+                path = "rules_id_lipid_expert_knowledge/positive/LPI_PositiveCheck.drl";
+                totalMaxPresence = 6;
+                totalMaxIntensity = 0;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("PE") && !name.equals("Diacylglycerophosphoethanolamines")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.PE_OP);
+                path = "rules_id_lipid_expert_knowledge/positive/PE_OP_PositiveCheck.drl";
+                totalMaxPresence = 4;
+                totalMaxIntensity = 3;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("PE") && name.equals("Diacylglycerophosphoethanolamines")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.PE);
+                path = "rules_id_lipid_expert_knowledge/positive/PE_PositiveCheck.drl";
+                totalMaxPresence = 4;
+                totalMaxIntensity = 1;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("PI")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.PI);
+                path = "rules_id_lipid_expert_knowledge/positive/PI_PositiveCheck.drl";
+                totalMaxPresence = 5;
+                totalMaxIntensity = 4;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("SM")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.SM);
+                path = "rules_id_lipid_expert_knowledge/positive/SM_PositiveCheck.drl";
+                totalMaxPresence = 4;
+                totalMaxIntensity = 3;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("TG")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.TG);
+                path = "rules_id_lipid_expert_knowledge/positive/TG_PositiveCheck.drl";
+                totalMaxPresence = 5;
+                totalMaxIntensity = 4;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("PC") && name.equals("Diacylglycerophosphocholines")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.PC);
+                path = "rules_id_lipid_expert_knowledge/positive/PC_PositiveCheck.drl";
+                totalMaxPresence = 4;
+                totalMaxIntensity = 4;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("PC") && (name.equals("Alkylacylglycerophosphocholines") || name.equals("Dialkylglycerophosphocholines"))) {
+                lipid_ExpertKnowledge.setLipid(Lipid.PC_OP);
+                path = "rules_id_lipid_expert_knowledge/positive/PC_OP_PositiveCheck.drl";
+                totalMaxPresence = 4;
+                totalMaxIntensity = 2;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            }
+        } else { //does not match one of the default drl files
+            isUserFile = true;
+            Path userFolder = Paths.get(System.getProperty("user.dir"),
+                    "mzmine-community/src/main/resources/rules_id_lipid_expert_knowledge/positive/userFiles");
+            Path path1 = findFirstFileWithAbbreviation(userFolder, abbr);
+            if (path1 != null) {
+                path = String.valueOf(path1);
+                //continue logic
+                totalMaxPresence = countPresenceRules(path1);
+                totalMaxIntensity = countPositiveIntensityRules(path1);
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            }
+
         }
 
         detectedLipids.add(lipid_ExpertKnowledge);
@@ -323,8 +344,14 @@ public class LipidIDExpertKnowledgeSearch {
             KieServices ks = KieServices.Factory.get();
             // Create the KieFileSystem
             var kfs = ks.newKieFileSystem();
-            Resource resource = ks.getResources().newClassPathResource(path);
-            kfs.write("src/main/resources/" + path, resource);
+
+            if (!isUserFile) {
+                Resource resource = ks.getResources().newClassPathResource(path);
+                kfs.write("src/main/resources/" + path, resource);
+            } else if (isUserFile) {
+                Resource resource = ks.getResources().newFileSystemResource(path);
+                kfs.write(resource);
+            }
 
             var kBuilder = ks.newKieBuilder(kfs);
             kBuilder.buildAll();
@@ -355,6 +382,27 @@ public class LipidIDExpertKnowledgeSearch {
         }
     }
 
+    /**
+     * Finds a .drl file from the folder with user-input rule files that matches the lipid abbreviation in the file name.
+     * @param folder user input folder with rule files.
+     * @param abbreviation lipid abbreviation to search for in the file names.
+     * @return Path for the file that contains the lipid abbreviation in the name.
+     * @throws IOException In case the folder is not available.
+     */
+    public static Path findFirstFileWithAbbreviation(Path folder, String abbreviation) throws IOException {
+        if (!Files.isDirectory(folder)) {
+            throw new IllegalArgumentException("Not a valid folder: " + folder);
+        }
+
+        try (Stream<Path> files = Files.list(folder)) {
+            return files
+                    .filter(path -> path.getFileName().toString().contains(abbreviation))
+                    .findFirst()
+                    .orElse(null);
+        }
+    }
+
+
 
     /**
      * Finds lipids in ESI- from adducts found for a group.
@@ -364,7 +412,7 @@ public class LipidIDExpertKnowledgeSearch {
      * @param lipid MatchedLipid for the row.
      * @param found List of FoundAdducts for the group the row is part of.
      */
-    public static void findLipidsNegative(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases, VirtualRowGroup virtualGroup) {
+    public static void findLipidsNegative(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases, VirtualRowGroup virtualGroup) throws IOException {
         // Find matching lipids based on detected adducts, re-direct to drl file depending on LipidMatched
         List<FoundLipid> detectedLipids = new ArrayList<>();
 
@@ -381,96 +429,115 @@ public class LipidIDExpertKnowledgeSearch {
         double totalMaxIntensity;
         double maxScore = 0.00;
 
-        if (abbr.equals("Cer")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.Cer);
-            path = "rules_id_lipid_expert_knowledge/negative/Cer_NegativeCheck.drl";
-            totalMaxPresence = 4;
-            totalMaxIntensity = 4;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("DG")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.DG);
-            path = "rules_id_lipid_expert_knowledge/negative/DG_NegativeCheck.drl";
-            totalMaxPresence = 3;
-            totalMaxIntensity = 2;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("HexCer")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.HexCer);
-            path = "rules_id_lipid_expert_knowledge/negative/HexCer_NegativeCheck.drl";
-            totalMaxPresence = 4;
-            totalMaxIntensity = 3;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("LPC") && name.equals("Monoalkylglycerophosphocholines")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.LPC_OP);
-            path = "rules_id_lipid_expert_knowledge/negative/LPC_OP_NegativeCheck.drl";
-            totalMaxPresence = 8;
-            totalMaxIntensity = 1;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("LPC") && name.equals("Monoacylglycerophosphocholines")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.LPC);
-            path = "rules_id_lipid_expert_knowledge/negative/LPC_NegativeCheck.drl";
-            totalMaxPresence = 8;
-            totalMaxIntensity = 7;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("LPE") && name.equals("Monoalkylglycerophosphoethanolamines")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.LPE_OP);
-            path = "rules_id_lipid_expert_knowledge/negative/LPE_OP_NegativeCheck.drl";
-            totalMaxPresence = 2;
-            totalMaxIntensity = 0;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("LPE") && name.equals("Monoacylglycerophosphoethanolamines")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.LPE);
-            path = "rules_id_lipid_expert_knowledge/negative/LPE_NegativeCheck.drl";
-            totalMaxPresence = 2;
-            totalMaxIntensity = 1;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("LPI")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.LPI);
-            path = "rules_id_lipid_expert_knowledge/negative/LPI_NegativeCheck.drl";
-            totalMaxPresence = 2;
-            totalMaxIntensity = 0;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("PE") && !name.equals("Diacylglycerophosphoethanolamines")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.PE_OP);
-            path = "rules_id_lipid_expert_knowledge/negative/PE_OP_NegativeCheck.drl";
-            totalMaxPresence = 2;
-            totalMaxIntensity = 1;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("PE") && name.equals("Diacylglycerophosphoethanolamines")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.PE);
-            path = "rules_id_lipid_expert_knowledge/negative/PE_NegativeCheck.drl";
-            totalMaxPresence = 2;
-            totalMaxIntensity = 1;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("PI")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.PI);
-            path = "rules_id_lipid_expert_knowledge/negative/PI_NegativeCheck.drl";
-            totalMaxPresence = 2;
-            totalMaxIntensity = 1;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("SM")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.SM);
-            path = "rules_id_lipid_expert_knowledge/negative/SM_NegativeCheck.drl";
-            totalMaxPresence = 8;
-            totalMaxIntensity = 6;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("PC") && name.equals("Diacylglycerophosphocholines")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.PC);
-            path = "rules_id_lipid_expert_knowledge/negative/PC_NegativeCheck.drl";
-            totalMaxPresence = 8;
-            totalMaxIntensity = 6;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("PC") && (name.equals("Alkylacylglycerophosphocholines") || name.equals("Dialkylglycerophosphocholines"))) {
-            lipid_ExpertKnowledge.setLipid(Lipid.PC_OP);
-            path = "rules_id_lipid_expert_knowledge/negative/PC_OP_NegativeCheck.drl";
-            totalMaxPresence = 8;
-            totalMaxIntensity = 3;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
-        } else if (abbr.equals("FA")) {
-            lipid_ExpertKnowledge.setLipid(Lipid.FA);
-            path = "rules_id_lipid_expert_knowledge/negative/FA_NegativeCheck.drl";
-            totalMaxPresence = 2;
-            totalMaxIntensity = 1;
-            maxScore = scorePresence*totalMaxPresence + scoreIntensity*totalMaxIntensity;
+        String[] negativeNames = {"Cer", "DG", "FA", "HexCer", "LPC", "LPE", "LPI", "PC", "PE", "PI", "SM"};
+        boolean isUserFile;
+
+        if (Arrays.asList(negativeNames).contains(abbr)) {
+            isUserFile = false;
+            if (abbr.equals("Cer")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.Cer);
+                path = "rules_id_lipid_expert_knowledge/negative/Cer_NegativeCheck.drl";
+                totalMaxPresence = 4;
+                totalMaxIntensity = 4;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("DG")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.DG);
+                path = "rules_id_lipid_expert_knowledge/negative/DG_NegativeCheck.drl";
+                totalMaxPresence = 3;
+                totalMaxIntensity = 2;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("HexCer")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.HexCer);
+                path = "rules_id_lipid_expert_knowledge/negative/HexCer_NegativeCheck.drl";
+                totalMaxPresence = 4;
+                totalMaxIntensity = 3;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("LPC") && name.equals("Monoalkylglycerophosphocholines")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.LPC_OP);
+                path = "rules_id_lipid_expert_knowledge/negative/LPC_OP_NegativeCheck.drl";
+                totalMaxPresence = 8;
+                totalMaxIntensity = 1;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("LPC") && name.equals("Monoacylglycerophosphocholines")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.LPC);
+                path = "rules_id_lipid_expert_knowledge/negative/LPC_NegativeCheck.drl";
+                totalMaxPresence = 8;
+                totalMaxIntensity = 7;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("LPE") && name.equals("Monoalkylglycerophosphoethanolamines")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.LPE_OP);
+                path = "rules_id_lipid_expert_knowledge/negative/LPE_OP_NegativeCheck.drl";
+                totalMaxPresence = 2;
+                totalMaxIntensity = 0;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("LPE") && name.equals("Monoacylglycerophosphoethanolamines")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.LPE);
+                path = "rules_id_lipid_expert_knowledge/negative/LPE_NegativeCheck.drl";
+                totalMaxPresence = 2;
+                totalMaxIntensity = 1;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("LPI")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.LPI);
+                path = "rules_id_lipid_expert_knowledge/negative/LPI_NegativeCheck.drl";
+                totalMaxPresence = 2;
+                totalMaxIntensity = 0;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("PE") && !name.equals("Diacylglycerophosphoethanolamines")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.PE_OP);
+                path = "rules_id_lipid_expert_knowledge/negative/PE_OP_NegativeCheck.drl";
+                totalMaxPresence = 2;
+                totalMaxIntensity = 1;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("PE") && name.equals("Diacylglycerophosphoethanolamines")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.PE);
+                path = "rules_id_lipid_expert_knowledge/negative/PE_NegativeCheck.drl";
+                totalMaxPresence = 2;
+                totalMaxIntensity = 1;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("PI")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.PI);
+                path = "rules_id_lipid_expert_knowledge/negative/PI_NegativeCheck.drl";
+                totalMaxPresence = 2;
+                totalMaxIntensity = 1;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("SM")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.SM);
+                path = "rules_id_lipid_expert_knowledge/negative/SM_NegativeCheck.drl";
+                totalMaxPresence = 8;
+                totalMaxIntensity = 6;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("PC") && name.equals("Diacylglycerophosphocholines")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.PC);
+                path = "rules_id_lipid_expert_knowledge/negative/PC_NegativeCheck.drl";
+                totalMaxPresence = 8;
+                totalMaxIntensity = 6;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("PC") && (name.equals("Alkylacylglycerophosphocholines") || name.equals("Dialkylglycerophosphocholines"))) {
+                lipid_ExpertKnowledge.setLipid(Lipid.PC_OP);
+                path = "rules_id_lipid_expert_knowledge/negative/PC_OP_NegativeCheck.drl";
+                totalMaxPresence = 8;
+                totalMaxIntensity = 3;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            } else if (abbr.equals("FA")) {
+                lipid_ExpertKnowledge.setLipid(Lipid.FA);
+                path = "rules_id_lipid_expert_knowledge/negative/FA_NegativeCheck.drl";
+                totalMaxPresence = 2;
+                totalMaxIntensity = 1;
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            }
+        } else { //does not match one of the default drl files
+            isUserFile = true;
+            Path userFolder = Paths.get(System.getProperty("user.dir"),
+                    "mzmine-community/src/main/resources/rules_id_lipid_expert_knowledge/negative/userFiles");
+            Path path1 = findFirstFileWithAbbreviation(userFolder, abbr);
+            if (path1 != null) {
+                path = String.valueOf(path1);
+                //continue logic
+                totalMaxPresence = countPresenceRules(path1);
+                totalMaxIntensity = countPositiveIntensityRules(path1);
+                maxScore = scorePresence * totalMaxPresence + scoreIntensity * totalMaxIntensity;
+            }
+
         }
 
         detectedLipids.add(lipid_ExpertKnowledge);
@@ -480,8 +547,14 @@ public class LipidIDExpertKnowledgeSearch {
             KieServices ks = KieServices.Factory.get();
             // Create the KieFileSystem
             var kfs = ks.newKieFileSystem();
-            Resource resource = ks.getResources().newClassPathResource(path);
-            kfs.write("src/main/resources/" + path, resource);
+
+            if (!isUserFile) {
+                Resource resource = ks.getResources().newClassPathResource(path);
+                kfs.write("src/main/resources/" + path, resource);
+            } else if (isUserFile) {
+                Resource resource = ks.getResources().newFileSystemResource(path);
+                kfs.write(resource);
+            }
 
             var kBuilder = ks.newKieBuilder(kfs);
             kBuilder.buildAll();
@@ -511,6 +584,46 @@ public class LipidIDExpertKnowledgeSearch {
                 }
             }
         }
+    }
+
+    /**
+     * Counts the number of positive presence rules in user-input rule files.
+     * @param drlFilePath Path for the file to read and count in.
+     * @return Number of positive presence rules.
+     * @throws IOException In case the file is not available.
+     */
+    public static int countPresenceRules(Path drlFilePath) throws IOException {
+        String content = Files.readString(drlFilePath);
+        String[] ruleBlocks = content.split("(?i)rule\\s+");
+
+        int count = 0;
+        for (String block : ruleBlocks) {
+            String header = block.split("\n", 2)[0];
+            if (header.contains("Presence")) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Counts the number of positive intensity rules in user-input rule files.
+     * @param drlFilePath Path for the file to read and count in.
+     * @return Number of positive intensity rules.
+     * @throws IOException In case the file is not available.
+     */
+    public static int countPositiveIntensityRules(Path drlFilePath) throws IOException {
+        String content = Files.readString(drlFilePath);
+        String[] ruleBlocks = content.split("(?i)rule\\s+");
+
+        int count = 0;
+        for (String block : ruleBlocks) {
+            String header = block.split("\n", 2)[0];
+            if (header.contains("Intensity") && header.contains(">")) {
+                count++;
+            }
+        }
+        return count;
     }
 
 }

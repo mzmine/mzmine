@@ -14,6 +14,10 @@ import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.util.ExitCode;
 import javafx.application.Platform;
 import javafx.scene.layout.Region;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.FileChooser;
+import java.util.List;
 
 import static io.github.mzmine.javafx.components.factories.FxTexts.*;
 
@@ -51,10 +55,19 @@ public class LipidIDExpertKnowledgeParameters extends SimpleParameterSet {
             "Sample types", "Selection of sample type", SampleTypes.getListOfSampleTypes().toArray());
 
     /**
+     * User-selected DRL rule files.
+     */
+    public static final FileNamesParameter drlFiles = new FileNamesParameter(
+            "DRL files",
+            "Drools rule files (.drl) for lipid expert knowledge",
+            List.of(new ExtensionFilter("Drools rules (*.drl)", "*.drl"))
+    );
+
+    /**
      * Created a new LipidIDExpertKnowledgeParameter object with the specified info.
      */
     public LipidIDExpertKnowledgeParameters() {
-        super(new Parameter[]{featureLists, mzTolerance, mobilePhaseParameter, sampleTypeParameter});
+        super(new Parameter[]{featureLists, mzTolerance, mobilePhaseParameter, sampleTypeParameter, drlFiles});
     }
 
     /**
@@ -66,7 +79,8 @@ public class LipidIDExpertKnowledgeParameters extends SimpleParameterSet {
     public ExitCode showSetupDialog(boolean valueCheckRequired) {
         assert Platform.isFxApplicationThread();
         final Region message = FxTextFlows.newTextFlowInAccordion("Authors Note",
-                text("This module requires Lipid Annotation to be run first."));
+                text("This module requires Lipid Annotation to be run first."),
+                text("You may also provide one or more Drools rule files (.drl)."));
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
 

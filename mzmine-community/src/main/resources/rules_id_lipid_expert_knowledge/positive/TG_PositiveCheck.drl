@@ -186,7 +186,7 @@ then
     lipid.setDescrIncorrect("Intensity NOT OK [M+K]+ < [M+H]+, ");
 end
 
-rule "Intensity [M+H]+ > [M+Na]+"
+rule "Intensity [M+Na]+ < [M+H]+"
 when
     $adduct1: FoundAdduct(adductName == "[M+H]+")
     $adduct2: FoundAdduct(adductName == "[M+Na]+")
@@ -197,7 +197,7 @@ then
     lipid.setDescrIncorrect("Intensity NOT OK [M+H]+ > [M+Na]+, ");
 end
 
-rule "Intensity [M+K]+ > [M+NH4]+"
+rule "Intensity [M+NH4]+ < [M+K]+"
 when
     $adduct1: FoundAdduct(adductName == "[M+K]+")
     $adduct2: FoundAdduct(adductName == "[M+NH4]+")

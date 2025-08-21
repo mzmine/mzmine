@@ -8,6 +8,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Collection;
 
@@ -70,8 +71,12 @@ public class LipidIDExpertKnowledgeModule implements MZmineProcessingModule {
     public @NotNull ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
         FeatureList[] featureLists = parameters.getParameter(parameters.getParameter(LipidIDExpertKnowledgeParameters.featureLists)).getValue().getMatchingFeatureLists();
 
-        for (FeatureList fL : featureLists) {
-            tasks.add(new LipidIDExpertKnowledgeTask(parameters, fL, moduleCallDate));
+        try {
+            for (FeatureList fL : featureLists) {
+                tasks.add(new LipidIDExpertKnowledgeTask(parameters, fL, moduleCallDate));
+            }
+        }catch (IOException ex){
+            System.out.println(ex);
         }
         return ExitCode.OK;
     }

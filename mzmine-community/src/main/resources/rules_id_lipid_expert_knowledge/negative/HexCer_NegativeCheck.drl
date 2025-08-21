@@ -145,7 +145,7 @@ then
     lipid.setDescrIncorrect("Intensity NOT OK [M-H]- < [M-H+(CH3COONa)]-, ");
 end
 
-rule "Intensity [M+Cl]- > [M+CH3COO]-"
+rule "Intensity [M+CH3COO]- < [M+Cl]-"
 when
     $adduct1: FoundAdduct(adductName == "[M+Cl]-")
     $adduct2: FoundAdduct(adductName == "[M+CH3COO]-")

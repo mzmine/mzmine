@@ -18,7 +18,7 @@ public class VirtualRowGroup implements RowGroup {
         this.subgroupId = subgroupId;
         for (FeatureListRow row : this.rows) {
             row.setGroup(this);
-            System.out.println("Assigning to row " + row.getID() + " → groupID=" + groupId + ", subgroupID=" + subgroupId);
+            //System.out.println("Assigning to row " + row.getID() + " → groupID=" + groupId + ", subgroupID=" + subgroupId);
         }
     }
 

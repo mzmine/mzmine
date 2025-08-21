@@ -123,8 +123,15 @@ public class MobilePhaseParameter<ValueType> implements UserParameter<ValueType[
      */
     @Override
     public MobilePhaseComponent createEditingComponent() {
-        return new MobilePhaseComponent(choices);
+        MobilePhaseComponent component = new MobilePhaseComponent(choices);
+
+        //Adjust size of the box to number of mobile phases
+        int rows = Math.min(choices.length, 6);  // cap at 6 rows for readability
+        component.setPrefHeight(rows * 28);      // ~28px per row, tweak if needed
+
+        return component;
     }
+
 
     /**
      * Sets the values to the ones chosen in the setup dialog.

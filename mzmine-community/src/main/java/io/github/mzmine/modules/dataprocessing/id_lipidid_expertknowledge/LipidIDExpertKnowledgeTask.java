@@ -17,10 +17,18 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 
 /**
  * Task of the module Lipid Validation module.
@@ -73,7 +81,7 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
      * @param featureList Feature list the module will be run over.
      * @param moduleCallDate Call date of the module.
      */
-    protected LipidIDExpertKnowledgeTask(ParameterSet parameters, FeatureList featureList, @NotNull Instant moduleCallDate) {
+    public LipidIDExpertKnowledgeTask(ParameterSet parameters, FeatureList featureList, @NotNull Instant moduleCallDate) throws IOException {
         super(null, moduleCallDate);
         this.featureList = featureList;
         this.parameters = parameters;
@@ -84,7 +92,30 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
         //Convert Object to SampleType
         Object[] selectedST = parameters.getParameter(LipidIDExpertKnowledgeParameters.sampleTypeParameter).getValue();
         this.sampleType = Arrays.stream(selectedST).filter(o -> o instanceof SampleTypes).map(o -> (SampleTypes) o).findFirst().orElse(null);
+
+        @NotNull File[] userFiles = parameters.getParameter(LipidIDExpertKnowledgeParameters.drlFiles).getValue();
+        for (File f : userFiles) {
+            if (!f.exists()) continue;
+
+            Path targetDir;
+            if (f.getName().contains("Positive")) {
+                targetDir = Paths.get(System.getProperty("user.dir"),
+                        "mzmine-community/src/main/resources/rules_id_lipid_expert_knowledge/positive/userFiles");
+            } else if (f.getName().contains("Negative")) {
+                targetDir = Paths.get(System.getProperty("user.dir"),
+                        "mzmine-community/src/main/resources/rules_id_lipid_expert_knowledge/negative/userFiles");
+            } else {
+                System.out.println("Does not match requirements: " + f.getName());
+                continue;
+            }
+
+            Files.createDirectories(targetDir); // ensure folder exists
+            Path targetFile = targetDir.resolve(f.getName()); // include filename
+            Files.copy(f.toPath(), targetFile, StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("Copied " + f.getName() + " to " + targetFile.toAbsolutePath());
+        }
     }
+
 
     /**
      * Gets the description of the task.
@@ -236,7 +267,7 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
                     if (correlated) {
                         subgroup.add(row);
                         added = true;
-                        System.out.println("Row " + row.getID() + " added to existing subgroup.");
+                        //System.out.println("Row " + row.getID() + " added to existing subgroup.");
                         break;
                     }
                 }
@@ -244,7 +275,7 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
                     List<FeatureListRow> newSubgroup = new ArrayList<>();
                     newSubgroup.add(row);
                     subgroups.add(newSubgroup);
-                    System.out.println("Row " + row.getID() + " [hash: " + System.identityHashCode(row) + "] started a new subgroup.");
+                    //System.out.println("Row " + row.getID() + " [hash: " + System.identityHashCode(row) + "] started a new subgroup.");
                 }
             }
             for (List<FeatureListRow> subgroup : subgroups) {
@@ -256,12 +287,12 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
                 for (FeatureListRow row : subgroup) {
                     row.setComment(comment);
 
-                    // ✅ Debug AFTER setting comment
-                    if (row.getComment() == null || row.getComment().isEmpty()) {
+                    // Debug AFTER setting comment
+                    /*if (row.getComment() == null || row.getComment().isEmpty()) {
                         System.out.println("⚠️ Row " + row.getID() + " did NOT receive a subgroup comment!");
                     } else {
                         System.out.println("✅ Row " + row.getID() + " assigned to " + row.getComment());
-                    }
+                    }*/
                 }
             }
         }
@@ -366,15 +397,15 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
                         return (comment != null && !comment.isEmpty()) ? comment : "unassigned";
                     }));
 
-            System.out.println("RowGroup ID: " + group.getGroupID() +
-                    " → Subgroups: " + subgroups.size());
+            //System.out.println("RowGroup ID: " + group.getGroupID() +
+                   // " → Subgroups: " + subgroups.size());
 
             for (Map.Entry<String, List<FeatureListRow>> entry : subgroups.entrySet()) {
                 String subgroup = entry.getKey();
                 List<FeatureListRow> rows2 = entry.getValue();
-                for (FeatureListRow row : rows2) {
+                /*for (FeatureListRow row : rows2) {
                     System.out.println("  Feature ID: " + row.getID() + " [hash: " + System.identityHashCode(row) + "] → Comment/Subgroup: " + subgroup);
-                }
+                }*/
             }
 
 
@@ -469,11 +500,16 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
                             List<FoundAdduct> foundAdductsAndISF = LipidIDExpertKnowledgeSearch.findAdducts(
                                     commonAdductsISF, rowInfo, mzTolerance.getMzTolerance(), row, matchedLipid);
 
-                            if (polarityType.equals(PolarityType.POSITIVE) && Arrays.asList(positiveNames).contains(abbr)) {
-                                LipidIDExpertKnowledgeSearch.findLipidsPositive(row, matchedLipid, foundAdductsAndISF, mobilePhase, virtualGroup);
-                            } else if (polarityType.equals(PolarityType.NEGATIVE) && Arrays.asList(negativeNames).contains(abbr)) {
-                                LipidIDExpertKnowledgeSearch.findLipidsNegative(row, matchedLipid, foundAdductsAndISF, mobilePhase, virtualGroup);
+                            try {
+                                if (polarityType.equals(PolarityType.POSITIVE) /*&& Arrays.asList(positiveNames).contains(abbr)*/) {
+                                    LipidIDExpertKnowledgeSearch.findLipidsPositive(row, matchedLipid, foundAdductsAndISF, mobilePhase, virtualGroup);
+                                } else if (polarityType.equals(PolarityType.NEGATIVE) /*&& Arrays.asList(negativeNames).contains(abbr)*/) {
+                                    LipidIDExpertKnowledgeSearch.findLipidsNegative(row, matchedLipid, foundAdductsAndISF, mobilePhase, virtualGroup);
+                                }
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
                             }
+
                         }
                     }
                 } else {
