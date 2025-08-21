@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
@@ -176,7 +177,10 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
     this.helpURL = parameters.getClass().getResource("help/help.html");
     this.footerMessage = message;
 
-    parameterChangeDelay.setOnFinished(_ -> parametersChanged());
+    // use FxThread runlater to run on the fxthread. Otherwise we cannot call dialog.showAndWait.
+//    java.lang.IllegalStateException: showAndWait is not allowed during animation or layout processing
+    // use Platform.runLater directly and not FxThread. Platform does extra checks
+    parameterChangeDelay.setOnFinished(_ -> Platform.runLater(this::parametersChanged));
 
     // Main panel which holds all the components in a grid
     mainPane = this;
