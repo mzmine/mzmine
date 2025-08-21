@@ -122,7 +122,6 @@ when
     eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
 then
-    
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO]- < [M-H]-, ");
 end

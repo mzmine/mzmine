@@ -1,0 +1,75 @@
+//Dummy example for positive polarity rule file
+
+package rules_id_lipid_expert_knowledge.positive.userFiles;
+
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.FoundAdduct;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhases;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.CommonAdductPositive;
+import java.util.List;
+
+// Global variables
+global FoundLipid lipid;
+global List mobilePhases;
+
+// =======================================
+// RULE TYPE 1: Positive presence
+// Check that specific adducts appear
+// =======================================
+rule "Presence [M+H]+"
+when
+    $adduct: FoundAdduct(adductName == "[M+H]+")
+then
+    lipid.setScore(1);
+    lipid.setDescrCorrect("Contains [M+H]+, ");
+end
+
+rule "Presence [M+Na]+"
+when
+    $adduct: FoundAdduct(adductName == "[M+Na]+")
+then
+    lipid.setScore(1);
+    lipid.setDescrCorrect("Contains [M+Na]+, ");
+end
+
+// =======================================
+// RULE TYPE 2: Negative presence (absence)
+// Check if most intense adduct does NOT appear
+// =======================================
+rule "No presence [M+H]+"
+when
+    not FoundAdduct(adductName == "[M+H]+")
+then
+    lipid.setScore(-1);
+    lipid.setDescrIncorrect("Missing [M+H]+, ");
+end
+
+// =======================================
+// RULE TYPE 3: Correct intensity order
+// Adduct1 intensity > Adduct2 intensity
+// =======================================
+rule "Intensity [M+H]+ > [M+Na]+"
+when
+    $adduct1: FoundAdduct(adductName == "[M+H]+")
+    $adduct2: FoundAdduct(adductName == "[M+Na]+")
+
+    eval($adduct1.getIntensity() > $adduct2.getIntensity())
+then
+    lipid.setScore(2);
+    lipid.setDescrCorrect("Intensity OK [M+H]+ > [M+Na]+, ");
+end
+
+// =======================================
+// RULE TYPE 4: Incorrect intensity order
+// Adduct1 intensity < Adduct2 intensity
+// =======================================
+rule "Intensity [M+H]+ < [M+Na]+"
+when
+    $adduct1: FoundAdduct(adductName == "[M+H]+")
+    $adduct2: FoundAdduct(adductName == "[M+Na]+")
+
+    eval($adduct1.getIntensity() < $adduct2.getIntensity())
+then
+    lipid.setScore(-2);
+    lipid.setDescrIncorrect("Intensity NOT OK [M+H]+ < [M+Na]+, ");
+end
