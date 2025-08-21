@@ -28,6 +28,7 @@ package io.github.mzmine.javafx.properties;
 import java.util.Arrays;
 import java.util.List;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
@@ -67,7 +68,10 @@ public class PropertyUtils {
   public static Subscription onChangeDelayedSubscription(Runnable operation, Duration delay,
       final ObservableValue<?>... triggers) {
     PauseTransition pause = new PauseTransition(delay);
-    pause.setOnFinished(_ -> operation.run());
+    // use FxThread runlater to run on the fxthread. Otherwise we cannot call dialog.showAndWait.
+//    java.lang.IllegalStateException: showAndWait is not allowed during animation or layout processing
+    // use Platform.runLater directly and not FxThread. Platform does extra checks
+    pause.setOnFinished(_ -> Platform.runLater(operation));
     return onChangeSubscription(pause::playFromStart, triggers);
   }
 
