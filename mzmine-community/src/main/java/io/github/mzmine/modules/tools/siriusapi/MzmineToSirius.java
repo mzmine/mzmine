@@ -170,7 +170,7 @@ public class MzmineToSirius {
         .orElseGet(() -> {
           SearchableDatabaseParameters dbParam = new SearchableDatabaseParameters();
           dbParam.setDisplayName(Sirius.mzmineCustomDbId);
-          dbParam.setLocation(new File(new File(FileAndPathUtil.getMzmineDir(), "databases"),
+          dbParam.setLocation(new File(new File(FileAndPathUtil.getMzmineDir(), "sirius_databases"),
               Sirius.mzmineCustomDbId).getAbsolutePath());
           return databases.createDatabase(Sirius.mzmineCustomDbId, dbParam);
         });
