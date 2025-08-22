@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.siriusapi.modules.fingerid;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -43,6 +44,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 public class SiriusFingerIdModule extends AbstractProcessingModule {
@@ -63,8 +65,10 @@ public class SiriusFingerIdModule extends AbstractProcessingModule {
 
     final List<FeatureListRow> rows = FeatureUtils.idStringToRows(flist, idStr);
     final JobWaiterTask jobWaiterTask;
+
+
     try (Sirius sirius = new Sirius()) {
-      final Job job = sirius.runFingerId(rows);
+      final Job job = sirius.createFingerIdJob(rows);
 
       jobWaiterTask = new JobWaiterTask(this.getClass(), moduleCallDate, parameters,
           () -> sirius.api().jobs()

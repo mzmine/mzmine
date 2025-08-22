@@ -41,7 +41,7 @@ public class SiriusFingerIdParameters extends SimpleParameterSet {
   public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1);
 
   public static final StringParameter rowIds = new StringParameter("Row IDs",
-      "The ids of the rows to run fingerID for.");
+      "The ids of the rows to run CSI:FingerID for.");
 
   public SiriusFingerIdParameters() {
     super(flist, rowIds);

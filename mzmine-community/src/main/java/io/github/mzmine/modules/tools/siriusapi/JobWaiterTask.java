@@ -31,13 +31,17 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.AbstractSimpleTask;
+import io.sirius.ms.sdk.SiriusSDKUtils;
 import io.sirius.ms.sdk.model.Job;
 import io.sirius.ms.sdk.model.JobState;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class JobWaiterTask extends AbstractSimpleTask {
@@ -46,6 +50,7 @@ public class JobWaiterTask extends AbstractSimpleTask {
 
   private final Supplier<Job> jobSupplier;
   private final Runnable onFinished;
+  private final @NotNull FeatureList[] flist;
 
   public JobWaiterTask(@NotNull Class<? extends MZmineModule> callingModule,
       @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters, Supplier<Job> jobSupplier,
@@ -53,12 +58,15 @@ public class JobWaiterTask extends AbstractSimpleTask {
     super(null, moduleCallDate, parameters, callingModule);
     this.jobSupplier = jobSupplier;
     this.onFinished = onFinished;
+    flist = ParameterUtils.getMatchingFeatureListsFromParameter(getParameters());
   }
 
   @Override
   protected void process() {
     try {
       while (!hasFinished(jobSupplier.get())) {
+//        jobSupplier.get().getProgress().getCurrentProgress();
+//        jobSupplier.get().getProgress().getMaxProgress();
         TimeUnit.MILLISECONDS.sleep(100);
       }
     } catch (InterruptedException e) {
@@ -75,7 +83,7 @@ public class JobWaiterTask extends AbstractSimpleTask {
 
   @Override
   protected @NotNull List<FeatureList> getProcessedFeatureLists() {
-    return List.of(ParameterUtils.getMatchingFeatureListsFromParameter(getParameters()));
+    return Arrays.stream(flist).toList();
   }
 
   @Override
@@ -85,7 +93,8 @@ public class JobWaiterTask extends AbstractSimpleTask {
 
   @Override
   public String getTaskDescription() {
-    return "";
+    return "Running Sirius on feature list(s) " + Arrays.stream(flist).map(FeatureList::getName)
+        .collect(Collectors.joining(", "));
   }
 
   boolean hasFinished(Job job) {
@@ -102,5 +111,13 @@ public class JobWaiterTask extends AbstractSimpleTask {
       case WAITING, READY, QUEUED, SUBMITTED, RUNNING, CANCELED, FAILED -> false;
       case DONE -> true;
     };
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+    final Job job = jobSupplier.get();
+    return job != null ?
+        (double) Objects.requireNonNullElse(job.getProgress().getCurrentProgress(), 0L)
+            / Objects.requireNonNullElse(job.getProgress().getMaxProgress(), 1L) : 0;
   }
 }

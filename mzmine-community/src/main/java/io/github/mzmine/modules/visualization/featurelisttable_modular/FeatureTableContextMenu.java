@@ -76,6 +76,7 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardTab;
+import io.github.mzmine.modules.tools.siriusapi.Sirius;
 import io.github.mzmine.modules.tools.siriusapi.SiriusStaticUtil;
 import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
@@ -121,6 +122,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -134,6 +136,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 /**
  * Conditions should be chosen in a way that exceptions are impossible when the item is clicked. On
@@ -410,9 +413,23 @@ public class FeatureTableContextMenu extends ContextMenu {
     runFingerId.setOnAction(
         _ -> MZmineCore.getModuleInstance(SiriusFingerIdModule.class).run(selectedRows));
 
+    final MenuItem rankUsingFingerId = new ConditionalMenuItem(
+        "Rank Compound annotations using CSI:FingerId", () -> !selectedRows.isEmpty());
+    rankUsingFingerId.setOnAction(_ -> {
+      try (Sirius sirius = new Sirius()) {
+        sirius.rankCurrentCompoundAnnotations(selectedRow);
+      } catch (Exception e) {
+        if(e instanceof WebClientResponseException w) {
+          logger.log(Level.SEVERE, w.getResponseBodyAsString(), w);
+        }
+        throw new RuntimeException(e);
+      }
+    });
+
     searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
         formulaPredictionItem, fragmentDashboardItem, new SeparatorMenuItem(), masstSearch,
-        new SeparatorMenuItem(), searchMassPubChem, searchFormulaPubChem, new SeparatorMenuItem(), sendToSirius, runFingerId);
+        new SeparatorMenuItem(), searchMassPubChem, searchFormulaPubChem, new SeparatorMenuItem(),
+        sendToSirius, runFingerId, rankUsingFingerId);
   }
 
   private void initShowMenu() {

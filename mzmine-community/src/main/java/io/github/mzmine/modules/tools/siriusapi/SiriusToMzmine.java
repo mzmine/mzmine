@@ -30,13 +30,11 @@ import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBA
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ALogPType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSuperclassType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierPathwayType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierSuperclassType;
@@ -44,17 +42,21 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.CsiScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.FormulaUtils;
 import io.sirius.ms.sdk.SiriusSDK;
+import io.sirius.ms.sdk.SiriusSDKUtils;
+import io.sirius.ms.sdk.model.AlignedFeature;
 import io.sirius.ms.sdk.model.CompoundClass;
 import io.sirius.ms.sdk.model.CompoundClasses;
 import io.sirius.ms.sdk.model.ProjectInfo;
 import io.sirius.ms.sdk.model.StructureCandidateFormula;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +66,7 @@ public class SiriusToMzmine {
 
   private static final Logger logger = Logger.getLogger(SiriusToMzmine.class.getName());
 
-  public static @Nullable CompoundDBAnnotation toMzmine(
+  public static @Nullable CompoundDBAnnotation structureCandidateToMzmine(
       @Nullable StructureCandidateFormula structure, SiriusSDK sirius, ProjectInfo projectInfo,
       String id) {
     if (structure == null) {
@@ -90,6 +92,7 @@ public class SiriusToMzmine {
     annotation.putIfNotNull(NeutralMassType.class, neutralMass);
     annotation.put(CommentType.class,
         "Imported from Sirius. CSI score: %s".formatted(formats.score(structure.getCsiScore())));
+    annotation.putIfNotNull(CsiScoreType.class, structure.getCsiScore().floatValue());
 //    annotation.putIfNotNull(DatabaseNameType.class,
 //        structure.getDbLinks().isEmpty() ? null : structure.getDbLinks().getFirst().getName());
     annotation.putIfNotNull(ALogPType.class, structure.getXlogP().floatValue());
@@ -99,6 +102,13 @@ public class SiriusToMzmine {
     return annotation;
   }
 
+  /**
+   * Reads structure classes from classifier for a specific {@link StructureCandidateFormula} to add
+   * it to a {@link CompoundDBAnnotation}
+   *
+   * @param structure the structure to query
+   * @param featureId the sirius {@link AlignedFeature#getAlignedFeatureId()}
+   */
   private static void transferClassyfireAnnotations(@NotNull StructureCandidateFormula structure,
       @NotNull final SiriusSDK sirius, @NotNull final ProjectInfo projectInfo,
       @NotNull final String featureId, @NotNull CompoundDBAnnotation annotation) {
@@ -134,5 +144,14 @@ public class SiriusToMzmine {
         }
       }
     }
+  }
+
+  public static String alignedFeatureToString(AlignedFeature alignedFeature) {
+    final NumberFormats formats = ConfigService.getGuiFormats();
+
+    return "AlignedFeature{exId=%s, id=%s, mz=%s, rt=%s}".formatted(
+        alignedFeature.getExternalFeatureId(), alignedFeature.getAlignedFeatureId(),
+        formats.mz(alignedFeature.getIonMass()),
+        formats.rt(Objects.requireNonNullElse(alignedFeature.getRtApexSeconds(), 0d) / 60f));
   }
 }

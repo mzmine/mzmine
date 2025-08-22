@@ -39,24 +39,23 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.WriterOptions;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import io.sirius.ms.sdk.api.SearchableDatabasesApi;
 import io.sirius.ms.sdk.model.BasicSpectrum;
-import io.sirius.ms.sdk.model.BioTransformerParameters;
 import io.sirius.ms.sdk.model.FeatureImport;
 import io.sirius.ms.sdk.model.SearchableDatabase;
+import io.sirius.ms.sdk.model.SearchableDatabaseParameters;
 import io.sirius.ms.sdk.model.SimplePeak;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -68,7 +67,12 @@ public class MzmineToSirius {
 
   private static final Logger logger = Logger.getLogger(MzmineToSirius.class.getName());
 
-  public static FeatureImport feature(FeatureListRow row) {
+  @Nullable
+  public static FeatureImport feature(@NotNull FeatureListRow row) {
+    if (!row.hasMs2Fragmentation() || !row.hasIsotopePattern()) {
+      return null;
+    }
+
     final FeatureImport f = new FeatureImport();
     f.setExternalFeatureId(String.valueOf(row.getID()));
     f.setName(String.valueOf(row.getID()));
@@ -86,6 +90,7 @@ public class MzmineToSirius {
     f.setMs1Spectra(List.of(generateCorrelationSpectrum(row)));
     f.setRtStartSeconds(row.getBestFeature().getRawDataPointsRTRange().lowerEndpoint() * 60d);
     f.setRtEndSeconds(row.getBestFeature().getRawDataPointsRTRange().upperEndpoint() * 60d);
+    f.setRtApexSeconds(row.getAverageRT() * 60d);
 
     return f;
   }
@@ -155,32 +160,46 @@ public class MzmineToSirius {
     final Map<String, CompoundDBAnnotation> uniqueCompounds = compounds.stream()
         .filter(a -> a.getSmiles() != null)
         .collect(Collectors.toMap(CompoundDBAnnotation::getSmiles, a -> a));
-    final File dbFile = writeCustomDatabase(uniqueCompounds);
+    final File dbFile = writeCompoundsToFile(uniqueCompounds);
 
     final SearchableDatabasesApi databases = sirius.api().databases();
-    final SearchableDatabase database = databases.importIntoDatabase(
-        FileAndPathUtil.eraseFormat(dbFile).getName(), List.of(dbFile), 1000, null);
-    database.customDb(true);
+    databases.getCustomDatabases(false, false);
+
+    final SearchableDatabase database = databases.getCustomDatabases(false, false)
+        .stream().filter(db -> db.getDatabaseId().equals(Sirius.mzmineCustomDbId)).findFirst()
+        .orElseGet(() -> {
+          SearchableDatabaseParameters dbParam = new SearchableDatabaseParameters();
+          dbParam.setDisplayName(Sirius.mzmineCustomDbId);
+          dbParam.setLocation(new File(new File(FileAndPathUtil.getMzmineDir(), "databases"),
+              Sirius.mzmineCustomDbId).getAbsolutePath());
+          return databases.createDatabase(Sirius.mzmineCustomDbId, dbParam);
+        });
+
+    databases.importIntoDatabase(database.getDatabaseId(), List.of(dbFile), 1000, null);
     return database;
   }
 
-  private static File writeCustomDatabase(final Map<String, CompoundDBAnnotation> db) {
-    final File file = new File(new File(FileAndPathUtil.getMzmineDir(), "sirius_databases"),
-        "custom_%s".formatted(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).toString()));
+  private static File writeCompoundsToFile(final Map<String, CompoundDBAnnotation> db) {
+    final File file = new File(new File(FileAndPathUtil.getTempDir(), "sirius_databases"),
+        "custom_%s.tsv".formatted(Sirius.getSessionId()));
+    file.deleteOnExit();
+
     if (!file.getParentFile().exists()) {
       file.getParentFile().mkdirs();
     }
 
     try (var bufferedWriter = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8,
-        StandardOpenOption.WRITE, StandardOpenOption.APPEND, StandardOpenOption.CREATE)) {
+        WriterOptions.REPLACE.toOpenOption())) {
       CSVWriterBuilder builder = new CSVWriterBuilder(bufferedWriter).withSeparator('\t');
       final ICSVWriter writer = builder.build();
 
       for (Entry<String, CompoundDBAnnotation> entry : db.entrySet()) {
         final String smiles = entry.getKey();
         final CompoundDBAnnotation annotation = entry.getValue();
+        final String inChIKey = annotation.getInChIKey();
         final String name = annotation.getCompoundName();
-        writer.writeNext(new String[]{smiles, name}, false);
+        writer.writeNext(new String[]{smiles, Objects.requireNonNullElse(inChIKey, ""), name},
+            false);
       }
       bufferedWriter.flush();
     } catch (IOException e) {

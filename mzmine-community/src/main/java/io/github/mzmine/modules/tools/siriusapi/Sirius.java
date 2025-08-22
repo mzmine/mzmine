@@ -25,14 +25,23 @@
 
 package io.github.mzmine.modules.tools.siriusapi;
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdParameters;
+import io.github.mzmine.taskcontrol.TaskService;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.maths.Precision;
 import io.sirius.ms.sdk.SiriusSDK;
 import io.sirius.ms.sdk.SiriusSDK.ShutdownMode;
+import io.sirius.ms.sdk.SiriusSDKUtils;
 import io.sirius.ms.sdk.model.AlignedFeature;
 import io.sirius.ms.sdk.model.AlignedFeatureOptField;
+import io.sirius.ms.sdk.model.AllowedFeatures;
+import io.sirius.ms.sdk.model.ConfidenceMode;
 import io.sirius.ms.sdk.model.FeatureImport;
 import io.sirius.ms.sdk.model.GuiInfo;
 import io.sirius.ms.sdk.model.InstrumentProfile;
@@ -41,8 +50,12 @@ import io.sirius.ms.sdk.model.JobOptField;
 import io.sirius.ms.sdk.model.JobSubmission;
 import io.sirius.ms.sdk.model.ProjectInfo;
 import io.sirius.ms.sdk.model.ProjectInfoOptField;
+import io.sirius.ms.sdk.model.SearchableDatabase;
 import io.sirius.ms.sdk.model.StructureCandidateFormula;
+import io.sirius.ms.sdk.model.StructureDbSearch;
+import io.sirius.ms.sdk.model.Subscription;
 import java.io.File;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -50,11 +63,13 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 public class Sirius implements AutoCloseable {
@@ -62,99 +77,101 @@ public class Sirius implements AutoCloseable {
   private static final Logger logger = Logger.getLogger(Sirius.class.getName());
   // one session id for this mzmine session
   private static final LocalDateTime creationDate = LocalDateTime.now();
+
+  /**
+   * in case a temporary project is created, we use this ID.
+   */
   private static final String sessionId = FileAndPathUtil.safePathEncode(
       "mzmine_%s".formatted(creationDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm"))));
 
+  /**
+   * default custom database for mzmine compounds exported to sirius.
+   */
+  public static final String mzmineCustomDbId = "mzmine_default_export";
+
+  @NotNull
   private final SiriusSDK sirius;
+  @NotNull
   private final ProjectInfo projectSpace;
 
+  /**
+   * Default constructor to initialise a temporary project.
+   */
   public Sirius() throws Exception {
+    final File projectFile = new File(FileAndPathUtil.getTempDir(), sessionId + ".sirius");
+    this(projectFile);
+  }
+
+  /**
+   * @param project project file to open
+   * @throws Exception
+   */
+  public Sirius(File project) throws Exception {
     sirius = SiriusSDK.startAndConnectLocally(ShutdownMode.NEVER, true);
+
+    int tries = 0;
+    final int maxTries = 10;
+    while (!SiriusSDKUtils.restHealthCheck(sirius.getApiClient()) && tries < maxTries) {
+      tries++;
+      Thread.sleep(200);
+      logger.finest("Waiting for Sirius API startup. Try %d/%d".formatted(tries, maxTries));
+    }
+
+    if (!SiriusSDKUtils.restHealthCheck(sirius.getApiClient())) {
+      throw new RuntimeException("Could not connect to Sirius API.");
+    }
+
     checkLogin();
     logger.finest(sirius.infos().getInfo(null, null).toString());
-    projectSpace = activateSiriusProject();
+    projectSpace = activateSiriusProject(project);
     showGuiForProject();
   }
 
   private void showGuiForProject() {
     for (GuiInfo gui : sirius.gui().getGuis()) {
-      if(gui.getProjectId().equals(projectSpace.getProjectId())) {
+      if (gui.getProjectId().equals(projectSpace.getProjectId())) {
         return;
       }
     }
     sirius.gui().openGui(projectSpace.getProjectId());
   }
 
-  private ProjectInfo activateSiriusProject() {
+  private ProjectInfo activateSiriusProject(File projectFile) {
     ProjectInfo projectSpace;
-    final File projectFile = new File(FileAndPathUtil.getTempDir(), sessionId + ".sirius");
+
+    final String projectName = FileAndPathUtil.eraseFormat(projectFile.getName());
 
     try {
-      projectSpace = sirius.projects().getProject(sessionId, List.of(ProjectInfoOptField.NONE));
+      projectSpace = sirius.projects().getProject(projectName, List.of(ProjectInfoOptField.NONE));
       if (projectSpace != null) {
         return projectSpace;
       }
     } catch (WebClientResponseException e) {
-      logger.log(Level.SEVERE, e.getResponseBodyAsString(), e);
-    }
-
-
-    try {
-      projectSpace = sirius.projects()
-          .openProject(sessionId, projectFile.getAbsolutePath(), List.of(ProjectInfoOptField.NONE));
-      if (projectSpace != null) {
-        return projectSpace;
-      }
-    } catch (WebClientResponseException e) {
-      logger.log(Level.SEVERE, e.getResponseBodyAsString(), e);
+      logger.log(Level.FINEST, "Sirius project not opened yet, trying to open.");
     }
 
     try {
-      projectSpace = sirius.projects()
-          .createProject(sessionId, projectFile.getAbsolutePath(), List.of(ProjectInfoOptField.NONE));
+      projectSpace = sirius.projects().openProject(projectName, projectFile.getAbsolutePath(),
+          List.of(ProjectInfoOptField.NONE));
       if (projectSpace != null) {
         return projectSpace;
       }
     } catch (WebClientResponseException e) {
-      logger.log(Level.SEVERE, e.getResponseBodyAsString(), e);
+      logger.finest(() -> "Sirius project not created yet, trying to create.");
+    }
+
+    try {
+      projectSpace = sirius.projects().createProject(projectName, projectFile.getAbsolutePath(),
+          List.of(ProjectInfoOptField.NONE));
+      if (projectSpace != null) {
+        return projectSpace;
+      }
+    } catch (WebClientResponseException e) {
+      logger.log(Level.SEVERE,
+          "Error while creating sirius project: " + e.getResponseBodyAsString(), e);
     }
 
     throw new RuntimeException("Could not create or open project space for this mzmine session.");
-  }
-
-  public static void main(String[] args) {
-    try (Sirius sirius = new Sirius()) {
-
-      logger.info(sirius.api().jobs().getDefaultJobConfig(true, false, true).toString());
-
-//    sirius.client.features().addAlignedFeatures(project.getProjectId(), )
-
-    /*logger.info(sirius.client.features()
-        .getAlignedFeatures(project.getProjectId(), List.of(AlignedFeatureOptField.TOPANNOTATIONS))
-        .toString());
-
-    final List<StructureCandidateFormula> candidates = sirius.client.features()
-        .getStructureCandidates(project.getProjectId(), "591533384235718370",
-            List.of(StructureCandidateOptField.DBLINKS));
-    logger.info(candidates.getFirst().toString());
-
-    final StructureCandidateFormula first = candidates.getFirst();
-
-    final SearchableDatabaseParameters searchableDatabaseParameters = new SearchableDatabaseParameters().displayName(
-        "Custom database");
-    final SearchableDatabase db = sirius.client.databases()
-        .createDatabase(sessionId + "_" + Instant.now().toEpochMilli(),
-            searchableDatabaseParameters);*/
-
-//    final AlignedFeature alignedFeature = sirius.client.features()
-//        .getAlignedFeature(project.getProjectId(), "1002", List.of());
-//
-//    logger.info(alignedFeature.toString());
-
-    } catch (Exception e) {
-      logger.log(Level.SEVERE, e.getMessage(), e);
-    }
-    return;
   }
 
   /**
@@ -167,8 +184,8 @@ public class Sirius implements AutoCloseable {
    */
   public Map<Integer, String> exportToSiriusUnique(List<? extends FeatureListRow> rows) {
     checkLogin();
-    final List<FeatureImport> features = rows.stream().map(MzmineToSirius::feature).toList();
-//    client.projects().openProjectSpace(project.getProjectId(), null, List.of());
+    final List<FeatureImport> features = rows.stream().map(MzmineToSirius::feature)
+        .filter(Objects::nonNull).toList();
 
     final Map<Integer, String> mzmineIdToSiriusId = sirius.features()
         .getAlignedFeatures(projectSpace.getProjectId(), null, List.of(AlignedFeatureOptField.NONE))
@@ -207,13 +224,31 @@ public class Sirius implements AutoCloseable {
             alignedFeature -> Integer.valueOf(alignedFeature.getExternalFeatureId()),
             AlignedFeature::getAlignedFeatureId));
 
-    return rows.stream().collect(Collectors.toMap(r -> r, r -> mzmineIdToSiriusId.get(r.getID())));
+    final Map<FeatureListRow, String> map = new HashMap<>();
+    for (FeatureListRow r : rows) {
+      String siriusId = mzmineIdToSiriusId.get(r.getID());
+      if (siriusId != null) {
+        map.put(r, siriusId);
+      }
+    }
+    return map;
   }
 
-  public Job runFingerId(List<FeatureListRow> rows) {
+  public Job createFingerIdJob(List<FeatureListRow> rows) {
     checkLogin();
     final Map<Integer, String> idsMap = exportToSiriusUnique(rows);
     final JobSubmission submission = sirius.jobs().getDefaultJobConfig(false, false, true);
+
+    // polarity for fallback adducts
+    // todo: set in a sirius preferences or so
+    final PolarityType polarity = rows.stream()
+        .map(r -> FeatureUtils.extractBestPolarity(r).orElse(null)).filter(Objects::nonNull)
+        .findFirst().orElse(PolarityType.POSITIVE);
+    switch (polarity) {
+      case NEGATIVE -> submission.setFallbackAdducts(List.of("[M-H]-"));
+      default -> submission.setFallbackAdducts(List.of("[M+H]+", "[M+NH4]+", "[M+Na]+"));
+    }
+
     submission.setAlignedFeatureIds(idsMap.values().stream().toList());
     final Job job = sirius.jobs()
         .startJob(projectSpace.getProjectId(), submission, List.of(JobOptField.PROGRESS));
@@ -223,28 +258,105 @@ public class Sirius implements AutoCloseable {
   public void importResultsForRows(List<FeatureListRow> rows) {
     checkLogin();
     final Map<FeatureListRow, String> rowToSiriusId = mapFeatureToSiriusId(rows);
-    rowToSiriusId.forEach((row, id) -> {
-      final List<StructureCandidateFormula> structureCandidates = api().features()
-          .getStructureCandidates(projectSpace.getProjectId(), id, List.of()).stream()
-          .sorted(Comparator.comparingInt(s -> s.getRank() != null ? s.getRank() : 100)).limit(10)
-          .toList();
-
-//      AlignedFeature alignedFeature = api().features()
-//          .getAlignedFeature(projectSpace.getProjectId(), id, false,
-//              List.of(AlignedFeatureOptField.TOPANNOTATIONS));
-
-      final List<CompoundDBAnnotation> siriusAnnotations = structureCandidates.stream()
-          .sorted(Comparator.comparingInt(StructureCandidateFormula::getRank))
-          .map(s -> SiriusToMzmine.toMzmine(s, sirius, projectSpace, id)).filter(Objects::nonNull)
-          .toList();
-      final List<CompoundDBAnnotation> annotations = new ArrayList<>(row.getCompoundAnnotations());
-      annotations.addAll(siriusAnnotations);
+    for (Entry<FeatureListRow, String> entry : rowToSiriusId.entrySet()) {
+      FeatureListRow row = entry.getKey();
+      String id = entry.getValue();
+      final List<CompoundDBAnnotation> annotations = getSiriusAnnotations(id, row);
       row.setCompoundAnnotations(annotations);
-    });
+    }
+  }
+
+  public @NotNull List<CompoundDBAnnotation> getSiriusAnnotations(String siriusFeatureId,
+      FeatureListRow row) {
+
+    final AlignedFeature alignedFeature = getSiriusFeatureOrThrow(siriusFeatureId, row);
+
+    final List<StructureCandidateFormula> structureCandidates = api().features()
+        .getStructureCandidates(projectSpace.getProjectId(), alignedFeature.getAlignedFeatureId(),
+            List.of()).stream()
+        .sorted(Comparator.comparingInt(s -> s.getRank() != null ? s.getRank() : 100)).limit(10)
+        .toList();
+
+    final List<CompoundDBAnnotation> siriusAnnotations = structureCandidates.stream()
+        .sorted(Comparator.comparingInt(StructureCandidateFormula::getRank)).map(
+            s -> SiriusToMzmine.structureCandidateToMzmine(s, sirius, projectSpace,
+                siriusFeatureId)).filter(Objects::nonNull).toList();
+    final List<CompoundDBAnnotation> annotations = new ArrayList<>();
+    annotations.addAll(siriusAnnotations);
+    return annotations;
+  }
+
+  /**
+   * Checks if id, mz and rt match between sirius and mzmine, so that you cannot falsely import from
+   * a sirius project that does not fit the mzmine project.
+   *
+   * @param siriusFeatureId
+   * @param row
+   * @return
+   */
+  private AlignedFeature getSiriusFeatureOrThrow(@NotNull String siriusFeatureId,
+      @Nullable FeatureListRow row)
+      throws SiriusFeatureDoesNotMatchMzmineFeatureException, AlignedFeatureDoesNotExistException {
+    if (row == null) {
+      return null;
+    }
+
+    final AlignedFeature alignedFeature = sirius.features()
+        .getAlignedFeature(projectSpace.getProjectId(), siriusFeatureId, null, List.of());
+
+    if (alignedFeature == null) {
+      throw new AlignedFeatureDoesNotExistException(siriusFeatureId, projectSpace.getProjectId(),
+          row);
+    }
+    checkSiriusMzmineFeatureMatch(alignedFeature, row);
+
+    return alignedFeature;
+  }
+
+  private void checkSiriusMzmineFeatureMatch(@NotNull AlignedFeature alignedFeature,
+      @Nullable FeatureListRow row) throws SiriusFeatureDoesNotMatchMzmineFeatureException {
+    if (row == null) {
+      return;
+    }
+
+    final double ionMass = Objects.requireNonNullElse(alignedFeature.getIonMass(), 0d);
+    if (!Precision.equals(row.getAverageMZ(), ionMass, 0.01)) {
+      throw new SiriusFeatureDoesNotMatchMzmineFeatureException(projectSpace.getProjectId(),
+          alignedFeature, row);
+    }
+    if (!Precision.equals(row.getAverageRT(),
+        Objects.requireNonNullElse(alignedFeature.getRtApexSeconds(), 0d) / 60f, 0.1)) {
+      throw new SiriusFeatureDoesNotMatchMzmineFeatureException(projectSpace.getProjectId(),
+          alignedFeature, row);
+    }
   }
 
   public void checkLogin() {
     if (!sirius.account().isLoggedIn()) {
+      DesktopService.getDesktop().displayErrorMessageAndThrow(new SiriusNotLoggedInException());
+    }
+
+    final String activeSubscriptionId = sirius.account().getAccountInfo(true)
+        .getActiveSubscriptionId();
+    if (activeSubscriptionId == null) {
+      DesktopService.getDesktop().displayErrorMessageAndThrow(new SiriusNotLoggedInException());
+    }
+
+    List<Subscription> subscriptions = sirius.account().getAccountInfo(true).getSubscriptions();
+
+    if (!sirius.account().getAccountInfo(true).getSubscriptions().stream().filter(s -> {
+      String sid = s.getSid();
+      if (sid != null) {
+        return sid.equals(activeSubscriptionId);
+      }
+      return false;
+    }).findFirst().map(s -> {
+      AllowedFeatures allowedFeatures = s.getAllowedFeatures();
+      if (allowedFeatures == null) {
+        return false;
+      }
+      return allowedFeatures.isApi();
+    }).orElse(false)) {
       DesktopService.getDesktop().displayErrorMessageAndThrow(new SiriusNotLoggedInException());
     }
   }
@@ -262,18 +374,43 @@ public class Sirius implements AutoCloseable {
     return sirius;
   }
 
-  public void tryCatchSiriusException(Runnable runnable) {
-    try {
-      runnable.run();
-    } catch (RuntimeException e) {
-      switch (e) {
-        case WebClientResponseException r ->
-            logger.log(Level.SEVERE, r.getResponseBodyAsString(), e);
-        default -> {
-          logger.log(Level.SEVERE, e.getMessage(), e);
-          throw e;
-        }
-      }
+  public void rankCurrentCompoundAnnotations(@NotNull final FeatureListRow row) {
+
+    List<CompoundDBAnnotation> annotations = row.getCompoundAnnotations();
+
+    if (annotations.isEmpty()) {
+      return;
     }
+
+    annotations.forEach(CompoundDBAnnotation::enrichMetadata);
+    final SearchableDatabase customDatabase = MzmineToSirius.toCustomDatabase(annotations, this);
+
+    final String siriusId = exportToSiriusUnique(List.of(row)).get(row.getID());
+    JobSubmission config = sirius.jobs().getDefaultJobConfig(false, false, true);
+    StructureDbSearch structureDbParams = config.getStructureDbSearchParams();
+    structureDbParams.setStructureSearchDBs(List.of(customDatabase.getDatabaseId()));
+    structureDbParams.setExpansiveSearchConfidenceMode(
+        ConfidenceMode.OFF); // no fallback to pubchem
+
+    final PolarityType polarity = FeatureUtils.extractBestPolarity(row)
+        .orElse(PolarityType.POSITIVE);
+    switch (polarity) {
+      case NEGATIVE -> config.setFallbackAdducts(List.of("[M-H]-"));
+      default -> config.setFallbackAdducts(List.of("[M+H]+", "[M+NH4]+", "[M+Na]+"));
+    }
+
+    config.setAlignedFeatureIds(List.of(siriusId));
+    final Job job = sirius.jobs()
+        .startJob(projectSpace.getProjectId(), config, List.of(JobOptField.PROGRESS));
+    JobWaiterTask task = new JobWaiterTask(SiriusFingerIdModule.class, Instant.now(),
+        SiriusFingerIdParameters.of(List.of(row)), () -> sirius.jobs().getJob(
+        projectSpace.getProjectId(), job.getId(), List.of(JobOptField.PROGRESS)),
+        () -> importResultsForRows(List.of(row)));
+
+    TaskService.getController().addTask(task);
+  }
+
+  public static String getSessionId() {
+    return sessionId;
   }
 }
