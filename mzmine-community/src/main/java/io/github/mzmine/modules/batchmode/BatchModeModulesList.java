@@ -68,6 +68,7 @@ import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatog
 import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
+import io.github.mzmine.modules.dataprocessing.filter_diams2_nocorr.DiaMs2NoCorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_extractscans.ExtractScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule;
@@ -376,6 +377,7 @@ public class BatchModeModulesList {
           PrecursorPurityCheckerModule.class, //
           IntraFeatureRowMs2SimilarityModule.class, //
           DiaMs2CorrModule.class, //
+          DiaMs2NoCorrModule.class, //
           MaldiGroupMS2Module.class, //
           FormulaPredictionFeatureListModule.class, //
           IsotopePeakScannerModule.class, //
