@@ -130,7 +130,6 @@ public class SiriusToMzmine {
     final List<CompoundClass> classyFireLineage = bestCompClasses.getClassyFireLineage();
     if (bestCompClasses.getClassyFireLineage() != null) {
       for (CompoundClass compoundClass : classyFireLineage) {
-        logger.finest(compoundClass.toString());
         switch (compoundClass.getLevel()) {
           case "Superclass" ->
               annotation.putIfNotNull(ClassyFireSuperclassType.class, compoundClass.getName());
