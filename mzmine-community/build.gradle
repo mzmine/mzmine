@@ -628,8 +628,6 @@ licenseReport {
                 'net.jcip:jcip-annotations', // Creative Commons Attribution License
                 'io.mzio(.*)',
                 'org.openjfx.(.*)',
-                'io.sirius-ms:sirius-sdk(.*)', // for testing, not allowed under mit
-                'de.unijena.bioinf:jjobs-core', // for testing, not allowed under mit
     ]
 
     // Don't exclude bom dependencies.
