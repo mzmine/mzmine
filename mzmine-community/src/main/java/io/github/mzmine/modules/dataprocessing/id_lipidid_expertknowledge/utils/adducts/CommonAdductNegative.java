@@ -10,15 +10,15 @@ import java.util.regex.Pattern;
  */
 public enum CommonAdductNegative implements ExpertKnowledge {
     // ESI(-) adducts
-    M_MINUS_H("[M-H]-", -1.007276),
-    M_MINUS_H_PLUS_CH3COONa("[M-H+(CH3COONa)]-", 80.995794),
-    M_PLUS_CH3COO("[M+CH3COO]-", 59.01385),
-    M_PLUS_CH3COO_PLUS_CH3COONa("[M+CH3COO+(CH3COONa)]-", 141.01692),
-    M_PLUS_CH3COO_PLUS_2CH3COONa("[M+CH3COO+(CH3COONa)2]-", 223.01999),
-    M_PLUS_CH3COO_PLUS_3CH3COONa("[M+CH3COO+(CH3COONa)3]-", 305.02306),
-    M_PLUS_HCOO("[M+HCOO]-", 45.01740),
-    M_PLUS_HCOO_PLUS_CH3COONa("[M+HCOO+(CH3COONa)]-", 127.02047),
-    M_PLUS_CL("[M+Cl]-", 34.96885);
+    M_MINUS_H("[M-H]-", -1.007276, -1),
+    M_MINUS_H_PLUS_CH3COONa("[M-H+(CH3COONa)]-", 80.995794, -1),
+    M_PLUS_CH3COO("[M+CH3COO]-", 59.01385, -1),
+    M_PLUS_CH3COO_PLUS_CH3COONa("[M+CH3COO+(CH3COONa)]-", 141.01692, -1),
+    M_PLUS_CH3COO_PLUS_2CH3COONa("[M+CH3COO+(CH3COONa)2]-", 223.01999, -1),
+    M_PLUS_CH3COO_PLUS_3CH3COONa("[M+CH3COO+(CH3COONa)3]-", 305.02306, -1),
+    M_PLUS_HCOO("[M+HCOO]-", 45.01740, -1),
+    M_PLUS_HCOO_PLUS_CH3COONa("[M+HCOO+(CH3COONa)]-", 127.02047, -1),
+    M_PLUS_CL("[M+Cl]-", 34.96885, -1);
 
     /**
      * String that represents the complete formula (eg: "[M+Cl]-").
@@ -32,13 +32,19 @@ public enum CommonAdductNegative implements ExpertKnowledge {
     private final double mz;
 
     /**
+     * Int representing the charge of the adduct.
+     */
+    private final int charge;
+
+    /**
      * Creates a new CommonAdductNegative with the specified info.
      * @param name The name of the adduct.
      * @param mz The m/z of the adduct.
      */
-    CommonAdductNegative(String name, double mz) {
+    CommonAdductNegative(String name, double mz, int charge) {
         this.name = name;
         this.mz = mz;
+        this.charge = charge;
     }
 
     /**
@@ -72,4 +78,40 @@ public enum CommonAdductNegative implements ExpertKnowledge {
      * @return The adducts name.
      */
     public String getCompleteName(){ return this.name; };
+
+    /**
+     * Gets the charge value.
+     * @return The charge of the adduct.
+     */
+    public int getCharge() {
+        return charge;
+    }
+
+    /**
+     * Extracts the molecule multiplier from an adduct string.
+     * Examples:
+     *   [M+H]+     -> 1
+     *   [2M+Na]+   -> 2
+     *   [3M+CH3COO]- -> 3
+     *
+     * @return multiplier as integer (default 1 if not specified)
+     */
+    public int getMoleculeMultiplier() {
+        if (this.name == null || this.name.isEmpty()) return 1;
+
+        // Regex: optional digits before 'M' inside brackets
+        Pattern pattern = Pattern.compile("\\[(\\d*)M");
+        Matcher matcher = pattern.matcher(this.name);
+
+        if (matcher.find()) {
+            String digits = matcher.group(1);
+            if (digits.isEmpty()) return 1; // default 1 if no number
+            try {
+                return Integer.parseInt(digits);
+            } catch (NumberFormatException e) {
+                return 1; // fallback
+            }
+        }
+        return 1; // default if pattern not found
+    }
 }

@@ -21,4 +21,16 @@ public interface ExpertKnowledge {
      * @return complete name in String format.
      */
     String getCompleteName();
+
+    /**
+     * This method gets the charge value.
+     * @return charge int value.
+     */
+    int getCharge();
+
+    /**
+     * This method gets the molecule multiplier (eg: [2M+Na]+ -- 2)
+     * @return
+     */
+    int getMoleculeMultiplier();
 }

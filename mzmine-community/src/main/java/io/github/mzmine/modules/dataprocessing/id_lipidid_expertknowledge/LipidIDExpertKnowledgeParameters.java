@@ -64,10 +64,19 @@ public class LipidIDExpertKnowledgeParameters extends SimpleParameterSet {
     );
 
     /**
+     * User-selected TXT adduct files.
+     */
+    public static final FileNamesParameter adductFiles = new FileNamesParameter(
+            "TXT adduct files",
+            "Adduct files (.txt) for lipid expert knowledge",
+            List.of(new ExtensionFilter("Adducts (*.txt)", "*.txt"))
+    );
+
+    /**
      * Created a new LipidIDExpertKnowledgeParameter object with the specified info.
      */
     public LipidIDExpertKnowledgeParameters() {
-        super(new Parameter[]{featureLists, mzTolerance, mobilePhaseParameter, sampleTypeParameter, drlFiles});
+        super(new Parameter[]{featureLists, mzTolerance, mobilePhaseParameter, sampleTypeParameter, drlFiles, adductFiles});
     }
 
     /**

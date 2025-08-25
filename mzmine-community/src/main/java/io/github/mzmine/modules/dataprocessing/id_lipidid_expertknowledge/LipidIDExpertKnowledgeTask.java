@@ -17,7 +17,9 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,6 +28,8 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -73,6 +77,10 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
      * Feature list the module will be run over.
      */
     private final FeatureList featureList;
+    /**
+     * List of Adducts generated with user input information.
+     */
+    private final List<Adduct> userAdducts;
 
 
     /**
@@ -114,6 +122,10 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
             Files.copy(f.toPath(), targetFile, StandardCopyOption.REPLACE_EXISTING);
             System.out.println("Copied " + f.getName() + " to " + targetFile.toAbsolutePath());
         }
+
+        File[] adductFiles = parameters.getParameter(LipidIDExpertKnowledgeParameters.adductFiles).getValue();
+        //Generate new adducts from txt file
+        this.userAdducts = loadAdducts(adductFiles);
     }
 
 
@@ -173,6 +185,90 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
     public void setOnFinished(Runnable runnable) {
         super.setOnFinished(runnable);
     }
+
+    public static List<Adduct> loadAdducts(File[] files) {
+        List<Adduct> newAdducts = new ArrayList<>();
+        for (File file : files) {
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    line = line.trim();
+                    if (line.isEmpty() || !line.contains(":")) continue;
+
+                    String[] parts = line.split(":");
+                    if (parts.length != 2) continue;
+
+                    String adductName = parts[0].trim();
+                    double mzValue;
+                    try {
+                        mzValue = Double.parseDouble(parts[1].trim());
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid m/z in " + file.getName() + ": " + line);
+                        continue;
+                    }
+
+                    // Parse charge from the adduct string
+                    int charge;
+                    try {
+                        charge = parseCharge(adductName);
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("Could not parse charge for " + adductName + " in " + file.getName());
+                        continue;
+                    }
+
+                    // Match against enums
+                    if (charge < 0) {
+                        boolean matched = false;
+                        for (CommonAdductNegative neg : CommonAdductNegative.values()) {
+                            if (neg.getCompleteName().equals(adductName)) {
+                                System.out.println(" -> Matched existing negative enum: " + neg.name());
+                                matched = true;
+                                break;
+                            }
+                        }
+                        if (!matched) {
+                            Adduct newAdduct = new Adduct(adductName, mzValue, charge);
+                            newAdducts.add(newAdduct);
+                            System.out.println(" -> Created new negative adduct: " + newAdduct);
+                        }
+                    } else if (charge > 0) {
+                        boolean matched = false;
+                        for (CommonAdductPositive pos : CommonAdductPositive.values()) {
+                            if (pos.getCompleteName().equals(adductName)) {
+                                System.out.println(" -> Matched existing positive enum: " + pos.name());
+                                matched = true;
+                                break;
+                            }
+                        }
+                        if (!matched) {
+                            Adduct newAdduct = new Adduct(adductName, mzValue, charge);
+                            newAdducts.add(newAdduct);
+                            System.out.println(" -> Created new positive adduct: " + newAdduct);
+                        }
+                    }
+
+                }
+            } catch (IOException e) {
+                System.err.println("Error reading " + file.getName() + ": " + e.getMessage());
+            }
+        }
+        return newAdducts;
+    }
+
+    public static int parseCharge(String adduct) {
+        if (adduct == null) throw new IllegalArgumentException("Null adduct");
+        Pattern CHARGE_TAIL = Pattern.compile("\\](\\d*)([+-])$");
+        Matcher m = CHARGE_TAIL.matcher(adduct.trim());
+        if (!m.find()) {
+            throw new IllegalArgumentException("Adduct does not end with charge: " + adduct);
+        }
+        String magS = m.group(1);     // "" or digits
+        String signS = m.group(2);    // "+" or "-"
+
+        int magnitude = magS.isEmpty() ? 1 : Integer.parseInt(magS);
+        return signS.equals("-") ? -magnitude : magnitude;
+    }
+
 
     /**
      * Logic of the module
@@ -286,13 +382,6 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
 
                 for (FeatureListRow row : subgroup) {
                     row.setComment(comment);
-
-                    // Debug AFTER setting comment
-                    /*if (row.getComment() == null || row.getComment().isEmpty()) {
-                        System.out.println("⚠️ Row " + row.getID() + " did NOT receive a subgroup comment!");
-                    } else {
-                        System.out.println("✅ Row " + row.getID() + " assigned to " + row.getComment());
-                    }*/
                 }
             }
         }
@@ -498,7 +587,7 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
                         for (MatchedLipid matchedLipid : lipidsMatched) {
                             String abbr = matchedLipid.getLipidAnnotation().getLipidClass().getAbbr();
                             List<FoundAdduct> foundAdductsAndISF = LipidIDExpertKnowledgeSearch.findAdducts(
-                                    commonAdductsISF, rowInfo, mzTolerance.getMzTolerance(), row, matchedLipid);
+                                    commonAdductsISF, rowInfo, mzTolerance.getMzTolerance(), row, matchedLipid, userAdducts);
 
                             try {
                                 if (polarityType.equals(PolarityType.POSITIVE) /*&& Arrays.asList(positiveNames).contains(abbr)*/) {
@@ -516,7 +605,7 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
                     for (FeatureListRow row : subgroupRows) {
                         MatchedLipid match = null;
                         List<FoundAdduct> foundAdductsAndISF = LipidIDExpertKnowledgeSearch.findAdducts(
-                                commonAdductsISF, rowInfo, mzTolerance.getMzTolerance(), row, match);
+                                commonAdductsISF, rowInfo, mzTolerance.getMzTolerance(), row, match, userAdducts);
 
                         FoundLipid foundLipid = new FoundLipid(foundAdductsAndISF, virtualGroup);
                         row.addLipidValidation(foundLipid);

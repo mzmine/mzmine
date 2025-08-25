@@ -73,11 +73,17 @@ public class LipidIDExpertKnowledgeSearch {
      * @return List of adducts found for the group the row is part of.
      */
     public static List<FoundAdduct> findAdducts(List<ExpertKnowledge> adductsISF, RowInfo rowInfo, double mzTolerance,
-                                                FeatureListRow row, MatchedLipid match) {
+                                                FeatureListRow row, MatchedLipid match, List<Adduct> userAdducts) {
         List<FoundAdduct> foundAdducts = new ArrayList<>();
         List<Double> mzList = rowInfo.getMzList();
         List<Float> intensityList = rowInfo.getIntensityList();
         List<Float> rtList = rowInfo.getRtList();
+
+        // Combine system adducts + user adducts into one pool
+        List<ExpertKnowledge> allAdducts = new ArrayList<>(adductsISF);
+        if (userAdducts != null) {
+            allAdducts.addAll(userAdducts);
+        }
 
         //This is case 1: there are annotated lipids
         if (!row.getLipidMatches().isEmpty()) {
@@ -86,26 +92,39 @@ public class LipidIDExpertKnowledgeSearch {
             String adductName = annotatedAdduct.getAdductName(); //Returns name. eg: [M+H]+
             Double adductMZ = 0.00;
             Double neutralMass = 0.00;
-            for (ExpertKnowledge myAdduct : adductsISF) {
+            for (ExpertKnowledge myAdduct : allAdducts) {
                 if (myAdduct.getCompleteName().equals(adductName)) {
                     adductMZ = myAdduct.getMz();
                     // Add the found adduct to the list based on the class type for the charge
-                    if (myAdduct.getClass().equals(CommonAdductNegative.class) || myAdduct.getClass().equals(CommonISFNegative.class)) {
+                    /*if (myAdduct.getClass().equals(CommonAdductNegative.class) || myAdduct.getClass().equals(CommonISFNegative.class)) {
                         foundAdducts.add(new FoundAdduct(myAdduct.getCompleteName(), row.getAverageMZ(), row.getMaxHeight(), row.getAverageRT(), -1));
                     } else if (myAdduct.getClass().equals(CommonAdductPositive.class) || myAdduct.getClass().equals(CommonISFPositive.class)) {
                         foundAdducts.add(new FoundAdduct(myAdduct.getCompleteName(), row.getAverageMZ(), row.getMaxHeight(), row.getAverageRT(), 1));
                     }
                     neutralMass = row.getAverageMZ() - adductMZ;
+                    break;*/
+                    neutralMass = (row.getAverageMZ() - adductMZ) / myAdduct.getMoleculeMultiplier(); // support 2M, 3M etc.
+                    foundAdducts.add(new FoundAdduct(
+                            myAdduct.getCompleteName(),
+                            row.getAverageMZ(),
+                            row.getMaxHeight(),
+                            row.getAverageRT(),
+                            myAdduct.getCharge()   // use dynamic charge
+                    ));
                     break;
                 }
             }
 
             //Search the adducts in my list of m/z
-            for (ExpertKnowledge myAdduct : adductsISF) {
+            for (ExpertKnowledge myAdduct : allAdducts) {
                 if (myAdduct.getCompleteName() == adductName) continue;
 
-                double minRange = (neutralMass + myAdduct.getMz()) - mzTolerance;
-                double maxRange = (neutralMass + myAdduct.getMz()) + mzTolerance;
+                //double minRange = (neutralMass + myAdduct.getMz()) - mzTolerance;
+                //double maxRange = (neutralMass + myAdduct.getMz()) + mzTolerance;
+
+                double expectedMz = neutralMass * myAdduct.getMoleculeMultiplier() + myAdduct.getMz();
+                double minRange = expectedMz - mzTolerance;
+                double maxRange = expectedMz + mzTolerance;
 
                 for (int i = 0; i < mzList.size(); i++) {
                     double mz = mzList.get(i); //Get mz value from the list
@@ -114,11 +133,18 @@ public class LipidIDExpertKnowledgeSearch {
 
                     if (mz > minRange && mz < maxRange) { //Found it in the list
                         // Add the found adduct to the list based on the class type for the charge
-                        if (myAdduct.getClass().equals(CommonAdductNegative.class) || myAdduct.getClass().equals(CommonISFNegative.class)) {
+                        /*if (myAdduct.getClass().equals(CommonAdductNegative.class) || myAdduct.getClass().equals(CommonISFNegative.class)) {
                             foundAdducts.add(new FoundAdduct(myAdduct.getCompleteName(), mz, intensity, rt, -1));
                         } else if (myAdduct.getClass().equals(CommonAdductPositive.class) || myAdduct.getClass().equals(CommonISFPositive.class)) {
                             foundAdducts.add(new FoundAdduct(myAdduct.getCompleteName(), mz, intensity, rt, 1));
-                        }
+                        }*/
+                        foundAdducts.add(new FoundAdduct(
+                                myAdduct.getCompleteName(),
+                                mz,
+                                intensity,
+                                rt,
+                                myAdduct.getCharge()
+                        ));
                     }
                 }
             }
@@ -126,12 +152,14 @@ public class LipidIDExpertKnowledgeSearch {
         } else {
             for (int i = 0; i < mzList.size(); i++) {
                 List<FoundAdduct> tempAdducts = new ArrayList<>();
-                Double neutralMass = 0.00;
+                //Double neutralMass = 0.00;
+                double mzObserved = mzList.get(i);
 
                 for (ExpertKnowledge myHypotheticalAdduct : adductsISF) {
-                    neutralMass = mzList.get(i) - myHypotheticalAdduct.getMz();
+                    //neutralMass = mzList.get(i) - myHypotheticalAdduct.getMz();
+                    double neutralMass = (mzObserved - myHypotheticalAdduct.getMz()) / myHypotheticalAdduct.getMoleculeMultiplier();
                     // Add the found adduct to the list based on the class type for the charge
-                    if (myHypotheticalAdduct.getClass().equals(CommonAdductNegative.class) || myHypotheticalAdduct.getClass().equals(CommonISFNegative.class)) {
+                    /*if (myHypotheticalAdduct.getClass().equals(CommonAdductNegative.class) || myHypotheticalAdduct.getClass().equals(CommonISFNegative.class)) {
                         FoundAdduct candidate = new FoundAdduct(myHypotheticalAdduct.getCompleteName(), mzList.get(i), intensityList.get(i), rtList.get(i), -1);
                         if (!tempAdducts.contains(candidate)) {
                             tempAdducts.add(candidate);
@@ -141,12 +169,28 @@ public class LipidIDExpertKnowledgeSearch {
                         if (!tempAdducts.contains(candidate)) {
                             tempAdducts.add(candidate);
                         }
+                    }*/
+
+                    FoundAdduct candidate = new FoundAdduct(
+                            myHypotheticalAdduct.getCompleteName(),
+                            mzObserved,
+                            intensityList.get(i),
+                            rtList.get(i),
+                            myHypotheticalAdduct.getCharge()
+                    );
+                    if (!tempAdducts.contains(candidate)) {
+                        tempAdducts.add(candidate);
                     }
-                    for (ExpertKnowledge myAdduct : adductsISF) {
+
+                    for (ExpertKnowledge myAdduct : allAdducts) {
                         if (myAdduct == myHypotheticalAdduct) continue;
 
-                        double minRange = (neutralMass + myAdduct.getMz()) - mzTolerance;
-                        double maxRange = (neutralMass + myAdduct.getMz()) + mzTolerance;
+                        //double minRange = (neutralMass + myAdduct.getMz()) - mzTolerance;
+                        //double maxRange = (neutralMass + myAdduct.getMz()) + mzTolerance;
+
+                        double expectedMz = neutralMass * myAdduct.getMoleculeMultiplier() + myAdduct.getMz();
+                        double minRange = expectedMz - mzTolerance;
+                        double maxRange = expectedMz + mzTolerance;
 
                         for (int j = 0; j < mzList.size(); j++) {
                             double mz = mzList.get(j); //Get mz value from the list
@@ -155,7 +199,7 @@ public class LipidIDExpertKnowledgeSearch {
 
                             if (mz > minRange && mz < maxRange) { //Found it in the list
                                 // Add the found adduct to the list based on the class type for the charge
-                                if (myAdduct.getClass().equals(CommonAdductNegative.class) || myAdduct.getClass().equals(CommonISFNegative.class)) {
+                                /*if (myAdduct.getClass().equals(CommonAdductNegative.class) || myAdduct.getClass().equals(CommonISFNegative.class)) {
                                     FoundAdduct candidate = new FoundAdduct(myAdduct.getCompleteName(), mzList.get(j), intensityList.get(j), rtList.get(j), -1);
                                     if (!tempAdducts.contains(candidate)) {
                                         tempAdducts.add(candidate);
@@ -165,6 +209,16 @@ public class LipidIDExpertKnowledgeSearch {
                                     if (!tempAdducts.contains(candidate)) {
                                         tempAdducts.add(candidate);
                                     }
+                                }*/
+                                FoundAdduct complement = new FoundAdduct(
+                                        myAdduct.getCompleteName(),
+                                        mz,
+                                        intensity,
+                                        rt,
+                                        myAdduct.getCharge()
+                                );
+                                if (!tempAdducts.contains(complement)) {
+                                    tempAdducts.add(complement);
                                 }
                             }
                         }

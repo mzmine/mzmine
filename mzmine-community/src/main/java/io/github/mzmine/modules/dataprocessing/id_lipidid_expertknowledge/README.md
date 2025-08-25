@@ -1,4 +1,31 @@
 # Lipid Validation module
+
+## Adduct .txt file
+Lipid Validation allows users to input their own adducts in case they want to search for them in the samples and they are **not part of the default ones.**
+
+### Default adducts
+- **Positive adducts:** [M+H]+, [M+Na]+, [M+K]+, [M+C2H7N2]+, [M+NH4]+, [M+H-H2O], [C27H44]+
+- **Negative adducts:** [M-H]-, [M-H+(CH3COONa)]-, [M+CH3COO]-, [M+CH3COO+(CH3COONa)]-, [M+CH3COO+(CH3COONa)2]-, [M+CH3COO+(CH3COONa)3]-, [M+HCOO]-, [M+HCOO+(CH3COONa)]-, [M+Cl]-, [M+CH3COO-CH3COOCH3]-
+
+## Structure of `.txt` adduct file
+Write one adduct per line using the format:
+```
+<AdductName>:<m/z>
+```
+- **AdductName:** complete adduct in brackets, including any molecule multipliers (`M`, `2M`, `3M`), modifiers (e.g., `+Na`, `+CH3COO`), and charge (`+`, `-`, `2+`, `3+`).
+- **m/z:** decimal number representing the mass difference for that adduct. 
+
+### Examples of custom adducts
+```
+[M+Li]+:6.941
+[M+2Na]2+:45.978
+[M+Mg]2+:23.985
+[M+NH4-CH3]+:15.034
+[3M+Cs]+:132.905
+[M+HCOONa]-:84.006
+[M+PO4]3-:94.971
+```
+
 ## Overview of .drl Rule Files
 `.drl` files are **Drools Rule Language**, which is part of a Business Rule Management System (BRMS) and rules engine for Java. 
 They define **rules, queries, functions, and declarations** used by the Lipid Validation module to validate lipid annotations.
@@ -180,7 +207,7 @@ Define actions if conditions are met:
 Closes rule.
 
 ## Sample `.drl` files
-There is dummy sample file for each polarity to use as reference when building your own rule files. 
+There is a dummy sample file for each polarity to use as reference when building your own rule files. 
 - **Positive polarity**: 
   - Name: `Dummy_Positive.drl` 
   - Location: `src/main/resources/rules_id_lipid_expert_knowledge/positive/userFiles`
@@ -189,4 +216,4 @@ There is dummy sample file for each polarity to use as reference when building y
   - Location: `src/main/resources/rules_id_lipid_expert_knowledge/negative/userFiles`
 
 ## Drools documentation
-For more information on Drools syntax check [Drools Documentation](https://docs.drools.org/8.32.0.Final/drools-docs/docs-website/drools/getting-started/index.html)
+For more information on Drools syntax check [Drools Documentation.](https://docs.drools.org/8.32.0.Final/drools-docs/docs-website/drools/getting-started/index.html)

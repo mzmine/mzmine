@@ -4,40 +4,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * This enum contains the most common adducts found in lipids according to a CEMBIO paper:
- * Martínez, S., Fernández-García, M., Londoño-Osorio, S., Barbas, C., & Gradillas, A. (2024). Highly reliable LC-MS lipidomics database for efficient human plasma profiling based on NIST SRM 19501. Journal of Lipid Research, 65(11), 100671. https://doi.org/10.1016/j.jlr.2024.100671
- * It represents five common adducts for ESI+.
+ * This class represents the user input adducts in the .txt files.
  */
-public enum CommonAdductPositive implements ExpertKnowledge {
-    // ESI(+)
-    M_PLUS_H("[M+H]+", 1.007276, 1),
-    M_PLUS_NA("[M+Na]+", 22.989218, 1),
-    M_PLUS_K("[M+K]+", 38.963158, 1),
-    M_PLUS_C2H7N2("[M+C2H7N2]+", 59.04914, 1),
-    M_PLUS_NH4("[M+NH4]+", 18.033823, 1);
-
-    /**
-     * String that represents the complete formula (eg: "[M+Cl]-").
-     */
+public class Adduct implements ExpertKnowledge {
     private final String name;
-
-    /**
-     * Double representing the mass difference between a molecule (M) and the adduct.
-     * It accounts for the ions mass and charge.
-     */
     private final double mz;
-
-    /**
-     * Int representing the charge of the adduct.
-     */
     private final int charge;
 
-    /**
-     * Creates a new CommonAdductPositive with the specified info.
-     * @param name The name of the adduct.
-     * @param mz The m/z of the adduct.
-     */
-    CommonAdductPositive(String name, double mz, int charge) {
+    public Adduct(String name, double mz, int charge) {
         this.name = name;
         this.mz = mz;
         this.charge = charge;
@@ -60,13 +34,13 @@ public enum CommonAdductPositive implements ExpertKnowledge {
         return "";
     }
 
-    /**
-     * Gets a copy of the m/z value.
-     * @return The m/z value of the adduct.
-     */
     @Override
     public double getMz() {
         return mz;
+    }
+
+    public int getCharge() {
+        return charge;
     }
 
     /**
@@ -75,12 +49,9 @@ public enum CommonAdductPositive implements ExpertKnowledge {
      */
     public String getCompleteName(){ return this.name; };
 
-    /**
-     * Gets the charge value.
-     * @return The charge of the adduct.
-     */
-    public int getCharge() {
-        return charge;
+    @Override
+    public String toString() {
+        return name + " (m/z " + mz + ", charge " + charge + ")";
     }
 
     /**
@@ -110,4 +81,5 @@ public enum CommonAdductPositive implements ExpertKnowledge {
         }
         return 1; // default if pattern not found
     }
+
 }
