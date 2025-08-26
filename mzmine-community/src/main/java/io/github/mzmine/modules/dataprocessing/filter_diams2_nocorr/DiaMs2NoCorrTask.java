@@ -24,10 +24,12 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_diams2_nocorr;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -43,17 +45,20 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
-import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
-import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -135,6 +140,21 @@ public class DiaMs2NoCorrTask extends AbstractFeatureListTask {
     return matchingImsMsMsInfo == null ? null : matchingImsMsMsInfo.getMobilityRange();
   }
 
+  private static void putScanIntoCeMap(Feature feature, Scan potentialScan,
+      Map<Float, Scan> ceToScanMap) {
+    if (potentialScan.getMSLevel() == 1) {
+      ceToScanMap.putIfAbsent(0f, potentialScan);
+    } else if (potentialScan instanceof Frame potentialFrame) {
+      final IonMobilityMsMsInfo info = getMatchingImsMsMsInfo(feature,
+          potentialFrame.getImsMsMsInfos());
+      if (info != null) {
+        ceToScanMap.putIfAbsent(info.getActivationEnergy(), potentialFrame);
+      }
+    } else if (potentialScan.getMsMsInfo() != null) {
+      ceToScanMap.putIfAbsent(potentialScan.getMsMsInfo().getActivationEnergy(), potentialScan);
+    }
+  }
+
   @Override
   protected @NotNull List<FeatureList> getProcessedFeatureLists() {
     return List.of(flist);
@@ -158,43 +178,51 @@ public class DiaMs2NoCorrTask extends AbstractFeatureListTask {
           continue;
         }
 
-        final Scan ms2Scan = findMatchingMs2Scan(eligibleScans, feature);
-        if (ms2Scan == null) {
-          finishedItems.incrementAndGet();
+        final List<Scan> ms2Scans = findMatchingMs2Scans(eligibleScans, feature);
+        if (ms2Scans.isEmpty()) {
+          finishedItems.getAndIncrement();
           continue;
         }
 
-        if (ms2Scan instanceof Frame ms2Frame) {
-          @Nullable final IonMobilityMsMsInfo msmsInfo = getMatchingImsMsMsInfo(feature,
-              ms2Frame.getImsMsMsInfos());
+        final List<PseudoSpectrum> pseudoSpectra = new ArrayList<>();
+        for (final Scan ms2Scan : ms2Scans) {
+          if (ms2Scan instanceof Frame ms2Frame) {
+            @Nullable final IonMobilityMsMsInfo msmsInfo = getMatchingImsMsMsInfo(feature,
+                ms2Frame.getImsMsMsInfos());
 
-          final Range<Float> spectrumRange = getMobilityRange(msmsInfo, feature);
+            final Range<Float> mobilityRange = Objects.requireNonNullElse(
+                getMobilityRange(msmsInfo, feature),
+                RangeUtils.toFloatRange(ms2Frame.getMobilityRange()));
 
-          final double[][] mzIntensity = SpectraMerging.calculatedMergedMzsAndIntensities(
-              ms2Frame.getMobilityScans().stream()
-                  .filter(s -> spectrumRange.contains((float) s.getMobility()))
-                  .map(MobilityScan::getMassList).toList(), SpectraMerging.pasefMS2MergeTol,
-              IntensityMergingType.SUMMED, SpectraMerging.DEFAULT_CENTER_FUNCTION, null, null, 2);
+            final double[][] mzIntensity = SpectraMerging.calculatedMergedMzsAndIntensities(
+                ms2Frame.getMobilityScans().stream()
+                    .filter(s -> mobilityRange.contains((float) s.getMobility()))
+                    .map(MobilityScan::getMassList).toList(), SpectraMerging.pasefMS2MergeTol,
+                IntensityMergingType.SUMMED, SpectraMerging.DEFAULT_CENTER_FUNCTION, null, null, 2);
 
-          final SimplePseudoSpectrum ms2 = new SimplePseudoSpectrum(file, ms2Frame.getMSLevel(),
-              ms2Frame.getRetentionTime(), null, mzIntensity[0], mzIntensity[1],
-              ms2Frame.getPolarity(), "Pseudo spectrum (uncorrelated, IMS filtered)",
-              PseudoSpectrumType.UNCORRELATED);
+            final SimplePseudoSpectrum ms2 = new SimplePseudoSpectrum(file, ms2Frame.getMSLevel(),
+                ms2Frame.getRetentionTime(), null, mzIntensity[0], mzIntensity[1],
+                ms2Frame.getPolarity(), "Pseudo spectrum (uncorrelated, IMS filtered)",
+                PseudoSpectrumType.UNCORRELATED);
 
-          final DIAMsMsInfoImpl builtMs2Info = new DIAMsMsInfoImpl(
-              msmsInfo != null ? msmsInfo.getActivationEnergy() : null, ms2, ms2.getMSLevel(),
-              msmsInfo != null ? msmsInfo.getActivationMethod() : null,
-              RangeUtils.toDoubleRange(spectrumRange));
-          ms2.setMsMsInfo(builtMs2Info);
-          feature.setAllMS2FragmentScans(List.of(ms2));
-        } else {
-          final SimplePseudoSpectrum ms2 = new SimplePseudoSpectrum(file, ms2Scan.getMSLevel(),
-              ms2Scan.getRetentionTime(), null, ms2Scan.getMzValues(new double[0]),
-              ms2Scan.getIntensityValues(new double[0]), ms2Scan.getPolarity(),
-              "Pseudo spectrum (uncorrelated)", PseudoSpectrumType.UNCORRELATED);
-          feature.setAllMS2FragmentScans(List.of(ms2));
+            final DIAMsMsInfoImpl builtMs2Info = new DIAMsMsInfoImpl(
+                msmsInfo != null ? msmsInfo.getActivationEnergy() : null, ms2, ms2.getMSLevel(),
+                msmsInfo != null ? msmsInfo.getActivationMethod() : null,
+                RangeUtils.toDoubleRange(mobilityRange));
+            ms2.setMsMsInfo(builtMs2Info);
+            pseudoSpectra.add(ms2);
+          } else {
+
+            final SimplePseudoSpectrum ms2 = new SimplePseudoSpectrum(file, ms2Scan.getMSLevel(),
+                ms2Scan.getRetentionTime(), null, ms2Scan.getMzValues(new double[0]),
+                ms2Scan.getIntensityValues(new double[0]), ms2Scan.getPolarity(),
+                "Pseudo spectrum (uncorrelated)", PseudoSpectrumType.UNCORRELATED);
+            pseudoSpectra.add(ms2);
+          }
+          feature.setAllMS2FragmentScans(ImmutableList.copyOf(pseudoSpectra));
+
+          finishedItems.incrementAndGet();
         }
-        finishedItems.incrementAndGet();
       }
     }
   }
@@ -206,15 +234,17 @@ public class DiaMs2NoCorrTask extends AbstractFeatureListTask {
    *
    * @return null if no matching scan was found (isolation data supplied, but none matches)
    */
-  private @Nullable Scan findMatchingMs2Scan(List<Scan> eligibleScans, Feature feature) {
+  private @NotNull List<Scan> findMatchingMs2Scans(List<Scan> eligibleScans, Feature feature) {
 
     final int closestScanIndex = BinarySearch.binarySearch(feature.getRT().doubleValue(),
         DefaultTo.CLOSEST_VALUE, eligibleScans.size(),
         i -> eligibleScans.get(i).getRetentionTime());
 
     if (closestScanIndex < 0) {
-      return null;
+      return List.of();
     }
+
+    final Map<Float, Scan> ceToScanMap = new HashMap<>();
 
     final Range<Float> featureRtRange = feature.getRawDataPointsRTRange();
     // find the scan that actually matches the isolation window
@@ -228,7 +258,7 @@ public class DiaMs2NoCorrTask extends AbstractFeatureListTask {
         bothScansOutsideRange = !featureRtRange.contains(potentialScan.getRetentionTime());
 
         if (featureMatchesScanIsolation(potentialScan, feature)) {
-          return potentialScan;
+          putScanIntoCeMap(feature, potentialScan, ceToScanMap);
         }
       }
 
@@ -239,20 +269,20 @@ public class DiaMs2NoCorrTask extends AbstractFeatureListTask {
             bothScansOutsideRange && !featureRtRange.contains(potentialScan.getRetentionTime());
 
         if (featureMatchesScanIsolation(potentialScan, feature)) {
-          return potentialScan;
+          putScanIntoCeMap(feature, potentialScan, ceToScanMap);
         }
       }
 
       // no scan found
       if (bothScansOutsideRange) {
-        return null;
+        return ImmutableList.copyOf((ceToScanMap.values()));
       }
     }
-    return null;
+    return ImmutableList.copyOf((ceToScanMap.values()));
   }
 
   @Override
   public String getTaskDescription() {
-    return "";
+    return "Assigning closest MS2 scans to Features.";
   }
 }
