@@ -31,6 +31,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.AbstractSimpleTask;
+import io.sirius.ms.sdk.SiriusSDK;
 import io.sirius.ms.sdk.SiriusSDKUtils;
 import io.sirius.ms.sdk.model.Job;
 import io.sirius.ms.sdk.model.JobState;
@@ -52,6 +53,10 @@ public class JobWaiterTask extends AbstractSimpleTask {
   private final Runnable onFinished;
   private final @NotNull FeatureList[] flist;
 
+  /**
+   *
+   * @param jobSupplier supplier to retrieve the job status from the sirius api.
+   */
   public JobWaiterTask(@NotNull Class<? extends MZmineModule> callingModule,
       @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters, Supplier<Job> jobSupplier,
       Runnable onFinished) {
@@ -65,8 +70,6 @@ public class JobWaiterTask extends AbstractSimpleTask {
   protected void process() {
     try {
       while (!hasFinished(jobSupplier.get())) {
-//        jobSupplier.get().getProgress().getCurrentProgress();
-//        jobSupplier.get().getProgress().getMaxProgress();
         TimeUnit.MILLISECONDS.sleep(100);
       }
     } catch (InterruptedException e) {
@@ -116,8 +119,10 @@ public class JobWaiterTask extends AbstractSimpleTask {
   @Override
   public double getFinishedPercentage() {
     final Job job = jobSupplier.get();
-    return job != null ?
-        (double) Objects.requireNonNullElse(job.getProgress().getCurrentProgress(), 0L)
-            / Objects.requireNonNullElse(job.getProgress().getMaxProgress(), 1L) : 0;
+    if(job == null || job.getProgress() == null) {
+      return 0d;
+    }
+    return (double) Objects.requireNonNullElse(job.getProgress().getCurrentProgress(), 0L)
+        / Objects.requireNonNullElse(job.getProgress().getMaxProgress(), 1L);
   }
 }

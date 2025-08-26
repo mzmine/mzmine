@@ -26,13 +26,13 @@
 package io.github.mzmine.modules.tools.siriusapi.modules.fingerid;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.impl.AbstractProcessingModule;
 import io.github.mzmine.modules.tools.siriusapi.JobWaiterTask;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
+import io.github.mzmine.modules.tools.siriusapi.SiriusToMzmine;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.Task;
@@ -44,7 +44,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 public class SiriusFingerIdModule extends AbstractProcessingModule {
@@ -59,32 +58,13 @@ public class SiriusFingerIdModule extends AbstractProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    final String idStr = parameters.getValue(SiriusFingerIdParameters.rowIds);
-    final ModularFeatureList flist = parameters.getValue(SiriusFingerIdParameters.flist)
-        .getMatchingFeatureLists()[0];
-
-    final List<FeatureListRow> rows = FeatureUtils.idStringToRows(flist, idStr);
-    final JobWaiterTask jobWaiterTask;
-
-
-    try (Sirius sirius = new Sirius()) {
-      final Job job = sirius.createFingerIdJob(rows);
-
-      jobWaiterTask = new JobWaiterTask(this.getClass(), moduleCallDate, parameters,
-          () -> sirius.api().jobs()
-              .getJob(sirius.getProject().getProjectId(), job.getId(), List.of()),
-          () -> sirius.importResultsForRows(rows));
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-
-    tasks.add(jobWaiterTask);
+    tasks.add(new SiriusFingerIdTask(null, moduleCallDate, parameters, this.getClass()));
     return ExitCode.OK;
   }
 
   public void run(List<? extends FeatureListRow> rows) {
-    final ArrayList<Task> tasks = new ArrayList<>();
     final SiriusFingerIdParameters parameters = SiriusFingerIdParameters.of(rows);
+    final ArrayList<Task> tasks = new ArrayList<>();
     runModule(ProjectService.getProject(), parameters, tasks, Instant.now());
     TaskService.getController().addTasks(tasks.toArray(Task[]::new));
   }

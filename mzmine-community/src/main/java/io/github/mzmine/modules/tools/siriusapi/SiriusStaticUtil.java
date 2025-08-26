@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
-import javax.validation.constraints.Null;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 public class SiriusStaticUtil {
@@ -39,8 +38,9 @@ public class SiriusStaticUtil {
 
   @Nullable
   public static Map<Integer, String> exportToSiriusUnique(List<? extends FeatureListRow> rows) {
+
     try (Sirius s = new Sirius()) {
-      return s.exportToSiriusUnique(rows);
+      return MzmineToSirius.exportToSiriusUnique(s, rows);
     } catch (Exception e) {
       switch (e) {
         case WebClientResponseException r -> logger.log(Level.SEVERE, r.getResponseBodyAsString(), e);

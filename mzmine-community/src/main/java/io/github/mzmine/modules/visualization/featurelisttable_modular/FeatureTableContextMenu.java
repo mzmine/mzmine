@@ -152,6 +152,9 @@ public class FeatureTableContextMenu extends ContextMenu {
   final Menu exportMenu;
 
   private final FeatureTableFX table;
+  private final BooleanProperty hasIonMobilityData = new SimpleBooleanProperty();
+  private final BooleanProperty hasImagingData = new SimpleBooleanProperty();
+  private final BooleanProperty hasPseudoSpectra = new SimpleBooleanProperty();
   @Nullable ModularFeatureListRow selectedRow;
   private Set<DataType<?>> selectedRowTypes;
   private Set<DataType<?>> selectedFeatureTypes;
@@ -162,10 +165,6 @@ public class FeatureTableContextMenu extends ContextMenu {
   private ModularFeature selectedFeature;
   private @Nullable ModularFeature selectedOrBestFeature;
   private List<FeatureIdentity> copiedIDs;
-
-  private final BooleanProperty hasIonMobilityData = new SimpleBooleanProperty();
-  private final BooleanProperty hasImagingData = new SimpleBooleanProperty();
-  private final BooleanProperty hasPseudoSpectra = new SimpleBooleanProperty();
 
   FeatureTableContextMenu(final FeatureTableFX table) {
     this.table = table;
@@ -404,32 +403,37 @@ public class FeatureTableContextMenu extends ContextMenu {
           ionType.getMass(selectedRow.getAverageMZ())).showInWindow();
     });
 
+    final Menu siriusSubMenu = new Menu("Sirius");
+
     final MenuItem sendToSirius = new ConditionalMenuItem("Send to Sirius",
         () -> !selectedRows.isEmpty());
     sendToSirius.setOnAction(_ -> SiriusStaticUtil.exportToSiriusUnique(selectedRows));
 
-    final MenuItem runFingerId = new ConditionalMenuItem("Run CSI:FingerId",
+    final MenuItem runFingerId = new ConditionalMenuItem("Send to Sirius & Compute",
         () -> !selectedRows.isEmpty());
     runFingerId.setOnAction(
         _ -> MZmineCore.getModuleInstance(SiriusFingerIdModule.class).run(selectedRows));
 
     final MenuItem rankUsingFingerId = new ConditionalMenuItem(
-        "Rank Compound annotations using CSI:FingerId", () -> !selectedRows.isEmpty());
+        "Rank Compound annotations using CSI:FingerId",
+        () -> selectedRow != null && !selectedRow.getCompoundAnnotations().isEmpty());
     rankUsingFingerId.setOnAction(_ -> {
       try (Sirius sirius = new Sirius()) {
         sirius.rankCurrentCompoundAnnotations(selectedRow);
       } catch (Exception e) {
-        if(e instanceof WebClientResponseException w) {
+        if (e instanceof WebClientResponseException w) {
           logger.log(Level.SEVERE, w.getResponseBodyAsString(), w);
         }
         throw new RuntimeException(e);
       }
     });
 
+    siriusSubMenu.getItems().addAll(sendToSirius, runFingerId, rankUsingFingerId);
+
     searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
         formulaPredictionItem, fragmentDashboardItem, new SeparatorMenuItem(), masstSearch,
         new SeparatorMenuItem(), searchMassPubChem, searchFormulaPubChem, new SeparatorMenuItem(),
-        sendToSirius, runFingerId, rankUsingFingerId);
+        siriusSubMenu);
   }
 
   private void initShowMenu() {

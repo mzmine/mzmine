@@ -5,6 +5,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
+import io.github.mzmine.modules.tools.siriusapi.SiriusToMzmine;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -59,15 +60,15 @@ public class SiriusResultsImportTask extends AbstractTask {
   public boolean process() {
     try (Sirius sirius = new Sirius(siriusProject)) {
 
-      final Map<FeatureListRow, String> rowToSiriusId = sirius.mapFeatureToSiriusId(
-          flist.getRows());
+      final Map<FeatureListRow, String> rowToSiriusId = SiriusToMzmine.mapFeatureToSiriusId(sirius, flist.getRows());
       siriusFeatures = rowToSiriusId.size();
 
       for (Entry<FeatureListRow, String> entry : rowToSiriusId.entrySet()) {
         final FeatureListRow row = entry.getKey();
         final String siriusId = entry.getValue();
 
-        final List<CompoundDBAnnotation> siriusAnnotations = sirius.getSiriusAnnotations(siriusId,
+        final List<CompoundDBAnnotation> siriusAnnotations = Sirius.getSiriusAnnotations(sirius,
+            siriusId,
             row);
         if (siriusAnnotations == null || siriusAnnotations.isEmpty()) {
           importedFeatures++;

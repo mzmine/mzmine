@@ -43,8 +43,11 @@ import io.github.mzmine.util.io.WriterOptions;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import io.sirius.ms.sdk.api.SearchableDatabasesApi;
+import io.sirius.ms.sdk.model.AlignedFeature;
+import io.sirius.ms.sdk.model.AlignedFeatureOptField;
 import io.sirius.ms.sdk.model.BasicSpectrum;
 import io.sirius.ms.sdk.model.FeatureImport;
+import io.sirius.ms.sdk.model.InstrumentProfile;
 import io.sirius.ms.sdk.model.SearchableDatabase;
 import io.sirius.ms.sdk.model.SearchableDatabaseParameters;
 import io.sirius.ms.sdk.model.SimplePeak;
@@ -52,6 +55,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -181,7 +185,7 @@ public class MzmineToSirius {
 
   private static File writeCompoundsToFile(final Map<String, CompoundDBAnnotation> db) {
     final File file = new File(new File(FileAndPathUtil.getTempDir(), "sirius_databases"),
-        "custom_%s.tsv".formatted(Sirius.getSessionId()));
+        "custom_%s.tsv".formatted(Sirius.getDefaultSessionId()));
     file.deleteOnExit();
 
     if (!file.getParentFile().exists()) {
@@ -207,5 +211,46 @@ public class MzmineToSirius {
       throw new RuntimeException(e);
     }
     return file;
+  }
+
+  /**
+   * Exports rows to sirius. checks the current project. Only exports rows that are not already
+   * contained in the sirius project.
+   *
+   * @param sirius The sirius session.
+   * @param rows   The rows to export
+   * @return A mapping of mzmine feature id {@link FeatureListRow#getID()} to sirius unique id
+   * {@link AlignedFeature#getAlignedFeatureId()}.
+   */
+  public static Map<Integer, String> exportToSiriusUnique(@NotNull Sirius sirius,
+      @NotNull List<? extends @NotNull FeatureListRow> rows) {
+    sirius.checkLogin();
+    final List<FeatureImport> features = rows.stream().map(MzmineToSirius::feature)
+        .filter(Objects::nonNull).toList();
+
+    final Map<Integer, String> mzmineIdToSiriusId = sirius.api().features()
+        .getAlignedFeatures(sirius.getProject().getProjectId(), null,
+            List.of(AlignedFeatureOptField.NONE)).stream().collect(Collectors.toMap(
+            alignedFeature -> Integer.valueOf(alignedFeature.getExternalFeatureId()),
+            AlignedFeature::getAlignedFeatureId));
+
+    final List<FeatureImport> notImportedFeatures = features.stream()
+        .filter(f -> mzmineIdToSiriusId.get(Integer.valueOf(f.getExternalFeatureId())) == null)
+        .toList();
+
+    var imported = sirius.api().features()
+        .addAlignedFeatures(sirius.getProject().getProjectId(), notImportedFeatures,
+            InstrumentProfile.QTOF, List.of(AlignedFeatureOptField.NONE));
+    var mzmineIdToSiriusId2 = imported.stream().collect(
+        Collectors.toMap(AlignedFeature::getExternalFeatureId,
+            AlignedFeature::getAlignedFeatureId));
+
+    final HashMap<Integer, String> idMap = new HashMap<>(mzmineIdToSiriusId);
+    mzmineIdToSiriusId2.forEach(
+        (mzmineId, siriusId) -> idMap.put(Integer.valueOf(mzmineId), siriusId));
+
+    logger.info(() -> "Added features " + idMap.entrySet().stream()
+        .map(e -> "%d->%s".formatted(e.getKey(), e.getValue())).collect(Collectors.joining("; ")));
+    return idMap;
   }
 }
