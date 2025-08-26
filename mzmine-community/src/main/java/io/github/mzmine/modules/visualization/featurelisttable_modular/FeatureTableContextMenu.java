@@ -297,6 +297,9 @@ public class FeatureTableContextMenu extends ContextMenu {
    */
   @Nullable
   private FeatureAnnotation getAnnotationForBioTransformerPrediction() {
+    if(selectedRow == null) {
+      return null;
+    }
     List<? extends FeatureAnnotation> annotations = selectedRow.getSpectralLibraryMatches();
     if (annotations.isEmpty()) {
       annotations = selectedRow.getCompoundAnnotations();

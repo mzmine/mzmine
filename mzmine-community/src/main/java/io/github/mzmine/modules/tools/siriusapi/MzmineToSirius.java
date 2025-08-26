@@ -90,6 +90,10 @@ public class MzmineToSirius {
       f.setCharge(adduct.getIonType().getCharge());
     }
 
+    if(Math.abs(f.getCharge()) > 1) {
+      return null;
+    }
+
     f.setMs2Spectra(row.getAllFragmentScans().stream().map(MzmineToSirius::spectrum).toList());
     f.setMs1Spectra(List.of(generateCorrelationSpectrum(row)));
     f.setRtStartSeconds(row.getBestFeature().getRawDataPointsRTRange().lowerEndpoint() * 60d);
