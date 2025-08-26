@@ -71,6 +71,10 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.
 //Negative polarity
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.CommonAdductNegative;
 ```
+- Additional import when using adducts from the uploaded adducts `.txt` file:
+```
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.Adduct;
+```
 
 ### 3. Globals
 Define global variables accessible and modifiable by all rules:
