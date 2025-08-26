@@ -309,14 +309,16 @@ public class BioTransformerTask extends AbstractTask {
 
     final List<SpectralDBAnnotation> spectralLibraryMatches = row.getSpectralLibraryMatches();
     if (!spectralLibraryMatches.isEmpty() && (smilesSource == SmilesSource.ALL
-        || smilesSource == SmilesSource.SPECTRAL_LIBRARY)) {
-      return spectralLibraryMatches.get(0);
+        || smilesSource == SmilesSource.SPECTRAL_LIBRARY)
+        && spectralLibraryMatches.getFirst().getSmiles() != null) {
+      return spectralLibraryMatches.getFirst();
     }
 
     final List<CompoundDBAnnotation> compoundAnnotations = row.getCompoundAnnotations();
     if (!compoundAnnotations.isEmpty() && (smilesSource == SmilesSource.ALL
-        || smilesSource == SmilesSource.COMPOUND_DB)) {
-      return compoundAnnotations.get(0);
+        || smilesSource == SmilesSource.COMPOUND_DB)
+        && compoundAnnotations.getFirst().getSmiles() != null) {
+      return compoundAnnotations.getFirst();
     }
 
     return null;
