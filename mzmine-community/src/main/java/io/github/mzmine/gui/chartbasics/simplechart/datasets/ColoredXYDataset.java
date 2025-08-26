@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,11 +39,11 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.ToolTipTextProvide
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
@@ -156,6 +156,9 @@ public class ColoredXYDataset extends AbstractTaskXYDataset implements IntervalX
    * @return a valid run option.
    */
   protected final RunOption checkRunOption(final RunOption runOption) {
+    if (xyValueProvider.isComputed()) {
+      return RunOption.THIS_THREAD;
+    }
     if (runOption == RunOption.THIS_THREAD && Platform.isFxApplicationThread()) {
       logger.warning(() -> "Calculation of data set values was started on the JavaFX thread."
           + " Creating a new thread instead. Provider: " + xyValueProvider.getClass().getName());

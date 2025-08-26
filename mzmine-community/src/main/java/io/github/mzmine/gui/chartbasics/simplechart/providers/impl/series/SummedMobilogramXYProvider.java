@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,10 +31,10 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import java.text.NumberFormat;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -58,6 +58,7 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
 
   private final Double normalizationFactor;
   private SummedIntensityMobilitySeries data;
+  private boolean isComputed = false;
 
   public SummedMobilogramXYProvider(final Feature f) {
     this(f, false);
@@ -133,6 +134,7 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
     if (normalize || normalizationFactor != null) {
       data = IonMobilityUtils.normalizeMobilogram(data, normalizationFactor);
     }
+    isComputed = true;
   }
 
   @Override
@@ -159,5 +161,12 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
   @Override
   public double getComputationFinishedPercentage() {
     return 0;
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return isComputed;
   }
 }
