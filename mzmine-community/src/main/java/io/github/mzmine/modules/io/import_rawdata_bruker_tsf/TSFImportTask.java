@@ -26,7 +26,9 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_tsf;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -42,6 +44,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameLaserInfoTable;
@@ -210,6 +213,11 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
 
       final Scan scan = tsfUtils.loadScan(newMZmineFile, handle, frameId, metaDataTable, frameTable,
           frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
+
+      if (isMaldi && scan instanceof ImagingScan imgScan) {
+        final MaldiSpotInfo maldiSpotInfo = maldiFrameInfoTable.getMaldiSpotInfo((int) frameId);
+        imgScan.setMaldiSpotInfo(maldiSpotInfo);
+      }
 
       newMZmineFile.addScan(scan);
 
