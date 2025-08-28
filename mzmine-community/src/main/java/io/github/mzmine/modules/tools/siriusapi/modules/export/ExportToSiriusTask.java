@@ -22,37 +22,40 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.siriusapi.modules.fingerid;
+package io.github.mzmine.modules.tools.siriusapi.modules.export;
 
-import io.github.mzmine.datamodel.PolarityType;
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.tools.siriusapi.JobWaiterTask;
+import io.github.mzmine.modules.io.export_features_sirius.SiriusExportParameters;
 import io.github.mzmine.modules.tools.siriusapi.MzmineToSirius;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
-import io.github.mzmine.modules.tools.siriusapi.SiriusToMzmine;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.operations.TaskSubSupplier;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.sirius.ms.sdk.model.Job;
-import io.sirius.ms.sdk.model.JobOptField;
-import io.sirius.ms.sdk.model.JobSubmission;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-public class SiriusFingerIdTask extends AbstractFeatureListTask {
+public class ExportToSiriusTask extends AbstractFeatureListTask implements
+    TaskSubSupplier<Map<Integer, String>> {
 
-  private final ModularFeatureList flist;
-  private final String idStr;
-  private JobWaiterTask jobWaiterTask = null;
+  private static final Logger logger = Logger.getLogger(ExportToSiriusTask.class.getName());
+  private Map<Integer, String> rowIdToSiriusId = null;
+  private ModularFeatureList flist;
 
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
@@ -62,11 +65,11 @@ public class SiriusFingerIdTask extends AbstractFeatureListTask {
    * @param parameters
    * @param moduleClass
    */
-  protected SiriusFingerIdTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+  protected ExportToSiriusTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
-    idStr = parameters.getValue(SiriusFingerIdParameters.rowIds);
-    flist = parameters.getValue(SiriusFingerIdParameters.flist).getMatchingFeatureLists()[0];
+    flist = parameters.getValue(ExportToSiriusParameters.flist)
+        .getMatchingFeatureLists()[0];
   }
 
   @Override
@@ -76,46 +79,49 @@ public class SiriusFingerIdTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
+    final String idString = parameters.getOptionalValue(ExportToSiriusParameters.rowIds).orElse("");
+    final List<FeatureListRow> rows;
+    if (idString == null || idString.isBlank()) {
+      rows = flist.getRows();
+    } else {
+      rows = FeatureUtils.idStringToRows(flist, idString);
+    }
 
-    final List<FeatureListRow> rows = FeatureUtils.idStringToRows(flist, idStr);
-
-    try (Sirius sirius = new Sirius()) {
-      final Map<Integer, String> idsMap = MzmineToSirius.exportToSiriusUnique(sirius, rows);
-
-      final JobSubmission submission = sirius.api().jobs().getDefaultJobConfig(false, false, true);
-
-      // polarity for fallback adducts
-      // todo: set in a sirius preferences or so
-      final PolarityType polarity = rows.stream()
-          .map(r -> FeatureUtils.extractBestPolarity(r).orElse(null)).filter(Objects::nonNull)
-          .findFirst().orElse(PolarityType.POSITIVE);
-      switch (polarity) {
-        case NEGATIVE -> submission.setFallbackAdducts(List.of("[M-H]-"));
-        default -> submission.setFallbackAdducts(List.of("[M+H]+", "[M+NH4]+", "[M+Na]+"));
-      }
-
-      submission.setAlignedFeatureIds(idsMap.values().stream().toList());
-      final Job job = sirius.api().jobs()
-          .startJob(sirius.getProject().getProjectId(), submission, List.of(JobOptField.PROGRESS));
-
-      jobWaiterTask = new JobWaiterTask(getModuleClass(), moduleCallDate, parameters,
-          () -> sirius.api().jobs()
-              .getJob(sirius.getProject().getProjectId(), job.getId(), List.of()),
-          () -> SiriusToMzmine.importResultsForRows(sirius, rows));
-      jobWaiterTask.run();
+    try (Sirius s = new Sirius()) {
+      rowIdToSiriusId = MzmineToSirius.exportToSiriusUnique(s, rows);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      switch (e) {
+        case WebClientResponseException r -> error(r.getResponseBodyAsString(), r);
+        default -> error(e.getMessage(), e);
+      }
     }
   }
 
   @Override
   public String getTaskDescription() {
-    return jobWaiterTask == null ? "Waiting for Sirius Launch..."
-        : "Running Sirius on feature list %s".formatted(flist.getName());
+    return "Exporting features of feature list %s to Sirius".formatted(inQuotes(flist.getName()));
   }
 
   @Override
-  public double getFinishedPercentage() {
-    return jobWaiterTask == null ? 0 : jobWaiterTask.getFinishedPercentage();
+  public boolean isCanceled() {
+    return super.isCanceled();
+  }
+
+  @Override
+  public Task getParentTask() {
+    return this;
+  }
+
+  @Override
+  public void setParentTask(@Nullable Task parentTask) {
+    return;
+  }
+
+  @Override
+  public Map<Integer, String> get() {
+    if(getStatus() != TaskStatus.FINISHED) {
+      throw new RuntimeException("Results were queried before task finished.");
+    }
+    return rowIdToSiriusId;
   }
 }

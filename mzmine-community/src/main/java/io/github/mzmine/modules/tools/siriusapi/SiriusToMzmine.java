@@ -57,6 +57,8 @@ import io.sirius.ms.sdk.model.CompoundClass;
 import io.sirius.ms.sdk.model.CompoundClasses;
 import io.sirius.ms.sdk.model.ProjectInfo;
 import io.sirius.ms.sdk.model.StructureCandidateFormula;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -166,7 +168,7 @@ public class SiriusToMzmine {
     for (Entry<FeatureListRow, String> entry : rowToSiriusId.entrySet()) {
       FeatureListRow row = entry.getKey();
       String id = entry.getValue();
-      final List<CompoundDBAnnotation> annotations = Sirius.getSiriusAnnotations(sirius, id, row);
+      final List<CompoundDBAnnotation> annotations = getSiriusAnnotations(sirius, id, row);
       row.setCompoundAnnotations(annotations);
     }
   }
@@ -180,8 +182,8 @@ public class SiriusToMzmine {
    * @param row
    * @return
    */
-  static AlignedFeature getSiriusFeatureOrThrow(@NotNull Sirius sirius, @NotNull String siriusFeatureId,
-      @Nullable FeatureListRow row)
+  static AlignedFeature getSiriusFeatureOrThrow(@NotNull Sirius sirius,
+      @NotNull String siriusFeatureId, @Nullable FeatureListRow row)
       throws SiriusFeatureDoesNotMatchMzmineFeatureException, AlignedFeatureDoesNotExistException {
     if (row == null) {
       return null;
@@ -225,9 +227,8 @@ public class SiriusToMzmine {
       List<? extends FeatureListRow> rows) {
     sirius.checkLogin();
     final Map<Integer, String> mzmineIdToSiriusId = sirius.api().features()
-        .getAlignedFeatures(sirius.getProject().getProjectId(), null, List.of(
-            AlignedFeatureOptField.NONE))
-        .stream().collect(Collectors.toMap(
+        .getAlignedFeatures(sirius.getProject().getProjectId(), null,
+            List.of(AlignedFeatureOptField.NONE)).stream().collect(Collectors.toMap(
             alignedFeature -> Integer.valueOf(alignedFeature.getExternalFeatureId()),
             AlignedFeature::getAlignedFeatureId));
 
@@ -239,5 +240,25 @@ public class SiriusToMzmine {
       }
     }
     return map;
+  }
+
+  public static @NotNull List<CompoundDBAnnotation> getSiriusAnnotations(@NotNull Sirius sirius,
+      @NotNull String siriusFeatureId, @NotNull FeatureListRow row) {
+
+    final AlignedFeature alignedFeature = getSiriusFeatureOrThrow(sirius, siriusFeatureId, row);
+
+    final List<StructureCandidateFormula> structureCandidates = sirius.api().features()
+        .getStructureCandidates(sirius.getProject().getProjectId(),
+            alignedFeature.getAlignedFeatureId(), List.of()).stream()
+        .sorted(Comparator.comparingInt(s -> s.getRank() != null ? s.getRank() : 100)).limit(10)
+        .toList();
+
+    final List<CompoundDBAnnotation> siriusAnnotations = structureCandidates.stream()
+        .sorted(Comparator.comparingInt(StructureCandidateFormula::getRank))
+        .map(s -> structureCandidateToMzmine(s, sirius.api(), sirius.getProject(), siriusFeatureId))
+        .filter(Objects::nonNull).toList();
+    final List<CompoundDBAnnotation> annotations = new ArrayList<>();
+    annotations.addAll(siriusAnnotations);
+    return annotations;
   }
 }

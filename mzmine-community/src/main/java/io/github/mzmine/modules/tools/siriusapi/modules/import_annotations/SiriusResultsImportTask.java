@@ -67,7 +67,7 @@ public class SiriusResultsImportTask extends AbstractTask {
         final FeatureListRow row = entry.getKey();
         final String siriusId = entry.getValue();
 
-        final List<CompoundDBAnnotation> siriusAnnotations = Sirius.getSiriusAnnotations(sirius,
+        final List<CompoundDBAnnotation> siriusAnnotations = SiriusToMzmine.getSiriusAnnotations(sirius,
             siriusId,
             row);
         if (siriusAnnotations == null || siriusAnnotations.isEmpty()) {

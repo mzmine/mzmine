@@ -37,7 +37,6 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import io.sirius.ms.sdk.SiriusSDK;
 import io.sirius.ms.sdk.SiriusSDK.ShutdownMode;
 import io.sirius.ms.sdk.SiriusSDKUtils;
-import io.sirius.ms.sdk.model.AlignedFeature;
 import io.sirius.ms.sdk.model.AllowedFeatures;
 import io.sirius.ms.sdk.model.ConfidenceMode;
 import io.sirius.ms.sdk.model.GuiInfo;
@@ -47,14 +46,11 @@ import io.sirius.ms.sdk.model.JobSubmission;
 import io.sirius.ms.sdk.model.ProjectInfo;
 import io.sirius.ms.sdk.model.ProjectInfoOptField;
 import io.sirius.ms.sdk.model.SearchableDatabase;
-import io.sirius.ms.sdk.model.StructureCandidateFormula;
 import io.sirius.ms.sdk.model.StructureDbSearch;
 import java.io.File;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -83,7 +79,7 @@ public class Sirius implements AutoCloseable {
   private final ProjectInfo projectSpace;
 
   /**
-   * Default constructor to initialise a temporary project.
+   * Default constructor to initialise a temporary project. This is a time consuming operation. Don't run on the GUI.
    */
   public Sirius() throws Exception {
     final File projectFile = new File(FileAndPathUtil.getTempDir(), sessionId + ".sirius");
@@ -91,17 +87,25 @@ public class Sirius implements AutoCloseable {
   }
 
   /**
-   * @param project project file to open
+   * This is a time consuming operation. Don't run on the GUI.
+   * @param project project file to open.
    * @throws Exception
    */
   public Sirius(File project) throws Exception {
-    sirius = SiriusSDK.startAndConnectLocally(ShutdownMode.NEVER, true);
+
+    // try to connect to running instance
+    final SiriusSDK alreadyRunning = SiriusSDK.findAndConnectLocally(ShutdownMode.NEVER, true);
+    if(alreadyRunning != null) {
+      sirius = alreadyRunning;
+    } else {
+      sirius = SiriusSDK.startAndConnectLocally(ShutdownMode.NEVER, true);
+    }
 
     int tries = 0;
     final int maxTries = 10;
     while (!SiriusSDKUtils.restHealthCheck(sirius.getApiClient()) && tries < maxTries) {
       tries++;
-      Thread.sleep(200);
+      Thread.sleep(50);
       logger.finest("Waiting for Sirius API startup. Try %d/%d".formatted(tries, maxTries));
     }
 
@@ -117,27 +121,6 @@ public class Sirius implements AutoCloseable {
 
   public static String getDefaultSessionId() {
     return sessionId;
-  }
-
-  public static @NotNull List<CompoundDBAnnotation> getSiriusAnnotations(Sirius sirius,
-      String siriusFeatureId, FeatureListRow row) {
-
-    final AlignedFeature alignedFeature = SiriusToMzmine.getSiriusFeatureOrThrow(sirius,
-        siriusFeatureId, row);
-
-    final List<StructureCandidateFormula> structureCandidates = sirius.api().features()
-        .getStructureCandidates(sirius.projectSpace.getProjectId(),
-            alignedFeature.getAlignedFeatureId(), List.of()).stream()
-        .sorted(Comparator.comparingInt(s -> s.getRank() != null ? s.getRank() : 100)).limit(10)
-        .toList();
-
-    final List<CompoundDBAnnotation> siriusAnnotations = structureCandidates.stream()
-        .sorted(Comparator.comparingInt(StructureCandidateFormula::getRank)).map(
-            s -> SiriusToMzmine.structureCandidateToMzmine(s, sirius.sirius, sirius.projectSpace,
-                siriusFeatureId)).filter(Objects::nonNull).toList();
-    final List<CompoundDBAnnotation> annotations = new ArrayList<>();
-    annotations.addAll(siriusAnnotations);
-    return annotations;
   }
 
   private void showGuiForProject() {
@@ -188,27 +171,6 @@ public class Sirius implements AutoCloseable {
     }
 
     throw new RuntimeException("Could not create or open project space for this mzmine session.");
-  }
-
-  public Job createFingerIdJob(List<FeatureListRow> rows) {
-    checkLogin();
-    final Map<Integer, String> idsMap = MzmineToSirius.exportToSiriusUnique(this, rows);
-    final JobSubmission submission = sirius.jobs().getDefaultJobConfig(false, false, true);
-
-    // polarity for fallback adducts
-    // todo: set in a sirius preferences or so
-    final PolarityType polarity = rows.stream()
-        .map(r -> FeatureUtils.extractBestPolarity(r).orElse(null)).filter(Objects::nonNull)
-        .findFirst().orElse(PolarityType.POSITIVE);
-    switch (polarity) {
-      case NEGATIVE -> submission.setFallbackAdducts(List.of("[M-H]-"));
-      default -> submission.setFallbackAdducts(List.of("[M+H]+", "[M+NH4]+", "[M+Na]+"));
-    }
-
-    submission.setAlignedFeatureIds(idsMap.values().stream().toList());
-    final Job job = sirius.jobs()
-        .startJob(projectSpace.getProjectId(), submission, List.of(JobOptField.PROGRESS));
-    return job;
   }
 
   /**
@@ -264,8 +226,8 @@ public class Sirius implements AutoCloseable {
    * @param row
    */
   public void rankCurrentCompoundAnnotations(@NotNull final FeatureListRow row) {
-
-    List<CompoundDBAnnotation> annotations = row.getCompoundAnnotations();
+    // could be refactored into a module?
+    final List<CompoundDBAnnotation> annotations = row.getCompoundAnnotations();
 
     if (annotations.isEmpty()) {
       return;

@@ -77,7 +77,8 @@ import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardTab;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
-import io.github.mzmine.modules.tools.siriusapi.SiriusStaticUtil;
+import io.github.mzmine.modules.tools.siriusapi.modules.export.ExportToSiriusModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.export.ExportToSiriusParameters;
 import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
@@ -297,7 +298,7 @@ public class FeatureTableContextMenu extends ContextMenu {
    */
   @Nullable
   private FeatureAnnotation getAnnotationForBioTransformerPrediction() {
-    if(selectedRow == null) {
+    if (selectedRow == null) {
       return null;
     }
     List<? extends FeatureAnnotation> annotations = selectedRow.getSpectralLibraryMatches();
@@ -410,7 +411,8 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem sendToSirius = new ConditionalMenuItem("Send to Sirius",
         () -> !selectedRows.isEmpty());
-    sendToSirius.setOnAction(_ -> SiriusStaticUtil.exportToSiriusUnique(selectedRows));
+    sendToSirius.setOnAction(_ -> MZmineCore.runMZmineModule(ExportToSiriusModule.class,
+        ExportToSiriusParameters.of(selectedRows)));
 
     final MenuItem runFingerId = new ConditionalMenuItem("Send to Sirius & Compute",
         () -> !selectedRows.isEmpty());
