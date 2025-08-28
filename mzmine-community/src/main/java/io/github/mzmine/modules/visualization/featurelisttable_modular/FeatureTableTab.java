@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,101 +25,36 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.javafx.util.FxIconUtil;
-import java.io.IOException;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Orientation;
-import javafx.scene.control.Button;
-import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
 import org.jetbrains.annotations.NotNull;
 
-public class FeatureTableTab extends MZmineTab {
+public class FeatureTableTab extends SimpleTab {
 
-  private static final Logger logger = Logger.getLogger(FeatureTableTab.class.getName());
-  private final BorderPane mainPane;
-  private final ToolBar toolBar;
-
-  private final FeatureTableFXMLTabAnchorPaneController controller;
+  private final FxFeatureTableController controller;
 
   public FeatureTableTab(FeatureList flist) {
     super("Feature Table", true, false);
     setSubTitle(flist != null ? flist.getName() : null);
-    mainPane = new BorderPane();
-    toolBar = new ToolBar();
 
-    // Setup feature table
-    FXMLLoader loader = new FXMLLoader(
-        (FeatureTableFX.class.getResource("FeatureTableFXMLTabAnchorPane.fxml")));
-
-    AnchorPane root = null;
-    try {
-      root = loader.load();
-      logger.finest("Feature table anchor pane has been successfully loaded from the FXML loader.");
-    } catch (IOException e) {
-      logger.log(Level.WARNING, "Error during feature list loading from fxml", e);
-    }
-
-    controller = loader.getController();
-
+    this.controller = new FxFeatureTableController();
     controller.setFeatureList(flist);
+    setContent(controller.buildView());
 
-    // TODO: if there would be only selectColumnsButton in the toolbar, then remove toolbar and
-    //  improve "+" button behaviour of the feature table header
-    // Setup tool bar
-    toolBar.setOrientation(Orientation.VERTICAL);
-
-    Image SELECTION_ICON = FxIconUtil.loadImageFromResources("icons/propertiesicon.png");
-    Button selectColumnsButton = new Button(null, new ImageView(SELECTION_ICON));
-    selectColumnsButton.setTooltip(new Tooltip("Select columns to show/hide"));
-    selectColumnsButton.setOnAction(e -> controller.miParametersOnAction(null));
-
-    toolBar.getItems().addAll(selectColumnsButton);
-
-    // Setup main pane
-    mainPane.setCenter(root);
-    mainPane.setRight(toolBar);
-
-    setContent(mainPane);
-
-    setOnClosed(e -> {
+    setOnClosed(_ -> {
       controller.close();
       setOnClosed(null);
     });
   }
 
-  public FeatureTableFXMLTabAnchorPaneController getController() {
+  public FxFeatureTableController getController() {
     return controller;
-  }
-
-  public BorderPane getMainPane() {
-    return mainPane;
   }
 
   public FeatureList getFeatureList() {
     return controller.getFeatureList();
-  }
-
-  public FeatureTableFX getFeatureTable() {
-    return controller.getFeatureTable();
-  }
-
-  @NotNull
-  @Override
-  public Collection<? extends RawDataFile> getRawDataFiles() {
-    return getFeatureList() == null ? Collections.emptyList() : getFeatureList().getRawDataFiles();
   }
 
   @NotNull
@@ -134,11 +69,6 @@ public class FeatureTableTab extends MZmineTab {
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return getFeatureList().isAligned() ? Collections.singletonList(getFeatureList())
         : Collections.emptyList();
-  }
-
-  @Override
-  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-
   }
 
   @Override

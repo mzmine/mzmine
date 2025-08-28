@@ -148,7 +148,7 @@ public class MZminePreferences extends SimpleParameterSet {
 //      "Send error e-Mail notifications", "Send error e-Mail notifications",
 //      new ErrorMailSettings());
 
-  public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
+  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public static final BooleanParameter useTabSubtitles = new BooleanParameter("Show tab sub titles",
       "If enabled, the name of feature lists or raw data files will be displayed in the tab header, e.g., in for the feature list tab.",
@@ -299,7 +299,7 @@ public class MZminePreferences extends SimpleParameterSet {
             // other preferences
             defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
             imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
-            windowSetttings, useTabSubtitles,
+            windowSettings, useTabSubtitles,
             // silent parameters without controls
             showTempFolderAlert, username, showQuickStart,
             //
@@ -337,17 +337,20 @@ public class MZminePreferences extends SimpleParameterSet {
             intensityFormat, ppmFormat, scoreFormat, percentFormat, unitFormat), //
         new ParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
             chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
-            imageNormalization), //
+            imageNormalization, windowSettings), //
         new ParameterGroup("MS data import", applyVendorCentroiding, msConvertPath,
             keepConvertedFile, watersLockmass, thermoRawFileParserPath, thermoImportChoice) //
     );
-    // imsModuleWarnings, showTempFolderAlert, windowSetttings, showQuickStart  are hidden parameters
+    // imsModuleWarnings, showTempFolderAlert, showQuickStart  are hidden parameters
 
     GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this,
         false, fixed, groups, GroupView.GROUPED);
     dialog.setTitle("mzmine preferences");
     dialog.setFilterText(filterParameters);
 
+    dialog.setWidth(800);
+    dialog.setHeight(800);
+    
     // check
     dialog.showAndWait();
     final ExitCode retVal = dialog.getExitCode();

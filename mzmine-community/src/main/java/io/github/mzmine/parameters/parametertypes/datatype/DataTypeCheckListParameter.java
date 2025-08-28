@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -168,7 +168,7 @@ public class DataTypeCheckListParameter implements
    * @param map Map containing new data types and their values
    */
   public void setDataTypesAndVisibility(Map<String, Boolean> map) {
-    value = new HashMap<>(map);
+    value.putAll(map);
   }
 
   @Override
@@ -211,7 +211,7 @@ public class DataTypeCheckListParameter implements
 
   @Override
   public void setValue(Map<String, Boolean> newValue) {
-    this.value = newValue;
+    this.value.putAll(newValue);
   }
 
   @Override
@@ -224,7 +224,7 @@ public class DataTypeCheckListParameter implements
       Boolean val = Boolean.valueOf(e.getAttribute(DATA_TYPE_VISIBLE_ATTR));
 
       final String replaced = key.replace("Feature:", "");
-      if(key.contains(" ") || !replaced.equals(replaced.toLowerCase())) {
+      if (key.contains(" ") || !replaced.equals(replaced.toLowerCase())) {
         // may be an old key from the time we were using the column headers
         continue;
       }
@@ -256,8 +256,10 @@ public class DataTypeCheckListParameter implements
   }
 
   @Override
-  public UserParameter cloneParameter() {
-    return null;
+  public DataTypeCheckListParameter cloneParameter() {
+    final DataTypeCheckListParameter clone = new DataTypeCheckListParameter(name, desc);
+    clone.setValue(new HashMap<>(value));
+    return clone;
   }
 
   public void setAll(boolean visible) {
