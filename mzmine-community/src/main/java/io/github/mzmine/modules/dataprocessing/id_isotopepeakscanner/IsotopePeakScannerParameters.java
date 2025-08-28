@@ -111,17 +111,17 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_peak_scanner/isotope_peak_scanner.html");
   }
 
-  @Override
-  public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    if ((getParameters() == null) || (getParameters().length == 0)) {
-      return ExitCode.OK;
-    }
-
-    IsotopePeakScannerSetupDialog dialog = new IsotopePeakScannerSetupDialog(valueCheckRequired,
-        this);
-    dialog.showAndWait();
-    return dialog.getExitCode();
-  }
+//  @Override
+//  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+//    if ((getParameters() == null) || (getParameters().length == 0)) {
+//      return ExitCode.OK;
+//    }
+//
+//    IsotopePeakScannerSetupDialog dialog = new IsotopePeakScannerSetupDialog(valueCheckRequired,
+//        this);
+//    dialog.showAndWait();
+//    return dialog.getExitCode();
+//  }
 
   @Override
   public boolean checkParameterValues(Collection<String> errorMessages,
