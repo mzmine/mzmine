@@ -166,7 +166,7 @@ public class ChromatogramFeatureShapeCell extends TreeTableCell<ModularFeatureLi
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
 
     SimpleXYChart<IonTimeSeriesToXYProvider> chart = new SimpleXYChart<>(
-        uf.format("Retention time" + id, "min"), uf.format("Intensity", "a.u."));
+        uf.format("Retention time", "min"), uf.format("Intensity", "a.u."));
 //        uf.format("Retention time", "min"), uf.format("Intensity", "a.u."));
     chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
