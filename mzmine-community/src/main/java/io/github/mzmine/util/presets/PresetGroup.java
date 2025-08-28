@@ -25,27 +25,22 @@
 
 package io.github.mzmine.util.presets;
 
-import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @param <T>
+ * Defines the {@link Preset} group. Also see  {@link PresetCategory}. use toString for display
+ * name
  */
-public abstract class AbstractPresetStore<T extends Preset> implements PresetStore<T> {
+public interface PresetGroup extends UniqueIdSupplier {
 
-  private static final Logger logger = Logger.getLogger(AbstractPresetStore.class.getName());
-
-  private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
-
-  public AbstractPresetStore() {
+  /**
+   * Often same as {@link #getUniqueID()}. Use toString for a display name.
+   *
+   * @return the folder name of this group in {@link PresetCategory} / {@link PresetGroup}
+   */
+  default @NotNull String getFolderName() {
+    return getUniqueID();
   }
-
-  @Override
-  public @NotNull ObservableList<T> getCurrentPresets() {
-    return currentPresets;
-  }
-
 
 }

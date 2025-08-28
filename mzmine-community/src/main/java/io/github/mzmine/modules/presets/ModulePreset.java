@@ -23,29 +23,40 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.modules.presets;
 
-import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.presets.Preset;
+import io.github.mzmine.util.presets.PresetCategory;
 import org.jetbrains.annotations.NotNull;
 
+
 /**
- * @param <T>
+ * @param name
+ * @param presetGroup the module uniqueID
+ * @param parameters
  */
-public abstract class AbstractPresetStore<T extends Preset> implements PresetStore<T> {
+public record ModulePreset(String name, @NotNull String presetGroup,
+                           ParameterSet parameters) implements Preset {
 
-  private static final Logger logger = Logger.getLogger(AbstractPresetStore.class.getName());
-
-  private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
-
-  public AbstractPresetStore() {
+  @Override
+  public @NotNull String toString() {
+    return name;
   }
 
   @Override
-  public @NotNull ObservableList<T> getCurrentPresets() {
-    return currentPresets;
+  public @NotNull ModulePreset withName(String name) {
+    return new ModulePreset(name, presetGroup, parameters);
   }
 
+
+  // constant is set to read only - will save but not read it
+  @Override
+  @JsonProperty(access = Access.READ_ONLY)
+  public @NotNull PresetCategory presetCategory() {
+    return PresetCategory.MODULES;
+  }
 
 }

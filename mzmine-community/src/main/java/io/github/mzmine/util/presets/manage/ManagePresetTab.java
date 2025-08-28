@@ -23,29 +23,34 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.util.presets.manage;
 
-import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.presets.Preset;
+import io.github.mzmine.util.presets.PresetStore;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * @param <T>
- */
-public abstract class AbstractPresetStore<T extends Preset> implements PresetStore<T> {
+public class ManagePresetTab extends SimpleTab {
 
-  private static final Logger logger = Logger.getLogger(AbstractPresetStore.class.getName());
+  private final ManagePresetsController controller;
 
-  private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
-
-  public AbstractPresetStore() {
+  private ManagePresetTab(ManagePresetsController controller) {
+    super("Manage presets");
+    this.controller = controller;
+    setContent(this.controller.buildView());
   }
 
-  @Override
-  public @NotNull ObservableList<T> getCurrentPresets() {
-    return currentPresets;
+  public static <T extends Preset> void show(@Nullable PresetStore<T> presetStore) {
+    ManagePresetsController controller = new ManagePresetsController();
+
+    // reuse existing preset store
+    controller.loadWithExisting(presetStore);
+
+    MZmineCore.getDesktop().addTab(new ManagePresetTab(controller));
   }
 
-
+  public ManagePresetsController getController() {
+    return controller;
+  }
 }

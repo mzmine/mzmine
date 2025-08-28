@@ -23,42 +23,41 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules;
+package io.github.mzmine.modules.presets;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.presets.PresetCategory;
+import io.github.mzmine.util.presets.PresetStore;
+import io.github.mzmine.util.presets.PresetStoreFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This interface represents any component of MZmine that has a ParameterSet, and therefore can
- * store its settings.
+ * Searches for initialized modules to create {@link ModulePresetStore}. Modules should be
+ * initialized already from loading the config and working on modules.
+ * <p>
+ * TODO maybe optimize by having a list of modules like the list of datatypes
  */
-public interface MZmineModule extends UniqueIdSupplier {
+public class ModulePresetStoreFactory implements PresetStoreFactory<ModulePreset> {
 
-  /**
-   * Returns module name
-   *
-   * @return Module name
-   */
-  @NotNull
-  public String getName();
+  @Override
+  public @Nullable PresetStore<ModulePreset> createStore(@NotNull PresetCategory category,
+      @NotNull String group) {
+    for (MZmineModule module : MZmineCore.getAllModules()) {
+      if (module.getUniqueID().equals(group)) {
+        final ParameterSet params = ConfigService.getConfiguration()
+            .getModuleParameters(module.getClass());
+        if (params == null) {
+          return null;
+        }
 
-  /**
-   * Unique ID is used for loading and saving module-related information. This ID should never
-   * change.
-   *
-   * @return a unique ID that should never change
-   */
-  @NotNull
-  default String getUniqueID() {
-    return getClass().getSimpleName();
+        return new ModulePresetStore(module, params);
+      }
+    }
+
+    return null;
   }
-
-  /**
-   * Returns module's parameter class. If the module has no parameters, it can return null. The
-   * returned class must provide a public constructor without parameters.
-   */
-  public @Nullable Class<? extends ParameterSet> getParameterSetClass();
-
 }

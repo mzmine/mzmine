@@ -23,29 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.modules.presets;
 
-import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import org.jetbrains.annotations.NotNull;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
+import java.io.IOException;
 
-/**
- * @param <T>
- */
-public abstract class AbstractPresetStore<T extends Preset> implements PresetStore<T> {
-
-  private static final Logger logger = Logger.getLogger(AbstractPresetStore.class.getName());
-
-  private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
-
-  public AbstractPresetStore() {
-  }
+public class ParameterSetJsonSerializer extends JsonSerializer<ParameterSet> {
 
   @Override
-  public @NotNull ObservableList<T> getCurrentPresets() {
-    return currentPresets;
+  public void serialize(ParameterSet parameterSet, JsonGenerator gen, SerializerProvider provider)
+      throws IOException {
+    final String xml = ParameterUtils.saveValuesToXMLString(parameterSet);
+    gen.writeString(xml);
   }
-
 
 }

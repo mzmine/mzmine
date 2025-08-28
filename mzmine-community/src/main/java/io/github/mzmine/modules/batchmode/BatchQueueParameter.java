@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Priority;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 /**
@@ -49,13 +50,21 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
   private BatchQueue value;
 
   private BatchComponentController controller;
+  // last error messages
+  private final List<String> lastParsingErrorMessages = new ArrayList<>();
 
   /**
    * Create the parameter.
    */
   public BatchQueueParameter() {
+    this(List.of());
+  }
+
+  private BatchQueueParameter(List<String> lastParsingErrorMessages) {
+    this.lastParsingErrorMessages.addAll(lastParsingErrorMessages);
     value = null;
   }
+
 
   @Override
   public String getName() {
@@ -69,13 +78,15 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
 
   @Override
   public AnchorPane createEditingComponent() {
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("BatchComponent.fxml"));
+    final String fxml = "BatchComponent.fxml";
+    FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
     try {
       AnchorPane pane = loader.load();
       controller = loader.getController();
       return pane;
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.log(java.util.logging.Level.WARNING,
+          "Failed to load FXML '" + fxml + "' for editing component.", e);
     }
 
     return new AnchorPane();
@@ -114,7 +125,8 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
 
   @Override
   public BatchQueueParameter cloneParameter() {
-    final BatchQueueParameter copy = new BatchQueueParameter();
+    // copy over parsing errors
+    final BatchQueueParameter copy = new BatchQueueParameter(lastParsingErrorMessages);
     copy.setValue(value != null ? value.clone() : null);
     return copy;
   }
@@ -178,9 +190,9 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
 
   @Override
   public void loadValueFromXML(final Element xmlElement) {
-    List<String> errorMessages = new ArrayList<>();
+    lastParsingErrorMessages.clear();
     // if modules are missing (false) fail it and do not set the parameters
-    value = BatchQueue.loadFromXml(xmlElement, errorMessages, false);
+    value = BatchQueue.loadFromXml(xmlElement, lastParsingErrorMessages, false);
     // do not log warnings here it's called on startup of mzmine
   }
 
@@ -189,6 +201,16 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
     if (value != null) {
       value.saveToXml(xmlElement);
     }
+  }
+
+  /**
+   * The last error messages from parsing
+   *
+   * @return
+   */
+  @NotNull
+  public List<String> getLastParsingErrorMessages() {
+    return lastParsingErrorMessages;
   }
 
   public BatchComponentController getController() {

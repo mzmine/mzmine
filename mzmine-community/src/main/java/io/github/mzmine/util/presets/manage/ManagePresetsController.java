@@ -23,38 +23,52 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.util.presets.manage;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.javafx.mvci.FxController;
+import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.util.presets.Preset;
+import io.github.mzmine.util.presets.PresetStore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Defines a category which is the first folder in the presets directory
- */
-public enum PresetCategory implements UniqueIdSupplier {
-  MODULES, FILTERS;
+public class ManagePresetsController extends FxController<ManagePresetsModel> {
 
+  private final ManagePresetsViewBuilder viewBuilder;
+  private final ManagePresetsInteractor interactor;
 
-  @Nullable
-  public static PresetCategory parse(String name) {
-    return UniqueIdSupplier.parseOrElse(name, values(), null);
+  protected ManagePresetsController() {
+    super(new ManagePresetsModel());
+    interactor = new ManagePresetsInteractor(this, model);
+    viewBuilder = new ManagePresetsViewBuilder(model);
   }
 
-  public @NotNull String getFolderName() {
-    return getUniqueID();
-  }
-
-  @Override
-  public String toString() {
-    return getUniqueID();
+  /**
+   * Select group by name
+   */
+  public <T extends Preset> void selectGroup(@Nullable PresetStore<T> store) {
+    model.setSelectedGroupStore(store);
   }
 
   @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case MODULES -> "modules";
-      case FILTERS -> "filters";
-    };
+  protected @NotNull FxViewBuilder<ManagePresetsModel> getViewBuilder() {
+    return viewBuilder;
+  }
+
+  public void loadAllPresets() {
+    onTaskThread(new LoadAllPresetsUpdateTask(model));
+  }
+
+  public <T extends Preset> void loadWithExisting(@Nullable PresetStore<T> presetStore) {
+    if (presetStore != null) {
+      model.getAllStores().add(presetStore);
+    }
+
+    // load all other presets
+    loadAllPresets();
+
+    if (presetStore != null) {
+      selectGroup(presetStore);
+    }
   }
 }

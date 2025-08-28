@@ -25,27 +25,13 @@
 
 package io.github.mzmine.util.presets;
 
-import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @param <T>
+ * Just the definition of a local preset file
  */
-public abstract class AbstractPresetStore<T extends Preset> implements PresetStore<T> {
-
-  private static final Logger logger = Logger.getLogger(AbstractPresetStore.class.getName());
-
-  private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
-
-  public AbstractPresetStore() {
-  }
-
-  @Override
-  public @NotNull ObservableList<T> getCurrentPresets() {
-    return currentPresets;
-  }
-
+public record LocalStoredPresetGroup(@NotNull File groupFile, @NotNull PresetCategory category,
+                                     @NotNull String group) {
 
 }

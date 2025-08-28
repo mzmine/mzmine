@@ -86,7 +86,8 @@ public abstract class FilterableMenuPopup<T> extends Popup {
     if (addRemoveButton) {
       buttons = buttons == null ? new Node[1] : Arrays.copyOf(buttons, buttons.length + 1);
       buttons[buttons.length - 1] = FxButtons.createButton("Remove", FxIcons.X_CIRCLE,
-          "Remove selected preset", this::askRemoveSelected); //
+          "Remove selected preset (use arrow keys up/down to select) or press delete key to remove.",
+          this::askRemoveSelected); //
     }
 
     top = createTopMenu(buttons);
@@ -104,32 +105,44 @@ public abstract class FilterableMenuPopup<T> extends Popup {
     initEventListeners();
   }
 
-  private void askRemoveSelected() {
+  /**
+   * @return the removed item or null if none was removed
+   */
+  public T askRemoveSelected() {
     final T selectedItem = listView.getSelectionModel().getSelectedItem();
     if (selectedItem == null) {
-      return;
+      return null;
     }
     final String name = selectedItem.toString();
     boolean remove = DialogLoggerUtil.showDialogYesNo("Remove preset %s?".formatted(name),
         "Are you sure you want to remove " + name);
     if (remove) {
-      removeItem(selectedItem);
+      return removeItem(selectedItem);
     }
+    return null;
+  }
+
+  public String getSearchText() {
+    return searchText.get();
   }
 
   /**
    * Default just removes from originalItems list. This will not work for unmodifiable lists - then
    * overwrite
+   *
+   * @return the removed item or null if none was removed
    */
-  public void removeItem(@Nullable T selectedItem) {
+  public @Nullable T removeItem(@Nullable T selectedItem) {
     if (selectedItem == null) {
-      return;
+      return null;
     }
     try {
       originalItems.remove(selectedItem);
+      return selectedItem;
     } catch (Exception ex) {
       // silent as this is the most likely unmodifiable list exception
     }
+    return null;
   }
 
   private void recalcHeight() {
@@ -147,13 +160,12 @@ public abstract class FilterableMenuPopup<T> extends Popup {
 
     if (buttons.length > 0) {
       var buttonPane = FxLayout.newFlowPane(Pos.CENTER, insets, buttons);
-      top.setBottom(buttonPane);
+      top.setTop(buttonPane);
     }
     return top;
   }
 
   private @NotNull ListView<T> createListView() {
-    final ListView<T> listView;
     final SortedList<T> sortedList = new SortedList<>(originalItems, comparator.get());
     sortedList.comparatorProperty().bind(comparator);
 
@@ -162,7 +174,7 @@ public abstract class FilterableMenuPopup<T> extends Popup {
     final FilteredList<T> filteredItems = new FilteredList<>(sortedList);
     filteredItems.predicateProperty().bind(filterPredicate);
 
-    listView = new ListView<>(filteredItems);
+    final ListView<T> listView = new ListView<>(filteredItems);
     return listView;
   }
 
@@ -195,6 +207,9 @@ public abstract class FilterableMenuPopup<T> extends Popup {
         if (selectedItem != null) {
           itemClickedAndHide(selectedItem);
         }
+        event.consume();
+      } else if (event.getCode() == KeyCode.DELETE) {
+        askRemoveSelected();
         event.consume();
       }
     });
@@ -256,4 +271,7 @@ public abstract class FilterableMenuPopup<T> extends Popup {
   public abstract @NotNull Predicate<T> createPredicate(String searchText);
 
 
+  public void setSearchText(String text) {
+    searchText.setValue(text);
+  }
 }

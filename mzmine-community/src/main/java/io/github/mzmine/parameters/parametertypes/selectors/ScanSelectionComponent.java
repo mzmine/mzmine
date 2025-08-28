@@ -43,7 +43,7 @@ public class ScanSelectionComponent extends OptionalModuleComponent {
     topPane.getChildren().add(clearbtn);
     clearbtn.setOnAction(event -> setSelection(ScanSelection.ALL_SCANS));
 
-    var selection = createSelection();
+    var selection = createSelection(embeddedParameters);
     textDescription.setText(selection.toShortDescription());
     textDescription.setWrappingWidth(350);
     if (active) {
@@ -60,8 +60,8 @@ public class ScanSelectionComponent extends OptionalModuleComponent {
     setParameterValuesToComponents(getEmbeddedParameters());
   }
 
-  public ScanSelection createSelection() {
-    return getSelectionParameters().createFilter();
+  public ScanSelection createSelection(ParameterSet embeddedParameters) {
+    return ((ScanSelectionFiltersParameters) embeddedParameters).createFilter();
   }
 
   @Override
@@ -89,14 +89,14 @@ public class ScanSelectionComponent extends OptionalModuleComponent {
       return;
     }
     super.updateParameterSetFromComponents(embeddedParameters);
-    var selection = createSelection();
+    var selection = createSelection(embeddedParameters);
     textDescription.setText(selection.toShortDescription());
   }
 
   @Override
   public void setParameterValuesToComponents(ParameterSet embeddedParameters) {
     super.setParameterValuesToComponents(embeddedParameters);
-    var selection = createSelection();
+    var selection = createSelection(embeddedParameters);
     textDescription.setText(selection != null ? selection.toShortDescription() : "");
   }
 

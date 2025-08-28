@@ -23,29 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.util.presets.manage;
 
-import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.util.presets.Preset;
+import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * @param <T>
- */
-public abstract class AbstractPresetStore<T extends Preset> implements PresetStore<T> {
+sealed interface ManagePresetsEvent {
 
-  private static final Logger logger = Logger.getLogger(AbstractPresetStore.class.getName());
+  record AddDefaultPresetsEvent() implements ManagePresetsEvent {
 
-  private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
-
-  public AbstractPresetStore() {
   }
 
-  @Override
-  public @NotNull ObservableList<T> getCurrentPresets() {
-    return currentPresets;
+  record RemoveSelectedPresetsEvent(List<Preset> presets) implements ManagePresetsEvent {
+
   }
 
+  record RenameSelectedPresetEvent(@Nullable EditPresetModel preset, boolean askUser) implements
+      ManagePresetsEvent {
+
+  }
 
 }

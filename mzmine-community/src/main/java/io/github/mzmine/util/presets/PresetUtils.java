@@ -25,27 +25,37 @@
 
 package io.github.mzmine.util.presets;
 
-import java.util.logging.Logger;
-import javafx.collections.FXCollections;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @param <T>
- */
-public abstract class AbstractPresetStore<T extends Preset> implements PresetStore<T> {
+public class PresetUtils {
 
-  private static final Logger logger = Logger.getLogger(AbstractPresetStore.class.getName());
-
-  private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
-
-  public AbstractPresetStore() {
+  /**
+   * Only keep new presets from toFilter that are not present in currentPresets. Uses equals to
+   * compare.
+   *
+   * @param currentPresets
+   * @param toFilter
+   * @return new list of presets
+   */
+  @NotNull
+  public static <T extends Preset> List<? extends T> filterDifferent(
+      @NotNull ObservableList<? extends T> currentPresets, @NotNull List<? extends T> toFilter) {
+    final List<T> keep = new ArrayList<>();
+    for (T preset : toFilter) {
+      boolean exists = false;
+      for (T current : currentPresets) {
+        if (preset.equals(current)) {
+          exists = true;
+          break;
+        }
+      }
+      if (!exists) {
+        keep.add(preset);
+      }
+    }
+    return keep;
   }
-
-  @Override
-  public @NotNull ObservableList<T> getCurrentPresets() {
-    return currentPresets;
-  }
-
-
 }

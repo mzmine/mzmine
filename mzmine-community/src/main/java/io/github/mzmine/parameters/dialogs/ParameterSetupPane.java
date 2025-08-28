@@ -27,21 +27,29 @@ package io.github.mzmine.parameters.dialogs;
 
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.presets.ModulePreset;
+import io.github.mzmine.modules.presets.ModulePresetStore;
 import io.github.mzmine.parameters.EmbeddedParameterComponentProvider;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionComponent;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComponent;
+import io.github.mzmine.util.presets.PresetsButton;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -100,6 +108,19 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
    */
   protected HelpWindow helpWindow = null;
   private GridPane paramsPane;
+  /**
+   * Usually opens a dialog to ask for overwrite. BatchModeDialog for example changes that behavior.
+   * Is called on selected presets
+   */
+  private final ObjectProperty<@NotNull Consumer<ParameterSet>> askApplyParameterSet = new SimpleObjectProperty<>(
+      (params) -> {
+        if (DialogLoggerUtil.showDialogYesNo("Overwrite parameters?",
+            "Do you want to overwrite the current parameters?")) {
+          setParametersDirect(params);
+        }
+      });
+  // null if no presets can be stored
+  private @Nullable ModulePresetStore modulePresetStore;
 
   public ParameterSetupPane(boolean valueCheckRequired, boolean addOkButton,
       ParameterSet parameters) {
@@ -179,6 +200,16 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
       btnOK.setOnAction(e -> callOkButton());
       pnlButtons.getButtons().addAll(btnOK);
       ButtonBar.setButtonData(btnOK, ButtonData.OK_DONE);
+
+      // add presets button if available for this parameterset
+      MZmineCore.getModuleForParameterSetIfUnique(parameterSet).ifPresent(module -> {
+        modulePresetStore = new ModulePresetStore(module, parameterSet);
+        final PresetsButton<ModulePreset> presetButton = new PresetsButton<>(true,
+            modulePresetStore, this::createPreset,
+            activePreset -> askApplyParameterSet.get().accept(activePreset.parameters()));
+        ButtonBar.setButtonData(presetButton, ButtonData.OK_DONE);
+        pnlButtons.getButtons().add(presetButton);
+      });
     }
     if (addCancelButton) {
       btnCancel = new Button("Cancel");
@@ -232,6 +263,31 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
     // do not set min height - this works badly with {@link ModuleOptionsEnumComponent}
     // which then does not scale well or when too small crunches multiple components above each other
     setMinWidth(300.0);
+  }
+
+  private ModulePreset createPreset(String name) {
+    if (modulePresetStore == null) {
+      return null;
+    }
+    ParameterSet clone = parameterSet.cloneParameterSet();
+    clone = updateParameterSetFromComponents(clone);
+    return modulePresetStore.createPreset(name, clone);
+  }
+
+  public void setParametersDirect(ParameterSet parameters) {
+    // first set parameters to components - otherwise components tend to auto trigger updates on change
+    setParameterValuesToComponents(parameters);
+    // then set parameters to the parameterset
+    ParameterUtils.copyParameters(parameters, parameterSet);
+  }
+
+  /**
+   * Defines the behavior when a new parameter set is applied like from presets. Default is to ask
+   * user and copy parameter values to actual parameterset. Batch dialog for example redefines
+   * this.
+   */
+  public void setAskApplyParameterSet(@NotNull Consumer<ParameterSet> askApplyParameterSet) {
+    this.askApplyParameterSet.set(askApplyParameterSet);
   }
 
   /**

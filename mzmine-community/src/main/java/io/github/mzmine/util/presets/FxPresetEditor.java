@@ -25,27 +25,23 @@
 
 package io.github.mzmine.util.presets;
 
-import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.util.presets.manage.EditPresetModel;
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.Node;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * @param <T>
- */
-public abstract class AbstractPresetStore<T extends Preset> implements PresetStore<T> {
+public interface FxPresetEditor {
 
-  private static final Logger logger = Logger.getLogger(AbstractPresetStore.class.getName());
+  Node getEditorNode();
 
-  private final ObservableList<T> currentPresets = FXCollections.observableArrayList();
 
-  public AbstractPresetStore() {
+  ObjectProperty<EditPresetModel> presetProperty();
+
+  default void setPreset(@Nullable EditPresetModel selected) {
+    presetProperty().set(selected);
   }
 
-  @Override
-  public @NotNull ObservableList<T> getCurrentPresets() {
-    return currentPresets;
+  default EditPresetModel getPreset() {
+    return presetProperty().get();
   }
-
-
 }
