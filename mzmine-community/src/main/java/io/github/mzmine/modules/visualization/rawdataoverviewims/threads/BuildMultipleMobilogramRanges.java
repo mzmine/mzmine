@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -102,7 +102,7 @@ public class BuildMultipleMobilogramRanges extends AbstractTask {
         if (summed.getNumberOfDataPoints() > 0) {
           SummedMobilogramXYProvider provider = new SummedMobilogramXYProvider(summed,
               new SimpleObjectProperty<>(colors.get(mzRanges.indexOf(mzRange))), seriesKey, true,
-              false, null);
+              false);
           ColoredXYDataset dataset = new ColoredXYDataset(provider, RunOption.THIS_THREAD);
           mobilogramDataSets.add(dataset);
         }

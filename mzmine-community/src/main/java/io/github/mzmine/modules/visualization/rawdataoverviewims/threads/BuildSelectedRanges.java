@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -100,8 +100,7 @@ public class BuildSelectedRanges implements Runnable {
       binning.setMobilogram(mobilograms);
       final SummedIntensityMobilitySeries summed = binning.toSummedMobilogram(null);
       SummedMobilogramXYProvider provider = new SummedMobilogramXYProvider(summed,
-          new SimpleObjectProperty<>(FxColorUtil.awtColorToFX(color)), seriesKey, true, false,
-          null);
+          new SimpleObjectProperty<>(FxColorUtil.awtColorToFX(color)), seriesKey, true, false);
       dataset = new ColoredXYDataset(provider, RunOption.THIS_THREAD);
       mobilogramConsumer.accept(dataset);
     }
