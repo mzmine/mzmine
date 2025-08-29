@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.siriusapi;
 
+import com.google.common.collect.Range;
 import com.opencsv.CSVWriterBuilder;
 import com.opencsv.ICSVWriter;
 import io.github.mzmine.datamodel.MassList;
@@ -32,6 +33,7 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.preferences.NumberFormats;
@@ -90,14 +92,19 @@ public class MzmineToSirius {
       f.setCharge(adduct.getIonType().getCharge());
     }
 
-    if(Math.abs(f.getCharge()) > 1) {
+    if (Math.abs(f.getCharge()) > 1) {
+      // no support for multi charge species yet
       return null;
     }
 
     f.setMs2Spectra(row.getAllFragmentScans().stream().map(MzmineToSirius::spectrum).toList());
     f.setMs1Spectra(List.of(generateCorrelationSpectrum(row)));
-    f.setRtStartSeconds(row.getBestFeature().getRawDataPointsRTRange().lowerEndpoint() * 60d);
-    f.setRtEndSeconds(row.getBestFeature().getRawDataPointsRTRange().upperEndpoint() * 60d);
+
+    final Range<Float> rtRange = row.get(RTRangeType.class);
+    if (rtRange != null) {
+      f.setRtStartSeconds(rtRange.lowerEndpoint() * 60d);
+      f.setRtEndSeconds(rtRange.upperEndpoint() * 60d);
+    }
     f.setRtApexSeconds(row.getAverageRT() * 60d);
 
     return f;
@@ -173,8 +180,8 @@ public class MzmineToSirius {
     final SearchableDatabasesApi databases = sirius.api().databases();
     databases.getCustomDatabases(false, false);
 
-    final SearchableDatabase database = databases.getCustomDatabases(false, false)
-        .stream().filter(db -> db.getDatabaseId().equals(Sirius.mzmineCustomDbId)).findFirst()
+    final SearchableDatabase database = databases.getCustomDatabases(false, false).stream()
+        .filter(db -> db.getDatabaseId().equals(Sirius.mzmineCustomDbId)).findFirst()
         .orElseGet(() -> {
           SearchableDatabaseParameters dbParam = new SearchableDatabaseParameters();
           dbParam.setDisplayName(Sirius.mzmineCustomDbId);
