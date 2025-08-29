@@ -29,6 +29,8 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.dialogs.NotificationService;
+import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdModule;
 import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdParameters;
 import io.github.mzmine.taskcontrol.TaskService;
@@ -98,6 +100,7 @@ public class Sirius implements AutoCloseable {
     if(alreadyRunning != null) {
       sirius = alreadyRunning;
     } else {
+      NotificationService.show(NotificationType.INFO, "Starting Sirius", "Trying to start Sirius. This may take a moment.");
       sirius = SiriusSDK.startAndConnectLocally(ShutdownMode.NEVER, true);
     }
 
