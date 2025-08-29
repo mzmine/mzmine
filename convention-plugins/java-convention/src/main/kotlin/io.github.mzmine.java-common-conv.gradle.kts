@@ -46,6 +46,12 @@ configurations.all {
             useVersion(libs.findVersion("log4j.core").get().preferredVersion)  // strict version
             because("patch all transitive dependencies to latest version")
         }
+
+//        if (requested.group == "org.apache.xmlgraphics") {
+//            val goodVersion = libs.findVersion("batik").get().requiredVersion
+//            useVersion(goodVersion) // strict version
+//            because("patch all transitive batik dependencies to latest version")
+//        }
     }
 }
 
