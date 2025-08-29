@@ -219,6 +219,8 @@ dependencies {
     implementation(libs.woodstox.core)
     implementation(libs.aalto.xml)
 
+    implementation("org.apache.poi:poi-ooxml:5.4.1")
+
     // test only
     testImplementation(libs.bundles.mzio.test)
 }
