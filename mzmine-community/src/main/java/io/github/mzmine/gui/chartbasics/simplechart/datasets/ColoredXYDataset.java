@@ -348,8 +348,9 @@ public class ColoredXYDataset extends AbstractTaskXYDataset implements IntervalX
     setStatus(TaskStatus.FINISHED);
     if (getRunOption()
         != RunOption.THIS_THREAD) {  // no need to notify then, dataset will be up to date
-      FxThread.runLater(this::fireDatasetChanged);
     }
+    // somehow we always need to call dataset changed. Maybe something in the internal construction process keeps the wrong ranges
+    FxThread.runLater(this::fireDatasetChanged);
   }
 
   @Override

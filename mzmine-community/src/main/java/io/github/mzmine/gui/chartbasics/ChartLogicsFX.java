@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,12 @@
 
 package io.github.mzmine.gui.chartbasics;
 
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartRenderingInfo;
@@ -681,6 +684,22 @@ public class ChartLogicsFX {
         }
       }
       case null, default -> {
+      }
+    }
+  }
+
+  public static void withNotifyLater(List<EChartViewer> viewers, Runnable later) {
+    List<Boolean> oldNotify = new ArrayList<>();
+    for (EChartViewer viewer : viewers) {
+      oldNotify.add(viewer.isNotifyChange());
+    }
+    try {
+      later.run();
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    } finally {
+      for (int i = 0; i < viewers.size(); i++) {
+        viewers.get(i).setNotifyChange(oldNotify.get(i));
       }
     }
   }

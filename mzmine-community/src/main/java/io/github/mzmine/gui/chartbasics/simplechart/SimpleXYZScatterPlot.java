@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,7 @@ package io.github.mzmine.gui.chartbasics.simplechart;
 import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
+import io.github.mzmine.gui.chartbasics.gui.javafx.FxXYPlotWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZPieDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PaintScaleProvider;
@@ -37,7 +37,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBloc
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
@@ -65,14 +64,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -112,7 +109,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(false);
   protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
 
-  private final XYPlot plot;
+  private final FxXYPlotWrapper plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
   /**
@@ -147,7 +144,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     chart.setTitle(chartTitle);
     chartSubTitle = new TextTitle();
     chart.addSubtitle(chartSubTitle);
-    plot = chart.getXYPlot();
+    plot = new FxXYPlotWrapper(chart.getXYPlot());
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
     defaultRenderer = new SimpleObjectProperty<>(new ColoredXYSmallBlockRenderer());
     legendAxisFormat = new DecimalFormat("0.##E0");
@@ -447,7 +444,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
         : new PlotCursorPosition(domainValue, rangeValue, index, null);
   }
 
-  public XYPlot getXYPlot() {
+  public FxXYPlotWrapper getXYPlot() {
     return plot;
   }
 

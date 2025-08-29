@@ -36,6 +36,7 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.gui.javafx.FxXYPlotWrapper;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.main.MZmineCore;
@@ -65,7 +66,6 @@ import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.DefaultXYItemRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -86,7 +86,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   private static final double AXIS_MARGINS = 0.001;
 
   protected final JFreeChart chart;
-  private final XYPlot plot;
+  private final FxXYPlotWrapper plot;
   private final ObjectProperty<ChromatogramCursorPosition> cursorPosition;
   private final BooleanProperty matchLabelColors;
   private final TextTitle chartTitle;
@@ -166,7 +166,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     // setMaximumDrawHeight(Integer.MAX_VALUE);
 
     // Set the plot properties.
-    plot = chart.getXYPlot();
+    plot = new FxXYPlotWrapper(chart.getXYPlot());
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
     // Set cross-hair (selection) properties.
@@ -304,7 +304,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     });
   }
 
-  public XYPlot getXYPlot() {
+  public FxXYPlotWrapper getXYPlot() {
     return plot;
   }
 

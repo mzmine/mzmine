@@ -33,6 +33,7 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.gui.javafx.FxXYPlotWrapper;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
@@ -100,7 +101,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(true);
   protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
 
-  private final XYPlot plot;
+  private final FxXYPlotWrapper plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
   private final ObjectProperty<PlotCursorPosition> cursorPositionProperty = new SimpleObjectProperty<>(
@@ -139,7 +140,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
         showTooltips, false), true, true, true, true, true);
 
     chart = getChart();
-    plot = chart.getXYPlot();
+    plot = new FxXYPlotWrapper(chart.getXYPlot());
     chartTitle = new TextTitle(title);
     chart.setTitle(chartTitle);
     chartSubTitle = new TextTitle();
@@ -218,22 +219,20 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   }
 
   public synchronized int addDataset(XYDataset dataset, XYItemRenderer renderer) {
-    final boolean oldNotify = isNotifyChange();
-    setNotifyChange(false);
-    // jfreechart renderers dont check if the value actually changed and notify either way
-    if (renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
-      renderer.setDefaultItemLabelsVisible(isItemLabelsVisible(), false);
-    }
-    if (renderer.getDefaultSeriesVisibleInLegend() != isLegendItemsVisible()) {
-      renderer.setDefaultSeriesVisibleInLegend(isLegendItemsVisible(), false);
-    }
-    plot.setDataset(nextDataSetNum, dataset);
-    plot.setRenderer(nextDataSetNum, renderer);
-    nextDataSetNum++;
-    notifyDatasetChangeListeners(new DatasetChangeEvent(this, dataset));
-
-    // if true this will auto trigger chart changed event and draw update
-    setNotifyChange(oldNotify);
+    // if initial state true this will auto trigger chart changed event and draw update
+    applyWithNotifyChanges(false, () -> {
+      // jfreechart renderers dont check if the value actually changed and notify either way
+      if (renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
+        renderer.setDefaultItemLabelsVisible(isItemLabelsVisible(), false);
+      }
+      if (renderer.getDefaultSeriesVisibleInLegend() != isLegendItemsVisible()) {
+        renderer.setDefaultSeriesVisibleInLegend(isLegendItemsVisible(), false);
+      }
+      plot.setDataset(nextDataSetNum, dataset);
+      plot.setRenderer(nextDataSetNum, renderer);
+      nextDataSetNum++;
+      notifyDatasetChangeListeners(new DatasetChangeEvent(this, dataset));
+    });
     return nextDataSetNum - 1;
   }
 
@@ -410,7 +409,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     getXYPlot().setRangeCrosshairVisible(show);
   }
 
-  public XYPlot getXYPlot() {
+  public FxXYPlotWrapper getXYPlot() {
     return plot;
   }
 

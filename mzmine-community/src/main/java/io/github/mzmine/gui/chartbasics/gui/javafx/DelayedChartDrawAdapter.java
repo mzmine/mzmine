@@ -1,0 +1,69 @@
+/*
+ * Copyright (c) 2004-2025 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package io.github.mzmine.gui.chartbasics.gui.javafx;
+
+import java.util.logging.Logger;
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.event.ChartChangeEvent;
+import org.jfree.chart.event.ChartChangeListener;
+
+public class DelayedChartDrawAdapter implements ChartChangeListener {
+
+  private static final Logger logger = Logger.getLogger(DelayedChartDrawAdapter.class.getName());
+
+  private final PauseTransition delay = new PauseTransition(Duration.millis(30));
+  @org.jetbrains.annotations.NotNull
+  private final EChartViewer viewer;
+
+  public DelayedChartDrawAdapter(EChartViewer viewer) {
+    this.viewer = viewer;
+    final JFreeChart chart = viewer.getChart();
+    assert chart != null;
+
+    // remove auto draw event
+    chart.removeChangeListener(viewer.getCanvas());
+    chart.addChangeListener(this);
+  }
+
+  public static DelayedChartDrawAdapter attach(EChartViewer viewer) {
+    return new DelayedChartDrawAdapter(viewer);
+  }
+
+  public void detach() {
+    delay.stop();
+    viewer.getChart().removeChangeListener(this);
+    viewer.getChart().addChangeListener(viewer.getCanvas());
+  }
+
+  @Override
+  public void chartChanged(ChartChangeEvent event) {
+    delay.setOnFinished(_ -> viewer.getCanvas().chartChanged(event));
+    delay.playFromStart();
+    logger.fine("Delayed chart draw on " + viewer.getChart().getTitle().getText());
+  }
+}
