@@ -36,6 +36,7 @@ import io.github.mzmine.modules.tools.siriusapi.SiriusToMzmine;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.sirius.ms.sdk.model.Job;
@@ -65,7 +66,7 @@ public class SiriusFingerIdTask extends AbstractFeatureListTask {
   protected SiriusFingerIdTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
-    idStr = parameters.getValue(SiriusFingerIdParameters.rowIds);
+    idStr = parameters.getOptionalValue(SiriusFingerIdParameters.rowIds).orElse("");
     flist = parameters.getValue(SiriusFingerIdParameters.flist).getMatchingFeatureLists()[0];
   }
 
@@ -77,7 +78,8 @@ public class SiriusFingerIdTask extends AbstractFeatureListTask {
   @Override
   protected void process() {
 
-    final List<FeatureListRow> rows = FeatureUtils.idStringToRows(flist, idStr);
+    final List<FeatureListRow> rows =
+        idStr.isBlank() ? flist.getRows() : FeatureUtils.idStringToRows(flist, idStr);
 
     try (Sirius sirius = new Sirius()) {
       final Map<Integer, String> idsMap = MzmineToSirius.exportToSiriusUnique(sirius, rows);
@@ -85,7 +87,7 @@ public class SiriusFingerIdTask extends AbstractFeatureListTask {
       final JobSubmission submission = sirius.api().jobs().getDefaultJobConfig(false, false, true);
 
       // polarity for fallback adducts
-      // todo: set in a sirius preferences or so
+      // todo: set in a sirius preferences or so? Or just keep these as default adducts
       final PolarityType polarity = rows.stream()
           .map(r -> FeatureUtils.extractBestPolarity(r).orElse(null)).filter(Objects::nonNull)
           .findFirst().orElse(PolarityType.POSITIVE);
@@ -103,6 +105,8 @@ public class SiriusFingerIdTask extends AbstractFeatureListTask {
               .getJob(sirius.getProject().getProjectId(), job.getId(), List.of()),
           () -> SiriusToMzmine.importResultsForRows(sirius, rows));
       jobWaiterTask.run();
+
+      FeatureTableFXUtil.updateCellsForFeatureList(flist);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

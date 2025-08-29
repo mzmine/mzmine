@@ -43,9 +43,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -54,6 +52,7 @@ public class ExportToSiriusTask extends AbstractFeatureListTask implements
     TaskSubSupplier<Map<Integer, String>> {
 
   private static final Logger logger = Logger.getLogger(ExportToSiriusTask.class.getName());
+  private final String idString;
   private Map<Integer, String> rowIdToSiriusId = null;
   private ModularFeatureList flist;
 
@@ -62,14 +61,13 @@ public class ExportToSiriusTask extends AbstractFeatureListTask implements
    *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
    *                       stored in ram. For now, one storage should be created per module call in
    * @param moduleCallDate the call date of module to order execution order
-   * @param parameters
-   * @param moduleClass
    */
   protected ExportToSiriusTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
     flist = parameters.getValue(ExportToSiriusParameters.flist)
         .getMatchingFeatureLists()[0];
+    idString = parameters.getOptionalValue(ExportToSiriusParameters.rowIds).orElse("");
   }
 
   @Override
@@ -79,13 +77,8 @@ public class ExportToSiriusTask extends AbstractFeatureListTask implements
 
   @Override
   protected void process() {
-    final String idString = parameters.getOptionalValue(ExportToSiriusParameters.rowIds).orElse("");
-    final List<FeatureListRow> rows;
-    if (idString == null || idString.isBlank()) {
-      rows = flist.getRows();
-    } else {
-      rows = FeatureUtils.idStringToRows(flist, idString);
-    }
+    final List<FeatureListRow> rows =
+        idString.isBlank() ? flist.getRows() : FeatureUtils.idStringToRows(flist, idString);
 
     try (Sirius s = new Sirius()) {
       rowIdToSiriusId = MzmineToSirius.exportToSiriusUnique(s, rows);

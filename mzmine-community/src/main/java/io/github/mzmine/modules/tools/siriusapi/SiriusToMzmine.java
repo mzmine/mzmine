@@ -136,7 +136,7 @@ public class SiriusToMzmine {
     annotation.putIfNotNull(NPClassifierClassType.class, bestCompClasses.getNpcClass().getName());
 
     final List<CompoundClass> classyFireLineage = bestCompClasses.getClassyFireLineage();
-    if (bestCompClasses.getClassyFireLineage() != null) {
+    if (classyFireLineage != null) {
       for (CompoundClass compoundClass : classyFireLineage) {
         switch (compoundClass.getLevel()) {
           case "Superclass" ->

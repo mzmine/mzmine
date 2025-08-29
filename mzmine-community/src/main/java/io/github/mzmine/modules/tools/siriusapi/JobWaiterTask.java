@@ -49,17 +49,16 @@ public class JobWaiterTask extends AbstractSimpleTask {
 
   private static final Logger logger = Logger.getLogger(JobWaiterTask.class.getName());
 
-  private final Supplier<Job> jobSupplier;
-  private final Runnable onFinished;
+  private final @NotNull Supplier<Job> jobSupplier;
+  private final @NotNull Runnable onFinished;
   private final @NotNull FeatureList[] flist;
 
   /**
-   *
    * @param jobSupplier supplier to retrieve the job status from the sirius api.
    */
   public JobWaiterTask(@NotNull Class<? extends MZmineModule> callingModule,
-      @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters, Supplier<Job> jobSupplier,
-      Runnable onFinished) {
+      @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
+      @NotNull Supplier<Job> jobSupplier, @NotNull Runnable onFinished) {
     super(null, moduleCallDate, parameters, callingModule);
     this.jobSupplier = jobSupplier;
     this.onFinished = onFinished;
@@ -119,7 +118,7 @@ public class JobWaiterTask extends AbstractSimpleTask {
   @Override
   public double getFinishedPercentage() {
     final Job job = jobSupplier.get();
-    if(job == null || job.getProgress() == null) {
+    if (job == null || job.getProgress() == null) {
       return 0d;
     }
     return (double) Objects.requireNonNullElse(job.getProgress().getCurrentProgress(), 0L)

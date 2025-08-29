@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,11 +22,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.siriusapi.modules.fingerid;
+package io.github.mzmine.modules.tools.siriusapi.modules.rank_annotations;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -37,7 +38,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.util.FeatureUtils;
 import java.util.List;
 
-public class SiriusFingerIdParameters extends SimpleParameterSet {
+public class RankAnnotationsBySiriusParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1);
 
@@ -45,30 +46,30 @@ public class SiriusFingerIdParameters extends SimpleParameterSet {
       new StringParameter("Row IDs",
           "The ids of the rows to run Sirius for. If not selected, the whole feature list will be processed."));
 
-  public SiriusFingerIdParameters() {
+  public RankAnnotationsBySiriusParameters() {
     super(flist, rowIds);
   }
 
-  public static SiriusFingerIdParameters of(List<? extends FeatureListRow> rows) {
+  public static RankAnnotationsBySiriusParameters of(List<? extends FeatureListRow> rows) {
     final String ids = FeatureUtils.rowsToIdString(rows);
 
     final ModularFeatureList featureList = (ModularFeatureList) rows.stream()
         .map(r -> r.getFeatureList()).findFirst().get();
 
     final ParameterSet parameters = ConfigService.getConfiguration()
-        .getModuleParameters(SiriusFingerIdModule.class).cloneParameterSet();
+        .getModuleParameters(RankAnnotationsBySiriusModule.class).cloneParameterSet();
 
     parameters.setParameter(flist, new FeatureListsSelection(featureList));
     parameters.setParameter(rowIds, true, ids);
-    return (SiriusFingerIdParameters) parameters;
+    return (RankAnnotationsBySiriusParameters) parameters;
   }
 
-  public static SiriusFingerIdParameters of(ModularFeatureList flist) {
+  public static RankAnnotationsBySiriusParameters of(ModularFeatureList flist) {
     final ParameterSet parameters = ConfigService.getConfiguration()
-        .getModuleParameters(SiriusFingerIdModule.class).cloneParameterSet();
+        .getModuleParameters(RankAnnotationsBySiriusModule.class).cloneParameterSet();
 
     parameters.setParameter(SiriusFingerIdParameters.flist, new FeatureListsSelection(flist));
     parameters.setParameter(rowIds, false, "");
-    return (SiriusFingerIdParameters) parameters;
+    return (RankAnnotationsBySiriusParameters) parameters;
   }
 }

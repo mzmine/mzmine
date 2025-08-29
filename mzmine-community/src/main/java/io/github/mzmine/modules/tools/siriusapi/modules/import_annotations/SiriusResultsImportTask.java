@@ -9,6 +9,7 @@ import io.github.mzmine.modules.tools.siriusapi.SiriusToMzmine;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureTableFXUtil;
 import java.io.File;
 import java.time.Instant;
 import java.util.List;
@@ -59,7 +60,6 @@ public class SiriusResultsImportTask extends AbstractTask {
 
   public boolean process() {
     try (Sirius sirius = new Sirius(siriusProject)) {
-
       final Map<FeatureListRow, String> rowToSiriusId = SiriusToMzmine.mapFeatureToSiriusId(sirius, flist.getRows());
       siriusFeatures = rowToSiriusId.size();
 
@@ -85,6 +85,7 @@ public class SiriusResultsImportTask extends AbstractTask {
         importedFeatures++;
       }
 
+      FeatureTableFXUtil.updateCellsForFeatureList(flist);
     } catch (Exception e) {
       error(e.getMessage(), e);
       return false;

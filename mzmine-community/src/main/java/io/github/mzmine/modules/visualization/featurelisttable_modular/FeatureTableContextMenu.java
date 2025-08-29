@@ -80,6 +80,8 @@ import io.github.mzmine.modules.tools.siriusapi.Sirius;
 import io.github.mzmine.modules.tools.siriusapi.modules.export.ExportToSiriusModule;
 import io.github.mzmine.modules.tools.siriusapi.modules.export.ExportToSiriusParameters;
 import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdParameters;
+import io.github.mzmine.modules.tools.siriusapi.modules.rank_annotations.RankAnnotationsBySiriusModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
@@ -416,22 +418,13 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem runFingerId = new ConditionalMenuItem("Send to Sirius & Compute",
         () -> !selectedRows.isEmpty());
-    runFingerId.setOnAction(
-        _ -> MZmineCore.getModuleInstance(SiriusFingerIdModule.class).run(selectedRows));
+    runFingerId.setOnAction(_ -> MZmineCore.runMZmineModule(SiriusFingerIdModule.class,
+        SiriusFingerIdParameters.of(selectedRows)));
 
     final MenuItem rankUsingFingerId = new ConditionalMenuItem(
-        "Rank Compound annotations using CSI:FingerId",
+        "Rank Compound annotations using Sirius",
         () -> selectedRow != null && !selectedRow.getCompoundAnnotations().isEmpty());
-    rankUsingFingerId.setOnAction(_ -> {
-      try (Sirius sirius = new Sirius()) {
-        sirius.rankCurrentCompoundAnnotations(selectedRow);
-      } catch (Exception e) {
-        if (e instanceof WebClientResponseException w) {
-          logger.log(Level.SEVERE, w.getResponseBodyAsString(), w);
-        }
-        throw new RuntimeException(e);
-      }
-    });
+    rankUsingFingerId.setOnAction(_ -> RankAnnotationsBySiriusModule.runForRows(selectedRows));
 
     siriusSubMenu.getItems().addAll(sendToSirius, runFingerId, rankUsingFingerId);
 
