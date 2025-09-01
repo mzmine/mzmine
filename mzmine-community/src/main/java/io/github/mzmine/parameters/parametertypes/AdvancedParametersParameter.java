@@ -191,6 +191,14 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
         false, false);
   }
 
+  /**
+   * @param parameter    The parameter in this advanced parameter set. This set must be selected and
+   *                     if the parameter is an {@link OptionalParameter}, it must also be
+   *                     selected.
+   * @param defaultValue The default value in case not all necessary options are selected.
+   * @param <V>
+   * @return The value or the default.
+   */
   public <V> V getValueOrDefault(Parameter parameter, V defaultValue) {
     if (!this.getValue()) {
       return defaultValue;

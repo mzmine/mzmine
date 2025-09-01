@@ -28,7 +28,7 @@ package io.github.mzmine.parameters.parametertypes.metadata;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabelNoWrap;
 
 import io.github.mzmine.javafx.components.util.FxLayout;
-import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +37,7 @@ public class MetadataGroupSelectionComponent extends GridPane {
 
   // auto completion is automatically bound to both fields
   private final MetadataGroupingComponent columnField = new MetadataGroupingComponent();
-  private final ComboBox<String> groupField = columnField.createLinkedGroupCombo(
+  private final TextField groupField = columnField.createLinkedGroupCombo(
       "Select group from column.");
 
   public MetadataGroupSelectionComponent() {
@@ -55,7 +55,7 @@ public class MetadataGroupSelectionComponent extends GridPane {
   @NotNull
   public MetadataGroupSelection getValue() {
     final String column = columnField.getValue();
-    final String group = groupField.getValue();
+    final String group = groupField.getText();
 
     if (column == null || group == null) {
       return MetadataGroupSelection.NONE;
@@ -66,12 +66,12 @@ public class MetadataGroupSelectionComponent extends GridPane {
 
   public void setValue(@Nullable MetadataGroupSelection value) {
     if (value == null) {
-      groupField.setValue("");
+      groupField.setText("");
       columnField.setValue("");
       return;
     }
 
-    groupField.setValue(value.groupStr());
+    groupField.setText(value.groupStr());
     columnField.setValue(value.columnName());
   }
 
@@ -79,7 +79,7 @@ public class MetadataGroupSelectionComponent extends GridPane {
     return columnField;
   }
 
-  public ComboBox<String> getGroupField() {
+  public TextField getGroupField() {
     return groupField;
   }
 }

@@ -9,13 +9,13 @@ beryx-runtime = "1.13.1"
 semver = "1.0.4"
 msdk = "0.0.27"
 # update to 2.9? from 2.5
-cdk = "2.9"
+cdk = "2.11"
 swagger = "1.5.22"
 okhttp = "2.7.5"
 slf4j = '1.7.36'
 poi = '5.0.0'
 batik = '1.17'
-controlsfx = '11.1.1'
+controlsfx = '11.2.2'
 jmzTabm = "1.0.6"
 jna = '5.12.1'
 junit = '5.12.0'

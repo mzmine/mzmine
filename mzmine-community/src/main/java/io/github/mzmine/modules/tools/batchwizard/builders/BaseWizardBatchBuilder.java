@@ -372,7 +372,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(ADAPChromatogramBuilderParameters.dataFiles,
         new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     // crop rt range
-    var scanSelection = new ScanSelection(cropRtRange, 1, polarity.toScanPolaritySelection());
+    var scanSelection = new ScanSelection(1, RangeUtils.toFloatRange(cropRtRange),
+        polarity.toScanPolaritySelection());
     param.setParameter(ADAPChromatogramBuilderParameters.scanSelection, scanSelection);
 
     param.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans, minRtDataPoints);
