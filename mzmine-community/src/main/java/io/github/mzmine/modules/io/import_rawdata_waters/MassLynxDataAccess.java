@@ -206,6 +206,11 @@ public class MassLynxDataAccess implements AutoCloseable {
       logger.finest("Ignoring lock mass correction for file " + rawFolder.getAbsolutePath());
     }
 
+    if (MassLynxLib.isLockMassCorrected(handle) > 0) {
+      logger.finest("File " + rawFolder.getAbsolutePath() + " is already lock mass corrected.");
+      return;
+    }
+
     final int lockmassFunction = MassLynxLib.getLockmassFunction(handle);
 
     if (lockmassFunction == MassLynxConstants.NO_LOCKMASS_FUNCTION) {
