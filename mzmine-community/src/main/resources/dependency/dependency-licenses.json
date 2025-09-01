@@ -767,7 +767,7 @@
         },
         {
             "moduleName": "io.github.dan2097:jna-inchi-api",
-            "moduleVersion": "1.2",
+            "moduleVersion": "1.3.1",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
@@ -777,7 +777,7 @@
         },
         {
             "moduleName": "io.github.dan2097:jna-inchi-core",
-            "moduleVersion": "1.2",
+            "moduleVersion": "1.3.1",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
@@ -787,7 +787,7 @@
         },
         {
             "moduleName": "io.github.dan2097:jna-inchi-darwin-aarch64",
-            "moduleVersion": "1.2",
+            "moduleVersion": "1.3.1",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
@@ -797,7 +797,7 @@
         },
         {
             "moduleName": "io.github.dan2097:jna-inchi-darwin-x86-64",
-            "moduleVersion": "1.2",
+            "moduleVersion": "1.3.1",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
@@ -807,7 +807,7 @@
         },
         {
             "moduleName": "io.github.dan2097:jna-inchi-linux-aarch64",
-            "moduleVersion": "1.2",
+            "moduleVersion": "1.3.1",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
@@ -817,7 +817,7 @@
         },
         {
             "moduleName": "io.github.dan2097:jna-inchi-linux-arm",
-            "moduleVersion": "1.2",
+            "moduleVersion": "1.3.1",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
@@ -827,7 +827,7 @@
         },
         {
             "moduleName": "io.github.dan2097:jna-inchi-linux-x86",
-            "moduleVersion": "1.2",
+            "moduleVersion": "1.3.1",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
@@ -837,7 +837,7 @@
         },
         {
             "moduleName": "io.github.dan2097:jna-inchi-linux-x86-64",
-            "moduleVersion": "1.2",
+            "moduleVersion": "1.3.1",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
@@ -847,7 +847,7 @@
         },
         {
             "moduleName": "io.github.dan2097:jna-inchi-win32-x86",
-            "moduleVersion": "1.2",
+            "moduleVersion": "1.3.1",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
@@ -857,7 +857,7 @@
         },
         {
             "moduleName": "io.github.dan2097:jna-inchi-win32-x86-64",
-            "moduleVersion": "1.2",
+            "moduleVersion": "1.3.1",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
@@ -1944,7 +1944,7 @@
         },
         {
             "moduleName": "org.controlsfx:controlsfx",
-            "moduleVersion": "11.1.1",
+            "moduleVersion": "11.2.2",
             "moduleUrls": [
                 "http://www.controlsfx.org/"
             ],
@@ -2613,7 +2613,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-atomtype",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2623,7 +2623,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-core",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2633,7 +2633,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-ctab",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2643,7 +2643,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-data",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2653,7 +2653,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-fingerprint",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2663,7 +2663,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-formula",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2673,7 +2673,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-inchi",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2683,7 +2683,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-interfaces",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2693,7 +2693,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-io",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2703,7 +2703,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-ioformats",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2713,7 +2713,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-isomorphism",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2723,7 +2723,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-render",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2733,7 +2733,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-renderawt",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2743,7 +2743,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-renderbasic",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2753,7 +2753,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-sdg",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2763,7 +2763,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-silent",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2773,7 +2773,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-smarts",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2783,7 +2783,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-smiles",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2793,7 +2793,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-standard",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2803,7 +2803,7 @@
         },
         {
             "moduleName": "org.openscience.cdk:cdk-valencycheck",
-            "moduleVersion": "2.9",
+            "moduleVersion": "2.11",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
@@ -2988,7 +2988,7 @@
         },
         {
             "moduleName": "uk.ac.ebi.beam:beam-core",
-            "moduleVersion": "1.3.5",
+            "moduleVersion": "1.3.8",
             "moduleLicenses": [
                 {
                     "moduleLicense": "The 2-Clause BSD License",
@@ -2998,7 +2998,7 @@
         },
         {
             "moduleName": "uk.ac.ebi.beam:beam-func",
-            "moduleVersion": "1.3.5",
+            "moduleVersion": "1.3.8",
             "moduleLicenses": [
                 {
                     "moduleLicense": "The 2-Clause BSD License",
