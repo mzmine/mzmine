@@ -105,7 +105,7 @@ public record ScanInfoWrapper(int msLevel, int polarity, int driftScanCount, int
         return new DIAMsMsInfoImpl(collisionEnergy, null, msLevel, ActivationMethod.CID,
             mzIsolationWindow);
       } else {
-        return new DIAImsMsMsInfoImpl(null, collisionEnergy, null, mzIsolationWindow);
+        return new DIAImsMsMsInfoImpl(Range.closed(0, driftScanCount - 1), collisionEnergy, null, mzIsolationWindow);
       }
     }
   }

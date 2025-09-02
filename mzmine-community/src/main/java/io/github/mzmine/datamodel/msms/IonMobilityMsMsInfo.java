@@ -36,6 +36,7 @@ public interface IonMobilityMsMsInfo extends MsMsInfo {
   /**
    * @return The range of spectra numbers in this frame where this precursor was fragmented in.
    */
+  @Nullable
   Range<Integer> getSpectrumNumberRange();
 
   @Nullable
@@ -45,6 +46,9 @@ public interface IonMobilityMsMsInfo extends MsMsInfo {
       return null;
     }
     final Range<Integer> spectrumNumberRange = getSpectrumNumberRange();
+    if(spectrumNumberRange == null) {
+      return null;
+    }
     final double lower = msMsFrame.getMobilityForMobilityScanNumber(
         spectrumNumberRange.lowerEndpoint());
     final double upper = msMsFrame.getMobilityForMobilityScanNumber(

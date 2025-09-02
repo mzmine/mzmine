@@ -49,14 +49,4 @@ public class WatersImportTest {
     logger.info("Number of functions: " + numberOfFunctions);
   }
 
-  @Test
-  void testBaf() {
-
-    BafDataAccess baf = new BafDataAccess(false);
-    final boolean b = baf.openBafFile(new File(
-        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Bruker\\baf\\D1_1 _ng_g_RA5_7013.d"));
-    final SimpleSpectralArrays simpleSpectralArrays = baf.loadPeakData(1);
-    logger.info(simpleSpectralArrays.toString());
-  }
-
 }
