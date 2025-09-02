@@ -94,7 +94,6 @@ msdk-netcdf = { module = "io.github.msdk:msdk-io-netcdf", version.ref = "msdk" }
 batik-anim = { group = "org.apache.xmlgraphics", name = "batik-anim", version.ref = "batik" }
 batik-swing = { group = "org.apache.xmlgraphics", name = "batik-swing", version.ref = "batik" }
 batik-svggen = { group = "org.apache.xmlgraphics", name = "batik-svggen", version.ref = "batik" }
-batik-all = { group = "org.apache.xmlgraphics", name = "batik-all", version.ref = "batik" }
 guava = { group = "com.google.guava", name = "guava", version = "33.0.0-jre" }
 
 commons-io = { group = "commons-io", name = "commons-io", version = "2.15.1" }
