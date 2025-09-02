@@ -96,6 +96,7 @@
     { "bundleName" : "LGPL-2.1-only", "licenseNamePattern" : "LGPL.*(v|version)\\.?\\s?2\\.1" },
     { "bundleName" : "LGPL-2.1-only", "licenseNamePattern" : "GNU Lesser General Public License Version 2.1.*" },
     { "bundleName" : "LGPL-2.1-only", "licenseNamePattern" : "GNU LESSER GENERAL PUBLIC LICENSE 2.1" },
+    { "bundleName" : "LGPL-2.1-only", "licenseNamePattern" : "GNU Lesser General Public License" },
     { "bundleName" : "LGPL-2.1-only", "licenseUrlPattern" : ".*www\\.gnu\\.org/licenses/old-licenses/lgpl-2\\.1\\.html" },
     { "bundleName" : "LGPL-2.1-only", "licenseUrlPattern" : ".*(www\\.)?repository.jboss.org/licenses/lgpl-2.1\\.txt" },
 
