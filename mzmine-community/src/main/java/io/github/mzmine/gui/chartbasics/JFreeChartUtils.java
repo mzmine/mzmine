@@ -26,6 +26,7 @@
 package io.github.mzmine.gui.chartbasics;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlotWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.main.ConfigService;
@@ -342,7 +343,16 @@ public class JFreeChartUtils {
    * @return num datasets EXCLUDING null
    */
   public static int getDatasetCountNotNull(XYPlot plot) {
-    return plot.getDatasetCount();
+    if (plot instanceof FxXYPlot fxPlot) {
+      return fxPlot.getNonNullDatasetCount();
+    }
+    int counter = 0;
+    for (int i = 0; i < plot.getDatasetCount(); i++) {
+      if (plot.getDataset(i) != null) {
+        counter++;
+      }
+    }
+    return counter;
   }
 
   /**

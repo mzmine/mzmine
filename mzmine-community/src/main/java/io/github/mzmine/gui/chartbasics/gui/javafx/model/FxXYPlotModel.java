@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
@@ -42,8 +43,8 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
@@ -64,12 +65,16 @@ public class FxXYPlotModel implements FxPlotModel {
   private final ListProperty<MarkerDefinition> rangeMarkers = new SimpleListProperty<>(
       FXCollections.observableArrayList());
 
-  private final ListProperty<XYDataset> datasets = new SimpleListProperty<>(
-      FXCollections.observableArrayList());
   /**
-   * index of dataset against renderer. Index corresponds to the datasets list
+   * index of dataset against dataset. sorted by keys
    */
-  private final MapProperty<Integer, XYItemRenderer> renderers = new SimpleMapProperty<>(
+  private final MapProperty<Integer, @NotNull XYDataset> datasets = new SimpleMapProperty<>(
+      FXCollections.observableMap(new TreeMap<>()));
+
+  /**
+   * index of dataset against renderer. sorted by keys. Index corresponds to the datasets map
+   */
+  private final MapProperty<Integer, @NotNull XYItemRenderer> renderers = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
 
   private final PlotCursorConfigModel cursorConfigModel = new PlotCursorConfigModel();
@@ -104,26 +109,41 @@ public class FxXYPlotModel implements FxPlotModel {
     return chart.getReadOnlyProperty();
   }
 
-  public ObservableList<XYDataset> getDatasets() {
-    return datasets.get();
-  }
 
-  public ListProperty<XYDataset> datasetsProperty() {
+  @NotNull
+  public MapProperty<Integer, @NotNull XYDataset> datasetsProperty() {
     return datasets;
   }
 
+  /**
+   * Replaces all
+   */
   public void setDatasets(List<XYDataset> datasets) {
-    this.datasets.getValue().setAll(datasets);
+    final ObservableMap<Integer, XYDataset> map = FXCollections.observableMap(new TreeMap<>());
+    for (XYDataset dataset : datasets) {
+      if (dataset == null) {
+        continue;
+      }
+      map.put(map.size(), dataset);
+    }
+
+    this.datasets.setValue(map);
   }
 
   public MapProperty<Integer, XYItemRenderer> renderersProperty() {
     return renderers;
   }
 
+  /**
+   * Replaces all
+   */
   public void setRenderers(List<XYItemRenderer> renderers) {
-    final ObservableMap<Integer, XYItemRenderer> map = FXCollections.observableHashMap();
-    for (int i = 0; i < renderers.size(); i++) {
-      map.put(i, renderers.get(i));
+    final ObservableMap<Integer, XYItemRenderer> map = FXCollections.observableMap(new TreeMap<>());
+    for (XYItemRenderer renderer : renderers) {
+      if (renderer == null) {
+        continue;
+      }
+      map.put(map.size(), renderer);
     }
     this.renderers.setValue(map);
   }
@@ -154,21 +174,29 @@ public class FxXYPlotModel implements FxPlotModel {
 
   // DATASETS
 
-  public int addDataset(XYDataset dataset, @Nullable XYItemRenderer renderer) {
+  /**
+   * Add to first free index
+   */
+  public int addDataset(@Nullable XYDataset dataset, @Nullable XYItemRenderer renderer) {
     if (dataset == null) {
       return -1;
     }
-    final int index = datasets.size();
-    if (renderer != null) {
-      // set dataset index for renderer
-      renderers.put(index, renderer);
+    for (int i = 0; i <= datasets.size(); i++) {
+      if (datasets.get(i) == null) {
+        datasets.put(i, dataset);
+        if (renderer != null) {
+          renderers.put(i, renderer);
+        }
+        return i;
+      }
     }
-    datasets.add(dataset);
-    return index;
+
+    throw new IllegalStateException("No free index found for dataset but should be within <=size");
   }
 
+  @Nullable
   public XYDataset getDataset(int index) {
-    if (index < 0 || index >= datasets.size()) {
+    if (index < 0) {
       // jfreechart would return null if the chart was set once
       return null;
     }
@@ -181,18 +209,12 @@ public class FxXYPlotModel implements FxPlotModel {
 
   public void setDataset(int index, XYDataset dataset) {
     if (index < 0) {
-      return;
-    } else if (index < datasets.size()) {
-      if (dataset == null) {
-        datasets.remove(index);
-      } else {
-        datasets.set(index, dataset);
-      }
-    } else if (index == datasets.size()) {
-      addDataset(dataset, null);
+      throw new IndexOutOfBoundsException("Index must be >= 0");
+    }
+    if (dataset == null) {
+      datasets.remove(index);
     } else {
-      throw new IndexOutOfBoundsException(
-          "Cannot add dataset to index: " + index + ", for list with size: " + datasets.size());
+      datasets.put(index, dataset);
     }
   }
 
@@ -208,12 +230,17 @@ public class FxXYPlotModel implements FxPlotModel {
     renderers.clear();
   }
 
-  public void setRenderer(int index, XYItemRenderer renderer, boolean notify) {
-    renderers.put(index, renderer);
-  }
-
   public void setRenderers(XYItemRenderer[] renderers) {
     setRenderers(Arrays.asList(renderers));
+  }
+
+  public int getIndexOf(XYDataset dataset) {
+    for (Entry<Integer, XYDataset> entry : datasets.entrySet()) {
+      if (Objects.equals(entry.getValue(), dataset)) {
+        return entry.getKey();
+      }
+    }
+    return -1;
   }
 
   public int getIndexOf(XYItemRenderer renderer) {
@@ -230,11 +257,15 @@ public class FxXYPlotModel implements FxPlotModel {
   }
 
   public void setRenderer(int index, XYItemRenderer renderer) {
-    renderers.put(index, renderer);
+    if (renderer == null) {
+      removeRenderer(index);
+    } else {
+      renderers.put(index, renderer);
+    }
   }
 
   public XYItemRenderer getRenderer(int index) {
-    if (index < 0 || index >= renderers.size()) {
+    if (index < 0) {
       // jfreechart would return null if the remderer was set once
       return null;
     }
@@ -365,7 +396,12 @@ public class FxXYPlotModel implements FxPlotModel {
   }
 
   public @Nullable XYDataset removeDataSet(int index) {
-    if (index < 0 || index >= datasets.size()) {
+    return removeDataSet(index, true);
+  }
+
+  public @Nullable XYDataset removeDataSet(int index, boolean removeRenderer) {
+    if (index < 0) {
+      // jfreechart would return null if the dataset was set once
       return null;
     }
     final XYDataset ds = datasets.get(index);
@@ -373,16 +409,24 @@ public class FxXYPlotModel implements FxPlotModel {
       ((Task) ds).cancel();
     }
 
-    applyWithNotifyChanges(false, () -> {
-      setDataset(index, null);
-      setRenderer(index, null);
-    });
+    datasets.remove(index);
+    if (removeRenderer) {
+      removeRenderer(index);
+    }
     return ds;
+  }
+
+  private @Nullable XYItemRenderer removeRenderer(int index) {
+    if (index < 0) {
+      // jfreechart would return null if the renderer was set once
+      return null;
+    }
+    return renderers.remove(index);
   }
 
   public void removeAllDatasets() {
     applyWithNotifyChanges(false, () -> {
-      for (XYDataset ds : datasets) {
+      for (XYDataset ds : datasets.values()) {
         if (ds instanceof Task) {
           ((Task) ds).cancel();
         }
@@ -396,5 +440,18 @@ public class FxXYPlotModel implements FxPlotModel {
   @Override
   public ObjectProperty<@Nullable ChartRenderingInfo> renderingInfoProperty() {
     return renderingInfo;
+  }
+
+  /**
+   *
+   * @return index of removed dataset or -1 if not found
+   */
+  public int removeDataSet(XYDataset dataset, boolean removeRenderer) {
+    final int index = getIndexOf(dataset);
+    if (index == -1) {
+      return index;
+    }
+    removeDataSet(index, removeRenderer);
+    return index;
   }
 }

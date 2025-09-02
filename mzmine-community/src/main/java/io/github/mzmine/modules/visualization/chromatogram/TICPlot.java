@@ -478,10 +478,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   public synchronized XYDataset removeDataSet(int index) {
-    XYDataset ds = plot.getDataset(index);
-    plot.setDataset(index, null);
-    plot.setRenderer(index, null);
-    return ds;
+    return plot.removeDataSet(index);
   }
 
   /**
@@ -496,8 +493,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       XYDataset ds = plot.getDataset(i);
       if (ds instanceof FeatureDataSet pds) {
         if (pds.getFeature().getRawDataFile() == file) {
-          plot.setDataset(getXYPlot().indexOf(pds), null);
-          plot.setRenderer(getXYPlot().indexOf(pds), null);
+          plot.removeDataSet(pds, true);
         }
       }
     }
@@ -549,12 +545,9 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   public synchronized void removeDatasets(Collection<Integer> indices) {
-    plot.setNotify(false);
     for (Integer index : indices) {
       removeDataSet(index);
     }
-    plot.setNotify(true);
-    chart.fireChartChanged();
   }
 
   public void setTitle(final String titleText, final String subTitleText) {
@@ -600,17 +593,13 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   public synchronized int addDataSetAndRenderer(final XYDataset dataSet,
       final XYItemRenderer renderer, final boolean updateAfter) {
-    applyWithNotifyChanges(false, () -> {
-
-      if (dataSet instanceof TICDataSet) {
-        renderer.setDefaultItemLabelPaint(((TICDataSet) dataSet).getDataFile().getColorAWT());
-      } else if (dataSet instanceof FeatureDataSet) {
-        renderer.setDefaultItemLabelPaint(
-            ((FeatureDataSet) dataSet).getFeature().getRawDataFile().getColorAWT());
-      }
-      plot.addDataset(dataSet, renderer);
-    });
-    return plot.getDatasetCount() - 1;
+    if (dataSet instanceof TICDataSet) {
+      renderer.setDefaultItemLabelPaint(((TICDataSet) dataSet).getDataFile().getColorAWT());
+    } else if (dataSet instanceof FeatureDataSet) {
+      renderer.setDefaultItemLabelPaint(
+          ((FeatureDataSet) dataSet).getFeature().getRawDataFile().getColorAWT());
+    }
+    return plot.addDataset(dataSet, renderer);
   }
 
   /**

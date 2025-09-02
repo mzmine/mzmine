@@ -573,7 +573,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       for (int i = 0; i < numDatasets; i++) {
         XYDataset dataSet = plot.getDataset(i);
         if (dataSet instanceof DPPResultsDataSet) {
-          plot.setDataset(i, null);
+          plot.removeDataSet(i);
         }
       }
       // when adding DPPResultDataSet the label generator is overwritten,

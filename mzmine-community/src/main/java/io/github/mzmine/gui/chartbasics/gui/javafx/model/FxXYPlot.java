@@ -103,8 +103,8 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   }
 
   private void updateAll() {
-    updateDatasets(plotModel.getDatasets());
-    updateRenderers(plotModel.renderersProperty().getValue());
+    updateDatasets(plotModel.datasetsProperty());
+    updateRenderers(plotModel.renderersProperty());
     updateDomainMarkers(plotModel.domainMarkersProperty().getValue());
     updateRangeMarkers(plotModel.rangeMarkersProperty().getValue());
   }
@@ -162,7 +162,7 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     }
   }
 
-  private void updateDatasets(ObservableList<XYDataset> nv) {
+  private void updateDatasets(ObservableMap<Integer, XYDataset> nv) {
     if (nv == null) {
       return;
     }
@@ -172,17 +172,17 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
       // finally set changes to plot
       super.setDataset(i, nv.get(i));
     }
-    for (int i = nv.size(); i < getDatasetCount(); i++) {
+    for (int i = nv.size(); i < super.getDatasetCount(); i++) {
       super.setDataset(i, null);
     }
   }
 
   // properties
-  public ObservableList<XYDataset> getDatasets() {
-    return plotModel.getDatasets();
+  public @NotNull ObservableMap<Integer, @NotNull XYDataset> getDatasets() {
+    return datasetsProperty();
   }
 
-  public ListProperty<XYDataset> datasetsProperty() {
+  public @NotNull MapProperty<Integer, @NotNull XYDataset> datasetsProperty() {
     return plotModel.datasetsProperty();
   }
 
@@ -383,13 +383,37 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     plotModel.setDataset(index, dataset);
   }
 
+  /**
+   * Uses the number of datasets including null as this is sometimes important internally in
+   * jfreechart like when overwriting the datasets
+   *
+   * @return dataset count including null values, default jfreechart behavior
+   */
   @Override
   public int getDatasetCount() {
+    return super.getDatasetCount();
+  }
+
+  /**
+   *
+   * @return the number of actually set datasets from the model
+   */
+  public int getNonNullDatasetCount() {
     return plotModel == null ? 0 : plotModel.getDatasetCount();
   }
 
+  /**
+   * Uses the number of renderers including null as this is sometimes important internally in
+   * jfreechart like when overwriting the renderers
+   *
+   * @return renderers count including null values, default jfreechart behavior
+   */
   @Override
   public int getRendererCount() {
+    return super.getRendererCount();
+  }
+
+  public int getNonNullRendererCount() {
     return plotModel == null ? 0 : plotModel.getRendererCount();
   }
 
@@ -576,5 +600,9 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   @Override
   public ObjectProperty<@Nullable ChartRenderingInfo> renderingInfoProperty() {
     return plotModel.renderingInfoProperty();
+  }
+
+  public void removeDataSet(XYDataset dataset, boolean removeRenderer) {
+    plotModel.removeDataSet(dataset, removeRenderer);
   }
 }

@@ -218,21 +218,13 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   }
 
   public synchronized int addDataset(XYDataset dataset, XYItemRenderer renderer) {
-    // if initial state true this will auto trigger chart changed event and draw update
-    applyWithNotifyChanges(false, () -> {
-      // jfreechart renderers dont check if the value actually changed and notify either way
-      if (renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
-        renderer.setDefaultItemLabelsVisible(isItemLabelsVisible(), false);
-      }
-      if (renderer.getDefaultSeriesVisibleInLegend() != isLegendItemsVisible()) {
-        renderer.setDefaultSeriesVisibleInLegend(isLegendItemsVisible(), false);
-      }
-      plot.addDataset(dataset, renderer);
-      // TODO check if important but this should be called from within wrapped plot
-//      notifyDatasetChangeListeners(new DatasetChangeEvent(this, dataset));
-    });
-    // return index of dataset that was just added
-    return plot.getDatasetCount() - 1;
+    if (renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
+      renderer.setDefaultItemLabelsVisible(isItemLabelsVisible(), false);
+    }
+    if (renderer.getDefaultSeriesVisibleInLegend() != isLegendItemsVisible()) {
+      renderer.setDefaultSeriesVisibleInLegend(isLegendItemsVisible(), false);
+    }
+    return plot.addDataset(dataset, renderer);
   }
 
   @Override
@@ -325,13 +317,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   @Override
   public LinkedHashMap<Integer, XYDataset> getAllDatasets() {
     final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<>();
-
-    for (int i = 0; i < plot.getDatasets().size(); i++) {
-      XYDataset dataset = plot.getDataset(i);
-      if (dataset != null) {
-        datasetMap.put(i, dataset);
-      }
-    }
+    datasetMap.putAll(plot.getDatasets());
     return datasetMap;
   }
 
