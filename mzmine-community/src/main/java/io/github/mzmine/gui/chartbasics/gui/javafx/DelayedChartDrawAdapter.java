@@ -25,9 +25,13 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx;
 
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.event.ChartChangeEvent;
 import org.jfree.chart.event.ChartChangeListener;
@@ -36,18 +40,25 @@ public class DelayedChartDrawAdapter implements ChartChangeListener {
 
   private static final Logger logger = Logger.getLogger(DelayedChartDrawAdapter.class.getName());
 
-  private final PauseTransition delay = new PauseTransition(Duration.millis(30));
-  @org.jetbrains.annotations.NotNull
+  private final ObjectProperty<JFreeChart> lastChart = new SimpleObjectProperty<>();
+  private final PauseTransition delay = new PauseTransition(Duration.millis(25));
+  @NotNull
   private final EChartViewer viewer;
 
   public DelayedChartDrawAdapter(EChartViewer viewer) {
     this.viewer = viewer;
-    final JFreeChart chart = viewer.getChart();
-    assert chart != null;
 
-    // remove auto draw event
-    chart.removeChangeListener(viewer.getCanvas());
-    chart.addChangeListener(this);
+    viewer.getModel().chartProperty().subscribe((chart) -> {
+      detach(); // from old chart
+
+      lastChart.set(chart);
+      if (chart != null) {
+        // remove auto draw event
+        chart.removeChangeListener(viewer.getCanvas());
+        chart.addChangeListener(this);
+      }
+    });
+
   }
 
   public static DelayedChartDrawAdapter attach(EChartViewer viewer) {
@@ -55,15 +66,27 @@ public class DelayedChartDrawAdapter implements ChartChangeListener {
   }
 
   public void detach() {
+    final JFreeChart chart = lastChart.get();
+    if (chart == null) {
+      return;
+    }
     delay.stop();
-    viewer.getChart().removeChangeListener(this);
-    viewer.getChart().addChangeListener(viewer.getCanvas());
+    chart.removeChangeListener(this);
+    chart.addChangeListener(viewer.getCanvas());
   }
 
   @Override
   public void chartChanged(ChartChangeEvent event) {
     delay.setOnFinished(_ -> viewer.getCanvas().chartChanged(event));
     delay.playFromStart();
-    logger.fine("Delayed chart draw on " + viewer.getChart().getTitle().getText());
+
+    final JFreeChart chart = viewer.getChart();
+    if (chart == null) {
+      return;
+    }
+
+    String id = JFreeChartUtils.createChartLogIdentifier(viewer, chart);
+
+    logger.fine("Delayed chart draw on " + id);
   }
 }

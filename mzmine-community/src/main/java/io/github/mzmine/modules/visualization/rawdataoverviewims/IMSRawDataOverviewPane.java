@@ -33,11 +33,9 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
-import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gestures.SimpleDataDragGestureHandler;
-import io.github.mzmine.gui.chartbasics.gui.javafx.DelayedChartDrawAdapter;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
@@ -221,15 +219,21 @@ public class IMSRawDataOverviewPane extends BorderPane {
     allCharts = List.of(mobilogramChart, summedSpectrumChart, heatmapChart, singleSpectrumChart,
         ionTraceChart, ticChart);
 
-    for (EChartViewer c : allCharts) {
-      c.addChartDrawDebugListener(
-          () -> logger.info("DRAW EVENT IN CHART " + c.getChart().getTitle().getText()));
-      DelayedChartDrawAdapter.attach(c);
-    }
-
     heatmapLegendCanvas = new Canvas();
     ionTraceLegendCanvas = new Canvas();
     initCharts();
+
+    mobilogramChart.getXYPlot().setShowCursorCrosshair(false, true);
+    summedSpectrumChart.getXYPlot().setShowCursorCrosshair(true, false);
+    singleSpectrumChart.getXYPlot().setShowCursorCrosshair(true, false);
+    heatmapChart.getXYPlot().setShowCursorCrosshair(true, true);
+    ionTraceChart.getXYPlot().setShowCursorCrosshair(true, true);
+    ticChart.getXYPlot().setShowCursorCrosshair(true, false);
+
+    for (EChartViewer c : allCharts) {
+      c.getChart().getXYPlot().setDomainCrosshairPaint(Color.MAGENTA);
+      c.getChart().getXYPlot().setRangeCrosshairPaint(Color.MAGENTA);
+    }
 
     updateAxisLabels();
     initChartLegendPanels();
@@ -255,80 +259,80 @@ public class IMSRawDataOverviewPane extends BorderPane {
     // set all charts to notify listeners later after all is completed
     // otherwise there are updates for clearAllCharts and all other operations
     try {
-      ChartLogicsFX.withNotifyLater(allCharts, () -> {
-        clearAllCharts();
-        if (selectedFrame.get() == null) {
-          return;
-        }
-        // ticChart.removeDatasets(mzRangeTicDatasetIndices);
+//      ChartLogicsFX.withNotifyLater(allCharts, () -> {
+      clearAllCharts();
+      if (selectedFrame.get() == null) {
+        return;
+      }
+      // ticChart.removeDatasets(mzRangeTicDatasetIndices);
 
-        massDetectionPane.getChildren().remove(massDetectionFrameIcon);
-        massDetectionFrameIcon =
-            selectedFrame.get().getMassList() != null ? MZmineIconUtils.getCheckedIcon()
-                : MZmineIconUtils.getUncheckedIcon();
-        massDetectionPane.add(massDetectionFrameIcon, 1, 2);
+      massDetectionPane.getChildren().remove(massDetectionFrameIcon);
+      massDetectionFrameIcon =
+          selectedFrame.get().getMassList() != null ? MZmineIconUtils.getCheckedIcon()
+              : MZmineIconUtils.getUncheckedIcon();
+      massDetectionPane.add(massDetectionFrameIcon, 1, 2);
 
-        massDetectionPane.getChildren().remove(massDetectionScanIcon);
-        massDetectionScanIcon =
-            selectedFrame.get().getMobilityScans().stream().anyMatch(s -> s.getMassList() != null)
-                ? MZmineIconUtils.getCheckedIcon() : MZmineIconUtils.getUncheckedIcon();
-        massDetectionPane.add(massDetectionScanIcon, 1, 1);
+      massDetectionPane.getChildren().remove(massDetectionScanIcon);
+      massDetectionScanIcon =
+          selectedFrame.get().getMobilityScans().stream().anyMatch(s -> s.getMassList() != null)
+              ? MZmineIconUtils.getCheckedIcon() : MZmineIconUtils.getUncheckedIcon();
+      massDetectionPane.add(massDetectionScanIcon, 1, 1);
 
-        mzRangeTicDatasetIndices.clear();
-        cachedFrame = new CachedFrame(selectedFrame.get(), frameNoiseLevel,
-            mobilityScanNoiseLevel);//selectedFrame.get();//
-        heatmapChart.setDataset(new FrameHeatmapProvider(cachedFrame));
-        mobilogramChart.addDataset(new FrameSummedMobilogramProvider(cachedFrame, binWidth));
-        summedSpectrumChart.addDataset(new FrameSummedSpectrumProvider(cachedFrame));
-        if (selectedMobilityScan.get() != null) {
-          singleSpectrumChart.addDataset(new SingleMobilityScanProvider(cachedFrame.getMobilityScan(
-              Math.min(selectedMobilityScan.get().getMobilityScanNumber(),
-                  selectedFrame.get().getNumberOfMobilityScans() - 1))));
+      mzRangeTicDatasetIndices.clear();
+      cachedFrame = new CachedFrame(selectedFrame.get(), frameNoiseLevel,
+          mobilityScanNoiseLevel);//selectedFrame.get();//
+      heatmapChart.setDataset(new FrameHeatmapProvider(cachedFrame));
+      mobilogramChart.addDataset(new FrameSummedMobilogramProvider(cachedFrame, binWidth));
+      summedSpectrumChart.addDataset(new FrameSummedSpectrumProvider(cachedFrame));
+      if (selectedMobilityScan.get() != null) {
+        singleSpectrumChart.addDataset(new SingleMobilityScanProvider(cachedFrame.getMobilityScan(
+            Math.min(selectedMobilityScan.get().getMobilityScanNumber(),
+                selectedFrame.get().getNumberOfMobilityScans() - 1))));
+      }
+      MZmineCore.getTaskController().addTask(
+          new BuildMultipleMobilogramRanges(controlsPanel.getMobilogramRangesList(),
+              Set.of(cachedFrame), rawDataFile, this::addMobilogramRangesToChart,
+              rangesBinningMobilogramDataAccess, new Date()));
+      if (!RangeUtils.isGuavaRangeEnclosingJFreeRange(
+          heatmapChart.getXYPlot().getRangeAxis().getRange(),
+          selectedFrame.get().getMobilityRange())) {
+        Range<Double> mobilityRange = selectedFrame.get().getMobilityRange();
+        if (mobilityRange != null && !mobilityRange.isEmpty()) {
+          heatmapChart.getXYPlot().getRangeAxis()
+              .setRange(mobilityRange.lowerEndpoint(), mobilityRange.upperEndpoint());
         }
-        MZmineCore.getTaskController().addTask(
-            new BuildMultipleMobilogramRanges(controlsPanel.getMobilogramRangesList(),
-                Set.of(cachedFrame), rawDataFile, this::addMobilogramRangesToChart,
-                rangesBinningMobilogramDataAccess, new Date()));
-        if (!RangeUtils.isGuavaRangeEnclosingJFreeRange(
-            heatmapChart.getXYPlot().getRangeAxis().getRange(),
-            selectedFrame.get().getMobilityRange())) {
-          Range<Double> mobilityRange = selectedFrame.get().getMobilityRange();
-          if (mobilityRange != null && !mobilityRange.isEmpty()) {
-            heatmapChart.getXYPlot().getRangeAxis()
-                .setRange(mobilityRange.lowerEndpoint(), mobilityRange.upperEndpoint());
-          }
+      }
+      if (!RangeUtils.isGuavaRangeEnclosingJFreeRange(
+          heatmapChart.getXYPlot().getDomainAxis().getRange(),
+          selectedFrame.get().getDataPointMZRange())) {
+        Range<Double> mzRange = selectedFrame.get().getDataPointMZRange();
+        if (mzRange != null) {
+          heatmapChart.getXYPlot().getDomainAxis()
+              .setRange(mzRange.lowerEndpoint(), mzRange.upperEndpoint());
         }
-        if (!RangeUtils.isGuavaRangeEnclosingJFreeRange(
-            heatmapChart.getXYPlot().getDomainAxis().getRange(),
-            selectedFrame.get().getDataPointMZRange())) {
-          Range<Double> mzRange = selectedFrame.get().getDataPointMZRange();
-          if (mzRange != null) {
-            heatmapChart.getXYPlot().getDomainAxis()
-                .setRange(mzRange.lowerEndpoint(), mzRange.upperEndpoint());
-          }
-        }
-        updateValueMarkers();
+      }
+      updateValueMarkers();
 
-        final Color boxClr = MZmineCore.getConfiguration().getDefaultColorPalette()
-            .getNegativeColorAWT();
-        final Color transparent = new Color(0.5f, 0f, 0f, 0.5f);
-        for (IonMobilityMsMsInfo info : selectedFrame.get().getImsMsMsInfos()) {
-          final double mobLow = selectedFrame.get()
-              .getMobilityForMobilityScanNumber(info.getSpectrumNumberRange().lowerEndpoint());
-          final double mobHigh = selectedFrame.get()
-              .getMobilityForMobilityScanNumber(info.getSpectrumNumberRange().upperEndpoint());
-          final var mzRange = info.getIsolationWindow();
-          if (mzRange == null) {
-            continue;
-          }
-
-          var rect = new Rectangle2D.Double(mzRange.lowerEndpoint(), Math.min(mobLow, mobHigh),
-              RangeUtils.rangeLength(mzRange), Math.abs(mobHigh - mobLow));
-          final XYShapeAnnotation precursorIso = new XYShapeAnnotation(rect, new BasicStroke(1f),
-              Color.red, null);
-          heatmapChart.getXYPlot().addAnnotation(precursorIso);
+      final Color boxClr = MZmineCore.getConfiguration().getDefaultColorPalette()
+          .getNegativeColorAWT();
+      final Color transparent = new Color(0.5f, 0f, 0f, 0.5f);
+      for (IonMobilityMsMsInfo info : selectedFrame.get().getImsMsMsInfos()) {
+        final double mobLow = selectedFrame.get()
+            .getMobilityForMobilityScanNumber(info.getSpectrumNumberRange().lowerEndpoint());
+        final double mobHigh = selectedFrame.get()
+            .getMobilityForMobilityScanNumber(info.getSpectrumNumberRange().upperEndpoint());
+        final var mzRange = info.getIsolationWindow();
+        if (mzRange == null) {
+          continue;
         }
-      });
+
+        var rect = new Rectangle2D.Double(mzRange.lowerEndpoint(), Math.min(mobLow, mobHigh),
+            RangeUtils.rangeLength(mzRange), Math.abs(mobHigh - mobLow));
+        final XYShapeAnnotation precursorIso = new XYShapeAnnotation(rect, new BasicStroke(1f),
+            Color.red, null);
+        heatmapChart.getXYPlot().addAnnotation(precursorIso);
+      }
+//      });
     } catch (Exception e) {
       logger.log(Level.WARNING, e.getMessage(), e);
     }
@@ -373,11 +377,9 @@ public class IMSRawDataOverviewPane extends BorderPane {
     summedSpectrumRenderer.setDefaultToolTipGenerator(
         summedSpectrumChart.getXYPlot().getRenderer().getDefaultToolTipGenerator());
     summedSpectrumChart.setDefaultRenderer(summedSpectrumRenderer);
-    summedSpectrumChart.setShowCrosshair(false);
 
     // mobilogramChart.getXYPlot().setOrientation(PlotOrientation.HORIZONTAL);
     mobilogramChart.getXYPlot().getDomainAxis().setInverted(true);
-    mobilogramChart.setShowCrosshair(false);
     mobilogramChart.setLegendItemsVisible(false);
     NumberAxis axis = (NumberAxis) mobilogramChart.getXYPlot().getRangeAxis();
     axis.setAutoRangeMinimumSize(0.2);
@@ -391,16 +393,11 @@ public class IMSRawDataOverviewPane extends BorderPane {
     singleSpectrumRenderer.setDefaultToolTipGenerator(
         singleSpectrumChart.getXYPlot().getRenderer().getDefaultToolTipGenerator());
     singleSpectrumChart.setDefaultRenderer(singleSpectrumRenderer);
-    singleSpectrumChart.setShowCrosshair(false);
 
-    ionTraceChart.setShowCrosshair(false);
     ionTraceChart.getXYPlot().setBackgroundPaint(Color.BLACK);
     ionTraceChart.setDefaultPaintscaleLocation(RectangleEdge.BOTTOM);
-    heatmapChart.setShowCrosshair(false);
     heatmapChart.getXYPlot().setBackgroundPaint(Color.BLACK);
     heatmapChart.setDefaultPaintscaleLocation(RectangleEdge.BOTTOM);
-    ticChart.getXYPlot().setDomainCrosshairVisible(false);
-    ticChart.getXYPlot().setRangeCrosshairVisible(false);
     ticChart.switchDataPointsVisible();
     ticChart.setMinHeight(150);
 
@@ -485,6 +482,22 @@ public class IMSRawDataOverviewPane extends BorderPane {
   }
 
   private void initSelectedValueListeners() {
+    // markers for RT
+    ticChart.getXYPlot().domainCursorValueProperty()
+        .bindBidirectional(ionTraceChart.getXYPlot().domainCursorValueProperty());
+
+    // mobilogram is flipped so range is mobility
+    mobilogramChart.getXYPlot().rangeCursorValueProperty()
+        .bindBidirectional(ionTraceChart.getXYPlot().rangeCursorValueProperty());
+    mobilogramChart.getXYPlot().rangeCursorValueProperty()
+        .bindBidirectional(heatmapChart.getXYPlot().rangeCursorValueProperty());
+
+    // mz markers
+    summedSpectrumChart.getXYPlot().domainCursorValueProperty()
+        .bindBidirectional(heatmapChart.getXYPlot().domainCursorValueProperty());
+    summedSpectrumChart.getXYPlot().domainCursorValueProperty()
+        .bindBidirectional(singleSpectrumChart.getXYPlot().domainCursorValueProperty());
+
     selectedMobilityScan.addListener(((observable, oldValue, newValue) -> {
       singleSpectrumChart.removeAllDatasets();
       singleSpectrumChart.addDataset(new SingleMobilityScanProvider(selectedMobilityScan.get()));
@@ -514,10 +527,12 @@ public class IMSRawDataOverviewPane extends BorderPane {
   public void addMobilogramRangesToChart(List<? extends ColoredXYDataset> previewMobilograms) {
     FxThread.runLater(() -> {
       try {
-        ChartLogicsFX.withNotifyLater(allCharts, () -> {
+//        ChartLogicsFX.withNotifyLater(allCharts, () -> {
+        FxThread.runLater(() -> {
           mobilogramChart.addDatasets(previewMobilograms);
           updateValueMarkers();
         });
+//        });
       } catch (Exception e) {
         logger.log(Level.WARNING, e.getMessage(), e);
       }
@@ -527,7 +542,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   public void setTICRangesToChart(List<TICDataSet> ticDataSets, List<Color> ticDatasetColors) {
     assert ticDatasetColors.size() == ticDataSets.size();
     ticChart.applyWithNotifyChanges(false, () -> {
-      ticChart.removeDatasets(mzRangeTicDatasetIndices);
+//      ticChart.removeDatasets(mzRangeTicDatasetIndices);
       for (int i = 0; i < ticDataSets.size(); i++) {
         mzRangeTicDatasetIndices.add(
             ticChart.addTICDataSet(ticDataSets.get(i), ticDatasetColors.get(i)));
@@ -576,15 +591,15 @@ public class IMSRawDataOverviewPane extends BorderPane {
     final ValueMarker rtMarker =
         selectedFrame.get() == null ? null : createMarker(selectedFrame.get().getRetentionTime());
 
-    summedSpectrumChart.getXYPlot().setAllDomainMarkers(mzMarker);
-    singleSpectrumChart.getXYPlot().setAllDomainMarkers(mzMarker);
-
-    ticChart.getXYPlot().setAllDomainMarkers(rtMarker);
-
-    mobilogramChart.getXYPlot().setAllRangeMarkers(mobilityMarker);
-
-    ionTraceChart.getXYPlot().setSingleDomainRangeMarker(rtMarker, mobilityMarker);
-    heatmapChart.getXYPlot().setSingleDomainRangeMarker(mzMarker, mobilityMarker);
+//    summedSpectrumChart.getXYPlot().setAllDomainMarkers(mzMarker);
+//    singleSpectrumChart.getXYPlot().setAllDomainMarkers(mzMarker);
+//
+//    ticChart.getXYPlot().setAllDomainMarkers(rtMarker);
+//
+//    mobilogramChart.getXYPlot().setAllRangeMarkers(mobilityMarker);
+//
+//    ionTraceChart.getXYPlot().setSingleDomainRangeMarker(rtMarker, mobilityMarker);
+//    heatmapChart.getXYPlot().setSingleDomainRangeMarker(mzMarker, mobilityMarker);
   }
 
   private @NotNull ValueMarker createMarker(double value) {
@@ -595,11 +610,6 @@ public class IMSRawDataOverviewPane extends BorderPane {
     ticChart.applyWithNotifyChanges(false, () -> {
       ticChart.removeAllDataSets();
       mzRangeTicDatasetIndices.clear();
-      final ScanSelection scanSel = new ScanSelection(msLevelFilter);
-      Thread thread = new Thread(
-          new BuildMultipleTICRanges(controlsPanel.getMobilogramRangesList(), rawDataFile, scanSel,
-              this));
-      thread.start();
       TICDataSet dataSet = new TICDataSet(rawDataFile,
           new ScanSelection(msLevelFilter).getMatchingScans(rawDataFile),
           rawDataFile.getDataMZRange(), null);
@@ -611,6 +621,12 @@ public class IMSRawDataOverviewPane extends BorderPane {
       }
       // add tic dataset after setting the range, so autoscale on the y axis uses the correct range.
       ticChart.addTICDataSet(dataSet, rawDataFile.getColorAWT());
+
+      final ScanSelection scanSel = new ScanSelection(msLevelFilter);
+      Thread thread = new Thread(
+          new BuildMultipleTICRanges(controlsPanel.getMobilogramRangesList(), rawDataFile, scanSel,
+              this));
+      thread.start();
     });
   }
 

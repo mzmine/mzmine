@@ -25,21 +25,88 @@
 
 package io.github.mzmine.gui.chartbasics;
 
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlotWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.main.ConfigService;
 import java.awt.Color;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.Rectangle2D.Double;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataset;
 
 public class JFreeChartUtils {
+
+  /**
+   * Useful id generator for chart event logging to identify which chart was updated
+   *
+   * @param viewer may be added to identify class and instance
+   */
+  @NotNull
+  public static String createChartLogIdentifier(@Nullable EChartViewer viewer,
+      @NotNull JFreeChart chart) {
+    return createChartLogIdentifier(viewer, chart, chart.getPlot());
+  }
+
+  /**
+   * Useful id generator for chart event logging to identify which chart was updated
+   *
+   * @param viewer may be added to identify class and instance
+   */
+  @NotNull
+  public static String createChartLogIdentifier(@Nullable EChartViewer viewer,
+      @Nullable JFreeChart chart, @NotNull Plot mainPlot) {
+    final String instanceID;
+    if (viewer != null) {
+      instanceID = "%s@%s ".formatted(viewer.getClass().getSimpleName(),
+          Integer.toHexString(viewer.hashCode()));
+    } else {
+      instanceID = "%s@%s ".formatted(mainPlot.getClass().getSimpleName(),
+          Integer.toHexString(mainPlot.hashCode()));
+    }
+
+    final TextTitle textTitle = chart != null ? chart.getTitle() : null;
+    final String title = textTitle != null ? textTitle.getText() : null;
+    final String x;
+    final String y;
+    switch (mainPlot) {
+      case XYPlot plot -> {
+        x = plot.getDomainAxis().getLabel();
+        y = plot.getRangeAxis().getLabel();
+      }
+      case CategoryPlot plot -> {
+        x = plot.getDomainAxis().getLabel();
+        y = plot.getRangeAxis().getLabel();
+      }
+      default -> {
+        return instanceID + Objects.requireNonNullElse(title, "");
+      }
+    }
+
+    String result = instanceID;
+    if (title != null) {
+      result += "%s ".formatted(title);
+    }
+
+    if (x != null) {
+      result += "x:'%s' ".formatted(x);
+    }
+    if (y != null) {
+      result += "y:'%s'".formatted(y);
+    }
+    return result;
+  }
 
   private enum TriangleDirection {
     UP, DOWN, LEFT, RIGHT
@@ -80,13 +147,13 @@ public class JFreeChartUtils {
         // plus shape
         createPlus(size),
         // horizontal rectangle
-        new Rectangle2D.Double(-delta, -delta / 2, size, size / 2),
+        new Double(-delta, -delta / 2, size, size / 2),
         // vertical ellipse
         new Ellipse2D.Double(-delta / 2, -delta, size / 2, size),
         // down-pointing triangle
         createTriangle(size, TriangleDirection.DOWN),
         // vertical rectangle
-        new Rectangle2D.Double(-delta / 2, -delta, size / 2, size),
+        new Double(-delta / 2, -delta, size / 2, size),
         // horizontal ellipse
         new Ellipse2D.Double(-delta, -delta / 2, size, size / 2),
         // right-pointing triangle
@@ -110,10 +177,10 @@ public class JFreeChartUtils {
     return new Ellipse2D.Double(-delta, -delta, size, size);
   }
 
-  private static Rectangle2D.@NotNull Double createSquare(double size) {
+  private static @NotNull Double createSquare(double size) {
     size *= 0.9; // needs a bit smaller size
     final double delta = size / 2;
-    return new Rectangle2D.Double(-delta, -delta, size, size);
+    return new Double(-delta, -delta, size, size);
   }
 
   private static @NotNull Path2D createHexagon(double size) {
@@ -296,27 +363,19 @@ public class JFreeChartUtils {
   /**
    * Removes all feature data sets.
    *
-   * @param notify If false, the plot is not redrawn. This is useful, if multiple data sets are
-   *               added right after and the plot shall not be updated until then.
    */
-  public static void removeAllDataSetsOf(JFreeChart chart, Class<? extends XYDataset> clazz,
-      boolean notify) {
-    if (!(chart.getPlot() instanceof XYPlot plot)) {
-      return;
-    }
-
-    plot.setNotify(false);
+  public static void removeAllDataSetsOf(XYPlot plot, Class<? extends XYDataset> clazz) {
     int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
-    for (int i = 0; i < numDatasets; i++) {
+    for (int i = numDatasets - 1; i >= 0; i--) {
       XYDataset ds = plot.getDataset(i);
       if (clazz.isInstance(ds)) {
-        plot.setDataset(i, null);
-        plot.setRenderer(i, null);
+        if (plot instanceof FxXYPlotWrapper fxPlot) {
+          fxPlot.removeDataSet(i);
+        } else {
+          plot.setDataset(i, null);
+          plot.setRenderer(i, null);
+        }
       }
-    }
-    plot.setNotify(true);
-    if (notify) {
-      chart.fireChartChanged();
     }
   }
 }

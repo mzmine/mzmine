@@ -33,6 +33,7 @@ import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportModule;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.gui.chartbasics.gui.javafx.menu.MenuExportToClipboard;
 import io.github.mzmine.gui.chartbasics.gui.javafx.menu.MenuExportToExcel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxEChartViewerModel;
 import io.github.mzmine.gui.chartbasics.gui.swing.ChartGestureMouseAdapter;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxesRangeChangedListener;
@@ -107,6 +108,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
   // only for XYData (not for categoryPlots)
   protected boolean addZoomHistory = true;
   private ChartGestureMouseAdapterFX mouseAdapter;
+  private final FxEChartViewerModel model = new FxEChartViewerModel();
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
@@ -166,6 +168,9 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
   public EChartViewer(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
       boolean standardGestures, boolean addZoomHistory, boolean stickyZeroForRangeAxis) {
     super(null);
+    // before setting the chart
+    DelayedChartDrawAdapter.attach(this);
+
     this.stickyZeroForRangeAxis = stickyZeroForRangeAxis;
     this.standardGestures = standardGestures;
     this.addZoomHistory = addZoomHistory;
@@ -224,6 +229,10 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
   }
 
+  public FxEChartViewerModel getModel() {
+    return model;
+  }
+
   protected void addMenuItem(Menu parent, String title, EventHandler<ActionEvent> al) {
     MenuItem pngItem = new MenuItem(title);
     pngItem.setOnAction(al);
@@ -239,7 +248,22 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
   @Override
   public void setChart(JFreeChart chart) {
+    final JFreeChart oldChart = getChart();
+    if (oldChart != null) {
+      // may need to remove some listeners here
+    }
+
     super.setChart(chart);
+    // requires model set chart after internal set
+    // first the chart view should add itself to the chart
+    // then {@link DelayedChartDrawAdapter} will exchange the listener
+    model.setChart(chart);
+
+    // TODO remove
+    addChartDrawDebugListener(() -> {
+      String id = JFreeChartUtils.createChartLogIdentifier(this, getChart());
+      logger.info("CHART DRAW OF " + id);
+    });
 
     // If no chart, end here
     if (chart == null) {
@@ -675,6 +699,9 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
    * started
    */
   public void addChartDrawDebugListener(Runnable eventListener) {
+    if (getChart() == null) {
+      return;
+    }
     getChart().addProgressListener(event -> {
       if (event.getType() == ChartProgressEvent.DRAWING_STARTED) {
         eventListener.run();

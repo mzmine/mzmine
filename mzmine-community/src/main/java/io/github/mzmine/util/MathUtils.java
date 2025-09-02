@@ -561,4 +561,8 @@ public class MathUtils {
     }
     return Math.min(a, b);
   }
+
+  public static double getDistance(double x, double y, double itemX, double itemY) {
+    return Math.sqrt(Math.pow(x - itemX, 2) + Math.pow(y - itemY, 2));
+  }
 }
