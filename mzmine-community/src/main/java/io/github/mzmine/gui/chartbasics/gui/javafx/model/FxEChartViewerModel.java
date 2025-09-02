@@ -25,13 +25,30 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.event.ChartProgressEvent;
+import org.jfree.chart.event.ChartProgressListener;
 
-public class FxEChartViewerModel {
+public class FxEChartViewerModel implements ChartProgressListener {
 
+  private final EChartViewer viewer;
   private final ObjectProperty<JFreeChart> chart = new SimpleObjectProperty<>();
+
+  public FxEChartViewerModel(EChartViewer viewer) {
+    this.viewer = viewer;
+    this.chart.subscribe((oldValue, newValue) -> {
+      if (oldValue != null) {
+        oldValue.removeProgressListener(this);
+      }
+      if (newValue instanceof FxJFreeChart fxChart) {
+        fxChart.addProgressListener(this);
+      }
+    });
+  }
+
 
   public JFreeChart getChart() {
     return chart.get();
@@ -43,5 +60,18 @@ public class FxEChartViewerModel {
 
   public void setChart(JFreeChart chart) {
     this.chart.set(chart);
+  }
+
+  @Override
+  public void chartProgress(ChartProgressEvent event) {
+    final JFreeChart chart = this.chart.get();
+    if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
+      if (chart instanceof ChartRenderingInfoPropertyProvider fxChart) {
+        fxChart.setRenderingInfo(viewer.getCanvas().getRenderingInfo());
+      }
+      if (chart != null && chart.getPlot() instanceof ChartRenderingInfoPropertyProvider fxChart) {
+        fxChart.setRenderingInfo(viewer.getCanvas().getRenderingInfo());
+      }
+    }
   }
 }

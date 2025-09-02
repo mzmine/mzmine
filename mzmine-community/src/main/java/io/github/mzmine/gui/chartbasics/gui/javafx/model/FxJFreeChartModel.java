@@ -31,15 +31,21 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.Plot;
 
-public class FxJFreeChartModel implements FxBaseChartModel {
+public class FxJFreeChartModel implements FxBaseChartModel, ChartRenderingInfoPropertyProvider {
 
   private static final Logger logger = Logger.getLogger(FxJFreeChartModel.class.getName());
 
   private final ObjectProperty<@Nullable JFreeChart> chart = new SimpleObjectProperty<>();
   private final ReadOnlyObjectWrapper<@Nullable Plot> plot = new ReadOnlyObjectWrapper<>();
+  /**
+   * Automatically set in {@link FxEChartViewerModel} and represents the rendering info of the
+   * latest render event
+   */
+  private final ObjectProperty<@Nullable ChartRenderingInfo> renderingInfo = new SimpleObjectProperty<>();
 
   public FxJFreeChartModel(@Nullable JFreeChart chart) {
     this.chart.set(chart);
@@ -50,6 +56,16 @@ public class FxJFreeChartModel implements FxBaseChartModel {
 
   private void initListeners() {
     applyNotifyLater(chart, _ -> updateAll());
+
+    // send rendering info to plot
+    plot.subscribe((oldPlot, newPlot) -> {
+      if (oldPlot instanceof ChartRenderingInfoPropertyProvider provider) {
+        provider.renderingInfoProperty().unbind();
+      }
+      if (newPlot instanceof ChartRenderingInfoPropertyProvider provider) {
+        provider.renderingInfoProperty().bind(renderingInfo);
+      }
+    });
   }
 
   private void updateAll() {
@@ -72,4 +88,10 @@ public class FxJFreeChartModel implements FxBaseChartModel {
   public ReadOnlyObjectProperty<Plot> plotProperty() {
     return plot.getReadOnlyProperty();
   }
+
+  @Override
+  public ObjectProperty<@Nullable ChartRenderingInfo> renderingInfoProperty() {
+    return renderingInfo;
+  }
+
 }

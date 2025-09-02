@@ -45,6 +45,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.Plot;
@@ -570,5 +571,10 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   @NotNull
   public ObjectProperty<Double> rangeCursorValueProperty() {
     return getCursorConfigModel().getRangeCursorMarker().actualValueProperty();
+  }
+
+  @Override
+  public ObjectProperty<@Nullable ChartRenderingInfo> renderingInfoProperty() {
+    return plotModel.renderingInfoProperty();
   }
 }

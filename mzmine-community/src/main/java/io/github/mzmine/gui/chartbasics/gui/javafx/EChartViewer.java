@@ -108,7 +108,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
   // only for XYData (not for categoryPlots)
   protected boolean addZoomHistory = true;
   private ChartGestureMouseAdapterFX mouseAdapter;
-  private final FxEChartViewerModel model = new FxEChartViewerModel();
+  private final FxEChartViewerModel model = new FxEChartViewerModel(this);
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>

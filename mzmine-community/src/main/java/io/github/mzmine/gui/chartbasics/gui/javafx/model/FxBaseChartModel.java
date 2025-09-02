@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.Plot;
 
-public interface FxBaseChartModel {
+public interface FxBaseChartModel extends ChartRenderingInfoPropertyProvider {
 
   /**
    * Listen to property value change and apply logic with notify changes false

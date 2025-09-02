@@ -45,6 +45,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.XYPlot;
@@ -72,6 +73,13 @@ public class FxXYPlotModel implements FxPlotModel {
       FXCollections.observableHashMap());
 
   private final PlotCursorConfigModel cursorConfigModel = new PlotCursorConfigModel();
+
+  /**
+   * rendering info is passed on from {@link FxEChartViewerModel} and {@link FxJFreeChartModel} and
+   * represents the latest draw event. Useful for calculation on screen sizes
+   */
+  private final ObjectProperty<ChartRenderingInfo> renderingInfo = new SimpleObjectProperty<>();
+
 
   public FxXYPlotModel(@Nullable XYPlot plot) {
     this.plot.set(plot);
@@ -385,4 +393,8 @@ public class FxXYPlotModel implements FxPlotModel {
     });
   }
 
+  @Override
+  public ObjectProperty<@Nullable ChartRenderingInfo> renderingInfoProperty() {
+    return renderingInfo;
+  }
 }
