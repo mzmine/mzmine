@@ -19,5 +19,6 @@ include(
     "utils",
     "javafx-framework",
     "config",
+    "reports",
 )
 //includeBuild("convention-plugins")
