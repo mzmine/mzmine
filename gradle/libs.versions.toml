@@ -91,8 +91,8 @@ msdk-mzml = { module = "io.github.msdk:msdk-io-mzml", version.ref = "msdk" }
 msdk-adap3d = { module = "io.github.msdk:msdk-featuredetection-adap3d", version.ref = "msdk" }
 msdk-netcdf = { module = "io.github.msdk:msdk-io-netcdf", version.ref = "msdk" }
 
-#batik-xml-commons = {group = "org.apache.xmlcommons", name="xml-apis", version="1.4.01"} # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
-#batik-xml-commons-ext = {group = "org.apache.xmlcommons", name="xml-apis-ext", version="1.4.01"} # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
+batik-xml-commons = {group = "org.apache.xmlcommons", name="xml-apis", version="1.4.01"} # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
+batik-xml-commons-ext = {group = "org.apache.xmlcommons", name="xml-apis-ext", version="1.4.01"} # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
 batik-anim = { group = "org.apache.xmlgraphics", name = "batik-anim", version.ref = "batik" }
 batik-swing = { group = "org.apache.xmlgraphics", name = "batik-swing", version.ref = "batik" }
 batik-svggen = { group = "org.apache.xmlgraphics", name = "batik-svggen", version.ref = "batik" }
@@ -135,7 +135,7 @@ poi = ["poi", "poi-ooxml"]
 okhttp = ["okhttp", "okhttp-logging-interceptor"]
 junit-mockito = ["junit-jupiter", "junit-platform", "mockito"]
 jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv", "jackson-datetime", "jackson-datatype"]
-batik = ["batik-anim", "batik-svggen", "batik-swing", "batik-all"]
+batik = ["batik-anim", "batik-svggen", "batik-swing", "batik-xml-commons", "batik-xml-commons-ext"]
 
 
 [plugins]
