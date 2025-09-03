@@ -47,11 +47,12 @@ configurations.all {
             because("patch all transitive dependencies to latest version")
         }
 
-//        if (requested.group == "org.apache.xmlgraphics") {
-//            val goodVersion = libs.findVersion("batik").get().requiredVersion
-//            useVersion(goodVersion) // strict version
-//            because("patch all transitive batik dependencies to latest version")
-//        }
+        if (requested.group == "org.apache.xmlgraphics") {
+            val goodVersion = libs.findVersion("batik").get().requiredVersion
+//            System.out.println("Replacing batik version " + requested.version + " with " + goodVersion)
+            useVersion(goodVersion) // strict version
+            because("Replacing batik version " + requested.version + " with " + goodVersion)
+        }
     }
 }
 
