@@ -39,7 +39,12 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.Axis;
 import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.CombinedDomainCategoryPlot;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.CombinedRangeCategoryPlot;
+import org.jfree.chart.plot.CombinedRangeXYPlot;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
@@ -78,21 +83,12 @@ public class JFreeChartUtils {
 
     final TextTitle textTitle = chart != null ? chart.getTitle() : null;
     final String title = textTitle != null ? textTitle.getText() : null;
-    final String x;
-    final String y;
-    switch (mainPlot) {
-      case XYPlot plot -> {
-        x = plot.getDomainAxis().getLabel();
-        y = plot.getRangeAxis().getLabel();
-      }
-      case CategoryPlot plot -> {
-        x = plot.getDomainAxis().getLabel();
-        y = plot.getRangeAxis().getLabel();
-      }
-      default -> {
-        return instanceID + Objects.requireNonNullElse(title, "");
-      }
-    }
+
+    final Axis domain = getDomainAxis(mainPlot);
+    final Axis range = getRangeAxis(mainPlot);
+
+    final String x = domain != null ? domain.getLabel() : null;
+    final String y = range != null ? range.getLabel() : null;
 
     String result = instanceID;
     if (title != null) {
@@ -106,6 +102,38 @@ public class JFreeChartUtils {
       result += "y:'%s'".formatted(y);
     }
     return result;
+  }
+
+  public static Axis getDomainAxis(Plot mainPlot) {
+    return switch (mainPlot) {
+      case CombinedDomainXYPlot plot -> plot.getDomainAxis();
+      case CombinedDomainCategoryPlot plot -> plot.getDomainAxis();
+      case CombinedRangeXYPlot plot ->
+          (Axis) plot.getSubplots().stream().map(sub -> getDomainAxis((Plot) sub))
+              .filter(Objects::nonNull).findFirst().orElse(null);
+      case CombinedRangeCategoryPlot plot ->
+          (Axis) plot.getSubplots().stream().map(sub -> getDomainAxis((Plot) sub))
+              .filter(Objects::nonNull).findFirst().orElse(null);
+      case XYPlot plot -> plot.getDomainAxis();
+      case CategoryPlot plot -> plot.getDomainAxis();
+      case null, default -> null;
+    };
+  }
+
+  public static Axis getRangeAxis(Plot mainPlot) {
+    return switch (mainPlot) {
+      case CombinedRangeXYPlot plot -> plot.getRangeAxis();
+      case CombinedRangeCategoryPlot plot -> plot.getRangeAxis();
+      case CombinedDomainXYPlot plot ->
+          (Axis) plot.getSubplots().stream().map(sub -> getRangeAxis((Plot) sub))
+              .filter(Objects::nonNull).findFirst().orElse(null);
+      case CombinedDomainCategoryPlot plot ->
+          (Axis) plot.getSubplots().stream().map(sub -> getRangeAxis((Plot) sub))
+              .filter(Objects::nonNull).findFirst().orElse(null);
+      case XYPlot plot -> plot.getRangeAxis();
+      case CategoryPlot plot -> plot.getRangeAxis();
+      case null, default -> null;
+    };
   }
 
   private enum TriangleDirection {

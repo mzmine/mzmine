@@ -67,7 +67,6 @@ import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.javafx.MZmineIconUtils;
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Stroke;
 import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
 import java.util.Date;
@@ -87,11 +86,9 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.shape.Rectangle;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.ui.RectangleEdge;
 import org.kordamp.ikonli.javafx.FontIcon;
 
@@ -121,8 +118,6 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private final ObjectProperty<Frame> selectedFrame;
   private final ObjectProperty<MobilityScan> selectedMobilityScan;
   private final ObjectProperty<Range<Double>> selectedMz;
-  private final Stroke markerStroke = new BasicStroke(1.0f);
-  private final Color markerColor;
   private final Set<Integer> mzRangeTicDatasetIndices;
   private final GridPane massDetectionPane;
   // not thread safe, so we need one for building the selected and one for building all the others
@@ -230,10 +225,10 @@ public class IMSRawDataOverviewPane extends BorderPane {
     ionTraceChart.getXYPlot().setShowCursorCrosshair(true, true);
     ticChart.getXYPlot().setShowCursorCrosshair(true, false);
 
-    for (EChartViewer c : allCharts) {
-      c.getChart().getXYPlot().setDomainCrosshairPaint(Color.MAGENTA);
-      c.getChart().getXYPlot().setRangeCrosshairPaint(Color.MAGENTA);
-    }
+//    for (EChartViewer c : allCharts) {
+//      c.getChart().getXYPlot().setDomainCrosshairPaint(Color.MAGENTA);
+//      c.getChart().getXYPlot().setRangeCrosshairPaint(Color.MAGENTA);
+//    }
 
     updateAxisLabels();
     initChartLegendPanels();
@@ -250,7 +245,6 @@ public class IMSRawDataOverviewPane extends BorderPane {
             null), 2, 1, 1, 1);
     chartPanel.add(controlsPanel, 3, 1);
 
-    markerColor = MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT();
     initChartListeners();
     initSelectedValueListeners();
   }
@@ -311,7 +305,6 @@ public class IMSRawDataOverviewPane extends BorderPane {
               .setRange(mzRange.lowerEndpoint(), mzRange.upperEndpoint());
         }
       }
-      updateValueMarkers();
 
       final Color boxClr = MZmineCore.getConfiguration().getDefaultColorPalette()
           .getNegativeColorAWT();
@@ -501,7 +494,6 @@ public class IMSRawDataOverviewPane extends BorderPane {
     selectedMobilityScan.addListener(((observable, oldValue, newValue) -> {
       singleSpectrumChart.removeAllDatasets();
       singleSpectrumChart.addDataset(new SingleMobilityScanProvider(selectedMobilityScan.get()));
-      updateValueMarkers();
     }));
 
     selectedMz.addListener(((observable, oldValue, newValue) -> {
@@ -520,7 +512,6 @@ public class IMSRawDataOverviewPane extends BorderPane {
           Range.closed(Math.max(rawDataFile.getDataRTRange(1).lowerEndpoint(), rt - rtWidth / 2),
               Math.min(rawDataFile.getDataRTRange(1).upperEndpoint(), rt + rtWidth / 2)),
           mobilityScanNoiseLevel));
-      updateValueMarkers();
     }));
   }
 
@@ -530,7 +521,6 @@ public class IMSRawDataOverviewPane extends BorderPane {
 //        ChartLogicsFX.withNotifyLater(allCharts, () -> {
         FxThread.runLater(() -> {
           mobilogramChart.addDatasets(previewMobilograms);
-          updateValueMarkers();
         });
 //        });
       } catch (Exception e) {
@@ -578,32 +568,6 @@ public class IMSRawDataOverviewPane extends BorderPane {
       }
       selectedChromatogramDatasetIndex = ticChart.addTICDataSet(dataset, color);
     });
-  }
-
-  private void updateValueMarkers() {
-    logger.info("UPDATING ALL VALUE MARKERS");
-    final ValueMarker mobilityMarker = selectedMobilityScan.get() == null ? null
-        : createMarker(selectedMobilityScan.getValue().getMobility());
-
-    final ValueMarker mzMarker = selectedMz.getValue() == null ? null
-        : createMarker(RangeUtils.rangeCenter(selectedMz.get()));
-
-    final ValueMarker rtMarker =
-        selectedFrame.get() == null ? null : createMarker(selectedFrame.get().getRetentionTime());
-
-//    summedSpectrumChart.getXYPlot().setAllDomainMarkers(mzMarker);
-//    singleSpectrumChart.getXYPlot().setAllDomainMarkers(mzMarker);
-//
-//    ticChart.getXYPlot().setAllDomainMarkers(rtMarker);
-//
-//    mobilogramChart.getXYPlot().setAllRangeMarkers(mobilityMarker);
-//
-//    ionTraceChart.getXYPlot().setSingleDomainRangeMarker(rtMarker, mobilityMarker);
-//    heatmapChart.getXYPlot().setSingleDomainRangeMarker(mzMarker, mobilityMarker);
-  }
-
-  private @NotNull ValueMarker createMarker(double value) {
-    return new ValueMarker(value, markerColor, markerStroke);
   }
 
   protected void updateTicPlot() {
