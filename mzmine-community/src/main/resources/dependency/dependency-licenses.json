@@ -1514,6 +1514,26 @@
             ]
         },
         {
+            "moduleName": "org.apache.xmlcommons:xml-apis",
+            "moduleVersion": "1.4.01",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlcommons:xml-apis-ext",
+            "moduleVersion": "1.4.01",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.apache.xmlgraphics:batik-anim",
             "moduleVersion": "1.19",
             "moduleLicenses": [
