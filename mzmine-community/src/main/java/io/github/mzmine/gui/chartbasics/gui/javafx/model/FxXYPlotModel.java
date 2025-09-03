@@ -396,10 +396,6 @@ public class FxXYPlotModel implements FxPlotModel {
   }
 
   public @Nullable XYDataset removeDataSet(int index) {
-    return removeDataSet(index, true);
-  }
-
-  public @Nullable XYDataset removeDataSet(int index, boolean removeRenderer) {
     if (index < 0) {
       // jfreechart would return null if the dataset was set once
       return null;
@@ -410,9 +406,7 @@ public class FxXYPlotModel implements FxPlotModel {
     }
 
     datasets.remove(index);
-    if (removeRenderer) {
-      removeRenderer(index);
-    }
+    removeRenderer(index);
     return ds;
   }
 
@@ -446,12 +440,15 @@ public class FxXYPlotModel implements FxPlotModel {
    *
    * @return index of removed dataset or -1 if not found
    */
-  public int removeDataSet(XYDataset dataset, boolean removeRenderer) {
+  public int removeDataSet(XYDataset dataset) {
+    if (dataset == null) {
+      return -1;
+    }
     final int index = getIndexOf(dataset);
     if (index == -1) {
       return index;
     }
-    removeDataSet(index, removeRenderer);
+    removeDataSet(index);
     return index;
   }
 }

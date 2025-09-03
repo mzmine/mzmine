@@ -602,7 +602,7 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     return plotModel.renderingInfoProperty();
   }
 
-  public void removeDataSet(XYDataset dataset, boolean removeRenderer) {
-    plotModel.removeDataSet(dataset, removeRenderer);
+  public void removeDataSet(XYDataset dataset) {
+    plotModel.removeDataSet(dataset);
   }
 }
