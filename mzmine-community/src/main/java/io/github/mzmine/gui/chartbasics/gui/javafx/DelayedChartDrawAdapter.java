@@ -27,6 +27,7 @@ package io.github.mzmine.gui.chartbasics.gui.javafx;
 
 import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import java.util.logging.Logger;
+import javafx.animation.Animation.Status;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -78,7 +79,13 @@ public class DelayedChartDrawAdapter implements ChartChangeListener {
   @Override
   public void chartChanged(ChartChangeEvent event) {
     delay.setOnFinished(_ -> viewer.getCanvas().chartChanged(event));
-    delay.playFromStart();
+    // only restart the timer if it is not already running
+    // this improves the zooming behavior on axes
+    // on scroll or drag on the axis there are many event and at maximum we wait delay.duration once
+    // otherwise the timer would always reset and the zooming would seem to lag
+    if (delay.getStatus() != Status.RUNNING) {
+      delay.playFromStart();
+    }
 
     final JFreeChart chart = viewer.getChart();
     if (chart == null) {
@@ -86,7 +93,6 @@ public class DelayedChartDrawAdapter implements ChartChangeListener {
     }
 
     String id = JFreeChartUtils.createChartLogIdentifier(viewer, chart);
-
     logger.fine("Delayed chart draw on " + id);
   }
 }
