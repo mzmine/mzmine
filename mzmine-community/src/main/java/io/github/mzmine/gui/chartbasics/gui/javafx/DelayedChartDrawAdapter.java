@@ -25,7 +25,6 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx;
 
-import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import java.util.logging.Logger;
 import javafx.animation.Animation.Status;
 import javafx.animation.PauseTransition;
@@ -92,7 +91,7 @@ public class DelayedChartDrawAdapter implements ChartChangeListener {
       return;
     }
 
-    String id = JFreeChartUtils.createChartLogIdentifier(viewer, chart);
-    logger.fine("Delayed chart draw on " + id);
+//    String id = JFreeChartUtils.createChartLogIdentifier(viewer, chart);
+//    logger.fine("Delayed chart draw on " + id);
   }
 }

@@ -26,7 +26,6 @@
 package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
 import io.github.mzmine.gui.chartbasics.FxChartFactory;
-import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.chartbasics.gui.javafx.MarkerDefinition;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import java.awt.Graphics2D;
@@ -119,8 +118,8 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
         super.addRangeMarker(m.index(), m.marker(), m.layer(), false);
       }
     }
-    logger.fine("UPDATE RANGE MARKERS %d for %s".formatted(nv == null ? 0 : nv.size(),
-        JFreeChartUtils.createChartLogIdentifier(null, getChart(), this)));
+//    logger.fine("UPDATE RANGE MARKERS %d for %s".formatted(nv == null ? 0 : nv.size(),
+//        JFreeChartUtils.createChartLogIdentifier(null, getChart(), this)));
 
     // add the cursor marker at all times - will be invisible if no value or visible false
     super.addRangeMarker(0, getCursorConfigModel().getRangeCursorMarker(), Layer.FOREGROUND, false);
@@ -135,8 +134,8 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
         super.addDomainMarker(m.index(), m.marker(), m.layer(), false);
       }
     }
-    logger.fine("UPDATE DOMAIN MARKERS %d for %s".formatted(nv == null ? 0 : nv.size(),
-        JFreeChartUtils.createChartLogIdentifier(null, getChart(), this)));
+//    logger.fine("UPDATE DOMAIN MARKERS %d for %s".formatted(nv == null ? 0 : nv.size(),
+//        JFreeChartUtils.createChartLogIdentifier(null, getChart(), this)));
 
     // add the cursor marker at all times - will be invisible if no value or visible false
     super.addDomainMarker(0, getCursorConfigModel().getDomainCursorMarker(), Layer.FOREGROUND,
@@ -147,8 +146,8 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     if (map == null) {
       return;
     }
-    logger.fine("UPDATE RENDERERS %d for %s".formatted(map.size(),
-        JFreeChartUtils.createChartLogIdentifier(null, getChart(), this)));
+//    logger.fine("UPDATE RENDERERS %d for %s".formatted(map.size(),
+//        JFreeChartUtils.createChartLogIdentifier(null, getChart(), this)));
     // erase all because we never know if all datasets have a renderer
     // also order in which dataset and renderer is set may differ
     for (int i = 0; i < super.getRendererCount(); i++) {
@@ -167,8 +166,9 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     if (nv == null) {
       return;
     }
-    logger.fine("UPDATE DATASETS %d for %s".formatted(nv.size(),
-        JFreeChartUtils.createChartLogIdentifier(null, getChart(), this)));
+//    logger.fine("UPDATE DATASETS %d for %s".formatted(nv.size(),
+//        JFreeChartUtils.createChartLogIdentifier(null, getChart(), this)));
+
     for (int i = 0; i < nv.size(); i++) {
       // finally set changes to plot
       super.setDataset(i, nv.get(i));
