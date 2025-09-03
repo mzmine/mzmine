@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,26 +26,38 @@
 package io.github.mzmine.javafx.components.factories;
 
 import javafx.scene.Node;
+import javafx.scene.control.ComboBox;
+import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.PopOver.ArrowLocation;
 
 /**
- * Still needs more styling to be viable
+ * Creates PopOvers that can be shown by popOver.show(owner). Owner should not be a {@link ComboBox}
+ * or other components that may consume clicks or lock in focus. Otherwise the popup becomes modal.
+ * <p>
+ * Just wrap ComboBox or similar into a pane and use that as the owner.
  */
 public class FxPopOvers {
 
   public static PopOver newPopOver(Node content) {
-    var popOver = new PopOver(content);
+    return newPopOver(content, ArrowLocation.BOTTOM_LEFT);
+  }
+
+  public static PopOver newPopOver(Node content, ArrowLocation arrowLocation) {
+    final StackPane wrapper = new StackPane(content);
+    wrapper.getStyleClass().add("outlined-panel");
+
+    var popOver = new PopOver(wrapper);
     popOver.setAutoHide(true);
     popOver.setAutoFix(true);
     popOver.setHideOnEscape(true);
     popOver.setDetachable(true);
     popOver.setAnimated(true);
     popOver.setDetached(false);
-    popOver.setArrowLocation(ArrowLocation.BOTTOM_LEFT);
+    popOver.setArrowLocation(arrowLocation);
     popOver.setFadeInDuration(Duration.millis(500));
-    popOver.setFadeOutDuration(Duration.millis(1000));
+    popOver.setFadeOutDuration(Duration.millis(500));
 //    popOver.show(owner);
     return popOver;
   }

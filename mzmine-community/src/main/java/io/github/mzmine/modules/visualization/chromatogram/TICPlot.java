@@ -44,6 +44,7 @@ import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
@@ -487,19 +488,19 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    *               added right after and the plot shall not be updated until then.
    */
   public synchronized void removeFeatureDataSetsOfFile(final RawDataFile file, boolean notify) {
-    plot.setNotify(false);
     int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
     for (int i = 0; i < numDatasets; i++) {
       XYDataset ds = plot.getDataset(i);
       if (ds instanceof FeatureDataSet pds) {
         if (pds.getFeature().getRawDataFile() == file) {
-          plot.removeDataSet(pds, true);
+          plot.removeDataSet(pds);
         }
       }
-    }
-    plot.setNotify(true);
-    if (notify) {
-      chart.fireChartChanged();
+      if (ds instanceof MzRangeEicDataSet pds) {
+        if (Objects.equals(pds.getRawFile(), file)) {
+          plot.removeDataSet(pds);
+        }
+      }
     }
   }
 
@@ -507,7 +508,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    * @param file The raw data file and notifies the plot.
    */
   public synchronized void removeFeatureDataSetsOfFile(final RawDataFile file) {
-    removeFeatureDataSetsOfFile(file, true);
+    removeFeatureDataSetsOfFile(file, false);
   }
 
   /**

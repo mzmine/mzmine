@@ -27,11 +27,19 @@ package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
+import io.github.mzmine.javafx.components.factories.FxLabels.Styles;
+import io.github.mzmine.javafx.components.factories.FxPopOvers;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
+import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramCursorPosition;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
@@ -45,18 +53,19 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.beans.NamedArg;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -70,9 +79,13 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.TextFlow;
 import javafx.util.Duration;
+import org.controlsfx.control.PopOver;
+import org.controlsfx.control.PopOver.ArrowLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * This visualizer can be used to visualize chromatograms and spectra of multiple raw data files at
@@ -117,6 +130,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   protected ChromatogramPlotControlPane pnChromControls;
   protected BooleanProperty showMassListProperty;
   protected boolean showSpectraOfEveryRawFile;
+  // all data files that are selected - filesAndDataSets do not contain all files at all times
+  protected ObservableList<RawDataFile> dataFiles = FXCollections.observableArrayList();
   /**
    * Stores the raw data files ands tic data sets currently displayed. Could be observed by a
    * listener in the future, if needed.
@@ -173,9 +188,10 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     hBoxChromSetup.setAlignment(Pos.BASELINE_RIGHT);
     hBoxChromSetup.setPadding(new Insets(0));
 
-    TitledPane chromParamPane = new TitledPane("Chromatogram parameters", hBoxChromSetup);
+    TitledPane chromParamPane = FxLayout.newTitledPane("Chromatogram parameters", hBoxChromSetup);
+    pnChromControls.setParentTitledPane(chromParamPane);
     chromParamPane.setPadding(new Insets(0));
-    Accordion accordChromParam = new Accordion(chromParamPane);
+    Accordion accordChromParam = FxLayout.newAccordion(false, chromParamPane);
     pnWrapChrom.setBottom(accordChromParam);
 
     // spectrum plot bottom settings
@@ -188,9 +204,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     hBoxSpectrumSetup.setAlignment(Pos.BASELINE_RIGHT);
     hBoxSpectrumSetup.setPadding(new Insets(0));
 
-    TitledPane specParamPane = new TitledPane("Spectrum parameters", hBoxSpectrumSetup);
+    TitledPane specParamPane = FxLayout.newTitledPane("Spectrum parameters", hBoxSpectrumSetup);
     specParamPane.setPadding(new Insets(0));
-    Accordion accordSpecParam = new Accordion(specParamPane);
+    Accordion accordSpecParam = FxLayout.newAccordion(false, specParamPane);
     pnWrapSpectrum.setBottom(accordSpecParam);
 
     showMassListProperty = checkBoxShowMassList.selectedProperty();
@@ -327,12 +343,11 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   }
 
   private void updateAllChromatogramDataSets() {
-    List<RawDataFile> rawDataFiles = new ArrayList<>(filesAndDataSets.keySet());
     // update all datasets and force update at the end by setting the state to true
-    chromPlot.applyWithNotifyChanges(false, true, () -> {
+    chromPlot.applyWithNotifyChanges(false, () -> {
       // hide cursor
       chromPlot.getXYPlot().setCursorPosition(null);
-      for (RawDataFile raw : rawDataFiles) {
+      for (RawDataFile raw : dataFiles) {
         removeRawDataFile(raw);
         addRawDataFile(raw);
       }
@@ -344,7 +359,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    */
   @NotNull
   public Collection<RawDataFile> getRawDataFiles() {
-    return filesAndDataSets.keySet();
+    return dataFiles;
   }
 
   /**
@@ -352,26 +367,29 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * performance. This should be called over
    * {@link RawDataOverviewWindowController#addRawDataFileTab} if possible.
    *
-   * @param rawDataFiles
    */
-  public void setRawDataFiles(@NotNull Collection<RawDataFile> rawDataFiles) {
+  public void setRawDataFiles(@NotNull Collection<RawDataFile> dataFiles) {
+    this.dataFiles.setAll(
+        dataFiles.stream().filter(r -> !(r instanceof ImagingRawDataFile)).toList());
+
+    // check polarity for datafiles
+    checkDataFilesPolarity(this.dataFiles);
+
     // disable update until all changes are applied, then set true and force update
-    spectrumPlot.applyWithNotifyChanges(false, true, () -> {
-      chromPlot.applyWithNotifyChanges(false, true, () -> {
+    spectrumPlot.applyWithNotifyChanges(false, () -> {
+      chromPlot.applyWithNotifyChanges(false, () -> {
 
         logger.info("Change data files in visualizer");
         // remove files first
         for (RawDataFile rawDataFile : filesAndDataSets.keySet()) {
-          if (!rawDataFiles.contains(rawDataFile)) {
+          if (!this.dataFiles.contains(rawDataFile)) {
             removeRawDataFile(rawDataFile);
           }
         }
 
         // presence of file is checked in the add method
-        for (RawDataFile r : rawDataFiles) {
-          if (!(r instanceof ImagingRawDataFile)) {
-            addRawDataFile(r);
-          }
+        for (RawDataFile r : this.dataFiles) {
+          addRawDataFile(r);
         }
       });
     });
@@ -380,12 +398,54 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     handleLegendVisibilityOption();
   }
 
+  private void checkDataFilesPolarity(ObservableList<RawDataFile> dataFiles) {
+    final List<PolarityType> polarities = dataFiles.stream()
+        .flatMap(r -> r.getDataPolarity().stream()).filter(p -> PolarityType.isDefined(p))
+        .distinct().toList();
+    if (polarities.isEmpty()) {
+      // this means the polarity is undefined and we need to use any
+      pnChromControls.getPolarityCombo().getSelectionModel().select(PolarityType.ANY);
+
+    } else if (polarities.size() == 1) {
+      pnChromControls.getPolarityCombo().getSelectionModel().select(polarities.getFirst());
+
+    } else if (polarities.size() > 1) {
+      final TitledPane titledPane = pnChromControls.getParentTitledPane();
+      if (titledPane != null) {
+        final FontIcon info = FxIconUtil.getFontIcon(FxIcons.INFO_CIRCLE, 25);
+        Styles.WARNING.addStyleClass(info);
+        final TextFlow message = FxTextFlows.newTextFlow(
+            FxTexts.boldText("Multiple scan polarities"),
+            FxTexts.text(" detected, select a specific polarity or any to show all."));
+
+        // set all colors to warning color
+        message.setId("warningTextFlow");
+//      message.getChildren().forEach(Styles.WARNING::addStyleClass); // alternative
+
+        final PopOver popOver = FxPopOvers.newPopOver(
+            FxLayout.newHBox(Pos.CENTER, Insets.EMPTY, 8, info, message), ArrowLocation.TOP_CENTER);
+
+        // needs small delay for the panel to open etc
+        PauseTransition delay = new PauseTransition(Duration.millis(350));
+        delay.setOnFinished(event -> {
+          if (!titledPane.isExpanded()) {
+            titledPane.setExpanded(true);
+          }
+          // add a tiny delay in case expanded state was changed. Otherwise the location may be off
+          Platform.runLater(() -> popOver.show(pnChromControls.getPolarityComboParentPane()));
+        });
+        delay.play();
+      }
+    }
+  }
+
+
   /**
    * Adds a raw data file to the chromatogram plot.
    *
    * @param rawDataFile
    */
-  public void addRawDataFile(@NotNull final RawDataFile rawDataFile) {
+  private void addRawDataFile(@NotNull final RawDataFile rawDataFile) {
 
     if (filesAndDataSets.containsKey(rawDataFile)) {
       logger.fine("Raw data file " + rawDataFile.getName() + " already displayed.");
@@ -417,11 +477,11 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param file The raw data file
    */
   public void removeRawDataFile(@NotNull final RawDataFile file) {
+    // do not remove from dataFiles here. This should only be set by setRawDataFiles
     logger.fine("Removing raw data file " + file.getName());
-    TICDataSet dataset = filesAndDataSets.get(file);
-    chromPlot.getXYPlot().setDataset(chromPlot.getXYPlot().indexOf(dataset), null);
+    TICDataSet dataset = filesAndDataSets.remove(file);
+    chromPlot.getXYPlot().removeDataSet(dataset);
     chromPlot.removeFeatureDataSetsOfFile(file);
-    filesAndDataSets.remove(file);
   }
 
   /**

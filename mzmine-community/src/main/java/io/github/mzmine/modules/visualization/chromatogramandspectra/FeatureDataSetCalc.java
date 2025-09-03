@@ -153,7 +153,7 @@ public class FeatureDataSetCalc extends AbstractTask {
       Range<Double> mzRange = mzRangesSorted.get(i);
       IonTimeSeries<? extends Scan> series = builder.toIonTimeSeriesWithLeadingAndTrailingZero(null,
           scans);
-      datasets.add(new MzRangeEicDataSet(series, mzRange, dataFile.getColor()));
+      datasets.add(new MzRangeEicDataSet(series, mzRange, dataFile));
     }
     doneFiles.incrementAndGet();
     return datasets;
