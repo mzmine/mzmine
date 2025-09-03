@@ -48,10 +48,12 @@ configurations.all {
         }
 
         if (requested.group == "org.apache.xmlgraphics") {
-            val goodVersion = libs.findVersion("batik").get().requiredVersion
+            if (requested.name != "xmlgraphics-commons") { // different dependency version than batik itself
+                val goodVersion = libs.findVersion("batik").get().requiredVersion
 //            System.out.println("Replacing batik version " + requested.version + " with " + goodVersion)
-            useVersion(goodVersion) // strict version
-            because("Replacing batik version " + requested.version + " with " + goodVersion)
+                useVersion(goodVersion) // strict version
+                because("Replacing batik version " + requested.version + " with " + goodVersion)
+            }
         }
     }
 }
