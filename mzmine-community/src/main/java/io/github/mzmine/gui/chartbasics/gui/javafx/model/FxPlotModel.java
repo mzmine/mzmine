@@ -25,6 +25,15 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
+/**
+ * This is a generic plot model. All plot models should implement this interface like the
+ * {@link FxXYPlotModel} or others for CategoryPlot and CombinedDomainPlot etc.
+ * <p>
+ * The model should abstract away fields and functions from plots, harmonize the behavior, and
+ * trigger updates in the plot.
+ * <p>
+ * Currently only XYPlot is implemented and used in {@link FxXYPlot}.
+ */
 public interface FxPlotModel extends FxBaseChartModel {
 
 }

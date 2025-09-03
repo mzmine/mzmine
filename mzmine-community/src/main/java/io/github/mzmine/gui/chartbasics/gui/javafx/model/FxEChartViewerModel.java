@@ -32,6 +32,11 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.event.ChartProgressEvent;
 import org.jfree.chart.event.ChartProgressListener;
 
+/**
+ * The model for {@link EChartViewer}. This model automatically passes on the rendering info to the
+ * chart and plot model so that it can be used to locate data points on screen and convert screen
+ * coordinates to data space.
+ */
 public class FxEChartViewerModel implements ChartProgressListener {
 
   private final EChartViewer viewer;

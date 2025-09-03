@@ -58,7 +58,9 @@ import org.jfree.data.xy.XYDataset;
 
 /**
  * Direct implementation of a plot that uses {@link FxXYPlotModel} and is created by for example
- * {@link FxChartFactory}
+ * {@link FxChartFactory}. This plot should overwrite the functionality of plot, delegate to
+ * properties in the model and listen for changes of the model to trigger methods on the
+ * super.plot.
  *
  */
 public class FxXYPlot extends XYPlot implements FxBaseChartModel {
@@ -89,7 +91,6 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
 
 
   private void initListeners() {
-//    datasetsProperty().subscribe(this::updateDatasets);
     applyNotifyLater(plotModel.datasetsProperty(), this::updateDatasets);
     applyNotifyLater(plotModel.renderersProperty(), this::updateRenderers);
     applyNotifyLater(plotModel.domainMarkersProperty(), this::updateDomainMarkers);
@@ -598,7 +599,7 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   }
 
   @Override
-  public ObjectProperty<@Nullable ChartRenderingInfo> renderingInfoProperty() {
+  public @NotNull ObjectProperty<@Nullable ChartRenderingInfo> renderingInfoProperty() {
     return plotModel.renderingInfoProperty();
   }
 

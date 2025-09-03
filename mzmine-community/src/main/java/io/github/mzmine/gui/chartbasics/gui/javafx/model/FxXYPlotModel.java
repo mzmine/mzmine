@@ -432,7 +432,7 @@ public class FxXYPlotModel implements FxPlotModel {
   }
 
   @Override
-  public ObjectProperty<@Nullable ChartRenderingInfo> renderingInfoProperty() {
+  public @NotNull ObjectProperty<@Nullable ChartRenderingInfo> renderingInfoProperty() {
     return renderingInfo;
   }
 

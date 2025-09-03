@@ -30,6 +30,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
@@ -90,7 +91,7 @@ public class FxJFreeChartModel implements FxBaseChartModel, ChartRenderingInfoPr
   }
 
   @Override
-  public ObjectProperty<@Nullable ChartRenderingInfo> renderingInfoProperty() {
+  public @NotNull ObjectProperty<@Nullable ChartRenderingInfo> renderingInfoProperty() {
     return renderingInfo;
   }
 

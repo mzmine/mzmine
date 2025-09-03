@@ -33,7 +33,9 @@ import org.jfree.chart.plot.Plot;
 
 /**
  * Direct implementation of a {@link JFreeChart} that uses {@link FxJFreeChartModel} and is created
- * by for example {@link FxChartFactory}
+ * by for example {@link FxChartFactory}. This chart should overwrite the functionality of chart,
+ * delegate to properties in the model and listen for changes of the model to trigger methods on the
+ * super.chart.
  *
  */
 public class FxJFreeChart extends JFreeChart {

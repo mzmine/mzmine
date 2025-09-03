@@ -26,6 +26,7 @@
 package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
 import javafx.beans.property.ObjectProperty;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartRenderingInfo;
 
@@ -34,12 +35,26 @@ import org.jfree.chart.ChartRenderingInfo;
  */
 public interface ChartRenderingInfoPropertyProvider {
 
-  ObjectProperty<@Nullable ChartRenderingInfo> renderingInfoProperty();
+  /**
+   * The rendering info is useful to convert data space to screen space coordinates.
+   *
+   * @return the latest rendering info (if a chart was drawn)
+   */
+  @NotNull ObjectProperty<@Nullable ChartRenderingInfo> renderingInfoProperty();
 
+  /**
+   * The rendering info is useful to convert data space to screen space coordinates.
+   *
+   * @return the latest rendering info (if a chart was drawn)
+   */
   default @Nullable ChartRenderingInfo getRenderingInfo() {
     return renderingInfoProperty().get();
   }
 
+  /**
+   * The rendering info is useful to convert data space to screen space coordinates.
+   *
+   */
   default void setRenderingInfo(@Nullable ChartRenderingInfo renderingInfo) {
     renderingInfoProperty().set(renderingInfo);
   }
