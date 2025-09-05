@@ -880,10 +880,12 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
       return;
     }
 
-    if (getFeatureList().getNumberOfRawDataFiles() > SAMPLE_COLUMNS_THRESHOLD) {
-      if (!DialogLoggerUtil.showDialogYesNo("Showing sample columns?", """
-          Showing sample columns for many samples may take time and slow down mzmine. \
-          Consider using the statistics dashboard and box plot columns instead for an overview.""")) {
+    final int numSamples = getFeatureList().getNumberOfRawDataFiles();
+    if (numSamples > SAMPLE_COLUMNS_THRESHOLD) {
+      if (!DialogLoggerUtil.showDialogYesNo("Show sample columns?", """
+          Showing sample columns for %d samples may take time and slow down mzmine. \
+          Consider using the statistics dashboard and box plot columns instead for an overview.""".formatted(
+          numSamples))) {
         return;
       }
     }
