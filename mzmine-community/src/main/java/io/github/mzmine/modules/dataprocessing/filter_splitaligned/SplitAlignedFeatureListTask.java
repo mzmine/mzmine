@@ -93,7 +93,7 @@ public class SplitAlignedFeatureListTask extends AbstractFeatureListTask {
 
       for (final FeatureListRow row : flist.getRows()) {
         if (sampleGroup.files().stream().noneMatch(row::hasFeature)) {
-          finishedItems.set(finishedItems.get() + flist.getNumberOfRawDataFiles());
+          finishedItems.getAndAdd(sampleGroup.size());
           continue;
         }
 
@@ -136,6 +136,7 @@ public class SplitAlignedFeatureListTask extends AbstractFeatureListTask {
 
   @Override
   public String getTaskDescription() {
-    return "Splitting aligned feature list %s into individual feature lists.".formatted(flist.getName());
+    return "Splitting aligned feature list %s into individual feature lists.".formatted(
+        flist.getName());
   }
 }
