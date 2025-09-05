@@ -38,6 +38,7 @@ public enum ActivationMethod {
   ETHCD("ETHCD", "Electron-transfer and higher-energy collision dissociation", ""), //
   EAD("EAD", "electron activated dissociation", "eV"), //
   UVPD("UVPD", "Ultraviolet photodissociation", ""), //
+  MIXED("MIXED", "Mixed fragmentation", ""), //
   UNKNOWN("N.A.", "Unknown", "");
 
   private final String abbreviation;
