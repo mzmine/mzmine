@@ -110,8 +110,9 @@ public class ColoredXYDataset extends AbstractTaskXYDataset implements IntervalX
     this.computedItemCount = 0;
     fxColorProperty().addListener(((observable, oldValue, newValue) -> fireDatasetChanged()));
 
+    // already computed will always be on this thread then
     this.runOption = checkRunOption(runOption);
-    handleRunOption(runOption);
+    handleRunOption(this.runOption);
   }
 
   private ColoredXYDataset(XYValueProvider xyValueProvider,
@@ -346,9 +347,6 @@ public class ColoredXYDataset extends AbstractTaskXYDataset implements IntervalX
   protected void onCalculationsFinished() {
     computed = true;
     setStatus(TaskStatus.FINISHED);
-    if (getRunOption()
-        != RunOption.THIS_THREAD) {  // no need to notify then, dataset will be up to date
-    }
     // somehow we always need to call dataset changed. Maybe something in the internal construction process keeps the wrong ranges
     FxThread.runLater(this::fireDatasetChanged);
   }

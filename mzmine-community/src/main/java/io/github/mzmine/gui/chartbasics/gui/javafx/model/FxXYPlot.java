@@ -27,6 +27,7 @@ package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
 import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.MarkerDefinition;
+import io.github.mzmine.gui.chartbasics.listener.DatasetsChangedListener;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import java.awt.Graphics2D;
 import java.awt.Paint;
@@ -34,8 +35,10 @@ import java.awt.Stroke;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.SequencedCollection;
 import java.util.logging.Logger;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
@@ -176,7 +179,22 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     for (int i = nv.size(); i < super.getDatasetCount(); i++) {
       super.setDataset(i, null);
     }
+
+    // fire a single event once the datasets are really set to the plot
+    // this is required to ensure that the plot actually knows about the datasets
+    for (DatasetsChangedListener listener : plotModel.getDatasetsChangedListeners()) {
+      listener.onDatasetsChanged();
+    }
   }
+
+  /**
+   * Those events are triggered once after all datasets are updated and set to the internal chart
+   * every time {@link #updateDatasets(ObservableMap)} is called.
+   */
+  public void addDatasetsChangedListener(DatasetsChangedListener listener) {
+    plotModel.addDatasetsChangedListener(listener);
+  }
+
 
   // properties
   public @NotNull ObservableMap<Integer, @NotNull XYDataset> getDatasets() {
@@ -187,7 +205,7 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     return plotModel.datasetsProperty();
   }
 
-  public void setDatasets(List<XYDataset> datasets) {
+  public void setDatasets(SequencedCollection<? extends XYDataset> datasets) {
     plotModel.setDatasets(datasets);
   }
 
@@ -195,7 +213,7 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     return plotModel.renderersProperty();
   }
 
-  public void setRenderers(List<XYItemRenderer> renderers) {
+  public void setRenderers(SequencedCollection<? extends XYItemRenderer> renderers) {
     plotModel.setRenderers(renderers);
   }
 
@@ -503,7 +521,7 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
    * update calls
    *
    */
-  public void setAllDomainMarkers(List<Marker> markers) {
+  public void setAllDomainMarkers(Collection<Marker> markers) {
     plotModel.setAllDomainMarkers(markers);
   }
 
@@ -545,7 +563,7 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
    * update calls
    *
    */
-  public void setAllRangeMarkers(List<Marker> markers) {
+  public void setAllRangeMarkers(Collection<Marker> markers) {
     plotModel.setAllRangeMarkers(markers);
   }
 
@@ -605,5 +623,43 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
 
   public void removeDataSet(XYDataset dataset) {
     plotModel.removeDataSet(dataset);
+  }
+
+  /**
+   * Convenience method to add both datasets and renderers at once
+   *
+   */
+  public void addDatasets(@NotNull List<? extends XYDataset> datasets,
+      @NotNull List<XYItemRenderer> renderers) {
+    plotModel.addDatasets(datasets, renderers);
+  }
+
+  /**
+   * Convenience method to add both datasets and renderers at once
+   *
+   * @param renderer single renderer for all datasets
+   */
+  public void addDatasets(@NotNull SequencedCollection<? extends XYDataset> datasets,
+      @NotNull XYItemRenderer renderer) {
+    plotModel.addDatasets(datasets, renderer);
+  }
+
+  /**
+   * Convenience method to set both datasets and renderers at once
+   *
+   */
+  public void setDatasets(@NotNull SequencedCollection<? extends XYDataset> datasets,
+      @NotNull SequencedCollection<XYItemRenderer> renderers) {
+    plotModel.setDatasets(datasets, renderers);
+  }
+
+  /**
+   * Convenience method to set both datasets and renderers at once
+   *
+   * @param renderer single renderer for all datasets
+   */
+  public void setDatasets(@NotNull SequencedCollection<? extends XYDataset> datasets,
+      @NotNull XYItemRenderer renderer) {
+    plotModel.setDatasets(datasets, renderer);
   }
 }

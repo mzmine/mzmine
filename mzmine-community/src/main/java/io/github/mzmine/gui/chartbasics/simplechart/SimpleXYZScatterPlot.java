@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
@@ -143,6 +144,11 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     cursorPositionProperty = plot.cursorPositionProperty(); // use cursor from plot
     plot.setShowCursorCrosshair(true, true);
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
+
+    // on changes notify all listeners
+    plot.addDatasetsChangedListener(
+        () -> notifyDatasetChangeListeners(new DatasetChangeEvent(this, null)));
+
     defaultRenderer = new SimpleObjectProperty<>(new ColoredXYSmallBlockRenderer());
     legendAxisFormat = new DecimalFormat("0.##E0");
     setCursor(Cursor.DEFAULT);
@@ -234,14 +240,13 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   /**
    * @param dataset the main dataset. null to clear the plot. Removes all other datasets.
    */
-  public synchronized void setDataset(@Nullable ColoredXYZDataset dataset) {
-
-    removeAllDatasets();
+  public synchronized void setDataset(@Nullable XYZDataset dataset) {
     if (dataset == null) {
+      removeAllDatasets();
       return;
     }
-
-    plot.addDataset(dataset, defaultRenderer.get());
+    // single event set all datasets to just one
+    plot.setDatasets(List.of(dataset), List.of(prepareRenderer(defaultRenderer.get())));
   }
 
   /**
@@ -250,28 +255,35 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    * @param dataProvider The data provider
    */
   public void setDataset(T dataProvider) {
-    ColoredXYZDataset dataset = new ColoredXYZDataset(dataProvider);
-    setDataset(dataset);
+    setDataset(providerToDataset(dataProvider));
+  }
+
+  /**
+   * apply renderer config like item visibility and legend visibility.
+   *
+   * @return the input renderer instance is returned for convenience
+   */
+  private XYItemRenderer prepareRenderer(XYItemRenderer renderer) {
+    if (renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
+      renderer.setDefaultItemLabelsVisible(isItemLabelsVisible(), false);
+    }
+    if (renderer.getDefaultSeriesVisibleInLegend() != isLegendItemsVisible()) {
+      renderer.setDefaultSeriesVisibleInLegend(isLegendItemsVisible(), false);
+    }
+    return renderer;
+  }
+
+  @NotNull
+  private XYZDataset providerToDataset(T datasetProvider) {
+    return datasetProvider instanceof XYZDataset dataset ? dataset
+        : new ColoredXYZDataset(datasetProvider);
   }
 
   /**
    * @return The dataset index.
    */
   public synchronized int addDataset(XYZDataset dataset, XYItemRenderer renderer) {
-
-    if (renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
-      renderer.setDefaultItemLabelsVisible(isItemLabelsVisible());
-    }
-    if (renderer.getDefaultSeriesVisibleInLegend() != isLegendItemsVisible()) {
-      renderer.setDefaultItemLabelsVisible(isLegendItemsVisible());
-    }
-    final int addedIndex = plot.addDataset(dataset, renderer);
-
-//    if (dataset instanceof ColoredXYZDataset) {
-//      dataset.addChangeListener(e -> datasetChanged(new DatasetChangeEvent(this, e.getDataset())));
-//    }
-
-    return addedIndex;
+    return plot.addDataset(dataset, prepareRenderer(renderer));
   }
 
   /**
@@ -281,30 +293,22 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    * @return The dataset index
    */
   public synchronized int addDataset(T datasetProvider) {
-
-    if (datasetProvider instanceof XYZDataset) {
-      return addDataset((XYZDataset) datasetProvider, defaultRenderer.get());
-    }
-    ColoredXYZDataset dataset = new ColoredXYZDataset(datasetProvider);
-    return addDataset(dataset, defaultRenderer.get());
+    return addDataset(datasetProvider, defaultRenderer.get());
   }
 
   @Override
   public synchronized int addDataset(T datasetProvider, XYItemRenderer renderer) {
-    if (datasetProvider instanceof XYZDataset) {
-      return addDataset((XYZDataset) datasetProvider, renderer);
-    }
-    ColoredXYZDataset dataset = new ColoredXYZDataset(datasetProvider);
-    return addDataset(dataset, renderer);
+    return addDataset(providerToDataset(datasetProvider), prepareRenderer(renderer));
   }
 
   public void addDatasetsAndRenderers(Map<XYZDataset, XYItemRenderer> datasetsAndRenderers) {
-    getChart().setNotify(false);
-    getXYPlot().setNotify(false);
-    datasetsAndRenderers.forEach(this::addDataset);
-    getXYPlot().setNotify(true);
-    getChart().setNotify(true);
-    getChart().fireChartChanged();
+    List<XYDataset> datasets = new ArrayList<>();
+    List<XYItemRenderer> renderers = new ArrayList<>();
+    for (Entry<XYZDataset, XYItemRenderer> entry : datasetsAndRenderers.entrySet()) {
+      datasets.add(entry.getKey());
+      renderers.add(prepareRenderer(entry.getValue()));
+    }
+    plot.addDatasets(datasets, renderers);
   }
 
   public synchronized void removeAllDatasets() {
@@ -405,6 +409,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     datasetListeners.clear();
   }
 
+  @Override
   public void notifyDatasetChangeListeners(DatasetChangeEvent event) {
     if (!chart.isNotify()) {
       return;

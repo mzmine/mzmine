@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -90,6 +90,9 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     this.msmsSpectrumChart = new SimpleXYChart<>("MS/MS - " + fstr);
     this.mobilogramChart = new SimpleXYChart<>("Extracted mobilogram");
 
+    heatmapChart.getXYPlot().rangeCursorValueProperty()
+        .bindBidirectional(mobilogramChart.getXYPlot().rangeCursorValueProperty());
+
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
@@ -158,8 +161,13 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     axis.setAutoRange(true);
     axis.setAutoRangeIncludesZero(false);
     axis.setAutoRangeStickyZero(false);
-    axis.setAutoRangeMinimumSize(0.005);
+    axis.setAutoRangeMinimumSize(0.0001);
     axis.setVisible(false);
+
+    axis = (NumberAxis) mobilogramChart.getXYPlot().getRangeAxis();
+    axis.setAutoRangeIncludesZero(false);
+    axis.setAutoRangeStickyZero(false);
+    axis.setAutoRangeMinimumSize(0.0001);
 
     msmsSpectrumChart.setDomainAxisNumberFormatOverride(mzFormat);
     msmsSpectrumChart.setDomainAxisLabel("m/z");
@@ -177,7 +185,7 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     mobilogramChart.setLegendItemsVisible(false);
     mobilogramChart.addDatasetChangeListener(l -> {
       FxThread.runLater(() -> {
-        NumberAxis a = (NumberAxis) heatmapChart.getXYPlot().getRangeAxis();
+        NumberAxis a = (NumberAxis) mobilogramChart.getXYPlot().getRangeAxis();
         a.setAutoRangeIncludesZero(false);
         a.setAutoRangeStickyZero(false);
         a.setAutoRangeMinimumSize(0.0001);

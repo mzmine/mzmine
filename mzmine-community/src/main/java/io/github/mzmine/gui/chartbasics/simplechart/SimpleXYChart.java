@@ -48,6 +48,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.SequencedCollection;
 import java.util.logging.Logger;
 import javafx.beans.NamedArg;
 import javafx.beans.property.BooleanProperty;
@@ -138,6 +139,10 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     plot = (FxXYPlot) chart.getXYPlot();
     cursorPositionProperty = plot.cursorPositionProperty(); // use cursor from plot
 
+    // on changes notify all listeners
+    plot.addDatasetsChangedListener(
+        () -> notifyDatasetChangeListeners(new DatasetChangeEvent(this, null)));
+
     chartTitle = new TextTitle(title);
     chart.setTitle(chartTitle);
     chartSubTitle = new TextTitle();
@@ -218,31 +223,39 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   }
 
   public synchronized int addDataset(XYDataset dataset, XYItemRenderer renderer) {
+    prepareRenderer(renderer);
+    return plot.addDataset(dataset, renderer);
+  }
+
+  /**
+   * apply renderer config like item visibility and legend visibility.
+   *
+   * @return the input renderer instance is returned for convenience
+   */
+  private XYItemRenderer prepareRenderer(XYItemRenderer renderer) {
     if (renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
       renderer.setDefaultItemLabelsVisible(isItemLabelsVisible(), false);
     }
     if (renderer.getDefaultSeriesVisibleInLegend() != isLegendItemsVisible()) {
       renderer.setDefaultSeriesVisibleInLegend(isLegendItemsVisible(), false);
     }
-    return plot.addDataset(dataset, renderer);
+    return renderer;
+  }
+
+  @NotNull
+  private XYDataset providerToDataset(T datasetProvider) {
+    return datasetProvider instanceof XYDataset dataset ? dataset
+        : new ColoredXYDataset(datasetProvider);
   }
 
   @Override
   public synchronized int addDataset(T datasetProvider) {
-    if (datasetProvider instanceof XYDataset) {
-      return addDataset((XYDataset) datasetProvider);
-    }
-    ColoredXYDataset dataset = new ColoredXYDataset(datasetProvider);
-    return addDataset(dataset, defaultRenderer.get());
+    return addDataset(datasetProvider, defaultRenderer.get());
   }
 
   @Override
   public synchronized int addDataset(T datasetProvider, XYItemRenderer renderer) {
-    if (datasetProvider instanceof XYDataset) {
-      return addDataset((XYDataset) datasetProvider, renderer);
-    }
-    ColoredXYDataset dataset = new ColoredXYDataset(datasetProvider);
-    return addDataset(dataset, renderer);
+    return addDataset(providerToDataset(datasetProvider), renderer);
   }
 
   /**
@@ -269,45 +282,31 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     return plot.removeDataSet(index);
   }
 
-  /**
-   * @param datasetProviders
-   */
   public void addDatasetProviders(Collection<T> datasetProviders) {
-    applyWithNotifyChanges(false, () -> {
-      for (T datasetProvider : datasetProviders) {
-        this.addDataset(datasetProvider);
-      }
-      // todo maybe notify for each dataset
-      notifyDatasetChangeListeners(new DatasetChangeEvent(this, null));
-    });
+    final List<@NotNull XYDataset> datasets = datasetProviders.stream().filter(Objects::nonNull)
+        .map(this::providerToDataset).toList();
+    final XYItemRenderer renderer = prepareRenderer(defaultRenderer.get());
+
+    // reduces the number of events
+    plot.addDatasets(datasets, renderer);
   }
 
-  /**
-   * @param datasets
-   */
-  public void addDatasets(Collection<? extends ColoredXYDataset> datasets) {
-    applyWithNotifyChanges(false, () -> {
-      for (ColoredXYDataset dataset : datasets) {
-        this.addDataset(dataset);
-      }
-      // todo maybe notify for each dataset
-      notifyDatasetChangeListeners(new DatasetChangeEvent(this, null));
-    });
+  public void addDatasets(SequencedCollection<? extends ColoredXYDataset> datasets) {
+    final XYItemRenderer renderer = prepareRenderer(defaultRenderer.get());
+    // reduces the number of events
+    plot.addDatasets(datasets, renderer);
   }
 
-  public void setDatasets(@NotNull Collection<? extends ColoredXYDataset> datasets) {
-    // if old notify state was true this will auto trigger chart changed event and draw update
-    applyWithNotifyChanges(false, () -> {
-      removeAllDatasets();
-      addDatasets(datasets);
-    });
+  public void setDatasets(@NotNull SequencedCollection<? extends ColoredXYDataset> datasets) {
+    plot.setDatasets(datasets);
   }
 
   public void setDatasetsAndRenderers(@NotNull List<@NotNull DatasetAndRenderer> datasets) {
-    applyWithNotifyChanges(false, () -> {
-      removeAllDatasets();
-      datasets.forEach(ds -> addDataset(ds.dataset(), ds.renderer()));
-    });
+    final List<ColoredXYDataset> data = datasets.stream().map(DatasetAndRenderer::dataset).toList();
+    final List<XYItemRenderer> renderers = datasets.stream().map(DatasetAndRenderer::renderer)
+        .map(r -> r != null ? r : defaultRenderer.get()).map(this::prepareRenderer).toList();
+
+    plot.setDatasets(data, renderers);
   }
 
   public synchronized void removeAllDatasets() {
@@ -316,9 +315,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
 
   @Override
   public LinkedHashMap<Integer, XYDataset> getAllDatasets() {
-    final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<>();
-    datasetMap.putAll(plot.getDatasets());
-    return datasetMap;
+    return new LinkedHashMap<>(plot.getDatasets());
   }
 
   @Override

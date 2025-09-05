@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -81,7 +81,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.Nullable;
-import org.jfree.chart.plot.ValueMarker;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -126,6 +125,9 @@ public class IMSMobilityMzPlot extends BorderPane {
     rawDataFiles = new ArrayList<>();
     useCCS = new SimpleBooleanProperty();
 
+    ticChart.getXYPlot().domainCursorValueProperty()
+        .bindBidirectional(heatmap.getXYPlot().domainCursorValueProperty());
+
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
@@ -136,7 +138,6 @@ public class IMSMobilityMzPlot extends BorderPane {
     initCharts();
 
     selectedScan = new SimpleObjectProperty<>();
-    selectedScan.addListener((observable, oldValue, newValue) -> updateValueMarkers(newValue));
 
     scrollPane = new ScrollPane();
     scrollPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
@@ -173,7 +174,6 @@ public class IMSMobilityMzPlot extends BorderPane {
     ticChart.setDomainAxisNumberFormatOverride(rtFormat);
     ticChart.setRangeAxisNumberFormatOverride(intensityFormat);
     ticChart.setRangeAxisLabel(unitFormat.format("Intensity", "counts"));
-    ticChart.setShowCrosshair(false);
     ticChart.getChart().setTitle("Extracted ion chromatograms");
     ticChart.setMinHeight(250);
   }
@@ -303,22 +303,15 @@ public class IMSMobilityMzPlot extends BorderPane {
           }
         });
 
+    // auto update markers
+    featureVisualiserPane.getHeatmapChart().getXYPlot().domainCursorValueProperty()
+        .bindBidirectional(ticChart.getXYPlot().domainCursorValueProperty());
+
     featureVisualiserPane.selectedMobilityScanProperty()
         .addListener((observable, oldValue, newValue) -> selectedScan.set(newValue.getFrame()));
     featureVisualisersMap.put(feature, featureVisualiserPane);
     content.getChildren().add(featureVisualiserPane);
     content.getChildren().add(new Separator(Orientation.HORIZONTAL));
-  }
-
-  private void updateValueMarkers(Scan newValue) {
-    ticChart.getXYPlot().clearDomainMarkers();
-    final ValueMarker newMarker = new ValueMarker(newValue.getRetentionTime(), markerColor,
-        markerStroke);
-    ticChart.getXYPlot().addDomainMarker(newMarker);
-    featureVisualisersMap.values().forEach(vis -> {
-      vis.getHeatmapChart().getXYPlot().clearDomainMarkers();
-      vis.getHeatmapChart().getXYPlot().addDomainMarker(newMarker);
-    });
   }
 
   private void initChartListeners() {

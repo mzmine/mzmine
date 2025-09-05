@@ -26,12 +26,17 @@
 package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.MarkerDefinition;
+import io.github.mzmine.gui.chartbasics.listener.DatasetsChangedListener;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.taskcontrol.Task;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.SequencedCollection;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import javafx.beans.property.ListProperty;
@@ -85,6 +90,8 @@ public class FxXYPlotModel implements FxPlotModel {
    */
   private final ObjectProperty<ChartRenderingInfo> renderingInfo = new SimpleObjectProperty<>();
 
+  private final List<DatasetsChangedListener> datasetsChangedListeners = new ArrayList<>();
+
 
   public FxXYPlotModel(@Nullable XYPlot plot) {
     this.plot.set(plot);
@@ -115,10 +122,18 @@ public class FxXYPlotModel implements FxPlotModel {
     return datasets;
   }
 
+  public List<DatasetsChangedListener> getDatasetsChangedListeners() {
+    return datasetsChangedListeners;
+  }
+
+  public void addDatasetsChangedListener(DatasetsChangedListener listener) {
+    datasetsChangedListeners.add(listener);
+  }
+
   /**
    * Replaces all
    */
-  public void setDatasets(List<XYDataset> datasets) {
+  public void setDatasets(SequencedCollection<? extends XYDataset> datasets) {
     final ObservableMap<Integer, XYDataset> map = FXCollections.observableMap(new TreeMap<>());
     for (XYDataset dataset : datasets) {
       if (dataset == null) {
@@ -137,7 +152,7 @@ public class FxXYPlotModel implements FxPlotModel {
   /**
    * Replaces all
    */
-  public void setRenderers(List<XYItemRenderer> renderers) {
+  public void setRenderers(SequencedCollection<? extends XYItemRenderer> renderers) {
     final ObservableMap<Integer, XYItemRenderer> map = FXCollections.observableMap(new TreeMap<>());
     for (XYItemRenderer renderer : renderers) {
       if (renderer == null) {
@@ -192,6 +207,38 @@ public class FxXYPlotModel implements FxPlotModel {
     }
 
     throw new IllegalStateException("No free index found for dataset but should be within <=size");
+  }
+
+  /**
+   * Add all datasets to respective first free indices. Will only trigger one update for datasets
+   * and one for renderers
+   */
+  public void addDatasets(@NotNull List<? extends XYDataset> newDatasets,
+      @Nullable List<? extends XYItemRenderer> newRenderers) {
+    assert newRenderers == null || newRenderers.size()
+        == newDatasets.size() : "Renderers do not have the same size like datasets";
+
+    Map<Integer, XYDataset> dataToAdd = new TreeMap<>();
+    Map<Integer, XYItemRenderer> renderToAdd = new TreeMap<>();
+
+    int currentDatasetIndex = 0;
+    for (int newDataIndex = 0; newDataIndex < newDatasets.size(); newDataIndex++) {
+      boolean searching = true;
+      while (searching) {
+        if (datasets.get(currentDatasetIndex) == null) {
+          dataToAdd.put(currentDatasetIndex, newDatasets.get(newDataIndex));
+          if (newRenderers != null) {
+            renderToAdd.put(currentDatasetIndex, newRenderers.get(newDataIndex));
+          }
+          searching = false;
+        }
+        currentDatasetIndex++;
+      }
+    }
+    datasets.putAll(dataToAdd);
+    if (newRenderers != null) {
+      renderers.putAll(renderToAdd);
+    }
   }
 
   @Nullable
@@ -272,7 +319,7 @@ public class FxXYPlotModel implements FxPlotModel {
     return renderers.get(index);
   }
 
-  // MARKERS
+// MARKERS
 
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
@@ -326,7 +373,7 @@ public class FxXYPlotModel implements FxPlotModel {
    * update calls
    *
    */
-  public void setAllDomainMarkers(List<Marker> markers) {
+  public void setAllDomainMarkers(Collection<Marker> markers) {
     setAllDomainMarkers(markers.stream().filter(Objects::nonNull).map(MarkerDefinition::new)
         .toArray(MarkerDefinition[]::new));
   }
@@ -375,7 +422,7 @@ public class FxXYPlotModel implements FxPlotModel {
    * update calls
    *
    */
-  public void setAllRangeMarkers(List<Marker> markers) {
+  public void setAllRangeMarkers(Collection<Marker> markers) {
     setAllRangeMarkers(markers.stream().filter(Objects::nonNull).map(MarkerDefinition::new)
         .toArray(MarkerDefinition[]::new));
   }
@@ -450,5 +497,42 @@ public class FxXYPlotModel implements FxPlotModel {
     }
     removeDataSet(index);
     return index;
+  }
+
+  /**
+   * Convenience method to add both datasets and renderers at once
+   *
+   * @param renderer single renderer for all datasets
+   */
+  public void addDatasets(@NotNull SequencedCollection<? extends XYDataset> datasets,
+      @NotNull XYItemRenderer renderer) {
+    final List<XYItemRenderer> renderers = new ArrayList<>(datasets.size());
+    for (int i = 0; i < datasets.size(); i++) {
+      renderers.add(renderer);
+    }
+    addDatasets(List.copyOf(datasets), renderers);
+  }
+
+  /**
+   * Convenience method to set both datasets and renderers at once
+   */
+  public void setDatasets(SequencedCollection<? extends XYDataset> datasets,
+      SequencedCollection<? extends XYItemRenderer> renderers) {
+    setDatasets(datasets);
+    setRenderers(renderers);
+  }
+
+  /**
+   * Convenience method to set both datasets and renderers at once
+   *
+   * @param renderer single renderer for all datasets
+   */
+  public void setDatasets(@NotNull SequencedCollection<? extends XYDataset> datasets,
+      @NotNull XYItemRenderer renderer) {
+    final List<XYItemRenderer> renderers = new ArrayList<>(datasets.size());
+    for (int i = 0; i < datasets.size(); i++) {
+      renderers.add(renderer);
+    }
+    setDatasets(datasets, renderers);
   }
 }

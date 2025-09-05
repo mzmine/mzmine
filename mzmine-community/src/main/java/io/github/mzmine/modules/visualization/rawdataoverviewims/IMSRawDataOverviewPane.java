@@ -253,12 +253,10 @@ public class IMSRawDataOverviewPane extends BorderPane {
     // set all charts to notify listeners later after all is completed
     // otherwise there are updates for clearAllCharts and all other operations
     try {
-//      ChartLogicsFX.withNotifyLater(allCharts, () -> {
       clearAllCharts();
       if (selectedFrame.get() == null) {
         return;
       }
-      // ticChart.removeDatasets(mzRangeTicDatasetIndices);
 
       massDetectionPane.getChildren().remove(massDetectionFrameIcon);
       massDetectionFrameIcon =
