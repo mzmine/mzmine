@@ -173,3 +173,7 @@
   -fx-font-size: 10.0pt;
   -fx-font-weight: bold;
 }
+
+.default-background-node {
+  -fx-background-color: -jr-background-alt;
+}

@@ -210,3 +210,7 @@
 .accordion .titled-pane>.title>.arrow-button>.arrow {
     -fx-background-color: -titled-pane-arrow-color;
 }
+
+.default-background-node {
+  -fx-background-color: -control-bg;
+}

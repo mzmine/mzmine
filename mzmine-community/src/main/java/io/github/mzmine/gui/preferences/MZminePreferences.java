@@ -78,7 +78,10 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
+import javafx.scene.Group;
+import javafx.scene.Scene;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.Nullable;
@@ -350,7 +353,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
     dialog.setWidth(800);
     dialog.setHeight(800);
-    
+
     // check
     dialog.showAndWait();
     final ExitCode retVal = dialog.getExitCode();
@@ -414,28 +417,28 @@ public class MZminePreferences extends SimpleParameterSet {
   private void showDialogToAdjustColorsToTheme(Themes previousTheme, Themes theme) {
     if (previousTheme.isDark() != theme.isDark()) {
       final ChartThemeParameters chartParams = getValue(MZminePreferences.chartParam);
-      final Color bgColor = chartParams.getValue(ChartThemeParameters.color);
+      final Color bgColor = chartParams.getValue(ChartThemeParameters.chartBackgroundColor);
+      final Optional<Color> plotBgColor = chartParams.getOptionalValue(
+          ChartThemeParameters.plotBackgroundColor);
       final FontSpecs axisFont = chartParams.getValue(ChartThemeParameters.axisLabelFont);
       final FontSpecs itemFont = chartParams.getValue(ChartThemeParameters.itemLabelFont);
       final FontSpecs titleFont = chartParams.getValue(ChartThemeParameters.titleFont);
       final FontSpecs subTitleFont = chartParams.getValue(ChartThemeParameters.subTitleFont);
 
       boolean changeColors = false;
-      if (theme.isDark() && (ColorUtils.isDark(bgColor) || ColorUtils.isDark(axisFont.getColor())
-          || ColorUtils.isDark(itemFont.getColor()) || ColorUtils.isDark(titleFont.getColor())
-          || ColorUtils.isDark(subTitleFont.getColor()))) {
+      final boolean darkMismatch =
+          theme.isDark() && (ColorUtils.isDark(bgColor) || ColorUtils.isDark(axisFont.getColor())
+              || ColorUtils.isDark(itemFont.getColor()) || ColorUtils.isDark(titleFont.getColor())
+              || ColorUtils.isDark(subTitleFont.getColor()) || ColorUtils.isDark(
+              plotBgColor.orElse(bgColor)));
+      final boolean lightMismatch =
+          !theme.isDark() && (ColorUtils.isLight(bgColor) || ColorUtils.isLight(axisFont.getColor())
+              || ColorUtils.isLight(itemFont.getColor()) || ColorUtils.isLight(titleFont.getColor())
+              || ColorUtils.isLight(subTitleFont.getColor()) || ColorUtils.isLight(
+              plotBgColor.orElse(bgColor)));
+      if (darkMismatch || lightMismatch) {
         if (DialogLoggerUtil.showDialogYesNo("Change theme?", """
-            MZmine detected that you changed the GUI theme.
-            The current chart theme colors might not be readable.
-            Would you like to adapt them?
-            """)) {
-          changeColors = true;
-        }
-      } else if (!theme.isDark() && (ColorUtils.isLight(bgColor) || ColorUtils.isLight(
-          axisFont.getColor()) || ColorUtils.isLight(itemFont.getColor()) || ColorUtils.isLight(
-          titleFont.getColor()) || ColorUtils.isLight(subTitleFont.getColor()))) {
-        if (DialogLoggerUtil.showDialogYesNo("Change theme?", """
-            MZmine detected that you changed the GUI theme.
+            mzmine detected that you changed the GUI theme.
             The current chart theme colors might not be readable.
             Would you like to adapt them?
             """)) {
@@ -451,17 +454,46 @@ public class MZminePreferences extends SimpleParameterSet {
     }
   }
 
+  @Nullable
+  public Color getNodeBackgroundColor() {
+    if (!DesktopService.isGUI()) {
+      return null;
+    }
+    try {
+      final StackPane node = new StackPane();
+      Scene tempScene = new Scene(new Group(node));
+      final Themes theme = getValue(MZminePreferences.theme);
+      theme.apply(tempScene.getStylesheets());
+      node.getStyleClass().add("default-background-node");
+      node.applyCss(); // now the stylesheet is available
+
+      return (Color) node.getBackground().getFills().getFirst().getFill();
+    } catch (Exception exception) {
+      return null;
+    }
+  }
+
   private void adjustColorsToThemeDarkMode(final Themes theme) {
     final ChartThemeParameters chartParams = getValue(MZminePreferences.chartParam);
-    final Color bgColor = chartParams.getValue(ChartThemeParameters.color);
+    final Color chartBgColor = chartParams.getValue(ChartThemeParameters.chartBackgroundColor);
+    final Optional<Color> plotBgColor = chartParams.getOptionalValue(
+        ChartThemeParameters.plotBackgroundColor);
     final FontSpecs axisFont = chartParams.getValue(ChartThemeParameters.axisLabelFont);
     final FontSpecs itemFont = chartParams.getValue(ChartThemeParameters.itemLabelFont);
     final FontSpecs titleFont = chartParams.getValue(ChartThemeParameters.titleFont);
     final FontSpecs subTitleFont = chartParams.getValue(ChartThemeParameters.subTitleFont);
+    var actualNodeBg = getNodeBackgroundColor();
+
+    // only change chart bg if color is not transparent
+    if (chartBgColor.getOpacity() > 0) {
+      chartParams.setParameter(ChartThemeParameters.chartBackgroundColor, actualNodeBg);
+    }
+    if (plotBgColor.isPresent()) {
+      // was true before so set it
+      chartParams.setParameter(ChartThemeParameters.plotBackgroundColor, true, actualNodeBg);
+    }
+
     if (theme.isDark()) {
-      if (ColorUtils.isLight(bgColor)) {
-        chartParams.setParameter(ChartThemeParameters.color, Color.TRANSPARENT);
-      }
       if (ColorUtils.isDark(axisFont.getColor())) {
         chartParams.setParameter(ChartThemeParameters.axisLabelFont,
             new FontSpecs(Color.WHITE, axisFont.getFont()));
@@ -480,9 +512,6 @@ public class MZminePreferences extends SimpleParameterSet {
       }
 
     } else {
-      if (ColorUtils.isDark(bgColor)) {
-        chartParams.setParameter(ChartThemeParameters.color, Color.WHITE);
-      }
       if (ColorUtils.isLight(axisFont.getColor())) {
         chartParams.setParameter(ChartThemeParameters.axisLabelFont,
             new FontSpecs(Color.BLACK, axisFont.getFont()));
