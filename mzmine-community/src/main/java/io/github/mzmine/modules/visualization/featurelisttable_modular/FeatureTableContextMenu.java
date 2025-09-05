@@ -278,7 +278,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     bioTransformerItem.setOnAction(e -> {
       final FeatureAnnotation annotation = getAnnotationForBioTransformerPrediction();
       if (annotation != null) {
-        BioTransformerModule.runSingleRowPredection(selectedRow, annotation.getSmiles(),
+        BioTransformerModule.runSingleRowPredection(selectedRow, annotation.getStructure().canonicalSmiles(),
             requireNonNullElse(annotation.getCompoundName(), "UNKNOWN"));
       }
     });
@@ -297,10 +297,10 @@ public class FeatureTableContextMenu extends ContextMenu {
     if (annotations.isEmpty()) {
       annotations = selectedRow.getCompoundAnnotations();
     }
-    if (annotations.isEmpty() || annotations.get(0).getSmiles() == null) {
+    if (annotations.isEmpty() || annotations.getFirst().getStructure() == null) {
       return null;
     }
-    return annotations.get(0);
+    return annotations.getFirst();
   }
 
 
