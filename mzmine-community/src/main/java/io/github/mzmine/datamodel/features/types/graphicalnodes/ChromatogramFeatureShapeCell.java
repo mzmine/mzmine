@@ -46,7 +46,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -54,8 +53,8 @@ import java.util.logging.Logger;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableRow;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.Range;
@@ -83,7 +82,8 @@ public class ChromatogramFeatureShapeCell extends TreeTableCell<ModularFeatureLi
     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
 
     plot = createChart();
-    view = new BorderPane(plot);
+    // use stackpane as it is transparent / borderpane is not
+    view = new StackPane(plot);
 
     graphicProperty().bind(emptyProperty().map(empty -> empty ? null : view));
   }
@@ -167,16 +167,11 @@ public class ChromatogramFeatureShapeCell extends TreeTableCell<ModularFeatureLi
 
     SimpleXYChart<IonTimeSeriesToXYProvider> chart = new SimpleXYChart<>(
         uf.format("Retention time", "min"), uf.format("Intensity", "a.u."));
-//        uf.format("Retention time", "min"), uf.format("Intensity", "a.u."));
+
     chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
     chart.setLegendItemsVisible(false);
     chart.setPrefWidth(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH);
-
-    chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
-    chart.getXYPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
-
-//    chart.addChartDrawDebugListener(() -> logger.info(getIdentifier("CHART DRAW")));
 
     chart.getMouseAdapter().addGestureHandler(new ChartGestureHandler(
         new ChartGesture(Entity.ALL, Event.DOUBLE_CLICK, GestureButton.BUTTON1), _ -> {
