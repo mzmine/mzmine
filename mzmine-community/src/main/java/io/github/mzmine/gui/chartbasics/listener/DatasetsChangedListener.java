@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,16 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.chartbasics.simplechart;
-
-import java.util.Map;
-import org.jfree.data.xy.XYDataset;
+package io.github.mzmine.gui.chartbasics.listener;
 
 /**
- * Called when a dataset is added or removed from a {@link SimpleChart}.
+ * All datasets were updated
  */
-@FunctionalInterface
 public interface DatasetsChangedListener {
 
-  public void datasetsChanged(Map<Integer, XYDataset> newDatasets);
+  void onDatasetsChanged();
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,17 +25,30 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureEvent;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorConfigModel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorUtils;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.MouseEventWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.util.maths.Precision;
 import java.util.Objects;
+import javafx.beans.property.ObjectProperty;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.ChartRenderingInfo;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
 
 /**
  * Contains information about the currently selected point. The point is determined by the
- * {@link org.jfree.chart.plot.XYPlot#getDomainCrosshairValue()} and
- * {@link org.jfree.chart.plot.XYPlot#getRangeCrosshairValue()} methods. A listener can be added via
- * the {@link SimpleXYChart#cursorPositionProperty()}.
+ * {@link PlotCursorUtils#findSetCursorPosition(ChartGestureEvent, ChartRenderingInfo, XYPlot,
+ * ObjectProperty)} usually to the data point closest in on screen measures.
+ * <p>
+ * {@link PlotCursorConfigModel#getDomainCursorMarker()} and its range equivalent are auto updated
+ * to the coordinates described by this {@link PlotCursorPosition}. The domain cursor marker
+ * property may be a better subscription target if only the value is important, while this plot
+ * cursor position may change because of any internal value change like another click event.
+ * <p>
+ * A listener can be added via the {@link SimpleXYChart#cursorPositionProperty()}.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -43,25 +56,45 @@ public class PlotCursorPosition {
 
   public static final double DEFAULT_Z_VALUE = -1.0d;
 
-  final double rangeValue;
-  final double domainValue;
-  final double zValue;
-  final XYDataset dataset;
-  final int valueIndex;
-  private MouseEventWrapper mouseEvent;
+  private final double rangeValue;
+  private final double domainValue;
+  private final double zValue;
+  private final XYDataset dataset;
+  private final int valueIndex;
+  private final @Nullable MouseEventWrapper mouseEvent;
 
   public PlotCursorPosition(final double domainVal, final double rangeVal, final double zValue,
       final int valueIndex, final XYDataset dataset) {
+    this(domainVal, rangeVal, zValue, valueIndex, dataset, null);
+  }
+
+  public PlotCursorPosition(final double domainVal, final double rangeVal, final double zValue,
+      final int valueIndex, final XYDataset dataset, @Nullable MouseEventWrapper mouseEvent) {
     this.rangeValue = rangeVal;
     this.domainValue = domainVal;
     this.valueIndex = valueIndex;
     this.zValue = zValue;
     this.dataset = dataset;
+    this.mouseEvent = mouseEvent;
   }
 
   public PlotCursorPosition(final double domainVal, final double rangeVal, final int valueIndex,
       final XYDataset dataset) {
-    this(domainVal, rangeVal, DEFAULT_Z_VALUE, valueIndex, dataset);
+    this(domainVal, rangeVal, valueIndex, dataset, null);
+  }
+
+  public PlotCursorPosition(final double domainVal, final double rangeVal, final int valueIndex,
+      final XYDataset dataset, @Nullable MouseEventWrapper mouseEvent) {
+    this(domainVal, rangeVal, DEFAULT_Z_VALUE, valueIndex, dataset, mouseEvent);
+  }
+
+  public PlotCursorPosition(PlotCursorPosition source) {
+    this(source.getDomainValue(), source.getRangeValue(), source.getzValue(),
+        source.getValueIndex(), source.getDataset(), source.getMouseEvent());
+  }
+
+  public PlotCursorPosition(@Nullable Double domain, @Nullable Double range) {
+    this(domain == null ? 0 : domain, range == null ? 0 : range, DEFAULT_Z_VALUE, -1, null, null);
   }
 
   public double getRangeValue() {
@@ -114,12 +147,24 @@ public class PlotCursorPosition {
     return Objects.hash(getRangeValue(), getDomainValue(), getDataset(), getValueIndex());
   }
 
-  public void setMouseEvent(MouseEventWrapper e) {
-    this.mouseEvent = e;
-  }
-
   @Nullable
   public MouseEventWrapper getMouseEvent() {
     return mouseEvent;
+  }
+
+  public PlotCursorPosition withDomainValue(double value) {
+    // within float significance return same value - no change triggered
+    if (Precision.equalSignificance(value, domainValue, 6)) {
+      return this;
+    }
+    return new PlotCursorPosition(value, rangeValue, zValue, valueIndex, dataset, mouseEvent);
+  }
+
+  public PlotCursorPosition withRangeValue(double value) {
+    // within float significance return same value - no change triggered
+    if (Precision.equalSignificance(value, rangeValue, 6)) {
+      return this;
+    }
+    return new PlotCursorPosition(domainValue, value, zValue, valueIndex, dataset, mouseEvent);
   }
 }

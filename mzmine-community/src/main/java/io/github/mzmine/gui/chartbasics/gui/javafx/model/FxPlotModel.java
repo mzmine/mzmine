@@ -23,35 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.chromatogram;
-
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.RangeUtils;
+package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
 /**
- * Simple dataset for extracted ion chromatograms
+ * This is a generic plot model. All plot models should implement this interface like the
+ * {@link FxXYPlotModel} or others for CategoryPlot and CombinedDomainPlot etc.
+ * <p>
+ * The model should abstract away fields and functions from plots, harmonize the behavior, and
+ * trigger updates in the plot.
+ * <p>
+ * Currently only XYPlot is implemented and used in {@link FxXYPlot}.
  */
-public class MzRangeEicDataSet extends ColoredXYDataset {
+public interface FxPlotModel extends FxBaseChartModel {
 
-
-  private final RawDataFile rawFile;
-
-  public MzRangeEicDataSet(final IonTimeSeries<? extends Scan> series, final Range<Double> mzRange,
-      final RawDataFile rawFile) {
-    super(new IonTimeSeriesToXYProvider(series,
-        MZmineCore.getConfiguration().getGuiFormats().mz(RangeUtils.rangeCenter(mzRange)),
-        rawFile.getColor()), RunOption.THIS_THREAD);
-    this.rawFile = rawFile;
-  }
-
-  public RawDataFile getRawFile() {
-    return rawFile;
-  }
 }
