@@ -211,6 +211,6 @@
     -fx-background-color: -titled-pane-arrow-color;
 }
 
-.default-background-node {
+.chart-plot-background {
   -fx-background-color: -control-bg;
 }

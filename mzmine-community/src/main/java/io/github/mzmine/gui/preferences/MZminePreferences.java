@@ -464,7 +464,7 @@ public class MZminePreferences extends SimpleParameterSet {
       Scene tempScene = new Scene(new Group(node));
       final Themes theme = getValue(MZminePreferences.theme);
       theme.apply(tempScene.getStylesheets());
-      node.getStyleClass().add("default-background-node");
+      node.getStyleClass().add("chart-plot-background");
       node.applyCss(); // now the stylesheet is available
 
       return (Color) node.getBackground().getFills().getFirst().getFill();
