@@ -79,11 +79,7 @@ public record SimpleMolecularStructure(@NotNull IAtomContainer structure) implem
 
   @Nullable
   public String inchiKey() {
-    InChIGenerator inchi = StructureUtils.getInchiGenerator(structure());
-    if (inchi == null) {
-      return null;
-    }
-    return inchi.getInchi();
+    return StructureUtils.getInchiKey(structure());
   }
 
   /**
