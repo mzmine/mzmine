@@ -51,6 +51,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.util.logging.Level;
@@ -445,6 +446,24 @@ public class ChartExportUtil {
         throw e;
       }
     }
+  }
+
+  public static String writeChartToSvgString(JFreeChart chart, int width, int height)
+      throws Exception {
+    // Get a DOMImplementation
+    DOMImplementation domImpl = SVGDOMImplementation.getDOMImplementation();
+    org.w3c.dom.Document document = domImpl.createDocument(null, "svg", null);
+    SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
+    svgGenerator.setSVGCanvasSize(new Dimension(width, height));
+    chart.draw(svgGenerator, new Rectangle2D.Double(0, 0, width, height));
+
+    boolean useCSS = true; // we want to use CSS style attribute
+
+    // Use a StringWriter to capture the SVG content
+    StringWriter stringWriter = new StringWriter();
+    svgGenerator.stream(stringWriter, useCSS); // Stream the SVG to the StringWriter
+
+    return stringWriter.toString(); // Return the complete SVG XML as a String
   }
 
   public static void writeChartToEMF(JFreeChart chart, int width, int height, File name)

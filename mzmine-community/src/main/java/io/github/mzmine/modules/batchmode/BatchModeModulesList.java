@@ -191,6 +191,7 @@ import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizer
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
+import io.github.mzmine.util.reporting.jasper.ReportingModule;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -442,6 +443,7 @@ public class BatchModeModulesList {
           BatchWizardModule.class, //
           CompareModularCsvModule.class, //
           AnalyzeLogFileModule.class, //
+          ReportingModule.class, //
 
           // visualizers
           SpectraVisualizerModule.class, //

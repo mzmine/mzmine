@@ -224,6 +224,8 @@ dependencies {
     implementation("org.apache.poi:poi-ooxml:5.4.1")
     // https://mvnrepository.com/artifact/net.sf.jasperreports/jasperreports
     implementation("net.sf.jasperreports:jasperreports:7.0.3")
+    implementation("net.sf.jasperreports:jasperreports-pdf:7.0.3")
+    implementation("net.sf.jasperreports:jasperreports-html-component:7.0.3")
 
     // test only
     testImplementation(libs.bundles.mzio.test)

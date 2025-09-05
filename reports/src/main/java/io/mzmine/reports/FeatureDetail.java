@@ -24,91 +24,123 @@
 
 package io.mzmine.reports;
 
-import java.util.Objects;
 
 public final class FeatureDetail {
 
-  private final Double mz;
-  private final Double rtInMinutes;
-  private final Integer id;
-  private final Double ccsInA;
-  private final String eicImagePath;
-  private final String mobilogramImagePath;
-  private final String speclibMirrorPlotPath;
+  private final String title;
+  private final String id;
+  private final String mz;
+  private final String rtInMinutes;
+  private final String ccsInA;
   private final String compoundSummary;
-  private final String uvMsOverlayPath;
-  private final String compoundStructurePath;
+  private final Object compoundStructureImage;
 
-  public FeatureDetail(Double mz, Double rtInMinutes, Integer id, Double ccsInA, String eicImagePath,
-      String MobilogramImagePath, String speclibMirrorPlotPath, String compoundSummary,
-      String uvMsOverlayPath, String compoundStructurePath) {
+  private final Object figure1;
+  private final String figure1Caption;
+  private final Object figure2;
+  private final String figure2Caption;
+  private final Object figure3;
+  private final String figure3Caption;
+  private final Object figure4;
+  private final String figure4Caption;
+  private final Object figure5;
+  private final String figure5Caption;
+  private final String additionalText;
+
+
+  public FeatureDetail(String title, String id, String mz, String rtInMinutes, String ccsInA,
+      String compoundSummary, Object compoundStructureImage, Object figure1, String figure1Caption,
+      Object figure2, String figure2Caption, Object figure3, String figure3Caption, Object figure4,
+      String figure4Caption, Object figure5, String figure5Caption, String additionalText) {
+    this.title = title;
+    this.id = id;
     this.mz = mz;
     this.rtInMinutes = rtInMinutes;
-    this.id = id;
     this.ccsInA = ccsInA;
-    this.eicImagePath = eicImagePath;
-    this.mobilogramImagePath = MobilogramImagePath;
-    this.speclibMirrorPlotPath = speclibMirrorPlotPath;
     this.compoundSummary = compoundSummary;
-    this.uvMsOverlayPath = uvMsOverlayPath;
-    this.compoundStructurePath = compoundStructurePath;
+    this.compoundStructureImage = compoundStructureImage;
+    this.figure1 = figure1;
+    this.figure1Caption = figure1Caption;
+    this.figure2 = figure2;
+    this.figure2Caption = figure2Caption;
+    this.figure3 = figure3;
+    this.figure3Caption = figure3Caption;
+    this.figure4 = figure4;
+    this.figure4Caption = figure4Caption;
+    this.figure5 = figure5;
+    this.figure5Caption = figure5Caption;
+    this.additionalText = additionalText;
   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == this) {
-      return true;
-    }
-    if (obj == null || obj.getClass() != this.getClass()) {
-      return false;
-    }
-    FeatureDetail that = (FeatureDetail) obj;
-    return Double.doubleToLongBits(this.mz) == Double.doubleToLongBits(that.mz)
-        && Double.doubleToLongBits(this.rtInMinutes) == Double.doubleToLongBits(that.rtInMinutes)
-        && this.id == that.id && Objects.equals(this.ccsInA, that.ccsInA) && Objects.equals(
-        this.eicImagePath, that.eicImagePath) && Objects.equals(this.mobilogramImagePath,
-        that.mobilogramImagePath) && Objects.equals(this.speclibMirrorPlotPath,
-        that.speclibMirrorPlotPath) && Objects.equals(this.compoundSummary, that.compoundSummary)
-        && Objects.equals(this.uvMsOverlayPath, that.uvMsOverlayPath);
+  public String getAdditionalText() {
+    return additionalText;
   }
 
-  public Double getMz() {
-    return mz;
+  public String getTitle() {
+    return title;
   }
 
-  public Double getRtInMinutes() {
-    return rtInMinutes;
-  }
-
-  public Integer getId() {
+  public String getId() {
     return id;
   }
 
-  public Double getCcsInA() {
+  public String getMz() {
+    return mz;
+  }
+
+  public String getRtInMinutes() {
+    return rtInMinutes;
+  }
+
+  public String getCcsInA() {
     return ccsInA;
-  }
-
-  public String getEicImagePath() {
-    return eicImagePath;
-  }
-
-  public String getMobilogramImagePath() {
-    return mobilogramImagePath;
-  }
-
-  public String getSpeclibMirrorPlotPath() {
-    return speclibMirrorPlotPath;
   }
 
   public String getCompoundSummary() {
     return compoundSummary;
   }
 
-  public String getUvMsOverlayPath() {
-    return uvMsOverlayPath;
+  public Object getCompoundStructureImage() {
+    return compoundStructureImage;
   }
 
-  public String getCompoundStructurePath() {
-    return compoundStructurePath;
+  public Object getFigure1() {
+    return figure1;
+  }
+
+  public String getFigure1Caption() {
+    return figure1Caption;
+  }
+
+  public Object getFigure2() {
+    return figure2;
+  }
+
+  public String getFigure2Caption() {
+    return figure2Caption;
+  }
+
+  public Object getFigure3() {
+    return figure3;
+  }
+
+  public String getFigure3Caption() {
+    return figure3Caption;
+  }
+
+  public Object getFigure4() {
+    return figure4;
+  }
+
+  public String getFigure4Caption() {
+    return figure4Caption;
+  }
+
+  public Object getFigure5() {
+    return figure5;
+  }
+
+  public String getFigure5Caption() {
+    return figure5Caption;
   }
 }
