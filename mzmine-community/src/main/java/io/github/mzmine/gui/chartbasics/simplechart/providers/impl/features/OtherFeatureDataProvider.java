@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -104,6 +104,14 @@ public class OtherFeatureDataProvider implements PlotXYDataProvider {
   @Override
   public void computeValues(Property<TaskStatus> status) {
     // nothing to do
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  @Override
+  public boolean isComputed() {
+    return true;
   }
 
   @Override

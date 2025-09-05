@@ -77,10 +77,10 @@ public class FeatureTableFXUtil {
       final IndexedCell<?> lastCell = flow.getLastVisibleCell();
       if (firstCell != null && lastCell != null && !(itemIndex >= firstCell.getIndex()
           && itemIndex <= lastCell.getIndex())) {
-        table.scrollTo(table.getFilteredRowItems().indexOf(rowItem));
+        table.scrollTo(itemIndex);
       }
     }
-    table.getSelectionModel().clearAndSelect(table.getFilteredRowItems().indexOf(rowItem));
+    table.getSelectionModel().clearAndSelect(itemIndex);
   }
 
   public static void selectAndScrollTo(@Nullable FeatureListRow row,
