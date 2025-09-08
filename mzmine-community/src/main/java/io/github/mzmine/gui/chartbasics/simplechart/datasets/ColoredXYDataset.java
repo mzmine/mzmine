@@ -157,6 +157,9 @@ public class ColoredXYDataset extends AbstractTaskXYDataset implements IntervalX
    * @return a valid run option.
    */
   protected final RunOption checkRunOption(final RunOption runOption) {
+    if (runOption == RunOption.DO_NOT_RUN) {
+      return RunOption.DO_NOT_RUN;
+    }
     if (xyValueProvider.isComputed()) {
       return RunOption.THIS_THREAD;
     }
