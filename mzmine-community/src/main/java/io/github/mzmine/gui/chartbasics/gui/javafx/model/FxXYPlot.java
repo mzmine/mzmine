@@ -532,12 +532,30 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
    */
   @Override
   public void addDomainMarker(int index, Marker marker, Layer layer, boolean notify) {
+    // only need to overwrite this method with all arguments, all other overloaded methods in super call this method
     plotModel.addDomainMarker(index, marker, layer, notify);
   }
 
   @Override
   public void clearDomainMarkers() {
     plotModel.clearDomainMarkers();
+  }
+
+  /**
+   * IMPORTANT: This method is used to clear the internal plot markers in the super plot. Cannot
+   * overwrite its functionality as it is used by the updateDomainMarkersMethod
+   *
+   * @param index the renderer index.
+   */
+  @Override
+  public void clearDomainMarkers(int index) {
+    super.clearDomainMarkers(index);
+  }
+
+  @Override
+  public boolean removeDomainMarker(int index, Marker marker, Layer layer, boolean notify) {
+    // only need to overwrite this method with all arguments, all other overloaded methods in super call this method
+    return plotModel.removeDomainMarker(index, marker, layer);
   }
 
   /**
@@ -574,12 +592,30 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
    */
   @Override
   public void addRangeMarker(int index, Marker marker, Layer layer, boolean notify) {
+    // only need to overwrite this method with all arguments, all other overloaded methods in super call this method
     plotModel.addRangeMarker(index, marker, layer, notify);
   }
 
   @Override
   public void clearRangeMarkers() {
     plotModel.clearRangeMarkers();
+  }
+
+  /**
+   * IMPORTANT: This method is used to clear the internal plot markers in the super plot. Cannot
+   * overwrite its functionality as it is used by the updateDomainMarkersMethod
+   *
+   * @param index the renderer index.
+   */
+  @Override
+  public void clearRangeMarkers(int index) {
+    super.clearRangeMarkers(index);
+  }
+
+  @Override
+  public boolean removeRangeMarker(int index, Marker marker, Layer layer, boolean notify) {
+    // only need to overwrite this method with all arguments, all other overloaded methods in super call this method
+    return plotModel.removeRangeMarker(index, marker, layer);
   }
 
   public @Nullable XYDataset removeDataSet(int index) {

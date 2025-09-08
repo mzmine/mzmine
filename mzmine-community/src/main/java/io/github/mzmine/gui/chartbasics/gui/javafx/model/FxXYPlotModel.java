@@ -535,4 +535,22 @@ public class FxXYPlotModel implements FxPlotModel {
     }
     setDatasets(datasets, renderers);
   }
+
+  public void clearDomainMarkers(int datasetIndex) {
+    domainMarkers.removeIf(m -> m.index() == datasetIndex);
+  }
+
+  public void clearRangeMarkers(int datasetIndex) {
+    rangeMarkers.removeIf(m -> m.index() == datasetIndex);
+  }
+
+  public boolean removeDomainMarker(int index, Marker marker, Layer layer) {
+    return domainMarkers.removeIf(
+        m -> m.index() == index && m.marker().equals(marker) && m.layer() == layer);
+  }
+
+  public boolean removeRangeMarker(int index, Marker marker, Layer layer) {
+    return rangeMarkers.removeIf(
+        m -> m.index() == index && m.marker().equals(marker) && m.layer() == layer);
+  }
 }
