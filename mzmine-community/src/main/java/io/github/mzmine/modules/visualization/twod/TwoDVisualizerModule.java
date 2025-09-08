@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,11 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
@@ -41,6 +44,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * 2D visualizer using JFreeChart library
@@ -61,7 +65,7 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
   }
 
   public static void show2DVisualizerSetupDialog(RawDataFile dataFile, Range<Double> mzRange,
-      Range<Float> rtRange) {
+      Range<Float> rtRange, @Nullable PolarityType polarity) {
 
     ParameterSet parameters = MZmineCore.getConfiguration()
         .getModuleParameters(TwoDVisualizerModule.class);
@@ -69,10 +73,11 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
     parameters.getParameter(TwoDVisualizerParameters.dataFiles)
         .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[]{dataFile});
 
-    if (rtRange != null) {
-      parameters.getParameter(TwoDVisualizerParameters.scanSelection)
-          .setValue(new ScanSelection(1, rtRange));
-    }
+    final ScanSelection selection = new ScanSelection(1, rtRange,
+        requireNonNullElse(polarity, PolarityType.ANY));
+
+    parameters.getParameter(TwoDVisualizerParameters.scanSelection).setValue(selection);
+
     if (mzRange != null) {
       parameters.getParameter(TwoDVisualizerParameters.mzRange).setValue(mzRange);
     }
@@ -98,7 +103,7 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
   }
 
   public static void show2DVisualizerSetupDialog(RawDataFile dataFile) {
-    show2DVisualizerSetupDialog(dataFile, null, null);
+    show2DVisualizerSetupDialog(dataFile, null, null, PolarityType.ANY);
   }
 
   @Override

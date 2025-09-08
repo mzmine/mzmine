@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,8 +29,9 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
+import io.github.mzmine.modules.visualization.external_row_html.ExternalRowHtmlVisualizerController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkController;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidAnnotationMatchTabOld;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
@@ -68,6 +69,7 @@ public class NetworkOverviewController {
   public BorderPane pnNetwork;
   public Tab tabAnnotations;
   public Tab tabSimilarity;
+  public Tab tabMasst;
   public Tab tabAllMs2;
   public Tab tabNodes;
   public Tab tabEdges;
@@ -82,6 +84,7 @@ public class NetworkOverviewController {
   private @NotNull List<FeatureRowInterfaceFx> featureRowInterfaces;
   private @NotNull List<FeatureRowInterfaceFx> annotationInterfaces;
   private SpectraIdentificationResultsWindowFX spectralMatchesController;
+  private ExternalRowHtmlVisualizerController masstController;
 
   public NetworkOverviewController() {
     this.focussedRows = FXCollections.observableArrayList();
@@ -128,9 +131,13 @@ public class NetworkOverviewController {
     tabAnnotations.setContent(gridAnnotations);
     tabAllMs2.setContent(allMs2Pane);
 
+    // MASST
+    masstController = new ExternalRowHtmlVisualizerController();
+    tabMasst.setContent(masstController.buildView());
+
     // all content that listens to selected feature changes
     featureRowInterfaces = List.of(spectralMatchesController, compoundMatchController, allMs2Pane,
-        mirrorScanController, lipidAnnotationMatchTabOld);
+        mirrorScanController, lipidAnnotationMatchTabOld, masstController);
     // only annotation interfaces to control visibility
     annotationInterfaces = List.of(spectralMatchesController, compoundMatchController,
         lipidAnnotationMatchTabOld);
@@ -181,18 +188,18 @@ public class NetworkOverviewController {
   }
 
   private void createInternalTable(final @NotNull ModularFeatureList featureList) {
-    FeatureTableTab tempTab = new FeatureTableTab(featureList);
-    internalTable = tempTab.getFeatureTable();
-    tabNodes.setContent(tempTab.getMainPane());
+    final var controller = new FxFeatureTableController();
+    controller.setFeatureList(featureList);
+    internalTable = controller.getFeatureTable();
+    tabNodes.setContent(controller.buildView());
 
-    var tabController = tempTab.getController();
     weak.addListChangeListener(networkController,
         networkController.getNetworkPane().getVisibleRows(), c -> {
           if (weak.isDisposed()) {
             return;
           }
           ObservableList<? extends FeatureListRow> visible = c.getList();
-          tabController.getIdSearchField().setText(
+          controller.getFilterModel().setIdFilter(
               visible.stream().map(FeatureListRow::getID).map(Object::toString)
                   .collect(Collectors.joining(",")));
         });

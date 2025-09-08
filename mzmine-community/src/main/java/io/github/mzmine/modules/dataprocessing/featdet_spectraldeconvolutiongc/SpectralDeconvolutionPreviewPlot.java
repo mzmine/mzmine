@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,9 +31,13 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.List;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.XYAnnotation;
 import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
@@ -51,6 +55,8 @@ public class SpectralDeconvolutionPreviewPlot extends EChartViewer {
   private final XYPlot plot;
   private int datasetIndex;
   private final XYLineAndShapeRenderer renderer;
+  private final BooleanProperty showRtWidths = new SimpleBooleanProperty(false);
+  private List<XYAnnotation> widthAnnotations = new ArrayList<>();
 
   public SpectralDeconvolutionPreviewPlot(String title, String xAxisLabel, String yAxisLabel) {
     super(null);
@@ -73,6 +79,28 @@ public class SpectralDeconvolutionPreviewPlot extends EChartViewer {
     datasetIndex = 0;
     renderer = new XYLineAndShapeRenderer(false, true);
     plot.setRenderer(renderer);
+
+    showRtWidths.subscribe((_, show) -> handleShowRtWidthsChange(show));
+  }
+
+  private void handleShowRtWidthsChange(boolean show) {
+    if (widthAnnotations == null || widthAnnotations.isEmpty()) {
+      return;
+    }
+    final boolean oldNotify = plot.isNotify();
+    plot.setNotify(false);
+    plot.clearAnnotations();
+
+    if (show) {
+      for (XYAnnotation ann : widthAnnotations) {
+        plot.addAnnotation(ann, false);
+      }
+    }
+
+    plot.setNotify(oldNotify);
+    if (oldNotify) {
+      getChart().fireChartChanged();
+    }
   }
 
   public void addDataset(List<ModularFeature> features, XYSeries series, Color color) {
@@ -80,9 +108,13 @@ public class SpectralDeconvolutionPreviewPlot extends EChartViewer {
     dataset.addSeries(series);
     plot.setDataset(datasetIndex, dataset);
 
-    renderer.setSeriesPaint(datasetIndex, color);
-    renderer.setSeriesShape(datasetIndex, new Rectangle(0, 0, 1, 1));
+    var renderer = new XYLineAndShapeRenderer(false, true);
+    renderer.setSeriesPaint(0, color);
+    renderer.setSeriesShape(datasetIndex, new Rectangle(0, 0, 2, 2));
     plot.setRenderer(datasetIndex, renderer);
+
+    // way to slow to add both the dataset and also the XYAnnotations.
+    // TODO translate this into the renderer and make it a XYZDataset using Z for RT width
     for (ModularFeature feature : features) {
 
       // Calculate the RT range (width of the box) based on the feature's RT
@@ -101,12 +133,16 @@ public class SpectralDeconvolutionPreviewPlot extends EChartViewer {
       XYShapeAnnotation annotation = new XYShapeAnnotation(box, new BasicStroke(1.0f), color,
           color);
 
+      widthAnnotations.add(annotation);
       // Add the annotation to the plot
-      plot.addAnnotation(annotation);
+      if (showRtWidths.get()) {
+        plot.addAnnotation(annotation, false);
+      }
     }
-    datasetIndex++;
 
+    datasetIndex++;
   }
+
 
   public void clearDatasets() {
     for (int i = 0; i < datasetIndex; i++) {
@@ -115,6 +151,7 @@ public class SpectralDeconvolutionPreviewPlot extends EChartViewer {
     }
     datasetIndex = 0;
     plot.clearAnnotations();
+    widthAnnotations.clear();
   }
 
   public void addIntervalMarker(Range<Float> rtRange, Color color) {
@@ -129,4 +166,7 @@ public class SpectralDeconvolutionPreviewPlot extends EChartViewer {
     plot.addDomainMarker(intervalMarker, Layer.BACKGROUND);
   }
 
+  public BooleanProperty showRtWidthsProperty() {
+    return showRtWidths;
+  }
 }

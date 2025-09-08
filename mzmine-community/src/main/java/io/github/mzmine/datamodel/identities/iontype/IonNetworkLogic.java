@@ -146,7 +146,7 @@ public class IonNetworkLogic {
 
       return nets;
     } else {
-      return createAnnotationNetworks(pkl.getRows(), mzTolerance);
+      return createAnnotationNetworks(pkl.getRowsCopy(), mzTolerance);
     }
   }
 

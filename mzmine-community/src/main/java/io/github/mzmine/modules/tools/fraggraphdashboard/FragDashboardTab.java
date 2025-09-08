@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.ParameterSet;
@@ -68,6 +69,7 @@ public class FragDashboardTab extends SimpleTab {
   public FragDashboardTab(double precursor, @NotNull MassSpectrum fragmentSpectrum,
       @NotNull MassSpectrum isotopes, ParameterSet parameters) {
     super("Fragment graph dashboard");
+    setSubTitle("m/z " + ConfigService.getGuiFormats().mz(precursor));
     controller = new FragDashboardController(parameters);
     setContent(controller.buildView());
     controller.setInput(precursor, fragmentSpectrum, isotopes);
@@ -84,6 +86,7 @@ public class FragDashboardTab extends SimpleTab {
   public FragDashboardTab(@NotNull FeatureListRow row, @Nullable ParameterSet parameters,
       @Nullable IMolecularFormula formula) {
     super("Fragment graph dashboard");
+    setSubTitle(FeatureUtils.rowToString(row));
     if (parameters == null) {
       parameters = MZmineCore.getConfiguration().getModuleParameters(FragDashboardModule.class);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,18 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import impl.org.controlsfx.skin.AutoCompletePopup;
 import io.github.mzmine.javafx.components.NumberTextField;
+import io.github.mzmine.javafx.components.skins.DynamicTextFieldSkin;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import java.text.NumberFormat;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Supplier;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -40,6 +46,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import org.controlsfx.control.textfield.AutoCompletionBinding;
+import org.controlsfx.control.textfield.TextFields;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,11 +72,17 @@ public class FxTextFields {
   // strings
   public static TextField newTextField(@Nullable Integer columnCount,
       @Nullable StringProperty textProperty, @Nullable String tooltip) {
-    return newTextField(columnCount, textProperty, null, tooltip);
+    return newTextField(columnCount, textProperty, (StringProperty) null, tooltip);
   }
 
   public static TextField newTextField(@Nullable Integer columnCount,
       @Nullable StringProperty textProperty, @Nullable String prompt, @Nullable String tooltip) {
+    return newTextField(columnCount, textProperty, new SimpleStringProperty(prompt), tooltip);
+  }
+
+  public static TextField newTextField(@Nullable Integer columnCount,
+      @Nullable StringProperty textProperty, @Nullable StringProperty prompt,
+      @Nullable String tooltip) {
     return applyToField(new TextField(), columnCount, textProperty, prompt, tooltip);
   }
 
@@ -85,17 +99,17 @@ public class FxTextFields {
 
   public static TextField applyToField(@NotNull final TextField field,
       final @Nullable Integer columnCount, final @Nullable StringProperty textProperty,
-      final @Nullable String prompt, final @Nullable String tooltip) {
+      final @Nullable StringProperty prompt, final @Nullable String tooltip) {
     if (textProperty != null) {
       field.textProperty().bindBidirectional(textProperty);
     }
     if (prompt != null) {
-      field.setPromptText(prompt);
+      field.promptTextProperty().bind(prompt);
     }
     if (tooltip != null) {
       field.setTooltip(new Tooltip(tooltip));
     }
-    if (columnCount == null) {
+    if (columnCount != null) {
       field.setPrefColumnCount(columnCount);
     }
     return field;
@@ -104,8 +118,8 @@ public class FxTextFields {
   public static PasswordField newPasswordField(@Nullable Integer columnCount,
       @Nullable Property<StringBuilder> passwordProperty, @Nullable String prompt,
       @Nullable String tooltip) {
-    var passField = (PasswordField) applyToField(new PasswordField(), columnCount, null, prompt,
-        tooltip);
+    var passField = (PasswordField) applyToField(new PasswordField(), columnCount, null,
+        new SimpleStringProperty(prompt), tooltip);
     if (passwordProperty != null) {
       passwordProperty.setValue((StringBuilder) passField.getCharacters());
     }
@@ -167,5 +181,160 @@ public class FxTextFields {
       textField.positionCaret(Math.min(caretPosition, textField.getLength()));
     }, PropertyUtils.DEFAULT_TEXT_FIELD_DELAY, textField.textProperty());
     return textFormatter;
+  }
+
+  /**
+   * Automatically bind auto completion to a text field based on a list, e.g., ObservableList or
+   * static
+   *
+   * @param textField       the target
+   * @param optionsSupplier options
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
+      @NotNull final Supplier<List<T>> optionsSupplier) {
+    return bindAutoCompletion(textField, true, optionsSupplier);
+  }
+
+  /**
+   * Automatically bind auto completion to a text field based on a list, e.g., ObservableList or
+   * static
+   *
+   * @param textField       the target
+   * @param autoShowOnFocus shows the full list on focus and click
+   * @param optionsSupplier options
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
+      boolean autoShowOnFocus, @NotNull final Supplier<List<T>> optionsSupplier) {
+
+    final AutoCompletionBinding<T> acb = TextFields.bindAutoCompletion(textField,
+        iSuggestionRequest -> {
+          final String input = iSuggestionRequest.getUserText();
+          return autoCompleteSubMatch(optionsSupplier.get(), input);
+        });
+
+    if (autoShowOnFocus) {
+      autoShowAutoComplete(textField, acb);
+    }
+    return acb;
+  }
+
+  /**
+   * Automatically bind auto completion to a text field based on a list, e.g., ObservableList or
+   * static
+   *
+   * @param textField the target
+   * @param options   options
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
+      @Nullable final List<T> options) {
+    return bindAutoCompletion(textField, true, options);
+  }
+
+  /**
+   * Automatically bind auto completion to a text field based on a list, e.g., ObservableList or
+   * static
+   *
+   * @param textField       the target
+   * @param autoShowOnFocus shows the full list on focus and click
+   * @param options         options
+   * @return AutoCompletionBinding of the string representation
+   */
+  public static <T> AutoCompletionBinding<T> bindAutoCompletion(TextField textField,
+      boolean autoShowOnFocus, @Nullable final List<T> options) {
+    return bindAutoCompletion(textField, autoShowOnFocus, () -> options);
+  }
+
+  private static <T> void autoShowAutoComplete(TextField textField, AutoCompletionBinding<T> acb) {
+    acb.setVisibleRowCount(25);
+    // Show all suggestions when the user clicks or when field gains focus
+    textField.setOnMouseClicked(_ -> {
+      // auto show completion
+//      final String text = textField.getText();
+//      acb.setUserInput(text == null || text.isBlank() ? "*" : text);
+      // use this to always show full selection on first click
+      acb.setUserInput("*");
+    });
+    textField.focusedProperty().subscribe((_, isNowFocused) -> {
+      final AutoCompletePopup<T> pop = acb.getAutoCompletionPopup();
+      if (isNowFocused && !pop.isShowing()) {
+        // use this to always show full selection on first click
+        acb.setUserInput("*");
+//        pop.show(textField);
+      }
+    });
+  }
+
+
+  /**
+   * Only matches substrings. If there is only one match that is exactly the input then the result
+   * is an empty list to not show suggestions in TextFields
+   */
+  public static <T> @NotNull List<T> autoCompleteSubMatch(@Nullable final List<T> options,
+      final String input) {
+    if (options == null || options.isEmpty()) {
+      return List.of();
+    }
+    if (input.equals("*")) {
+      return options;
+    }
+
+    final String lowerInput = input.toLowerCase();
+
+    // need to return the
+    final List<T> matches = options.stream().filter(Objects::nonNull)
+        .filter(obj -> obj.toString().toLowerCase().trim().contains(lowerInput)).toList();
+    if (matches.size() == 1 && matches.getFirst().toString().trim().equalsIgnoreCase(lowerInput)) {
+      // exact input match - return empty
+      return List.of();
+    }
+    return matches;
+  }
+
+
+  /**
+   * Auto grows the pref column count property to fit the current text
+   *
+   * @return the same as input
+   */
+  public static TextField autoGrowFitText(final TextField field) {
+    return autoGrowFitText(field, 6, -1);
+  }
+
+  /**
+   * Auto grows the pref column count property to fit the current text
+   *
+   * @return the same as input
+   */
+  public static TextField autoGrowFitText(final TextField field, final int minColumnCount,
+      final int maxColumnCount) {
+    field.setSkin(new DynamicTextFieldSkin(field, minColumnCount, maxColumnCount));
+    return field;
+  }
+
+
+  public static TextField newAutoGrowTextField() {
+    return newAutoGrowTextField(null, null);
+  }
+
+  public static TextField newAutoGrowTextField(@Nullable StringProperty valueProperty,
+      @Nullable String tooltip) {
+    return autoGrowFitText(newTextField(null, valueProperty, tooltip));
+  }
+
+  public static TextField newAutoGrowTextField(@Nullable StringProperty valueProperty,
+      @Nullable String prompt, @Nullable String tooltip, final int minColumnCount,
+      final int maxColumnCount) {
+    return newAutoGrowTextField(valueProperty, new SimpleStringProperty(prompt), tooltip,
+        minColumnCount, maxColumnCount);
+  }
+
+  public static TextField newAutoGrowTextField(@Nullable StringProperty valueProperty,
+      @Nullable StringProperty promptProperty, @Nullable String tooltip, final int minColumnCount,
+      final int maxColumnCount) {
+    return autoGrowFitText(newTextField(null, valueProperty, promptProperty, tooltip),
+        minColumnCount, maxColumnCount);
   }
 }

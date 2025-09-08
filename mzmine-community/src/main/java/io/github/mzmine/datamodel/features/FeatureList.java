@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,6 +43,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.DataTypeUtils;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -72,7 +72,8 @@ public interface FeatureList {
   /**
    * @return Short descriptive name for the feature list
    */
-  @NotNull String getName();
+  @NotNull
+  String getName();
 
   /**
    * Change the name of this feature list
@@ -83,11 +84,11 @@ public interface FeatureList {
 
   void addRowBinding(@NotNull List<RowBinding> bindings);
 
-  void addFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener);
+  void addFeatureTypeValueListener(DataType featureType, DataTypeValueChangeListener listener);
 
-  void addRowTypeListener(DataType rowType, DataTypeValueChangeListener listener);
+  void addRowTypeValueListener(DataType rowType, DataTypeValueChangeListener listener);
 
-  void removeRowTypeListener(DataType rowType, DataTypeValueChangeListener listener);
+  void removeRowTypeValueListener(DataType rowType, DataTypeValueChangeListener listener);
 
   void removeFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener);
 
@@ -103,7 +104,7 @@ public interface FeatureList {
    */
   void applyRowBindings(FeatureListRow row);
 
-  ObservableSet<DataType> getFeatureTypes();
+  Set<DataType> getFeatureTypes();
 
   void addFeatureType(Collection<DataType> types);
 
@@ -113,7 +114,7 @@ public interface FeatureList {
 
   void addRowType(@NotNull DataType<?>... types);
 
-  ObservableSet<DataType> getRowTypes();
+  Set<DataType> getRowTypes();
 
 
   /**
@@ -203,24 +204,35 @@ public interface FeatureList {
   public FeatureListRow getRow(int row);
 
   /**
-   * Returns all feature list rows
+   * An unmodifiable view of the list of rows. All mutations are made by the {@link FeatureList}
+   * instance internally. Like sorting {@link FeatureList#applyDefaultRowsSorting()}, deletion,
+   * setAll, add, clear.
+   *
+   * @return an unmodifiable view of rows
    */
   public ObservableList<FeatureListRow> getRows();
 
   /**
-   * Clear all rows and set new rows
-   *
-   * @param rows new rows to set
+   * @return modifiable copy of internal rows
    */
-  void setRows(FeatureListRow... rows);
+  default List<FeatureListRow> getRowsCopy() {
+    return new ArrayList<>(getRows());
+  }
 
   /**
-   * Clear all rows and set new rows
+   * Clear all rows and set new rows - then apply default sorting
    *
    * @param rows new rows to set
    */
-  default void setRows(List<FeatureListRow> rows) {
-    setRows(rows.toArray(FeatureListRow[]::new));
+  void setRowsApplySort(FeatureListRow... rows);
+
+  /**
+   * Clear all rows and set new rows - then apply default sorting
+   *
+   * @param rows new rows to set
+   */
+  default void setRowsApplySort(List<FeatureListRow> rows) {
+    setRowsApplySort(rows.toArray(FeatureListRow[]::new));
   }
 
   /**
@@ -292,7 +304,8 @@ public interface FeatureList {
    * @return The scans used to build this feature list. For ion mobility data, the frames are
    * returned.
    */
-  @Nullable List<? extends Scan> getSeletedScans(@NotNull RawDataFile file);
+  @Nullable
+  List<? extends Scan> getSeletedScans(@NotNull RawDataFile file);
 
   /**
    * Returns all rows with average retention time within given range
@@ -401,7 +414,7 @@ public interface FeatureList {
   public FeatureListRow findRowByID(int id);
 
   default boolean isEmpty() {
-    return getRows().isEmpty();
+    return getNumberOfRows() == 0;
   }
 
   public String getDateCreated();
@@ -468,7 +481,8 @@ public interface FeatureList {
    *
    * @return a map that stores different relationship maps
    */
-  @NotNull R2RNetworkingMaps getRowMaps();
+  @NotNull
+  R2RNetworkingMaps getRowMaps();
 
   /**
    * Maps {@link Feature} DataType listeners, e.g., for calculating the mean values for a DataType
@@ -476,14 +490,16 @@ public interface FeatureList {
    *
    * @return map of feature DataType listeners
    */
-  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners();
+  @NotNull
+  Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners();
 
   /**
    * Maps {@link FeatureListRow} DataType listeners, e.g., for graphical representations
    *
    * @return map of feature DataType listeners
    */
-  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners();
+  @NotNull
+  Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners();
 
   /**
    * @param row
@@ -528,7 +544,14 @@ public interface FeatureList {
     master.addAll(maps);
   }
 
-  void removeRows(Set<FeatureListRow> rowsToRemove);
+  void removeRows(Collection<FeatureListRow> rowsToRemove);
+
+  /**
+   * Sorts the internal rows
+   */
+  void applyDefaultRowsSorting();
+
+  void clearRows();
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge

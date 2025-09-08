@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.other_detectors;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
@@ -47,6 +48,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OtherTraceSelectionComponent extends VBox implements
@@ -136,43 +138,43 @@ public class OtherTraceSelectionComponent extends VBox implements
   }
 
   public void setValue(final OtherTraceSelection value) {
-    chromType.set(ChromatogramTypeChoices.fromChromatogramType(value.getChromatogramType()));
+    chromType.set(ChromatogramTypeChoices.fromChromatogramType(value.chromatogramType()));
     // replace the wildcard filter with the gui representation
     rangeUnitFilter.set(
-        value.getRangeUnitFilter() != null ? value.getRangeUnitFilter().replaceAll("\\*\\.", "*")
-            : "");
+        value.rangeUnitFilter() != null ? value.rangeUnitFilter().replaceAll("\\*\\.", "*") : "");
     rangeLabelFilter.set(
-        value.getRangeLabelFilter() != null ? value.getRangeLabelFilter().replaceAll("\\*\\.", "*")
+        value.rangeLabelFilter() != null ? value.rangeLabelFilter().replaceAll("\\*\\.", "*") : "");
+    descriptionFilter.set(
+        value.descriptionFilter() != null ? value.descriptionFilter().replaceAll("\\*\\.", "*")
             : "");
-    descriptionFilter.set(value.getDescriptionFilter() != null ? value.getDescriptionFilter()
-        .replaceAll("\\*\\.", "*") : "");
-    rawOrProcessed.set(value.getRawOrProcessed());
+    rawOrProcessed.set(value.rawOrProcessed());
   }
 
   /**
    * Reasonable choices for the gui and ALL option.
    */
   private enum ChromatogramTypeChoices {
-    ELECTROMAGNETIC_RADIATION, ABSORPTION, EMISSION, ION_CURRENT, UNKNOWN, ALL;
+    ELECTROMAGNETIC_RADIATION, ABSORPTION, EMISSION, ION_CURRENT, UNKNOWN, MRM_SRM, ALL;
 
     static ChromatogramTypeChoices fromChromatogramType(final @Nullable ChromatogramType type) {
       return switch (type) {
-        case TIC, SIM, SIC, BPC, MRM_SRM, PRESSURE, FLOW_RATE, UNKNOWN -> UNKNOWN;
+        case TIC, SIM, SIC, BPC, PRESSURE, FLOW_RATE, UNKNOWN -> UNKNOWN;
         case ELECTROMAGNETIC_RADIATION -> ELECTROMAGNETIC_RADIATION;
         case ABSORPTION -> ABSORPTION;
         case EMISSION -> EMISSION;
         case ION_CURRENT -> ION_CURRENT;
+        case MRM_SRM -> MRM_SRM;
         case null -> ALL;
       };
     }
 
-    @Nullable
-    ChromatogramType toChromatogramType() {
+    @Nullable ChromatogramType toChromatogramType() {
       return switch (this) {
         case ELECTROMAGNETIC_RADIATION -> ChromatogramType.ELECTROMAGNETIC_RADIATION;
         case ABSORPTION -> ChromatogramType.ABSORPTION;
         case EMISSION -> ChromatogramType.EMISSION;
         case ION_CURRENT -> ChromatogramType.ION_CURRENT;
+        case MRM_SRM -> ChromatogramType.MRM_SRM;
         case UNKNOWN -> ChromatogramType.UNKNOWN;
         case ALL -> null;
       };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,12 @@ package io.github.mzmine.javafx.components.factories;
 
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.components.factories.FxLabels.Styles;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.control.Label;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import org.jetbrains.annotations.NotNull;
 
 public class FxTexts {
 
@@ -36,7 +41,7 @@ public class FxTexts {
   }
 
   public static Text underlined(String content) {
-    final Text text = new Text(content);
+    final Text text = text(content);
     text.setUnderline(true);
     return text;
   }
@@ -54,24 +59,21 @@ public class FxTexts {
   }
 
   public static Text styledText(String content, String styleClass) {
-    final Text text = new Text(content);
-    text.getStyleClass().add(styleClass);
+    return styledText(text(content), styleClass);
+  }
 
+  public static @NotNull Text styledText(Text text, String styleClass) {
+    text.getStyleClass().add(styleClass);
     return text;
   }
 
   public static Text hyperlinkText(String link) {
-    final Text text = new Text(link);
-    text.getStyleClass().add("hyperlink");
-    text.setOnMouseReleased(_ -> DesktopService.getDesktop().openWebPage(link));
-    return text;
+    return hyperlinkText(link, link);
   }
 
   public static Text hyperlinkText(String content, String link) {
-    final Text text = new Text(content);
-    text.getStyleClass().add("hyperlink");
-    text.setOnMouseReleased(_ -> DesktopService.getDesktop().openWebPage(link));
-    return text;
+    final Text text = text(content);
+    return hyperlinkText(text, link);
   }
 
   public static Text hyperlinkText(Text text, String link) {
@@ -84,4 +86,28 @@ public class FxTexts {
     return text("\n");
   }
 
+  public static Text styledText(ObservableValue<String> text, Styles styleClass) {
+    return styledText(text, styleClass.getStyleClass());
+  }
+
+  public static Text styledText(ObservableValue<String> text, String styleClass) {
+    return styledText(text(text), styleClass);
+  }
+
+  public static @NotNull Text text(ObservableValue<String> text) {
+    final Text node = text(text.getValue());
+    node.textProperty().bind(text);
+    return node;
+  }
+
+  public static Text colored(Text text, Color color) {
+    // text.setFill does not work - overwritten by css?
+    text.setStyle("-fx-fill: " + FxColorUtil.colorToHex(color));
+    return text;
+  }
+
+  public static Label colored(Label text, Color color) {
+    text.setStyle("-fx-text-fill: " + FxColorUtil.colorToHex(color));
+    return text;
+  }
 }

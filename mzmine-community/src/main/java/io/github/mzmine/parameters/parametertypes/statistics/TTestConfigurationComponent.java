@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,86 +25,69 @@
 
 package io.github.mzmine.parameters.parametertypes.statistics;
 
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestSamplingConfig;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
+import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
+import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
 import io.github.mzmine.parameters.ValuePropertyComponent;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
 import java.util.List;
-import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
 
 public class TTestConfigurationComponent extends GridPane implements
-    ValuePropertyComponent<StorableTTestConfiguration> {
+    ValuePropertyComponent<UnivariateRowSignificanceTestConfig> {
 
-  private final ComboBox<TTestSamplingConfig> samplingCombo;
-  private final ComboBox<String> metadataCombo;
-  private final ComboBox<String> groupACombo;
-  private final ComboBox<String> groupBCombo;
+  private final ComboBox<SignificanceTests> samplingCombo;
+  private final MetadataGroupingComponent metadataCombo;
+  private final TextField groupACombo;
+  private final TextField groupBCombo;
 
-  private final PauseTransition delay = new PauseTransition(new Duration(100));
 
   /**
    * The value as selected in the gui. automatically updated on change. Value may be null, if an
    * invalid selection was made.
    */
-  private final ObjectProperty<StorableTTestConfiguration> valueProperty = new SimpleObjectProperty<>();
+  private final ObjectProperty<UnivariateRowSignificanceTestConfig> valueProperty = new SimpleObjectProperty<>();
 
   public TTestConfigurationComponent() {
     super(5, 5);
 
     samplingCombo = new ComboBox<>(
-        FXCollections.observableList(List.of(TTestSamplingConfig.values())));
-    samplingCombo.getSelectionModel().select(TTestSamplingConfig.UNPAIRED);
+        FXCollections.observableList(List.of(SignificanceTests.univariateValues())));
+    samplingCombo.getSelectionModel().select(0);
 
     // using an actual combo here. TTest is used for visualisation which is not available in headless mode.
-    final MetadataTable metadata = MZmineCore.getProjectMetadata();
-    metadataCombo = new ComboBox<>(FXCollections.observableList(
-        metadata.getColumns().stream().map(MetadataColumn::getTitle).sorted().toList()));
+    metadataCombo = new MetadataGroupingComponent();
 
     // todo check if this actually works or throws type exceptions.
-    groupACombo = new ComboBox<>();
-    groupBCombo = new ComboBox<>();
-    metadataCombo.setEditable(true);
-    groupACombo.setEditable(true);
-    groupBCombo.setEditable(true);
+    groupACombo = metadataCombo.createLinkedGroupCombo("Select first group (A) from column.");
+    groupBCombo = metadataCombo.createLinkedGroupCombo("Select second group (B) from column.");
 
-    metadataCombo.getSelectionModel().selectedItemProperty().addListener((obs, o, newColName) -> {
-      final MetadataTable meta = MZmineCore.getProjectMetadata();
-      var col = meta.getColumnByName(newColName);
-      if (col == null) {
-        final String a = groupACombo.getSelectionModel().getSelectedItem();
-        final String b = groupBCombo.getSelectionModel().getSelectedItem();
-        groupACombo.getSelectionModel().clearSelection();
-        groupBCombo.getSelectionModel().clearSelection();
-        groupACombo.setItems(FXCollections.observableList(List.of()));
-        groupBCombo.setItems(FXCollections.observableList(List.of()));
-        // this keeps the selection if an invalid metadata column was selected, but removes all the other choices
-        // necessary for the batch mode if no metadata was imported yet
-        groupACombo.getSelectionModel().select(a);
-        groupBCombo.getSelectionModel().select(b);
-        return;
-      }
-      final List<?> distinctColumnValues = meta.getDistinctColumnValues(col);
+    metadataCombo.uniqueColumnValuesProperty()
+        .addListener((ListChangeListener<? super String>) change -> {
+          final ObservableList<? extends String> newOptions = change.getList();
+          if (newOptions.size() < 2) {
+            // this keeps the selection if an invalid metadata column was selected
+            // necessary for the batch mode if no metadata was imported yet
+            return;
+          }
 
-      final ObservableList<String> observableValues = FXCollections.observableList(
-          distinctColumnValues.stream().map(Object::toString).toList());
-      groupACombo.setItems(observableValues);
-      groupBCombo.setItems(observableValues);
-      groupACombo.getSelectionModel().selectFirst();
-      groupBCombo.getSelectionModel().selectLast();
-    });
+          groupACombo.setText(newOptions.getFirst());
+          groupBCombo.setText(newOptions.getLast());
+        });
 
     add(new Label("Metadata column"), 0, 0);
     add(metadataCombo, 1, 0);
-    add(new Label("Sample type"), 2, 0);
+    add(new Label("Test type"), 2, 0);
     add(samplingCombo, 3, 0);
     add(new Label("Group A"), 0, 1);
     add(groupACombo, 1, 1);
@@ -113,42 +96,56 @@ public class TTestConfigurationComponent extends GridPane implements
 
     // use a delay, because changes in the metadata column will automatically change the group
     // columns -> avoid multiple triggers of listeners to the value property.
-    delay.setOnFinished(__ -> updateValueProperty());
-
-    // update value on change
-    metadataCombo.valueProperty().addListener(__ -> delay.playFromStart());
-    groupACombo.valueProperty().addListener(__ -> delay.playFromStart());
-    groupBCombo.valueProperty().addListener(__ -> delay.playFromStart());
-    samplingCombo.valueProperty().addListener(__ -> delay.playFromStart());
+    PropertyUtils.onChangeDelayedSubscription(this::updateValueProperty, Duration.millis(100),
+        metadataCombo.valueProperty(), groupACombo.textProperty(), groupBCombo.textProperty(),
+        samplingCombo.valueProperty());
   }
 
   private void updateValueProperty() {
     final String columnName = metadataCombo.getValue();
-    final String a = groupACombo.getValue();
-    final String b = groupBCombo.getValue();
+    final String a = groupACombo.getText();
+    final String b = groupBCombo.getText();
     var sampling = samplingCombo.getValue();
     if (columnName == null || a == null || sampling == null || b == null) {
       return;
     }
 
-    valueProperty.set(new StorableTTestConfiguration(sampling, columnName, a, b));
+    valueProperty.set(new UnivariateRowSignificanceTestConfig(sampling, columnName, a, b));
   }
 
-  public StorableTTestConfiguration getValue() {
+  public UnivariateRowSignificanceTestConfig getValue() {
     updateValueProperty();
     return valueProperty.get();
   }
 
   @Override
-  public ObjectProperty<StorableTTestConfiguration> valueProperty() {
+  public ObjectProperty<UnivariateRowSignificanceTestConfig> valueProperty() {
     return valueProperty;
   }
 
-  public void setValue(StorableTTestConfiguration value) {
+  public void setTest(RowSignificanceTest test) {
+    if (test == null) {
+      setValue(null);
+    } else if (test instanceof UnivariateRowSignificanceTest<?> uniTest) {
+      setValue(uniTest.toConfiguration());
+    } else {
+      throw new IllegalArgumentException(
+          "Unsupported test type in stats dashboard: " + test.getClass());
+    }
+  }
+
+  public void setValue(UnivariateRowSignificanceTestConfig value) {
+    if (value == null) {
+      metadataCombo.setValue(null);
+      groupACombo.setText(null);
+      groupBCombo.setText(null);
+      samplingCombo.setValue(null);
+      return;
+    }
     this.valueProperty.set(value);
     metadataCombo.setValue(value.column());
-    groupACombo.setValue(value.groupA());
-    groupBCombo.setValue(value.groupB());
+    groupACombo.setText(value.groupA());
+    groupBCombo.setText(value.groupB());
     samplingCombo.setValue(value.samplingConfig());
   }
 }

@@ -59,9 +59,10 @@ class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
   private final SpectraPlot spectraPlot;
   private SpectraIdentificationResultsWindowFX resultWindow;
 
-  SingleSpectrumLibrarySearchTask(ParameterSet parameters, Scan currentScan,
-      SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
-    super(parameters, currentScan, moduleCallDate); // no new data stored -> null
+  SingleSpectrumLibrarySearchTask(SingleSpectrumLibrarySearchParameters parameters,
+      Scan currentScan, SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
+    super(parameters, currentScan,
+        moduleCallDate); // no new data stored -> null
 
     this.spectraPlot = spectraPlot;
   }

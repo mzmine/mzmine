@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -66,7 +66,9 @@ import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
 public class FormulaPredictionFeatureListTask extends AbstractTask {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(
+      FormulaPredictionFeatureListTask.class.getName());
+
   private final MolecularFormulaRange elementCounts;
   private final Double minIsotopeScore;
   private final Double isotopeNoiseLevel;
@@ -244,8 +246,10 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       if (!resultingFormulas.isEmpty()) {
         FormulaUtils.sortFormulaList(resultingFormulas, sortPPMFactor, sortIsotopeFactor,
             sortMSMSFactor);
-        row.setFormulas(resultingFormulas.subList(0,
+        // do not set sublist directly as this will keep the original full list
+        var topNFormulas = new ArrayList<>(resultingFormulas.subList(0,
             Math.min(resultingFormulas.size(), maxBestFormulasPerFeature)));
+        row.setFormulas(topNFormulas);
       }
 
       if (isCanceled()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,62 +25,37 @@
 
 package io.github.mzmine.parameters.parametertypes.metadata;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.project.ProjectService;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import static io.github.mzmine.javafx.components.factories.FxLabels.newLabelNoWrap;
+
+import io.github.mzmine.javafx.components.util.FxLayout;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
-import javafx.util.Callback;
-import org.controlsfx.control.textfield.AutoCompletionBinding;
-import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
-import org.controlsfx.control.textfield.TextFields;
+import javafx.scene.layout.GridPane;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class MetadataGroupSelectionComponent extends VBox {
+public class MetadataGroupSelectionComponent extends GridPane {
 
-  private static final int inputSize = 20;
-  private final TextField columnField = new TextField();
-  private final TextField groupField = new TextField();
+  // auto completion is automatically bound to both fields
+  private final MetadataGroupingComponent columnField = new MetadataGroupingComponent();
+  private final TextField groupField = columnField.createLinkedGroupCombo(
+      "Select group from column.");
 
   public MetadataGroupSelectionComponent() {
     super();
-    columnField.setPrefColumnCount(inputSize);
-    final AutoCompletionBinding<MetadataColumn<?>> colBinding = TextFields.bindAutoCompletion(
-        columnField, MZmineCore.getProjectMetadata().getColumns());
+    setHgap(FxLayout.DEFAULT_SPACE);
+    setVgap(FxLayout.DEFAULT_SPACE);
 
-    groupField.setPrefColumnCount(inputSize);
-    TextFields.bindAutoCompletion(groupField,
-        (Callback<ISuggestionRequest, Collection<? extends Object>>) iSuggestionRequest -> {
-          final String input = iSuggestionRequest.getUserText().toLowerCase();
-
-          final MetadataTable metadata = MZmineCore.getProjectMetadata();
-          final MetadataColumn<?> column = metadata.getColumnByName(columnField.getText());
-          if (column == null) {
-            return List.of();
-          }
-
-          // get all possible values
-          final RawDataFile[] files = ProjectService.getProject().getDataFiles();
-          final List<?> distinctValues = Arrays.stream(files)
-              .map(file -> metadata.getValue(column, file)).distinct().toList();
-
-          // get all values that match the current input
-          return distinctValues.stream().map(Object::toString).filter(Objects::nonNull)
-              .map(String::toLowerCase).filter(str -> str.contains(input)).sorted().toList();
-        });
-
-    setSpacing(5);
-    getChildren().addAll(columnField, groupField);
+    FxLayout.applyGrid2Col(this,
+        // children
+        newLabelNoWrap("Metadata column"), columnField, //
+        newLabelNoWrap("Metadata group"), groupField //
+    );
   }
 
+  @NotNull
   public MetadataGroupSelection getValue() {
-    final String column = columnField.textProperty().getValue();
-    final String group = groupField.textProperty().getValue();
+    final String column = columnField.getValue();
+    final String group = groupField.getText();
 
     if (column == null || group == null) {
       return MetadataGroupSelection.NONE;
@@ -89,14 +64,22 @@ public class MetadataGroupSelectionComponent extends VBox {
     return new MetadataGroupSelection(column.trim(), group.trim());
   }
 
-  public void setValue(MetadataGroupSelection value) {
+  public void setValue(@Nullable MetadataGroupSelection value) {
     if (value == null) {
       groupField.setText("");
-      columnField.setText("");
+      columnField.setValue("");
       return;
     }
 
     groupField.setText(value.groupStr());
-    columnField.setText(value.columnName());
+    columnField.setValue(value.columnName());
+  }
+
+  public MetadataGroupingComponent getColumnField() {
+    return columnField;
+  }
+
+  public TextField getGroupField() {
+    return groupField;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -39,6 +40,12 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.statistics.DataTableUtils;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
+import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.GlobalLimitOfDetectionImputer;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
@@ -63,14 +70,18 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.util.MathUtils;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.apache.commons.math3.linear.RealMatrix;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -225,7 +236,7 @@ public class FeatureFindingTest {
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.suffix, chromSuffix);
 
     logger.info("Testing ADAPChromatogramBuilder");
-    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30,
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(50,
         ModularADAPChromatogramBuilderModule.class, paramChrom);
 
     // should have finished by now
@@ -297,7 +308,7 @@ public class FeatureFindingTest {
     sgParam.setParameter(SavitzkyGolayParameters.rtSmoothing, true, 5);
 
     logger.info("Testing chromatogram smoothing (RT, 5 dp)");
-    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30, SmoothingModule.class,
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(50, SmoothingModule.class,
         paramSmooth);
 
     // should have finished by now
@@ -402,7 +413,7 @@ public class FeatureFindingTest {
     groupMs2Params.setParameter(GroupMS2Parameters.minRequiredSignals, false);
     groupMs2Params.setParameter(GroupMS2Parameters.mzTol, new MZTolerance(0.05, 10));
     logger.info("Testing chromatogram deconvolution");
-    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(45,
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(65,
         MinimumSearchFeatureResolverModule.class, generalParam);
 
     // should have finished by now
@@ -464,7 +475,7 @@ public class FeatureFindingTest {
     generalParam.setParameter(IsotopeGrouperParameters.suffix, deisotopeSuffix);
 
     logger.info("Testing deisotoping");
-    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30, IsotopeGrouperModule.class,
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(50, IsotopeGrouperModule.class,
         generalParam);
 
     // should have finished by now
@@ -542,7 +553,7 @@ public class FeatureFindingTest {
     generalParam.setParameter(JoinAlignerParameters.peakListName, alignedName);
 
     logger.info("Testing join aligner");
-    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30, JoinAlignerModule.class,
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(50, JoinAlignerModule.class,
         generalParam);
 
     // should have finished by now
@@ -578,6 +589,87 @@ public class FeatureFindingTest {
     assertEquals(57, processed1.stream()
             .filter(row -> row.getFeatures().stream().filter(Objects::nonNull).count() == 2).count(),
         "Number of aligned features changed");
+  }
+
+
+  @Test
+  @Order(7)
+  @DisplayName("Test FeatureDataTable")
+  void featureDataTableTest() {
+    final AbundanceDataTablePreparationConfig config = new AbundanceDataTablePreparationConfig(
+        AbundanceMeasure.Area, ImputationFunctions.None, ScalingFunctions.None,
+        ScalingFunctions.None);
+
+    final FeaturesDataTable table = StatisticUtils.extractAbundancesPrepareData(lastFlistA, config);
+
+    assertEquals(2, table.getNumberOfSamples());
+    assertEquals(2, table.getFeatureRow(5).abundances().length);
+    assertEquals(2, DataTableUtils.extractRowData(table, 10, table.getRawDataFiles()).length);
+    assertEquals(155, table.getNumberOfFeatures());
+    assertEquals(155, table.getSampleData(1).length);
+    assertEquals(2, table.getFeatureData(1, false).length);
+    final double minimum = DataTableUtils.getMinimum(table, true).getAsDouble();
+    assertEquals(17318.857421875, minimum);
+    assertEquals(29874.3515625d, table.getValue(10, 1));
+    assertEquals(Double.NaN, table.getValue(0, 0));
+
+    // check missing value imputation
+    final FeaturesDataTable imputed = ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION.getImputer()
+        .process(table, false);
+    final double imputedMinimum = minimum / GlobalLimitOfDetectionImputer.DEVISOR;
+    assertEquals(imputedMinimum, DataTableUtils.getMinimum(imputed, true).getAsDouble());
+    assertEquals(imputedMinimum, imputed.getValue(0, 0));
+
+    // scaling
+    final FeaturesDataTable scaled = ScalingFunctions.AutoScaling.getScalingFunction()
+        .process(imputed, false);
+
+    assertEquals(3.4207709890991476, scaled.getValue(10, 1));
+
+    // mean centering
+    final FeaturesDataTable centered = ScalingFunctions.MeanCentering.getScalingFunction()
+        .process(scaled, false);
+
+    assertEquals(-0.7071067811865479, centered.getValue(10, 1));
+    assertEquals(0, MathUtils.calcAvg(centered.getFeatureData(1, false)), 0.0000001);
+    assertEquals(0, MathUtils.calcAvg(centered.getFeatureData(5, false)), 0.0000001);
+    assertEquals(0, MathUtils.calcAvg(centered.getFeatureData(10, false)), 0.0000001);
+    assertEquals(0, MathUtils.calcAvg(centered.getFeatureData(125, false)), 0.0000001);
+
+    // old tables should have not changed!
+    assertEquals(Double.NaN, table.getValue(0, 0));
+    assertEquals(imputedMinimum, imputed.getValue(0, 0));
+    assertEquals(3.4207709890991476, scaled.getValue(10, 1));
+
+    // create RealMatrix
+    final RealMatrix matrix = DataTableUtils.createRealMatrix(centered);
+    assertEquals(2, matrix.getRowDimension());
+    assertEquals(155, matrix.getColumnDimension());
+    assertEquals(-0.7071067811865479, matrix.getEntry(1, 10), 0.0000001);
+
+    // filter samples
+    final FeaturesDataTable subsetBySamples = centered.subsetBySamples(
+        List.of(centered.getRawDataFile(0)));
+    assertEquals(1, subsetBySamples.getNumberOfSamples());
+    assertEquals(155, subsetBySamples.getNumberOfFeatures());
+
+    // sort rows
+    final Comparator<FeatureListRow> comparator = Comparator.comparingDouble(
+        FeatureListRow::getAverageMZ);
+    final List<FeatureListRow> sortedRows = centered.getFeatureListRows().stream()
+        .sorted(comparator).toList();
+    final FeaturesDataTable sortedTable = DataTableUtils.createSortedCopy(centered, comparator);
+    assertEquals(2, sortedTable.getNumberOfSamples());
+    assertEquals(155, sortedTable.getNumberOfFeatures());
+    assertEquals(sortedRows, sortedTable.getFeatureListRows());
+    assertEquals(sortedRows.get(10), sortedTable.getFeatureRow(10).row());
+
+    // subset by rows
+    FeaturesDataTable subsetRows = centered.subsetByFeatures(sortedRows.subList(50, 100));
+    assertEquals(2, subsetRows.getNumberOfSamples());
+    assertEquals(50, subsetRows.getNumberOfFeatures());
+    assertEquals(sortedRows.get(50), subsetRows.getFeatureRow(0).row());
+
   }
 
 

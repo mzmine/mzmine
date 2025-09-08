@@ -82,7 +82,7 @@ public class CCSUtils {
       case TIMS ->
           file.getCCSCalibration() != null ? file.getCCSCalibration().getCCS(mz, charge, mobility)
               : calcCCSFromTimsMobility(mobility.doubleValue(), charge, mz);
-      case NONE, FAIMS, MIXED, OTHER -> logUnsupportedMobilityUnit();
+      case NONE, FAIMS, MIXED, OTHER, SLIM -> logUnsupportedMobilityUnit();
     };
   }
 
@@ -129,12 +129,12 @@ public class CCSUtils {
     final List<String[]> content = CSVParsingUtils.readData(file, ";");
     fileReader.close();
 
-    List<ImportType> importTypes = CSVParsingUtils.findLineIds(
-        List.of(new ImportType(true, "mz", DataTypes.get(MZType.class)), //
-            new ImportType(true, "mobility", DataTypes.get(
+    List<ImportType<?>> importTypes = CSVParsingUtils.findLineIds(
+        List.of(new ImportType<>(true, "mz", DataTypes.get(MZType.class)), //
+            new ImportType<>(true, "mobility", DataTypes.get(
                 io.github.mzmine.datamodel.features.types.numbers.MobilityType.class)), //
-            new ImportType(true, "ccs", DataTypes.get(CCSType.class)), //
-            new ImportType(true, "charge", DataTypes.get(ChargeType.class))), content.get(0),
+            new ImportType<>(true, "ccs", DataTypes.get(CCSType.class)), //
+            new ImportType<>(true, "charge", DataTypes.get(ChargeType.class))), content.getFirst(),
         new SimpleStringProperty());
 
     if (importTypes == null) {

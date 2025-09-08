@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,7 +53,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ChromatogramBuilderTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(ChromatogramBuilderTask.class.getName());
 
   private MZmineProject project;
   private RawDataFile dataFile;
@@ -77,20 +77,21 @@ public class ChromatogramBuilderTask extends AbstractTask {
    * @param parameters
    */
   public ChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
-      ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+      ParameterSet parameters, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;
     this.dataFile = dataFile;
-    this.scanSelection =
-        parameters.getParameter(ChromatogramBuilderParameters.scanSelection).getValue();
+    this.scanSelection = parameters.getParameter(ChromatogramBuilderParameters.scanSelection)
+        .getValue();
 
-    this.mzTolerance =
-        parameters.getParameter(ChromatogramBuilderParameters.mzTolerance).getValue();
-    this.minimumTimeSpan =
-        parameters.getParameter(ChromatogramBuilderParameters.minimumTimeSpan).getValue();
-    this.minimumHeight =
-        parameters.getParameter(ChromatogramBuilderParameters.minimumHeight).getValue();
+    this.mzTolerance = parameters.getParameter(ChromatogramBuilderParameters.mzTolerance)
+        .getValue();
+    this.minimumTimeSpan = parameters.getParameter(ChromatogramBuilderParameters.minimumTimeSpan)
+        .getValue();
+    this.minimumHeight = parameters.getParameter(ChromatogramBuilderParameters.minimumHeight)
+        .getValue();
 
     this.suffix = parameters.getParameter(ChromatogramBuilderParameters.suffix).getValue();
     this.parameters = parameters;
@@ -107,10 +108,11 @@ public class ChromatogramBuilderTask extends AbstractTask {
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
   public double getFinishedPercentage() {
-    if (totalScans == 0)
+    if (totalScans == 0) {
       return 0;
-    else
+    } else {
       return (double) processedScans / totalScans;
+    }
   }
 
   public RawDataFile getDataFile() {
@@ -148,19 +150,20 @@ public class ChromatogramBuilderTask extends AbstractTask {
     newPeakList = new ModularFeatureList(dataFile + " " + suffix, getMemoryMapStorage(), dataFile);
 
     Chromatogram[] chromatograms;
-    HighestDataPointConnector massConnector = new HighestDataPointConnector(dataFile,
-        scans, minimumTimeSpan, minimumHeight, mzTolerance);
+    HighestDataPointConnector massConnector = new HighestDataPointConnector(dataFile, scans,
+        minimumTimeSpan, minimumHeight, mzTolerance);
 
     for (Scan scan : scans) {
 
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       MassList massList = scan.getMassList();
       if (massList == null) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Scan " + dataFile + " #" + scan.getScanNumber()
-            + " does not have a mass list");
+        setErrorMessage(
+            "Scan " + dataFile + " #" + scan.getScanNumber() + " does not have a mass list");
         return;
       }
 
@@ -168,8 +171,9 @@ public class ChromatogramBuilderTask extends AbstractTask {
 
       if (mzValues == null) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Mass list does not contain m/z values for scan #"
-            + scan.getScanNumber() + " of file " + dataFile);
+        setErrorMessage(
+            "Mass list does not contain m/z values for scan #" + scan.getScanNumber() + " of file "
+                + dataFile);
         return;
       }
 
@@ -197,8 +201,9 @@ public class ChromatogramBuilderTask extends AbstractTask {
 
     dataFile.getAppliedMethods().forEach(m -> newPeakList.getAppliedMethods().add(m));
     // Add new peaklist to the project
-    newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ChromatogramBuilderModule.class, parameters, getModuleCallDate()));
+    newPeakList.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(ChromatogramBuilderModule.class, parameters,
+            getModuleCallDate()));
     project.addFeatureList(newPeakList);
 
     // Add quality parameters to peaks

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,53 @@ import java.util.function.IntConsumer;
 import org.jetbrains.annotations.NotNull;
 
 public sealed interface IndexRange permits EmptyIndexRange, SimpleIndexRange, SingleIndexRange {
+
+
+  /**
+   * Parse a string of ranges like "1,4-9,11,14-15" into a list of IndexRange objects.
+   *
+   * @param input String containing ranges separated by commas. Each range can be a single number or
+   *              two numbers separated by a hyphen.
+   * @return List of IndexRange objects representing the parsed ranges
+   * @throws IllegalArgumentException if input format is invalid
+   */
+  static List<IndexRange> parseRanges(String input) {
+    if (input == null || input.isBlank()) {
+      return List.of();
+    }
+
+    List<IndexRange> ranges = new ArrayList<>();
+    String[] parts = input.split(",");
+
+    for (String part : parts) {
+      part = part.trim();
+      if (part.contains("-")) {
+        String[] range = part.split("-");
+        if (range.length != 2) {
+          throw new IllegalArgumentException("Invalid range format: " + part);
+        }
+        try {
+          int start = Integer.parseInt(range[0].trim());
+          int end = Integer.parseInt(range[1].trim());
+          ranges.add(IndexRange.ofInclusive(start, end));
+        } catch (NumberFormatException e) {
+          throw new IllegalArgumentException("Invalid number in range: " + part);
+        }
+      } else {
+        try {
+          int value = Integer.parseInt(part);
+          ranges.add(IndexRange.ofSingleValue(value));
+        } catch (NumberFormatException e) {
+          throw new IllegalArgumentException("Invalid number: " + part);
+        }
+      }
+    }
+    return ranges;
+  }
+
+  static IndexRange ofSingleValue(int value) {
+    return new SingleIndexRange(value);
+  }
 
   static List<IndexRange> findRanges(List<Integer> values) {
     if (values == null || values.isEmpty()) {
@@ -176,7 +223,21 @@ public sealed interface IndexRange permits EmptyIndexRange, SimpleIndexRange, Si
    * Create a sublist view that contains this IndexRange
    */
   default <T> List<T> sublist(List<T> data) {
-    return isEmpty() ? List.of() : data.subList(min(), maxExclusive());
+    return sublist(data, false);
+  }
+
+  /**
+   * Create a sublist view or copy that contains this IndexRange
+   *
+   * @param createCopy if true then create a copy instead of a view. use copy if original list may
+   *                   be garbage collected but view will disrupt this
+   */
+  default <T> List<T> sublist(List<T> data, final boolean createCopy) {
+    if (isEmpty()) {
+      return List.of();
+    }
+    List<T> view = data.subList(min(), maxExclusive());
+    return createCopy ? new ArrayList<>(view) : view;
   }
 
   /**

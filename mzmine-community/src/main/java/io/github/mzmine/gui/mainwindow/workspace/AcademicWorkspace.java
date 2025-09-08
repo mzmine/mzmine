@@ -68,6 +68,7 @@ import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModul
 import io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRemovalModule;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule;
 import io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule;
+import io.github.mzmine.modules.dataprocessing.filter_splitaligned.SplitAlignedFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFillerModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
@@ -76,6 +77,7 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.Refer
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
+import io.github.mzmine.modules.dataprocessing.norm_ri.RICalculationModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
 import io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule;
@@ -191,14 +193,14 @@ public final class AcademicWorkspace extends AbstractWorkspace {
     addModuleMenuItems(menu, "Feature list filtering", DuplicateFilterModule.class,
         RowsFilterModule.class, FeatureFilterModule.class, FeatureListBlankSubtractionModule.class,
         ChromatogramBlankSubtractionModule.class, MobilityMzRegionExtractionModule.class,
-        NeutralLossFilterModule.class);
+        NeutralLossFilterModule.class, SplitAlignedFeatureListModule.class);
     addModuleMenuItems(menu, "Alignment", JoinAlignerModule.class, MergeAlignerModule.class,
         RansacAlignerModule.class, GCAlignerModule.class,
         LcImageAlignerModule.class); // HierarAlignerGcModule, ADAP3AlignerModule (not mit compatible)
     addModuleMenuItems(menu, "Gap filling/Recursive feature finding",
         MultiThreadPeakFinderModule.class, SameRangeGapFillerModule.class);
     addModuleMenuItems(menu, "Normalization", RTCorrectionModule.class,
-        LinearNormalizerModule.class, StandardCompoundNormalizerModule.class);
+        LinearNormalizerModule.class, StandardCompoundNormalizerModule.class, RICalculationModule.class);
 
     menu.getItems().add(buildDefaultAnnotationSubMenu());
 

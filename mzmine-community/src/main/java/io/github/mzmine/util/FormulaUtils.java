@@ -278,7 +278,7 @@ public class FormulaUtils {
     return (neutralmass - charge * electronMass) / Math.abs(charge);
   }
 
-  public static double calculateExactMass(String formula) {
+  public static double calculateExactMass(@NotNull String formula) {
     return calculateExactMass(formula, 0);
   }
 
@@ -287,7 +287,7 @@ public class FormulaUtils {
    * negative, in case the formula contains negative such as C3H10P-3. This is important for
    * calculating the mass of some ionization adducts, such as deprotonation (H-1).
    */
-  public static double calculateExactMass(String formula, int charge) {
+  public static double calculateExactMass(@NotNull String formula, int charge) {
 
     if (formula.trim().length() == 0) {
       return 0;
@@ -318,7 +318,7 @@ public class FormulaUtils {
    * @param formula String of the molecular formula.
    * @return true / false
    */
-  public static boolean checkMolecularFormula(String formula) {
+  public static boolean checkMolecularFormula(@NotNull String formula) {
     if (formula.matches(".*[äöüÄÖÜß°§$%&/()=?ß²³´`+*~'#;:<>|]")) { // check
       // for
       // this
@@ -387,7 +387,7 @@ public class FormulaUtils {
    * @see FormulaParser#parseFormulaOrSMILES(String)
    */
   @Nullable
-  public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(String formulaOrSmiles,
+  public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(@Nullable String formulaOrSmiles,
       int overwriteCharge) {
     var f = createMajorIsotopeMolFormulaWithCharge(formulaOrSmiles);
     if (f != null) {
@@ -400,7 +400,10 @@ public class FormulaUtils {
    * @see FormulaParser#parseFormulaOrSMILES(String)
    */
   @Nullable
-  public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(String formulaOrSmiles) {
+  public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(@Nullable String formulaOrSmiles) {
+    if(formulaOrSmiles == null) {
+      return null;
+    }
     return FormulaParser.parseFormulaOrSMILES(formulaOrSmiles);
   }
 

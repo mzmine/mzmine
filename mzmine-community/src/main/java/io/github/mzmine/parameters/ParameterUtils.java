@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,23 +28,30 @@ package io.github.mzmine.parameters;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
+import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
+import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,8 +60,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javafx.beans.property.BooleanProperty;
+import javafx.scene.Node;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.ToggleButton;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 public class ParameterUtils {
 
@@ -401,6 +419,7 @@ public class ParameterUtils {
     }
     return param.getValue();
   }
+
   /**
    * @param batch A list of {@link MZmineProcessingStep}s, e.g.,
    *              {@link io.github.mzmine.modules.batchmode.BatchQueue} or a pre-filtered batch.
@@ -438,5 +457,168 @@ public class ParameterUtils {
         }).toList();
     return FileAndPathUtil.getMajorityFilePath(
         allImportedFiles.stream().map(File::getParentFile).toList());
+  }
+
+
+  /**
+   * Maps the names of parameters to the parameter for
+   * {@link #loadValuesFromXML(Class, Element, Map)}.
+   * <p>
+   * Extend this method to map old parameter names (maybe saved to batch files) to the parameter.
+   * Only works if the old and new parameters are of the same type (save and load the parameter
+   * values the same way).
+   * <p></p>
+   * Intended usage is: <p></p>
+   * {@code nameParameterMap.put("m/z tolerance", getParameter(mzTolerance));}
+   * <p>
+   * It is important to use {@link ParameterSet#getParameter(Parameter)} instead of directly passing
+   * the static final parameter. Otherwise, new parameter set instances will always use the same
+   * instance of the parameter.
+   *
+   * @return map of name to parameter
+   */
+  public static Map<String, Parameter<?>> getNameParameterMap(Parameter<?>... parameters) {
+    Map<String, Parameter<?>> nameParameterMap = HashMap.newHashMap(parameters.length);
+    for (final Parameter<?> p : parameters) {
+      nameParameterMap.put(p.getName(), p);
+    }
+    return nameParameterMap;
+  }
+
+  /**
+   * Load all parameters in name map from xmlElement.
+   *
+   * @param callerClass      for logging
+   * @param nameParameterMap parameter name -> parameter; make sure to use the correct parameters
+   *                         here and not the static instance
+   * @return A map of loaded parameters with name, parameter
+   */
+  @NotNull
+  public static Map<String, Parameter<?>> loadValuesFromXML(@NotNull Class<?> callerClass,
+      @NotNull Element xmlElement, @NotNull Map<String, Parameter<?>> nameParameterMap) {
+    // cannot use getElementsByTagName, this goes recursively through all levels
+    // finding nested ParameterSets
+//    NodeList list = xmlElement.getElementsByTagName(parameterElement);
+
+    Map<String, Parameter<?>> loadedParameters = HashMap.newHashMap(nameParameterMap.size());
+
+    var childNodes = xmlElement.getChildNodes();
+    for (int i = 0; i < childNodes.getLength(); i++) {
+      if (!(childNodes.item(i) instanceof Element nextElement)
+          || !SimpleParameterSet.parameterElement.equals(nextElement.getTagName())) {
+        continue;
+      }
+
+      String paramName = nextElement.getAttribute(SimpleParameterSet.nameAttribute);
+      Parameter<?> param = nameParameterMap.get(paramName);
+      if (param != null) {
+        try {
+          param.loadValueFromXML(nextElement);
+          // keep track of all parameters that were actually loaded - this means that some may be missing
+          loadedParameters.put(param.getName(), param);
+        } catch (Exception e) {
+          logger.log(Level.WARNING, "Error while loading parameter values for " + param.getName(),
+              e);
+        }
+      } else {
+        // load config reads the EncryptionKeyParameter in a second go
+        if (nameParameterMap.values().stream()
+            .noneMatch(p -> p instanceof EncryptionKeyParameter)) {
+          logger.warning(
+              "Cannot find parameter of name %s in ParameterSet %s. This might indicate changes of the parameterset and parameter types".formatted(
+                  paramName, callerClass.getName()));
+        }
+      }
+    }
+    return loadedParameters;
+  }
+
+  public static void saveValuesToXML(Element xmlElement, boolean skipSensitiveParameters,
+      Parameter<?>... parameters) {
+    Document parentDocument = xmlElement.getOwnerDocument();
+    for (Parameter<?> param : parameters) {
+      if (skipSensitiveParameters && param.isSensitive()) {
+        continue;
+      }
+      Element paramElement = parentDocument.createElement(SimpleParameterSet.parameterElement);
+      paramElement.setAttribute(SimpleParameterSet.nameAttribute, param.getName());
+      xmlElement.appendChild(paramElement);
+      param.saveValueToXML(paramElement);
+
+    }
+  }
+
+  /**
+   * Creates XML string from parameters
+   *
+   * @param parameterSet
+   * @return
+   */
+  public static String saveValuesToXMLString(ParameterSet parameterSet) {
+    try {
+      final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+          .newDocument();
+      final Element element = document.createElement("parameterset");
+      document.appendChild(element);
+
+      // Serialize batch queue.
+      parameterSet.saveValuesToXML(element);
+      return XMLUtils.saveToString(document);
+    } catch (Exception exception) {
+      logger.log(Level.SEVERE,
+          "Error while creating XML string for parameter set " + parameterSet.getClass().getName(),
+          exception);
+      return null;
+    }
+  }
+
+  public static void loadValuesFromXMLString(ParameterSet parameterSet, String xml)
+      throws ParserConfigurationException, IOException, SAXException {
+    final Document document = XMLUtils.load(xml);
+    final NodeList stepParameters = document.getElementsByTagName("parameterset");
+    if (stepParameters.getLength() == 0) {
+      throw new IllegalArgumentException("No step_parameters element found in xml string.");
+    }
+    final org.w3c.dom.Node element = stepParameters.item(0);
+    parameterSet.loadValuesFromXML((Element) element);
+  }
+
+  /**
+   * Useful to check if all parameters are {@link UserParameter} with an editing component.
+   */
+  public static void assertAllUserParameters(Parameter<?>... parameters) {
+    for (Parameter<?> parameter : parameters) {
+      if (!(parameter instanceof UserParameter<?, ?>)) {
+        throw new IllegalArgumentException(
+            "All parameters must be of type UserParameter. Parameter " + parameter.getName()
+                + " is of type " + parameter.getClass().getName());
+      }
+    }
+  }
+
+  public static @Nullable BooleanProperty getSelectedProperty(Node comp) {
+    return switch (comp) {
+      case CheckBox c -> c.selectedProperty();
+      case OptionalParameterComponent<?> c -> c.selectedProperty();
+      case OptionalModuleComponent c -> c.selectedProperty();
+      case RadioButton c -> c.selectedProperty();
+      case ToggleButton c -> c.selectedProperty();
+      case null, default -> null;
+    };
+  }
+
+  public static List<? extends Parameter<?>> mapToActualParameters(ParameterSet parameterSet,
+      List<? extends Parameter<?>> searchParameters) {
+    List<Parameter<?>> actualParameters = new ArrayList<>();
+    for (Parameter<?> searchParameter : searchParameters) {
+      final Parameter<?> parameter = parameterSet.getParameter(searchParameter);
+      if (parameter == null) {
+        throw new IllegalArgumentException(
+            "Parameter " + searchParameter.getName() + " not found in parameter set "
+                + parameterSet.getClass().getName());
+      }
+      actualParameters.add(parameter);
+    }
+    return actualParameters;
   }
 }

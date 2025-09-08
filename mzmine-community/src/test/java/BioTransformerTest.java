@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureTy
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ALogPType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.EnzymeType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ReactionType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
@@ -105,6 +106,7 @@ class BioTransformerTest {
     expected.put(EnzymeType.class, "Unspecified environmental bacterial enzyme");
     expected.put(NeutralMassType.class, 391.23721054799995);
     expected.put(PrecursorMZType.class, 392.24448654799994);
+    expected.put(DatabaseNameType.class, "transformation.csv");
 
     Assertions.assertEquals(9, compoundDBAnnotations.size());
     var actual = compoundDBAnnotations.get(0);

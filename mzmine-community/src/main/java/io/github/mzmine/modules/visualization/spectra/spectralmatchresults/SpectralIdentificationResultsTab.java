@@ -27,6 +27,10 @@ package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
 import io.github.mzmine.gui.framework.fx.features.SimpleFeatureListTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.util.FeatureUtils;
+import java.util.stream.Collectors;
+import javafx.beans.binding.Bindings;
+import javafx.util.Subscription;
 
 
 public class SpectralIdentificationResultsTab extends SimpleFeatureListTab {
@@ -39,6 +43,9 @@ public class SpectralIdentificationResultsTab extends SimpleFeatureListTab {
     matchPane = new SpectraIdentificationResultsPane(getParentGroup());
     setContent(matchPane);
     matchPane.setFeatureTable(table);
+    final var sub = table.getSelectionModel().selectedItemProperty().subscribe(
+        _ -> setSubTitle(table.getSelectedRows().stream().map(FeatureUtils::rowToString)
+            .collect(Collectors.joining(", "))));
+    setOnCloseRequest(_ -> sub.unsubscribe());
   }
-
 }

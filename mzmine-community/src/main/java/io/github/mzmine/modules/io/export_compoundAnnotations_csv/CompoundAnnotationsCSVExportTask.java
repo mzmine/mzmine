@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.io.export_compoundAnnotations_csv;
 
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
@@ -32,10 +34,16 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.MethodType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.identifiers.CASType;
+import io.github.mzmine.datamodel.features.types.identifiers.EntryIdType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.UsiType;
+import io.github.mzmine.datamodel.features.types.identifiers.InternalIdType;
+import io.github.mzmine.datamodel.features.types.identifiers.IupacNameType;
+import io.github.mzmine.datamodel.features.types.identifiers.QuerySpectrumUsiType;
+import io.github.mzmine.datamodel.features.types.identifiers.SourceScanUsiType;
+import io.github.mzmine.datamodel.features.types.identifiers.UsiType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -50,6 +58,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CSVUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -93,7 +102,7 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return "Exporting annotations of feature list(s) " + Arrays.toString(featureLists)
-           + " to CSV file(s) ";
+        + " to CSV file(s) ";
   }
 
   @Override
@@ -147,7 +156,7 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
         setErrorMessage("Error during compound annotations csv export to " + curFile);
         logger.log(Level.WARNING,
             "Error during compound annotations csv export of feature list: " + featureList.getName()
-            + ": " + e.getMessage(), e);
+                + ": " + e.getMessage(), e);
         return;
       }
 
@@ -172,7 +181,8 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
       var columns = Stream.of(IDType.class, CompoundNameType.class, IonTypeType.class,
               ScoreType.class, PrecursorMZType.class, MobilityType.class, CCSType.class, RTType.class,
               FormulaType.class, SmilesStructureType.class, InChIStructureType.class,
-              InChIKeyStructureType.class, MethodType.class, UsiType.class)
+              InChIKeyStructureType.class, MethodType.class, UsiType.class, EntryIdType.class,
+              IupacNameType.class, CASType.class, InternalIdType.class, QuerySpectrumUsiType.class)
           .map(c -> DataTypes.get((Class) c)).toList();
 
       // Create a header string by joining the unique IDs of the DataTypes with commas
@@ -208,12 +218,23 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
             String inchikey = annotation.getInChIKey();
             String formula = annotation.getFormula();
             String usi = null;
+            String entryId = null;
             if (annotation instanceof SpectralDBAnnotation spec) {
               usi = spec.getEntry().getAsString(DBEntryField.USI).orElse("");
+              entryId = spec.getEntry().getAsString(DBEntryField.ENTRY_ID).orElse("");
+            }
+            String iupacName = annotation.getIupacName();
+            String CAS = annotation.getCAS();
+            String internalId = annotation.getInternalId();
+            String queryScan = null;
+            if (annotation instanceof SpectralDBAnnotation spec) {
+              queryScan = ScanUtils.extractCompressedUSIRanges(spec.getQueryScan(), "DATASET_ID_PLACEHOLDER").collect(
+                  Collectors.joining(";"));
             }
 
             String result = Stream.of(rowId, compoundName, adductType, scoreType, precursorMZ,
-                    mobility, getCCS, getRT, formula, smiles, inchi, inchikey, method, usi)
+                    mobility, getCCS, getRT, formula, smiles, inchi, inchikey, method, usi, entryId,
+                    iupacName, CAS, internalId, queryScan)
                 .map(o -> (o == null) ? "" : CSVUtils.escape(o.toString(), fieldSeparator))
                 .collect(Collectors.joining(","));
 

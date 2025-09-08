@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,13 +35,13 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
 import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javafx.beans.property.BooleanProperty;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -145,8 +145,8 @@ public interface ParameterSet extends ParameterContainer {
 
   /**
    * This method loads parameters from xml and uses the names and old names in
-   * {@link #getNameParameterMap()}. After loading the method {@link #handleLoadedParameters(Map)}
-   * is called with the actually loaded parameters.
+   * {@link #getNameParameterMap()}. After loading the method
+   * {@link #handleLoadedParameters(Map, int)} is called with the actually loaded parameters.
    *
    * @return a Map of parameter name to parameters that were actually loaded from XML - parameters
    * missing from this set were not in the loaded from XML. Key is the name of the current parameter
@@ -161,9 +161,11 @@ public interface ParameterSet extends ParameterContainer {
    * load old legacy parameters and map their values to new parameters or load parameters and apply
    * their value also to other parameters that were added later.
    *
-   * @param loadedParams map of parameter name to actually loaded parameters
+   * @param loadedParams  map of parameter name to actually loaded parameters
+   * @param loadedVersion the version of the loaded parameter set
    */
-  default void handleLoadedParameters(Map<String, Parameter<?>> loadedParams) {
+  default void handleLoadedParameters(Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
   }
 
 
@@ -188,12 +190,7 @@ public interface ParameterSet extends ParameterContainer {
    * @return map of name to parameter
    */
   default Map<String, Parameter<?>> getNameParameterMap() {
-    var parameters = getParameters();
-    Map<String, Parameter<?>> nameParameterMap = HashMap.newHashMap(parameters.length);
-    for (final Parameter<?> p : parameters) {
-      nameParameterMap.put(p.getName(), p);
-    }
-    return nameParameterMap;
+    return ParameterUtils.getNameParameterMap(getParameters());
   }
 
   /**
@@ -271,8 +268,7 @@ public interface ParameterSet extends ParameterContainer {
    */
   BooleanProperty parametersChangeProperty();
 
-  @Nullable
-  String getOnlineHelpUrl();
+  @Nullable String getOnlineHelpUrl();
 
   String getModuleNameAttribute();
 
@@ -299,5 +295,9 @@ public interface ParameterSet extends ParameterContainer {
   default <V, T extends Parameter<V>> Stream<T> streamForClass(Class<T> parameterClass) {
     return Arrays.stream(getParameters()).filter(parameterClass::isInstance)
         .map(parameterClass::cast);
+  }
+
+  default @Nullable Region getMessage() {
+    return null;
   }
 }

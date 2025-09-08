@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,11 @@
 
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
+import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
+import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
+import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
+import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
+
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
@@ -35,34 +40,28 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
-import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModules;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
-import io.github.mzmine.parameters.ValuePropertyComponent;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
+import io.github.mzmine.parameters.parametertypes.statistics.TTestConfigurationComponent;
 import java.awt.Stroke;
 import java.awt.geom.Point2D;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
-import javafx.geometry.Pos;
-import javafx.geometry.VPos;
 import javafx.scene.control.Accordion;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -77,7 +76,6 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
   private static final Logger logger = Logger.getLogger(VolcanoPlotViewBuilder.class.getName());
 
-  private final int space = 5;
   private final Stroke annotationStroke = EStandardChartTheme.DEFAULT_MARKER_STROKE;
   private final SimpleXYChart<PlotXYDataProvider> chart = new SimpleXYChart<>("Volcano plot",
       "log2(fold change)", "-log10(p-Value)");
@@ -141,11 +139,17 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
     final HBox pValueBox = createPValueBox();
     final HBox abundanceBox = createAbundanceBox();
-    final VBox pAndAbundance = new VBox(space, pValueBox, abundanceBox);
+    final HBox missingValueBox = createMissingValueBox();
+    final VBox dataPreparationPane = newVBox(abundanceBox, missingValueBox);
     final Region testConfigPane = createTestParametersPane();
 
-    final TitledPane controls = new TitledPane("Settings",
-        createControlsPane(pAndAbundance, testConfigPane));
+    final Button helpButton = FxButtons.createHelpButton(
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/statistics_dashboard/statistics_dashboard.html#volcano-plot");
+
+    final VBox pValueAndButtonPane = newVBox(helpButton, pValueBox);
+
+    final TitledPane controls = newTitledPane("Controls",
+        newFlowPane(testConfigPane, dataPreparationPane, pValueAndButtonPane));
     final Accordion accordion = new Accordion(
         newTitledPane("Region of interest (ROI) selection", regionWrapper.getControlPane()),
         controls);
@@ -155,25 +159,12 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
   @NotNull
   private HBox createPValueBox() {
-    final HBox pValueBox = new HBox(space);
     Label label = new Label("p-Value:");
     final DoubleComponent pValueComponent = new DoubleComponent(100, 0.0, 1d,
         new DecimalFormat("0.###"), 0.05);
     Bindings.bindBidirectional(pValueComponent.getTextField().textProperty(),
         model.pValueProperty(), new DecimalFormat("0.###"));
-    pValueBox.getChildren().addAll(label, pValueComponent.getTextField());
-    return pValueBox;
-  }
-
-  @NotNull
-  private FlowPane createControlsPane(Region... panes) {
-    final FlowPane controls = new FlowPane(Orientation.HORIZONTAL);
-    controls.setHgap(space);
-    controls.setVgap(space);
-    controls.getChildren().addAll(panes);
-    controls.setPadding(new Insets(space));
-    controls.setAlignment(Pos.TOP_LEFT);
-    return controls;
+    return newHBox(Insets.EMPTY, label, pValueComponent.getTextField());
   }
 
   @NotNull
@@ -183,59 +174,22 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
     abundanceCombo.setValue(model.getAbundanceMeasure());
     model.abundanceMeasureProperty().bindBidirectional(abundanceCombo.valueProperty());
 
-    final HBox abundanceBox = new HBox(space);
-    abundanceBox.getChildren().addAll(new Label("Abundance measure:"), abundanceCombo);
-    return abundanceBox;
+    return newHBox(Insets.EMPTY, new Label("Abundance measure:"), abundanceCombo);
+  }
+
+  @NotNull
+  private HBox createMissingValueBox() {
+    final ComboBox<ImputationFunctions> missingValueCombo = new ComboBox<>(
+        FXCollections.observableList(List.of(ImputationFunctions.valuesExcludeNone)));
+    missingValueCombo.valueProperty().bindBidirectional(model.missingValueImputationProperty());
+
+    return newHBox(Insets.EMPTY, new Label("Missing value imputation:"), missingValueCombo);
   }
 
   private Region createTestParametersPane() {
-
-    final ComboBox<RowSignificanceTestModules> testComboBox = new ComboBox<>(
-        FXCollections.observableList(RowSignificanceTestModules.TWO_GROUP_TESTS));
-
-    FlowPane controls = new FlowPane(Orientation.HORIZONTAL, space, space);
-    controls.setRowValignment(VPos.CENTER);
-    controls.getChildren().addAll(new Label("Test type:"), testComboBox);
-
-    HBox testConfigPane = new HBox(5);
-    controls.getChildren().add(testConfigPane);
-
-    // the combo box allows selection of the test and creates a component to configure the test
-    testComboBox.valueProperty().addListener((_, _, n) -> {
-      testConfigPane.getChildren().clear();
-      final Region component = n.getModule().createConfigurationComponent();
-      testConfigPane.getChildren().add(component);
-
-      ((ValuePropertyComponent<?>) component).valueProperty()
-          .addListener((ChangeListener<Object>) (_, _, _) -> {
-            try {
-              // try to update the test
-              final RowSignificanceTest instance = n.getModule()
-                  .getInstance((ValuePropertyComponent) component);
-              model.setTest(instance);
-            } catch (Exception e) {
-              model.setTest(null);
-              logger.log(Level.WARNING, e.getMessage(), e);
-            }
-          });
-    });
-
-    // listen to external changes of the test and update the combo box accordingly
-    model.testProperty().addListener((_, _, newTest) -> {
-      if (newTest == null) {
-        return;
-      }
-      final RowSignificanceTestModules newTestModule = testComboBox.getItems().stream()
-          .filter(t -> t.getTestClass().isInstance(newTest)).findFirst().orElse(null);
-      if (newTestModule != null) {
-        testComboBox.setValue(newTestModule);
-      } else {
-        logger.warning("Selected test is invalid.");
-      }
-    });
-
-    testComboBox.getSelectionModel().selectFirst();
-    return controls;
+    final TTestConfigurationComponent ttestComponent = new TTestConfigurationComponent();
+    ttestComponent.valueProperty().bindBidirectional(model.testProperty());
+    return ttestComponent;
   }
 
   private void addChartValueListener() {

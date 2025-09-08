@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -106,7 +106,7 @@ public class TICVisualizerTab extends MZmineTab {
   private final TICPlot ticPlot;
 
   // Data sets
-  private Hashtable<RawDataFile, TICDataSet> ticDataSets;
+  private final Hashtable<RawDataFile, TICDataSet> ticDataSets = new Hashtable<>();
 
   private TICPlotType plotType;
   private ScanSelection scanSelection;
@@ -132,7 +132,6 @@ public class TICVisualizerTab extends MZmineTab {
 
     this.desktop = MZmineCore.getDesktop();
     this.plotType = plotType;
-    this.ticDataSets = new Hashtable<RawDataFile, TICDataSet>();
     this.scanSelection = scanSelection;
     this.mzRange = mzRange;
 
@@ -163,7 +162,7 @@ public class TICVisualizerTab extends MZmineTab {
     showSpectrumBtn.setTooltip(new Tooltip("Show spectrum of selected scan"));
     showSpectrumBtn.setOnAction(e -> {
       ChromatogramCursorPosition pos = getCursorPosition();
-      if (pos != null) {
+      if (pos != null || (pos = ticPlot.getCursorPosition()) != null) {
         SpectraVisualizerModule.addNewSpectrumTab(pos.getDataFile(), pos.getScan());
       }
     });
@@ -227,7 +226,7 @@ public class TICVisualizerTab extends MZmineTab {
       }
 
       // add all data files
-      if(ticMaxSamples==null || dataFiles.length<=ticMaxSamples) {
+      if (ticMaxSamples == null || dataFiles.length <= ticMaxSamples) {
         for (RawDataFile dataFile : dataFiles) {
           addRawDataFile(dataFile);
         }
@@ -239,7 +238,6 @@ public class TICVisualizerTab extends MZmineTab {
       }
     });
 
-
     // Add the Windows menu
 //    WindowsMenu.addWindowsMenu(mainScene);
 
@@ -248,11 +246,6 @@ public class TICVisualizerTab extends MZmineTab {
     // get the window settings parameter
     ParameterSet paramSet = MZmineCore.getConfiguration()
         .getModuleParameters(ChromatogramVisualizerModule.class);
-//    WindowSettingsParameter settings =
-//        paramSet.getParameter(TICVisualizerParameters.WINDOWSETTINGSPARAMETER);
-
-    // update the window and listen for changes
-//    settings.applySettingsToWindow(this);
 
     // Listen for clicks on legend items
     ticPlot.addChartMouseListener(new ChartMouseListenerFX() {
@@ -379,7 +372,7 @@ public class TICVisualizerTab extends MZmineTab {
     String dataFileNames = Joiner.on(",").join(files);
     setText(
         "Chromatogram: [" + dataFileNames + "; " + mzFormat.format(mzRange.lowerEndpoint()) + " - "
-        + mzFormat.format(mzRange.upperEndpoint()) + " m/z" + "]");
+            + mzFormat.format(mzRange.upperEndpoint()) + " m/z" + "]");
 
     // update plot title
     ticPlot.setTitle(mainTitle.toString(), subTitle.toString());
@@ -391,10 +384,6 @@ public class TICVisualizerTab extends MZmineTab {
    */
   TICPlotType getPlotType() {
     return plotType;
-  }
-
-  TICDataSet[] getAllDataSets() {
-    return ticDataSets.values().toArray(new TICDataSet[0]);
   }
 
   /**
@@ -452,6 +441,8 @@ public class TICVisualizerTab extends MZmineTab {
     rawDataFiles.forEach(r -> addRawDataFile(r));
     getTICPlot().getChart().setNotify(true);
     getTICPlot().getChart().fireChartChanged();
+
+    setSubTitle(MZmineTab.getRawDataFilesSubtitle(filesToProcess));
   }
 
   @Override

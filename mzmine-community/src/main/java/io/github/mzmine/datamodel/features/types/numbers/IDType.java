@@ -46,4 +46,8 @@ public class IDType extends IntegerType {
     return "ID";
   }
 
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

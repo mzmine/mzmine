@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class RawDataSummaryTab extends SimpleTab {
@@ -39,6 +40,7 @@ public class RawDataSummaryTab extends SimpleTab {
     super("Raw data summary", true, false);
     mainPane = new RawDataSummaryPane(dataFiles, parameterSet);
     setContent(mainPane);
+    setSubTitle(getRawDataFilesSubtitle(List.of(dataFiles)));
   }
 
   @Override

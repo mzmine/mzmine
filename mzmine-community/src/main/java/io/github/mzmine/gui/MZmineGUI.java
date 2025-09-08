@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,12 +26,15 @@
 package io.github.mzmine.gui;
 
 
+import static io.github.mzmine.gui.WindowLocation.TAB;
+import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
+import static io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils.copyToUserDirectory;
+
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
-import static io.github.mzmine.gui.WindowLocation.TAB;
 import io.github.mzmine.gui.mainwindow.AboutTab;
 import io.github.mzmine.gui.mainwindow.GlobalKeyHandler;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
@@ -49,14 +52,14 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
-import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
-import static io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils.copyToUserDirectory;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.WindowSettings;
+import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.project.impl.ProjectChangeListener;
@@ -92,6 +95,7 @@ import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
@@ -268,7 +272,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
   @NotNull
   public static List<FeatureList> getSelectedFeatureLists() {
     final GroupableListView<FeatureList> featureListView = mainWindowController.getFeatureListsList();
-    return ImmutableList.copyOf(featureListView.getSelectedValues());
+    return ImmutableList.copyOf(featureListView.getSelectedValues().stream().distinct().toList());
   }
 
   @NotNull
@@ -304,12 +308,12 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
    *
    * @param event - DragEvent
    */
-
   public static void activateSetOnDragDropped(DragEvent event) {
     List<String> messages = new ArrayList<>();
 
     Dragboard dragboard = event.getDragboard();
     boolean hasFileDropped = false;
+    File lastBatchFile = null;
     if (dragboard.hasFiles()) {
       hasFileDropped = true;
 
@@ -319,6 +323,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
       final List<File> rawDataFiles = new ArrayList<>();
       final List<File> libraryFiles = new ArrayList<>();
+      lastBatchFile = null;
 
       for (File selectedFile : dragboard.getFiles()) {
         final String extension = FilenameUtils.getExtension(selectedFile.getName()).toLowerCase();
@@ -360,9 +365,9 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
           }
         }
 
-//        if(selectedFile.getName().strip().toLowerCase().endsWith("mzbatch")) {
-//          lastBatchFile = selectedFile;
-//        }
+        if (selectedFile.getName().trim().toLowerCase().endsWith("mzbatch")) {
+          lastBatchFile = selectedFile;
+        }
       }
 
 //      if (lastBatchFile != null) {
@@ -373,23 +378,18 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
         if (!rawDataFiles.isEmpty()) {
           logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
-                              + rawDataFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+              + rawDataFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
         }
         if (!libraryFiles.isEmpty()) {
           logger.finest(() -> "Importing " + libraryFiles.size() + " raw files via drag and drop: "
-                              + libraryFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+              + libraryFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
         }
 
         // set raw and library files to parameter
         ParameterSet param = MZmineCore.getConfiguration()
             .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
-        param.setParameter(AllSpectralDataImportParameters.advancedImport, false);
-        param.setParameter(AllSpectralDataImportParameters.fileNames,
-            rawDataFiles.toArray(File[]::new));
-        param.setParameter(SpectralLibraryImportParameters.dataBaseFiles,
-            libraryFiles.toArray(File[]::new));
+        param = AllSpectralDataImportParameters.create(ConfigService.isApplyVendorCentroiding(),
+            rawDataFiles.toArray(File[]::new), null, libraryFiles.toArray(File[]::new), null);
 
         // start import task for libraries and raw data files
         AllSpectralDataImportModule module = MZmineCore.getModuleInstance(
@@ -402,8 +402,15 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         }
       }
     }
+
     event.setDropCompleted(hasFileDropped);
     event.consume();
+
+    // needs to be last after completing the drag event
+    // load last batch file - only one
+    if (lastBatchFile != null) {
+      BatchModeParameters.showSetupDialogLoadFile(lastBatchFile);
+    }
   }
 
   private static void askChangeUser(final String fileName) {
@@ -431,7 +438,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     }
 
     if (loc == TAB && MZmineCore.getDesktop().getAllTabs().stream()
-        .anyMatch(t -> t.getText().equals("Tasks")) || (loc != TAB && Objects.equals(loc,
+        .anyMatch(t -> MZmineTab.getText(t).equals("Tasks")) || (loc != TAB && Objects.equals(loc,
         currentTaskManagerLocation))) {
       // only return if we have that tab
       return;
@@ -499,12 +506,11 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
   public void start(Stage stage) {
 
     MZmineGUI.mainStage = stage;
-
     DesktopService.setDesktop(this);
+    MZminePreferences preferences = ConfigService.getPreferences();
 
     logger.finest("Initializing mzmine main window");
 
-    MZminePreferences preferences = MZmineCore.getConfiguration().getPreferences();
     try {
       // Load the main window
       URL mainFXML = this.getClass().getResource(mzMineFXML);
@@ -516,7 +522,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       preferences.getValue(MZminePreferences.theme).apply(rootScene.getStylesheets());
 
     } catch (Exception e) {
-      logger.log(Level.SEVERE, "Error loading MZmine GUI from FXML: " + e.getMessage(), e);
+      logger.log(Level.SEVERE, "Error loading mzmine GUI from FXML: " + e.getMessage(), e);
       Platform.exit();
     }
 
@@ -547,7 +553,14 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
     setStatusBarText("Welcome to mzmine " + SemverVersionReader.getMZmineVersion());
 
+    // apply last known position of window and bind to changes
+    final WindowSettings windowPosition = preferences.getParameter(MZminePreferences.windowSettings)
+        .createSettings();
+    StageWindowSettingsUtil.applySettingsToWindow(stage, windowPosition);
+
     stage.show();
+
+    autoUpdatePreferencesByStageWindowSettings(stage);
 
     // show message that temp folder should be setup
     if (preferences.getValue(MZminePreferences.showTempFolderAlert)) {
@@ -577,10 +590,27 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     // using EventFilter instead of handler as this is a top level to get all events
     rootScene.addEventFilter(KeyEvent.KEY_RELEASED, GlobalKeyHandler.getInstance());
 
+    // check user in gui mode and show message now
+    MZmineCore.checkUserRemainingDays(CurrentUserService.getUser());
+
     // register shutdown hook only if we have GUI - we don't want to
     // save configuration on exit if we only run a batch
     Runtime.getRuntime().addShutdownHook(new ShutDownHook());
     Runtime.getRuntime().addShutdownHook(new Thread(new TmpFileCleanup()));
+  }
+
+  private static void autoUpdatePreferencesByStageWindowSettings(Stage stage) {
+    final ObjectProperty<WindowSettings> boundWindowSettingsProperty = StageWindowSettingsUtil.createBoundWindowSettingsProperty(
+        stage);
+    // stage resize or move will change parameter
+    boundWindowSettingsProperty.subscribe((settings) -> {
+      final WindowSettingsParameter windowParam = ConfigService.getPreferences()
+          .getParameter(MZminePreferences.windowSettings);
+      if (windowParam.isAutoUpdate()) {
+        windowParam.setSettings(settings);
+      }
+      // otherwise keep the old parameters
+    });
   }
 
   @Override

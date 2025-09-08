@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -25,14 +26,20 @@
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -67,6 +74,10 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
   protected void process() {
     final var param = (PCALoadingsExtractionParameters) parameters;
     final PCAModel pcaModel = param.toPcaModel();
+
+    // prepare data
+    prepareData(pcaModel);
+
     final PCAUpdateTask task = new PCAUpdateTask("task", pcaModel);
     if (!task.checkPreConditions()) {
       error("Cannot build PCA. Please check the parameters, metadata may be missing.");
@@ -92,8 +103,32 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
         }
       }
     }
-    resultFlist.setRows(rows);
+    resultFlist.setRowsApplySort(rows);
     project.addFeatureList(resultFlist);
+  }
+
+  private static void prepareData(PCAModel pcaModel) {
+    // always apply mean centering for PCA
+    final var config = new AbundanceDataTablePreparationConfig(pcaModel.getAbundance(),
+        pcaModel.getImputationFunction(), pcaModel.getScalingFunction(),
+        ScalingFunctions.MeanCentering);
+
+    // only on samples
+    final FeatureList featureList = pcaModel.getFlists().getFirst();
+
+    final SampleTypeFilter sampleFilter = pcaModel.getSampleTypeFilter();
+    final List<RawDataFile> selectedSamples = sampleFilter.filterFiles(
+        featureList.getRawDataFiles());
+    if (selectedSamples.isEmpty()) {
+      pcaModel.setFeatureDataTable(null);
+      return;
+    }
+
+    // only prepare data for list of files
+    final FeaturesDataTable dataTable = StatisticUtils.extractAbundancesPrepareData(
+        featureList.getRows(), selectedSamples, config);
+
+    pcaModel.setFeatureDataTable(dataTable);
   }
 
   @Override

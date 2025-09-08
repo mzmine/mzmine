@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.WavelengthType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +55,7 @@ public interface OtherFeature extends ModularDataModel {
     return timeSeries.getOtherDataFile();
   }
 
+  @NotNull
   default RawDataFile getRawDataFile() {
     return getOtherDataFile().getCorrespondingRawDataFile();
   }
@@ -73,21 +73,7 @@ public interface OtherFeature extends ModularDataModel {
    * If the new {@link OtherTimeSeries} is already available, use
    * {@link #createSubFeature(OtherTimeSeries)} instead.
    */
-  default OtherFeature createSubFeature() {
-    final OtherFeatureImpl newFeature = new OtherFeatureImpl();
-
-    //copy everything except the OtherFeatureDataType and the RawTraceType
-    getMap().entrySet().stream().filter(
-            e -> !(e.getValue() instanceof OtherTimeSeries || e.getValue() instanceof OtherFeature))
-        .forEach(e -> newFeature.set(e.getKey(), e.getValue()));
-
-    // either this is already a sub feature, or this is the original one
-    final OtherFeature raw = get(RawTraceType.class) != null ? get(RawTraceType.class) : this;
-    if (raw != null) {
-      newFeature.set(RawTraceType.class, raw);
-    }
-    return newFeature;
-  }
+  OtherFeature createSubFeature();
 
   /**
    * @return Creates a new feature with the same properties, except the actual time series data. If

@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,11 +30,14 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
+import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -50,6 +54,7 @@ public class VolcanoPlotRegionExtractionTask extends AbstractFeatureListTask {
   private final ModularFeatureList flist;
   private final MZmineProject project;
   private final ModularFeatureList resultFlist;
+  private final AbundanceDataTablePreparationConfig abundancePreparationConfig;
 
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
@@ -67,6 +72,10 @@ public class VolcanoPlotRegionExtractionTask extends AbstractFeatureListTask {
         .map(RegionSelectionListener::getShape).toList();
     flist = parameters.getValue(VolcanoPlotRegionExtractionParameters.flists)
         .getMatchingFeatureLists()[0];
+
+    abundancePreparationConfig = parameters.getParameter(
+        VolcanoPlotRegionExtractionParameters.dataPreparationConfig).createConfig();
+
     this.project = project;
     resultFlist = FeatureListUtils.createCopy(flist, " extracted", getMemoryMapStorage(), false);
   }
@@ -78,7 +87,11 @@ public class VolcanoPlotRegionExtractionTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
-    final VolcanoPlotModel model = ((VolcanoPlotRegionExtractionParameters) parameters).toModel();
+    final FeaturesDataTable dataTable = StatisticUtils.extractAbundancesPrepareData(flist,
+        abundancePreparationConfig);
+
+    final VolcanoPlotModel model = ((VolcanoPlotRegionExtractionParameters) parameters).toModel(
+        dataTable);
 
     // reuse the same processing as we have in the gui
     VolcanoPlotUpdateTask task = new VolcanoPlotUpdateTask(model);
@@ -105,7 +118,7 @@ public class VolcanoPlotRegionExtractionTask extends AbstractFeatureListTask {
         }
       }
     }
-    resultFlist.setRows(rows);
+    resultFlist.setRowsApplySort(rows);
     project.addFeatureList(resultFlist);
   }
 

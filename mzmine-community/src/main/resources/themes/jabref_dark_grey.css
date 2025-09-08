@@ -134,3 +134,8 @@ Taken from https://docs.jabref.org/advanced/custom-themes
 .code-area .text {
     -fx-font-family: monospace;
 }
+
+.split-pane > .split-pane-divider {
+    -fx-background-color: -jr-background-alt;
+    -fx-padding: 0 .5 0 .5;
+}

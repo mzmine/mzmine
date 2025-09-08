@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -254,50 +254,80 @@ public class MathUtils {
     return retVals;
   }
 
+  /**
+   * @return Sample standard deviation (n-1)
+   */
   public static double calcStd(double[] values) {
     return calcStd(values, 0, values.length);
   }
 
-  public static double calcStd(double[] values, int start, int end) {
+  /**
+   * Only uses values in range
+   *
+   * @return Sample standard deviation (n-1)
+   */
+  public static double calcStd(double[] values, int start, int endExclusive) {
+    final int count = endExclusive - start;
+    if (values.length == 0 || count <= 0) {
+      return 0;
+    }
+
     double avg, stdev;
     double sum = 0;
-    for (int i = start; i < end; i++) {
+    for (int i = start; i < endExclusive; i++) {
       double d = values[i];
       sum += d;
     }
-    avg = sum / values.length;
+    avg = sum / count;
 
     sum = 0;
-    for (int i = start; i < end; i++) {
+    for (int i = start; i < endExclusive; i++) {
       double d = values[i];
-      sum += (d - avg) * (d - avg);
+      sum += Math.pow(d - avg, 2);
     }
 
-    stdev = Math.sqrt(sum / (values.length - 1));
+    stdev = Math.sqrt(sum / (count - 1));
     return stdev;
   }
 
-  public static double calcCV(double[] values) {
+  /**
+   * Only uses values in range
+   *
+   * @return relative Sample standard deviation (n-1) as RSD/mean
+   */
+  public static double calcRelativeStd(double[] values, int start, int endExclusive) {
+    final int count = endExclusive - start;
+    if (values.length == 0 || count <= 0) {
+      return 0;
+    }
 
     double avg, stdev;
     double sum = 0;
-    for (double d : values) {
+    for (int i = start; i < endExclusive; i++) {
+      double d = values[i];
       sum += d;
     }
-    avg = sum / values.length;
+    avg = sum / count;
 
-    if (avg == 0) {
-      return Double.NaN;
+    if (Double.compare(avg, 0) == 0) {
+      return 0; // special case for relative standard deviation
     }
 
     sum = 0;
-    for (double d : values) {
-      sum += (d - avg) * (d - avg);
+    for (int i = start; i < endExclusive; i++) {
+      double d = values[i];
+      sum += Math.pow(d - avg, 2);
     }
 
-    stdev = Math.sqrt(sum / (values.length - 1));
-
+    stdev = Math.sqrt(sum / (count - 1));
     return stdev / avg;
+  }
+
+  /**
+   * @return relative Sample standard deviation (n-1) as RSD/mean
+   */
+  public static double calcRelativeStd(double[] values) {
+    return calcRelativeStd(values, 0, values.length);
   }
 
   public static double calcAvg(double[] values) {
@@ -451,5 +481,28 @@ public class MathUtils {
    */
   public static int withinBounds(int value, int minInclusive, int maxExclusive) {
     return Math.min(Math.max(value, minInclusive), maxExclusive - 1);
+  }
+
+  public static Double requireNonNanElse(@Nullable Double possiblyNaN, @Nullable Double instead) {
+    if(possiblyNaN == null) {
+      return null;
+    }
+    return Double.isNaN(possiblyNaN) ? instead : possiblyNaN;
+  }
+
+  public static Float requireNonNanElse(@Nullable Float possiblyNaN, @Nullable Float instead) {
+    if(possiblyNaN == null) {
+      return null;
+    }
+    return Float.isNaN(possiblyNaN) ? instead : possiblyNaN;
+  }
+
+  /**
+   * Avoids integer overflow
+   *
+   * @return {@link Integer#MAX_VALUE} for if value is larger. Otherwise, value itself
+   */
+  public static int capMaxInt(long value) {
+    return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) value;
   }
 }

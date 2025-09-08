@@ -99,6 +99,7 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     }
 
     makeAndAddDeisotopingStep(q, intraSampleRtTol);
+    makeAndAddFeatureFilterStep(q);
     makeAndAddIsotopeFinderStep(q);
     makeAndAddJoinAlignmentStep(q, interSampleRtTol);
     makeAndAddRowFilterStep(q);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,7 +50,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.NumberFormat;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
@@ -256,7 +255,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
     // feature Information
     Set<String> featureInformationFields = new HashSet<>();
 
-    final List<FeatureListRow> rows = new ArrayList<>(featureList.getRows());
+    final List<FeatureListRow> rows = featureList.getRowsCopy();
 
     final int numRows = rows.size();
     final long numFeatures = rows.stream().count();

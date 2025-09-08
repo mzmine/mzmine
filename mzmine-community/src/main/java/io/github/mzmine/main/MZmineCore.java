@@ -25,6 +25,8 @@
 
 package io.github.mzmine.main;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -37,6 +39,8 @@ import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.dialogs.NotificationService;
+import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
@@ -59,6 +63,8 @@ import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
 import io.mzio.users.gui.fx.LoginOptions;
 import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.user.CurrentUserService;
+import io.mzio.users.user.MZmineUser;
+import io.mzio.users.user.UserNotificationUtils;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -70,11 +76,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import static java.util.Objects.requireNonNullElse;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -124,12 +133,26 @@ public final class MZmineCore {
     CurrentUserService.subscribe(user -> {
       var nickname = user == null ? null : user.getNickname();
       ConfigService.getPreferences().setParameter(MZminePreferences.username, nickname);
+
+      checkUserRemainingDays(user);
     });
 
     addUserRequiredListener();
 
     // after loading the config and numCores
     TaskService.init(ConfigService.getConfiguration().getNumOfThreads());
+  }
+
+  public static void checkUserRemainingDays(MZmineUser user) {
+    if (user != null) {
+      final EventHandler<ActionEvent> openUserTabAction = _ -> UsersTab.showTab();
+
+      var notification = UserNotificationUtils.getNotificationMessage(user);
+      if (notification != null) {
+        NotificationService.show(NotificationType.INFO, notification.title(), notification.text(),
+            openUserTabAction);
+      }
+    }
   }
 
   /**
@@ -312,6 +335,10 @@ public final class MZmineCore {
     throw new IllegalStateException("Desktop was not initialized. Requires mzmineDesktop");
   }
 
+  /**
+   * @deprecated replaced by {@link ConfigService#getConfiguration()}
+   */
+  @Deprecated
   @NotNull
   public static MZmineConfiguration getConfiguration() {
     return ConfigService.getConfiguration();
@@ -352,6 +379,40 @@ public final class MZmineCore {
 
   public static Collection<MZmineModule> getAllModules() {
     return getInstance().initializedModules.values();
+  }
+
+
+  @NotNull
+  public static Optional<MZmineModule> getModuleForParameterSetIfUnique(ParameterSet parameterSet) {
+    final List<MZmineModule> modules = getModulesForParameterSet(parameterSet);
+    if (modules.size() == 1) {
+      return Optional.of(modules.getFirst());
+    } else {
+      return Optional.empty();
+    }
+  }
+
+  @NotNull
+  public static List<MZmineModule> getModulesForParameterSet(ParameterSet parameterSet) {
+    final String definedName = parameterSet.getModuleNameAttribute();
+    final List<MZmineModule> matches = getInstance().initializedModules.entrySet().stream()
+        .filter(entry -> {
+          final String className = entry.getKey();
+          final MZmineModule module = entry.getValue();
+          if (module == null) {
+            return false;
+          }
+          if (definedName != null && (definedName.equals(module.getName()) || definedName.equals(
+              className))) {
+            return true;
+          }
+          // check parameterset class
+          final ParameterSet moduleParameters = ConfigService.getConfiguration()
+              .getModuleParameters(module.getClass());
+          return moduleParameters != null && moduleParameters.getClass().getName()
+              .equals(parameterSet.getClass().getName());
+        }).map(Entry::getValue).toList();
+    return matches;
   }
 
   /**

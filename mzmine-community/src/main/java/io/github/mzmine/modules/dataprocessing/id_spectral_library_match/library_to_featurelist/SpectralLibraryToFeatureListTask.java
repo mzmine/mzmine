@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -89,7 +89,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Converting library to feature list: " + library.getName();
+    return "Converting library to feature list: " + library.getNameWithSize();
   }
 
   @Override
@@ -143,8 +143,6 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
       return;
     }
 
-    var flist = new ModularFeatureList(library.getName(), null, libRaw);
-
     Map<LibraryEntryEqualityTester, List<LibraryEntryWrappedScan>> compoundMap = new HashMap<>();
     libRaw.streamLibraryScan().forEach(scan -> {
       var entry = scan.getEntry();
@@ -159,6 +157,10 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
     // largest first
     var compounds = compoundMap.values().stream()
         .sorted(Comparator.comparingInt(value -> -value.size())).toList();
+
+    var flist = new ModularFeatureList(library.getNameWithSize(), null, compounds.size(),
+        compounds.size(), libRaw);
+
     int counter = 0;
     for (final List<LibraryEntryWrappedScan> compound : compounds) {
       if (isCanceled()) {
@@ -199,7 +201,8 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
 
   private FeatureList addFeatureListWithEachEntry(final SpectralLibraryDataFile libRaw) {
     // add feature list
-    var flist = new ModularFeatureList(library.getName() + " single scans", null, libRaw);
+    var flist = new ModularFeatureList(library.getNameWithSize() + " single scans", null,
+        libRaw.getNumOfScans(), libRaw.getNumOfScans(), libRaw);
 
     var libScans = libRaw.streamLibraryScan().toList();
     for (final LibraryEntryWrappedScan scan : libScans) {

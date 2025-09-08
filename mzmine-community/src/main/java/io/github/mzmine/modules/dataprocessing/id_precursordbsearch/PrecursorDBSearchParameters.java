@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_precursordbsearch;
 
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
@@ -34,6 +35,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class PrecursorDBSearchParameters extends SimpleParameterSet {
 
@@ -63,5 +65,10 @@ public class PrecursorDBSearchParameters extends SimpleParameterSet {
   @Override
   public int getVersion() {
     return 2;
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }
