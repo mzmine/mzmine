@@ -54,13 +54,16 @@ import io.mzmine.reports.FeatureSummary;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import javafx.scene.chart.Chart;
@@ -70,6 +73,7 @@ import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.batik.svggen.SVGGraphics2DIOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.data.xy.XYDataset;
 import org.openscience.cdk.exception.CDKException;
@@ -93,11 +97,11 @@ public class ReportUtils {
   private final SpectraPlot ms2Chart = new SpectraPlot(false, true);
 
   private final ExportBoxplot boxPlot = new ExportBoxplot();
-
   private final Function<RawDataFile, Color> getSpectrumColor = RawDataFile::getColorAWT;
   private final MetadataColumn<?> groupingColumn;
   private final int FIGURE_WIDTH = 231;
   private final int FIGURE_HEIGHT = 146;
+  private Image boxPlotImage = null;
   private @Nullable String structureString = null;
   private EChartViewer mirrorChart = null; // must be regenerated for each match
   private LipidSpectrumPlot lipidChart = null;
@@ -130,13 +134,17 @@ public class ReportUtils {
       final Double deltaMz = precursorMz != null ? row.getAverageMZ() - precursorMz : null;
       return """
           Exact mass: %s
-          delta m/z: %s
+          Δ m/z (abs): %s
           Name: %s
           Formula: %s
           Internal ID: %s
           CAS: %s
-          Database: %s""".formatted(format.mz(precursorMz), format.mz(deltaMz), a.getCompoundName(),
-          a.getFormula(), a.getInternalId(), a.getCAS(), a.getDatabase());
+          Database: %s""".formatted(format.mz(precursorMz), format.mz(deltaMz),
+          Objects.requireNonNullElse(a.getCompoundName(), "-"),
+          Objects.requireNonNullElse(a.getFormula(), "-"),
+          Objects.requireNonNullElse(a.getInternalId(), "-"),
+          Objects.requireNonNullElse(a.getCAS(), "-"),
+          Objects.requireNonNullElse(a.getDatabase(), "-"));
     }).orElse("""
         ID: %s
         m/z: %s
@@ -207,13 +215,11 @@ public class ReportUtils {
                 FIGURE_HEIGHT).getBytes(),
             "Figure %s.%d: EIMs of feature %s.".formatted(id, chartCounter++, id)));
       }
-      /*if (updateBoxPlot(row)) {
-        figures.add(new FigureAndCaption(
-            ChartExportUtil.writeChartToSvgString(boxPlot.getChart(), FIGURE_WIDTH,
-                FIGURE_HEIGHT).getBytes(),
+      if (updateBoxPlot(row)) {
+        figures.add(new FigureAndCaption(boxPlotImage,
             "Figure %s.%d: %s distribution grouped by %s.".formatted(id, chartCounter++,
                 AbundanceMeasure.Area, groupingColumn.getTitle())));
-      }*/
+      }
       if (updateMs1Chart(row)) {
         figures.add(new FigureAndCaption(
             ChartExportUtil.writeChartToSvgString(ms1Chart.getChart(), FIGURE_WIDTH, FIGURE_HEIGHT)
@@ -232,11 +238,12 @@ public class ReportUtils {
                 .getBytes(),
             "Figure %s.%d: MS2 spectrum of feature %s.".formatted(id, chartCounter++, id)));
       }
-      if(updateLipidSpectrum(row)) {
+      if (updateLipidSpectrum(row)) {
         figures.add(new FigureAndCaption(
-            ChartExportUtil.writeChartToSvgString(lipidChart.getChart(), FIGURE_WIDTH, FIGURE_HEIGHT)
-                .getBytes(),
-            "Figure %s.%d: Matched lipid signals for feature %s.".formatted(id, chartCounter++, id)));
+            ChartExportUtil.writeChartToSvgString(lipidChart.getChart(), FIGURE_WIDTH,
+                FIGURE_HEIGHT).getBytes(),
+            "Figure %s.%d: Matched lipid signals for feature %s.".formatted(id, chartCounter++,
+                id)));
       }
       updateStructure(row);
     } catch (Exception e) {
@@ -297,6 +304,7 @@ public class ReportUtils {
 
     final IMSRawDataFile imsFile = (IMSRawDataFile) row.getRawDataFiles().stream()
         .filter(file -> file instanceof IMSRawDataFile).findAny().orElse(null);
+    mobilogramChart.removeAllDatasets();
     if (imsFile == null) {
       return false;
     }
@@ -334,12 +342,13 @@ public class ReportUtils {
       mobilogramChart.setDomainAxisNumberFormatOverride(
           ConfigService.getConfiguration().getMobilityFormat());
       mobilogramChart.setLegendItemsVisible(false);
-      mobilogramChart.setRangeAxisLabel(mt.getAxisLabel());
+      mobilogramChart.setDomainAxisLabel(mt.getAxisLabel());
 
       mobilogramChart.addDatasets(datasets);
       try {
         mobilogramChart.getXYPlot().getDomainAxis().setRange(finalDefaultRange);
         mobilogramChart.getXYPlot().getDomainAxis().setDefaultAutoRange(finalDefaultRange);
+        mobilogramChart.getXYPlot().getRangeAxis().setAutoRange(true);
       } catch (NullPointerException | NoSuchElementException e) {
         // error in jfreechart draw method
       }
@@ -377,11 +386,11 @@ public class ReportUtils {
 
     final Range<Double> mzRange;
     if (iso != null) {
-      final double lower = iso.getMzValue(0) - 0.5;
+      final double lower = iso.getMzValue(0) - 1.5;
       final double upper = iso.getMzValue(iso.getNumberOfDataPoints() - 1) + 1.5;
       mzRange = Range.closed(lower, upper);
     } else {
-      mzRange = Range.closed(f.getMZ() - 0.5, f.getMZ() + 2.5);
+      mzRange = Range.closed(f.getMZ() - 1.5, f.getMZ() + 2.5);
     }
     final org.jfree.data.Range range = RangeUtils.guavaToJFree(mzRange);
 
@@ -454,12 +463,30 @@ public class ReportUtils {
   private boolean updateLipidSpectrum(@NotNull FeatureListRow row) {
     final MatchedLipid lipid = CompoundAnnotationUtils.getBestFeatureAnnotation(row)
         .filter(MatchedLipid.class::isInstance).map(MatchedLipid.class::cast).orElse(null);
-    if(lipid == null) {
+    if (lipid == null) {
       lipidChart = null;
       return false;
     }
 
     lipidChart = new LipidSpectrumPlot(lipid, false, RunOption.THIS_THREAD);
+    return true;
+  }
+
+  private boolean updateBoxPlot(@NotNull FeatureListRow row) {
+    final RowBoxPlotDataset ds = new RowBoxPlotDataset(row, groupingColumn, AbundanceMeasure.Area);
+    if (ds.getColumnCount() == 0 || ds.getRowCount() == 0) {
+      boxPlotImage = null;
+      return false;
+    }
+    boxPlot.setDataset(ds);
+    try {
+      boxPlotImage = ChartExportUtil.paintScaledChartToBufferedImage(boxPlot.getChart(),
+          boxPlot.getRenderingInfo(), FIGURE_WIDTH, FIGURE_HEIGHT, 150,
+          BufferedImage.TYPE_INT_ARGB);
+    } catch (IOException e) {
+      boxPlotImage = null;
+      return false;
+    }
     return true;
   }
 
@@ -490,15 +517,5 @@ public class ReportUtils {
   private void initChart(@NotNull EChartViewer chart) {
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
     chart.getChart().getPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
-  }
-
-  private boolean updateBoxPlot(@NotNull FeatureListRow row) {
-    final RowBoxPlotDataset ds = new RowBoxPlotDataset(row, groupingColumn,
-        AbundanceMeasure.Area);
-    if(ds.getColumnCount() == 0 || ds.getRowCount() == 0) {
-      return false;
-    }
-    boxPlot.setDataset(ds);
-    return true;
   }
 }

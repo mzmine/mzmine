@@ -98,6 +98,10 @@ public class ReportingTask extends AbstractFeatureListTask {
       detail.add(report.getFeatureReportData(row));
       summary.add(report.getSummaryData(row));
       finishedItems.getAndIncrement();
+
+      if(isCanceled()) {
+        return;
+      }
     }
 
     final Map<String, Object> parameters = generateMetadata();
@@ -115,6 +119,10 @@ public class ReportingTask extends AbstractFeatureListTask {
       JasperPrint jasperPrint = JasperFillManager.fillReport(
           "C:\\Users\\Steffen\\JaspersoftWorkspace\\MyReports\\testreport.jasper", parameters,
           mainReportDataSource);
+
+      if(isCanceled()) {
+        return;
+      }
 
       desc = "Exporting to pdf.";
       JasperExportManager.exportReportToPdfFile(jasperPrint,
