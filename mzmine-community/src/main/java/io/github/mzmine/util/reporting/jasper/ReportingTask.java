@@ -5,12 +5,16 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.reporting.jasper.reporttypes.ReportModule;
+import io.github.mzmine.util.reporting.jasper.reporttypes.ReportTypes;
 import io.mzmine.reports.FeatureDetail;
 import io.mzmine.reports.FeatureSummary;
 import io.mzmine.reports.ReportDataFactory;
+import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,8 +36,7 @@ public class ReportingTask extends AbstractFeatureListTask {
   @NotNull
   private final FeatureList flist;
   private String desc;
-  private JRCountingBeanCollectionDataSource detailSource;
-  private JRCountingBeanCollectionDataSource summarySource;
+  private ReportModule reportModule;
 
   public ReportingTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage,
@@ -44,38 +47,6 @@ public class ReportingTask extends AbstractFeatureListTask {
     desc = "Reporting on feature list " + flist.getName();
   }
 
-  private static @NotNull Map<String, Object> generateMetadata() {
-    Map<String, Object> parameters = new HashMap<>();
-    parameters.put("META_COMPANY", "mzio GmbH");
-    parameters.put("META_TITLE", "Example report");
-    parameters.put("META_LAB_DESCRIPTION", """
-        Dr. Steffen Heuckeroth
-        CTO, PhD. Analytical Chemistry
-        A street 1337
-        481XX Münster
-        Germany""");
-    parameters.put("META_ORDER_NUMBER", "123SSDBJKUAH213");
-    parameters.put("META_CUSTOMER_NAME", "Customer Name");
-    parameters.put("META_CUSTOMER_DEPARTMENT", "Customer Department");
-    parameters.put("META_CUSTOMER_ADDRESS", "Customer Road 537, A town, XXXXXX");
-    parameters.put("META_CUSTOMER_PROJECT", "Research Project X15");
-    parameters.put("META_ORDER_REQUEST_DATE", "15.03.2025");
-    parameters.put("META_ORDER_FINISHED_DATE", "15.04.2025");
-    parameters.put("META_ORDER_SAMPLEIDS", "1524835, 1535483, 16832185");
-    parameters.put("META_FREE_TEXT_FIELD", """
-        Sehr geehrte Frau Mustermann,
-        die Probe(n) wurde(n) auftragsgemäß in Anlehnung an DIN EN ISO/IEC 9001 untersucht. Die
-        Analysenergebnisse beziehen sich ausschließlich auf das zur Verfügung gestellte Probenmaterial zum
-        Zeitpunkt der Analyse. Die Proben können bei Bedarf abgeholt werden. Ansonsten müssen die Proben
-        aus platztechnischen Gründen leider nach 14 Tagen entsorgt werden.""");
-    parameters.put("META_ORDER_DESC", "Identification of Metabolites in X");
-    parameters.put("META_LOGO_PATH",
-        "D:\\OneDrive - mzio GmbH\\mzio\\design\\logos\\svg\\logo_mzio.svg");
-
-    parameters.put("LAB_ADDRESS", "Altenwall 26, 28195 Bremen");
-    return parameters;
-  }
-
   @Override
   protected @NotNull List<FeatureList> getProcessedFeatureLists() {
     return List.of(flist);
@@ -84,52 +55,63 @@ public class ReportingTask extends AbstractFeatureListTask {
   @Override
   protected void process() {
 
-    final ReportUtils report = new ReportUtils(ProjectService.getMetadata().getSampleTypeColumn());
+    final ValueWithParameters<ReportTypes> valueWithParameters = parameters.getParameter(
+        ReportingParameters.reportType).getValueWithParameters();
+    final ReportTypes reportType = valueWithParameters.value();
+    final ParameterSet reportTypeParam = valueWithParameters.parameters();
 
-    final List<FeatureListRow> rows = flist.getRows();
-    final List<FeatureDetail> detail = new ArrayList<>();
-    final List<FeatureSummary> summary = new ArrayList<>();
-
-    totalItems = rows.size();
-
-    for (int i = 0; i < rows.size(); i++) {
-      final FeatureListRow row = rows.get(i);
-      desc = "Preparing row data for row %d/%d".formatted(i, flist.getNumberOfRows());
-      detail.add(report.getFeatureReportData(row));
-      summary.add(report.getSummaryData(row));
-      finishedItems.getAndIncrement();
-
-      if(isCanceled()) {
-        return;
-      }
-    }
-
-    final Map<String, Object> parameters = generateMetadata();
-
-    detailSource = new JRCountingBeanCollectionDataSource(detail);
-    parameters.put("DETAILED_FEATURES_DATA_SOURCE", detailSource);
-
-    summarySource = new JRCountingBeanCollectionDataSource(summary);
-    parameters.put("SUMMARY_DATA_SOURCE", summarySource);
-
-    JREmptyDataSource mainReportDataSource = new JREmptyDataSource();
-
+    final Map<String, Object> parameters = generateMetadata((ReportingParameters) getParameters());
+    reportModule = reportType.getModuleInstance().createInstance(reportTypeParam);
     try {
-      desc = "Printing report.";
-      JasperPrint jasperPrint = JasperFillManager.fillReport(
-          "C:\\Users\\Steffen\\JaspersoftWorkspace\\MyReports\\testreport.jasper", parameters,
-          mainReportDataSource);
-
-      if(isCanceled()) {
+      final JasperPrint jasperPrint = reportModule.generateReport(flist, parameters);
+      if (isCanceled()) {
         return;
       }
-
-      desc = "Exporting to pdf.";
+      desc = "Exporting report for feature list %s to pdf.".formatted(flist.getName());
       JasperExportManager.exportReportToPdfFile(jasperPrint,
-          "C:\\Users\\Steffen\\Desktop\\testreport_full.pdf");
+          getParameters().getValue(ReportingParameters.exportFile).getAbsolutePath());
     } catch (JRException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @NotNull Map<String, Object> generateMetadata(@NotNull final ReportingParameters parameters) {
+    Map<String, Object> param = new HashMap<>();
+
+    param.put("META_TITLE", parameters.getValue(ReportingParameters.reportTitle));
+    param.put("META_FREE_TEXT_FIELD", parameters.getValue(ReportingParameters.freeText));
+
+    final ReportingVendorParameters vendorParam = parameters.getValue(
+        ReportingParameters.reportingVendorParam);
+    param.put("META_COMPANY", vendorParam.getValue(ReportingVendorParameters.vendorCompany));
+    param.put("META_LAB_DESCRIPTION", vendorParam.getValue(ReportingVendorParameters.contact));
+    final File logoPath = vendorParam.getValue(ReportingVendorParameters.logoPath);
+    param.put("META_LOGO_PATH", logoPath != null ? logoPath.getAbsolutePath() : null);
+    param.put("LAB_ADDRESS", vendorParam.getValue(ReportingVendorParameters.vendorAddress));
+
+    final ReportingOrderParameters orderParam = parameters.getValue(
+        ReportingParameters.reportingOrderParam);
+    param.put("META_ORDER_NUMBER", orderParam.getValue(ReportingOrderParameters.orderNumber));
+    param.put("META_ORDER_REQUEST_DATE",
+        orderParam.getValue(ReportingOrderParameters.orderRequestDate));
+    param.put("META_ORDER_FINISHED_DATE",
+        orderParam.getValue(ReportingOrderParameters.orderFinishedDate));
+    param.put("META_ORDER_SAMPLEIDS", orderParam.getValue(ReportingOrderParameters.orderSampleIds));
+    param.put("META_ORDER_DESC", orderParam.getValue(ReportingOrderParameters.orderDescription));
+
+    final ReportingCustomerParameters customerParam = parameters.getValue(
+        ReportingParameters.reportingCustomerParam);
+
+    param.put("META_CUSTOMER_NAME",
+        customerParam.getValue(ReportingCustomerParameters.customerName));
+    param.put("META_CUSTOMER_DEPARTMENT",
+        customerParam.getValue(ReportingCustomerParameters.customerDepartment));
+    param.put("META_CUSTOMER_ADDRESS",
+        customerParam.getValue(ReportingCustomerParameters.customerAddress));
+    param.put("META_CUSTOMER_PROJECT",
+        customerParam.getValue(ReportingCustomerParameters.customerProject));
+
+    return param;
   }
 
   @Override
@@ -139,9 +121,6 @@ public class ReportingTask extends AbstractFeatureListTask {
 
   @Override
   public double getFinishedPercentage() {
-    final double preparation = super.getFinishedPercentage();
-    final double printDetail = detailSource != null ? detailSource.getProgress() : 0;
-    final double printSummary = summarySource != null ? summarySource.getProgress() : 0;
-    return preparation * 0.3 + printDetail * 0.4 + printSummary * 0.2; // leftover for actual export
+    return reportModule != null ? reportModule.getProgress() : 0d;
   }
 }

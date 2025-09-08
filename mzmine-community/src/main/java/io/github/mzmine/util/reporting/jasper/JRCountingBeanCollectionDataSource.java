@@ -1,10 +1,12 @@
 package io.github.mzmine.util.reporting.jasper;
 
-import static java.io.IO.println;
-
 import java.util.Collection;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
+/**
+ * Helper class that extends {@link JRBeanCollectionDataSource} and tracks the progress of the
+ * iterator.
+ */
 public class JRCountingBeanCollectionDataSource extends JRBeanCollectionDataSource {
 
   int currentItem = 0;

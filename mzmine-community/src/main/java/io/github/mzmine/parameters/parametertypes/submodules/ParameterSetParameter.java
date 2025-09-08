@@ -44,15 +44,21 @@ public class ParameterSetParameter<SUB extends ParameterSet> implements
     EmbeddedParameterSet<SUB, SUB> {
 
   private static final Logger logger = Logger.getLogger(ParameterSetParameter.class.getName());
+  private final boolean isSensitive;
   private final String name;
   private final String description;
   private SUB value;
 
   public ParameterSetParameter(String name, String description, SUB parameters) {
+    this(name, description, parameters, false);
+  }
+
+  public ParameterSetParameter(String name, String description, SUB parameters, boolean isSensitive) {
     this.name = name;
     this.description = description;
     // requires cloning to avoid usage of static parameters
     this.value = (SUB) parameters.cloneParameterSet();
+    this.isSensitive = isSensitive;
   }
 
   public SUB getValue() {
@@ -142,5 +148,10 @@ public class ParameterSetParameter<SUB extends ParameterSet> implements
 
     return ParameterUtils.equalValues(getEmbeddedParameters(), thatOpt.getEmbeddedParameters(),
         false, false);
+  }
+
+  @Override
+  public boolean isSensitive() {
+    return isSensitive;
   }
 }
