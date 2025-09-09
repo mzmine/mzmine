@@ -41,18 +41,23 @@ public class IonPartParser {
   // +2(H+) +(Fe+3)
   // -2Cl or +Fe
   // will produce 4 groups with naming pattern
-  // uncharged will be group1=charge group2=formula
-  // charged will be   group1=charge group3=formula group4=charge
+  // uncharged will be group1=count, group2=formula group3=charge
+  // charged will be   group1=count, group4=formula group5=parenthesisCharge
+
   public static final Pattern PART_PATTERN = Pattern.compile("""
       (?x)                      # Enable comments/free-spacing mode
       (?<count>[+-]\\d*)        # count multiplier either +- or with number
       (?:                       # do not capture the OR| group
       (?![(])                   # negative lookahead NO (
       (?<formula>[a-zA-Z][A-Za-z0-9]*[a-zA-Z0-9]|[a-zA-Z])  # first case without parentheses just +H2O (no charge)
+      (?<charge>[+-]\\d*)?      # optional charge state
       | [(]                     # alternative case for charged requires () to enclose charge like +(Fe+3)
-      (?<parenthesisFormula>[a-zA-Z][-A-Za-z0-9=\\#$:%*@.]*[a-zA-Z0-9]|[a-zA-Z])  # formulas like +CH3-OH with bindings are allowed
-      (?<charge>[+-]\\d*)?      # optional charge state followed by )
-      [)])                      # ends with ) and end of non-capturing group""");
+      (?<parenthesisFormula>
+      (?:[a-zA-Z][-A-Za-z0-9=\\#$:%*@.]*)? # formula has to start with letter, maybe followed by smiles or rest of formula
+      (?:[a-zA-Z]+[0-9]*|[a-zA-Z]+))  # formulas has to end with letter or letter followed by number
+      (?<parenthesisCharge>[+-]\\d*)?      # optional charge state followed by )
+      [)]                       # ends with )
+      )                         # end of non-capturing group""");
 
   public static @Nullable IonPart parse(final @NotNull String part) {
     Matcher matcher = PART_PATTERN.matcher(StringUtils.removeAllWhiteSpace(part));
@@ -81,8 +86,11 @@ public class IonPartParser {
   @Nullable
   private static IonPart fromMatcher(final Matcher matcher) {
     final String countStr = matcher.group(1);
-    final String chargeStr = matcher.group("charge");
+    String chargeStr = matcher.group("charge");
     String formula = matcher.group("formula");
+    if (chargeStr == null) {
+      chargeStr = matcher.group("parenthesisCharge");
+    }
     if (formula == null) {
       formula = matcher.group("parenthesisFormula");
     }

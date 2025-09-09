@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.structures;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.DefaultChemObjectBuilder;
@@ -44,6 +45,10 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 public class StructureParser {
 
   private static final Logger logger = Logger.getLogger(StructureParser.class.getName());
+
+  public static final Pattern SMILES_SPECIAL_CHARS = Pattern.compile("[\\[\\]()=#\\-./:\\\\@+%*]");
+
+
   private final InChIGeneratorFactory inchiFactory;
   private final boolean verbose;
   private final SmilesParser smilesParser;
@@ -75,6 +80,14 @@ public class StructureParser {
    */
   public static StructureParser silent() {
     return SILENT_INSTANCE;
+  }
+
+  /**
+   *
+   * @return true if any special char matches
+   */
+  public static boolean containsSmilesSpecialChars(@NotNull String input) {
+    return SMILES_SPECIAL_CHARS.matcher(input).find();
   }
 
   @Nullable

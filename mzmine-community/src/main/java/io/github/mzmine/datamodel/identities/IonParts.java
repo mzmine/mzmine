@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,9 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureInputType;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.Collection;
 import java.util.List;
@@ -33,6 +36,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class IonParts {
 
@@ -100,6 +104,8 @@ public class IonParts {
    */
   @NotNull
   public static IonPart findPartByNameOrFormula(@NotNull String nameOrFormula, int count) {
+
+    nameOrFormula = nameOrFormula.trim();
     // search predefined
     IonPart best = null;
     for (final IonPart predefined : PREDEFINED_PARTS) {
@@ -120,8 +126,19 @@ public class IonParts {
       return part.get().withCount(count);
     }
 
-    // parse by formula
-    var formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(nameOrFormula);
+    final IMolecularFormula formula;
+
+    // parse structure as smiles if special chars found
+    if (StructureParser.containsSmilesSpecialChars(nameOrFormula)) {
+      final MolecularStructure struc = StructureParser.silent()
+          .parseStructure(nameOrFormula, StructureInputType.SMILES);
+
+      formula = struc != null ? struc.formula() : null;
+    } else {
+      // parse formula
+      formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(nameOrFormula);
+    }
+
     if (formula != null) {
       // check if formula matches predefined names which are derived from formula
       var ionPart = new IonPart(formula, count);
@@ -133,7 +150,7 @@ public class IonParts {
       return ionPart;
     }
     logger.warning("Formula for " + nameOrFormula
-                   + " not found during parsing of ion type. This means that the mass remains unknown. Please provide proper formulas or add this name to the mzmine code base");
+        + " not found during parsing of ion type. This means that the mass remains unknown. Please provide proper formulas or add this name to the mzmine code base");
     // just create with unknown values
 
     return IonPart.unknown(nameOrFormula, count);
