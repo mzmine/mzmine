@@ -64,7 +64,7 @@ public class FxTextFields {
       @NotNull NumberFormat format, @Nullable ObjectProperty<Number> valueProperty,
       @Nullable String prompt, @Nullable String tooltip) {
     var field = new NumberTextField(format);
-    applyToField(field, columnCount, null, prompt, tooltip);
+    applyToField(field, columnCount, null, new SimpleStringProperty(prompt), tooltip);
     field.valueProperty().bindBidirectional(valueProperty);
     return field;
   }

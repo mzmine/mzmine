@@ -25,7 +25,7 @@
 
 package io.github.mzmine.util;
 
-import io.github.mzmine.datamodel.structures.SimpleMolecularStructure;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureInputType;
 import io.github.mzmine.datamodel.structures.StructureParser;
 import java.util.logging.Level;
@@ -62,7 +62,7 @@ public class FormulaParser {
     if (f == null) {
       // try to parse as smiles
       // useful for formulas given as CH3-OH
-      final SimpleMolecularStructure structure = StructureParser.silent()
+      final MolecularStructure structure = StructureParser.silent()
           .parseStructure(formulaOrSmiles, StructureInputType.SMILES);
       if (structure != null) {
         f = structure.formula();
