@@ -26,6 +26,7 @@ package io.github.mzmine.util.reporting.jasper.reporttypes;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.reporting.jasper.JRCountingBeanCollectionDataSource;
@@ -33,7 +34,6 @@ import io.github.mzmine.util.reporting.jasper.ReportUtils;
 import io.mzmine.reports.FeatureDetail;
 import io.mzmine.reports.FeatureSummary;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +55,7 @@ public class AlignedFeatureReport implements ReportModule {
   private JRCountingBeanCollectionDataSource detailSource = null;
   private JRCountingBeanCollectionDataSource summarySource = null;
   private AtomicBoolean isCanceled = new AtomicBoolean(false);
+  private MetadataColumn<?> groupingCol;
 
   public AlignedFeatureReport() {
     includeSummary = true;
@@ -64,6 +65,8 @@ public class AlignedFeatureReport implements ReportModule {
   public AlignedFeatureReport(ParameterSet parameters) {
     includeSummary = parameters.getValue(AlignedFeatureReportParameters.includeSummaryTable);
     includeEvidence = parameters.getValue(AlignedFeatureReportParameters.includeEvidencePages);
+    groupingCol = ProjectService.getMetadata()
+        .getColumnByName(parameters.getValue(AlignedFeatureReportParameters.grouping));
   }
 
   @Override
@@ -72,12 +75,8 @@ public class AlignedFeatureReport implements ReportModule {
   }
 
   @Override
-  public @Nullable File getReportJasperFile(ParameterSet parameters) throws FileNotFoundException {
-    final File file = new File("external_tools/report_templates", "aligned_feature_report.jasper");
-    if (!file.exists()) {
-      throw new FileNotFoundException(file.getAbsolutePath());
-    }
-    return file;
+  public void cancel() {
+    isCanceled.set(true);
   }
 
   @Override
@@ -86,8 +85,7 @@ public class AlignedFeatureReport implements ReportModule {
 
     totalItemsToPrepare.set(flist.getNumberOfRows());
 
-    final ReportUtils reportUtils = new ReportUtils(
-        ProjectService.getMetadata().getSampleTypeColumn());
+    final ReportUtils reportUtils = new ReportUtils(groupingCol);
 
     final List<FeatureListRow> rows = flist.getRowsCopy();
     final List<FeatureDetail> detail = new ArrayList<>();
@@ -110,7 +108,8 @@ public class AlignedFeatureReport implements ReportModule {
     summarySource = new JRCountingBeanCollectionDataSource(summary);
     jasperParameters.put("SUMMARY_DATA_SOURCE", summarySource);
 
-    final File file = new File("external_tools/report_templates", "aligned_report_cover.jasper");
+    final File file = new File("external_tools/report_templates/aligned_report",
+        "aligned_report_cover.jasper");
     return JasperFillManager.fillReport(file.getAbsolutePath(), jasperParameters,
         new JREmptyDataSource());
   }

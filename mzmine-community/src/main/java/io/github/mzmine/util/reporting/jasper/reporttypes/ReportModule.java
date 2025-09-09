@@ -42,16 +42,6 @@ import org.jetbrains.annotations.Nullable;
 
 public interface ReportModule extends MZmineModule {
 
-  /**
-   * This method is called to retrieve the .jasper file. In case the .jrxml needs to be edited, edit
-   * a temporary copy and store the .jasper to a unique location, as this module may be called by
-   * multiple callers.
-   *
-   * @param parameters Parameters for this module.
-   * @return The compiled .jasper file.
-   */
-  @Nullable File getReportJasperFile(ParameterSet parameters) throws FileNotFoundException;
-
   JasperPrint generateReport(FeatureList flist, Map<String, Object> jasperParameters)
       throws JRException;
 
@@ -59,4 +49,5 @@ public interface ReportModule extends MZmineModule {
 
   public ReportModule createInstance(@NotNull ParameterSet parameters);
 
+  void cancel();
 }

@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JRException;
@@ -32,6 +34,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ReportingTask extends AbstractFeatureListTask {
+
+  private static final Logger logger = Logger.getLogger(ReportingTask.class.getName());
 
   @NotNull
   private final FeatureList flist;
@@ -65,13 +69,18 @@ public class ReportingTask extends AbstractFeatureListTask {
     try {
       final JasperPrint jasperPrint = reportModule.generateReport(flist, parameters);
       if (isCanceled()) {
+        reportModule.cancel();
+        return;
+      }
+      if(jasperPrint == null) {
+        error("Unknown error. Could not create print file.");
         return;
       }
       desc = "Exporting report for feature list %s to pdf.".formatted(flist.getName());
       JasperExportManager.exportReportToPdfFile(jasperPrint,
           getParameters().getValue(ReportingParameters.exportFile).getAbsolutePath());
     } catch (JRException e) {
-      throw new RuntimeException(e);
+      logger.log(Level.SEVERE, e.getMessage(), e);
     }
   }
 
@@ -123,4 +132,13 @@ public class ReportingTask extends AbstractFeatureListTask {
   public double getFinishedPercentage() {
     return reportModule != null ? reportModule.getProgress() : 0d;
   }
+
+  @Override
+  public void cancel() {
+    super.cancel();
+    if(reportModule != null) {
+      reportModule.cancel();
+    }
+  }
+
 }

@@ -24,8 +24,10 @@
 
 package io.github.mzmine.util.reporting.jasper.reporttypes;
 
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 
 public class AlignedFeatureReportParameters extends SimpleParameterSet {
 
@@ -34,10 +36,16 @@ public class AlignedFeatureReportParameters extends SimpleParameterSet {
 
   public static final BooleanParameter includeEvidencePages = new BooleanParameter(
       "Include evidence",
-      "Select if feature evidence shall be included, e.g., EICs, mobilograms, spectral library matches, lipid annotations, MS1 spectrum, MS2 spectrum, ...");
+      "Select if feature evidence shall be included, e.g., EICs, mobilograms, spectral library matches, lipid annotations, MS1 spectrum, MS2 spectrum, ...",
+      true);
+
+  public static final MetadataGroupingParameter grouping = new MetadataGroupingParameter(
+      "Metadata grouping (Boxplot)",
+      "Select the metadata grouping for the generation of the box plot.",
+      MetadataColumn.SAMPLE_TYPE_HEADER);
 
   public AlignedFeatureReportParameters() {
-    super(includeSummaryTable, includeEvidencePages);
+    super(includeSummaryTable, includeEvidencePages, grouping);
   }
 
 }

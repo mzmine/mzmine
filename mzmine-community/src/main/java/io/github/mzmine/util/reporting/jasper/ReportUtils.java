@@ -15,8 +15,14 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
+import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.gui.chartbasics.graphicsexport.ChartExportUtil;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
@@ -26,14 +32,16 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.AnyXYProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.OtherFeatureDataProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IntensityTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowBoxPlotDataset;
-import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponentAWT;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
@@ -41,39 +49,36 @@ import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidSpectrum
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.SinglePeakDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ContinuousRenderer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.color.ColorUtils;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.mzmine.reports.FeatureDetail;
 import io.mzmine.reports.FeatureSummary;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-import javafx.scene.chart.Chart;
+import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.batik.svggen.SVGGraphics2DIOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.data.xy.XYDataset;
 import org.openscience.cdk.exception.CDKException;
@@ -85,7 +90,7 @@ public class ReportUtils {
       ConfigService.getGuiFormats().unit("Retention time", "min"),
       ConfigService.getGuiFormats().unit("Intensity", "a.u."));
 
-  private final SimpleXYChart<PlotXYDataProvider> uvOverlayChart = new SimpleXYChart<>(
+  private final SimpleXYChart<PlotXYDataProvider> uvMsOverlay = new SimpleXYChart<>(
       ConfigService.getGuiFormats().unit("Retention time", "min"), "Normalized intensity");
 
   private final SimpleXYChart<PlotXYDataProvider> mobilogramChart = new SimpleXYChart<>(
@@ -114,16 +119,13 @@ public class ReportUtils {
         ConfigService.getGuiFormats().intensityFormat());
     initChart(eicChart);
     eicChart.setRangeAxisNumberFormatOverride(ConfigService.getGuiFormats().intensityFormat());
-    initChart(uvOverlayChart);
-    uvOverlayChart.setRangeAxisNumberFormatOverride(
-        ConfigService.getGuiFormats().intensityFormat());
+    initChart(uvMsOverlay);
     initChart(ms1Chart);
     ms1Chart.setRangeAxisNumberFormatOverride(ConfigService.getGuiFormats().intensityFormat());
     initChart(ms2Chart);
     ((NumberAxis) ms2Chart.getXYPlot().getRangeAxis()).setNumberFormatOverride(
         ConfigService.getGuiFormats().intensityFormat());
     initChart(boxPlot);
-
   }
 
   private static @NotNull String getCompoundSummary(@NotNull FeatureListRow row,
@@ -153,6 +155,9 @@ public class ReportUtils {
         Not annotated.""".formatted(id, mz, rt, ccs));
   }
 
+  /**
+   * Used for rendering the structres
+   */
   private static @NotNull SVGGraphics2D renderJComponentToSvgGraphics(JComponent comp,
       final int width, final int height) {
     DOMImplementation domImpl = SVGDOMImplementation.getDOMImplementation();
@@ -161,6 +166,17 @@ public class ReportUtils {
     svgGenerator.setSVGCanvasSize(new Dimension(width, height));
     comp.paint(svgGenerator);
     return svgGenerator;
+  }
+
+  private static @Nullable Range<Float> getExpandedRtRange(@NotNull FeatureListRow row) {
+    Range<Float> rtRange = row.get(RTRangeType.class);
+    if (rtRange == null) {
+      return null;
+    }
+    final Float rtRangeLength = RangeUtils.rangeLength(rtRange);
+    rtRange = Range.closed(rtRange.lowerEndpoint() - rtRangeLength,
+        rtRange.upperEndpoint() + rtRangeLength);
+    return rtRange;
   }
 
   public FeatureSummary getSummaryData(@NotNull FeatureListRow row) {
@@ -178,10 +194,6 @@ public class ReportUtils {
     final String internalId = annotation.map(FeatureAnnotation::getInternalId).orElse(null);
 
     return new FeatureSummary(id, mz, rt, ccs, height, area, name, internalId, null);
-  }
-
-  public List<FeatureDetail> getFeatureReportData(@NotNull List<@NotNull FeatureListRow> rows) {
-    return rows.stream().map(this::getFeatureReportData).toList();
   }
 
   public FeatureDetail getFeatureReportData(@NotNull final FeatureListRow row) {
@@ -245,6 +257,13 @@ public class ReportUtils {
             "Figure %s.%d: Matched lipid signals for feature %s.".formatted(id, chartCounter++,
                 id)));
       }
+      if(updateUvMsChart(row)) {
+        figures.add(new FigureAndCaption(
+            ChartExportUtil.writeChartToSvgString(uvMsOverlay.getChart(), FIGURE_WIDTH,
+                FIGURE_HEIGHT).getBytes(),
+            "Figure %s.%d: Correlated trace in file %s.".formatted(id, chartCounter++,
+                id)));
+      }
       updateStructure(row);
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -254,24 +273,26 @@ public class ReportUtils {
       figures.add(new FigureAndCaption(null, null));
     }
 
+    final String additional = "This feature was detected in the sample(s): %s.".formatted(
+        row.streamFeatures().map(Feature::getRawDataFile).filter(Objects::nonNull)
+            .map(RawDataFile::getName).sorted(Comparator.comparing(String::toString))
+            .collect(Collectors.joining(", ")));
+
     return new FeatureDetail(title, id, mz, rt, ccs, compoundSummary,
         structureString != null ? structureString.getBytes() : null, figures.get(0).chartSvg(),
         figures.get(0).caption(), figures.get(1).chartSvg(), figures.get(1).caption(),
         figures.get(2).chartSvg(), figures.get(2).caption(), figures.get(3).chartSvg(),
-        figures.get(3).caption(), figures.get(4).chartSvg(), figures.get(4).caption(), null);
+        figures.get(3).caption(), figures.get(4).chartSvg(), figures.get(4).caption(), additional);
   }
 
   private boolean updateEicChart(@NotNull FeatureListRow row) {
     eicChart.setLegendItemsVisible(false);
 
     final Range<Double> mzRange = row.get(MZRangeType.class);
-    Range<Float> rtRange = row.get(RTRangeType.class);
+    final Range<Float> rtRange = getExpandedRtRange(row);
     if (rtRange == null) {
       return false;
     }
-    final Float rtRangeLength = RangeUtils.rangeLength(rtRange);
-    rtRange = Range.closed(rtRange.lowerEndpoint() - rtRangeLength,
-        rtRange.upperEndpoint() + rtRangeLength);
 
     final List<DatasetAndRenderer> datasets = new ArrayList<>();
 
@@ -286,7 +307,8 @@ public class ReportUtils {
         final IonTimeSeries<Scan> chromatogram = IonTimeSeriesUtils.extractIonTimeSeries(file,
             row.getFeatureList().getSeletedScans(file), mzRange, rtRange, null);
         final ColoredXYDataset eic = new ColoredXYDataset(
-            new IonTimeSeriesToXYProvider(chromatogram, file.getName() + " eic", file.getColor()));
+            new IonTimeSeriesToXYProvider(chromatogram, file.getName() + " eic", file.getColor()),
+            RunOption.THIS_THREAD);
         datasets.add(new DatasetAndRenderer(eic, new ColoredXYLineRenderer()));
       }
     }
@@ -396,7 +418,7 @@ public class ReportUtils {
 
     final XYDataset isoOrPeak = iso != null ? new IsotopesDataSet(iso, "Isotope pattern")
         : new ColoredXYDataset(new AnyXYProvider(Color.RED, "Isotope pattern", 1, _ -> f.getMZ(),
-            _ -> f.getHeight().doubleValue()));
+            _ -> f.getHeight().doubleValue()), RunOption.THIS_THREAD);
     final ScanDataSet scanDataSet = new ScanDataSet(scan);
 
     ms1Chart.applyWithNotifyChanges(false, () -> {
@@ -445,8 +467,6 @@ public class ReportUtils {
       Structure2DComponentAWT comp = new Structure2DComponentAWT(structure.structure());
       comp.setSize(110, 70);
 
-//      this.structure = createBufferedImageFromComponent(comp, 150, 50);
-
       final SVGGraphics2D svgGenerator = renderJComponentToSvgGraphics(comp, 110, 70);
 
       StringWriter stringWriter = new StringWriter();
@@ -487,6 +507,73 @@ public class ReportUtils {
       boxPlotImage = null;
       return false;
     }
+    return true;
+  }
+
+  private boolean updateUvMsChart(@NotNull FeatureListRow row) {
+
+    final ModularFeature bestFeature = row.streamFeatures().filter(
+            f -> f.get(MsOtherCorrelationResultType.class) != null && !f.get(
+                MsOtherCorrelationResultType.class).isEmpty())
+        .sorted(Comparator.comparingDouble(Feature::getHeight).reversed()).findFirst().orElse(null);
+
+    if (bestFeature == null) {
+      uvMsOverlay.removeAllDatasets();
+      return false;
+    }
+    final Range<Float> rtRange = getExpandedRtRange(row);
+    if (rtRange == null) {
+      return false;
+    }
+
+    final List<MsOtherCorrelationResult> results = bestFeature.get(
+        MsOtherCorrelationResultType.class);
+    if (results == null || results.isEmpty()) {
+      uvMsOverlay.removeAllDatasets();
+      return false;
+    }
+
+    final MsOtherCorrelationResult correlation = results.getFirst();
+    final OtherFeature correlatedFeature = correlation.otherFeature();
+    final OtherFeature rawTrace = correlatedFeature.get(RawTraceType.class);
+    final OtherFeature fullPreProcessed = rawTrace.getOtherDataFile().getOtherTimeSeriesData()
+        .getPreProcessedFeatureForTrace(rawTrace);
+    final OtherTimeSeries trimmedPreProcessed = fullPreProcessed.getFeatureData()
+        .subSeries(null, rtRange.lowerEndpoint().floatValue(),
+            rtRange.upperEndpoint().floatValue());
+
+    final IonTimeSeries<Scan> msFeature = (IonTimeSeries<Scan>) bestFeature.getFeatureData();
+    final RawDataFile bestFeatureFile = bestFeature.getRawDataFile();
+
+    final List<? extends Scan> selectedScans = row.getFeatureList()
+        .getSeletedScans(bestFeatureFile);
+    final IonTimeSeries<Scan> msChrom = IonTimeSeriesUtils.extractIonTimeSeries(bestFeatureFile,
+        selectedScans, row.getMZRange(), rtRange, null);
+
+    final SimpleColorPalette palette = ConfigService.getDefaultColorPalette();
+    final Color uvColor = ColorUtils.getContrastPaletteColorAWT(bestFeatureFile.getColorAWT(),
+        palette);
+
+    uvMsOverlay.applyWithNotifyChanges(false, () -> {
+      uvMsOverlay.removeAllDatasets();
+      final float otherFeatureNormFactor = 1 / correlatedFeature.get(HeightType.class);
+      final float msFeatureNormFactor = 1 / bestFeature.getHeight();
+
+      uvMsOverlay.addDataset(new ColoredXYDataset(
+          new OtherFeatureDataProvider(correlatedFeature, uvColor, otherFeatureNormFactor),
+          RunOption.THIS_THREAD), new ColoredAreaShapeRenderer());
+      uvMsOverlay.addDataset(new ColoredXYDataset(
+          new IntensityTimeSeriesToXYProvider(trimmedPreProcessed, uvColor, null,
+              otherFeatureNormFactor), RunOption.THIS_THREAD), new ColoredXYLineRenderer());
+
+      uvMsOverlay.addDataset(new ColoredXYDataset(
+          new IonTimeSeriesToXYProvider(msChrom, "EIC", bestFeatureFile.getColorAWT(),
+              msFeatureNormFactor), RunOption.THIS_THREAD), new ColoredXYLineRenderer());
+      uvMsOverlay.addDataset(new ColoredXYDataset(
+          new IonTimeSeriesToXYProvider(msFeature, "MS feature", bestFeatureFile.getColorAWT(),
+              msFeatureNormFactor), RunOption.THIS_THREAD), new ColoredXYLineRenderer());
+    });
+
     return true;
   }
 
