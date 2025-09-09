@@ -25,6 +25,7 @@ ikonli = "12.3.1"
 graphstream = "2.0"
 djl = "0.26.0"
 mzio = "1.0.0"
+jasper = "7.0.3"
 
 [libraries]
 # mzio
@@ -92,7 +93,7 @@ msdk-adap3d = { module = "io.github.msdk:msdk-featuredetection-adap3d", version.
 msdk-netcdf = { module = "io.github.msdk:msdk-io-netcdf", version.ref = "msdk" }
 
 #batik-xml-commons = {group = "org.apache.xmlcommons", name="xml-apis", version="1.4.01"} # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
-batik-xml-commons-ext = {group = "org.apache.xmlcommons", name="xml-apis-ext", version="1.4.01"} # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
+batik-xml-commons-ext = { group = "org.apache.xmlcommons", name = "xml-apis-ext", version = "1.4.01" } # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
 batik-anim = { group = "org.apache.xmlgraphics", name = "batik-anim", version.ref = "batik" }
 batik-swing = { group = "org.apache.xmlgraphics", name = "batik-swing", version.ref = "batik" }
 batik-svggen = { group = "org.apache.xmlgraphics", name = "batik-svggen", version.ref = "batik" }
@@ -108,6 +109,11 @@ commons-compress = "org.apache.commons:commons-compress:1.26.2"
 djl-pytorch-engine = { module = "ai.djl.pytorch:pytorch-engine", version.ref = "djl" }
 djl-api = { module = "ai.djl:api", version.ref = "djl" }
 opencsv = { group = "com.opencsv", name = "opencsv", version = "5.8" }
+
+# reporting
+jasper-main = { group = "net.sf.jasperreports", name = "jasperreports", version.ref = "jasper" }
+jasper-pdf = { group = "net.sf.jasperreports", name = "jasperreports-pdf", version.ref = "jasper" }
+jasper-html = { group = "net.sf.jasperreports", name = "jasperreports-html-component", version.ref = "jasper" }
 
 # testing
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
@@ -137,6 +143,7 @@ okhttp = ["okhttp", "okhttp-logging-interceptor"]
 junit-mockito = ["junit-jupiter", "junit-platform", "mockito"]
 jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv", "jackson-datetime", "jackson-datatype"]
 batik = ["batik-anim", "batik-svggen", "batik-swing", "batik-xml-commons-ext"] # "batik-xml-commons",
+jasper = ["jasper-main", "jasper-pdf", "jasper-html"]
 
 [plugins]
 semver = { id = "net.thauvin.erik.gradle.semver", version.ref = "semver" }
