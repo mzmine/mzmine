@@ -34,10 +34,6 @@
             ],
             "moduleLicenses": [
                 {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
-                },
-                {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
                     "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-3.0"
                 }
@@ -71,7 +67,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.core:jackson-annotations",
-            "moduleVersion": "2.18.2",
+            "moduleVersion": "2.18.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson"
             ],
@@ -84,7 +80,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.core:jackson-core",
-            "moduleVersion": "2.18.2",
+            "moduleVersion": "2.18.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-core"
             ],
@@ -97,7 +93,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.core:jackson-databind",
-            "moduleVersion": "2.18.2",
+            "moduleVersion": "2.18.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson"
             ],
@@ -110,7 +106,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.dataformat:jackson-dataformat-csv",
-            "moduleVersion": "2.18.2",
+            "moduleVersion": "2.18.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-dataformats-text"
             ],
@@ -123,7 +119,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.dataformat:jackson-dataformat-xml",
-            "moduleVersion": "2.18.2",
+            "moduleVersion": "2.18.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-dataformat-xml"
             ],
@@ -136,7 +132,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.datatype:jackson-datatype-jdk8",
-            "moduleVersion": "2.18.2",
+            "moduleVersion": "2.18.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-modules-java8/jackson-datatype-jdk8"
             ],
@@ -149,7 +145,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.datatype:jackson-datatype-joda",
-            "moduleVersion": "2.18.2",
+            "moduleVersion": "2.18.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-datatype-joda"
             ],
@@ -162,7 +158,7 @@
         },
         {
             "moduleName": "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
-            "moduleVersion": "2.18.2",
+            "moduleVersion": "2.18.0",
             "moduleUrls": [
                 "https://github.com/FasterXML/jackson-modules-java8/jackson-datatype-jsr310"
             ],
@@ -279,7 +275,7 @@
         },
         {
             "moduleName": "com.github.virtuald:curvesapi",
-            "moduleVersion": "1.08",
+            "moduleVersion": "1.06",
             "moduleUrls": [
                 "https://github.com/virtuald/curvesapi"
             ],
@@ -497,7 +493,7 @@
         },
         {
             "moduleName": "com.zaxxer:SparseBitSet",
-            "moduleVersion": "1.3",
+            "moduleVersion": "1.2",
             "moduleUrls": [
                 "https://github.com/brettwooldridge/SparseBitSet"
             ],
@@ -536,7 +532,7 @@
         },
         {
             "moduleName": "commons-codec:commons-codec",
-            "moduleVersion": "1.18.0",
+            "moduleVersion": "1.17.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-codec/"
             ],
@@ -562,7 +558,7 @@
         },
         {
             "moduleName": "commons-io:commons-io",
-            "moduleVersion": "2.18.0",
+            "moduleVersion": "2.17.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-io/"
             ],
@@ -625,6 +621,16 @@
             "moduleUrls": [
                 "https://bitbucket.org/Jerady/fontawesomefx/overview"
             ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "de.rototor.pdfbox:graphics2d",
+            "moduleVersion": "0.30",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1262,19 +1268,6 @@
             ]
         },
         {
-            "moduleName": "net.sf.jasperreports:jasperreports",
-            "moduleVersion": "7.0.3",
-            "moduleUrls": [
-                "http://jasperreports.sourceforge.net"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
-                }
-            ]
-        },
-        {
             "moduleName": "net.sf.py4j:py4j",
             "moduleVersion": "0.8.1",
             "moduleUrls": [
@@ -1328,7 +1321,7 @@
         },
         {
             "moduleName": "org.apache.commons:commons-compress",
-            "moduleVersion": "1.27.1",
+            "moduleVersion": "1.26.2",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-compress/"
             ],
@@ -1341,7 +1334,7 @@
         },
         {
             "moduleName": "org.apache.commons:commons-lang3",
-            "moduleVersion": "3.16.0",
+            "moduleVersion": "3.14.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-lang/"
             ],
@@ -1452,8 +1445,25 @@
             ]
         },
         {
-            "moduleName": "org.apache.logging.log4j:log4j-api",
-            "moduleVersion": "2.23.0",
+            "moduleName": "org.apache.pdfbox:fontbox",
+            "moduleVersion": "2.0.22",
+            "moduleUrls": [
+                "http://pdfbox.apache.org",
+                "http://pdfbox.apache.org/"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.pdfbox:pdfbox",
+            "moduleVersion": "2.0.22",
+            "moduleUrls": [
+                "http://pdfbox.apache.org"
+            ],
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1463,7 +1473,7 @@
         },
         {
             "moduleName": "org.apache.poi:poi",
-            "moduleVersion": "5.4.1",
+            "moduleVersion": "5.0.0",
             "moduleUrls": [
                 "https://poi.apache.org/"
             ],
@@ -1476,7 +1486,7 @@
         },
         {
             "moduleName": "org.apache.poi:poi-ooxml",
-            "moduleVersion": "5.4.1",
+            "moduleVersion": "5.0.0",
             "moduleUrls": [
                 "https://poi.apache.org/"
             ],
@@ -1489,7 +1499,7 @@
         },
         {
             "moduleName": "org.apache.poi:poi-ooxml-lite",
-            "moduleVersion": "5.4.1",
+            "moduleVersion": "5.0.0",
             "moduleUrls": [
                 "https://poi.apache.org/"
             ],
@@ -1501,8 +1511,22 @@
             ]
         },
         {
+            "moduleName": "org.apache.santuario:xmlsec",
+            "moduleVersion": "2.2.1",
+            "moduleUrls": [
+                "https://santuario.apache.org/",
+                "https://www.apache.org/"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.apache.xmlbeans:xmlbeans",
-            "moduleVersion": "5.3.0",
+            "moduleVersion": "4.0.0",
             "moduleUrls": [
                 "https://xmlbeans.apache.org/"
             ],
@@ -1534,6 +1558,16 @@
             ]
         },
         {
+            "moduleName": "org.apache.xmlgraphics:batik-all",
+            "moduleVersion": "1.13",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.apache.xmlgraphics:batik-anim",
             "moduleVersion": "1.19",
             "moduleLicenses": [
@@ -1556,6 +1590,16 @@
         {
             "moduleName": "org.apache.xmlgraphics:batik-bridge",
             "moduleVersion": "1.19",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-codec",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1604,6 +1648,16 @@
             ]
         },
         {
+            "moduleName": "org.apache.xmlgraphics:batik-extension",
+            "moduleVersion": "1.13",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.apache.xmlgraphics:batik-gui-util",
             "moduleVersion": "1.19",
             "moduleLicenses": [
@@ -1644,6 +1698,26 @@
             ]
         },
         {
+            "moduleName": "org.apache.xmlgraphics:batik-rasterizer",
+            "moduleVersion": "1.13",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-rasterizer-ext",
+            "moduleVersion": "1.13",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.apache.xmlgraphics:batik-script",
             "moduleVersion": "1.19",
             "moduleLicenses": [
@@ -1664,8 +1738,48 @@
             ]
         },
         {
+            "moduleName": "org.apache.xmlgraphics:batik-slideshow",
+            "moduleVersion": "1.13",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-squiggle",
+            "moduleVersion": "1.13",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-squiggle-ext",
+            "moduleVersion": "1.13",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.apache.xmlgraphics:batik-svg-dom",
             "moduleVersion": "1.19",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-svgbrowser",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1684,8 +1798,48 @@
             ]
         },
         {
+            "moduleName": "org.apache.xmlgraphics:batik-svgpp",
+            "moduleVersion": "1.13",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-svgrasterizer",
+            "moduleVersion": "1.13",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.apache.xmlgraphics:batik-swing",
             "moduleVersion": "1.19",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-transcoder",
+            "moduleVersion": "1.13",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-ttf2svg",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1727,10 +1881,36 @@
             ]
         },
         {
+            "moduleName": "org.bouncycastle:bcpkix-jdk15on",
+            "moduleVersion": "1.68",
+            "moduleUrls": [
+                "http://www.bouncycastle.org/java.html"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "MIT License",
+                    "moduleLicenseUrl": "https://opensource.org/licenses/MIT"
+                }
+            ]
+        },
+        {
             "moduleName": "org.bouncycastle:bcpkix-jdk18on",
             "moduleVersion": "1.77",
             "moduleUrls": [
                 "https://www.bouncycastle.org/java.html"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "MIT License",
+                    "moduleLicenseUrl": "https://opensource.org/licenses/MIT"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.bouncycastle:bcprov-jdk15on",
+            "moduleVersion": "1.68",
+            "moduleUrls": [
+                "http://www.bouncycastle.org/java.html"
             ],
             "moduleLicenses": [
                 {
@@ -2693,11 +2873,15 @@
         },
         {
             "moduleName": "org.slf4j:jcl-over-slf4j",
-            "moduleVersion": "1.7.7",
+            "moduleVersion": "1.7.30",
             "moduleUrls": [
                 "http://www.slf4j.org"
             ],
             "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                },
                 {
                     "moduleLicense": "MIT License",
                     "moduleLicenseUrl": "https://opensource.org/licenses/MIT"

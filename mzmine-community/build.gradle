@@ -135,6 +135,8 @@ repositories {
 //    maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
     // For jimzml
     // maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
+
+    // for batik-xml-commons-ext package (svg export)
     maven {url = "https://repository.everit.biz/nexus/content/groups/public/"}
 }
 

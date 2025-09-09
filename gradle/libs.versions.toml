@@ -136,7 +136,7 @@ poi = ["poi", "poi-ooxml"]
 okhttp = ["okhttp", "okhttp-logging-interceptor"]
 junit-mockito = ["junit-jupiter", "junit-platform", "mockito"]
 jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv", "jackson-datetime", "jackson-datatype"]
-batik = ["batik-anim", "batik-svggen", "batik-swing", "batik-xml-commons-ext"] # "batik-xml-commons",
+batik = ["batik-anim", "batik-svggen", "batik-swing", "batik-xml-commons-ext"] #, "batik-xml-commons"]
 
 [plugins]
 semver = { id = "net.thauvin.erik.gradle.semver", version.ref = "semver" }
