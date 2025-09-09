@@ -25,38 +25,42 @@
 
 package io.github.mzmine.datamodel.identities.fx.sub;
 
-import io.github.mzmine.datamodel.identities.IonPart;
-import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
-import io.github.mzmine.datamodel.identities.IonPart.Type;
-import io.github.mzmine.javafx.components.FilterableListView;
-import io.github.mzmine.javafx.components.FilterableListView.MenuControls;
 import static io.github.mzmine.javafx.components.factories.FxButtons.createDisabledButton;
 import static io.github.mzmine.javafx.components.factories.FxButtons.disableIf;
-import io.github.mzmine.javafx.components.factories.FxComboBox;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
-import io.github.mzmine.javafx.components.factories.FxListViews;
 import static io.github.mzmine.javafx.components.factories.FxSpinners.newNonZeroSpinner;
 import static io.github.mzmine.javafx.components.factories.FxSpinners.newSpinner;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.applyToField;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newNumberField;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newTextField;
-import io.github.mzmine.javafx.components.util.FxLayout;
 import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_INSETS;
-import io.github.mzmine.javafx.components.util.FxLayout.Position;
 import static io.github.mzmine.javafx.components.util.FxLayout.gridRow;
-import io.github.mzmine.javafx.properties.PropertyUtils;
-import io.github.mzmine.main.ConfigService;
 import static io.github.mzmine.util.FormulaUtils.getFormulaString;
-import io.github.mzmine.util.StringUtils;
 import static io.github.mzmine.util.StringUtils.isBlank;
 import static io.github.mzmine.util.StringUtils.requireValueOrElse;
 import static io.github.mzmine.util.components.FormulaTextField.newFormulaTextField;
+
+import io.github.mzmine.datamodel.identities.IonPart;
+import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
+import io.github.mzmine.datamodel.identities.IonPart.Type;
+import io.github.mzmine.javafx.components.FilterableListView;
+import io.github.mzmine.javafx.components.FilterableListView.MenuControls;
+import io.github.mzmine.javafx.components.factories.FxComboBox;
+import io.github.mzmine.javafx.components.factories.FxListViews;
+import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.components.util.FxLayout.Position;
+import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.javafx.validation.FxValidation;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.util.StringUtils;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
@@ -73,8 +77,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
-import net.synedra.validatorfx.Validator;
 import org.controlsfx.control.CheckComboBox;
+import org.controlsfx.validation.ValidationSupport;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -93,13 +97,13 @@ public class IonPartCreatorPane extends BorderPane {
   private final ObjectProperty<Number> mass = new SimpleObjectProperty<>(0);
   private final ObjectProperty<@Nullable IMolecularFormula> formula = new SimpleObjectProperty<>();
 
-  private final Validator currentPartValidator = new Validator();
   // parsed from fields
   private final ReadOnlyObjectWrapper<IonPart> part = new ReadOnlyObjectWrapper<>();
 
   // additional properties for the list view
   private final ObjectProperty<IonSorting> listSorting = new SimpleObjectProperty<>(
       IonSorting.getIonPartDefault());
+  private final ValidationSupport validator = FxValidation.newValidationSupport();
 
 
   public IonPartCreatorPane(ObservableList<IonPart> parts) {
@@ -194,48 +198,49 @@ public class IonPartCreatorPane extends BorderPane {
     partUpdateDelay.setOnFinished(_ -> updateCurrentPart());
     PropertyUtils.onChange(partUpdateDelay::playFromStart, name, formula, charge, count, mass);
 
-    // add validations
-    Validator partParserValidator = new Validator();
-    partParserValidator.createCheck().dependsOn("parsedIonPart", parsedIonPart) //
-        .withMethod(c -> {
-          String value = c.get("parsedIonPart");
+    // validate the direct parsing of a full ion part from single text
+    FxValidation.registerErrorValidator(validator, txtParsedIonPart,
+        Bindings.createStringBinding(() -> {
+          String value = parsedIonPart.getValue();
           if (!StringUtils.isBlank(value) && IonPart.parse(value) == null) {
-            c.error("Cannot parse ion part. Input correct format, e.g., +Fe+3 or -2Cl-");
+            return "Cannot parse ion part. Input correct format, e.g., +Fe+3 or -2Cl-";
           }
-        }).decorates(txtParsedIonPart).immediate();
+          return null; // no error
+        }, txtParsedIonPart.textProperty(), parsedIonPart));
 
     // validate creation of ion part from all fields
-    currentPartValidator.createCheck().dependsOn("count", count) //
-        .withMethod(c -> {
-          Integer value = c.get("count");
-          if (value == 0) {
-            c.error("Count needs to be different from 0");
-          }
-        }).decorates(spinCount).immediate();
+    FxValidation.registerErrorValidator(validator, spinCount, Bindings.createStringBinding(
+        () -> count.getValue() == 0 ? "Count needs to be different (<>) from 0" : null, count));
 
-    currentPartValidator.createCheck() //
-        .dependsOn("formula", formula) //
-        .dependsOn("name", name) //
-        .withMethod(c -> {
-          String name = c.get("name");
-          IMolecularFormula formula = c.get("formula");
-          if (isBlank(name) && formula == null) {
-            c.error("Enter a name or a valid formula");
-          }
-        }).decorates(txtFormula).decorates(txtName).immediate();
+    final StringBinding formulaNameError = Bindings.createStringBinding(() -> {
+      String name = this.name.getValue();
+      IMolecularFormula formula = this.formula.getValue();
+      if (isBlank(name) && formula == null) {
+        return "Enter a name or a valid formula, one is required, both are possible";
+      }
+      return null; // no error
+    }, formula, name);
 
-    currentPartValidator.createCheck() //
-        .dependsOn("formula", formula) //
-        .dependsOn("mass", mass) //
-        .withMethod(c -> {
-          Number mass = c.get("mass");
-          IMolecularFormula formula = c.get("formula");
-          if (mass == null && formula == null) {
-            c.error("""
-                Enter a valid formula or mass.
-                Mass input is only available if formula field is empty.""");
-          }
-        }).decorates(txtFormula).decorates(txtMass).immediate();
+    // use the same for both formula and name
+    FxValidation.registerErrorValidator(validator, txtFormula, formulaNameError);
+    FxValidation.registerErrorValidator(validator, txtName, formulaNameError);
+
+    final StringBinding formulaMassError = Bindings.createStringBinding(() -> {
+      Number mass = this.mass.getValue();
+      IMolecularFormula formula = this.formula.getValue();
+      if (mass == null && formula == null) {
+        return """
+            Enter a valid formula or neutral mass.
+            Mass input is only available if formula field is empty.
+            Otherwise the mass is calculated from the formula.""";
+      }
+      return null; // no error
+    }, formula, mass);
+
+    // use the same for both formula and name
+    FxValidation.registerErrorValidator(validator, txtFormula, formulaMassError);
+    FxValidation.registerErrorValidator(validator, txtMass, formulaMassError);
+
     return ionCreationGrid;
   }
 
@@ -251,7 +256,7 @@ public class IonPartCreatorPane extends BorderPane {
    */
   private void updateCurrentPart() {
     try {
-      if (!currentPartValidator.validate()) {
+      if (validator.isInvalid() == true) {
         part.set(null);
         return;
       }

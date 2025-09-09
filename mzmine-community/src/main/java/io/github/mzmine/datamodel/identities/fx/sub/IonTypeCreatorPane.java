@@ -25,6 +25,15 @@
 
 package io.github.mzmine.datamodel.identities.fx.sub;
 
+import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
+import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
+import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
+import static io.github.mzmine.javafx.components.factories.FxTextFields.newTextField;
+import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_INSETS;
+import static io.github.mzmine.javafx.components.util.FxLayout.gridRow;
+import static io.github.mzmine.javafx.components.util.FxLayout.newBorderPane;
+import static io.github.mzmine.javafx.components.util.FxLayout.newGrid2Col;
+
 import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.IonType;
@@ -35,22 +44,16 @@ import io.github.mzmine.javafx.components.FilterableListView.MenuControls;
 import io.github.mzmine.javafx.components.MappingListCell;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
-import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
-import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
-import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
 import io.github.mzmine.javafx.components.factories.FxListViews;
-import static io.github.mzmine.javafx.components.factories.FxTextFields.newTextField;
-import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_INSETS;
 import io.github.mzmine.javafx.components.util.FxLayout.Position;
-import static io.github.mzmine.javafx.components.util.FxLayout.gridRow;
-import static io.github.mzmine.javafx.components.util.FxLayout.newBorderPane;
-import static io.github.mzmine.javafx.components.util.FxLayout.newGrid2Col;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.javafx.validation.FxValidation;
 import io.github.mzmine.util.StringUtils;
 import java.util.List;
 import java.util.Optional;
 import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -68,7 +71,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
-import net.synedra.validatorfx.Validator;
 import org.jetbrains.annotations.NotNull;
 
 public class IonTypeCreatorPane extends BorderPane {
@@ -83,7 +85,6 @@ public class IonTypeCreatorPane extends BorderPane {
   private final ListProperty<IonPart> unknownParts = new SimpleListProperty<>(
       FXCollections.observableArrayList());
 
-  private final Validator currentIonValidator = new Validator();
 
   // additional properties for the list view
   private final ObjectProperty<IonSorting> listSorting = new SimpleObjectProperty<>(
@@ -154,15 +155,8 @@ public class IonTypeCreatorPane extends BorderPane {
     final TextField inputText = newTextField(10, parsedIonTypeString,
         "Format: [2M-H2O+2H]+2 or M+ACN+H",
         "Enter ion types like adducts, in source fragments, and clusters");
-    currentIonValidator.createCheck().dependsOn("parsedIonType", parsedIonType) //
-        .withMethod(c -> {
-          IonType value = c.get("parsedIonType");
-          if (value == null) {
-            c.error(
-                "Cannot parse ion type for %s. Input correct format, e.g., [2M-H2O+2H]+2 or M+ACN+H".formatted(
-                    parsedIonTypeString.getValue()));
-          }
-        }).decorates(inputText).immediate();
+
+    ionParsingValidation(inputText);
 
     //
     final Button btnAdd = FxButtons.createDisabledButton("Add",
@@ -192,9 +186,23 @@ public class IonTypeCreatorPane extends BorderPane {
     ));
   }
 
+  private void ionParsingValidation(TextField inputText) {
+    StringBinding errorBinding = Bindings.createStringBinding(() -> {
+      IonType value = parsedIonType.getValue();
+      if (value == null && !inputText.getText().isBlank()) {
+        return "Cannot parse ion type for %s. Input correct format, e.g., [2M-H2O+2H]+2 or M+ACN+H".formatted(
+            parsedIonTypeString.getValue());
+      }
+      return null; // no error
+    }, parsedIonType, inputText.textProperty());
+
+    FxValidation.registerErrorValidator(inputText, errorBinding);
+  }
+
   private void defineFirstUnknownPart() {
     final Optional<IonPart> first = unknownParts.stream().findFirst();
     if (first.isPresent()) {
+      // TODO
     }
   }
 

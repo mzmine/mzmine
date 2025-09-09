@@ -58,7 +58,6 @@ jfree-core = "org.jfree:jfreechart:1.5.3"
 jfree-fx = "org.jfree:org.jfree.chart.fx:2.0.1"
 jfree-fxgraphics = "org.jfree:org.jfree.fxgraphics2d:2.1.1"
 fxcharts = "eu.hansolo.fx:charts:21.0.7"
-validatorfx = "net.synedra:validatorfx:0.5.1"
 # web, rest
 okhttp = { module = "com.squareup.okhttp:okhttp", version.ref = "okhttp" }
 okhttp-logging-interceptor = { module = "com.squareup.okhttp:logging-interceptor", version.ref = "okhttp" }
