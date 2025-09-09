@@ -48,6 +48,15 @@ public class LipidIDExpertKnowledgeParameters extends SimpleParameterSet {
             "Mobile phases", "Selection of mobile phases", MobilePhases.getListOfMobilePhases().toArray());
 
     /**
+     * User-selected TXT mobile phases files.
+     */
+    public static final FileNamesParameter mobilePhasesFiles = new FileNamesParameter(
+            "TXT mobile phases files",
+            "Mobile phases files (.txt) for lipid expert knowledge",
+            List.of(new ExtensionFilter("Mobile phases (*.txt)", "*.txt"))
+    );
+
+    /**
      * Sample types the user can choose from.
      * Only one must be chosen.
      */
@@ -72,11 +81,13 @@ public class LipidIDExpertKnowledgeParameters extends SimpleParameterSet {
             List.of(new ExtensionFilter("Adducts (*.txt)", "*.txt"))
     );
 
+
+
     /**
      * Created a new LipidIDExpertKnowledgeParameter object with the specified info.
      */
     public LipidIDExpertKnowledgeParameters() {
-        super(new Parameter[]{featureLists, mzTolerance, mobilePhaseParameter, sampleTypeParameter, drlFiles, adductFiles});
+        super(new Parameter[]{featureLists, mzTolerance, mobilePhaseParameter, mobilePhasesFiles, sampleTypeParameter, drlFiles, adductFiles});
     }
 
     /**
@@ -89,7 +100,7 @@ public class LipidIDExpertKnowledgeParameters extends SimpleParameterSet {
         assert Platform.isFxApplicationThread();
         final Region message = FxTextFlows.newTextFlowInAccordion("Authors Note",
                 text("This module requires Lipid Annotation to be run first."),
-                text("You may also provide one or more Drools rule files (.drl)."));
+                text(" It takes in .txt files with additional mobile phases and adducts (see README for file structure). You may also provide one or more Drools rule files (.drl)."));
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
 

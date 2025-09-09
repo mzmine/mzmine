@@ -92,7 +92,11 @@ public class LipidValidationListType extends ListWithSubsType<FoundLipid> implem
         } else if (subType instanceof LipidValidationCorrectDescriptionType) {
             return (K) lipid.getDescrCorrect();
         } else if (subType instanceof LipidValidationIncorrectDescriptionType) {
-            return (K) lipid.getDescrIncorrect();
+            if (lipid.getDescrIncorrect().equals("Verify: ")){
+                return (K) "";
+            } else {
+                return (K) lipid.getDescrIncorrect();
+            }
         } else if (subType instanceof LipidValidationAdductsType) {
             return (K) lipid.getAdducts();
         } else {

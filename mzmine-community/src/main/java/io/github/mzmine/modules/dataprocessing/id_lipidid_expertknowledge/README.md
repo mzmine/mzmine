@@ -1,5 +1,26 @@
 # Lipid Validation module
 
+## Mobile phases .txt file
+Lipid Validation allows users to input their own mobile phases in case they want to search for them in the samples and they are **not part of the default ones that the program lets the user choose.**
+
+### Default mobile phases
+- CH3COO, NH4, CH3OH, CH3CN, HCOO
+## Structure of `.txt` mobile phases file
+Write one mobile phases per line using the format:
+```
+<MobilePhaseSymbol>:<MobilePhaseName>
+```
+
+### Examples of custom mobile phases
+```
+HCO3:Bicarbonate
+Na:Sodium
+K:Potassium
+Li:Lithium
+TFA:Trifluoroacetic acid
+HCOOH:Formic acid
+```
+
 ## Adduct .txt file
 Lipid Validation allows users to input their own adducts in case they want to search for them in the samples and they are **not part of the default ones.**
 
@@ -113,7 +134,7 @@ Check if intensity of one adduct is **lower** than another, which is *not expect
 #### `when` section
 Define conditions (pattern matching facts) for firing the rule.
 
-We search for the specific adduct name, and we have to take into account that some adducts may only appear when specific mobile phases are used in the samples.
+We search for the specific adduct name, and we have to take into account that some adducts may only appear when specific mobile phases are used in the samples. These may be the ones provided by the tool or the ones input in the `.txt` files
 
 - `$adduct`: checks presence of the adduct.
 - `$phaseN`: ensures required mobile phases are present.

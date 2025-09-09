@@ -9,6 +9,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.*;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.*;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhase;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhases;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.SampleTypes;
 import io.github.mzmine.parameters.ParameterSet;
@@ -78,9 +79,13 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
      */
     private final FeatureList featureList;
     /**
-     * List of Adducts generated with user input information.
+     * List of Adduct generated with user input information.
      */
     private final List<Adduct> userAdducts;
+    /**
+     * List of MobilePhase generated with user input information.
+     */
+    private final List<MobilePhase> userMobilePhases;
 
 
     /**
@@ -126,6 +131,9 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
         File[] adductFiles = parameters.getParameter(LipidIDExpertKnowledgeParameters.adductFiles).getValue();
         //Generate new adducts from txt file
         this.userAdducts = loadAdducts(adductFiles);
+        File[] mobilePhasesFiles = parameters.getParameter(LipidIDExpertKnowledgeParameters.mobilePhasesFiles).getValue();
+        this.userMobilePhases = loadMobilePhases(mobilePhasesFiles);
+
     }
 
 
@@ -254,6 +262,39 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
         }
         return newAdducts;
     }
+
+    public static List<MobilePhase> loadMobilePhases(File[] files) {
+        List<MobilePhase> mobilePhases = new ArrayList<>();
+
+        for (File file : files) {
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    line = line.trim();
+                    if (line.isEmpty() || !line.contains(":")) continue;
+
+                    String[] parts = line.split(":");
+                    if (parts.length != 2) continue;
+
+                    String symbol = parts[0].trim();
+                    String name = parts[1].trim();
+
+                    if (symbol.isEmpty() || name.isEmpty()) {
+                        System.err.println("Invalid entry in " + file.getName() + ": " + line);
+                        continue;
+                    }
+
+                    MobilePhase mp = new MobilePhase(symbol, name);
+                    mobilePhases.add(mp);
+                    System.out.println(" -> Loaded mobile phase: " + mp);
+                }
+            } catch (IOException e) {
+                System.err.println("Error reading " + file.getName() + ": " + e.getMessage());
+            }
+        }
+        return mobilePhases;
+    }
+
 
     public static int parseCharge(String adduct) {
         if (adduct == null) throw new IllegalArgumentException("Null adduct");
