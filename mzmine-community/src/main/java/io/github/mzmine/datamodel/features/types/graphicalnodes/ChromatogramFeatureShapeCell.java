@@ -95,16 +95,18 @@ public class ChromatogramFeatureShapeCell extends TreeTableCell<ModularFeatureLi
   }
 
   @Override
-  protected void updateItem(Object o, boolean b) {
+  protected void updateItem(Object o, boolean visible) {
     // always need to call super.updateItem
-    super.updateItem(o, b);
+    super.updateItem(o, visible);
 
     final ModularFeatureListRow row = getTableRow().getItem();
     // first cell with id 0 seems to be just the measuring cell - no need to put content.
     // the chart itself already helps measurements
-    if (row == null || isEmpty() || id == 0) {
-      // no need to remove datasets because we will replace once we have a new dataset with setAll
-//      plot.removeAllDatasets();
+    if (id == 0) {
+      return;
+    }
+    if (row == null || isEmpty()) {
+      plot.removeAllDatasets();
       return;
     }
     // debugging of updates
