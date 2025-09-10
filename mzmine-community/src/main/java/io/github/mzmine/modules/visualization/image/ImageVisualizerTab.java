@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,16 +25,17 @@
 
 package io.github.mzmine.modules.visualization.image;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.FeatureImageProvider;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters.Pattern;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -50,19 +51,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.logging.Level;
+import javafx.animation.PauseTransition;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
-import org.jfree.chart.fx.interaction.ChartMouseEventFX;
-import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
-import org.jfree.chart.plot.XYPlot;
 
 /**
  * Combines the ImagingPlot with a spectrum.
@@ -75,17 +74,27 @@ import org.jfree.chart.plot.XYPlot;
 public class ImageVisualizerTab extends MZmineTab {
 
   private final ImageVisualizerPaneController controller;
-  private ParameterSet parameters;
-  private ImagingPlot imagingPlot;
-  private EChartViewer imageHeatMapPlot;
-  private SpectraVisualizerTab spectraTab;
+  private final ParameterSet parameters;
+  private final ImagingPlot imagingPlot;
+  private final SimpleXYZScatterPlot<FeatureImageProvider> imageHeatMapPlot;
+  private final SpectraVisualizerTab spectraTab;
   private ImagingRawDataFile rawDataFile;
   private ParameterSetupPane parameterSetupPane;
+  private final PauseTransition parameterChangedDelay = new PauseTransition(Duration.millis(25));
+
 
   public ImageVisualizerTab(ImageVisualizerParameters parameters) {
     super("Image viewer", false, false);
-    this.parameters = MZmineCore.getConfiguration().getModuleParameters(ImageVisualizerModule.class)
-        .cloneParameterSet();
+    this.parameters = parameters;
+    // through the listeners and bindings in spectra tab the initial range is lost and needs to be set at last
+    final Range<Double> initialMzRange = parameters.getValue(ImageVisualizerParameters.mzRange);
+//    this.parameters = MZmineCore.getConfiguration().getModuleParameters(ImageVisualizerModule.class)
+//        .cloneParameterSet();
+
+    // refresh with a little delay
+    // click in spectrum sets the parmaeters to components, triggers reformat, changes value of parameters again
+    parameterChangedDelay.setOnFinished(_ -> refreshAllPlots());
+
     BorderPane mainPane = null;
     FXMLLoader loader = new FXMLLoader((getClass().getResource("ImageVisualizerPane.fxml")));
     try {
@@ -96,21 +105,19 @@ public class ImageVisualizerTab extends MZmineTab {
       logger.log(Level.WARNING, e.getMessage(), e);
     }
 
-    ImageVisualizerParameters finalParameters = parameters;
-    parameterSetupPane = new ParameterSetupPane(true, true, finalParameters) {
+    parameterSetupPane = new ParameterSetupPane(true, true, this.parameters) {
       @Override
       protected void callOkButton() {
         this.updateParameterSetFromComponents();
-        refreshAllPlots(finalParameters);
+        refreshAllPlots();
       }
 
       @Override
       protected void parametersChanged() {
         this.updateParameterSetFromComponents();
-        refreshAllPlots(finalParameters);
+        parameterChangedDelay.playFromStart();
       }
     };
-    parameters = (ImageVisualizerParameters) parameterSetupPane.getParameterSet();
     Map<String, Node> parametersAndComponents = parameterSetupPane.getParametersAndComponents();
     for (Entry<String, Node> entry : parametersAndComponents.entrySet()) {
       if (entry.getKey().equals("Raw data files")) {
@@ -126,9 +133,38 @@ public class ImageVisualizerTab extends MZmineTab {
     imagingPlot = new ImagingPlot(parameters);
     controller.getPlotPane().setCenter(imagingPlot);
     imageHeatMapPlot = imagingPlot.getChart();
+
+    // spectrum plot
+    spectraTab = new SpectraVisualizerTab(rawDataFile);
+    spectraTab.setMzTolerance(new MZTolerance(0.005, 10));
+    BorderPane pane = controller.getSpectrumPlotPane();
+    pane.setCenter(spectraTab.getMainPane());
+    // add listener to spectrum property
+    getSpectrumPlot().selectedMzRangeProperty().addListener((o, ov, nv) -> {
+      if (nv == null || nv.upperEndpoint() <= 2) {
+        return;
+      }
+
+      // the range is automatically set to something upper range<=1 if there is no selection
+      // use TIC
+//      final MZRangeComponent comp = (MZRangeComponent) parameterSetupPane.getComponentForParameter(
+//          ImageVisualizerParameters.mzRange);
+//
+//      comp.getSetAutoButton().getOnAction().handle(null);
+
+      parameterSetupPane.getParameterSet().setParameter(ImageVisualizerParameters.mzRange, nv);
+      parameterSetupPane.setParameterValuesToComponents();
+      parameterChangedDelay.playFromStart();
+    });
+
     addListenerToImage();
 
     setContent(mainPane);
+
+    // through the listeners and bindings in spectra tab the initial range is lost and needs to be set at last
+//    parameterSetupPane.getParameterSet()
+//        .setParameter(ImageVisualizerParameters.mzRange, initialMzRange);
+//    parameterSetupPane.setParameterValuesToComponents();
   }
 
   public ImageVisualizerTab(ModularFeature feature, ImageVisualizerParameters parameters) {
@@ -148,15 +184,10 @@ public class ImageVisualizerTab extends MZmineTab {
     setData(rawDataFile, true);
   }
 
-  private void refreshAllPlots(ImageVisualizerParameters finalParameters) {
-    cleanGridPane(controller.getRawDataInfoGridPane());
-    cleanGridPane(controller.getImagingParameterInfoGridPane());
-    imagingPlot = new ImagingPlot(finalParameters);
-    imageHeatMapPlot = imagingPlot.getChart();
-    controller.getPlotPane().setCenter(imagingPlot);
-    addListenerToImage();
+  private void refreshAllPlots() {
+//    cleanGridPane(controller.getRawDataInfoGridPane());
+//    cleanGridPane(controller.getImagingParameterInfoGridPane());
     setData(rawDataFile, true);
-    parameters = finalParameters;
   }
 
   private void cleanGridPane(GridPane gridPane) {
@@ -170,21 +201,6 @@ public class ImageVisualizerTab extends MZmineTab {
   }
 
   public synchronized void setData(ImagingRawDataFile rawDataFile, boolean createImage) {
-    if (spectraTab == null) {
-      // spectrum plot
-      spectraTab = new SpectraVisualizerTab(rawDataFile);
-      spectraTab.setMzTolerance(new MZTolerance(0.005, 10));
-      getSpectrumPlot().setShowCursor(true);
-      BorderPane pane = controller.getSpectrumPlotPane();
-      pane.setCenter(spectraTab.getMainPane());
-      // add listener to spectrum property
-      getSpectrumPlot().selectedMzRangeProperty().addListener((o, ov, nv) -> {
-        imagingPlot.setData(rawDataFile, nv);
-        parameterSetupPane.getParameterSet().setParameter(ImageVisualizerParameters.mzRange, nv);
-        parameterSetupPane.setParameterValuesToComponents();
-      });
-    }
-
     this.rawDataFile = rawDataFile;
     ImagingParameters imagingParameters = rawDataFile.getImagingParam();
 
@@ -213,21 +229,16 @@ public class ImageVisualizerTab extends MZmineTab {
   }
 
   private void addListenerToImage() {
-    imageHeatMapPlot.addChartMouseListener(new ChartMouseListenerFX() {
-      @Override
-      public void chartMouseMoved(ChartMouseEventFX event) {
+    imageHeatMapPlot.getXYPlot().cursorPositionProperty().subscribe((_, cursor) -> {
+      if (cursor == null) {
+        showSpectrum(null);
+        return;
       }
 
-      @Override
-      public void chartMouseClicked(ChartMouseEventFX event) {
-        XYPlot plot = (XYPlot) imageHeatMapPlot.getChart().getPlot();
-        double xValue = plot.getDomainCrosshairValue();
-        double yValue = plot.getRangeCrosshairValue();
-        if ((event.getTrigger().getButton().equals(MouseButton.PRIMARY))) {
-          Scan selectedScan = rawDataFile.getScan(xValue, yValue);
-          showSpectrum(selectedScan);
-        }
-      }
+      final double x = cursor.getDomainValue();
+      final double y = cursor.getRangeValue();
+      Scan selectedScan = rawDataFile.getScan(x, y);
+      showSpectrum(selectedScan);
     });
   }
 
