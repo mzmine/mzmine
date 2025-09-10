@@ -727,4 +727,8 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
       @NotNull XYItemRenderer renderer) {
     plotModel.setDatasets(datasets, renderer);
   }
+
+  public void setCursorCrosshairPaint(Paint color) {
+    getCursorConfigModel().setCursorCrosshairPaint(color);
+  }
 }

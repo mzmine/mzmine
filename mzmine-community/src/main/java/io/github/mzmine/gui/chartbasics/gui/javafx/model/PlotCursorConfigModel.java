@@ -26,6 +26,7 @@
 package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
+import java.awt.Paint;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -130,5 +131,10 @@ public class PlotCursorConfigModel {
       pos = new PlotCursorPosition(null, value);
     }
     setCursorPosition(pos);
+  }
+
+  public void setCursorCrosshairPaint(Paint color) {
+    getDomainCursorMarker().setPaint(color);
+    getRangeCursorMarker().setPaint(color);
   }
 }

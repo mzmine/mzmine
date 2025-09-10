@@ -406,6 +406,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     plot.setRangeGridlinePaint(Color.black);
     plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
     plot.setOutlinePaint(Color.black);
+    plot.setCursorCrosshairPaint(Color.WHITE);
   }
 
   /**

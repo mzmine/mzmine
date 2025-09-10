@@ -162,7 +162,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
     // Set the plot properties.
     plot = (FxXYPlot) getChart().getXYPlot();
-    plot.setDomainCrosshairVisible(true);
+    plot.setShowCursorCrosshair(true, false);
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
     // after plot init listeners
     initializeChromatogramMouseListener();

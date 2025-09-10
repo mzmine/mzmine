@@ -135,7 +135,6 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     plot = (FxXYPlot) getChart().getXYPlot();
     // on click update cursor
     PlotCursorUtils.addMouseListener(this, plot, plot.cursorPositionProperty());
-    plot.setShowCursorCrosshair(true, false);
 
     getChart().setBackgroundPaint(Color.white);
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
@@ -191,6 +190,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
     theme.apply(this);
 
+    plot.setShowCursorCrosshair(true, true);
     getChart().getLegend().setVisible(showLegend);
 
     setMinHeight(50);
@@ -245,6 +245,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   public void setShowCursor(boolean showCursor) {
     plot.getCursorConfigModel().getDomainCursorMarker().setVisible(showCursor);
+    plot.getCursorConfigModel().getRangeCursorMarker().setVisible(showCursor);
   }
 
   public SpectrumPlotType getPlotMode() {
