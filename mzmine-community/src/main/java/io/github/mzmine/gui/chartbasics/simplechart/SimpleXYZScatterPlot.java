@@ -143,6 +143,9 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     plot.setShowCursorCrosshair(true, true);
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
+    // this will also update the legends
+    plot.addDatasetChangeListener(this);
+
     defaultRenderer = new SimpleObjectProperty<>(new ColoredXYSmallBlockRenderer());
     legendAxisFormat = new DecimalFormat("0.##E0");
     setCursor(Cursor.DEFAULT);

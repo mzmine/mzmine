@@ -154,6 +154,9 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
     setCursor(Cursor.DEFAULT);
 
+    // listen to dataset changes and will call datasetChanged method
+    plot.addDatasetChangeListener(this);
+
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(this);
 
