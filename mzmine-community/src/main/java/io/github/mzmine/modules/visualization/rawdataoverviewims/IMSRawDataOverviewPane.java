@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gestures.SimpleDataDragGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
@@ -204,12 +205,15 @@ public class IMSRawDataOverviewPane extends BorderPane {
     selectedFrame = new SimpleObjectProperty<>();
     selectedFrame.addListener((observable, oldValue, newValue) -> onSelectedFrameChanged());
 
-    mobilogramChart = new SimpleXYChart<>("Mobilogram chart");
+    // create without standard mouse gestures as this plot is flipped
     summedSpectrumChart = new SimpleXYChart<>("Summed frame spectrum");
     singleSpectrumChart = new SimpleXYChart<>("Mobility scan");
     heatmapChart = new SimpleXYZScatterPlot<>("Frame heatmap");
     ionTraceChart = new SimpleXYZScatterPlot<>("Ion trace chart");
     ticChart = new TICPlot();
+    mobilogramChart = new SimpleXYChart<>("Mobilogram chart", false);
+    // add flipped chart gestures
+    ChartGestureHandler.addStandardGestures(mobilogramChart, true);
 
     allCharts = List.of(mobilogramChart, summedSpectrumChart, heatmapChart, singleSpectrumChart,
         ionTraceChart, ticChart);
@@ -372,6 +376,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     // mobilogramChart.getXYPlot().setOrientation(PlotOrientation.HORIZONTAL);
     mobilogramChart.getXYPlot().getDomainAxis().setInverted(true);
     mobilogramChart.setLegendItemsVisible(false);
+
     NumberAxis axis = (NumberAxis) mobilogramChart.getXYPlot().getRangeAxis();
     axis.setAutoRangeMinimumSize(0.2);
     axis.setAutoRangeIncludesZero(false);

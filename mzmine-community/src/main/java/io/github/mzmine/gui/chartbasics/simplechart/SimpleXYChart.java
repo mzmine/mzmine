@@ -124,13 +124,25 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     this(title, xLabel, yLabel, PlotOrientation.VERTICAL, true, true);
   }
 
+
+  public SimpleXYChart(String title, boolean addStandardGestures) {
+    this(title, "x", "y", PlotOrientation.VERTICAL, true, true, addStandardGestures);
+  }
+
   public SimpleXYChart(@NamedArg("title") @NotNull String title, @NamedArg("xlabel") String xLabel,
       @NamedArg("ylabel") String yLabel, @NamedArg("orientation") PlotOrientation orientation,
       @NamedArg("legend") boolean createLegend, @NamedArg("tooltips") boolean showTooltips) {
+    this(title, xLabel, yLabel, orientation, createLegend, showTooltips, true);
+  }
+
+  public SimpleXYChart(@NamedArg("title") @NotNull String title, @NamedArg("xlabel") String xLabel,
+      @NamedArg("ylabel") String yLabel, @NamedArg("orientation") PlotOrientation orientation,
+      @NamedArg("legend") boolean createLegend, @NamedArg("tooltips") boolean showTooltips,
+      boolean addStandardGestures) {
     final FxJFreeChart internalChart = FxChartFactory.createXYLineChart(title, xLabel, yLabel, null,
         orientation, createLegend, showTooltips, false);
 
-    super(internalChart, true, true, true, true, true);
+    super(internalChart, true, true, addStandardGestures, true, true);
 
     plot = (FxXYPlot) getChart().getXYPlot();
     cursorPositionProperty = plot.cursorPositionProperty(); // use cursor from plot

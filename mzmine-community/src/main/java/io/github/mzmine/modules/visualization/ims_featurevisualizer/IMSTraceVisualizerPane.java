@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
@@ -97,7 +98,10 @@ public class IMSTraceVisualizerPane extends BorderPane {
 
     traceChart = new SimpleXYZScatterPlot<>("Ion mobility trace");
     ticChart = new SimpleXYChart<>("Feature shape");
-    mobilogramChart = new SimpleXYChart<>("Summed mobilogram");
+    mobilogramChart = new SimpleXYChart<>("Summed mobilogram", false);
+    // add flipped chart gestures
+    ChartGestureHandler.addStandardGestures(mobilogramChart, true);
+
     traceLegendCanvas = new Canvas();
 
     featureProperty = new SimpleObjectProperty<>();

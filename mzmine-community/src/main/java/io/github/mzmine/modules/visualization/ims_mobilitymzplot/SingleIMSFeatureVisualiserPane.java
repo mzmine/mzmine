@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
@@ -97,7 +98,9 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
 
     this.heatmapChart = new SimpleXYZScatterPlot<>("Ion trace");
     this.msmsSpectrumChart = new SimpleXYChart<>("MS/MS");
-    this.mobilogramChart = new SimpleXYChart<>("Extracted mobilogram");
+    mobilogramChart = new SimpleXYChart<>("Extracted mobilogram", false);
+    // add flipped chart gestures
+    ChartGestureHandler.addStandardGestures(mobilogramChart, true);
 
     heatmapChart.getChartModel().titleProperty()
         .bind(featureString.map(fstr -> "Ion trace - " + fstr));
