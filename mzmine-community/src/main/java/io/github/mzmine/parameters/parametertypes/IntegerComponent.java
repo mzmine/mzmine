@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,17 +24,22 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
 import io.github.mzmine.parameters.ValueChangeDecorator;
+import io.github.mzmine.parameters.ValuePropertyComponent;
+import javafx.beans.property.Property;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
+import javafx.util.converter.IntegerStringConverter;
 
-public class IntegerComponent extends FlowPane implements ValueChangeDecorator {
+public class IntegerComponent extends FlowPane implements ValueChangeDecorator,
+    ValuePropertyComponent<Integer> {
 
 
   private final Integer minimum, maximum;
   private final TextField textField;
+  private final TextFormatter<Integer> textFormatter;
 
   public IntegerComponent(int inputsize, Integer minimum, Integer maximum) {
     this.minimum = minimum;
@@ -42,13 +47,10 @@ public class IntegerComponent extends FlowPane implements ValueChangeDecorator {
 
     textField = new TextField();
     textField.setPrefWidth(inputsize);
-    // Add an input verifier if any bounds are specified.
-    if (minimum != null || maximum != null) {
-      // textField.setInputVerifier(new MinMaxVerifier());
-    }
+    textFormatter = new TextFormatter<>(new IntegerStringConverter());
+    textField.setTextFormatter(textFormatter);
 
     getChildren().add(textField);
-
   }
 
   public void setText(String text) {
@@ -74,32 +76,6 @@ public class IntegerComponent extends FlowPane implements ValueChangeDecorator {
     textField.setPrefColumnCount(columns);
   }
 
-  /**
-   * Input verifier used when minimum or maximum bounds are defined.
-   */
-  /*
-   * private class MinMaxVerifier extends InputVerifier {
-   * 
-   * @Override public boolean shouldYieldFocus(final JComponent input) {
-   * 
-   * final boolean yield = super.shouldYieldFocus(input); if (!yield) {
-   * 
-   * // Beep and highlight. Toolkit.getDefaultToolkit().beep(); ((JTextComponent)
-   * input).selectAll(); }
-   * 
-   * return yield; }
-   * 
-   * @Override public boolean verify(final JComponent input) {
-   * 
-   * boolean verified = false; try {
-   * 
-   * verified = checkBounds(Integer.parseInt(((JTextComponent) input).getText())); } catch (final
-   * NumberFormatException e) {
-   *
-   * // not a number. }
-   *
-   * return verified; } }
-   */
   public TextField getTextField() {
     return textField;
   }
@@ -109,13 +85,9 @@ public class IntegerComponent extends FlowPane implements ValueChangeDecorator {
     textField.textProperty().addListener((observable, oldValue, newValue) -> onChange.run());
   }
 
-  /**
-   * Add a document listener to the underlying textfield (see {@link DelayedDocumentListener}
-   *
-   * @param dl
-   */
-  /*
-   * public void addDocumentListener(DelayedDocumentListener dl) {
-   * textField.getDocument().addDocumentListener(dl); }
-   */
+  @Override
+  public Property<Integer> valueProperty() {
+    return textFormatter.valueProperty();
+  }
+
 }

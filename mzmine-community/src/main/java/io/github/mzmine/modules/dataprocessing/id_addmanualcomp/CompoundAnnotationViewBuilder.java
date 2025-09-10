@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.id_addmanualcomp;
 import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundNameIdentifier;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
@@ -48,19 +49,20 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.LongType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
+import io.github.mzmine.util.javafx.IonTypeTextField;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -82,7 +84,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 import javafx.util.StringConverter;
@@ -94,13 +95,13 @@ public class CompoundAnnotationViewBuilder extends FxViewBuilder<CompoundAnnotat
       CompoundAnnotationViewBuilder.class.getName());
   private final Runnable onSave;
   private final Runnable onCancel;
-  //  private final Set<DataType<?>> excludedTypes = new HashSet<>();
-  private BooleanProperty valid = new SimpleBooleanProperty(false);
   private final List<DataType<?>> userTypes = Arrays.stream(
           new DataType<?>[]{new CompoundNameType(), new FormulaType(), new IonTypeType(),
               new SmilesStructureType(), new InChIStructureType(), new InChIKeyStructureType(),
               new PrecursorMZType(), new RTType(), new CCSType(), new CommentType()})
       .sorted(Comparator.comparing(DataType::getUniqueID)).toList();
+  //  private final Set<DataType<?>> excludedTypes = new HashSet<>();
+  private BooleanProperty valid = new SimpleBooleanProperty(false);
 
   protected CompoundAnnotationViewBuilder(CompoundAnnotationModel model, Runnable onSave,
       Runnable onCancel) {
@@ -151,17 +152,20 @@ public class CompoundAnnotationViewBuilder extends FxViewBuilder<CompoundAnnotat
     final Button save = FxButtons.createSaveButton(onSave);
     final Button cancel = FxButtons.createCancelButton(onCancel);
     final FlowPane buttons = FxLayout.newFlowPane(Pos.CENTER_RIGHT, save, cancel);
-    final TextFlow required = FxTextFlows.newTextFlow(TextAlignment.RIGHT, text("Fields "),
-        boldText("\"Compound\""), text(" and either of: "), boldText("\"Precursor m/z\""),
-        text(", "), boldText(" \"SMILES\" and \"Adduct\""), text(", or "),
+    final TextFlow required = FxTextFlows.newTextFlow(TextAlignment.LEFT,
+        text("Any compound identifier ("), boldText(Arrays.stream(CompoundNameIdentifier.values())
+            .map(id -> id.getDataType().getHeaderString()).collect(Collectors.joining(", "))),
+        text(") and either of: "), boldText("\"Precursor m/z\""), text(", "),
+        boldText(" \"SMILES\" and \"Adduct\""), text(", or "),
         boldText("\"Formula\" and \"Adduct\""), text(" must be defined."));
-    final HBox textWrapper = FxLayout.newHBox(Pos.TOP_RIGHT, required);
-    final VBox vBox = FxLayout.newVBox(Pos.TOP_RIGHT, buttons, textWrapper);
-    main.setBottom(vBox);
+    final BorderPane buttonsAndText = new BorderPane();
+    buttonsAndText.setCenter(required);
+    buttonsAndText.setBottom(buttons);
+    BorderPane.setAlignment(required, Pos.TOP_LEFT);
+    main.setBottom(buttonsAndText);
 
     valid.bind(Bindings.createBooleanBinding(this::validate, model.getDataModel()));
     required.disableProperty().bind(valid);
-    textWrapper.disableProperty().bind(valid);
     save.disableProperty().bind(valid.not());
 
     return main;
@@ -283,49 +287,32 @@ public class CompoundAnnotationViewBuilder extends FxViewBuilder<CompoundAnnotat
   }
 
   private TextField createAdductField(IonTypeType ionType) {
-    TextField tf = new TextField();
 
-    ObjectProperty<IonType> ionTypeProperty = new SimpleObjectProperty<>(
-        (IonType) model.getDataModel().get(ionType));
-    StringProperty stringProperty = new SimpleStringProperty();
+    final IonTypeTextField tf = new IonTypeTextField();
 
-    StringConverter<IonType> converter = new StringConverter<>() {
-      @Override
-      public java.lang.String toString(IonType object) {
-        if (object == null) {
-          return "";
-        }
-        return ionType.getFormattedStringCheckType(object);
-      }
-
-      @Override
-      public IonType fromString(java.lang.String string) {
-        if (string == null || string.isBlank()) {
-          return null;
-        }
-        return IonTypeParser.parse(string);
-      }
-    };
-
-    Bindings.bindBidirectional(stringProperty, ionTypeProperty, converter);
-    ionTypeProperty.addListener((_, _, newValue) -> {
+    tf.ionTypeProperty().addListener((_, _, newValue) -> {
       if (!Objects.equals(model.getDataModel().get(ionType), newValue)) {
         model.getDataModel().put(ionType, newValue);
       }
     });
     model.getDataModel().addListener((MapChangeListener<DataType, Object>) change -> {
       if (change.getKey().equals(ionType) && change.wasAdded() && !Objects.equals(
-          change.getValueAdded(), ionTypeProperty.get())) {
-        ionTypeProperty.set((IonType) change.getValueAdded());
+          change.getValueAdded(), tf.getIonType())) {
+        tf.ionTypeProperty().set((IonType) change.getValueAdded());
       }
     });
 
-    tf.textProperty().bindBidirectional(stringProperty);
-    tf.textProperty().addListener((_, _, _) -> ionTypeProperty.get());
-    return tf;
+    return tf.getTextField();
   }
 
   private boolean validate() {
+
+    final boolean nameValid = Arrays.stream(CompoundNameIdentifier.values())
+        .map(CompoundNameIdentifier::getDataType).anyMatch(anyIdType -> {
+          final Object value = model.getDataModel().get(anyIdType);
+          return value != null && value instanceof String str && !str.isBlank();
+        });
+
     return ((model.getDataModel().get(DataTypes.get(PrecursorMZType.class)) != null
         // calc from formula + adduct
         || (model.getDataModel().get(DataTypes.get(FormulaType.class)) != null
@@ -334,7 +321,6 @@ public class CompoundAnnotationViewBuilder extends FxViewBuilder<CompoundAnnotat
         || (model.getDataModel().get(DataTypes.get(SmilesStructureType.class)) != null
         && model.getDataModel().get(DataTypes.get(IonTypeType.class)) != null))
 
-        && model.getDataModel().get(DataTypes.get(CompoundNameType.class)) != null
-        && !((String) model.getDataModel().get(DataTypes.get(CompoundNameType.class))).isEmpty();
+        && nameValid;
   }
 }

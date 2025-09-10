@@ -32,7 +32,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -204,7 +203,7 @@ public enum LocalDateTimeParser {
         }
       } catch (DateTimeParseException ex) {
         // silent and try next
-        logger.log(Level.FINE, ex.getMessage(), ex);
+//        logger.log(Level.FINE, ex.getMessage(), ex);
       }
     }
     return null;

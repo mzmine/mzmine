@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -41,8 +42,11 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import org.jetbrains.annotations.NotNull;
 
 public class BioTransformerSingleRowTask extends AbstractTask {
@@ -60,6 +64,7 @@ public class BioTransformerSingleRowTask extends AbstractTask {
   private final RTTolerance rtTolerance;
   private final Boolean reRankAnnotations;
   private String description;
+  private String message = "Biotransformer predicted %d metabolites and annotated %d rows in the feature list.";
 
   public BioTransformerSingleRowTask(ModularFeatureListRow row, String smiles, String prefix,
       @NotNull ParameterSet parameters, @NotNull Instant moduleCallDate) {
@@ -124,6 +129,8 @@ public class BioTransformerSingleRowTask extends AbstractTask {
     }
 
     if (bioTransformerAnnotations.isEmpty()) {
+      DialogLoggerUtil.showDialog(AlertType.INFORMATION, "BioTransformer", message.formatted(0, 0),
+          ButtonType.OK);
       setStatus(TaskStatus.FINISHED);
       return;
     }
@@ -134,16 +141,17 @@ public class BioTransformerSingleRowTask extends AbstractTask {
       bioTransformerAnnotations.forEach(a -> a.put(RTType.class, row.getAverageRT()));
     }
 
+    final AtomicInteger annotatedRows = new AtomicInteger(0);
     final ModularFeatureList flist = row.getFeatureList();
     final var ms1Groups = flist.getMs1CorrelationMap();
     for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
-      flist.stream().forEach(r -> {
+      final int annotated = flist.stream().mapToInt(r -> {
         final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(r,
             mzTolerance, rtTolerance, null, null);
         if (clone != null) {
           final RowsRelationship correlation = ms1Groups.map(map -> map.get(row, r)).orElse(null);
           if (rowCorrelationFilter && correlation == null) {
-            return;
+            return 0;
           }
 
           r.addCompoundAnnotation(clone);
@@ -153,10 +161,15 @@ public class BioTransformerSingleRowTask extends AbstractTask {
             annotations.sort(CompoundAnnotationUtils.getSorterMaxScoreFirst());
             row.setCompoundAnnotations(annotations);
           }
+          return 1;
         }
-      });
+        return 0;
+      }).sum();
+      annotatedRows.addAndGet(annotated);
     }
 
+    DialogLoggerUtil.showDialog(AlertType.INFORMATION, "BioTransformer",
+        message.formatted(bioTransformerAnnotations.size(), annotatedRows.get()), ButtonType.OK);
     setStatus(TaskStatus.FINISHED);
   }
 }

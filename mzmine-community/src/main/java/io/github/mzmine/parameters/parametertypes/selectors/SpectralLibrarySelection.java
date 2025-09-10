@@ -26,7 +26,9 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
@@ -73,6 +75,13 @@ public class SpectralLibrarySelection {
           ProjectService.getProjectManager().getCurrentProject().getCurrentSpectralLibraries()
               .stream().toList();
       case SPECIFIC -> getMatchingSpecificFiles();
+      case AS_SELECTED_IN_MAIN_WINDOW -> {
+        final Desktop desktop = DesktopService.getDesktop();
+        if(desktop instanceof MZmineDesktop desk) {
+          yield List.of(desk.getSelectedSpectralLibraries());
+        }
+        yield List.of();
+      }
     };
   }
 

@@ -25,9 +25,10 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.columns;
 
+import io.github.mzmine.datamodel.features.columnar_data.columns.general.NullableDouble;
 import org.jetbrains.annotations.Nullable;
 
-public non-sealed interface NullableDoubleDataColumn extends DataColumn<Double> {
+public non-sealed interface NullableDoubleDataColumn extends DataColumn<Double>, NullableDouble {
 
   /**
    * @param index row index
@@ -54,20 +55,6 @@ public non-sealed interface NullableDoubleDataColumn extends DataColumn<Double> 
   default @Nullable Double get(final int index) {
     var value = getDouble(index);
     return isNull(value) ? null : value;
-  }
-
-  /**
-   * @return Double.NaN used as null representative
-   */
-  default double nullValue() {
-    return Double.NaN;
-  }
-
-  /**
-   * @return true if value represents null
-   */
-  default boolean isNull(final double value) {
-    return Double.isNaN(value);
   }
 
 }

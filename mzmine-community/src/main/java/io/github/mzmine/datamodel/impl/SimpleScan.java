@@ -53,6 +53,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   private int scanNumber;
   private int msLevel;
   private float retentionTime;
+  private Float correctedRetentionTime;
   private PolarityType polarity;
   private String scanDefinition;
   private MassList massList = null;
@@ -182,7 +183,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
    */
   @Override
   public float getRetentionTime() {
-    return retentionTime;
+    return correctedRetentionTime != null ? correctedRetentionTime : retentionTime;
   }
 
   /**
@@ -191,7 +192,6 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   public void setRetentionTime(float retentionTime) {
     this.retentionTime = retentionTime;
   }
-
 
   @Override
   public String toString() {
@@ -252,6 +252,19 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   public @Nullable Float getInjectionTime() {
     // stored as primitive but behavior used to be null
     return injectionTime < 0 ? null : injectionTime;
+  }
+
+  public void setCorrectedRetentionTime(@Nullable Float corrected) {
+    this.correctedRetentionTime = corrected;
+  }
+
+  public float getUncorrectedRetentionTime() {
+    return retentionTime;
+  }
+
+  @Nullable
+  public Float getCorrectedRetentionTime() {
+    return correctedRetentionTime;
   }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -205,8 +205,9 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
 //    add(new BorderPane(legendCanvas), 1, 1);
 
     ComboBox<Scan> fragmentScanSelection = new ComboBox<>();
-    fragmentScanSelection.setItems(FXCollections.observableList(feature.getAllMS2FragmentScans()));
-    if (feature.getAllMS2FragmentScans() != null && feature.getMostIntenseFragmentScan() != null) {
+    fragmentScanSelection.setItems(
+        FXCollections.observableArrayList(feature.getAllMS2FragmentScans()));
+    if (feature.getMostIntenseFragmentScan() != null) {
       fragmentScanSelection.setValue(feature.getMostIntenseFragmentScan());
     }
     fragmentScanSelection.valueProperty().addListener((observable, oldValue, newValue) -> {

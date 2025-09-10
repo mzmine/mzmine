@@ -26,8 +26,10 @@
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Stores information on mobility type, axis labels and units.
@@ -36,7 +38,7 @@ import io.github.mzmine.main.MZmineCore;
  *
  * @author https://github.com/SteffenHeu
  */
-public enum MobilityType {
+public enum MobilityType implements UniqueIdSupplier {
 
   /**
    * Undefined
@@ -117,6 +119,20 @@ public enum MobilityType {
       case DRIFT_TUBE -> "DT";
       case TRAVELING_WAVE -> "TW";
       case SLIM -> "TW";
+    };
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case NONE -> "NONE";
+      case MIXED -> "MIXED";
+      case OTHER -> "OTHER";
+      case TIMS -> "TIMS";
+      case DRIFT_TUBE -> "DRIFT_TUBE";
+      case TRAVELING_WAVE -> "TRAVELING_WAVE";
+      case FAIMS -> "FAIMS";
+      case SLIM -> "SLIM";
     };
   }
 }

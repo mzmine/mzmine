@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,8 @@
 package io.github.mzmine.util.javafx;
 
 import io.github.mzmine.modules.MZmineRunnableModule;
+import javafx.scene.Node;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioMenuItem;
@@ -39,11 +41,54 @@ import org.jetbrains.annotations.Nullable;
 
 public class FxMenuUtil {
 
+  public static MenuItem newMenuItem(@NotNull Node graphicNode) {
+    return newMenuItem(graphicNode, null);
+  }
+
+  public static MenuItem newMenuItem(@NotNull Node graphicNode, @Nullable Runnable onClick) {
+    return newMenuItem(graphicNode, null, onClick);
+  }
+
+  public static <T> MenuItem newMenuItem(@NotNull Node graphicNode, @Nullable T userData,
+      @Nullable Runnable onClick) {
+    return newMenuItem(graphicNode, null, userData, onClick, null);
+  }
+
+  public static MenuItem newMenuItem(@NotNull String text, @Nullable Runnable onClick) {
+    return newMenuItem(text, onClick, (KeyCodeCombination) null);
+  }
+
+  public static <T> MenuItem newMenuItem(@NotNull String text, @NotNull T userData,
+      @Nullable Runnable onClick) {
+    return newMenuItem(null, text, userData, onClick, null);
+  }
+
   public static MenuItem newMenuItem(@NotNull String text, @Nullable Runnable onClick,
       @Nullable KeyCodeCombination accelerator) {
-    MenuItem menuItem = new MenuItem(text);
+    return newMenuItem(null, text, onClick, accelerator);
+  }
+
+  public static MenuItem newMenuItem(@Nullable Node graphicNode, @Nullable String text,
+      @Nullable Runnable onClick, @Nullable KeyCodeCombination accelerator) {
+    return newMenuItem(graphicNode, text, null, onClick, accelerator);
+  }
+
+  public static <T> MenuItem newMenuItem(@Nullable Node graphicNode, @Nullable String text,
+      @Nullable T userData, @Nullable Runnable onClick, @Nullable KeyCodeCombination accelerator) {
+    final MenuItem menuItem;
+    if (text != null) {
+      // text and optional node on left
+      menuItem = new MenuItem(text, graphicNode);
+    } else {
+      // only show node
+      menuItem = new CustomMenuItem(graphicNode, false);
+    }
+
     if (onClick != null) {
       menuItem.setOnAction(_ -> onClick.run());
+    }
+    if (userData != null) {
+      menuItem.setUserData(userData);
     }
     menuItem.setAccelerator(accelerator);
     return menuItem;
@@ -55,7 +100,7 @@ public class FxMenuUtil {
 
   public static MenuItem addMenuItem(Menu menu, @NotNull String text, @Nullable Runnable onClick,
       @Nullable KeyCode mainKey, @Nullable Modifier... modifers) {
-    final MenuItem item = newMenuItem(text, onClick, null);
+    final MenuItem item = newMenuItem(text, onClick);
 
     if (mainKey != null && modifers != null) {
       item.setAccelerator(new KeyCodeCombination(mainKey, modifers));
@@ -71,7 +116,7 @@ public class FxMenuUtil {
       @NotNull String text, @Nullable Runnable onClick) {
     final RadioMenuItem item = new RadioMenuItem(text);
     item.setToggleGroup(grp);
-    if(onClick != null) {
+    if (onClick != null) {
       item.setOnAction(_ -> onClick.run());
     }
     menu.getItems().add(item);

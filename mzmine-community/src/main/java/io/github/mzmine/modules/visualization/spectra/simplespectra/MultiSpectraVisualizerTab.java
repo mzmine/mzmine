@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,11 +29,11 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.Collections;
-import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 
 public class MultiSpectraVisualizerTab extends MZmineTab {
@@ -54,11 +54,9 @@ public class MultiSpectraVisualizerTab extends MZmineTab {
    * @param row
    */
   public static void addNewMultiSpectraVisualizerTab(FeatureListRow row) {
-    if (Platform.isFxApplicationThread()) {
+    FxThread.runLater(() -> {
       MZmineCore.getDesktop().addTab(new MultiSpectraVisualizerTab(row));
-    } else {
-      Platform.runLater(() -> MZmineCore.getDesktop().addTab(new MultiSpectraVisualizerTab(row)));
-    }
+    });
   }
 
   @NotNull

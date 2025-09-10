@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.types.otherdectectors.AreaPercentType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
@@ -46,6 +47,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
@@ -354,6 +356,15 @@ public class FeatureDataUtils {
       feature.set(RTType.class, featureData.getRetentionTime(mostIntenseIndex));
     }
     feature.set(RTRangeType.class, getRtRange(featureData));
+
+    final OtherFeature rawTrace = feature.get(RawTraceType.class);
+    if (rawTrace != null) {
+      final OtherFeature preProcessed = featureData.getTimeSeriesData()
+          .getPreProcessedFeatureForTrace(rawTrace);
+      if(preProcessed != null && preProcessed.get(AreaType.class) != null) {
+        feature.set(AreaPercentType.class, feature.get(AreaType.class) / preProcessed.get(AreaType.class));
+      }
+    }
   }
 
   /**

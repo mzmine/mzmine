@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,7 +55,8 @@ import org.jetbrains.annotations.NotNull;
  * Helper class to replace default column selection popup for TableView.
  *
  * <p>
- * The original idea credeted to Roland and was found on https://stackoverflow.com/questions/27739833/adapt-tableview-menu-button
+ * The original idea credeted to Roland and was found on
+ * https://stackoverflow.com/questions/27739833/adapt-tableview-menu-button
  * </p>
  * <p>
  * This improved version targets to solve several problems:
@@ -165,7 +166,7 @@ public class TableColumnMenuHelper {
   /**
    * Registers the listeners.
    */
-  private void registerListeners() {
+  protected void registerListeners() {
     final Node buttonNode = findButtonNode();
 
     // Keyboard listener on the table
@@ -197,14 +198,19 @@ public class TableColumnMenuHelper {
     } else {
       // Show the menu
       final ContextMenu newColumnPopupMenu = createContextMenu();
-      newColumnPopupMenu.setOnHidden(ev -> columnPopupMenu = null);
+      newColumnPopupMenu.setOnHidden(ev -> {
+        columnPopupMenu = null;
+        onPopupClosed();
+      });
       columnPopupMenu = newColumnPopupMenu;
       columnPopupMenu.show(buttonNode, Side.BOTTOM, 0, 0);
       // Repositioning the menu to be aligned by its right side (keeping inside the table view)
-      columnPopupMenu.setX(
-          buttonNode.localToScreen(buttonNode.getBoundsInLocal()).getMaxX() - columnPopupMenu
-              .getWidth());
+      columnPopupMenu.setX(buttonNode.localToScreen(buttonNode.getBoundsInLocal()).getMaxX()
+          - columnPopupMenu.getWidth());
     }
+  }
+
+  protected void onPopupClosed() {
   }
 
   private void setFixedHeader() {
@@ -218,7 +224,7 @@ public class TableColumnMenuHelper {
     tableHeaderRow.setPrefHeight(defaultHeight);
   }
 
-  private Node findButtonNode() {
+  protected Node findButtonNode() {
     TableHeaderRow tableHeaderRow = getTableHeaderRow();
     if (tableHeaderRow == null) {
       return null;

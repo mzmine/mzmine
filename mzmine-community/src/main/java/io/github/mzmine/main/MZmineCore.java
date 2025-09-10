@@ -76,6 +76,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -333,6 +335,10 @@ public final class MZmineCore {
     throw new IllegalStateException("Desktop was not initialized. Requires mzmineDesktop");
   }
 
+  /**
+   * @deprecated replaced by {@link ConfigService#getConfiguration()}
+   */
+  @Deprecated
   @NotNull
   public static MZmineConfiguration getConfiguration() {
     return ConfigService.getConfiguration();
@@ -373,6 +379,40 @@ public final class MZmineCore {
 
   public static Collection<MZmineModule> getAllModules() {
     return getInstance().initializedModules.values();
+  }
+
+
+  @NotNull
+  public static Optional<MZmineModule> getModuleForParameterSetIfUnique(ParameterSet parameterSet) {
+    final List<MZmineModule> modules = getModulesForParameterSet(parameterSet);
+    if (modules.size() == 1) {
+      return Optional.of(modules.getFirst());
+    } else {
+      return Optional.empty();
+    }
+  }
+
+  @NotNull
+  public static List<MZmineModule> getModulesForParameterSet(ParameterSet parameterSet) {
+    final String definedName = parameterSet.getModuleNameAttribute();
+    final List<MZmineModule> matches = getInstance().initializedModules.entrySet().stream()
+        .filter(entry -> {
+          final String className = entry.getKey();
+          final MZmineModule module = entry.getValue();
+          if (module == null) {
+            return false;
+          }
+          if (definedName != null && (definedName.equals(module.getName()) || definedName.equals(
+              className))) {
+            return true;
+          }
+          // check parameterset class
+          final ParameterSet moduleParameters = ConfigService.getConfiguration()
+              .getModuleParameters(module.getClass());
+          return moduleParameters != null && moduleParameters.getClass().getName()
+              .equals(parameterSet.getClass().getName());
+        }).map(Entry::getValue).toList();
+    return matches;
   }
 
   /**

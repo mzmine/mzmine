@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,12 +34,18 @@ import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
+import java.util.List;
+import javafx.animation.PauseTransition;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureListsComponent extends HBox {
@@ -48,7 +54,8 @@ public class FeatureListsComponent extends HBox {
   private final ComboBox<FeatureListsSelectionType> typeCombo;
   private final Button detailsButton;
   private final Label numPeakListsLabel;
-  private FeatureListsSelection currentValue = new FeatureListsSelection();
+  private final ReadOnlyObjectWrapper<List<FeatureList>> currentlySelected = new ReadOnlyObjectWrapper<>();
+  private @NotNull FeatureListsSelection currentValue = new FeatureListsSelection();
 
   public FeatureListsComponent() {
     setSpacing(5);
@@ -104,12 +111,26 @@ public class FeatureListsComponent extends HBox {
       updateNumPeakLists();
     });
 
+    PauseTransition autoUpdate = new PauseTransition(Duration.seconds(1));
+    autoUpdate.setOnFinished(_ -> {
+      // only if actually shown on screen
+      if (!isVisible() || getScene() == null || getScene().getWindow() == null
+          || !getScene().getWindow().isShowing()) {
+        return;
+      }
+
+      // auto update the number of files in the component to react to changes from As selected in GUI
+      // this only changes the component
+      updateNumPeakLists();
+      autoUpdate.playFromStart();
+    });
+    autoUpdate.playFromStart();
   }
 
   void setValue(@Nullable FeatureListsSelection newValue) {
-    currentValue = newValue != null ? newValue.clone() : null;
-    if (newValue != null && newValue.getSelectionType() != null) {
-      typeCombo.getSelectionModel().select(newValue.getSelectionType());
+    currentValue = newValue != null ? newValue.clone() : new FeatureListsSelection();
+    if (currentValue.getSelectionType() != null) {
+      typeCombo.getSelectionModel().select(currentValue.getSelectionType());
     }
     updateNumPeakLists();
   }
@@ -117,7 +138,6 @@ public class FeatureListsComponent extends HBox {
   FeatureListsSelection getValue() {
     return currentValue;
   }
-
 
   public void setToolTipText(String toolTip) {
     typeCombo.setTooltip(new Tooltip(toolTip));
@@ -127,18 +147,41 @@ public class FeatureListsComponent extends HBox {
     if (currentValue.getSelectionType() == FeatureListsSelectionType.BATCH_LAST_FEATURELISTS) {
       numPeakListsLabel.setText("");
       numPeakListsLabel.setTooltip(null);
+      currentlySelected.set(null);
     } else {
-      FeatureList[] pls = currentValue.getMatchingFeatureLists();
-      if (pls.length == 1) {
-        String plName = pls[0].getName();
+      List<FeatureList> pls = List.of(currentValue.getMatchingFeatureLists());
+
+      if (currentlySelected.get() == null || !currentlySelected.get().equals(pls)) {
+        currentlySelected.set(pls);
+      }
+
+      if (pls.size() == 1) {
+        String plName = pls.getFirst().getName();
         if (plName.length() > 22) {
           plName = plName.substring(0, 20) + "...";
         }
         numPeakListsLabel.setText(plName);
       } else {
-        numPeakListsLabel.setText(pls.length + " selected");
+        numPeakListsLabel.setText(pls.size() + " selected");
       }
       numPeakListsLabel.setTooltip(new Tooltip(currentValue.toString()));
     }
+  }
+
+  /**
+   * The currently selected property is auto updated every second
+   *
+   * @return a property that holds the currently selected elements
+   */
+  public ReadOnlyObjectProperty<List<FeatureList>> currentlySelectedProperty() {
+    return currentlySelected.getReadOnlyProperty();
+  }
+
+  /**
+   * calls an update of the selection first
+   */
+  public List<FeatureList> getCurrentlySelected() {
+    updateNumPeakLists();
+    return currentlySelected.get();
   }
 }

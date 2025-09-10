@@ -115,7 +115,7 @@ public class MsOtherCorrelationResultType extends ListWithSubsType<MsOtherCorrel
   @Override
   public @NotNull List<DataType> getSubDataTypes() {
     return List.of(new MsOtherCorrelationResultType(), new ChromatogramTypeType(), new AreaType(),
-        new HeightType());
+        new HeightType(), new AreaPercentType());
   }
 
   @Override
@@ -125,6 +125,7 @@ public class MsOtherCorrelationResultType extends ListWithSubsType<MsOtherCorrel
       case AreaType a -> parentItem.otherFeature().get(a);
       case HeightType h -> parentItem.otherFeature().get(h);
       case ChromatogramTypeType c -> parentItem.otherFeature().getChromatogramType();
+      case AreaPercentType a -> parentItem.otherFeature().get(a);
       default -> throw new UnsupportedOperationException(
           "DataType %s is not covered in map ".formatted(subType.toString()));
     };

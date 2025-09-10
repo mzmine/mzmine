@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,7 +30,7 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectService;
@@ -57,10 +58,10 @@ public class IntegrationDashboardModel {
 
   private final ObjectProperty<@NotNull ModularFeatureList> featureList = new SimpleObjectProperty<>(
       new ModularFeatureList("flist", null, List.of()));
-  private final ObjectProperty<@NotNull FeatureTableTab> featureTableTab = new ReadOnlyObjectWrapper<>(
-      new FeatureTableTab(featureList.get()));
+  private final ObjectProperty<@NotNull FxFeatureTableController> featureTableController = new ReadOnlyObjectWrapper<>(
+      new FxFeatureTableController());
   private final ObjectProperty<@NotNull FeatureTableFX> featureTableFx = new ReadOnlyObjectWrapper<>(
-      featureTableTab.get().getFeatureTable());
+      featureTableController.get().getFeatureTable());
   private final ObjectProperty<@Nullable FeatureListRow> row = new SimpleObjectProperty<>();
   private final ListProperty<RawDataFile> sortedFiles = new SimpleListProperty<>(
       FXCollections.observableArrayList());
@@ -223,12 +224,12 @@ public class IntegrationDashboardModel {
     return gridPaneFileOffset;
   }
 
-  public @NotNull FeatureTableTab getFeatureTableTab() {
-    return featureTableTab.get();
+  public @NotNull FxFeatureTableController getFeatureTableController() {
+    return featureTableController.get();
   }
 
-  public ObjectProperty<@NotNull FeatureTableTab> featureTableTabProperty() {
-    return featureTableTab;
+  public ObjectProperty<@NotNull FxFeatureTableController> featureTableControllerProperty() {
+    return featureTableController;
   }
 
   public @NotNull Function<IonTimeSeries, IonTimeSeries> getPostProcessingMethod() {

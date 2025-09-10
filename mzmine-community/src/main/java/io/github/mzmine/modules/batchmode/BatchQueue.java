@@ -72,7 +72,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
   // Method element name.
   private static final String METHOD_ELEMENT = "method";
   private static final String MODULE_NAME_ATTR = "module_name";
-  private static final String MODULE_VERSION_ATTR = "parameter_version";
+  public static final String MODULE_VERSION_ATTR = "parameter_version";
 
   /**
    * De-serialize from XML.

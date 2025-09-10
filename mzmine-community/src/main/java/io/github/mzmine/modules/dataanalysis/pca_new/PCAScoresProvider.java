@@ -26,10 +26,12 @@
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.ItemShapeProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.ZCategoryProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.ZLegendCategoryProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataConfig;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataGroup;
@@ -40,27 +42,35 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.awt.Paint;
+import java.awt.Shape;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javafx.beans.property.Property;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.PaintScale;
 
 public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataProvider,
-    ZCategoryProvider, XYItemObjectProvider<RawDataFile> {
+    ZLegendCategoryProvider, XYItemObjectProvider<RawDataFile>, ItemShapeProvider {
 
   private final PCARowsResult result;
   private final int pcX;
   private final int pcY;
   private final MetadataColumn<?> groupingColumn;
   private double[] zData;
+  private Shape[] itemShapes;
+  // paint scale is required as we either have all categories in it or just a subset if it is a gradient and there are too many groups
   private PaintScale paintScale;
   private int numberOfCategories;
   private String[] groupNames;
   private Color[] groupColors;
+  // legend shapes are fewer than itemShapes
+  private Shape[] legendCategoryShapes;
+
   // raw data file values will be sorted by metadata
   // for the groups to appear in order in the legend - the order may be different from results.files order
   // access index of raw data file index in pca results
@@ -100,49 +110,57 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
 
     assert result.files().size() == grouping.numFiles();
 
+    if (grouping.isGradient()) {
+      // at max show 20 groups - otherwise too many
+      numberOfCategories = Math.min(20, grouping.size());
+    } else {
+      numberOfCategories = grouping.size();
+    }
+
     setFileDataIndexes(grouping.groups());
 
-    setXYZScores(grouping.groups());
+    setXYZScores(grouping);
 
     // create paintscale from groups
     paintScale = grouping.paintScale();
 
-    // too many numeric groups - create gradient
-    if (grouping.isGradient()) {
-      // at max show 20 groups - otherwise too many
-      legendListNGroups(grouping, Math.min(20, grouping.size()));
-    } else {
-      legendListAllGroups(grouping);
-    }
-  }
-
-  /**
-   * Distinct colors for each group
-   */
-  private void legendListAllGroups(ColorByMetadataResults grouping) {
-    legendListNGroups(grouping, grouping.size());
+    legendListGroups(grouping);
   }
 
   /**
    * Gradient paintscale with numeric values
    */
-  private void legendListNGroups(ColorByMetadataResults grouping, int numberOfCategories) {
+  private void legendListGroups(ColorByMetadataResults grouping) {
+
     // if no column selected all will be treated as null
     final int nGroups = grouping.size();
-    this.numberOfCategories = numberOfCategories;
     groupNames = new String[numberOfCategories];
     groupColors = new Color[numberOfCategories];
+
+    if (numberOfCategories == 0) {
+      return;
+    }
 
     // null values are first group if present and they have the lowest value
     // doubleValues are already sorted ascending
     for (int i = 0; i < numberOfCategories; i++) {
-      // equally spaced entries subsampled
+      // equally spaced entries subsampled - maybe not all groups are used
       final ColorByMetadataGroup group = grouping.get(
-          (int) Math.round(i * (nGroups - 1) / (double) (numberOfCategories - 1)));
+          groupIndexToCategoryIndex(i, numberOfCategories, nGroups));
       // this needs to match the order in the legend - therefore the data files need to be sorted by groupedFiles
       groupNames[i] = group.valueString(); // N/A or real value
       groupColors[i] = group.colorAWT();
     }
+  }
+
+  /**
+   * We are not using all groups as categories if we have a gradient of numbers or dates
+   *
+   * @return the category index from a group index
+   */
+  private static int groupIndexToCategoryIndex(int groupIndex, int numberOfCategories,
+      int numGroups) {
+    return (int) Math.round(groupIndex * (numGroups - 1) / (double) (numberOfCategories - 1));
   }
 
 
@@ -156,17 +174,41 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
     }
   }
 
-  private void setXYZScores(List<ColorByMetadataGroup> groups) {
+  private void setXYZScores(ColorByMetadataResults grouping) {
+    List<ColorByMetadataGroup> groups = grouping.groups();
+    final boolean gradient = grouping.isGradient();
+    // shapes from here
+    final DefaultDrawingSupplier drawingSupplier = JFreeChartUtils.createDefaultDrawingSupplier();
+    Shape shape = drawingSupplier.getNextShape();
+
     final PCAResult pcaResult = result.pcaResult();
     final RealMatrix scores = pcaResult.projectDataToScores(pcX, pcY);
 
+    // number of categories
+    legendCategoryShapes = new Shape[numberOfCategories];
     // actual xyz data
     zData = new double[scores.getRowDimension()];
+    itemShapes = new Shape[scores.getRowDimension()];
     double[] domainData = new double[scores.getRowDimension()];
     double[] rangeData = new double[scores.getRowDimension()];
 
+    if (groups.isEmpty()) {
+      setxValues(domainData);
+      setyValues(rangeData);
+      return;
+    }
+
+    final javafx.scene.paint.Color firstColor = groups.getFirst().color();
     int dp = 0;
+    int groupIndex = 0;
     for (final ColorByMetadataGroup group : groups) {
+      // Gradient: too many groups then use different shapes
+      // Discrete colors: change shape if the first color repeats
+      if ((gradient && groups.size() > 5) || //
+          (!gradient && groupIndex > 0 && firstColor.equals(groups.get(groupIndex).color()))) {
+        shape = drawingSupplier.getNextShape();
+      }
+
       for (RawDataFile file : group.files()) {
         // set data
         final int resultIndex = pcaResultIndex.get(file);
@@ -175,8 +217,19 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
         // use numeric value for double or date column and use id index for string values
         // NaN for missing values
         zData[dp] = group.doubleValue();
+        itemShapes[dp] = shape;
+
         dp++;
       }
+
+      // set the first shape to the category in gradient there may be other shapes as well,
+      // but they will have other colors and will not appear in the legend
+      final int catIndex = groupIndexToCategoryIndex(groupIndex, numberOfCategories, groups.size());
+      if (legendCategoryShapes[catIndex] == null) {
+        legendCategoryShapes[catIndex] = shape;
+      }
+
+      groupIndex++;
     }
 
     setxValues(domainData);
@@ -221,17 +274,30 @@ public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataPr
   }
 
   @Override
-  public int getNumberOfCategories() {
+  public @NotNull Shape getItemShape(int seriesItem) {
+    return seriesItem < itemShapes.length && seriesItem >= 0 ? itemShapes[seriesItem]
+        : JFreeChartUtils.defaultShape();
+  }
+
+  @Override
+  public @NotNull Shape getLegendCategoryShape(int category) {
+    return category < 0 || category >= legendCategoryShapes.length ? JFreeChartUtils.defaultShape()
+        : legendCategoryShapes[category];
+  }
+
+
+  @Override
+  public int getNumberOfLegendCategories() {
     return numberOfCategories;
   }
 
   @Override
-  public String getLegendLabel(int category) {
+  public @NotNull String getLegendCategoryLabel(int category) {
     return groupNames[category] != null ? groupNames[category] : "unnamed group";
   }
 
   @Override
-  public Paint getLegendItemColor(int category) {
+  public @NotNull Paint getLegendCategoryItemColor(int category) {
     return groupColors[category] != null ? groupColors[category] : Color.black;
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Objects;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -44,6 +45,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
@@ -63,6 +65,22 @@ public class XMLUtils {
   public static Document load(final File file)
       throws ParserConfigurationException, IOException, SAXException {
     return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
+  }
+
+  /**
+   * Parse XML String. Use {@link Document#getDocumentElement()}
+   *
+   * @param xmlStr xml String
+   * @return the document
+   * @throws ParserConfigurationException
+   * @throws IOException
+   * @throws SAXException
+   */
+  public static Document load(final String xmlStr)
+      throws ParserConfigurationException, IOException, SAXException {
+
+    return DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        .parse(new InputSource(new StringReader(xmlStr)));
   }
 
   /**
@@ -86,6 +104,29 @@ public class XMLUtils {
     try (FileOutputStream fos = new FileOutputStream(file)) {
       transformer.transform(new DOMSource(document), new StreamResult(fos));
     }
+  }
+
+  /**
+   * Convert XML document to String
+   *
+   * @param document xml document
+   * @return String representation of the document
+   * @throws TransformerException if transformation fails
+   */
+  public static String saveToString(final Document document) throws TransformerException {
+    // Create transformer
+    final Transformer transformer = TransformerFactory.newInstance().newTransformer();
+    transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+
+//    transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+//    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+//    transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+//    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+    // Transform to string
+    StringWriter writer = new StringWriter();
+    transformer.transform(new DOMSource(document), new StreamResult(writer));
+    return writer.toString();
   }
 
   /**

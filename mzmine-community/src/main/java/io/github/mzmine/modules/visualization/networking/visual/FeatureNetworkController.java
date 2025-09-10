@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import static io.github.mzmine.modules.visualization.networking.visual.enums.Gra
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFlavor;
 import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeAtt;
 import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeType;
@@ -62,7 +63,6 @@ import javafx.util.Duration;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.SearchableComboBox;
 import org.controlsfx.control.ToggleSwitch;
-import org.controlsfx.control.textfield.TextFields;
 import org.graphstream.graph.Node;
 import org.jetbrains.annotations.NotNull;
 
@@ -136,7 +136,7 @@ public class FeatureNetworkController {
   private void addAnnotationFilterOptions(final FeatureList flist) {
     var annotations = flist.stream().map(FeatureListRow::getAllFeatureAnnotations)
         .flatMap(Collection::stream).map(Object::toString).toList();
-    TextFields.bindAutoCompletion(txtFilterAnnotations, annotations);
+    FxTextFields.bindAutoCompletion(txtFilterAnnotations, annotations);
     PauseTransition delayedFilter = new PauseTransition(Duration.seconds(1));
     delayedFilter.setOnFinished(event -> {
       // finally filter and select nodes

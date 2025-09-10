@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import java.util.ArrayList;
 import java.util.List;
@@ -94,7 +95,7 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
     if (!(value instanceof ManualAnnotation manual)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-          + value.getClass());
+              + value.getClass());
     }
     saveSubColumnsToXML(writer, flist, row, feature, file, value);
   }
@@ -131,6 +132,10 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
     // create column per name
     for (int index = 0; index < getNumberOfSubColumns(); index++) {
       DataType type = subTypes.get(index);
+      if (type instanceof NullColumnType) {
+        continue;
+      }
+
       if (this.equals(type)) {
         // create a special column for this type that actually represents the list of data
         cols.add(DataType.createStandardColumn(type, raw, this, index));

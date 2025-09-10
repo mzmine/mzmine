@@ -31,7 +31,6 @@ import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportParameters;
@@ -44,7 +43,6 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.files.ExtensionFilters;
 import java.io.File;
 import java.util.Arrays;
@@ -179,18 +177,29 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
    */
   @NotNull
   public static Stream<ImportFile> streamValidatedFiles(final ParameterSet parameters) {
+    final File[] files = parameters.getValue(fileNames);
+    return streamValidatedFiles(files);
+  }
+
+  /**
+   * Applies {@link AllSpectralDataImportModule#validateBrukerPath(File)} to get the actual file
+   * paths and applies name changes due to the MSconvert import. This is done always before import.
+   *
+   * @return stream of {@link ImportFile}s
+   */
+  @NotNull
+  public static Stream<ImportFile> streamValidatedFiles(final File[] files) {
     final boolean keepConverted = ConfigService.getPreferences()
         .getValue(MZminePreferences.keepConvertedFile);
-    return Arrays.stream(parameters.getValue(fileNames))
-        .map(AllSpectralDataImportModule::validateBrukerPath).map(
-            file -> new ImportFile(file, RawDataFileTypeDetector.detectDataFileType(file),
-                MSConvertImportTask.applyMsConvertImportNameChanges(file, keepConverted)));
+    return Arrays.stream(files)
+        .map(f -> AllSpectralDataImportModule.validateToActualPath(f, keepConverted));
   }
 
 
   /**
    * Validating paths may jump from nested .d folders or similar to the main file this creates
-   * duplicates which are filtered
+   * duplicates which are filtered. This is used by the parameter to ensure that duplicates are
+   * deleted. mzml name conversion is not applied.
    *
    * @return distinct files after validating paths
    */

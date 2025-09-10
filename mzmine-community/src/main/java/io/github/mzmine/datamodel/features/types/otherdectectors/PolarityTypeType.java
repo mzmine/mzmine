@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
+import java.util.function.Function;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
@@ -46,6 +47,13 @@ import org.jetbrains.annotations.Nullable;
 
 public class PolarityTypeType extends EnumDataType<PolarityType> implements NullColumnType,
     NoTextColumn {
+
+  public static final Function<@Nullable String, @Nullable PolarityType> mapper = s -> {
+    if (s == null || s.isBlank()) {
+      return null;
+    }
+    return PolarityType.parseFromString(s);
+  };
 
   @Override
   public @NotNull String getUniqueID() {
@@ -68,27 +76,7 @@ public class PolarityTypeType extends EnumDataType<PolarityType> implements Null
   }
 
   @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (value == null) {
-      writer.writeCharacters(CONST.XML_NULL_VALUE);
-      return;
-    }
-
-    if (value instanceof PolarityType pol) {
-      writer.writeCharacters(pol.name());
-    }
-  }
-
-  @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    final String text = ParsingUtils.readNullableString(reader.getElementText());
-    if (text == null) {
-      return null;
-    }
-    return PolarityType.valueOf(text);
+  public @Nullable Function<@Nullable String, @Nullable PolarityType> getMapper() {
+    return mapper;
   }
 }

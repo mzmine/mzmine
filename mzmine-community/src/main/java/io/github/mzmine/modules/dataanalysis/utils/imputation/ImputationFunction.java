@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,13 +25,13 @@
 
 package io.github.mzmine.modules.dataanalysis.utils.imputation;
 
-import java.util.function.Function;
-import org.apache.commons.math3.linear.RealVector;
+import io.github.mzmine.datamodel.statistics.DataTableProcessingStep;
 
 /**
  * Imputes missing values based on the existing values of a single feature across all samples (one
  * column).
  */
-public interface ImputationFunction extends Function<RealVector, Double> {
+public interface ImputationFunction extends DataTableProcessingStep {
+
 
 }

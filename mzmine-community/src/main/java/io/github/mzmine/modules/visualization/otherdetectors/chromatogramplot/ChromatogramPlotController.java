@@ -41,6 +41,7 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Map;
+import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
@@ -238,5 +239,9 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
 
   public void applyAutoRangeToDomainAxis() {
     model.getChart().getXYPlot().getDomainAxis().setAutoRange(true);
+  }
+
+  public MapProperty<XYDataset, XYItemRenderer> datasetsAndRenderersProperty() {
+    return model.datasetRenderersProperty();
   }
 }

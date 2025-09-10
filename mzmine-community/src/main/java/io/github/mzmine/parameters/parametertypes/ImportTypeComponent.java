@@ -37,7 +37,7 @@ import javafx.util.StringConverter;
 
 public class ImportTypeComponent extends BorderPane {
 
-  final TableView<ImportType> table = new TableView<>();
+  final TableView<ImportType<?>> table = new TableView<>();
 
   public ImportTypeComponent() {
     super();
@@ -46,12 +46,12 @@ public class ImportTypeComponent extends BorderPane {
     setMaxHeight(400);
     setMinHeight(200);
 
-    final TableColumn<ImportType, Boolean> importColumn = new TableColumn<>("Import");
+    final TableColumn<ImportType<?>, Boolean> importColumn = new TableColumn<>("Import");
     importColumn.setCellFactory(column -> new CheckBoxTableCell());
     importColumn.setCellValueFactory(cdf -> cdf.getValue().selectedProperty());
     importColumn.setEditable(true);
 
-    final TableColumn<ImportType, String> nameInFile = new TableColumn<>("Column name (csv)");
+    final TableColumn<ImportType<?>, String> nameInFile = new TableColumn<>("Column name (csv)");
     nameInFile.setCellValueFactory(cdf -> cdf.getValue().csvColumnName());
     nameInFile.setCellFactory(column -> new TextFieldTableCell<>(new StringConverter<String>() {
       @Override
@@ -66,7 +66,7 @@ public class ImportTypeComponent extends BorderPane {
     }));
     nameInFile.setEditable(true);
 
-    final TableColumn<ImportType, String> dataTypeColumn = new TableColumn<>("Data type (MZmine)");
+    final TableColumn<ImportType<?>, String> dataTypeColumn = new TableColumn<>("Data type (MZmine)");
     dataTypeColumn.setCellValueFactory(
         cdf -> new SimpleStringProperty(cdf.getValue().getDataType().getHeaderString()));
     dataTypeColumn.setEditable(false);
@@ -76,11 +76,11 @@ public class ImportTypeComponent extends BorderPane {
     setCenter(table);
   }
 
-  public List<ImportType> getValue() {
+  public List<ImportType<?>> getValue() {
     return new ArrayList<>(table.getItems());
   }
 
-  public void setValue(List<ImportType> value) {
+  public void setValue(List<ImportType<?>> value) {
     table.getItems().clear();
     if (value == null) {
       return;

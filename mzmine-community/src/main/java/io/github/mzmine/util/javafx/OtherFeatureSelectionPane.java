@@ -55,9 +55,10 @@ import org.jetbrains.annotations.Nullable;
 public class OtherFeatureSelectionPane extends GridPane {
 
   private final ReadOnlyObjectWrapper<@Nullable OtherFeature> featureProperty = new ReadOnlyObjectWrapper<>();
-  private ComboBox<RawDataFile> rawFileBox;
-  private ComboBox<OtherDataFile> otherFileBox;
-  private SortableOtherFeatureComboBox otherFeatureCombo;
+  private final ComboBox<RawDataFile> rawFileBox;
+  private final ComboBox<OtherDataFile> otherFileBox;
+  private final SortableOtherFeatureComboBox otherFeatureCombo;
+  private final ObjectProperty<OtherRawOrProcessed> rawOrProcessed;
 
   public OtherFeatureSelectionPane() {
     this(OtherRawOrProcessed.values());
@@ -84,7 +85,7 @@ public class OtherFeatureSelectionPane extends GridPane {
         otherFile);
     otherFileBox.setMinWidth(100);
 
-    final ObjectProperty<OtherRawOrProcessed> rawOrProcessed = new SimpleObjectProperty<>(
+    rawOrProcessed = new SimpleObjectProperty<>(
         rawOrProcessedChoices[0]);
     final ComboBox<OtherRawOrProcessed> rawOrProcessedBox = FxComboBox.createComboBox(
         "Select the time series type", List.of(rawOrProcessedChoices), rawOrProcessed);
@@ -194,5 +195,13 @@ public class OtherFeatureSelectionPane extends GridPane {
    */
   public ObservableList<RawDataFile> getRawFiles() {
     return rawFileBox.getItems();
+  }
+
+  public OtherRawOrProcessed getRawOrProcessed() {
+    return rawOrProcessed.get();
+  }
+
+  public ObjectProperty<OtherRawOrProcessed> rawOrProcessedProperty() {
+    return rawOrProcessed;
   }
 }

@@ -33,6 +33,7 @@ import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2
 import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafLib.baf2sql_get_last_error_string;
 import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafLib.baf2sql_get_sqlite_cache_filename_v2;
 
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.BafPropertiesTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.Ms2Table;
@@ -186,11 +187,11 @@ public class BafDataAccess implements AutoCloseable {
     return handle != 0;
   }
 
-  public SimpleSpectralArrays loadPeakData(int index) {
+  public SimpleSpectralArrays loadPeakData(int index, MassSpectrumType spectrumType) {
     assert valid();
 
-    final long mzIds = spectraTable.getMzIds(index);
-    final long intensityIds = spectraTable.getIntensityIds(index);
+    final long mzIds = spectraTable.getMzIds(index, spectrumType);
+    final long intensityIds = spectraTable.getIntensityIds(index, spectrumType);
 
     long success = baf2sql_array_get_num_elements(handle, mzIds, mzSizeBuffer);
     if (success == 0) {

@@ -2444,7 +2444,8 @@ public class ScanUtils {
         final String str = sb.toString();
         yield str.substring(0, str.length() - 1);
       }
-      case Scan s -> "%d".formatted(s.getScanNumber());
+      case Scan s -> (includeFilenameForSingleFiles ? s.getDataFile().getName() + ":" : "")
+          + s.getScanNumber();
     };
   }
 

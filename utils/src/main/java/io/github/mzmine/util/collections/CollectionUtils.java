@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,8 @@
 package io.github.mzmine.util.collections;
 
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,12 +56,35 @@ public class CollectionUtils {
   /**
    * Map of the object to its index to avoid indexOf. This method will take any collection as input
    * and this makes only sense if the collection has an order.
+   * <p>
+   * The resulting map does not conserve order of its entries compared to the input sequence. The
+   * map is optimized for memory.
    *
    * @param list any collection
    * @param <T>  the object to be mapped
-   * @return Map object to index in collection
+   * @return Map object to index in collection. Uses map that is space optimized but does not retain
+   * order of the input sequence
    */
-  public static <T> Map<T, Integer> indexMap(Collection<T> list) {
+  public static <T> Object2IntMap<T> indexMapUnordered(Collection<T> list) {
+    Object2IntMap<T> map = new Object2IntOpenHashMap<>(list.size());
+    int i = 0;
+    for (final T value : list) {
+      map.put(value, i);
+      i++;
+    }
+    return map;
+  }
+
+  /**
+   * Map of the object to its index to avoid indexOf. This method will take any collection as input
+   * and this makes only sense if the collection has an order.
+   *
+   * @param list any collection
+   * @param <T>  the object to be mapped
+   * @return Map object to index in collection. Uses ordered map that preserves the original
+   * sequence.
+   */
+  public static <T> Map<T, Integer> indexMapOrdered(Collection<T> list) {
     Map<T, Integer> map = new LinkedHashMap<>(list.size());
     int i = 0;
     for (final T value : list) {
@@ -73,9 +98,10 @@ public class CollectionUtils {
    * Map of the object to its index to avoid indexOf.
    *
    * @param <T> the object to be mapped
-   * @return Map object to index in collection
+   * @return Map object to index in collection. Uses ordered map that preserves the original
+   * sequence.
    */
-  public static <T> Map<T, Integer> indexMap(T[] array) {
+  public static <T> Map<T, Integer> indexMapOrdered(T[] array) {
     Map<T, Integer> map = new LinkedHashMap<>(array.length);
     for (int i = 0; i < array.length; i++) {
       map.put(array[i], i);
@@ -417,4 +443,10 @@ public class CollectionUtils {
 //    logger.fine("NEED TO USE NEW ARRAYLIST FOR FRAMES");
     return subRegion;
   }
+
+  public static <T> List<T> findDuplicates(List<T> items) {
+    Set<T> uniques = new HashSet<>();
+    return items.stream().filter(item -> !uniques.add(item)).toList();
+  }
+
 }

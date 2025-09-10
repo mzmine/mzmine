@@ -34,22 +34,23 @@ import com.opencsv.exceptions.CsvException;
 import com.opencsv.exceptions.CsvValidationException;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
-import io.github.mzmine.datamodel.features.types.abstr.StringType;
-import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
-import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
-import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.JsonStringType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.ExtraColumnHandler;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.HandleExtraColumnsOptions;
 import io.github.mzmine.parameters.parametertypes.ImportType;
+import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithStringInputValue;
 import io.github.mzmine.taskcontrol.TaskStatus;
+
 import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import io.github.mzmine.util.exceptions.MissingColumnException;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CSVUtils;
+import io.github.mzmine.util.io.JsonUtils;
 import io.github.mzmine.util.io.WriterOptions;
 import java.io.BufferedReader;
 import java.io.File;
@@ -57,6 +58,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -121,19 +124,38 @@ public class CSVParsingUtils {
    * @return A new list of the selected import types with their line indices set, or null if a
    * selected column was not found.
    */
-  @Nullable
-  public static List<ImportType> findLineIds(List<ImportType> importTypes, String[] firstLine,
+  public static List<ImportType<?>> findLineIds(List<ImportType<?>> importTypes, String[] firstLine,
       @NotNull StringProperty errorMessage) {
-    List<ImportType> lines = new ArrayList<>();
-    for (ImportType importType : importTypes) {
-      if (importType.isSelected()) {
-        ImportType type = new ImportType(importType.isSelected(), importType.getCsvColumnName(),
-            importType.getDataType());
+    return findLineIds(importTypes, firstLine, errorMessage, false);
+  }
+
+  /**
+   * Searches an array of strings for a specified list of import types. Returns all selected import
+   * types or null if they were found.
+   *
+   * @param importTypes    A list of {@link ImportType}s. Only if a type
+   *                       {@link ImportType#isSelected()}, it will be included in the output list.
+   * @param firstLine      The column headers
+   * @param errorMessage   A string property to place an error message on failure. Stored property
+   *                       is null unless an error occurs.
+   * @param keepUnselected if true, the return value will also include unselected columns. Only
+   *                       selected columns must be found in the csv.
+   * @return A new list of the selected import types with their line indices set, or null if a
+   * selected column was not found.
+   */
+  @Nullable
+  public static List<ImportType<?>> findLineIds(List<ImportType<?>> importTypes, String[] firstLine,
+      @NotNull StringProperty errorMessage, boolean keepUnselected) {
+    List<ImportType<?>> lines = new ArrayList<>();
+    for (ImportType<?> importType : importTypes) {
+      if (importType.isSelected() || keepUnselected) {
+        ImportType<?> type = new ImportType<>(importType.isSelected(),
+            importType.getCsvColumnName(), importType.getDataType());
         lines.add(type);
       }
     }
 
-    for (ImportType importType : lines) {
+    for (ImportType<?> importType : lines) {
       for (int i = 0; i < firstLine.length; i++) {
         String columnName = firstLine[i];
         if (columnName.trim().equalsIgnoreCase(importType.getCsvColumnName().trim())) {
@@ -145,8 +167,10 @@ public class CSVParsingUtils {
         }
       }
     }
-    final List<ImportType> nullMappings = lines.stream().filter(val -> val.getColumnIndex() == -1)
-        .toList();
+
+    // only need to check if the selected ones were found
+    final List<ImportType<?>> nullMappings = lines.stream()
+        .filter(val -> val.getColumnIndex() == -1 && val.isSelected()).toList();
     if (!nullMappings.isEmpty()) {
       // no header found at all. may indicate wrong separator
       boolean noHeaderFound = lines.size() == nullMappings.size();
@@ -159,49 +183,6 @@ public class CSVParsingUtils {
       return null;
     }
     return lines;
-  }
-
-  public static CompoundDBAnnotation csvLineToCompoundDBAnnotation(final String[] line,
-      final List<ImportType> types) {
-
-    final CompoundDBAnnotation annotation = new SimpleCompoundDBAnnotation();
-    for (ImportType type : types) {
-      final int columnIndex = type.getColumnIndex();
-
-      if (columnIndex == -1 || line[columnIndex] == null || line[columnIndex].isBlank()) {
-        continue;
-      }
-
-      try {
-        switch (type.getDataType()) {
-          case FloatType ft -> annotation.put(ft, Float.parseFloat(line[columnIndex]));
-          case IntegerType it -> annotation.put(it, Integer.parseInt(line[columnIndex]));
-          case DoubleType dt -> annotation.put(dt, Double.parseDouble(line[columnIndex]));
-          case IonAdductType ignored -> {
-            final IonType ionType = IonTypeParser.parse(line[columnIndex]);
-            annotation.putIfNotNull(IonTypeType.class, ionType);
-
-          }
-          case IonTypeType ignored -> {
-            final IonType ionType = IonTypeParser.parse(line[columnIndex]);
-            annotation.putIfNotNull(IonTypeType.class, ionType);
-          }
-          case StringType st -> annotation.put(st, line[columnIndex]);
-          default -> throw new RuntimeException(
-              "Don't know how to parse data type " + type.getDataType().getClass().getName());
-        }
-      } catch (NumberFormatException e) {
-        // silent - e.g. #NV from excel
-      }
-    }
-
-    // try to calculate the neutral mass if it was not present.
-    if (annotation.get(NeutralMassType.class) == null) {
-      annotation.putIfNotNull(NeutralMassType.class,
-          CompoundDBAnnotation.calcNeutralMass(annotation));
-    }
-
-    return annotation;
   }
 
   /**
@@ -220,9 +201,12 @@ public class CSVParsingUtils {
    *                       IonNetworkLibrary)}.
    */
   public static CompoundDbLoadResult getAnnotationsFromCsvFile(final File peakListFile,
-      String fieldSeparator, @NotNull List<ImportType> types,
+      String fieldSeparator, @NotNull List<ImportType<?>> types,
       @Nullable IonNetworkLibrary ionLibrary) {
-    List<CompoundDBAnnotation> list = new ArrayList<>();
+    final List<CompoundDBAnnotation> list = new ArrayList<>();
+    final ExtraColumnHandler extraColHandler = new ExtraColumnHandler(
+        new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IGNORE, null));
+    final SimpleStringProperty errorMessage = new SimpleStringProperty();
 
     if (!peakListFile.exists()) {
       return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR,
@@ -241,17 +225,15 @@ public class CSVParsingUtils {
       throw new RuntimeException(e);
     }
 
-    final SimpleStringProperty errorMessage = new SimpleStringProperty();
-    final List<ImportType> lineIds = CSVParsingUtils.findLineIds(types, peakListValues.get(0),
-        errorMessage);
-
+    final List<ImportType<?>> lineIds = CSVParsingUtils.findLineIds(types,
+        peakListValues.getFirst(), errorMessage);
     if (lineIds == null) {
       return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR, errorMessage.get());
     }
 
     for (int i = 1; i < peakListValues.size(); i++) {
-      final CompoundDBAnnotation baseAnnotation = CSVParsingUtils.csvLineToCompoundDBAnnotation(
-          peakListValues.get(i), lineIds);
+      final CompoundDBAnnotation baseAnnotation = CSVParsingUtils.getCompoundFromLine(
+          peakListValues.getFirst(), peakListValues.get(i), lineIds, extraColHandler);
 
       if (!CompoundDBAnnotation.isBaseAnnotationValid(baseAnnotation, ionLibrary != null)) {
         logger.info(String.format(
@@ -259,6 +241,7 @@ public class CSVParsingUtils {
             baseAnnotation, i));
         continue;
       }
+      baseAnnotation.put(DatabaseNameType.class, peakListFile.getName());
 
       if (ionLibrary != null) {
         final List<CompoundDBAnnotation> ionizedAnnotations = CompoundDBAnnotation.buildCompoundsWithAdducts(
@@ -486,6 +469,68 @@ public class CSVParsingUtils {
     FileAndPathUtil.createDirectory(file.getParentFile());
     var writer = Files.newBufferedWriter(file.toPath(), option.toOpenOption());
     return new CSVWriterBuilder(writer).withSeparator(sep).build();
+  }
+
+  /**
+   * @param csvHeaders         The headers in the csv file in the same order as the lines (=values)
+   * @param values             The column values
+   * @param linesWithIndices   the loaded import types. only types that are
+   *                           {@link ImportType#isSelected()} will be loaded with the associated
+   *                           {@link ImportType#getMapper()}. If a type is in the list but not
+   *                           selected and the {@link ExtraColumnHandler} specifies to import it,
+   *                           it will be mapped by the default {@link DataType#getMapper()}.
+   * @param extraColumnHandler handler for additional columns found in the csv file. If the column
+   *                           name matches the {@link DataType#getUniqueID()}, it will be attempted
+   *                           to convert the type using the {@link DataType#getMapper()} method.
+   *                           Otherwise, it will be put into a {@link JsonStringType}.
+   * @return A {@link CompoundDBAnnotation} built for the csv line.
+   */
+  @NotNull
+  public static CompoundDBAnnotation getCompoundFromLine(@NotNull String[] csvHeaders,
+      @NotNull String[] values, @NotNull List<ImportType<?>> linesWithIndices,
+      @NotNull final ExtraColumnHandler extraColumnHandler) {
+
+    final Map<@NotNull String, @Nullable String> data = new HashMap<>(csvHeaders.length, 1f);
+    for (int i = 0; i < csvHeaders.length; i++) {
+      data.put(csvHeaders[i], values[i]);
+    }
+
+    final CompoundDBAnnotation a = new SimpleCompoundDBAnnotation();
+    for (final ImportType<?> importType : linesWithIndices) {
+      if (importType.isSelected()) {
+        importType.applyRemoveAndPut(data, a);
+      }
+    }
+
+    if (extraColumnHandler.isImportExtraColumns() && !data.isEmpty()) {
+      final Iterator<Entry<@NotNull String, @Nullable String>> entryIterator = data.entrySet()
+          .iterator();
+
+      // check if the column name maybe matches one of our unique ids. If so, map them to the actual type
+      // also remove all the types that shall not be imported, if only specific types are imported
+      while (entryIterator.hasNext()) {
+        final Entry<@NotNull String, @Nullable String> entry = entryIterator.next();
+        if (!extraColumnHandler.isImportedColumn(entry.getKey())) {
+          entryIterator.remove(); // remove type if a column is not meant to be imported
+          continue;
+        }
+        final DataType<?> existingType = DataTypes.getTypeForId(entry.getKey().toLowerCase());
+        if (existingType != null && existingType.getMapper() != null) {
+          final Function<@Nullable String, ?> mapper = existingType.getMapper();
+          final Object value = mapper.apply(entry.getValue());
+          a.put((DataType) existingType, value);
+          entryIterator.remove(); // only remove types we have successfully mapped
+        }
+      }
+
+      // everything else can go into a JSON string
+      if (!data.isEmpty()) {
+        final String jsonRemaining = JsonUtils.writeStringOrElse(data, null);
+        a.putIfNotNull(JsonStringType.class, jsonRemaining);
+      }
+    }
+
+    return a;
   }
 
   public record CompoundDbLoadResult(@NotNull List<CompoundDBAnnotation> annotations,

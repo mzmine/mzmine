@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.util.List;
@@ -53,17 +54,15 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ProjectSaveAsParameters extends SimpleParameterSet {
 
-  public static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("MZmine project file", "*.mzmine"), //
-      new ExtensionFilter("All files", "*.*") //
-  );
+  public static final List<ExtensionFilter> extensions = List.of(ExtensionFilters.MZ_PROJECT,
+      ExtensionFilters.ALL_FILES);
   public static final ComboParameter<ProjectSaveOption> option = new ComboParameter<>(
       "Project type", """
       Referencing projects point to the original directory of raw data files as absolute and 
       relative paths.  Projects can be shared if the raw files are located in exactly the same absolute 
       path (e.g. starting with C:\\\\...) or the same path relative to the project file (e.g. saving the
       project in the same folder as the raw files will achieve a portable project - requires mzmine 4.3 or higher). 
-            
+      
       Standalone copies the raw data files into the project, 
       creating a larger, but flexible project that can be shared without any additional requirements.""",
       ProjectSaveOption.values(), ProjectSaveOption.REFERENCING);

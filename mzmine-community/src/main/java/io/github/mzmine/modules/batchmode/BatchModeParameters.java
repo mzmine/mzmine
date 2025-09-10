@@ -28,7 +28,6 @@ package io.github.mzmine.modules.batchmode;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
@@ -46,9 +45,11 @@ public class BatchModeParameters extends SimpleParameterSet {
       new AdvancedBatchModeParameters());
 
   public BatchModeParameters() {
-    super(new Parameter[]{batchQueue,
+    super(
+        "https://mzmine.github.io/mzmine_documentation/workflows/batch_processing/batch-processing.html",
+        batchQueue,
 //        advanced,
-        lastFiles});
+        lastFiles);
   }
 
   @Override

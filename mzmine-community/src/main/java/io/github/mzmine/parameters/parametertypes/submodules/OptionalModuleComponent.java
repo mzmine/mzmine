@@ -138,6 +138,10 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
     return paramPane;
   }
 
+  public BooleanProperty selectedProperty() {
+    return checkBox.selectedProperty();
+  }
+
   public boolean isSelected() {
     return checkBox.isSelected();
   }
@@ -162,15 +166,15 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
     }
   }
 
-  public void setParameterValuesToComponents() {
+  public void setParameterValuesToComponents(ParameterSet embeddedParameters) {
     if (paramPane != null) {
-      paramPane.setParameterValuesToComponents();
+      paramPane.setParameterValuesToComponents(embeddedParameters);
     }
   }
 
-  public void updateParameterSetFromComponents() {
+  public void updateParameterSetFromComponents(ParameterSet embeddedParameters) {
     if (paramPane != null) {
-      paramPane.updateParameterSetFromComponents();
+      paramPane.updateParameterSetFromComponents(embeddedParameters);
     }
   }
 

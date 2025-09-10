@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
 import java.util.Comparator;
 import java.util.Map;
@@ -71,9 +72,6 @@ import javafx.scene.control.TreeTableColumn;
  * </p>
  * <p>
  * https://stackoverflow.com/questions/27739833/adapt-tableview-menu-button
- *
- * @author Roland
- * @author bvissy
  */
 public class FeatureTableColumnMenuHelper extends TableColumnMenuHelper {
 
@@ -82,6 +80,13 @@ public class FeatureTableColumnMenuHelper extends TableColumnMenuHelper {
   public FeatureTableColumnMenuHelper(FeatureTableFX featureTable) {
     super(featureTable.getTable());
     this.featureTable = featureTable;
+  }
+
+  @Override
+  protected void onPopupClosed() {
+    super.onPopupClosed();
+    ConfigService.getConfiguration().setModuleParameters(FeatureTableFXModule.class,
+        featureTable.getParameters().cloneParameterSet());
   }
 
   /**

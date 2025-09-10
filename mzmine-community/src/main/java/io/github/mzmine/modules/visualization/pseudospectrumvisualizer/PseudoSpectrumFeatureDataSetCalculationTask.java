@@ -101,7 +101,8 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
     }
 
     Range<Float> featureRtRange = feature.getRawDataPointsRTRange();
-    final ScanSelection selection = new ScanSelection(pseudoScan.getMSLevel(), featureRtRange);
+    final ScanSelection selection = new ScanSelection(pseudoScan.getMSLevel(), featureRtRange,
+        feature.getRepresentativePolarity());
 
     List<Scan> scans = selection.streamMatchingScans(dataFile).<Scan>mapMulti((scan, c) -> {
       // MS1 like GC-EI-MS
@@ -118,8 +119,12 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
         }
         default -> {
           final MsMsInfo msMsInfo = scan.getMsMsInfo();
-          if (msMsInfo != null && msMsInfo.getIsolationWindow() != null
-              && msMsInfo.getIsolationWindow().contains(feature.getMZ())) {
+          if (msMsInfo != null &&
+              // either no mz isolation
+              ((msMsInfo.getIsolationWindow() == null
+                  // or matching mz isolation
+                  || msMsInfo.getIsolationWindow() != null && msMsInfo.getIsolationWindow()
+                  .contains(feature.getMZ())))) {
             c.accept(scan);
           }
         }

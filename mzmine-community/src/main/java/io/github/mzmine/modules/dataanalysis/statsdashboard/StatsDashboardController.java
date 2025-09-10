@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,7 +38,7 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAController;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotController;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
@@ -52,24 +52,20 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
   private final PCAController pcaController = new PCAController();
   private final VolcanoPlotController volcanoController = new VolcanoPlotController(null);
   private final RowsBoxplotController boxplotController = new RowsBoxplotController();
-  private final FeatureTableFX table;
   private final StatsDashboardViewBuilder builder;
+  private final FxFeatureTableController tableController;
 
-  public StatsDashboardController(FeatureTableFX table) {
+  public StatsDashboardController() {
     super(new StatsDashboardModel());
-    this.table = table == null ? new FeatureTableFX() : table;
-    builder = new StatsDashboardViewBuilder(model, table, pcaController, volcanoController,
-        boxplotController);
+    tableController = new FxFeatureTableController();
+    builder = new StatsDashboardViewBuilder(model, tableController, pcaController,
+        volcanoController, boxplotController);
 
     FxControllerBinding.bindExposedProperties(this, volcanoController);
     FxControllerBinding.bindExposedProperties(this, boxplotController);
     FxControllerBinding.bindExposedProperties(this, pcaController);
     pcaController.waitAndUpdate();
     // feature table bindings in view builder
-  }
-
-  public StatsDashboardController() {
-    this(new FeatureTableFX());
   }
 
 

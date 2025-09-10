@@ -89,7 +89,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Converting library to feature list: " + library.getName();
+    return "Converting library to feature list: " + library.getNameWithSize();
   }
 
   @Override
@@ -158,8 +158,8 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
     var compounds = compoundMap.values().stream()
         .sorted(Comparator.comparingInt(value -> -value.size())).toList();
 
-    var flist = new ModularFeatureList(library.getName(), null, compounds.size(), compounds.size(),
-        libRaw);
+    var flist = new ModularFeatureList(library.getNameWithSize(), null, compounds.size(),
+        compounds.size(), libRaw);
 
     int counter = 0;
     for (final List<LibraryEntryWrappedScan> compound : compounds) {
@@ -201,7 +201,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
 
   private FeatureList addFeatureListWithEachEntry(final SpectralLibraryDataFile libRaw) {
     // add feature list
-    var flist = new ModularFeatureList(library.getName() + " single scans", null,
+    var flist = new ModularFeatureList(library.getNameWithSize() + " single scans", null,
         libRaw.getNumOfScans(), libRaw.getNumOfScans(), libRaw);
 
     var libScans = libRaw.streamLibraryScan().toList();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,14 @@
 
 package io.github.mzmine.modules.dataanalysis.significance.ttest;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.util.StringUtils;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
-public enum TTestSamplingConfig {
+public enum TTestSamplingConfig implements UniqueIdSupplier {
 
   UNPAIRED("unpaired",
       "Used for tests of unrelated groups, e.g., separate patients for control and treatment group."), //
@@ -44,6 +47,10 @@ public enum TTestSamplingConfig {
   TTestSamplingConfig(String name, String description) {
     this.name = name;
     this.description = description;
+  }
+
+  public String getDescription() {
+    return description;
   }
 
   /**
@@ -69,5 +76,21 @@ public enum TTestSamplingConfig {
       logger.log(Level.WARNING, "Could not parse %s TTestSamplingConfig".formatted(value));
     }
     return defaultValue;
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case UNPAIRED -> "unpaired";
+      case PAIRED -> "paired";
+    };
+  }
+
+  public @NotNull SignificanceTests toSignificanceTest() {
+    return switch (this) {
+      case PAIRED -> SignificanceTests.PAIRED_T_TEST;
+      // the initial code already used the more robust Welch's t-test for unpaired
+      case UNPAIRED -> SignificanceTests.WELCHS_T_TEST;
+    };
   }
 }

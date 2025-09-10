@@ -72,6 +72,7 @@ public class FileAndPathUtil {
 
   private static final Logger logger = Logger.getLogger(FileAndPathUtil.class.getName());
   private final static File USER_MZMINE_DIR = new File(FileUtils.getUserDirectory(), ".mzmine/");
+  public final static File PRESETS_DIR = new File(USER_MZMINE_DIR, "presets/");
 
   // changed on other thread so make volatile
   // flag to delete temp files as soon as possible
@@ -437,6 +438,10 @@ public class FileAndPathUtil {
       boolean allowDirectoryMatches, boolean searchSubdir) {
     int maxDepth = searchSubdir ? 10 : 1;
 
+    if (dir == null || !dir.exists() || !dir.isDirectory()) {
+      return new File[0];
+    }
+
     // include directories in search
     final FileTypeFilter actualFilter = new FileTypeFilter(fileFilter, "", allowDirectoryMatches);
     try (Stream<Path> paths = Files.walk(dir.toPath(), maxDepth, FileVisitOption.FOLLOW_LINKS)) {
@@ -496,6 +501,11 @@ public class FileAndPathUtil {
   @Nullable
   public static File resolveInMzmineDir(String name) {
     return new File(USER_MZMINE_DIR, name);
+  }
+
+  @Nullable
+  public static File resolveInPresetsDir(String name) {
+    return new File(PRESETS_DIR, name);
   }
 
   public static File getUniqueFilename(final File parent, final String fileName) {

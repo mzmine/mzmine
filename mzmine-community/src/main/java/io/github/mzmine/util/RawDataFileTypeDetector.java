@@ -38,6 +38,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Detector of raw data file format
@@ -88,6 +89,7 @@ public class RawDataFileTypeDetector {
   /**
    * @return Detected file type or null if the file is not of any supported type
    */
+  @Nullable
   public static RawDataFileType detectDataFileType(File fileName) {
 
     if (fileName.isDirectory()) {
@@ -124,24 +126,23 @@ public class RawDataFileTypeDetector {
     }
 
     try {
-      if (fileName.isFile()) {
-        var lowerName = fileName.getName().toLowerCase();
-        if (lowerName.endsWith(MZML_SUFFIX)) {
-          return RawDataFileType.MZML;
-        }
-        if (lowerName.endsWith(MZXML_SUFFIX)) {
-          return RawDataFileType.MZXML;
-        }
-        if (lowerName.endsWith(IMZML_SUFFIX)) {
-          return RawDataFileType.IMZML;
-        }
-        if (lowerName.endsWith(SCIEX_WIFF_SUFFIX)) {
-          return RawDataFileType.SCIEX_WIFF;
-        }
-        if (lowerName.endsWith(SCIEX_WIFF2_SUFFIX)) {
-          return RawDataFileType.SCIEX_WIFF2;
-        }
-        //the suffix is json and have a .aird file with same name
+      var lowerName = fileName.getName().toLowerCase();
+      if (lowerName.endsWith(MZML_SUFFIX)) {
+        return RawDataFileType.MZML;
+      }
+      if (lowerName.endsWith(MZXML_SUFFIX)) {
+        return RawDataFileType.MZXML;
+      }
+      if (lowerName.endsWith(IMZML_SUFFIX)) {
+        return RawDataFileType.IMZML;
+      }
+      if (lowerName.endsWith(SCIEX_WIFF_SUFFIX)) {
+        return RawDataFileType.SCIEX_WIFF;
+      }
+      if (lowerName.endsWith(SCIEX_WIFF2_SUFFIX)) {
+        return RawDataFileType.SCIEX_WIFF2;
+      }
+      //the suffix is json and have a .aird file with same name
         /*if (fileName.getName().toLowerCase().endsWith(AIRD_SUFFIX)) {
           String airdIndexFilePath = AirdScanUtil.getIndexPathByAirdPath(fileName.getPath());
           if (airdIndexFilePath != null) {
@@ -152,18 +153,21 @@ public class RawDataFileTypeDetector {
           }
           logger.info("It's not an aird format file or the aird index file not exist");
         }*/
-        if (lowerName.endsWith(TDF_SUFFIX) || lowerName.endsWith(TDF_BIN_SUFFIX)) {
-          return RawDataFileType.BRUKER_TDF;
-        }
-        if (lowerName.endsWith(TSF_SUFFIX) || lowerName.endsWith(TSF_BIN_SUFFIX)) {
-          return RawDataFileType.BRUKER_TSF;
-        }
-        if(lowerName.endsWith(LCD_SUFFIX)) {
-          return RawDataFileType.SHIMADZU_LCD;
-        }
-        if(fileName.getName().endsWith(MBI_SUFFIX)) {
-          return RawDataFileType.MBI;
-        }
+      if (lowerName.endsWith(TDF_SUFFIX) || lowerName.endsWith(TDF_BIN_SUFFIX)) {
+        return RawDataFileType.BRUKER_TDF;
+      }
+      if (lowerName.endsWith(TSF_SUFFIX) || lowerName.endsWith(TSF_BIN_SUFFIX)) {
+        return RawDataFileType.BRUKER_TSF;
+      }
+      if (lowerName.endsWith(LCD_SUFFIX)) {
+        return RawDataFileType.SHIMADZU_LCD;
+      }
+      if (fileName.getName().endsWith(MBI_SUFFIX)) {
+        return RawDataFileType.MBI;
+      }
+
+      // only require file for reading header
+      if (fileName.isFile()) {
 
         // Read the first 1kB of the file into a String
         String fileHeader = null;
@@ -290,7 +294,6 @@ public class RawDataFileTypeDetector {
     final PatternMatchCounter postiveCounter = new PatternMatchCounter(positivePolarityPattern);
     final PatternMatchCounter negativeCounter = new PatternMatchCounter(negativePolarityPattern);
     final PatternMatchCounter tofModeImsCounter = new PatternMatchCounter(tofModeIMSPattern);
-
 
     try (var reader = new BufferedReader(new FileReader(new File(watersFolder, "_extern.inf")))) {
       reader.lines().forEach(line -> {

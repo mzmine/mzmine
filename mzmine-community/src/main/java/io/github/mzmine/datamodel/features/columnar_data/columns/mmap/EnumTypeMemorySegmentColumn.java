@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.features.columnar_data.columns.mmap;
 
 import io.github.mzmine.datamodel.features.types.abstr.EnumDataType;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
@@ -37,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param <T>
  */
-public class EnumTypeMemorySegmentColumn<T extends Enum<T>> extends AbstractMemorySegmentColumn<T> {
+public class EnumTypeMemorySegmentColumn<T extends Enum<T> & UniqueIdSupplier> extends AbstractMemorySegmentColumn<T> {
 
   @NotNull
   private final Class<T> clazz;

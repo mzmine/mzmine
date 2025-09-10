@@ -288,4 +288,12 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   public List<Scan> getSpectraModifiable() {
     return (List<Scan>) scans;
   }
+
+  @Override
+  public String toString() {
+    if(getNumberOfValues() > 0) {
+      return "%.4f, %d".formatted(getMZ(getNumberOfValues() / 2), getNumberOfValues());
+    }
+    return "empty";
+  }
 }

@@ -34,6 +34,53 @@ import org.jetbrains.annotations.NotNull;
 
 public sealed interface IndexRange permits EmptyIndexRange, SimpleIndexRange, SingleIndexRange {
 
+
+  /**
+   * Parse a string of ranges like "1,4-9,11,14-15" into a list of IndexRange objects.
+   *
+   * @param input String containing ranges separated by commas. Each range can be a single number or
+   *              two numbers separated by a hyphen.
+   * @return List of IndexRange objects representing the parsed ranges
+   * @throws IllegalArgumentException if input format is invalid
+   */
+  static List<IndexRange> parseRanges(String input) {
+    if (input == null || input.isBlank()) {
+      return List.of();
+    }
+
+    List<IndexRange> ranges = new ArrayList<>();
+    String[] parts = input.split(",");
+
+    for (String part : parts) {
+      part = part.trim();
+      if (part.contains("-")) {
+        String[] range = part.split("-");
+        if (range.length != 2) {
+          throw new IllegalArgumentException("Invalid range format: " + part);
+        }
+        try {
+          int start = Integer.parseInt(range[0].trim());
+          int end = Integer.parseInt(range[1].trim());
+          ranges.add(IndexRange.ofInclusive(start, end));
+        } catch (NumberFormatException e) {
+          throw new IllegalArgumentException("Invalid number in range: " + part);
+        }
+      } else {
+        try {
+          int value = Integer.parseInt(part);
+          ranges.add(IndexRange.ofSingleValue(value));
+        } catch (NumberFormatException e) {
+          throw new IllegalArgumentException("Invalid number: " + part);
+        }
+      }
+    }
+    return ranges;
+  }
+
+  static IndexRange ofSingleValue(int value) {
+    return new SingleIndexRange(value);
+  }
+
   static List<IndexRange> findRanges(List<Integer> values) {
     if (values == null || values.isEmpty()) {
       return List.of();

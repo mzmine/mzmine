@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import javafx.scene.control.Button;
@@ -42,7 +43,7 @@ public class ScanSelectionComponent extends OptionalModuleComponent {
     topPane.getChildren().add(clearbtn);
     clearbtn.setOnAction(event -> setSelection(ScanSelection.ALL_SCANS));
 
-    var selection = createSelection();
+    var selection = createSelection(embeddedParameters);
     textDescription.setText(selection.toShortDescription());
     textDescription.setWrappingWidth(350);
     if (active) {
@@ -56,11 +57,11 @@ public class ScanSelectionComponent extends OptionalModuleComponent {
 
   private void setSelection(final ScanSelection selection) {
     getSelectionParameters().setFilter(selection);
-    setParameterValuesToComponents();
+    setParameterValuesToComponents(getEmbeddedParameters());
   }
 
-  public ScanSelection createSelection() {
-    return getSelectionParameters().createFilter();
+  public ScanSelection createSelection(ParameterSet embeddedParameters) {
+    return ((ScanSelectionFiltersParameters) embeddedParameters).createFilter();
   }
 
   @Override
@@ -78,24 +79,24 @@ public class ScanSelectionComponent extends OptionalModuleComponent {
   @Override
   public void onViewStateChange(final boolean hidden) {
     super.onViewStateChange(hidden);
-    updateParameterSetFromComponents();
+    updateParameterSetFromComponents(getEmbeddedParameters());
   }
 
   @Override
-  public void updateParameterSetFromComponents() {
+  public void updateParameterSetFromComponents(ParameterSet embeddedParameters) {
     // not yet initialized
     if (textDescription == null) {
       return;
     }
-    super.updateParameterSetFromComponents();
-    var selection = createSelection();
+    super.updateParameterSetFromComponents(embeddedParameters);
+    var selection = createSelection(embeddedParameters);
     textDescription.setText(selection.toShortDescription());
   }
 
   @Override
-  public void setParameterValuesToComponents() {
-    super.setParameterValuesToComponents();
-    var selection = createSelection();
+  public void setParameterValuesToComponents(ParameterSet embeddedParameters) {
+    super.setParameterValuesToComponents(embeddedParameters);
+    var selection = createSelection(embeddedParameters);
     textDescription.setText(selection != null ? selection.toShortDescription() : "");
   }
 

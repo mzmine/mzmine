@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -60,7 +60,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
@@ -227,7 +226,7 @@ public class TICVisualizerTab extends MZmineTab {
       }
 
       // add all data files
-      if(ticMaxSamples==null || dataFiles.length<=ticMaxSamples) {
+      if (ticMaxSamples == null || dataFiles.length <= ticMaxSamples) {
         for (RawDataFile dataFile : dataFiles) {
           addRawDataFile(dataFile);
         }
@@ -239,7 +238,6 @@ public class TICVisualizerTab extends MZmineTab {
       }
     });
 
-
     // Add the Windows menu
 //    WindowsMenu.addWindowsMenu(mainScene);
 
@@ -248,11 +246,6 @@ public class TICVisualizerTab extends MZmineTab {
     // get the window settings parameter
     ParameterSet paramSet = MZmineCore.getConfiguration()
         .getModuleParameters(ChromatogramVisualizerModule.class);
-//    WindowSettingsParameter settings =
-//        paramSet.getParameter(TICVisualizerParameters.WINDOWSETTINGSPARAMETER);
-
-    // update the window and listen for changes
-//    settings.applySettingsToWindow(this);
 
     // Listen for clicks on legend items
     ticPlot.addChartMouseListener(new ChartMouseListenerFX() {
@@ -379,7 +372,7 @@ public class TICVisualizerTab extends MZmineTab {
     String dataFileNames = Joiner.on(",").join(files);
     setText(
         "Chromatogram: [" + dataFileNames + "; " + mzFormat.format(mzRange.lowerEndpoint()) + " - "
-        + mzFormat.format(mzRange.upperEndpoint()) + " m/z" + "]");
+            + mzFormat.format(mzRange.upperEndpoint()) + " m/z" + "]");
 
     // update plot title
     ticPlot.setTitle(mainTitle.toString(), subTitle.toString());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -61,10 +61,9 @@ public class ImsVisualizerParameters extends SimpleParameterSet {
                   Range.closed(0.0, 100.0)),
               new PaintScale(PaintScaleColorStyle.YELLOW, PaintScaleBoundStyle.NONE,
                   Range.closed(0.0, 100.0))});
-  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public ImsVisualizerParameters() {
-    super(new Parameter[] {dataFiles, scanSelection, paintScale, mzRange, windowSettings});
+    super(new Parameter[] {dataFiles, scanSelection, paintScale, mzRange});
   }
 }
 */

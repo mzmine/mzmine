@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,24 +25,35 @@
 
 package io.github.mzmine.modules;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import io.github.mzmine.parameters.ParameterSet;
 
 /**
  * This interface represents any component of MZmine that has a ParameterSet, and therefore can
  * store its settings.
  */
-public interface MZmineModule {
+public interface MZmineModule extends UniqueIdSupplier {
 
   /**
    * Returns module name
-   * 
+   *
    * @return Module name
    */
   @NotNull
   public String getName();
+
+  /**
+   * Unique ID is used for loading and saving module-related information. This ID should never
+   * change.
+   *
+   * @return a unique ID that should never change
+   */
+  @NotNull
+  default String getUniqueID() {
+    return getClass().getSimpleName();
+  }
 
   /**
    * Returns module's parameter class. If the module has no parameters, it can return null. The

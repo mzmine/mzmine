@@ -41,7 +41,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class LoessBaselineCorrector extends UnivariateBaselineCorrector {
 
-  private final MemoryMapStorage storage;
   private final double bandwidth;
   private final int iterations;
 
@@ -54,7 +53,6 @@ public class LoessBaselineCorrector extends UnivariateBaselineCorrector {
       int iterations, String suffix, MinimumSearchFeatureResolver resolver) {
     super(storage, samplePercentage, suffix, resolver);
     this.bandwidth = bandwidth;
-    this.storage = storage;
     this.iterations = iterations;
   }
 

@@ -420,4 +420,12 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   public IonMobilogramTimeSeries emptySeries() {
     return IonMobilogramTimeSeries.EMPTY;
   }
+
+  @Override
+  public String toString() {
+    if(getNumberOfValues() > 0) {
+      return "%.4f, %d".formatted(getMZ(getNumberOfValues() / 2), getNumberOfValues());
+    }
+    return "empty";
+  }
 }

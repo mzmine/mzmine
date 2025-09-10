@@ -83,12 +83,15 @@ public class LibraryBatchMetadataParameters extends SimpleParameterSet {
   public static final StringParameter DATA_COLLECTOR = new StringParameter("DATACOLLECTOR", "", "",
       false);
 
+  public static final StringParameter ACQUISITION_METHOD = new StringParameter("ACQUISITION_METHOD",
+      "", "", false);
+
   public static final StringParameter DATASET_ID = new StringParameter("Dataset ID",
       "MassIVE, MetaboLights, MetabolomicsWorkbench ID", "", false);
 
   public LibraryBatchMetadataParameters() {
-    super(new Parameter[]{DESCRIPTION, DATASET_ID, INSTRUMENT_NAME, INSTRUMENT, ION_MOBILITY,
-        ION_SOURCE, ACQUISITION, PI, DATA_COLLECTOR, IONMODE});
+    super(DESCRIPTION, DATASET_ID, INSTRUMENT_NAME, INSTRUMENT, ION_MOBILITY, ION_SOURCE,
+        ACQUISITION, ACQUISITION_METHOD, PI, DATA_COLLECTOR, IONMODE);
   }
 
   public Map<DBEntryField, Object> asMap() {
@@ -102,6 +105,7 @@ public class LibraryBatchMetadataParameters extends SimpleParameterSet {
     putIfNotEmpty(map, ACQUISITION, DBEntryField.ACQUISITION);
     putIfNotEmpty(map, PI, DBEntryField.PRINCIPAL_INVESTIGATOR);
     putIfNotEmpty(map, DATA_COLLECTOR, DBEntryField.DATA_COLLECTOR);
+    putIfNotEmpty(map, ACQUISITION_METHOD, DBEntryField.ACQUISITION_METHOD);
     // only overwrite value if optional was activated
     if (getValue(IONMODE)) {
       map.put(DBEntryField.POLARITY, getEmbeddedParameterValue(IONMODE));

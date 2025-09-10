@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.metadata;
 
+import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
@@ -39,20 +40,26 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
-import org.controlsfx.control.textfield.TextFields;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MetadataGroupingComponent extends FlowPane implements
+public class MetadataGroupingComponent extends HBox implements
     ValuePropertyComponent<MetadataColumn<?>> {
 
   private final List<AvailableTypes> availableTypes;
 
   private final ObjectProperty<@Nullable MetadataColumn<?>> columnProperty = new SimpleObjectProperty<>();
-  private final TextField text;
+  private final TextField columnField;
+  private final StringProperty columnName = new SimpleStringProperty("");
+  private final @NotNull ObservableList<String> uniqueColumnValues = FXCollections.observableArrayList();
 
   public MetadataGroupingComponent() {
     this(AvailableTypes.values());
@@ -64,10 +71,21 @@ public class MetadataGroupingComponent extends FlowPane implements
 
   public MetadataGroupingComponent(List<AvailableTypes> types) {
     super();
-    setHgap(FxLayout.DEFAULT_SPACE);
+    setSpacing(FxLayout.DEFAULT_SPACE);
     setPadding(Insets.EMPTY);
+    FxLayout.applyDefaults(this, Insets.EMPTY);
+    this.availableTypes = types;
 
-    text = new TextField();
+    // find all columns at time of creation
+    final List<String> columns = ProjectService.getMetadata().getColumns().stream()
+        .filter(col -> availableTypes.contains(col.getType())).map(MetadataColumn::getTitle)
+        .toList();
+
+    // better use a textfield for this
+    // editable combobox behaves weird when entered values that are not within the items
+    columnField = FxTextFields.newAutoGrowTextField(columnName, "",
+        "Define a column in the sample metadata.", 4, 20);
+    FxTextFields.bindAutoCompletion(columnField, columns);
 
     var icon = FxIconUtil.newIconButton(FxIcons.METADATA_TABLE,
         "Open project metadata. (Import data files and metadata to then modify project metadata)",
@@ -75,16 +93,10 @@ public class MetadataGroupingComponent extends FlowPane implements
           MZmineCore.getDesktop().addTab(new ProjectMetadataTab());
         });
 
-    getChildren().addAll(text, icon);
+    getChildren().addAll(columnField, icon);
 
-    this.availableTypes = types;
-    final String[] columns = ProjectService.getMetadata().getColumns().stream()
-        .filter(col -> availableTypes.contains(col.getType())).map(MetadataColumn::getTitle)
-        .toArray(String[]::new);
-    TextFields.bindAutoCompletion(text, columns);
-
-    Bindings.bindBidirectional(text.textProperty(), valueProperty(),
-        new StringConverter<MetadataColumn<?>>() {
+    Bindings.bindBidirectional(columnField.textProperty(), valueProperty(),
+        new StringConverter<>() {
           @Override
           public String toString(MetadataColumn<?> object) {
             return object != null ? object.getTitle() : "";
@@ -95,6 +107,29 @@ public class MetadataGroupingComponent extends FlowPane implements
             return ProjectService.getMetadata().getColumnByName(string);
           }
         });
+
+    // find unique values in column
+    valueProperty().subscribe(nv -> {
+      if (nv == null) {
+        uniqueColumnValues.clear();
+        return;
+      }
+      final List<?> uniqueValues = ProjectService.getMetadata().getDistinctColumnValues(nv);
+      final List<String> uniqueStrings = uniqueValues.stream().map(Object::toString).toList();
+      uniqueColumnValues.setAll(uniqueStrings);
+    });
+  }
+
+
+  /**
+   * @return a combobox with auto completion of the selected column groups
+   */
+  public TextField createLinkedGroupCombo(String tooltip) {
+    // better use a textfield for this
+    // editable combobox behaves weird when entered values that are not within the items
+    final TextField subField = FxTextFields.newAutoGrowTextField(null, "", tooltip, 4, 20);
+    FxTextFields.bindAutoCompletion(subField, uniqueColumnValues);
+    return subField;
   }
 
   @Override
@@ -103,10 +138,18 @@ public class MetadataGroupingComponent extends FlowPane implements
   }
 
   public void setValue(String value) {
-    text.setText(value);
+    columnField.setText(value);
   }
 
   public String getValue() {
-    return text.getText();
+    return columnField.getText();
   }
+
+  /**
+   * @return list of unique values in selected column or empty list
+   */
+  public @NotNull ObservableList<String> uniqueColumnValuesProperty() {
+    return uniqueColumnValues;
+  }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.utils;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,8 +36,8 @@ public interface UniqueIdSupplier {
    *
    * @return a stable unique ID that may be used in save and load
    */
-  @NotNull
-  String getUniqueID();
+  @JsonValue // use uniqueID as identifier in json
+  @NotNull String getUniqueID();
 
   /**
    * parsing by enum.name and unique ID ignore case

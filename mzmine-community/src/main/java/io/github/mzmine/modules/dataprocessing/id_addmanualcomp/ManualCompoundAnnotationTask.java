@@ -96,6 +96,6 @@ public class ManualCompoundAnnotationTask extends AbstractFeatureListTask {
 
   @Override
   public String getTaskDescription() {
-    return "Annotatign rows " + rowIdStr;
+    return "Annotating rows " + rowIdStr;
   }
 }

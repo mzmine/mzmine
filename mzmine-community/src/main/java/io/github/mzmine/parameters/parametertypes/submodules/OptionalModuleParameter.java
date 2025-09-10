@@ -136,13 +136,13 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   @Override
   public void setValueFromComponent(OptionalModuleComponent component) {
     this.value = component.isSelected();
-    component.updateParameterSetFromComponents();
+    component.updateParameterSetFromComponents(embeddedParameters);
   }
 
   @Override
   public void setValueToComponent(OptionalModuleComponent component, @Nullable Boolean newValue) {
     component.setSelected(Objects.requireNonNullElse(newValue, false));
-    component.setParameterValuesToComponents();
+    component.setParameterValuesToComponents(embeddedParameters);
   }
 
   @Override

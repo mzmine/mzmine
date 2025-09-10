@@ -102,8 +102,7 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
       }
     });
 
-    final BorderPane ftable = model.getFeatureTableTab().getMainPane();
-    ftable.setRight(null);
+    final var ftable = model.getFeatureTableController().buildView();
     ftableControlsPane.setCenter(ftable);
     ftableControlsPane.setBottom(
         FxLayout.newVBox(buildIntegrationTransfer(), buildMetadataColSelectionForSorting(),

@@ -278,7 +278,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     bioTransformerItem.setOnAction(e -> {
       final FeatureAnnotation annotation = getAnnotationForBioTransformerPrediction();
       if (annotation != null) {
-        BioTransformerModule.runSingleRowPredection(selectedRow, annotation.getSmiles(),
+        BioTransformerModule.runSingleRowPredection(selectedRow, annotation.getStructure().canonicalSmiles(),
             requireNonNullElse(annotation.getCompoundName(), "UNKNOWN"));
       }
     });
@@ -297,10 +297,10 @@ public class FeatureTableContextMenu extends ContextMenu {
     if (annotations.isEmpty()) {
       annotations = selectedRow.getCompoundAnnotations();
     }
-    if (annotations.isEmpty() || annotations.get(0).getSmiles() == null) {
+    if (annotations.isEmpty() || annotations.getFirst().getStructure() == null) {
       return null;
     }
-    return annotations.get(0);
+    return annotations.getFirst();
   }
 
 
@@ -461,7 +461,8 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> !selectedRows.isEmpty());
     show2DItem.setOnAction(e -> TwoDVisualizerModule.show2DVisualizerSetupDialog(
         selectedOrBestFeature.getRawDataFile(), selectedOrBestFeature.getRawDataPointsMZRange(),
-        selectedOrBestFeature.getRawDataPointsRTRange()));
+        selectedOrBestFeature.getRawDataPointsRTRange(),
+        selectedOrBestFeature.getRepresentativePolarity()));
 
     final MenuItem show3DItem = new ConditionalMenuItem("Feature in 3D", () -> selectedRow != null);
     show3DItem.setOnAction(open3DFeaturePlot());
@@ -627,6 +628,10 @@ public class FeatureTableContextMenu extends ContextMenu {
   private @NotNull EventHandler<ActionEvent> open3DFeaturePlot() {
     return e -> {
       final List<Feature> features = getSelectedOrBestFeatures();
+      if (features.isEmpty()) {
+        return;
+      }
+
       final RawDataFile[] dataFiles = features.stream().map(Feature::getRawDataFile)
           .toArray(RawDataFile[]::new);
 

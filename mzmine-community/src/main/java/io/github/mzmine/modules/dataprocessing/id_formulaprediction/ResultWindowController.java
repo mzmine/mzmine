@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
@@ -73,6 +74,7 @@ public class ResultWindowController {
   private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
   private final DecimalFormat percentFormat = new DecimalFormat("##.##%");
   private final NumberFormat ppmFormat = new DecimalFormat("0.0");
+  private final NumberFormat rdbeFormat = new DecimalFormat("0.0");
 
   private final ObservableList<ResultFormula> formulas = FXCollections.observableArrayList();
   public BorderPane rootPane;
@@ -82,17 +84,17 @@ public class ResultWindowController {
   @FXML
   private TableColumn<ResultFormula, String> Formula;
   @FXML
-  private TableColumn<ResultFormula, Float> absoluteMassDifference;
+  private TableColumn<ResultFormula, Double> absoluteMassDifference;
   @FXML
   private TableColumn<ResultFormula, Float> massDifference;
   @FXML
   private TableColumn<ResultFormula, Float> RDBE;
   @FXML
-  private TableColumn<ResultFormula, String> isotopePattern;
+  private TableColumn<ResultFormula, Float> isotopePattern;
   @FXML
-  private TableColumn<ResultFormula, String> msScore;
+  private TableColumn<ResultFormula, Float> msScore;
   @FXML
-  private TableColumn<ResultFormula, String> combinedScore;
+  private TableColumn<ResultFormula, Float> combinedScore;
 
   private FeatureListRow featureListRow;
   private Task searchTask;
@@ -114,42 +116,22 @@ public class ResultWindowController {
       return new ReadOnlyObjectWrapper<>(cellVal);
     });
 
-    RDBE.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getRDBE()));
+    TableColumns.setMappedFormattedFactories(RDBE, rdbeFormat, f -> f == null ? null : f.getRDBE());
 
-    absoluteMassDifference.setComparator(Comparators.COMPARE_ABS_FLOAT);
-    absoluteMassDifference.setCellValueFactory(cell -> {
-      double exactMass = cell.getValue().getExactMass();
-      double massDiff = searchedMass - exactMass;
-
-      return new ReadOnlyObjectWrapper<>(Float.parseFloat(massFormat.format(massDiff)));
-    });
+    absoluteMassDifference.setComparator(Comparators.COMPARE_ABS_DOUBLE);
+    TableColumns.setMappedFormattedFactories(absoluteMassDifference, massFormat,
+        f -> f == null ? null : searchedMass - f.getExactMass());
 
     massDifference.setComparator(Comparators.COMPARE_ABS_FLOAT);
-    massDifference.setCellValueFactory(cell -> {
-      double ExactMass = cell.getValue().getExactMass();
-      double MassDiff = searchedMass - ExactMass;
-      MassDiff = (MassDiff / ExactMass) * 1E6;
+    TableColumns.setMappedFormattedFactories(massDifference, ppmFormat,
+        f -> f == null ? null : f.getPpmDiff(searchedMass));
 
-      return new ReadOnlyObjectWrapper<>(Float.parseFloat(ppmFormat.format(MassDiff)));
-    });
-
-    isotopePattern.setCellValueFactory(cell -> {
-      final Float score = cell.getValue().getIsotopeScore();
-      final String cellVal = score == null ? "" : percentFormat.format(score);
-      return new ReadOnlyObjectWrapper<>(cellVal);
-    });
-
-    msScore.setCellValueFactory(cell -> {
-      final Float score = cell.getValue().getMSMSScore();
-      final String cellVal = score == null ? "" : percentFormat.format(score);
-      return new ReadOnlyObjectWrapper<>(cellVal);
-    });
-
-    combinedScore.setCellValueFactory(cell -> {
-      final float score = cell.getValue().getScore(10, 3, 1);
-      final String cellVal = percentFormat.format(score);
-      return new ReadOnlyObjectWrapper<>(cellVal);
-    });
+    TableColumns.setMappedFormattedFactories(isotopePattern, percentFormat,
+        f -> f == null ? null : f.getIsotopeScore());
+    TableColumns.setMappedFormattedFactories(msScore, percentFormat,
+        f -> f == null ? null : f.getMSMSScore());
+    TableColumns.setMappedFormattedFactories(combinedScore, percentFormat,
+        f -> f == null ? null : f.getScore(10, 3, 1));
 
     resultTable.setItems(formulas);
   }

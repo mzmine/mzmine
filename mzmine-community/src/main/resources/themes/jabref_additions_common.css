@@ -51,6 +51,64 @@
   -fx-icon-color: -jr-selected;
 }
 
+.text-hover:hover {
+    -fx-fill: -jr-selected;
+    -fx-font-weight: bold;
+}
+
+.text-field {
+  -fx-prompt-text-fill: gray;
+}
+/* controlsfx ValidationSupport uses this */
+.error {
+    -fx-effect: dropshadow(three-pass-box, darkred, 7, 0, 0, 0);
+}
+
+/* controlsfx ValidationSupport uses this */
+.warning {
+    -fx-effect: dropshadow(three-pass-box, gold, 14, 0, 0, 0);
+}
+
+/* controlsfx ValidationSupport uses this */
+.info {
+    -fx-effect: dropshadow(three-pass-box, skyblue, 14, 0, 0, 0);
+}
+
+
+.tooltip-error {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 5);
+    -fx-font-weight: bold;
+    -fx-padding: 5;
+    -fx-border-width: 1;
+
+    -fx-background-color: #FBEFEF;
+    -fx-text-fill: #cc0033;
+    -fx-border-color: #cc0033;
+}
+
+.tooltip-warning {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 5);
+    -fx-font-weight: bold;
+    -fx-padding: 5;
+    -fx-border-width: 1;
+
+    -fx-background-color: #FFFFCC;
+    -fx-text-fill: #CC9900;
+    -fx-border-color: #CC9900;
+}
+
+.tooltip-info {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 5);
+    -fx-font-weight: bold;
+    -fx-padding: 5;
+    -fx-border-width: 1;
+
+    -fx-background-color: #c4d0ef;
+    -fx-text-fill: #232121;
+    -fx-border-color: #a8c8ff;
+}
+
+
 
 .popover {
   -fx-background-color: transparent;
@@ -109,4 +167,9 @@
 
 .custom-menu-item {
   -fx-padding: 1;
+}
+
+.large-title-pane > .title > .text {
+  -fx-font-size: 10.0pt;
+  -fx-font-weight: bold;
 }

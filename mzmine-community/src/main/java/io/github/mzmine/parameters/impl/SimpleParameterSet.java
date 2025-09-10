@@ -31,11 +31,12 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -43,7 +44,6 @@ import io.github.mzmine.util.ExitCode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +55,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.ButtonType;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
@@ -65,7 +64,7 @@ import org.w3c.dom.Element;
 public class SimpleParameterSet implements ParameterSet {
 
   public static final String parameterElement = "parameter";
-  private static final String nameAttribute = "name";
+  public static final String nameAttribute = "name";
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
   private final BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
   protected Parameter<?>[] parameters;
@@ -108,57 +107,22 @@ public class SimpleParameterSet implements ParameterSet {
   @Override
   public Map<String, Parameter<?>> loadValuesFromXML(Element xmlElement) {
     var nameParameterMap = getNameParameterMap();
-    // cannot use getElementsByTagName, this goes recursively through all levels
-    // finding nested ParameterSets
-//    NodeList list = xmlElement.getElementsByTagName(parameterElement);
 
-    Map<String, Parameter<?>> loadedParameters = HashMap.newHashMap(nameParameterMap.size());
+    final int loadedVersion = switch (xmlElement.hasAttribute(BatchQueue.MODULE_VERSION_ATTR)) {
+      case true -> Integer.parseInt(xmlElement.getAttribute(BatchQueue.MODULE_VERSION_ATTR));
+      case false -> 1;
+    };
 
-    var childNodes = xmlElement.getChildNodes();
-    for (int i = 0; i < childNodes.getLength(); i++) {
-      if (!(childNodes.item(i) instanceof Element nextElement) || !parameterElement.equals(
-          nextElement.getTagName())) {
-        continue;
-      }
+    final Map<String, Parameter<?>> loadedParameters = ParameterUtils.loadValuesFromXML(
+        this.getClass(), xmlElement, nameParameterMap);
 
-      String paramName = nextElement.getAttribute(nameAttribute);
-      Parameter<?> param = nameParameterMap.get(paramName);
-      if (param != null) {
-        try {
-          param.loadValueFromXML(nextElement);
-          // keep track of all parameters that were actually loaded - this means that some may be missing
-          loadedParameters.put(param.getName(), param);
-        } catch (Exception e) {
-          logger.log(Level.WARNING, "Error while loading parameter values for " + param.getName(),
-              e);
-        }
-      } else {
-        // load config reads the EncryptionKeyParameter in a second go
-        if (nameParameterMap.values().stream()
-            .noneMatch(p -> p instanceof EncryptionKeyParameter)) {
-          logger.warning(
-              "Cannot find parameter of name %s in ParameterSet %s. This might indicate changes of the parameterset and parameter types".formatted(
-                  paramName, getClass().getName()));
-        }
-      }
-    }
-    handleLoadedParameters(loadedParameters);
+    handleLoadedParameters(loadedParameters, loadedVersion);
     return loadedParameters;
   }
 
   @Override
   public void saveValuesToXML(Element xmlElement) {
-    Document parentDocument = xmlElement.getOwnerDocument();
-    for (Parameter<?> param : parameters) {
-      if (skipSensitiveParameters && param.isSensitive()) {
-        continue;
-      }
-      Element paramElement = parentDocument.createElement(parameterElement);
-      paramElement.setAttribute(nameAttribute, param.getName());
-      xmlElement.appendChild(paramElement);
-      param.saveValueToXML(paramElement);
-
-    }
+    ParameterUtils.saveValuesToXML(xmlElement, skipSensitiveParameters, parameters);
   }
 
   /**

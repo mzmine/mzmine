@@ -1,7 +1,10 @@
 {
   "title": "mzmine installer",
+  "background": "mac_installer_background.png",
+  "icon": "../src/main/resources/mzmineIcon.icns",
   "window": {
-    "size": {"width": 520, "height": 330}
+    "size": {"width": 520, "height": 330},
+    "position": {"x": 400, "y": 100}
   },
   "contents": [
     { "x": 400, "y": 200, "type": "link", "path": "/Applications" },

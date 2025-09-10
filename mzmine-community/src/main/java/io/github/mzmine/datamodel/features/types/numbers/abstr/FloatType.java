@@ -33,8 +33,10 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.util.ParsingUtils;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.function.Function;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
@@ -44,6 +46,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class FloatType extends NumberType<Float> {
+
+  private static final Function<@Nullable String, @Nullable Float> stringToFloat = ParsingUtils::stringToFloat;
 
   protected FloatType(NumberFormat defaultFormat) {
     super(defaultFormat);
@@ -73,7 +77,7 @@ public abstract class FloatType extends NumberType<Float> {
     if (!(value instanceof Float)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-          + value.getClass());
+              + value.getClass());
     }
     writer.writeCharacters(String.valueOf(value));
   }
@@ -178,4 +182,8 @@ public abstract class FloatType extends NumberType<Float> {
     return result;
   }
 
+  @Override
+  public @Nullable Function<@Nullable String, @Nullable Float> getMapper() {
+    return stringToFloat;
+  }
 }

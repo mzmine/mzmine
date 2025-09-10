@@ -96,6 +96,9 @@ public class DataTypeTestUtils {
     testSaveLoad(type, null, project, flist, row, feature, file);
 
     file.close();
+
+    testStringConversion(type, value);
+    testStringConversion(type, null);
   }
 
   /**
@@ -202,5 +205,30 @@ public class DataTypeTestUtils {
     }
     Assertions.fail(() -> "Failed reading data type " + type.getUniqueID());
     return null;
+  }
+
+  /**
+   * Tests if the string conversions {@link DataType#getFormattedString(Object)} ->
+   * {@link DataType#getMapper()} -> {@link DataType#getFormattedString(Object)} produce equal
+   * return values on both formatter calls.
+   * <p>
+   * Same applies to {@link DataType#getFormattedExportString(Object)}
+   *
+   * @param type
+   * @param value
+   * @param <T>
+   */
+  public static <T> void testStringConversion(@NotNull DataType<T> type, @Nullable T value) {
+    if (type.getMapper() == null) {
+      return;
+    }
+
+    final String f = type.getFormattedString(value);
+    T mapped = type.getMapper().apply(f);
+    Assertions.assertEquals(f, type.getFormattedString(mapped));
+
+    final String formattedExportString = type.getFormattedExportString(value);
+    mapped = type.getMapper().apply(formattedExportString);
+    Assertions.assertEquals(formattedExportString, type.getFormattedExportString(mapped));
   }
 }

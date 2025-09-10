@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import java.util.function.Function;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javax.xml.stream.XMLStreamException;
@@ -44,6 +45,8 @@ import org.jetbrains.annotations.Nullable;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public abstract class StringType extends DataType<String> {
+
+  public static final Function<@Nullable String, @Nullable String> mapper = s -> s;
 
   @Override
   public StringProperty createProperty() {
@@ -66,7 +69,7 @@ public abstract class StringType extends DataType<String> {
     if (!(value instanceof String str)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-          + value.getClass());
+              + value.getClass());
     }
     writer.writeCharacters(str);
   }
@@ -83,4 +86,8 @@ public abstract class StringType extends DataType<String> {
     return text;
   }
 
+  @Override
+  public @Nullable Function<@Nullable String, @Nullable String> getMapper() {
+    return mapper;
+  }
 }

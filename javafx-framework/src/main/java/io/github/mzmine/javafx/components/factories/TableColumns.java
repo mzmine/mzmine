@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,15 +26,19 @@
 package io.github.mzmine.javafx.components.factories;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.javafx.components.formatters.FormatDoubleStringConverter;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Function;
 import java.util.logging.Logger;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.util.converter.FormatStringConverter;
+import org.controlsfx.control.tableview2.cell.TextField2TableCell;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,6 +56,39 @@ public class TableColumns {
   }
 
   /**
+   * Use a numberformat to format the content of cells. Also, map the row value to the column cell
+   * value by setting a value factory. It is preferred to bind actual model.properties to the table
+   * columns but this mapping function is a solution when there is no model with javafx properties.
+   *
+   * @param col    the formatted column
+   * @param format the number format
+   * @param mapper the mapper that maps the row data type to the column cell value
+   * @param <T>    type of the table data
+   * @param <S>    type of the column data (numbers)
+   */
+  public static <T, S extends Number> void setMappedFormattedFactories(
+      @NotNull TableColumn<T, S> col, @NotNull NumberFormat format,
+      @NotNull Function<@Nullable T, S> mapper) {
+    setFormattedCellFactory(col, format);
+    col.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(mapper.apply(cell.getValue())));
+  }
+
+  /**
+   * Map the row value to the column cell value by setting a value factory. It is preferred to bind
+   * actual model.properties to the table columns but this mapping function is a solution when there
+   * is no model with javafx properties.
+   *
+   * @param col    the formatted column
+   * @param mapper the mapper that maps the row data type to the column cell value
+   * @param <T>    type of the table data
+   * @param <S>    type of the column data (numbers)
+   */
+  public static <T, S> void setMappedValueFactory(@NotNull TableColumn<T, S> col,
+      @NotNull Function<@Nullable T, S> mapper) {
+    col.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(mapper.apply(cell.getValue())));
+  }
+
+  /**
    * Use a numberformat to format the content of cells
    *
    * @param col    the formatted column
@@ -59,12 +96,32 @@ public class TableColumns {
    * @param <T>    type of the table data
    * @param <S>    type of the column data (numbers)
    */
-  public static <T, S extends Number> void setFormattedCellFactory(TableColumn<T, S> col,
-      NumberFormat format) {
+  public static <T, S extends Number> void setFormattedCellFactory(@NotNull TableColumn<T, S> col,
+      @NotNull NumberFormat format) {
     col.setCellFactory(__ -> new TableCell<>() {
 
       @Override
       public void updateItem(S value, boolean empty) {
+        super.updateItem(value, empty);
+        if (empty || value == null) {
+          setText(null);
+          return;
+        }
+        try {
+          setText(format.format(value));
+        } catch (Exception ex) {
+          logger.warning("Cannot format number " + value);
+        }
+      }
+    });
+  }
+
+  public static <T> void setFormattedEditableCellFactory(TableColumn<T, Double> col,
+      NumberFormat format) {
+    col.setCellFactory(__ -> new TextField2TableCell<>(new FormatDoubleStringConverter(format)) {
+
+      @Override
+      public void updateItem(Double value, boolean empty) {
         super.updateItem(value, empty);
         if (empty || value == null) {
           setText(null);
