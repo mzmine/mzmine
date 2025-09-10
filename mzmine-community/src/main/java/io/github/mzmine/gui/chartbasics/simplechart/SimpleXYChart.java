@@ -30,6 +30,7 @@ import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxJFreeChart;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxJFreeChartModel;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorUtils;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
@@ -43,7 +44,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRe
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.main.MZmineCore;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -69,7 +69,6 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.statistics.Regression;
 import org.jfree.data.xy.XYDataset;
@@ -92,7 +91,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   private static final double AXIS_MARGINS = 0.01;
   private static final Logger logger = Logger.getLogger(SimpleXYChart.class.getName());
 
-  protected final FxJFreeChart chart;
   protected final ObjectProperty<XYItemRenderer> defaultRenderer = new SimpleObjectProperty<>();
   protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(true);
   protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
@@ -103,7 +101,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   // taken from only plot
   private final ObjectProperty<@Nullable PlotCursorPosition> cursorPositionProperty;
 
-  private final List<DatasetChangeListener> datasetListeners;
   protected EStandardChartTheme theme;
   protected SimpleXYLabelGenerator defaultLabelGenerator;
   protected SimpleToolTipGenerator defaultToolTipGenerator = new SimpleToolTipGenerator();
@@ -135,18 +132,13 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
 
     super(internalChart, true, true, true, true, true);
 
-    chart = internalChart;
-    plot = (FxXYPlot) chart.getXYPlot();
+    plot = (FxXYPlot) getChart().getXYPlot();
     cursorPositionProperty = plot.cursorPositionProperty(); // use cursor from plot
 
-    // on changes notify all listeners
-    plot.addDatasetsChangedListener(
-        () -> notifyDatasetChangeListeners(new DatasetChangeEvent(this, null)));
-
     chartTitle = new TextTitle(title);
-    chart.setTitle(chartTitle);
+    getChart().setTitle(chartTitle);
     chartSubTitle = new TextTitle();
-    chart.addSubtitle(chartSubTitle);
+    getChart().addSubtitle(chartSubTitle);
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
     setCursor(Cursor.DEFAULT);
 
@@ -178,21 +170,24 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     defaultLineRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
     defaultShapeRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
 
-    datasetListeners = new ArrayList<>();
-
     // equals check is done internally
     cursorPositionProperty.addListener((_, _, newPosition) -> {
       if (newPosition != null) {
         // notify only for second change and only if notification is not disabled
-        chart.getXYPlot().setDomainCrosshairValue(newPosition.getDomainValue(), false);
-        chart.getXYPlot()
-            .setRangeCrosshairValue(newPosition.getRangeValue(), chart.getXYPlot().isNotify());
+        plot.setDomainCrosshairValue(newPosition.getDomainValue(), false);
+        plot.setRangeCrosshairValue(newPosition.getRangeValue(), plot.isNotify());
       }
     });
   }
 
-  public FxJFreeChart getFxChart() {
-    return chart;
+  @Override
+  public FxJFreeChart getChart() {
+    // only uses this type internally in constructor
+    return (FxJFreeChart) super.getChart();
+  }
+
+  public FxJFreeChartModel getChartModel() {
+    return getChart().getChartModel();
   }
 
   private void initLabelListeners() {
@@ -246,6 +241,27 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   private XYDataset providerToDataset(T datasetProvider) {
     return datasetProvider instanceof XYDataset dataset ? dataset
         : new ColoredXYDataset(datasetProvider);
+  }
+
+  /**
+   * Creates a dataset and sets it as the chart's main data set. Removes all other datasets.
+   *
+   * @param dataProvider The data provider
+   */
+  public void setDataset(T dataProvider) {
+    setDataset(providerToDataset(dataProvider));
+  }
+
+  /**
+   * @param dataset the main dataset. null to clear the plot. Removes all other datasets.
+   */
+  public synchronized void setDataset(@Nullable XYDataset dataset) {
+    if (dataset == null) {
+      removeAllDatasets();
+      return;
+    }
+    // single event set all datasets to just one
+    plot.setDatasets(List.of(dataset), List.of(prepareRenderer(defaultRenderer.get())));
   }
 
   @Override
@@ -405,23 +421,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
 
   @Override
   public void addDatasetChangeListener(DatasetChangeListener listener) {
-    datasetListeners.add(listener);
-  }
-
-  @Override
-  public void removeDatasetChangeListener(DatasetChangeListener listener) {
-    datasetListeners.remove(listener);
-  }
-
-  @Override
-  public void clearDatasetChangeListeners() {
-    datasetListeners.clear();
-  }
-
-  public void notifyDatasetChangeListeners(DatasetChangeEvent event) {
-    for (DatasetChangeListener listener : datasetListeners) {
-      listener.datasetChanged(event);
-    }
+    plot.addDatasetChangeListener(listener);
   }
 
   public boolean isItemLabelsVisible() {

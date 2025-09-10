@@ -35,6 +35,7 @@ import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartthemes.LabelColorMatch;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxJFreeChart;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxJFreeChartModel;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorUtils;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
@@ -93,7 +94,6 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
    * {@link SpectraItemLabelGenerator}.
    */
   private final Map<XYDataset, List<Pair<Double, Double>>> datasetToLabelsCoords = new HashMap<>();
-  private final FxJFreeChart chart;
   private final FxXYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
@@ -132,14 +132,12 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     super(internalChart);
 
     // initialize the chart by default time series chart from factory
-    chart = internalChart;
-
-    plot = (FxXYPlot) chart.getXYPlot();
+    plot = (FxXYPlot) getChart().getXYPlot();
     // on click update cursor
     PlotCursorUtils.addMouseListener(this, plot, plot.cursorPositionProperty());
     plot.setShowCursorCrosshair(true, false);
 
-    chart.setBackgroundPaint(Color.white);
+    getChart().setBackgroundPaint(Color.white);
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
 
     plotMode = new SimpleObjectProperty<>(SpectrumPlotType.AUTO);
@@ -157,9 +155,9 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     addMatchLabelColorsListener();
 
     // title
-    chartTitle = chart.getTitle();
+    chartTitle = getChart().getTitle();
     chartSubTitle = new TextTitle();
-    chart.addSubtitle(chartSubTitle);
+    getChart().addSubtitle(chartSubTitle);
 
     // disable maximum size (we don't want scaling)
     // setMaximumDrawWidth(Integer.MAX_VALUE);
@@ -183,7 +181,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     yAxis.setNumberFormatOverride(intensityFormat);
     yAxis.setUpperMargin(0.1); // some margin for m/z labels
     // only allow positive values for the axes
-    ChartLogics.setAxesTypesPositive(chart);
+    ChartLogics.setAxesTypesPositive(getChart());
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
@@ -203,6 +201,16 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     // If the plot is changed then clear the map containing coordinates of labels. New values will be
     // added by the SpectraItemLabelGenerator
     getChart().getXYPlot().addChangeListener(event -> datasetToLabelsCoords.clear());
+  }
+
+  @Override
+  public FxJFreeChart getChart() {
+    // only uses this type internally in constructor
+    return (FxJFreeChart) super.getChart();
+  }
+
+  public FxJFreeChartModel getChartModel() {
+    return getChart().getChartModel();
   }
 
   public void setLegendVisible(boolean state) {

@@ -27,8 +27,10 @@ package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
 import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.MarkerDefinition;
-import io.github.mzmine.gui.chartbasics.listener.DatasetsChangedListener;
+import io.github.mzmine.gui.chartbasics.listener.AllDatasetsUpdatedListener;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Stroke;
@@ -56,6 +58,8 @@ import org.jfree.chart.plot.PlotState;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.ui.Layer;
+import org.jfree.data.general.DatasetChangeEvent;
+import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.XYDataset;
 
 /**
@@ -182,19 +186,44 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
 
     // fire a single event once the datasets are really set to the plot
     // this is required to ensure that the plot actually knows about the datasets
-    for (DatasetsChangedListener listener : plotModel.getDatasetsChangedListeners()) {
-      listener.onDatasetsChanged();
+    for (AllDatasetsUpdatedListener listener : plotModel.getAllDatasetsUpdatedListeners()) {
+      listener.onAllDatasetsUpdated();
     }
   }
+
+  @Override
+  public void datasetChanged(DatasetChangeEvent event) {
+    super.datasetChanged(event);
+    if (plotModel != null) {
+      plotModel.getDatasetChangeListeners().forEach(l -> l.datasetChanged(event));
+    }
+  }
+
+  /**
+   * Each individual dataset change event like when a {@link XYValueProvider} was calculated in
+   * {@link ColoredXYDataset} or when a dataset was set to the plot
+   *
+   */
+  public void addDatasetChangeListener(DatasetChangeListener listener) {
+    plotModel.addDatasetChangeListener(listener);
+  }
+
+  public void removeDatasetChangeListener(DatasetChangeListener listener) {
+    plotModel.removeDatasetChangeListener(listener);
+  }
+
+  public void clearDatasetChangeListeners() {
+    plotModel.clearDatasetChangeListeners();
+  }
+
 
   /**
    * Those events are triggered once after all datasets are updated and set to the internal chart
    * every time {@link #updateDatasets(ObservableMap)} is called.
    */
-  public void addDatasetsChangedListener(DatasetsChangedListener listener) {
-    plotModel.addDatasetsChangedListener(listener);
+  public void addAllDatasetsUpdatedListener(AllDatasetsUpdatedListener listener) {
+    plotModel.addAllDatasetsUpdatedListener(listener);
   }
-
 
   // properties
   public @NotNull ObservableMap<Integer, @NotNull XYDataset> getDatasets() {

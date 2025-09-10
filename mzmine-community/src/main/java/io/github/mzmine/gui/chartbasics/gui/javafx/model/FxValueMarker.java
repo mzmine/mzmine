@@ -54,9 +54,9 @@ public class FxValueMarker extends ValueMarker {
   private final ObjectProperty<@Nullable Double> actualValue = new SimpleObjectProperty<>(null);
 
   // is the base alpha that is applied when the marker is visible
-  private final FloatProperty alpha = new SimpleFloatProperty(1f);
+  private final FloatProperty baseAlpha = new SimpleFloatProperty(1f);
   // the actual alpha is used to hide the marker if value is null or invisible
-  private final ReadOnlyFloatWrapper actualAlpha = new ReadOnlyFloatWrapper(1f);
+  private final ReadOnlyFloatWrapper alpha = new ReadOnlyFloatWrapper(1f);
 
   private final BooleanProperty visible = new SimpleBooleanProperty();
   private final ObjectProperty<@NotNull Stroke> stroke = new SimpleObjectProperty<>(
@@ -69,8 +69,7 @@ public class FxValueMarker extends ValueMarker {
     super(0);
 
     // set alpha
-    actualAlpha.bind(
-        Bindings.createFloatBinding(this::calcActualAlpha, actualValue, visible, alpha));
+    alpha.bind(Bindings.createFloatBinding(this::calcActualAlpha, actualValue, visible, baseAlpha));
 
     visible.subscribe((nv) -> super.setAlpha(nv ? 1.0f : 0.0f));
     stroke.subscribe((nv) -> super.setStroke(nv));
@@ -82,7 +81,7 @@ public class FxValueMarker extends ValueMarker {
       super.setValue(nv);
     });
 
-    lastVisibleChange = new LastUpdateProperty(actualValue, actualAlpha);
+    lastVisibleChange = new LastUpdateProperty(actualValue, alpha);
   }
 
   @Override
@@ -108,25 +107,11 @@ public class FxValueMarker extends ValueMarker {
       return 0;
     }
 
-    return getAlpha();
+    return getBaseAlpha();
   }
 
   /**
-   * The actual alpha currently used due to visibility and value status.
-   */
-  public float getActualAlpha() {
-    return actualAlpha.get();
-  }
-
-  /**
-   * The actual alpha currently used due to visibility and value status.
-   */
-  public ReadOnlyFloatProperty actualAlphaProperty() {
-    return actualAlpha.getReadOnlyProperty();
-  }
-
-  /**
-   * The base alpha value that should be applied if the value is visible and not null
+   * The actual alpha value that should be applied
    */
   @Override
   public float getAlpha() {
@@ -136,8 +121,22 @@ public class FxValueMarker extends ValueMarker {
   /**
    * The base alpha value that should be applied if the value is visible and not null
    */
-  public FloatProperty alphaProperty() {
-    return alpha;
+  public float getBaseAlpha() {
+    return baseAlpha.get();
+  }
+
+  /**
+   * The actual alpha value that should be applied
+   */
+  public ReadOnlyFloatProperty alphaProperty() {
+    return alpha.getReadOnlyProperty();
+  }
+
+  /**
+   * The base alpha value that should be applied if the value is visible and not null
+   */
+  public FloatProperty baseAlphaProperty() {
+    return baseAlpha;
   }
 
   /**
@@ -145,7 +144,7 @@ public class FxValueMarker extends ValueMarker {
    */
   @Override
   public void setAlpha(float alpha) {
-    this.alpha.set(alpha);
+    this.baseAlpha.set(alpha);
   }
 
   public @Nullable Double getActualValue() {

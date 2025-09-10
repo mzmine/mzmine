@@ -28,8 +28,8 @@ package io.github.mzmine.gui.chartbasics.listener;
 /**
  * All datasets were updated
  */
-public interface DatasetsChangedListener {
+public interface AllDatasetsUpdatedListener {
 
-  void onDatasetsChanged();
+  void onAllDatasetsUpdated();
 
 }

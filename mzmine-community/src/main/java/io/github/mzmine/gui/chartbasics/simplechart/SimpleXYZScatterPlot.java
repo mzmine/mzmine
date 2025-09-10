@@ -29,6 +29,7 @@ import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxJFreeChart;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxJFreeChartModel;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorUtils;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
@@ -97,10 +98,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
 
   protected static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
   protected final Color legendBg = new Color(0, 0, 0, 0); // bg is transparent
-  protected final FxJFreeChart chart;
 
   protected final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
-  protected final List<DatasetChangeListener> datasetListeners;
   protected final ObjectProperty<XYItemRenderer> defaultRenderer;
   protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(false);
   protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
@@ -135,19 +134,14 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
         PlotOrientation.VERTICAL, true, false, true);
     super(internalChart, true, true, true, true, false);
 
-    chart = internalChart;
     chartTitle = new TextTitle(title);
-    chart.setTitle(chartTitle);
+    getChart().setTitle(chartTitle);
     chartSubTitle = new TextTitle();
-    chart.addSubtitle(chartSubTitle);
-    plot = (FxXYPlot) chart.getXYPlot();
+    getChart().addSubtitle(chartSubTitle);
+    plot = (FxXYPlot) getChart().getXYPlot();
     cursorPositionProperty = plot.cursorPositionProperty(); // use cursor from plot
     plot.setShowCursorCrosshair(true, true);
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
-
-    // on changes notify all listeners
-    plot.addDatasetsChangedListener(
-        () -> notifyDatasetChangeListeners(new DatasetChangeEvent(this, null)));
 
     defaultRenderer = new SimpleObjectProperty<>(new ColoredXYSmallBlockRenderer());
     legendAxisFormat = new DecimalFormat("0.##E0");
@@ -158,12 +152,20 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     initializeMouseListener();
     initLabelListeners();
 
-    datasetListeners = new ArrayList<>();
-
     plot.setRenderer(defaultRenderer.get());
     initializePlot();
 
     legendPaintScale.addListener(((observable, oldValue, newValue) -> updateLegend()));
+  }
+
+  @Override
+  public FxJFreeChart getChart() {
+    // only uses this type internally in constructor
+    return (FxJFreeChart) super.getChart();
+  }
+
+  public FxJFreeChartModel getChartModel() {
+    return getChart().getChartModel();
   }
 
   /**
@@ -396,28 +398,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
 
   @Override
   public void addDatasetChangeListener(DatasetChangeListener listener) {
-    datasetListeners.add(listener);
-  }
-
-  @Override
-  public void removeDatasetChangeListener(DatasetChangeListener listener) {
-    datasetListeners.remove(listener);
-  }
-
-  @Override
-  public void clearDatasetChangeListeners() {
-    datasetListeners.clear();
-  }
-
-  @Override
-  public void notifyDatasetChangeListeners(DatasetChangeEvent event) {
-    if (!chart.isNotify()) {
-      return;
-    }
-
-    for (DatasetChangeListener listener : datasetListeners) {
-      listener.datasetChanged(event);
-    }
+    plot.addDatasetChangeListener(listener);
   }
 
   private void initializePlot() {
@@ -458,12 +439,10 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
       updateLegend();
     }
 
-    MZmineCore.getConfiguration().getDefaultChartTheme().applyToLegend(chart);
-    if (chart.isNotify()) {
-      chart.fireChartChanged();
+    MZmineCore.getConfiguration().getDefaultChartTheme().applyToLegend(getChart());
+    if (getChart().isNotify()) {
+      getChart().fireChartChanged();
     }
-
-    notifyDatasetChangeListeners(event);
   }
 
   public Canvas getLegendCanvas() {

@@ -47,15 +47,33 @@ public class FxJFreeChart extends JFreeChart {
   public FxJFreeChart(Plot plot) {
     super(plot);
     chartModel = new FxJFreeChartModel(this);
+
+    initListeners();
   }
 
   public FxJFreeChart(String title, Font defaultTitleFont, FxXYPlot plot, boolean legend) {
     super(title, defaultTitleFont, plot, legend);
     chartModel = new FxJFreeChartModel(this);
+    setTitle(title);
+
+    initListeners();
+  }
+
+  private void initListeners() {
+    // set values to super if they were changed in the property
+    getChartModel().titleProperty().subscribe(super::setTitle);
   }
 
   public FxJFreeChartModel getChartModel() {
     return chartModel;
+  }
+
+  @Override
+  public void setTitle(String text) {
+    super.setTitle(text);
+    if (chartModel != null) {
+      chartModel.setTitle(text);
+    }
   }
 
   @Override

@@ -53,17 +53,12 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
-import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Paint;
-import java.awt.Stroke;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -71,15 +66,10 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.geometry.Orientation;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
-import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -88,11 +78,8 @@ import org.jetbrains.annotations.Nullable;
 public class IMSMobilityMzPlot extends BorderPane {
 
   private final SimpleXYChart<IonTimeSeriesToXYProvider> ticChart;
-  private final Map<ModularFeature, SingleIMSFeatureVisualiserPane> featureVisualisersMap;
   private final SimpleXYZScatterPlot<RowToMobilityMzHeatmapProvider> heatmap;
   private final RegionSelectionWrapper<?> selectionWrapper;
-  private final ScrollPane scrollPane;
-  private final VBox content;
 
   private final NumberFormat rtFormat;
   private final NumberFormat mzFormat;
@@ -101,13 +88,10 @@ public class IMSMobilityMzPlot extends BorderPane {
   private final NumberFormat ccsFormat;
   private final UnitFormat unitFormat;
 
-  private final Stroke markerStroke = new BasicStroke(1f);
-  private final Paint markerColor = MZmineCore.getConfiguration().getDefaultColorPalette()
-      .getPositiveColorAWT();
-
-  private final ObjectProperty<Scan> selectedScan;
+  private final ObjectProperty<Scan> selectedScan = new SimpleObjectProperty<>();
   private final BooleanProperty useCCS;
   private final List<RawDataFile> rawDataFiles; // raw data files in the ticChart
+  private final SingleIMSFeatureVisualiserPane featureVisualiserPane;
   private boolean isCtrlPressed = false;
 
   private boolean useMobilograms = false;
@@ -121,12 +105,28 @@ public class IMSMobilityMzPlot extends BorderPane {
 
     ticChart = new SimpleXYChart<>();
     heatmap = new SimpleXYZScatterPlot<>();
-    featureVisualisersMap = new LinkedHashMap<>();
     rawDataFiles = new ArrayList<>();
     useCCS = new SimpleBooleanProperty();
 
-    ticChart.getXYPlot().domainCursorValueProperty()
-        .bindBidirectional(heatmap.getXYPlot().domainCursorValueProperty());
+    featureVisualiserPane = new SingleIMSFeatureVisualiserPane();
+    featureVisualiserPane.getHeatmapChart().cursorPositionProperty()
+        .addListener((observable, oldValue, newValue) -> {
+          if (newValue.getDataset() instanceof ColoredXYDataset dataset) {
+            if (dataset.getValueProvider() instanceof MassSpectrumProvider<?> spectrumProvider) {
+              MassSpectrum spectrum = spectrumProvider.getSpectrum(newValue.getValueIndex());
+              if (spectrum instanceof Scan) {
+                selectedScan.set((Scan) spectrum);
+              }
+            }
+          }
+        });
+
+    // auto update markers
+    featureVisualiserPane.getHeatmapChart().getXYPlot().domainCursorValueProperty()
+        .bindBidirectional(ticChart.getXYPlot().domainCursorValueProperty());
+
+    featureVisualiserPane.selectedMobilityScanProperty()
+        .addListener((observable, oldValue, newValue) -> selectedScan.set(newValue.getFrame()));
 
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -137,18 +137,9 @@ public class IMSMobilityMzPlot extends BorderPane {
 
     initCharts();
 
-    selectedScan = new SimpleObjectProperty<>();
-
-    scrollPane = new ScrollPane();
-    scrollPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
-    content = new VBox();
-    content.maxWidthProperty().bind(scrollPane.widthProperty().subtract(10));
-    content.minWidthProperty().bind(scrollPane.widthProperty().subtract(10));
-    scrollPane.setContent(content);
-
     BorderPane selectedFeaturesPane = new BorderPane();
     selectedFeaturesPane.setTop(ticChart);
-    selectedFeaturesPane.setCenter(scrollPane);
+    selectedFeaturesPane.setCenter(featureVisualiserPane);
     selectedFeaturesPane.setMinWidth(500);
     selectionWrapper = initSelectionPane(heatmap);
     setRight(selectedFeaturesPane);
@@ -215,8 +206,6 @@ public class IMSMobilityMzPlot extends BorderPane {
     assert Platform.isFxApplicationThread();
     this.useMobilograms = useMobilograms;
 
-    featureVisualisersMap.clear();
-    content.getChildren().clear();
     ticChart.removeAllDatasets();
 
     if (features == null || features.isEmpty()) {
@@ -288,30 +277,7 @@ public class IMSMobilityMzPlot extends BorderPane {
         FeatureUtils.featureToString(feature), new SimpleObjectProperty<>(
         MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor())));
 
-    SingleIMSFeatureVisualiserPane featureVisualiserPane = new SingleIMSFeatureVisualiserPane(
-        feature);
-
-    featureVisualiserPane.getHeatmapChart().cursorPositionProperty()
-        .addListener((observable, oldValue, newValue) -> {
-          if (newValue.getDataset() instanceof ColoredXYDataset dataset) {
-            if (dataset.getValueProvider() instanceof MassSpectrumProvider<?> spectrumProvider) {
-              MassSpectrum spectrum = spectrumProvider.getSpectrum(newValue.getValueIndex());
-              if (spectrum instanceof Scan) {
-                selectedScan.set((Scan) spectrum);
-              }
-            }
-          }
-        });
-
-    // auto update markers
-    featureVisualiserPane.getHeatmapChart().getXYPlot().domainCursorValueProperty()
-        .bindBidirectional(ticChart.getXYPlot().domainCursorValueProperty());
-
-    featureVisualiserPane.selectedMobilityScanProperty()
-        .addListener((observable, oldValue, newValue) -> selectedScan.set(newValue.getFrame()));
-    featureVisualisersMap.put(feature, featureVisualiserPane);
-    content.getChildren().add(featureVisualiserPane);
-    content.getChildren().add(new Separator(Orientation.HORIZONTAL));
+    featureVisualiserPane.setFeature(feature);
   }
 
   private void initChartListeners() {
@@ -371,8 +337,7 @@ public class IMSMobilityMzPlot extends BorderPane {
   }
 
   private void clearRightSide() {
-    content.getChildren().clear();
-    featureVisualisersMap.clear();
+    featureVisualiserPane.setFeature(null);
     ticChart.removeAllDatasets();
     rawDataFiles.clear();
   }

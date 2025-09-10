@@ -30,6 +30,8 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartRenderingInfo;
@@ -42,6 +44,7 @@ public class FxJFreeChartModel implements FxBaseChartModel, ChartRenderingInfoPr
 
   private final ObjectProperty<@Nullable JFreeChart> chart = new SimpleObjectProperty<>();
   private final ReadOnlyObjectWrapper<@Nullable Plot> plot = new ReadOnlyObjectWrapper<>();
+  private final StringProperty title = new SimpleStringProperty("");
   /**
    * Automatically set in {@link FxEChartViewerModel} and represents the rendering info of the
    * latest render event
@@ -70,6 +73,18 @@ public class FxJFreeChartModel implements FxBaseChartModel, ChartRenderingInfoPr
   }
 
   private void updateAll() {
+  }
+
+  public String getTitle() {
+    return title.get();
+  }
+
+  public StringProperty titleProperty() {
+    return title;
+  }
+
+  public void setTitle(String title) {
+    this.title.set(title);
   }
 
   @Override

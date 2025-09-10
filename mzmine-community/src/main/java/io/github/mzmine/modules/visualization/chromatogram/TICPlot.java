@@ -33,6 +33,7 @@ import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartthemes.LabelColorMatch;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxJFreeChart;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxJFreeChartModel;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorUtils;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
@@ -81,7 +82,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   private static final Shape DATA_POINT_SHAPE = new Ellipse2D.Double(-2.0, -2.0, 5.0, 5.0);
   private static final double AXIS_MARGINS = 0.001;
 
-  protected final FxJFreeChart chart;
   private final FxXYPlot plot;
   private final ObjectProperty<ChromatogramCursorPosition> cursorPosition;
   private final BooleanProperty matchLabelColors;
@@ -142,27 +142,26 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
         (getPlotType() == TICPlotType.BASEPEAK) ? "Base peak intensity" : "Total ion intensity";
 
     // Initialize the chart by default time series chart from factory.
-    chart = internalChart;
-    chart.getXYPlot().getRangeAxis().setLabel(yAxisLabel);
+    getChart().getXYPlot().getRangeAxis().setLabel(yAxisLabel);
 
     // only allow positive values for the axes
-    ChartLogics.setAxesTypesPositive(chart);
+    ChartLogics.setAxesTypesPositive(getChart());
 
     // setChart(chart);
 
     // Title.
-    chartTitle = chart.getTitle();
+    chartTitle = getChart().getTitle();
 
     // Subtitle.
     chartSubTitle = new TextTitle();
-    chart.addSubtitle(chartSubTitle);
+    getChart().addSubtitle(chartSubTitle);
 
     // Disable maximum size (we don't want scaling).
     // setMaximumDrawWidth(Integer.MAX_VALUE);
     // setMaximumDrawHeight(Integer.MAX_VALUE);
 
     // Set the plot properties.
-    plot = (FxXYPlot) chart.getXYPlot();
+    plot = (FxXYPlot) getChart().getXYPlot();
     plot.setDomainCrosshairVisible(true);
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
     // after plot init listeners
@@ -208,7 +207,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     // Register for mouse-wheel events
     // addMouseWheelListener(this);
 
-    chart.addProgressListener(event -> {
+    getChart().addProgressListener(event -> {
       if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
 
         Scene myScene = this.getScene();
@@ -307,6 +306,15 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     return plot;
   }
 
+  @Override
+  public FxJFreeChart getChart() {
+    // only uses this type internally in constructor
+    return (FxJFreeChart) super.getChart();
+  }
+
+  public FxJFreeChartModel getChartModel() {
+    return getChart().getChartModel();
+  }
 
   public synchronized void addDataSets(Collection<? extends XYDataset> dataSets) {
     final boolean oldNotify = plot.isNotify();
@@ -314,7 +322,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     dataSets.forEach(this::addDataSet);
     plot.setNotify(oldNotify);
     if (oldNotify) {
-      chart.fireChartChanged();
+      getChart().fireChartChanged();
     }
   }
 
@@ -421,7 +429,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     plot.setNotify(false);
     dataSets.forEach(ds -> addTICDataSet(ds));
     plot.setNotify(true);
-    chart.fireChartChanged();
+    getChart().fireChartChanged();
   }
 
   /**
@@ -449,7 +457,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     dataSets.forEach(this::addFeatureDataSet);
     plot.setNotify(oldNotify);
     if (oldNotify) {
-      chart.fireChartChanged();
+      getChart().fireChartChanged();
     }
   }
 
@@ -615,7 +623,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
     plot.setNotify(oldNotify);
     if (oldNotify) {
-      chart.fireChartChanged();
+      getChart().fireChartChanged();
     }
   }
 

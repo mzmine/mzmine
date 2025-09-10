@@ -26,7 +26,7 @@
 package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.MarkerDefinition;
-import io.github.mzmine.gui.chartbasics.listener.DatasetsChangedListener;
+import io.github.mzmine.gui.chartbasics.listener.AllDatasetsUpdatedListener;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.taskcontrol.Task;
 import java.util.ArrayList;
@@ -57,6 +57,7 @@ import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.ui.Layer;
+import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.XYDataset;
 
 public class FxXYPlotModel implements FxPlotModel {
@@ -90,7 +91,8 @@ public class FxXYPlotModel implements FxPlotModel {
    */
   private final ObjectProperty<ChartRenderingInfo> renderingInfo = new SimpleObjectProperty<>();
 
-  private final List<DatasetsChangedListener> datasetsChangedListeners = new ArrayList<>();
+  private final List<AllDatasetsUpdatedListener> allDatasetsUpdatedListeners = new ArrayList<>();
+  private final List<DatasetChangeListener> datasetChangeListeners = new ArrayList<>();
 
 
   public FxXYPlotModel(@Nullable XYPlot plot) {
@@ -122,12 +124,28 @@ public class FxXYPlotModel implements FxPlotModel {
     return datasets;
   }
 
-  public List<DatasetsChangedListener> getDatasetsChangedListeners() {
-    return datasetsChangedListeners;
+  public List<AllDatasetsUpdatedListener> getAllDatasetsUpdatedListeners() {
+    return allDatasetsUpdatedListeners;
   }
 
-  public void addDatasetsChangedListener(DatasetsChangedListener listener) {
-    datasetsChangedListeners.add(listener);
+  public void addAllDatasetsUpdatedListener(AllDatasetsUpdatedListener listener) {
+    allDatasetsUpdatedListeners.add(listener);
+  }
+
+  public List<DatasetChangeListener> getDatasetChangeListeners() {
+    return datasetChangeListeners;
+  }
+
+  public void addDatasetChangeListener(DatasetChangeListener listener) {
+    datasetChangeListeners.add(listener);
+  }
+
+  public void removeDatasetChangeListener(DatasetChangeListener listener) {
+    datasetChangeListeners.remove(listener);
+  }
+
+  public void clearDatasetChangeListeners() {
+    datasetChangeListeners.clear();
   }
 
   /**

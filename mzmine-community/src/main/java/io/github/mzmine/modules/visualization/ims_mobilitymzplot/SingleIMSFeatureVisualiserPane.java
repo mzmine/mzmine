@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.ims_mobilitymzplot;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
@@ -42,7 +43,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.Summed
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.SingleSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
@@ -50,7 +50,9 @@ import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
@@ -61,8 +63,8 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.util.StringConverter;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.ui.RectangleEdge;
 
 public class SingleIMSFeatureVisualiserPane extends GridPane {
@@ -77,18 +79,34 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
   private final NumberFormat intensityFormat;
   private final UnitFormat unitFormat;
 
-  private final ModularFeature feature;
-  private final SimpleObjectProperty<MobilityScan> selectedMobilityScan;
+  private final ObjectProperty<ModularFeature> feature = new SimpleObjectProperty<>();
+  private final ObservableValue<String> featureString;
+  private final ObjectProperty<MobilityScan> selectedMobilityScan;
+  private ComboBox<Scan> fragmentScanSelection;
 
-  public SingleIMSFeatureVisualiserPane(ModularFeature f) {
+  public SingleIMSFeatureVisualiserPane() {
+    this(null);
+  }
+
+  public SingleIMSFeatureVisualiserPane(@Nullable ModularFeature f) {
     super();
 
     getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-    this.feature = f;
-    String fstr = FeatureUtils.featureToString(f);
-    this.heatmapChart = new SimpleXYZScatterPlot<>("Ion trace - " + fstr);
-    this.msmsSpectrumChart = new SimpleXYChart<>("MS/MS - " + fstr);
+    feature.set(f);
+    featureString = feature.map(FeatureUtils::featureToString).orElse("");
+
+    this.heatmapChart = new SimpleXYZScatterPlot<>("Ion trace");
+    this.msmsSpectrumChart = new SimpleXYChart<>("MS/MS");
     this.mobilogramChart = new SimpleXYChart<>("Extracted mobilogram");
+
+    heatmapChart.getChartModel().titleProperty()
+        .bind(featureString.map(fstr -> "Ion trace - " + fstr));
+    msmsSpectrumChart.getChartModel().titleProperty()
+        .bind(featureString.map(fstr -> "MS/MS - " + fstr));
+    mobilogramChart.getChartModel().titleProperty()
+        .bind(featureString.map(fstr -> "Extracted mobilogram - " + fstr));
+
+    mobilogramChart.getXYPlot().setShowCursorCrosshair(false, true);
 
     heatmapChart.getXYPlot().rangeCursorValueProperty()
         .bindBidirectional(mobilogramChart.getXYPlot().rangeCursorValueProperty());
@@ -101,13 +119,6 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     selectedMobilityScan = new SimpleObjectProperty<>();
 
     initCharts();
-    heatmapChart.setDataset(new IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(feature));
-    mobilogramChart.addDataset(new SummedMobilogramXYProvider(feature, true));
-
-    Scan msmsSpectrum = feature.getMostIntenseFragmentScan();
-    if (msmsSpectrum != null) {
-      msmsSpectrumChart.addDataset(new SingleSpectrumProvider(msmsSpectrum));
-    }
 
     initChartPanes();
 
@@ -119,20 +130,44 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
 
     getRowConstraints().addAll(row0, row3);
     getColumnConstraints().addAll(col0, col1);
+
+    // last update charts
+    feature.subscribe(this::updateChartsForFeature);
+  }
+
+  private void updateChartsForFeature(ModularFeature feature) {
+    if (feature == null) {
+      heatmapChart.getXYPlot().removeAllDatasets();
+      mobilogramChart.getXYPlot().removeAllDatasets();
+      msmsSpectrumChart.getXYPlot().removeAllDatasets();
+      return;
+    }
+
+    final MobilityType mobilityType = ((IMSRawDataFile) feature.getRawDataFile()).getMobilityType();
+    heatmapChart.setRangeAxisLabel(mobilityType.getAxisLabel());
+    mobilogramChart.setRangeAxisLabel(mobilityType.getAxisLabel());
+
+    heatmapChart.setDataset(new IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(feature));
+    mobilogramChart.setDataset((new SummedMobilogramXYProvider(feature, true)));
+
+    Scan msmsSpectrum = feature.getMostIntenseFragmentScan();
+    // combobox
+    fragmentScanSelection.setItems(FXCollections.observableList(feature.getAllMS2FragmentScans()));
+    if (msmsSpectrum != null) {
+      fragmentScanSelection.setValue(msmsSpectrum);
+    }
   }
 
   private void initCharts() {
-    final MobilityType mobilityType = ((IMSRawDataFile) feature.getRawDataFile()).getMobilityType();
 
     heatmapChart.setDomainAxisLabel(unitFormat.format("Retention time", "min"));
     heatmapChart.setDomainAxisNumberFormatOverride(rtFormat);
-    heatmapChart.setRangeAxisLabel(mobilityType.getAxisLabel());
     heatmapChart.setRangeAxisNumberFormatOverride(mobilityFormat);
     heatmapChart.setLegendAxisLabel(unitFormat.format("Intensity", "counts"));
     heatmapChart.setLegendNumberFormatOverride(intensityFormat);
     heatmapChart.setDefaultPaintscaleLocation(RectangleEdge.RIGHT);
     heatmapChart.getXYPlot().setBackgroundPaint(Color.BLACK);
-    heatmapChart.setShowCrosshair(false);
+    heatmapChart.setShowCrosshair(true);
     heatmapChart.cursorPositionProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue.getDataset() instanceof ColoredXYDataset) {
         ColoredXYDataset dataset = (ColoredXYDataset) newValue.getDataset();
@@ -150,24 +185,29 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
           != TaskStatus.FINISHED)) {
         return;
       }
-      heatmapChart.getXYPlot().getDomainAxis().setRange(RangeUtils.guavaToJFree(
-          RangeUtils.getPositiveRange(((ColoredXYDataset) e.getDataset()).getDomainValueRange(),
-              0.0001d)), false, true);
-      heatmapChart.getXYPlot().getRangeAxis().setRange(RangeUtils.guavaToJFree(
-          RangeUtils.getPositiveRange(((ColoredXYDataset) e.getDataset()).getRangeValueRange(),
-              0.0001d)), false, true);
+      final Range<Double> domainValueRange = ((ColoredXYDataset) e.getDataset()).getDomainValueRange();
+      heatmapChart.getXYPlot().getDomainAxis()
+          .setRange(RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(domainValueRange, 0.0001d)),
+              false, true);
+      final Range<Double> rangeValueRange = ((ColoredXYDataset) e.getDataset()).getRangeValueRange();
+      heatmapChart.getXYPlot().getRangeAxis()
+          .setRange(RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(rangeValueRange, 0.0001d)),
+              false, true);
     });
     NumberAxis axis = (NumberAxis) heatmapChart.getXYPlot().getRangeAxis();
-    axis.setAutoRange(true);
     axis.setAutoRangeIncludesZero(false);
     axis.setAutoRangeStickyZero(false);
-    axis.setAutoRangeMinimumSize(0.0001);
     axis.setVisible(false);
 
     axis = (NumberAxis) mobilogramChart.getXYPlot().getRangeAxis();
+    axis.setAutoRange(true);
     axis.setAutoRangeIncludesZero(false);
     axis.setAutoRangeStickyZero(false);
-    axis.setAutoRangeMinimumSize(0.0001);
+
+    axis = (NumberAxis) mobilogramChart.getXYPlot().getDomainAxis();
+    axis.setAutoRangeIncludesZero(true);
+    axis.setAutoRangeStickyZero(true);
+    axis.setAutoRange(true);
 
     msmsSpectrumChart.setDomainAxisNumberFormatOverride(mzFormat);
     msmsSpectrumChart.setDomainAxisLabel("m/z");
@@ -178,24 +218,22 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
 
     mobilogramChart.setDomainAxisNumberFormatOverride(intensityFormat);
     mobilogramChart.setDomainAxisLabel(unitFormat.format("Intensity", "a.u."));
-    mobilogramChart.setRangeAxisLabel(mobilityType.getAxisLabel());
     mobilogramChart.setRangeAxisNumberFormatOverride(mobilityFormat);
     mobilogramChart.getXYPlot().getDomainAxis().setInverted(true);
-    mobilogramChart.setShowCrosshair(false);
+    mobilogramChart.getXYPlot().setShowCursorCrosshair(false, true);
     mobilogramChart.setLegendItemsVisible(false);
-    mobilogramChart.addDatasetChangeListener(l -> {
-      FxThread.runLater(() -> {
-        NumberAxis a = (NumberAxis) mobilogramChart.getXYPlot().getRangeAxis();
-        a.setAutoRangeIncludesZero(false);
-        a.setAutoRangeStickyZero(false);
-        a.setAutoRangeMinimumSize(0.0001);
-        a.setAutoRange(true);
-        XYItemRenderer renderer = mobilogramChart.getXYPlot().getRenderer(0);
-        if (renderer != null) {
-          renderer.setDefaultSeriesVisibleInLegend(false);
-        }
-      });
-    });
+//    mobilogramChart.addDatasetChangeListener(l -> {
+//      FxThread.runLater(() -> {
+//        ChartLogicsFX.autoDomainAxis(mobilogramChart);
+//        ChartLogicsFX.autoRangeAxis(mobilogramChart);
+//        mobilogramChart.getXYPlot().getDomainAxis().setAutoRange(true);
+//        mobilogramChart.getXYPlot().getRangeAxis().setAutoRange(true);
+//        XYItemRenderer renderer = mobilogramChart.getXYPlot().getRenderer(0);
+//        if (renderer != null) {
+//          renderer.setDefaultSeriesVisibleInLegend(false);
+//        }
+//      });
+//    });
 
     ChartGroup mobilityGroup = new ChartGroup(false, false, false, true);
     mobilityGroup.add(new ChartViewWrapper(mobilogramChart));
@@ -212,14 +250,14 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     add(new BorderPane(heatmapChart), 1, 0);
 //    add(new BorderPane(legendCanvas), 1, 1);
 
-    ComboBox<Scan> fragmentScanSelection = new ComboBox<>();
-    fragmentScanSelection.setItems(FXCollections.observableList(feature.getAllMS2FragmentScans()));
-    if (feature.getAllMS2FragmentScans() != null && feature.getMostIntenseFragmentScan() != null) {
-      fragmentScanSelection.setValue(feature.getMostIntenseFragmentScan());
-    }
+    fragmentScanSelection = new ComboBox<>();
     fragmentScanSelection.valueProperty().addListener((observable, oldValue, newValue) -> {
-      msmsSpectrumChart.removeAllDatasets();
-      msmsSpectrumChart.addDataset(new SingleSpectrumProvider(newValue));
+      if (newValue == null) {
+        msmsSpectrumChart.removeAllDatasets();
+        return;
+      }
+
+      msmsSpectrumChart.setDataset(new SingleSpectrumProvider(newValue));
     });
     fragmentScanSelection.setConverter(new StringConverter<Scan>() {
       @Override
@@ -267,7 +305,11 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     this.selectedMobilityScan.set(selectedMobilityScan);
   }
 
-  public SimpleObjectProperty<MobilityScan> selectedMobilityScanProperty() {
+  public ObjectProperty<MobilityScan> selectedMobilityScanProperty() {
     return selectedMobilityScan;
+  }
+
+  public void setFeature(ModularFeature feature) {
+    this.feature.set(feature);
   }
 }
