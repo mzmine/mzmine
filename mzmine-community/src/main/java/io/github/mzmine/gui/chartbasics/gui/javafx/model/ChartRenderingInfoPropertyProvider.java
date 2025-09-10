@@ -23,35 +23,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.chromatogram;
+package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.RangeUtils;
+import javafx.beans.property.ObjectProperty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.ChartRenderingInfo;
 
 /**
- * Simple dataset for extracted ion chromatograms
+ * Latest rendering info that can be shared with chart and plot
  */
-public class MzRangeEicDataSet extends ColoredXYDataset {
+public interface ChartRenderingInfoPropertyProvider {
 
+  /**
+   * The rendering info is useful to convert data space to screen space coordinates.
+   *
+   * @return the latest rendering info (if a chart was drawn)
+   */
+  @NotNull ObjectProperty<@Nullable ChartRenderingInfo> renderingInfoProperty();
 
-  private final RawDataFile rawFile;
-
-  public MzRangeEicDataSet(final IonTimeSeries<? extends Scan> series, final Range<Double> mzRange,
-      final RawDataFile rawFile) {
-    super(new IonTimeSeriesToXYProvider(series,
-        MZmineCore.getConfiguration().getGuiFormats().mz(RangeUtils.rangeCenter(mzRange)),
-        rawFile.getColor()), RunOption.THIS_THREAD);
-    this.rawFile = rawFile;
+  /**
+   * The rendering info is useful to convert data space to screen space coordinates.
+   *
+   * @return the latest rendering info (if a chart was drawn)
+   */
+  default @Nullable ChartRenderingInfo getRenderingInfo() {
+    return renderingInfoProperty().get();
   }
 
-  public RawDataFile getRawFile() {
-    return rawFile;
+  /**
+   * The rendering info is useful to convert data space to screen space coordinates.
+   *
+   */
+  default void setRenderingInfo(@Nullable ChartRenderingInfo renderingInfo) {
+    renderingInfoProperty().set(renderingInfo);
   }
 }

@@ -28,6 +28,7 @@ package io.github.mzmine.javafx.components.factories;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.Node;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
@@ -41,7 +42,7 @@ public class FxLabels {
     REGULAR, BOLD_TITLE, BOLD_SEMI_TITLE, BOLD, ITALIC, // colored
     WARNING, ERROR;
 
-    public void addStyleClass(Label label) {
+    public void addStyleClass(Node label) {
       var style = getStyleClass();
       if (style != null) {
         label.getStyleClass().add(style);
