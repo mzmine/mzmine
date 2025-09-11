@@ -51,6 +51,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class SiriusFingerIdTask extends AbstractFeatureListTask {
 
+  public static final int FEATURE_COUNT_THRESHOLD = 50;
   private final ModularFeatureList flist;
   private final String idStr;
   private JobWaiterTask jobWaiterTask = null;
@@ -80,6 +81,10 @@ public class SiriusFingerIdTask extends AbstractFeatureListTask {
 
     final List<FeatureListRow> rows =
         idStr.isBlank() ? flist.getRows() : FeatureUtils.idStringToRows(flist, idStr);
+
+    if (rows.size() > FEATURE_COUNT_THRESHOLD) {
+
+    }
 
     try (Sirius sirius = new Sirius()) {
       final Map<Integer, String> idsMap = MzmineToSirius.exportToSiriusUnique(sirius, rows);
@@ -122,4 +127,5 @@ public class SiriusFingerIdTask extends AbstractFeatureListTask {
   public double getFinishedPercentage() {
     return jobWaiterTask == null ? 0 : jobWaiterTask.getFinishedPercentage();
   }
+
 }

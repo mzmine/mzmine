@@ -30,12 +30,15 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.parameters.parametertypes.OptOutParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.util.FeatureUtils;
 import java.util.List;
+import java.util.Map;
 
 public class SiriusFingerIdParameters extends SimpleParameterSet {
 
@@ -45,8 +48,11 @@ public class SiriusFingerIdParameters extends SimpleParameterSet {
       new StringParameter("Row IDs",
           "The ids of the rows to run Sirius for. If not selected, the whole feature list will be processed."));
 
+  public static final HiddenParameter<Map<String, Boolean>> countWarningOptOut = new HiddenParameter<>(
+      new OptOutParameter("Feature count warning", ""));
+
   public SiriusFingerIdParameters() {
-    super(flist, rowIds);
+    super(flist, rowIds, countWarningOptOut);
   }
 
   public static SiriusFingerIdParameters of(List<? extends FeatureListRow> rows) {

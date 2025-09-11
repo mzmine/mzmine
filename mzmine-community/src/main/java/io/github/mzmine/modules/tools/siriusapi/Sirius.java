@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.siriusapi;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.dialogs.NotificationService;
 import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
@@ -81,7 +82,8 @@ public class Sirius implements AutoCloseable {
   private final ProjectInfo projectSpace;
 
   /**
-   * Default constructor to initialise a temporary project. This is a time consuming operation. Don't run on the GUI.
+   * Default constructor to initialise a temporary project. This is a time consuming operation.
+   * Don't run on the GUI.
    */
   public Sirius() throws Exception {
     final File projectFile = new File(FileAndPathUtil.getTempDir(), sessionId + ".sirius");
@@ -90,6 +92,7 @@ public class Sirius implements AutoCloseable {
 
   /**
    * This is a time consuming operation. Don't run on the GUI.
+   *
    * @param project project file to open.
    * @throws Exception
    */
@@ -97,10 +100,11 @@ public class Sirius implements AutoCloseable {
 
     // try to connect to running instance
     final SiriusSDK alreadyRunning = SiriusSDK.findAndConnectLocally(ShutdownMode.NEVER, true);
-    if(alreadyRunning != null) {
+    if (alreadyRunning != null) {
       sirius = alreadyRunning;
     } else {
-      NotificationService.show(NotificationType.INFO, "Starting Sirius", "Trying to start Sirius. This may take a moment.");
+      NotificationService.show(NotificationType.INFO, "Starting Sirius",
+          "Trying to start Sirius. This may take a moment.");
       sirius = SiriusSDK.startAndConnectLocally(ShutdownMode.NEVER, true);
     }
 
@@ -127,6 +131,9 @@ public class Sirius implements AutoCloseable {
   }
 
   private void showGuiForProject() {
+    if (DesktopService.isHeadLess()) {
+      return;
+    }
     for (GuiInfo gui : sirius.gui().getGuis()) {
       if (gui.getProjectId().equals(projectSpace.getProjectId())) {
         return;
@@ -223,8 +230,8 @@ public class Sirius implements AutoCloseable {
 
 
   /**
-   * Ranks the current {@link CompoundDBAnnotation}s by exporting to a custom database and using only that
-   * database for possible structures.
+   * Ranks the current {@link CompoundDBAnnotation}s by exporting to a custom database and using
+   * only that database for possible structures.
    *
    * @param row
    */
