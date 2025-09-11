@@ -17,6 +17,7 @@ global List mobilePhases;
      
      lipid.setScore(1);
      lipid.setDescrCorrect("Contains [M-H]-, ");
+     lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
  end
   rule "No presence [M-H]-"
   when
@@ -25,6 +26,7 @@ global List mobilePhases;
 
       lipid.setScore(-1);
       lipid.setDescrIncorrect("Missing [M-H]-, ");
+      lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
   end
 
  rule "Presence [M-H+(CH3COONa)]-"
@@ -36,4 +38,5 @@ global List mobilePhases;
      
      lipid.setScore(1);
      lipid.setDescrCorrect("Contains [M-H+(CH3COONa)]-, ");
+     lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
  end

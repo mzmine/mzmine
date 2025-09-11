@@ -197,6 +197,7 @@ We search for the specific adduct name, and we have to take into account that so
 Define actions if conditions are met:
 - Set score: adds/subtracts value to lipid score.
 - Set description: `.setDescrCorrect(<message>)` or `.setDescrIncorrect(<message>)`.
+- Set counter of applied rules: `lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);` or `lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);`
 
 **Examples by Rule Type**
 
@@ -205,6 +206,7 @@ Define actions if conditions are met:
   then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+C2H7N2]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 ```
 
 **2. Negative presence (absence):**
@@ -212,6 +214,7 @@ Define actions if conditions are met:
   then
     lipid.setScore(-1);
     lipid.setDescrIncorrect("Missing [M+NH4]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 ```
 
 **3. Correct intensity order:**
@@ -219,6 +222,7 @@ Define actions if conditions are met:
   then
     lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M+C2H7N2]+ > [M+Na]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 ```
 
 **4. Incorrect intensity order:**
@@ -226,6 +230,7 @@ Define actions if conditions are met:
   then
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+C2H7N2]+ < [M+Na]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 ```
 
 #### `end` section

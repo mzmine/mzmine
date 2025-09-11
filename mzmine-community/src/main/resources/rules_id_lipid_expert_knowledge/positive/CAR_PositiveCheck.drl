@@ -16,6 +16,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+H]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 rule "No presence [M+H]+"
 when
@@ -23,4 +24,5 @@ when
 then
     lipid.setScore(-1);
     lipid.setDescrIncorrect("Missing [M+H]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end

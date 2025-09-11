@@ -16,6 +16,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+H]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+Na]+"
@@ -24,6 +25,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+Na]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+K]+"
@@ -32,6 +34,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+K]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+C2H7N2]+"
@@ -46,6 +49,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+C2H7N2]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+NH4]+"
@@ -56,6 +60,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+NH4]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+H-H2O]+"
@@ -64,5 +69,6 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+H-H2O]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 

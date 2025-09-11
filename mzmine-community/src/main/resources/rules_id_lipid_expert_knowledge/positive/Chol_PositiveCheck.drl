@@ -17,6 +17,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+H]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 rule "No presence [M+NH4]+"
 when
@@ -26,6 +27,7 @@ when
 then
     lipid.setScore(-1);
     lipid.setDescrIncorrect("Missing [M+NH4]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+NH4]+"
@@ -36,6 +38,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+NH4]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [cholestadiene ion]+"
@@ -44,6 +47,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [cholestadiene ion]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 
@@ -59,6 +63,7 @@ when
 then
     lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M+NH4]+ > [M+H]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+NH4]+ < [M+H]+"
@@ -72,4 +77,5 @@ when
 then
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+NH4]+ < [M+H]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end

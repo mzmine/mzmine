@@ -52,6 +52,9 @@ public class FoundLipid {
 
     private Integer subgroupID;
 
+    private Integer appliedPresence;
+    private Integer appliedIntensity;
+
 
     public static final String XML_ELEMENT = "lipidvalidation";
     private static final Logger logger = Logger.getLogger(FoundLipid.class.getName());
@@ -74,6 +77,8 @@ public class FoundLipid {
         this.descrCorrect = lipid.getLipidAnnotation().getLipidClass().getAbbr() + "-Correct: ";
         this.descrIncorrect = "Verify: ";
         this.adducts = new ArrayList<>();
+        this.appliedPresence = 0;
+        this.appliedIntensity = 0;
     }
 
     /**
@@ -89,6 +94,8 @@ public class FoundLipid {
         this.descrIncorrect = "Found adducts are assumptions!";
         this.adducts = foundAdducts;
         this.subgroupID = virtualGroup.getSubgroupID();
+        this.appliedPresence = 0;
+        this.appliedIntensity = 0;
     }
 
     /**
@@ -186,6 +193,22 @@ public class FoundLipid {
      */
     public void setDescrIncorrect(String descrIncorrect) {
         this.descrIncorrect = this.descrIncorrect + descrIncorrect;
+    }
+
+    public Integer getAppliedPresence() {
+        return appliedPresence;
+    }
+
+    public void setAppliedPresence(Integer appliedPresence) {
+        this.appliedPresence = appliedPresence;
+    }
+
+    public Integer getAppliedIntensity() {
+        return appliedIntensity;
+    }
+
+    public void setAppliedIntensity(Integer appliedIntensity) {
+        this.appliedIntensity = appliedIntensity;
     }
 
     /**

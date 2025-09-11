@@ -16,6 +16,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M-H]-, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 rule "No presence [M+CH3COO]-"
 when
@@ -26,6 +27,7 @@ then
     lipid.setScore(-1);
     lipid.setDescrIncorrect("Missing [M+CH3COO]-, ");
     List<FoundAdduct> adducts = lipid.getListAdducts();
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+CH3COO]-"
@@ -36,6 +38,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+CH3COO]-, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+HCOO]-"
@@ -47,6 +50,7 @@ then
     
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+HCOO]-, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+Cl]-"
@@ -56,6 +60,7 @@ then
     
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+Cl]-, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 
@@ -72,6 +77,7 @@ then
     
     lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M+CH3COO]- > [M-H]-, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+CH3COO]- > [M+Cl]-"
@@ -85,6 +91,7 @@ then
     
     lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M+CH3COO]- > [M+Cl]-, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M-H]- > [M+HCOO]-"
@@ -98,6 +105,7 @@ then
     
     lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M-H]- > [M+HCOO]-, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+Cl]- > [M+HCOO]-"
@@ -107,10 +115,12 @@ when
     $phase1 : MobilePhases() from mobilePhases
     eval($phase1 == MobilePhases.HCOO)
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
+
 then
     
     lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M+Cl]- > [M+HCOO]-, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 
@@ -124,6 +134,7 @@ when
 then
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO]- < [M-H]-, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+CH3COO]- < [M+Cl]-"
@@ -137,6 +148,7 @@ then
     
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO]- < [M+Cl]-, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M-H]- < [M+HCOO]-"
@@ -150,6 +162,7 @@ then
     
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M-H]- < [M+HCOO]-, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+Cl]- < [M+HCOO]-"
@@ -163,6 +176,7 @@ then
     
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+Cl]- < [M+HCOO]-, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+CH3COO]- < [M+HCOO]-"
@@ -178,4 +192,5 @@ then
 
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+HCOO]- > [M+CH3COO]-, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end

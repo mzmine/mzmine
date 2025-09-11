@@ -17,6 +17,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+H]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 rule "No presence [M+H]+"
 when
@@ -24,6 +25,7 @@ when
 then
     lipid.setScore(-1);
     lipid.setDescrIncorrect("Missing [M+H]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+Na]+"
@@ -32,6 +34,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+Na]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+K]+"
@@ -40,6 +43,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+K]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+H-H2O]+"
@@ -48,6 +52,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+H-H2O]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 
@@ -62,6 +67,7 @@ when
 then
     lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M+H]+ > [M+Na]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+Na]+ > [M+K]+"
@@ -73,6 +79,7 @@ when
 then
     lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M+Na]+ > [M+K]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+H]+ < [M+Na]+"
@@ -84,6 +91,7 @@ when
 then
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+H]+ < [M+Na]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+Na]+ < [M+K]+"
@@ -95,6 +103,7 @@ when
 then
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+Na]+ < [M+K]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+H]+ < [M+K]+"
@@ -106,4 +115,5 @@ when
 then
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+K]+ > [M+H]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end

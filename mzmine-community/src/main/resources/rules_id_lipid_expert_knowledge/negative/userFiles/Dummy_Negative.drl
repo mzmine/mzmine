@@ -22,6 +22,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M-H]-, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+CH3COO]-"
@@ -32,6 +33,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+CH3COO]-, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 // =======================================
@@ -47,6 +49,7 @@ then
     lipid.setScore(-1);
     lipid.setDescrIncorrect("Missing [M+CH3COO]-, ");
     List<FoundAdduct> adducts = lipid.getListAdducts();
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 // =======================================
@@ -64,6 +67,7 @@ then
 
     lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M+CH3COO]- > [M-H]-, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 // =======================================
@@ -80,4 +84,5 @@ when
 then
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+CH3COO]- < [M-H]-, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end

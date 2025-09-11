@@ -16,6 +16,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+H]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 rule "No presence [M+C2H7N2]+"
 when
@@ -29,6 +30,7 @@ when
 then
     lipid.setScore(-1);
     lipid.setDescrIncorrect("Missing [M+C2H7N2]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+Na]+"
@@ -37,6 +39,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+Na]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+K]+"
@@ -45,6 +48,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+K]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+C2H7N2]+"
@@ -59,6 +63,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+C2H7N2]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+NH4]+"
@@ -69,6 +74,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+NH4]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 rule "Presence [M+H-H2O]+"
@@ -77,6 +83,7 @@ when
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+H-H2O]+, ");
+    lipid.setAppliedPresence(lipid.getAppliedPresence() + 1);
 end
 
 
@@ -92,6 +99,7 @@ when
 then
     lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M+NH4]+ > [M+Na]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+Na]+ > [M+H]+"
@@ -103,6 +111,7 @@ when
 then
     lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M+Na]+ > [M+H]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+Na]+ > [M+K]+"
@@ -114,6 +123,7 @@ when
 then
     lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M+Na]+ > [M+K]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+Na]+ > [M+C2H7N2]+"
@@ -131,6 +141,7 @@ when
 then
     lipid.setScore(2);
     lipid.setDescrCorrect("Intensity OK [M+Na]+ > [M+C2H7N2]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+NH4]+ < [M+Na]+"
@@ -144,6 +155,7 @@ when
 then
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+NH4]+ < [M+Na]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+Na]+ < [M+H]+"
@@ -155,6 +167,7 @@ when
 then
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+Na]+ < [M+H]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+Na]+ < [M+K]+"
@@ -166,6 +179,7 @@ when
 then
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+Na]+ < [M+K]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+Na]+ < [M+C2H7N2]+"
@@ -183,6 +197,7 @@ when
 then
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+Na]+ < [M+C2H7N2]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+NH4]+ < [M+H]+"
@@ -196,6 +211,7 @@ when
 then
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+H]+ > [M+NH4]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+NH4]+ < [M+K]+"
@@ -209,6 +225,7 @@ when
 then
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+K]+ > [M+NH4]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
 
 rule "Intensity [M+NH4]+ < [M+C2H7N2]+"
@@ -226,4 +243,5 @@ when
 then
     lipid.setScore(-2);
     lipid.setDescrIncorrect("Intensity NOT OK [M+C2H7N2]+ > [M+NH4]+, ");
+    lipid.setAppliedIntensity(lipid.getAppliedIntensity() + 1);
 end
