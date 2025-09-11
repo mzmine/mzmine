@@ -66,6 +66,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.io.SemverVersionReader;
 import java.io.File;
+import java.net.MalformedURLException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.Instant;
@@ -77,6 +78,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -88,6 +91,8 @@ import uk.ac.ebi.pride.jmztab2.model.OptColumnMappingBuilder;
 import uk.ac.ebi.pride.jmztab2.model.OptColumnMappingBuilder.GlobalOptColumnMappingBuilder;
 
 public class MZTabmExportTask extends AbstractTask {
+
+  private static final Logger logger = Logger.getLogger(MZTabmExportTask.class.getName());
 
   // parameter values
   private final MZmineProject project;
@@ -366,8 +371,8 @@ public class MZTabmExportTask extends AbstractTask {
       }
 
       mzTabFile.metadata(mtd);
-//      MzTabWriter writer = new MzTabValidatingWriter();
-      MzTabWriter writer = new MzTabNonValidatingWriter();
+      MzTabWriter writer = new MzTabValidatingWriter();
+//      MzTabWriter writer = new MzTabNonValidatingWriter();
       writer.write(curFile.toPath(), mzTabFile);
     } catch (Exception e) {
       e.printStackTrace();
@@ -537,12 +542,12 @@ public class MZTabmExportTask extends AbstractTask {
 
   private void createSMEOptCols(SmallMoleculeEvidence sme, DataType type, String name,
       String value) {
-    globalOptColumns.add(OptColumnMappingBuilder.forGlobal().withName(name));
+    /*globalOptColumns.add(OptColumnMappingBuilder.forGlobal().withName(name));
     if (!value.equals("")) {
       sme.addOptItem(globalOptColumns.get(columnCount).build(value));
     } else {
       sme.addOptItem(globalOptColumns.get(columnCount).build("null"));
-    }
+    }*/
   }
 
   private void updateWithPreferredAnnotation(SmallMoleculeEvidence sme, String preferredAnnotation,
@@ -655,7 +660,13 @@ public class MZTabmExportTask extends AbstractTask {
   private MsRun getMsRunData(int fileCounter, RawDataFile file) {
     MsRun msRun = new MsRun();
     msRun.id(fileCounter);
-    msRun.setLocation("file:///" + file.getAbsolutePath().replaceAll("\\\\", "/"));
+
+//    msRun.setLocation("file:///" + file.getAbsolutePath().replaceAll("\\\\", "/"));
+    try {
+      msRun.setLocation(file.getAbsoluteFilePath().toURI().toURL().toString());
+    } catch (MalformedURLException e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
+    }
 //    msRun.setName(file.getName());
     int dotIn = file.getName().indexOf(".");
     String fileFormat = "";
