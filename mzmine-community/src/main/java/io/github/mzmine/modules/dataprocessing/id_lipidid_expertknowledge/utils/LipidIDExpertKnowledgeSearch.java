@@ -260,7 +260,6 @@ public class LipidIDExpertKnowledgeSearch {
         double scoreIntensity = 2.00;
         //double totalMaxPresence;
         //double totalMaxIntensity;
-        //todo this is new
         double appliedPresence = 0.00;
         double appliedIntensity = 0.00;
 
@@ -428,9 +427,7 @@ public class LipidIDExpertKnowledgeSearch {
             kSession.dispose();
 
             double rawScore = lipid_ExpertKnowledge.getScore();
-            //todo find out max score and normalize
             maxScore = scorePresence * lipid_ExpertKnowledge.getAppliedPresence() + scoreIntensity * lipid_ExpertKnowledge.getAppliedIntensity();
-            System.out.println("-----Applied rules: "+lipid_ExpertKnowledge.getAppliedIntensity()+lipid_ExpertKnowledge.getAppliedPresence());
 
             double normScore = lipid_ExpertKnowledge.normalizeScore(rawScore, maxScore);
             lipid_ExpertKnowledge.setFinalScore(normScore);
@@ -635,9 +632,7 @@ public class LipidIDExpertKnowledgeSearch {
             kSession.dispose();
 
             double rawScore = lipid_ExpertKnowledge.getScore();
-            //todo find out max score and normalize
             maxScore = scorePresence * lipid_ExpertKnowledge.getAppliedPresence() + scoreIntensity * lipid_ExpertKnowledge.getAppliedIntensity();
-            System.out.println("-----Applied rules: "+lipid_ExpertKnowledge.getAppliedIntensity()+lipid_ExpertKnowledge.getAppliedPresence());
             double normScore = lipid_ExpertKnowledge.normalizeScore(rawScore, maxScore);
             lipid_ExpertKnowledge.setFinalScore(normScore);
         }
