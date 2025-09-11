@@ -223,4 +223,21 @@ public class IntegrationTests {
         .runBatchGetCheckResults("rawdatafiles/integration_tests/diaPASEF/expected_results.csv")
         .size());
   }
+
+  @Test
+  void testThermo(@TempDir File tempDir) {
+    // only run the test on local machines
+    if (!new File("D:\\OneDrive - mzio GmbH").exists()) {
+      logger.info("Skipping thermo full batch integration test.");
+      return;
+    }
+//    Assertions.assertEquals(0, IntegrationTest.builder("rawdatafiles/integration_tests/thermo_import",
+//            "trp_batch.mzbatch").tempDir(tempDir).build()
+//        .runBatchGetCheckResults("rawdatafiles/integration_tests/thermo_import/test_trp_old.csv")
+//        .size());
+    Assertions.assertEquals(0, IntegrationTest.builder("rawdatafiles/integration_tests/thermo_import",
+            "trp_batch.mzbatch").tempDir(tempDir).build()
+        .runBatchGetCheckResults("rawdatafiles/integration_tests/thermo_import/test_msconvert.csv")
+        .size());
+  }
 }
