@@ -673,7 +673,7 @@
         },
         {
             "moduleName": "commons-io:commons-io",
-            "moduleVersion": "2.16.1",
+            "moduleVersion": "2.17.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-io/"
             ],
@@ -686,9 +686,9 @@
         },
         {
             "moduleName": "commons-logging:commons-logging",
-            "moduleVersion": "1.2",
+            "moduleVersion": "1.3.0",
             "moduleUrls": [
-                "http://commons.apache.org/proper/commons-logging/"
+                "https://commons.apache.org/proper/commons-logging/"
             ],
             "moduleLicenses": [
                 {
@@ -2032,6 +2032,26 @@
             ]
         },
         {
+            "moduleName": "org.apache.xmlcommons:xml-apis",
+            "moduleVersion": "1.4.01",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlcommons:xml-apis-ext",
+            "moduleVersion": "1.4.01",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.apache.xmlgraphics:batik-all",
             "moduleVersion": "1.13",
             "moduleLicenses": [
@@ -2043,7 +2063,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-anim",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2053,7 +2073,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-awt-util",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2063,7 +2083,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-bridge",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2083,7 +2103,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-constants",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2093,7 +2113,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-css",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2103,7 +2123,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-dom",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2113,7 +2133,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-ext",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2133,7 +2153,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-gui-util",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2143,7 +2163,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-gvt",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2153,7 +2173,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-i18n",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2163,7 +2183,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-parser",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2193,7 +2213,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-script",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2203,7 +2223,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-shared-resources",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2243,7 +2263,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-svg-dom",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2263,7 +2283,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-svggen",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2293,7 +2313,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-swing",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2323,7 +2343,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-util",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2333,7 +2353,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-xml",
-            "moduleVersion": "1.13",
+            "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -2343,7 +2363,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:xmlgraphics-commons",
-            "moduleVersion": "2.4",
+            "moduleVersion": "2.11",
             "moduleUrls": [
                 "http://xmlgraphics.apache.org/commons/"
             ],
@@ -3785,32 +3805,6 @@
                 {
                     "moduleLicense": "The 2-Clause BSD License",
                     "moduleLicenseUrl": "https://opensource.org/licenses/BSD-2-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "xalan:serializer",
-            "moduleVersion": "2.7.2",
-            "moduleUrls": [
-                "http://xml.apache.org/xalan-j/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "xalan:xalan",
-            "moduleVersion": "2.7.2",
-            "moduleUrls": [
-                "http://xml.apache.org/xalan-j/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
                 }
             ]
         }

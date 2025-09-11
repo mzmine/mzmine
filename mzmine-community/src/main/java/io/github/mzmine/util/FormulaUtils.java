@@ -256,7 +256,7 @@ public class FormulaUtils {
     return (neutralmass - charge * electronMass) / Math.abs(charge);
   }
 
-  public static double calculateExactMass(String formula) {
+  public static double calculateExactMass(@NotNull String formula) {
     return calculateExactMass(formula, 0);
   }
 
@@ -265,7 +265,7 @@ public class FormulaUtils {
    * negative, in case the formula contains negative such as C3H10P-3. This is important for
    * calculating the mass of some ionization adducts, such as deprotonation (H-1).
    */
-  public static double calculateExactMass(String formula, int charge) {
+  public static double calculateExactMass(@NotNull String formula, int charge) {
 
     if (formula.trim().length() == 0) {
       return 0;
@@ -296,7 +296,7 @@ public class FormulaUtils {
    * @param formula String of the molecular formula.
    * @return true / false
    */
-  public static boolean checkMolecularFormula(String formula) {
+  public static boolean checkMolecularFormula(@NotNull String formula) {
     if (formula.matches(".*[äöüÄÖÜß°§$%&/()=?ß²³´`+*~'#;:<>|]")) { // check
       // for
       // this
@@ -351,7 +351,10 @@ public class FormulaUtils {
    * @return the formula or null
    */
   @Nullable
-  public static IMolecularFormula createMajorIsotopeMolFormula(String formula) {
+  public static IMolecularFormula createMajorIsotopeMolFormula(@Nullable String formula) {
+    if(formula == null) {
+      return null;
+    }
     try {
       // new formula consists of isotopes without exact mass
       IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();

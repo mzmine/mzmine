@@ -86,6 +86,7 @@ import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModul
 import io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRemovalModule;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule;
 import io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule;
+import io.github.mzmine.modules.dataprocessing.filter_splitaligned.SplitAlignedFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.PeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFillerModule;
@@ -333,6 +334,7 @@ public class BatchModeModulesList {
           RegionExtractionModule.class, //
           VolcanoPlotRegionExtractionModule.class, //
           PCALoadingsExtractionModule.class, //
+          SplitAlignedFeatureListModule.class, //
 
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_PROCESSING}
