@@ -245,9 +245,9 @@ public class MZminePreferences extends SimpleParameterSet {
       """, true);
   public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(
       "Thermo data import", """
-      Specify which path you want to use for Thermo raw data import. MSConvert allows import of
-      UV spectra and chromatograms and is therefore recommended, but only available on windows.
-      """, ThermoImportOptions.getOptionsForOs(), ThermoImportOptions.MSCONVERT);
+      Specify which path you want to use for Thermo raw data import.
+      """, ThermoImportOptions.getOptionsForOs(), ThermoImportOptions.THERMO_RAW_FILE_PARSER);
+
   public static final OptionalParameter<ParameterSetParameter<WatersLockmassParameters>> watersLockmass = new OptionalParameter<>(
       new ParameterSetParameter<>("Apply lockmass on import (Waters)",
           "Apply lockmass correction for native Waters raw data during raw data import via MSConvert.",
