@@ -243,10 +243,11 @@ public class MZminePreferences extends SimpleParameterSet {
       Apply vendor centroiding (peak picking) during import of native vendor files.
       Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.
       """, true);
-  public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(
-      "Thermo data import", """
-      Specify which path you want to use for Thermo raw data import.
-      """, ThermoImportOptions.getOptionsForOs(), ThermoImportOptions.THERMO_RAW_FILE_PARSER);
+// default is now to always use the raw file parser
+//  public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(
+//      "Thermo data import", """
+//      Specify which path you want to use for Thermo raw data import.
+//      """, ThermoImportOptions.getOptionsForOs(), ThermoImportOptions.THERMO_RAW_FILE_PARSER);
 
   public static final OptionalParameter<ParameterSetParameter<WatersLockmassParameters>> watersLockmass = new OptionalParameter<>(
       new ParameterSetParameter<>("Apply lockmass on import (Waters)",
@@ -285,8 +286,7 @@ public class MZminePreferences extends SimpleParameterSet {
             // silent parameters without controls
             showTempFolderAlert, username, showQuickStart,
             //
-            applyVendorCentroiding, msConvertPath, keepConvertedFile, watersLockmass,
-            thermoImportChoice},
+            applyVendorCentroiding, msConvertPath, keepConvertedFile, watersLockmass},
         "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
     darkModeProperty.subscribe(state -> {
@@ -321,7 +321,7 @@ public class MZminePreferences extends SimpleParameterSet {
             chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
             imageNormalization), //
         new ParameterGroup("MS data import", applyVendorCentroiding, msConvertPath,
-            keepConvertedFile, watersLockmass, thermoImportChoice) //
+            keepConvertedFile, watersLockmass) //
     );
     // imsModuleWarnings, showTempFolderAlert, windowSetttings, showQuickStart  are hidden parameters
 
