@@ -86,6 +86,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.function.Consumer;
@@ -317,9 +318,11 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     if (dragboard.hasFiles()) {
       hasFileDropped = true;
 
-      final List<String> rawExtensions = ExtensionFilters.ALL_MS_DATA_FILTER.getExtensions()
-          .stream().map(e -> e.replaceAll("\\*\\.", "")).toList();
-      final List<String> libraryExtensions = List.of("json", "mgf", "msp", "jdx");
+      final Set<String> rawExtensions = ExtensionFilters.getAllCleanExtensionNames(
+          ExtensionFilters.MS_RAW_DATA).map(String::toLowerCase).collect(Collectors.toSet());
+
+      final Set<String> libraryExtensions = ExtensionFilters.getAllCleanExtensionNames(
+          ExtensionFilters.ALL_LIBRARY).map(String::toLowerCase).collect(Collectors.toSet());
 
       final List<File> rawDataFiles = new ArrayList<>();
       final List<File> libraryFiles = new ArrayList<>();
