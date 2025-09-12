@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 public class SiriusResultsImportModule extends TaskPerFeatureListModule {
 
   public SiriusResultsImportModule() {
-    super("Import results from Sirius", SiriusResultsImportParameters.class,
+    super("Import results from Sirius project (API)", SiriusResultsImportParameters.class,
         MZmineModuleCategory.ANNOTATION, false, "Import results from a Sirius project");
   }
 

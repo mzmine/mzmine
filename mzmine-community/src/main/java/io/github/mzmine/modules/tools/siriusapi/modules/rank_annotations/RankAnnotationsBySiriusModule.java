@@ -62,7 +62,7 @@ public class RankAnnotationsBySiriusModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getName() {
-    return "Rank Compound DB annotations using Sirius";
+    return "Rank Compound DB annotations using Sirius (API)";
   }
 
   @Override

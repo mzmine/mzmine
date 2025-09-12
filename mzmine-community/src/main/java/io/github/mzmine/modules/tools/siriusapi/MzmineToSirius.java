@@ -30,6 +30,8 @@ import com.opencsv.CSVWriterBuilder;
 import com.opencsv.ICSVWriter;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.PseudoSpectrum;
+import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
@@ -73,9 +75,22 @@ public class MzmineToSirius {
 
   private static final Logger logger = Logger.getLogger(MzmineToSirius.class.getName());
 
+  /**
+   * @param row
+   * @return Converted feature or null, e.g. if not enough information is present or the row is a
+   * GC-EI row.
+   */
   @Nullable
   public static FeatureImport feature(@NotNull FeatureListRow row) {
-    if (!row.hasMs2Fragmentation() || !row.hasIsotopePattern()) {
+    if (!row.hasMs2Fragmentation() || !row.hasIsotopePattern() || (
+        row.getMostIntenseFragmentScan() instanceof PseudoSpectrum ps
+            && ps.getPseudoSpectrumType() == PseudoSpectrumType.GC_EI)) {
+      return null;
+    }
+    final int charge = FeatureUtils.extractBestSignedChargeState(row,
+        row.getMostIntenseFragmentScan()).orElse(1);
+    if (Math.abs(charge) > 1) {
+      // no support for multi charge species yet
       return null;
     }
 
@@ -83,8 +98,7 @@ public class MzmineToSirius {
     f.setExternalFeatureId(String.valueOf(row.getID()));
     f.setName(String.valueOf(row.getID()));
     f.setIonMass(row.getAverageMZ());
-    f.setCharge(
-        FeatureUtils.extractBestSignedChargeState(row, row.getMostIntenseFragmentScan()).orElse(1));
+    f.setCharge(charge);
 
     final IonIdentity adduct = row.getBestIonIdentity();
     if (adduct != null) {
@@ -92,12 +106,9 @@ public class MzmineToSirius {
       f.setCharge(adduct.getIonType().getCharge());
     }
 
-    if (Math.abs(f.getCharge()) > 1) {
-      // no support for multi charge species yet
-      return null;
-    }
-
-    f.setMs2Spectra(row.getAllFragmentScans().stream().map(MzmineToSirius::spectrum).toList());
+    f.setMs2Spectra(
+        row.getAllFragmentScans().stream().map(MzmineToSirius::spectrum).filter(Objects::nonNull)
+            .toList());
     f.setMs1Spectra(List.of(generateCorrelationSpectrum(row)));
 
     final Range<Float> rtRange = row.get(RTRangeType.class);
@@ -113,7 +124,8 @@ public class MzmineToSirius {
   public static @Nullable BasicSpectrum spectrum(@Nullable Scan scan) {
     if (scan == null || scan.getMassList() == null
         || scan.getMassList().getNumberOfDataPoints() == 0
-        || scan.getMassList().getBasePeakIntensity() == null) {
+        || scan.getMassList().getBasePeakIntensity() == null || (scan instanceof PseudoSpectrum ps
+        && ps.getPseudoSpectrumType() == PseudoSpectrumType.GC_EI)) {
       return null;
     }
 

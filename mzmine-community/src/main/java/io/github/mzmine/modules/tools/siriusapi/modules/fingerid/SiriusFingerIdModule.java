@@ -49,7 +49,7 @@ import org.jetbrains.annotations.NotNull;
 public class SiriusFingerIdModule extends AbstractProcessingModule {
 
   public SiriusFingerIdModule() {
-    super("Export to Sirius and run", SiriusFingerIdParameters.class, MZmineModuleCategory.ANNOTATION,
+    super("Export to Sirius (API) and compute", SiriusFingerIdParameters.class, MZmineModuleCategory.ANNOTATION,
         "Executes the default Sirius job on the selected features/the selected feature list.");
   }
 

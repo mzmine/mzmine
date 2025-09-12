@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PseudoSpectrum;
+import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -285,7 +286,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     bioTransformerItem.setOnAction(e -> {
       final FeatureAnnotation annotation = getAnnotationForBioTransformerPrediction();
       if (annotation != null) {
-        BioTransformerModule.runSingleRowPredection(selectedRow, annotation.getStructure().canonicalSmiles(),
+        BioTransformerModule.runSingleRowPredection(selectedRow,
+            annotation.getStructure().canonicalSmiles(),
             requireNonNullElse(annotation.getCompoundName(), "UNKNOWN"));
       }
     });
@@ -324,7 +326,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> selectedRows.size() == 1 && selectedRows.get(0).getMostIntenseFragmentScan() != null);
     exportMSMSItem.setOnAction(e -> MSMSExportModule.exportMSMS(selectedRows.get(0)));
 
-    final MenuItem exportToSirius = new ConditionalMenuItem("Export to Sirius",
+    final MenuItem exportToSirius = new ConditionalMenuItem("Export to Sirius (file)",
         () -> !selectedRows.isEmpty());
     exportToSirius.setOnAction(
         e -> SiriusExportModule.exportSingleRows(selectedRows.toArray(new ModularFeatureListRow[0]),
@@ -411,19 +413,18 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final Menu siriusSubMenu = new Menu("Sirius");
 
-    final MenuItem sendToSirius = new ConditionalMenuItem("Send to Sirius",
-        () -> !selectedRows.isEmpty());
+    final MenuItem sendToSirius = new ConditionalMenuItem("Send to Sirius", this::siriusApiCheck);
     sendToSirius.setOnAction(_ -> MZmineCore.runMZmineModule(ExportToSiriusModule.class,
         ExportToSiriusParameters.of(selectedRows)));
 
     final MenuItem runFingerId = new ConditionalMenuItem("Send to Sirius & Compute",
-        () -> !selectedRows.isEmpty());
+        this::siriusApiCheck);
     runFingerId.setOnAction(_ -> MZmineCore.runMZmineModule(SiriusFingerIdModule.class,
         SiriusFingerIdParameters.of(selectedRows)));
 
     final MenuItem rankUsingFingerId = new ConditionalMenuItem(
         "Rank Compound annotations using Sirius",
-        () -> selectedRow != null && !selectedRow.getCompoundAnnotations().isEmpty());
+        () -> siriusApiCheck() && !selectedRow.getCompoundAnnotations().isEmpty());
     rankUsingFingerId.setOnAction(_ -> RankAnnotationsBySiriusModule.runForRows(selectedRows));
 
     siriusSubMenu.getItems().addAll(sendToSirius, runFingerId, rankUsingFingerId);
@@ -920,5 +921,16 @@ public class FeatureTableContextMenu extends ContextMenu {
         " (no correlation)");
 
     window.show();
+  }
+
+  private boolean siriusApiCheck() {
+    return selectedRow != null && selectedRows.stream().anyMatch(r -> {
+      if (r.getMostIntenseFragmentScan() instanceof PseudoSpectrum ps
+          && ps.getPseudoSpectrumType() == PseudoSpectrumType.GC_EI) {
+        // do not allow GC Ei spectra for now
+        return false;
+      }
+      return true;
+    });
   }
 }
