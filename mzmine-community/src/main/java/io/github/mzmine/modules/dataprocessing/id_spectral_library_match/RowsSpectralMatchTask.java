@@ -40,6 +40,7 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.modules.dataprocessing.id_spectral_match_sort.SortSpectralMatchesTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SingleSpectrumLibrarySearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SingleSpectrumLibrarySearchParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
@@ -83,7 +84,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
   protected final List<FeatureListRow> rows;
   protected final AtomicInteger finishedRows = new AtomicInteger(0);
   protected final ParameterSet parameters;
-  protected String librariesJoined = "";
   // remove +- 4 Da around the precursor - including the precursor signal
   // this signal does not matter for matching
   protected final MZTolerance mzToleranceRemovePrecursor = new MZTolerance(4d, 0d);
@@ -98,12 +98,15 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private final int totalRows;
   private final int minMatch;
   private final boolean removePrecursor;
-  private String description = "Spectral library search";
   private final SpectralSimilarityFunction simFunction;
   private final FragmentScanSelection fragmentScanSelection;
+  // only used for single spectrum searches
+  private final Double singleScanPrecursorMZ;
+  protected String librariesJoined = "";
   protected RTTolerance rtTolerance;
   protected RITolerance riTolerance;
   protected PercentTolerance ccsTolerance;
+  private String description = "Spectral library search";
   private boolean useRT;
   private boolean useRI;
   private boolean shouldIgnoreWithoutRI;
@@ -116,13 +119,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private boolean needsIsotopePattern;
   private int minMatchedIsoSignals;
 
-  // only used for single spectrum searches
-  private final Double singleScanPrecursorMZ;
-
   /**
-   * Constructor used for matchign a single spectrum via
-   * {@link
-   * io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SingleSpectrumLibrarySearchModule}
+   * Constructor used for matchign a single spectrum via {@link SingleSpectrumLibrarySearchModule}
    */
   public RowsSpectralMatchTask(SingleSpectrumLibrarySearchParameters singleSpectrumParam,
       @NotNull Scan scan, @NotNull Instant moduleCallDate) {
@@ -368,9 +366,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
   /**
    * Match a single row against all entries, add matches, sort them by score. Only used if this
-   * search is triggered by
-   * {@link
-   * io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SingleSpectrumLibrarySearchModule}.
+   * search is triggered by {@link SingleSpectrumLibrarySearchModule}.
    *
    * @param entries combined library entries
    * @param scan    target scan
@@ -731,13 +727,15 @@ public class RowsSpectralMatchTask extends AbstractTask {
    * @return false if both polarities are defined and do not match, true otherwise.
    */
   public boolean weakPolarityCheck(String entryPolarityString, PolarityType scanPolarity) {
-    if (scanPolarity == null || scanPolarity == PolarityType.UNKNOWN) {
+    if (scanPolarity == null || scanPolarity == PolarityType.UNKNOWN
+        || scanPolarity == PolarityType.ANY || scanPolarity == PolarityType.NEUTRAL) {
       return true;
     }
     final PolarityType entryPolarity = PolarityType.parseFromString(entryPolarityString);
-    if (entryPolarity != PolarityType.UNKNOWN) {
-      return entryPolarity == scanPolarity;
-    }
-    return true;
+
+    return switch (entryPolarity) {
+      case POSITIVE, NEGATIVE -> scanPolarity == entryPolarity;
+      case ANY, NEUTRAL, UNKNOWN -> true;
+    };
   }
 }
