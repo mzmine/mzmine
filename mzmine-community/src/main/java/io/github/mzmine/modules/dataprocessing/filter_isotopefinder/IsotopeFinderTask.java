@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,18 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
+import static io.github.mzmine.util.IonMobilityUtils.getMobilityFWHM;
+import static java.util.Objects.requireNonNullElse;
+
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -40,6 +46,8 @@ import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDa
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -58,6 +66,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.IsotopesUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.scans.SpectraMerging;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -83,6 +92,7 @@ class IsotopeFinderTask extends AbstractTask {
   private final MZTolerance isoMzTolerance;
   private final int isotopeMaxCharge;
   private final List<Element> isotopeElements;
+  private final Boolean mergedMobilityScans;
   private final String isotopes;
   private final ScanRange scanRange;
   private int processedRows, totalRows;
@@ -100,6 +110,7 @@ class IsotopeFinderTask extends AbstractTask {
     isotopeMaxCharge = parameters.getValue(IsotopeFinderParameters.maxCharge);
     isoMzTolerance = parameters.getValue(IsotopeFinderParameters.isotopeMzTolerance);
     isotopes = isotopeElements.stream().map(Objects::toString).collect(Collectors.joining(","));
+    mergedMobilityScans = parameters.getValue(IsotopeFinderParameters.mergedMobilityScan);
   }
 
   @Override
@@ -177,7 +188,11 @@ class IsotopeFinderTask extends AbstractTask {
         }
 
         double mz = feature.getMZ();
-        scan = findBestScanOrMobilityScan(scans, mobScans, feature);
+        if (mergedMobilityScans) {
+          scan = findBestScanOrMergedMobilityScan(scans, feature, isoMzTolerance);
+        } else {
+          scan = findBestScanOrMobilityScan(scans, mobScans, feature);
+        }
 
         // find candidate isotope pattern in max scan
         // for each charge state to determine best charge
@@ -200,8 +215,9 @@ class IsotopeFinderTask extends AbstractTask {
           }
 
           if (candidates.size() > 1) { // feature itself is always in cadidates
-            IsotopePattern newPattern = new SimpleIsotopePattern(candidates.toArray(new DataPoint[0]),
-                charge, IsotopePatternStatus.DETECTED, IsotopeFinderModule.MODULE_NAME);
+            IsotopePattern newPattern = new SimpleIsotopePattern(
+                candidates.toArray(new DataPoint[0]), charge, IsotopePatternStatus.DETECTED,
+                IsotopeFinderModule.MODULE_NAME);
             if (pattern == null) {
               pattern = newPattern;
             } else if (pattern instanceof SimpleIsotopePattern) {
@@ -235,7 +251,8 @@ class IsotopeFinderTask extends AbstractTask {
           Float mobility = feature.getMobility();
           MobilityType mobilityType = feature.getMobilityUnit();
           if (data instanceof IMSRawDataFile imsfile) {
-            if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0 && mobilityType != null) {
+            if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0
+                && mobilityType != null) {
               Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType, bestCharge, imsfile);
               if (ccs != null) {
                 feature.setCCS(ccs);
@@ -282,7 +299,7 @@ class IsotopeFinderTask extends AbstractTask {
         processedRows++;
       }
     } catch (Exception ex) {
-      logger.log(Level.WARNING, "Error in isotope finder "+ ex.getMessage(), ex);
+      logger.log(Level.WARNING, "Error in isotope finder " + ex.getMessage(), ex);
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -328,24 +345,58 @@ class IsotopeFinderTask extends AbstractTask {
   }
 
   @NotNull
-  private Scan findBestScanOrMobilityScan(ScanDataAccess scans, MobilityScanDataAccess mobScans,
-      Feature feature) {
+  private Scan findBestScanOrMobilityScan(ScanDataAccess scans,
+      @Nullable MobilityScanDataAccess mobScans, Feature feature) {
 
+    boolean mobility = feature.getMobility() != null;
+    if (mobility && mobScans != null) {
+      MobilityScan bestMobilityScan = IonMobilityUtils.getBestMobilityScan(feature);
+      if (bestMobilityScan != null) {
+        mobScans.jumpToMobilityScan(bestMobilityScan);
+        return mobScans;
+      }
+    }
+    Scan maxScan = feature.getRepresentativeScan();
+    int scanIndex = scans.indexOf(maxScan);
+    scans.jumpToIndex(scanIndex);
+
+    return scans;
+  }
+
+  private Scan findBestScanOrMergedMobilityScan(ScanDataAccess scans, Feature feature,
+      MZTolerance mzTolerance) {
+
+    final boolean mobility = feature.getMobility() != null;
+    final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
+
+    if (mobility && featureData instanceof IonMobilogramTimeSeries imsData) {
+      final Range<Float> mobilityFWHM = requireNonNullElse(
+          getMobilityFWHM(imsData.getSummedMobilogram()), feature.getMobilityRange());
+      final List<MobilityScan> mobilityScans = imsData.getMobilograms().stream()
+          .flatMap(s -> (s.getSpectra().stream()))
+          .filter(m -> mobilityFWHM.contains((float) m.getMobility())).toList();
+      if (!mobilityScans.isEmpty()) {
+        MergedMassSpectrum mergedMobilityScan = SpectraMerging.mergeSpectra(mobilityScans,
+            mzTolerance, MergingType.ALL_ENERGIES, null);
+        return mergedMobilityScan;
+//          if (mobilityFWHM != null && feature.getRawDataFile() != null) {
+//            MemoryMapStorage storage = MemoryMapStorage.create();
+//            final MergedMassSpectrum mergedMobilityScan = SpectraMerging.extractSummedMobilityScan(modFeature, mzTolerance,
+//                mobilityFWHM, rtTolerance.getToleranceRange(feature.getRT()), storage);
+//            if (mergedMobilityScan != null) {
+//              return mergedMobilityScan;
+//            }
+//          }
+      }
+    }
+// is mobility
     final Scan maxScan = feature.getRepresentativeScan();
     final int scanIndex = scans.indexOf(maxScan);
     scans.jumpToIndex(scanIndex);
 
-    final boolean mobility = feature.getMobility() != null;
-    MobilityScan mobilityScan = null;
-    if (mobility && mobScans != null) {
-      final MobilityScan bestMobilityScan = IonMobilityUtils.getBestMobilityScan(feature);
-      if (bestMobilityScan != null) {
-        mobilityScan = mobScans.jumpToMobilityScan(bestMobilityScan);
-      }
-    }
-
-    return mobilityScan != null ? mobScans : scans;
+    return scans;
   }
+
 
   @Nullable
   private MobilityScanDataAccess initMobilityScanDataAccess(RawDataFile raw) {
