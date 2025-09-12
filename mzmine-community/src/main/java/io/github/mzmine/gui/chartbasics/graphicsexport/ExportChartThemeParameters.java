@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,9 +26,10 @@
 package io.github.mzmine.gui.chartbasics.graphicsexport;
 
 
-import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParametersSetupDialog;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxFontUtil;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -40,10 +41,9 @@ import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.javafx.util.FxColorUtil;
-import io.github.mzmine.javafx.util.FxFontUtil;
 import java.awt.BasicStroke;
 import java.text.DecimalFormat;
+import java.util.Map;
 import javafx.application.Platform;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -66,8 +66,15 @@ public class ExportChartThemeParameters extends SimpleParameterSet {
   public static final OptionalParameter<StringParameter> ylabel = new OptionalParameter<>(
       new StringParameter("Change y", "", "y"));
 
-  public static final ColorParameter color = new ColorParameter("Background", "Background color",
-      Color.WHITE);
+  /**
+   * usually chart bg is transparent in the software and we use the plot background color to control
+   * better the visibility of the data on the background color.
+   */
+  public static final ColorParameter chartBackgroundColor = new ColorParameter("Chart background",
+      "Background color of chart", Color.TRANSPARENT);
+
+  public static final OptionalParameter<ColorParameter> plotBackgroundColor = new OptionalParameter<>(
+      new ColorParameter("Plot background", "Background color of the plot data area", Color.WHITE));
 
   public static final FontParameter masterFont = new FontParameter("Master",
       "Master font changes all fonts",
@@ -100,8 +107,8 @@ public class ExportChartThemeParameters extends SimpleParameterSet {
         // chart specific - e.g., for export
         showTitle, changeTitle, showSubtitles, showLegends, xlabel, ylabel,
         // general
-        dataLineWidth, color, masterFont, titleFont, subTitleFont, axisLabelFont, itemLabelFont,
-        xGridPaint, yGridPaint, showXAxis, showYAxis});
+        dataLineWidth, chartBackgroundColor, plotBackgroundColor, masterFont, titleFont,
+        subTitleFont, axisLabelFont, itemLabelFont, xGridPaint, yGridPaint, showXAxis, showYAxis});
     changeTitle.setValue(false);
     xlabel.setValue(false);
     ylabel.setValue(false);
@@ -124,42 +131,45 @@ public class ExportChartThemeParameters extends SimpleParameterSet {
 
   public void applyToChartTheme(EStandardChartTheme theme) {
     // apply chart settings
-    boolean showTitle = this.getParameter(ChartThemeParameters.showTitle).getValue();
-    boolean showSubtitles = this.getParameter(ChartThemeParameters.showSubtitles).getValue();
-    boolean showLegends = this.getParameter(ChartThemeParameters.showLegends).getValue();
-    boolean showXAxis = this.getParameter(ChartThemeParameters.showXAxis).getValue();
-    boolean showYAxis = this.getParameter(ChartThemeParameters.showYAxis).getValue();
-    boolean xgrid = this.getParameter(ChartThemeParameters.xGridPaint).getValue();
-    boolean ygrid = this.getParameter(ChartThemeParameters.yGridPaint).getValue();
-    boolean changeTitle = this.getParameter(ChartThemeParameters.changeTitle).getValue();
-    String newTitle = this.getParameter(ChartThemeParameters.changeTitle).getEmbeddedParameter()
-        .getValue();
+    boolean showTitle = this.getParameter(ExportChartThemeParameters.showTitle).getValue();
+    boolean showSubtitles = this.getParameter(ExportChartThemeParameters.showSubtitles).getValue();
+    boolean showLegends = this.getParameter(ExportChartThemeParameters.showLegends).getValue();
+    boolean showXAxis = this.getParameter(ExportChartThemeParameters.showXAxis).getValue();
+    boolean showYAxis = this.getParameter(ExportChartThemeParameters.showYAxis).getValue();
+    boolean xgrid = this.getParameter(ExportChartThemeParameters.xGridPaint).getValue();
+    boolean ygrid = this.getParameter(ExportChartThemeParameters.yGridPaint).getValue();
+    boolean changeTitle = this.getParameter(ExportChartThemeParameters.changeTitle).getValue();
+    String newTitle = this.getParameter(ExportChartThemeParameters.changeTitle)
+        .getEmbeddedParameter().getValue();
 
-    Color cxgrid = this.getParameter(ChartThemeParameters.xGridPaint).getEmbeddedParameter()
+    Color cxgrid = this.getParameter(ExportChartThemeParameters.xGridPaint).getEmbeddedParameter()
         .getValue();
-    Color cygrid = this.getParameter(ChartThemeParameters.yGridPaint).getEmbeddedParameter()
+    Color cygrid = this.getParameter(ExportChartThemeParameters.yGridPaint).getEmbeddedParameter()
         .getValue();
-    boolean usexlabel = this.getParameter(ChartThemeParameters.xlabel).getValue();
-    boolean useylabel = this.getParameter(ChartThemeParameters.ylabel).getValue();
-    String xlabel = this.getParameter(ChartThemeParameters.xlabel).getEmbeddedParameter()
+    boolean usexlabel = this.getParameter(ExportChartThemeParameters.xlabel).getValue();
+    boolean useylabel = this.getParameter(ExportChartThemeParameters.ylabel).getValue();
+    String xlabel = this.getParameter(ExportChartThemeParameters.xlabel).getEmbeddedParameter()
         .getValue();
-    String ylabel = this.getParameter(ChartThemeParameters.ylabel).getEmbeddedParameter()
+    String ylabel = this.getParameter(ExportChartThemeParameters.ylabel).getEmbeddedParameter()
         .getValue();
-    FontSpecs master = this.getParameter(ChartThemeParameters.masterFont).getValue();
-    FontSpecs titleFont = this.getParameter(ChartThemeParameters.titleFont).getValue();
-    FontSpecs subtitleFont = this.getParameter(ChartThemeParameters.subTitleFont).getValue();
-    FontSpecs axisLabels = this.getParameter(ChartThemeParameters.axisLabelFont).getValue();
-    FontSpecs itemLabels = this.getParameter(ChartThemeParameters.itemLabelFont).getValue();
-    Color bgColor = this.getParameter(ChartThemeParameters.color).getValue();
-    double dataLineWidth = this.getValue(ChartThemeParameters.dataLineWidth);
+    FontSpecs master = this.getParameter(ExportChartThemeParameters.masterFont).getValue();
+    FontSpecs titleFont = this.getParameter(ExportChartThemeParameters.titleFont).getValue();
+    FontSpecs subtitleFont = this.getParameter(ExportChartThemeParameters.subTitleFont).getValue();
+    FontSpecs axisLabels = this.getParameter(ExportChartThemeParameters.axisLabelFont).getValue();
+    FontSpecs itemLabels = this.getParameter(ExportChartThemeParameters.itemLabelFont).getValue();
+    Color chartBgColor = this.getParameter(ExportChartThemeParameters.chartBackgroundColor)
+        .getValue();
+    Color plotBgColor = this.getEmbeddedParameterValueIfSelectedOrElse(
+        ExportChartThemeParameters.plotBackgroundColor, chartBgColor);
+    double dataLineWidth = this.getValue(ExportChartThemeParameters.dataLineWidth);
 
     theme.setShowTitle(showTitle);
     theme.getShowSubtitles(showSubtitles);
     theme.setShowLegend(showLegends);
     theme.setTitle(newTitle);
     theme.setChangeTitle(changeTitle);
-    theme.setChartBackgroundPaint(FxColorUtil.fxColorToAWT(Color.TRANSPARENT));
-    theme.setPlotBackgroundPaint(FxColorUtil.fxColorToAWT(bgColor));
+    theme.setChartBackgroundPaint(FxColorUtil.fxColorToAWT(chartBgColor));
+    theme.setPlotBackgroundPaint(FxColorUtil.fxColorToAWT(plotBgColor));
 
     theme.setMasterFont(FxFontUtil.fxFontToAWT(master.getFont()));
     theme.setExtraLargeFont(FxFontUtil.fxFontToAWT(titleFont.getFont()));
@@ -192,5 +202,12 @@ public class ExportChartThemeParameters extends SimpleParameterSet {
     theme.setClrYGrid(FxColorUtil.fxColorToAWT(cygrid));
 
     theme.setDefaultDataStroke(new BasicStroke((float) dataLineWidth));
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    final Map<String, Parameter<?>> map = super.getNameParameterMap();
+    map.put("Background", getParameter(chartBackgroundColor));
+    return map;
   }
 }
