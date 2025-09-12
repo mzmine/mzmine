@@ -71,6 +71,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -956,4 +957,16 @@ public class FeatureUtils {
     return f instanceof ModularFeature mf && mf.isMrm();
   }
 
+
+  public static String rowsToIdString(List<? extends FeatureListRow> rows) {
+    return rows.stream().map(FeatureListRow::getID).map(Object::toString)
+        .collect(Collectors.joining(";"));
+  }
+
+  public static List<FeatureListRow> idStringToRows(ModularFeatureList flist, String str) {
+    final Set<Integer> ids = Arrays.stream(str.split(";")).map(Integer::valueOf)
+        .collect(Collectors.toSet());
+    return flist.stream().filter(row -> ids.contains(row.getID()))
+        .sorted(Comparator.comparingInt(FeatureListRow::getID)).toList();
+  }
 }

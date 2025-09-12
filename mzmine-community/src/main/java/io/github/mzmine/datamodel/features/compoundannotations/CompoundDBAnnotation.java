@@ -60,6 +60,7 @@ import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotati
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
@@ -536,4 +537,12 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
   }
 
   void setStructure(MolecularStructure structure);
+
+  default void enrichMetadata() {
+    MolecularStructure struc = StructureParser.silent()
+        .parseStructure(getSmiles(), getInChI());
+    if(struc != null) {
+      setStructure(struc);
+    }
+  }
 }

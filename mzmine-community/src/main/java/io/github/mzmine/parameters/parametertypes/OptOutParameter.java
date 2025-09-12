@@ -117,7 +117,13 @@ public class OptOutParameter implements UserParameter<Map<String, Boolean>, OptO
   @Override
   public UserParameter<Map<String, Boolean>, OptOutComponent> cloneParameter() {
     OptOutParameter clone = new OptOutParameter(name, description);
-    value.forEach((k, v) -> clone.getValue().put(k, v.booleanValue())); // we want a duplicate here
+    value.forEach((k, v) -> clone.getValue().put(k, v)); // we want a duplicate here
     return clone;
+  }
+
+  @Override
+  public boolean isSensitive() {
+    // dont save opt-outs in projects
+    return true;
   }
 }
