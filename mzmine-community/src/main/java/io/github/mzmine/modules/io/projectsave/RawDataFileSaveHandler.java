@@ -31,6 +31,8 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -47,6 +49,7 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -54,6 +57,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -86,6 +90,10 @@ public class RawDataFileSaveHandler extends AbstractTask {
   private final MZmineProject project;
   private final ZipOutputStream zipStream;
   private final List<RawDataFile> files;
+  /**
+   * Files from {@link FileNameParameter}s that are not a {@link RawDataFile}, e.g. metadata files.
+   */
+  private final List<File> otherReplacedFiles = new ArrayList<>();
   private final boolean saveFilesInProject;
   private final String prefix = "Saving raw data files: ";
   private final int numSteps;
@@ -117,7 +125,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
       path.append(prefix);
     }
     path.append(DATA_FILES_FOLDER);
-    final String separator = System.getProperty("file.separator");
+    final String separator = FileSystems.getDefault().getSeparator();
     path.append(
         file.getAbsolutePath().substring(file.getAbsolutePath().lastIndexOf(separator) + 1));
     if (suffix != null) {
@@ -196,6 +204,11 @@ public class RawDataFileSaveHandler extends AbstractTask {
    */
   private void copyRawDataFilesToZip() throws IOException {
 
+    // these are non-ms raw data files, e.g. metadata.
+    for (final File file : otherReplacedFiles) {
+      copyToZip(file, getZipPath(file));
+    }
+
     for (final RawDataFile file : files) {
       if (file.getAbsolutePath() == null || !Files.exists(Paths.get(file.getAbsolutePath()))) {
         progress += stepProgress;
@@ -222,7 +235,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
             copyToZip(additional, getZipPath(additional));
           }
         } catch (ZipException e) {
-          // this might happen in case fo duplicate files
+          // this might happen in case of duplicate files
           logger.info(e::getMessage);
           continue;
         }
@@ -258,12 +271,15 @@ public class RawDataFileSaveHandler extends AbstractTask {
   }
 
   /**
-   * Replaces the raw data file paths in case an independent project is saved to an MZmine project
+   * Replaces the raw data file paths in case a standalone project is saved to an mzmine project
    * file.
    *
    * @param queues The batch queues.
    */
   private void replaceRawFilePaths(List<BatchQueue> queues) {
+    if (!saveFilesInProject) {
+      return;
+    }
     final Map<String, String> oldPathNewPath = new HashMap<>();
     for (RawDataFile file : files) {
       if (file.getAbsolutePath() == null) {
@@ -295,7 +311,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
               newValue.add(new File(newPath));
             }
             fnp.setValue(newValue.toArray(File[]::new));
-          } else if (parameter instanceof RawDataFilesParameter rfp && saveFilesInProject) {
+          } else if (parameter instanceof RawDataFilesParameter rfp) {
             // if we save files in project, we have to adjust the paths and file selections
             RawDataFilesSelection selection = rfp.getValue();
             final RawDataFile[] files =
@@ -310,6 +326,23 @@ public class RawDataFileSaveHandler extends AbstractTask {
             }
             selection.setSelectionType(RawDataFilesSelectionType.SPECIFIC_FILES);
             selection.setSpecificFiles(placeholders);
+          } else if ((parameter instanceof FileNameParameter fnp && fnp.getValue() != null) || (
+              parameter instanceof OptionalParameter<?> op
+                  && op.getEmbeddedParameter() instanceof FileNameParameter && op.isSelected())) {
+            // eg like metadata
+            final FileNameParameter fnp = switch (parameter) {
+              case FileNameParameter p -> p;
+              case OptionalParameter<?> p -> ((FileNameParameter) p.getEmbeddedParameter());
+              default -> null;
+            };
+            if (fnp == null) {
+              continue;
+            }
+
+            final File originalFile = fnp.getValue();
+            final String zipPath = getZipPath(originalFile, DATA_FILES_PREFIX, DATA_FILES_SUFFIX);
+            fnp.setValue(new File(zipPath));
+            otherReplacedFiles.add(originalFile);
           }
         }
       }

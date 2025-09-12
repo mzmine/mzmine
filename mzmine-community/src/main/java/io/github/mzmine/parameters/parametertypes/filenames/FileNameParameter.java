@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.filenames;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.ProjectService;
 import java.io.File;
@@ -235,13 +236,17 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
 
     if (value != null) {
       Element paramElement = parentDocument.createElement(CURRENT_FILE_ELEMENT);
-      paramElement.setTextContent(value.getAbsolutePath());
-
-      final Path relativePath = project.getRelativePath(value.toPath());
-      if (relativePath != null) {
-        paramElement.setAttribute(FileNamesParameter.XML_RELATIVE_PATH_ATTRIBUTE,
-            relativePath.toString());
+      if(!value.getPath().contains(RawDataFileSaveHandler.DATA_FILES_PREFIX)) {
+        paramElement.setTextContent(value.getAbsolutePath());
+        final Path relativePath = project.getRelativePath(value.toPath());
+        if (relativePath != null) {
+          paramElement.setAttribute(FileNamesParameter.XML_RELATIVE_PATH_ATTRIBUTE,
+              relativePath.toString());
+        }
+      } else {
+        paramElement.setTextContent(value.getPath());
       }
+
       xmlElement.appendChild(paramElement);
     }
 
