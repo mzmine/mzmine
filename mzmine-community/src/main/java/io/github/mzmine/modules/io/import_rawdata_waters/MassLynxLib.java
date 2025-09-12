@@ -274,15 +274,6 @@ public class MassLynxLib {
   static final Arena LIBRARY_ARENA = Arena.ofAuto();
   static final boolean TRACE_DOWNCALLS = Boolean.getBoolean("jextract.trace.downcalls");
   static final SymbolLookup SYMBOL_LOOKUP = getSymbolLookup();
-
-  private static synchronized SymbolLookup getSymbolLookup() {
-    // load mass lynx base library before
-    System.load(Path.of("external_tools\\waters_raw\\MassLynxRaw.dll").toAbsolutePath().toString());
-    return SymbolLookup.libraryLookup(
-            "external_tools/waters_raw/%s".formatted(System.mapLibraryName("MLReader")), LIBRARY_ARENA)
-        .or(SymbolLookup.loaderLookup()).or(Linker.nativeLinker().defaultLookup());
-  }
-
   private static final int _VCRT_COMPILER_PREPROCESSOR = (int) 1L;
   private static final int _SAL_VERSION = (int) 20L;
   private static final int __SAL_H_VERSION = (int) 180000000L;
@@ -348,9 +339,16 @@ public class MassLynxLib {
   private static final long SIZE_MAX = -1L;
   private static final int SIG_ATOMIC_MIN = (int) -2147483648L;
   private static final int SIG_ATOMIC_MAX = (int) 2147483647L;
-
   MassLynxLib() {
     // Should not be called directly
+  }
+
+  private static synchronized SymbolLookup getSymbolLookup() {
+    // load mass lynx base library before
+    System.load(Path.of("external_tools\\waters_raw\\MassLynxRaw.dll").toAbsolutePath().toString());
+    return SymbolLookup.libraryLookup(
+            "external_tools/waters_raw/%s".formatted(System.mapLibraryName("MLReader")), LIBRARY_ARENA)
+        .or(SymbolLookup.loaderLookup()).or(Linker.nativeLinker().defaultLookup());
   }
 
   static void traceDowncall(String name, Object... args) {
@@ -2480,6 +2478,57 @@ public class MassLynxLib {
   /**
    * Function descriptor for:
    * {@snippet lang = c:
+   * uint32_t getRawMobilityScanDataPoints(Handle handle, int32_t function, int32_t scan, int32_t mobilityScan, double *pMzBuffer, double *pIntensityBuffer, uint32_t bufferSizeInBytes)
+   *}
+   */
+  public static FunctionDescriptor getRawMobilityScanDataPoints$descriptor() {
+    return getRawMobilityScanDataPoints.DESC;
+  }
+
+  /**
+   * Downcall method handle for:
+   * {@snippet lang = c:
+   * uint32_t getRawMobilityScanDataPoints(Handle handle, int32_t function, int32_t scan, int32_t mobilityScan, double *pMzBuffer, double *pIntensityBuffer, uint32_t bufferSizeInBytes)
+   *}
+   */
+  public static MethodHandle getRawMobilityScanDataPoints$handle() {
+    return getRawMobilityScanDataPoints.HANDLE;
+  }
+
+  /**
+   * Address for:
+   * {@snippet lang = c:
+   * uint32_t getRawMobilityScanDataPoints(Handle handle, int32_t function, int32_t scan, int32_t mobilityScan, double *pMzBuffer, double *pIntensityBuffer, uint32_t bufferSizeInBytes)
+   *}
+   */
+  public static MemorySegment getRawMobilityScanDataPoints$address() {
+    return getRawMobilityScanDataPoints.ADDR;
+  }
+
+  /**
+   * {@snippet lang = c:
+   * uint32_t getRawMobilityScanDataPoints(Handle handle, int32_t function, int32_t scan, int32_t mobilityScan, double *pMzBuffer, double *pIntensityBuffer, uint32_t bufferSizeInBytes)
+   *}
+   */
+  public static int getRawMobilityScanDataPoints(MemorySegment handle, int function, int scan,
+      int mobilityScan, MemorySegment pMzBuffer, MemorySegment pIntensityBuffer,
+      int bufferSizeInBytes) {
+    var mh$ = getRawMobilityScanDataPoints.HANDLE;
+    try {
+      if (TRACE_DOWNCALLS) {
+        traceDowncall("getRawMobilityScanDataPoints", handle, function, scan, mobilityScan,
+            pMzBuffer, pIntensityBuffer, bufferSizeInBytes);
+      }
+      return (int) mh$.invokeExact(handle, function, scan, mobilityScan, pMzBuffer,
+          pIntensityBuffer, bufferSizeInBytes);
+    } catch (Throwable ex$) {
+      throw new AssertionError("should not reach here", ex$);
+    }
+  }
+
+  /**
+   * Function descriptor for:
+   * {@snippet lang = c:
    * double getAcquisitionRangeStart(Handle handle, uint32_t function)
    *}
    */
@@ -3624,8 +3673,7 @@ public class MassLynxLib {
     public static final FunctionDescriptor DESC = FunctionDescriptor.of(MassLynxLib.C_INT,
         MassLynxLib.C_POINTER);
 
-    public static final MemorySegment ADDR = MassLynxLib.findOrThrow(
-        "applyAutoLockmassCorrection");
+    public static final MemorySegment ADDR = MassLynxLib.findOrThrow("applyAutoLockmassCorrection");
 
     public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
   }
@@ -3666,8 +3714,7 @@ public class MassLynxLib {
     public static final FunctionDescriptor DESC = FunctionDescriptor.of(MassLynxLib.C_INT,
         MassLynxLib.C_POINTER, MassLynxLib.C_INT);
 
-    public static final MemorySegment ADDR = MassLynxLib.findOrThrow(
-        "getNumberOfScansInFunction");
+    public static final MemorySegment ADDR = MassLynxLib.findOrThrow("getNumberOfScansInFunction");
 
     public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
   }
@@ -3864,6 +3911,18 @@ public class MassLynxLib {
     public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
   }
 
+  private static class getRawMobilityScanDataPoints {
+
+    public static final FunctionDescriptor DESC = FunctionDescriptor.of(MassLynxLib.C_INT,
+        MassLynxLib.C_POINTER, MassLynxLib.C_INT, MassLynxLib.C_INT, MassLynxLib.C_INT,
+        MassLynxLib.C_POINTER, MassLynxLib.C_POINTER, MassLynxLib.C_INT);
+
+    public static final MemorySegment ADDR = MassLynxLib.findOrThrow(
+        "getRawMobilityScanDataPoints");
+
+    public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+  }
+
   private static class getAcquisitionRangeStart {
 
     public static final FunctionDescriptor DESC = FunctionDescriptor.of(MassLynxLib.C_DOUBLE,
@@ -3938,8 +3997,8 @@ public class MassLynxLib {
   private static class getAnalogDataPoints {
 
     public static final FunctionDescriptor DESC = FunctionDescriptor.of(MassLynxLib.C_INT,
-        MassLynxLib.C_POINTER, MassLynxLib.C_INT, MassLynxLib.C_POINTER,
-        MassLynxLib.C_POINTER, MassLynxLib.C_INT);
+        MassLynxLib.C_POINTER, MassLynxLib.C_INT, MassLynxLib.C_POINTER, MassLynxLib.C_POINTER,
+        MassLynxLib.C_INT);
 
     public static final MemorySegment ADDR = MassLynxLib.findOrThrow("getAnalogDataPoints");
 
@@ -3961,9 +4020,9 @@ public class MassLynxLib {
     public static final FunctionDescriptor DESC = FunctionDescriptor.of(MassLynxLib.C_INT,
         MassLynxLib.C_POINTER, MassLynxLib.C_INT, MassLynxLib.C_POINTER, MassLynxLib.C_INT);
 
-    public static final MemorySegment ADDR = MassLynxLib.findOrThrow(
-        "getAnalogChannelDescription");
+    public static final MemorySegment ADDR = MassLynxLib.findOrThrow("getAnalogChannelDescription");
 
     public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
   }
 }
+
