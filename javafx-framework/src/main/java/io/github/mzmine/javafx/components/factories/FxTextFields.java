@@ -26,12 +26,15 @@
 package io.github.mzmine.javafx.components.factories;
 
 import impl.org.controlsfx.skin.AutoCompletePopup;
+import io.github.mzmine.javafx.components.NumberTextField;
 import io.github.mzmine.javafx.components.skins.DynamicTextFieldSkin;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import java.text.NumberFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -50,6 +53,23 @@ import org.jetbrains.annotations.Nullable;
 
 public class FxTextFields {
 
+  // Numbers
+  public static TextField newNumberField(@Nullable Integer columnCount,
+      @NotNull NumberFormat format, @Nullable ObjectProperty<Number> valueProperty,
+      @Nullable String tooltip) {
+    return newNumberField(columnCount, format, valueProperty, null, tooltip);
+  }
+
+  public static TextField newNumberField(@Nullable Integer columnCount,
+      @NotNull NumberFormat format, @Nullable ObjectProperty<Number> valueProperty,
+      @Nullable String prompt, @Nullable String tooltip) {
+    var field = new NumberTextField(format);
+    applyToField(field, columnCount, null, new SimpleStringProperty(prompt), tooltip);
+    field.valueProperty().bindBidirectional(valueProperty);
+    return field;
+  }
+
+  // strings
   public static TextField newTextField(@Nullable Integer columnCount,
       @Nullable StringProperty textProperty, @Nullable String tooltip) {
     return newTextField(columnCount, textProperty, (StringProperty) null, tooltip);
@@ -64,6 +84,17 @@ public class FxTextFields {
       @Nullable StringProperty textProperty, @Nullable StringProperty prompt,
       @Nullable String tooltip) {
     return applyToField(new TextField(), columnCount, textProperty, prompt, tooltip);
+  }
+
+  public static TextField applyToField(@NotNull final TextField field,
+      final @Nullable Integer columnCount, final @Nullable String tooltip) {
+    return applyToField(field, columnCount, null, tooltip);
+  }
+
+  public static TextField applyToField(@NotNull final TextField field,
+      final @Nullable Integer columnCount, final @Nullable StringProperty textProperty,
+      final @Nullable String tooltip) {
+    return applyToField(field, columnCount, textProperty, null, tooltip);
   }
 
   public static TextField applyToField(@NotNull final TextField field,
