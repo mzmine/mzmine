@@ -412,7 +412,7 @@ public class DialogLoggerUtil {
     final CheckBox optOutCheckbox = new CheckBox();
     FxThread.runOnFxThreadAndWait(() -> {
       Alert alert = new Alert(AlertType.WARNING);
-      applyMainWindowStyle(alert);
+      applyFocusedWindowStyle(alert);
 
       // Need to force the alert to layout in order to grab the graphic,
       // as we are replacing the dialog pane with a custom pane

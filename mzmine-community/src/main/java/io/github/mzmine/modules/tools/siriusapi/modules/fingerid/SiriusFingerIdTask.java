@@ -28,17 +28,25 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.tools.siriusapi.JobWaiterTask;
 import io.github.mzmine.modules.tools.siriusapi.MzmineToSirius;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
 import io.github.mzmine.modules.tools.siriusapi.SiriusToMzmine;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.parameters.parametertypes.OptOutParameter;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
+import io.mzio.users.user.CurrentUserService;
 import io.sirius.ms.sdk.model.Job;
 import io.sirius.ms.sdk.model.JobOptField;
 import io.sirius.ms.sdk.model.JobSubmission;
@@ -46,12 +54,15 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import javafx.scene.control.ButtonType;
+import javafx.scene.text.TextFlow;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SiriusFingerIdTask extends AbstractFeatureListTask {
 
   public static final int FEATURE_COUNT_THRESHOLD = 50;
+  private static final CloseableReentrantReadWriteLock optOutLock = new CloseableReentrantReadWriteLock();
   private final ModularFeatureList flist;
   private final String idStr;
   private JobWaiterTask jobWaiterTask = null;
@@ -82,8 +93,9 @@ public class SiriusFingerIdTask extends AbstractFeatureListTask {
     final List<FeatureListRow> rows =
         idStr.isBlank() ? flist.getRows() : FeatureUtils.idStringToRows(flist, idStr);
 
-    if (rows.size() > FEATURE_COUNT_THRESHOLD) {
-
+    if (!checkFeatureCount(rows)) {
+      cancel();
+      return;
     }
 
     try (Sirius sirius = new Sirius()) {
@@ -115,6 +127,45 @@ public class SiriusFingerIdTask extends AbstractFeatureListTask {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private boolean checkFeatureCount(List<FeatureListRow> rows) {
+
+    if (rows.size() <= FEATURE_COUNT_THRESHOLD) {
+      return true;
+    }
+
+    final HiddenParameter<Map<String, Boolean>> optOutParam = ConfigService.getConfiguration()
+        .getModuleParameters(SiriusFingerIdModule.class)
+        .getParameter(SiriusFingerIdParameters.countWarningOptOut);
+    final String userHash = String.valueOf(CurrentUserService.getUserName().hashCode());
+
+    try (var _ = optOutLock.lockRead()) {
+      if (Boolean.TRUE.equals(optOutParam.getValue().get(userHash))) {
+        return true;
+      }
+    }
+
+    try (var _ = optOutLock.lockWrite()) {
+      // might have changed on another thread
+      if (Boolean.TRUE.equals(optOutParam.getValue().get(userHash))) {
+        return true;
+      }
+
+      final TextFlow message = FxTextFlows.newTextFlow(FxTexts.text(
+          "You are trying to compute %d features in Sirius. This may take a considerable amount of time. Do you want to continue?".formatted(
+              rows.size())));
+      final ButtonType result = DialogLoggerUtil.createAlertWithOptOutBlocking("Warning",
+          "Confirmation required", message, "Do not show again", optedOut -> {
+            optOutParam.getValue().put(userHash, optedOut);
+          });
+
+      if (result == ButtonType.YES) {
+        return true;
+      }
+
+    }
+    return false;
   }
 
   @Override

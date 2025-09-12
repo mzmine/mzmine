@@ -108,7 +108,8 @@ public class RankAnnotationsBySiriusTask extends AbstractFeatureListTask {
         final String siriusId = MzmineToSirius.exportToSiriusUnique(sirius, List.of(row))
             .get(row.getID());
 
-        JobSubmission config = sirius.api().jobs().getDefaultJobConfig(false, false, true);
+        final JobSubmission config = sirius.api().jobs().getDefaultJobConfig(false, false, true);
+        config.setAlignedFeatureIds(List.of(siriusId));
         StructureDbSearch structureDbParams = config.getStructureDbSearchParams();
         structureDbParams.setStructureSearchDBs(List.of(customDatabase.getDatabaseId()));
         structureDbParams.setExpansiveSearchConfidenceMode(
@@ -122,13 +123,13 @@ public class RankAnnotationsBySiriusTask extends AbstractFeatureListTask {
           default -> config.setFallbackAdducts(List.of("[M+H]+", "[M+NH4]+", "[M+Na]+"));
         }
 
-        config.setAlignedFeatureIds(List.of(siriusId));
         final Job job = sirius.api().jobs()
             .startJob(sirius.getProject().getProjectId(), config, List.of(JobOptField.PROGRESS));
         JobWaiterTask task = new JobWaiterTask(SiriusFingerIdModule.class, Instant.now(),
             SiriusFingerIdParameters.of(List.of(row)), () -> sirius.api().jobs()
-            .getJob(sirius.getProject().getProjectId(), job.getId(),
-                List.of(JobOptField.PROGRESS)), () -> {});
+            .getJob(sirius.getProject().getProjectId(), job.getId(), List.of(JobOptField.PROGRESS)),
+            () -> {
+            });
 
         task.run();
 

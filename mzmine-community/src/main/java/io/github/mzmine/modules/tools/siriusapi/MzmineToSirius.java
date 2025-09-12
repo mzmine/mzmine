@@ -231,37 +231,55 @@ public class MzmineToSirius {
    * @param sirius The sirius session.
    * @param rows   The rows to export
    * @return A mapping of mzmine feature id {@link FeatureListRow#getID()} to sirius unique id
-   * {@link AlignedFeature#getAlignedFeatureId()}.
+   * {@link AlignedFeature#getAlignedFeatureId()}. Only contains the rows that were given to this
+   * method.
    */
   public static Map<Integer, String> exportToSiriusUnique(@NotNull Sirius sirius,
       @NotNull List<? extends @NotNull FeatureListRow> rows) {
     sirius.checkLogin();
-    final List<FeatureImport> features = rows.stream().map(MzmineToSirius::feature)
+
+    final Map<Integer, String> alreadyImportedIds = getAllAlignedFeatureIds(sirius);
+
+    // only send the features that are not already imported
+    final List<? extends FeatureListRow> notImportedRows = rows.stream()
+        .filter(r -> alreadyImportedIds.get(r.getID()) == null).toList();
+    final List<FeatureImport> featureImports = notImportedRows.stream().map(MzmineToSirius::feature)
         .filter(Objects::nonNull).toList();
-
-    final Map<Integer, String> mzmineIdToSiriusId = sirius.api().features()
-        .getAlignedFeatures(sirius.getProject().getProjectId(), null,
-            List.of(AlignedFeatureOptField.NONE)).stream().collect(Collectors.toMap(
-            alignedFeature -> Integer.valueOf(alignedFeature.getExternalFeatureId()),
-            AlignedFeature::getAlignedFeatureId));
-
-    final List<FeatureImport> notImportedFeatures = features.stream()
-        .filter(f -> mzmineIdToSiriusId.get(Integer.valueOf(f.getExternalFeatureId())) == null)
-        .toList();
-
-    var imported = sirius.api().features()
-        .addAlignedFeatures(sirius.getProject().getProjectId(), notImportedFeatures,
+    final List<AlignedFeature> siriusFeatures = sirius.api().features()
+        .addAlignedFeatures(sirius.getProject().getProjectId(), featureImports,
             InstrumentProfile.QTOF, List.of(AlignedFeatureOptField.NONE));
-    var mzmineIdToSiriusId2 = imported.stream().collect(
-        Collectors.toMap(AlignedFeature::getExternalFeatureId,
+
+    final Map<Integer, @NotNull String> newlyImportedIds = siriusFeatures.stream()
+        .filter(af -> af.getAlignedFeatureId() != null && af.getExternalFeatureId() != null)
+        .collect(Collectors.toMap(af -> Integer.valueOf(af.getExternalFeatureId()),
             AlignedFeature::getAlignedFeatureId));
 
-    final HashMap<Integer, String> idMap = new HashMap<>(mzmineIdToSiriusId);
-    mzmineIdToSiriusId2.forEach(
-        (mzmineId, siriusId) -> idMap.put(Integer.valueOf(mzmineId), siriusId));
+    final Map<Integer, String> idMap = new HashMap<>(newlyImportedIds);
+    for (FeatureListRow row : rows) {
+      final String siriusId = alreadyImportedIds.get(row.getID());
+      if (siriusId != null) {
+        idMap.put(row.getID(), siriusId);
+      }
+    }
 
     logger.info(() -> "Added features " + idMap.entrySet().stream()
         .map(e -> "%d->%s".formatted(e.getKey(), e.getValue())).collect(Collectors.joining("; ")));
     return idMap;
+  }
+
+  /**
+   * @param sirius The sirius instance.
+   * @return A map of {@link FeatureListRow#getID()} ->
+   * {@link AlignedFeature#getAlignedFeatureId()}.
+   */
+  private static @NotNull Map<Integer, String> getAllAlignedFeatureIds(@NotNull Sirius sirius) {
+    final Map<Integer, String> alreadyImportedFeatures = sirius.api().features()
+        .getAlignedFeatures(sirius.getProject().getProjectId(), null,
+            List.of(AlignedFeatureOptField.NONE)).stream()
+        .filter(af -> af.getAlignedFeatureId() != null && af.getExternalFeatureId() != null)
+        .collect(Collectors.toMap(
+            alignedFeature -> Integer.valueOf(alignedFeature.getExternalFeatureId()),
+            AlignedFeature::getAlignedFeatureId));
+    return alreadyImportedFeatures;
   }
 }
