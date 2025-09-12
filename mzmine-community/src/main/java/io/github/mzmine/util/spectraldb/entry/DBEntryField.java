@@ -26,27 +26,19 @@
 package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.features.types.annotations.AcquisitionMethodType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.JsonStringType;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.annotations.AcquisitionMethodType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
-import io.github.mzmine.datamodel.features.types.identifiers.CASType;
-import io.github.mzmine.datamodel.features.types.identifiers.DatasetIdType;
-import io.github.mzmine.datamodel.features.types.identifiers.EntryIdType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.PeptideSequenceType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
-import io.github.mzmine.datamodel.features.types.identifiers.InternalIdType;
-import io.github.mzmine.datamodel.features.types.identifiers.IupacNameType;
-import io.github.mzmine.datamodel.features.types.identifiers.SourceScanUsiType;
 import io.github.mzmine.datamodel.features.types.annotations.SplashType;
-import io.github.mzmine.datamodel.features.types.identifiers.UsiType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
@@ -54,9 +46,17 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFi
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierPathwayType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierSuperclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.annotations.online_reaction.OnlineLcReactionMatchType;
+import io.github.mzmine.datamodel.features.types.identifiers.CASType;
+import io.github.mzmine.datamodel.features.types.identifiers.DatasetIdType;
+import io.github.mzmine.datamodel.features.types.identifiers.EntryIdType;
+import io.github.mzmine.datamodel.features.types.identifiers.InternalIdType;
+import io.github.mzmine.datamodel.features.types.identifiers.IupacNameType;
+import io.github.mzmine.datamodel.features.types.identifiers.SourceScanUsiType;
+import io.github.mzmine.datamodel.features.types.identifiers.UsiType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
@@ -80,7 +80,9 @@ import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.io.JsonUtils;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -183,6 +185,47 @@ public enum DBEntryField {
 
   private static final Logger logger = Logger.getLogger(DBEntryField.class.getName());
 
+  /**
+   * A map of lower case keys
+   */
+  private static final Map<String, DBEntryField> FIELD_ALTERNATIVE_KEYS;
+
+  static {
+    FIELD_ALTERNATIVE_KEYS = new HashMap<>();
+    for (DBEntryField f : values()) {
+      String id = f.getMgfID();
+      if (id != null) {
+        FIELD_ALTERNATIVE_KEYS.put(id.toLowerCase(), f);
+      }
+      id = f.getNistMspID();
+      if (id != null) {
+        FIELD_ALTERNATIVE_KEYS.put(id.toLowerCase(), f);
+      }
+      id = f.getGnpsBatchSubmissionID();
+      if (id != null) {
+        FIELD_ALTERNATIVE_KEYS.put(id.toLowerCase(), f);
+      }
+      id = f.getJdxID();
+      if (id != null) {
+        FIELD_ALTERNATIVE_KEYS.put(id.toLowerCase(), f);
+      }
+      id = f.getMZmineJsonID();
+      if (id != null) {
+        FIELD_ALTERNATIVE_KEYS.put(id.toLowerCase(), f);
+      }
+    }
+    // add more alternative keys as lower case to cover inconsistencies
+    FIELD_ALTERNATIVE_KEYS.put("precursortype", DBEntryField.ION_TYPE); // RIKEN NIST
+    FIELD_ALTERNATIVE_KEYS.put("retentiontime", DBEntryField.RT); // RIKEN NIST
+    FIELD_ALTERNATIVE_KEYS.put("instrumenttype", DBEntryField.INSTRUMENT_TYPE); // RIKEN NIST
+    FIELD_ALTERNATIVE_KEYS.put("synon", DBEntryField.SYNONYMS); // RIKEN NIST
+    FIELD_ALTERNATIVE_KEYS.put("retentionindex", DBEntryField.RETENTION_INDEX); // RIKEN NIST
+    FIELD_ALTERNATIVE_KEYS.put("collisionenergy", DBEntryField.COLLISION_ENERGY); // RIKEN NIST
+    FIELD_ALTERNATIVE_KEYS.put("ontology", DBEntryField.CLASSYFIRE_CLASS); // RIKEN NIST
+    FIELD_ALTERNATIVE_KEYS.put("ionization", DBEntryField.ION_SOURCE); // RIKEN NIST
+//    FIELD_ALTERNATIVE_KEYS.put("", DBEntryField.);
+  }
+
   private final Class clazz;
 
   DBEntryField() {
@@ -280,15 +323,22 @@ public enum DBEntryField {
       case SplashType _ -> SPLASH;
       case HeightType _ -> FEATURE_MS1_HEIGHT;
       case RelativeHeightType _ -> FEATURE_MS1_REL_HEIGHT;
-      case CommentType _ -> DBEntryField.COMMENT;
-      case ClassyFireSuperclassType _ -> DBEntryField.CLASSYFIRE_SUPERCLASS;
-      case ClassyFireClassType _ -> DBEntryField.CLASSYFIRE_CLASS;
-      case ClassyFireSubclassType _ -> DBEntryField.CLASSYFIRE_SUBCLASS;
-      case ClassyFireParentType _ -> DBEntryField.CLASSYFIRE_PARENT;
-      case NPClassifierSuperclassType _ -> DBEntryField.NPCLASSIFIER_SUPERCLASS;
-      case NPClassifierClassType _ -> DBEntryField.NPCLASSIFIER_CLASS;
-      case NPClassifierPathwayType _ -> DBEntryField.NPCLASSIFIER_PATHWAY;
-      case PubChemIdType _ -> DBEntryField.PUBCHEM;
+      case CommentType _ -> io.github.mzmine.util.spectraldb.entry.DBEntryField.COMMENT;
+      case ClassyFireSuperclassType _ ->
+          io.github.mzmine.util.spectraldb.entry.DBEntryField.CLASSYFIRE_SUPERCLASS;
+      case ClassyFireClassType _ ->
+          io.github.mzmine.util.spectraldb.entry.DBEntryField.CLASSYFIRE_CLASS;
+      case ClassyFireSubclassType _ ->
+          io.github.mzmine.util.spectraldb.entry.DBEntryField.CLASSYFIRE_SUBCLASS;
+      case ClassyFireParentType _ ->
+          io.github.mzmine.util.spectraldb.entry.DBEntryField.CLASSYFIRE_PARENT;
+      case NPClassifierSuperclassType _ ->
+          io.github.mzmine.util.spectraldb.entry.DBEntryField.NPCLASSIFIER_SUPERCLASS;
+      case NPClassifierClassType _ ->
+          io.github.mzmine.util.spectraldb.entry.DBEntryField.NPCLASSIFIER_CLASS;
+      case NPClassifierPathwayType _ ->
+          io.github.mzmine.util.spectraldb.entry.DBEntryField.NPCLASSIFIER_PATHWAY;
+      case PubChemIdType _ -> io.github.mzmine.util.spectraldb.entry.DBEntryField.PUBCHEM;
       case CASType _ -> CAS;
       case IupacNameType _ -> IUPAC_NAME;
       case InternalIdType _ -> INTERNAL_ID;
@@ -761,6 +811,24 @@ public enum DBEntryField {
     }
   }
 
+
+  /**
+   * Searches alternative names as there are sometimes multiple names used in different formats like
+   * msp may use different keys for the same field due to inconsistencies
+   *
+   * @param name the name will be searched as case-insensitive
+   * @return field or null
+   */
+  public static @Nullable DBEntryField forID(@Nullable String name) {
+    if (name == null) {
+      return null;
+    }
+    name = name.toLowerCase();
+
+    return FIELD_ALTERNATIVE_KEYS.get(name);
+  }
+
+
   /**
    * Converts the content to the correct value type
    *
@@ -769,6 +837,17 @@ public enum DBEntryField {
    * @throws NumberFormatException if the object class was specified as number but was not parsable
    */
   public Object convertValue(String content) throws NumberFormatException {
+    if (this == MS_LEVEL && content.toLowerCase().startsWith("ms")) {
+      // sometimes for example in MS the ms level is gives as MS or MS2
+      final String prepared = content.substring(2);
+      return prepared.isBlank() ? 1 : Integer.parseInt(prepared);
+    }
+    if (this == RT) {
+      // sometimes contains "min" at the end
+      final String prepared = content.replaceAll("[^0-9.]", "");
+      return Double.parseDouble(prepared);
+    }
+
     if (getObjectClass().equals(Double.class)) {
       return Double.parseDouble(content);
     }
