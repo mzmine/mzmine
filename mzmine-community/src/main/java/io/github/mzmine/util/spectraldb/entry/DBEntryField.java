@@ -188,42 +188,64 @@ public enum DBEntryField {
   /**
    * A map of lower case keys
    */
-  private static final Map<String, DBEntryField> FIELD_ALTERNATIVE_KEYS;
+  private static final Map<String, DBEntryField> FIELD_ALTERNATIVE_KEYS = HashMap.newHashMap(
+      DBEntryField.values().length * 4);
 
   static {
-    FIELD_ALTERNATIVE_KEYS = new HashMap<>();
     for (DBEntryField f : values()) {
-      String id = f.getMgfID();
-      if (id != null) {
-        FIELD_ALTERNATIVE_KEYS.put(id.toLowerCase(), f);
-      }
-      id = f.getNistMspID();
-      if (id != null) {
-        FIELD_ALTERNATIVE_KEYS.put(id.toLowerCase(), f);
-      }
-      id = f.getGnpsBatchSubmissionID();
-      if (id != null) {
-        FIELD_ALTERNATIVE_KEYS.put(id.toLowerCase(), f);
-      }
-      id = f.getJdxID();
-      if (id != null) {
-        FIELD_ALTERNATIVE_KEYS.put(id.toLowerCase(), f);
-      }
-      id = f.getMZmineJsonID();
-      if (id != null) {
-        FIELD_ALTERNATIVE_KEYS.put(id.toLowerCase(), f);
-      }
+      // also add the name of enum constant
+      addAlternativeKey(f.name(), f);
+      // add the primary keys for many formats
+      addAlternativeKey(f.getMgfID(), f);
+      addAlternativeKey(f.getNistMspID(), f);
+      addAlternativeKey(f.getGnpsBatchSubmissionID(), f);
+      addAlternativeKey(f.getJdxID(), f);
+      addAlternativeKey(f.getMZmineJsonID(), f);
     }
     // add more alternative keys as lower case to cover inconsistencies
-    FIELD_ALTERNATIVE_KEYS.put("precursortype", DBEntryField.ION_TYPE); // RIKEN NIST
-    FIELD_ALTERNATIVE_KEYS.put("retentiontime", DBEntryField.RT); // RIKEN NIST
-    FIELD_ALTERNATIVE_KEYS.put("instrumenttype", DBEntryField.INSTRUMENT_TYPE); // RIKEN NIST
-    FIELD_ALTERNATIVE_KEYS.put("synon", DBEntryField.SYNONYMS); // RIKEN NIST
-    FIELD_ALTERNATIVE_KEYS.put("retentionindex", DBEntryField.RETENTION_INDEX); // RIKEN NIST
-    FIELD_ALTERNATIVE_KEYS.put("collisionenergy", DBEntryField.COLLISION_ENERGY); // RIKEN NIST
-    FIELD_ALTERNATIVE_KEYS.put("ontology", DBEntryField.CLASSYFIRE_CLASS); // RIKEN NIST
-    FIELD_ALTERNATIVE_KEYS.put("ionization", DBEntryField.ION_SOURCE); // RIKEN NIST
-//    FIELD_ALTERNATIVE_KEYS.put("", DBEntryField.);
+    addAlternativeKey("precursortype", DBEntryField.ION_TYPE); // RIKEN NIST
+    addAlternativeKey("retentiontime", DBEntryField.RT); // RIKEN NIST
+    addAlternativeKey("instrumenttype", DBEntryField.INSTRUMENT_TYPE); // RIKEN NIST
+    addAlternativeKey("synon", DBEntryField.SYNONYMS); // RIKEN NIST
+    addAlternativeKey("retentionindex", DBEntryField.RETENTION_INDEX); // RIKEN NIST
+    addAlternativeKey("collisionenergy", DBEntryField.COLLISION_ENERGY); // RIKEN NIST
+    addAlternativeKey("ontology", DBEntryField.CLASSYFIRE_CLASS); // RIKEN NIST
+    addAlternativeKey("ionization", DBEntryField.ION_SOURCE); // RIKEN NIST
+    addAlternativeKey("ms_ionisation", DBEntryField.ION_SOURCE); // GNPS2 mgf cleaned
+    addAlternativeKey("ms_ionization", DBEntryField.ION_SOURCE);
+    addAlternativeKey("ms_mass_analyzer", DBEntryField.INSTRUMENT); // GNPS2 mgf cleaned
+//    addAlternativeKey("ms_manufacturer", DBEntryField.INSTRUMENT_TYPE); // GNPS2 mgf cleaned
+    addAlternativeKey("precursor_mz", DBEntryField.PRECURSOR_MZ); // matchms cleaned mgf
+    addAlternativeKey("computed_smiles", DBEntryField.SMILES); // matchms_cleaned mgf
+    addAlternativeKey("submitter", DBEntryField.DATA_COLLECTOR); // matchms_cleaned mgf
+    addAlternativeKey("author", DBEntryField.PRINCIPAL_INVESTIGATOR); // matchms_cleaned mgf
+    addAlternativeKey("source_introduction", DBEntryField.ION_SOURCE); // matchms_cleaned mgf
+    addAlternativeKey("ms_dissociation_method",
+        DBEntryField.FRAGMENTATION_METHOD); // matchms_cleaned mgf
+//    addAlternativeKey("", DBEntryField.);
+//    addAlternativeKey("", DBEntryField.);
+  }
+
+  public static void addAlternativeKey(@Nullable String key, DBEntryField field) {
+    try {
+      addAlternativeKeyOrThrow(key, field);
+    } catch (Exception e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
+    }
+  }
+
+  public static void addAlternativeKeyOrThrow(@Nullable String key, DBEntryField field) {
+    if (key == null || key.isBlank()) {
+      return;
+    }
+    final DBEntryField old = FIELD_ALTERNATIVE_KEYS.put(key.toLowerCase(), field);
+    if (old != null && !field.equals(old)) {
+      throw new IllegalArgumentException("""
+          Key %s is already in use for type %s and type %s is a duplicates the keys use.
+          This is not allowed and will lead to issues loading library entries.
+          Remove this all together or handle separately in each format.""".formatted(key, old,
+          field));
+    }
   }
 
   private final Class clazz;
@@ -845,7 +867,7 @@ public enum DBEntryField {
     if (this == RT) {
       // sometimes contains "min" at the end
       final String prepared = content.replaceAll("[^0-9.]", "");
-      return Double.parseDouble(prepared);
+      return Float.parseFloat(prepared);
     }
 
     if (getObjectClass().equals(Double.class)) {
