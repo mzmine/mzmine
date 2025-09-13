@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,6 +42,8 @@ public class SpectralLibraryFormatChecker {
 
     FileTypeFilter json = new FileTypeFilter("json", "");
     FileTypeFilter msp = new FileTypeFilter("msp", "");
+    FileTypeFilter mspRIKEN = new FileTypeFilter("msp_RIKEN", "");
+    FileTypeFilter mspNIST = new FileTypeFilter("msp_NIST", "");
     FileTypeFilter mgf = new FileTypeFilter("mgf", "");
     FileTypeFilter jdx = new FileTypeFilter("jdx", "");
 
@@ -49,7 +51,7 @@ public class SpectralLibraryFormatChecker {
       return getJsonParser(dataBaseFile, bufferEntries, processor);
     }
     // msp, jdx or mgf
-    if (msp.accept(dataBaseFile)) {
+    if (msp.accept(dataBaseFile) || mspRIKEN.accept(dataBaseFile) || mspNIST.accept(dataBaseFile)) {
       // load NIST msp format
       return new NistMspParser(bufferEntries, processor);
     } else if (jdx.accept(dataBaseFile)) {

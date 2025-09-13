@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -86,7 +87,7 @@ public class AutoSaveBatchTask extends AbstractSimpleTask {
 
     final BatchQueue queueCopy = batchTask.getQueueCopy();
 
-    final String mzbatch = ExtensionFilters.getExtensionName(ExtensionFilters.MZ_BATCH);
+    final String mzbatch = ExtensionFilters.getFirstCleanExtensionName(ExtensionFilters.MZ_BATCH);
 
     File savePath = parameters.getOptionalValue(AutoSaveBatchParameters.savePath).orElse(null);
     if (savePath == null || savePath.toString().isBlank()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -75,7 +75,7 @@ public class GnpsMgfParser extends SpectralDBTextParser {
     State state = State.WAIT_FOR_META;
     Map<DBEntryField, Object> fields = new EnumMap<>(DBEntryField.class);
     List<DataPoint> dps = new ArrayList<>();
-    int sep = -1;
+    String[] sep = null;
     // create db
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
       for (String l; (l = br.readLine()) != null; ) {
@@ -104,8 +104,9 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                 }
                 state = State.WAIT_FOR_META;
               } else {
-                sep = l.indexOf('=');
-                if (sep == -1) {
+                // only 1 split into max of String[2]
+                sep = l.split("=", 2);
+                if (sep.length == 1) {
                   // data starts
                   state = State.DATA;
                 }
@@ -120,10 +121,13 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                         Double.parseDouble(data[1])));
                     break;
                   case META:
-                    if (sep != -1 && sep < l.length() - 1) {
-                      DBEntryField field = DBEntryField.forMgfID(l.substring(0, sep));
+                    if (sep.length == 2) {
+                      final String key = sep[0];
+                      String content = sep[1];
+                      // check many alternative names
+                      DBEntryField field = DBEntryField.forID(key);
+
                       if (field != null) {
-                        String content = l.substring(sep + 1);
                         if (!content.isBlank()) {
                           try {
                             // allow 1+ as 1 and 2- as -2
