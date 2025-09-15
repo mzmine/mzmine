@@ -49,6 +49,11 @@ public class BatchModeParameterSetupDialog extends ParameterSetupDialog {
     controller = batchQueue.getController();
     controller.setLastFiles(lastFiles.getValue());
 
+    paramPane.setAskApplyParameterSet(presetParams -> {
+      final var queue = presetParams.getParameter(BatchModeParameters.batchQueue);
+      controller.askApplyBatchQueue(queue.getValue(), queue.getLastParsingErrorMessages());
+    });
+
     super.addCheckParametersButton();
   }
 

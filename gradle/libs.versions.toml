@@ -9,13 +9,13 @@ beryx-runtime = "1.13.1"
 semver = "1.0.4"
 msdk = "0.0.27"
 # update to 2.9? from 2.5
-cdk = "2.9"
+cdk = "2.11"
 swagger = "1.5.22"
 okhttp = "2.7.5"
 slf4j = '1.7.36'
 poi = '5.0.0'
-batik = '1.17'
-controlsfx = '11.1.1'
+batik = { require = "1.19" }
+controlsfx = '11.2.2'
 jmzTabm = "1.0.6"
 jna = '5.12.1'
 junit = '5.12.0'
@@ -91,9 +91,12 @@ msdk-mzml = { module = "io.github.msdk:msdk-io-mzml", version.ref = "msdk" }
 msdk-adap3d = { module = "io.github.msdk:msdk-featuredetection-adap3d", version.ref = "msdk" }
 msdk-netcdf = { module = "io.github.msdk:msdk-io-netcdf", version.ref = "msdk" }
 
-batik-anim = { group = "org.apache.xmlgraphics", name = "batik-anim", version = "batik" }
-batik-swing = { group = "org.apache.xmlgraphics", name = "batik-swing", version = "batik" }
-batik-svggen = { group = "org.apache.xmlgraphics", name = "batik-svggen", version = "batik" }
+#batik-xml-commons = {group = "org.apache.xmlcommons", name="xml-apis", version="1.4.01"} # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
+batik-xml-commons-ext = {group = "org.apache.xmlcommons", name="xml-apis-ext", version="1.4.01"} # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
+batik-anim = { group = "org.apache.xmlgraphics", name = "batik-anim", version.ref = "batik" }
+batik-swing = { group = "org.apache.xmlgraphics", name = "batik-swing", version.ref = "batik" }
+batik-svggen = { group = "org.apache.xmlgraphics", name = "batik-svggen", version.ref = "batik" }
+#batik-all = { group = "org.apache.xmlgraphics", name = "batik-all", version.ref = "batik" }
 guava = { group = "com.google.guava", name = "guava", version = "33.0.0-jre" }
 
 commons-io = { group = "commons-io", name = "commons-io", version = "2.15.1" }
@@ -133,8 +136,7 @@ poi = ["poi", "poi-ooxml"]
 okhttp = ["okhttp", "okhttp-logging-interceptor"]
 junit-mockito = ["junit-jupiter", "junit-platform", "mockito"]
 jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv", "jackson-datetime", "jackson-datatype"]
-batik = ["batik-anim", "batik-svggen", "batik-swing"]
-
+batik = ["batik-anim", "batik-svggen", "batik-swing", "batik-xml-commons-ext"] #, "batik-xml-commons"]
 
 [plugins]
 semver = { id = "net.thauvin.erik.gradle.semver", version.ref = "semver" }

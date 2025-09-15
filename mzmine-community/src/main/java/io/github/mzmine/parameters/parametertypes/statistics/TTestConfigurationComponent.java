@@ -25,13 +25,13 @@
 
 package io.github.mzmine.parameters.parametertypes.statistics;
 
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
 import java.util.List;
-import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -39,6 +39,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
 
@@ -47,10 +48,9 @@ public class TTestConfigurationComponent extends GridPane implements
 
   private final ComboBox<SignificanceTests> samplingCombo;
   private final MetadataGroupingComponent metadataCombo;
-  private final ComboBox<String> groupACombo;
-  private final ComboBox<String> groupBCombo;
+  private final TextField groupACombo;
+  private final TextField groupBCombo;
 
-  private final PauseTransition delay = new PauseTransition(new Duration(100));
 
   /**
    * The value as selected in the gui. automatically updated on change. Value may be null, if an
@@ -81,8 +81,8 @@ public class TTestConfigurationComponent extends GridPane implements
             return;
           }
 
-          groupACombo.setValue(newOptions.getFirst());
-          groupBCombo.setValue(newOptions.getLast());
+          groupACombo.setText(newOptions.getFirst());
+          groupBCombo.setText(newOptions.getLast());
         });
 
     add(new Label("Metadata column"), 0, 0);
@@ -96,19 +96,15 @@ public class TTestConfigurationComponent extends GridPane implements
 
     // use a delay, because changes in the metadata column will automatically change the group
     // columns -> avoid multiple triggers of listeners to the value property.
-    delay.setOnFinished(__ -> updateValueProperty());
-
-    // update value on change
-    metadataCombo.valueProperty().addListener(__ -> delay.playFromStart());
-    groupACombo.valueProperty().addListener(__ -> delay.playFromStart());
-    groupBCombo.valueProperty().addListener(__ -> delay.playFromStart());
-    samplingCombo.valueProperty().addListener(__ -> delay.playFromStart());
+    PropertyUtils.onChangeDelayedSubscription(this::updateValueProperty, Duration.millis(100),
+        metadataCombo.valueProperty(), groupACombo.textProperty(), groupBCombo.textProperty(),
+        samplingCombo.valueProperty());
   }
 
   private void updateValueProperty() {
     final String columnName = metadataCombo.getValue();
-    final String a = groupACombo.getValue();
-    final String b = groupBCombo.getValue();
+    final String a = groupACombo.getText();
+    final String b = groupBCombo.getText();
     var sampling = samplingCombo.getValue();
     if (columnName == null || a == null || sampling == null || b == null) {
       return;
@@ -141,15 +137,15 @@ public class TTestConfigurationComponent extends GridPane implements
   public void setValue(UnivariateRowSignificanceTestConfig value) {
     if (value == null) {
       metadataCombo.setValue(null);
-      groupACombo.setValue(null);
-      groupBCombo.setValue(null);
+      groupACombo.setText(null);
+      groupBCombo.setText(null);
       samplingCombo.setValue(null);
       return;
     }
     this.valueProperty.set(value);
     metadataCombo.setValue(value.column());
-    groupACombo.setValue(value.groupA());
-    groupBCombo.setValue(value.groupB());
+    groupACombo.setText(value.groupA());
+    groupBCombo.setText(value.groupB());
     samplingCombo.setValue(value.samplingConfig());
   }
 }

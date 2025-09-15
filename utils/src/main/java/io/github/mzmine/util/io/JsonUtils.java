@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,10 @@ package io.github.mzmine.util.io;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 public class JsonUtils {
 
@@ -36,6 +40,23 @@ public class JsonUtils {
    */
   public static final ObjectMapper MAPPER = new ObjectMapper();
 
+
+  /**
+   * Write json string to file or throw {@link RuntimeException}. Will replace the text in the
+   * file.
+   */
+  public static void writeToFileReplaceOrThrow(File file, final Object value) {
+    final File parentFile = file.getParentFile();
+    if (parentFile != null) {
+      FileAndPathUtil.createDirectory(parentFile);
+    }
+    try (var writer = Files.newBufferedWriter(file.toPath(),
+        WriterOptions.REPLACE.toOpenOption())) {
+      writer.write(writeStringOrThrow(value));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   /**
    * Write json string or throw {@link RuntimeException}
@@ -79,6 +100,7 @@ public class JsonUtils {
     }
   }
 
+
   public static <T> T readValueOrElse(final String content, final T defaultValue) {
     try {
       return MAPPER.readValue(content, new TypeReference<T>() {
@@ -96,4 +118,48 @@ public class JsonUtils {
       return null;
     }
   }
+
+  public static <T> T readValueOrThrow(final File file, final Class<T> clazz) {
+    try {
+      return MAPPER.readValue(file, clazz);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static <T> T readValueOrNull(final File file, final Class<T> clazz) {
+    try {
+      return MAPPER.readValue(file, clazz);
+    } catch (IOException e) {
+      return null;
+    }
+  }
+
+  public static <T> T readValueOrElse(final File file, final T defaultValue) {
+    try {
+      return MAPPER.readValue(file, new TypeReference<T>() {
+      });
+    } catch (IOException e) {
+      return defaultValue;
+    }
+  }
+
+  public static <T> T readValueOrThrow(final File file) {
+    try {
+      return MAPPER.readValue(file, new TypeReference<T>() {
+      });
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static <T> T readValueOrNull(final File file) {
+    try {
+      return MAPPER.readValue(file, new TypeReference<T>() {
+      });
+    } catch (IOException e) {
+      return null;
+    }
+  }
+
 }

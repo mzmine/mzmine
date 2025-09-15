@@ -25,9 +25,9 @@
 
 package io.github.mzmine.javafx.components.skins;
 
+import javafx.geometry.Insets;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.skin.ComboBoxListViewSkin;
-import javafx.scene.text.Text;
 
 /**
  * Automatically scales a ComboBox text field. This is important when using editable combobox.
@@ -38,32 +38,29 @@ import javafx.scene.text.Text;
  */
 public class DynamicWidthComboBoxSkin<T> extends ComboBoxListViewSkin<T> {
 
-  private final Text measurer = new Text();
 
-  public DynamicWidthComboBoxSkin(ComboBox<T> combo) {
+  private final DynamicTextFieldSkin skin;
+
+  /**
+   * @param minColumnCount -1 to deactivate
+   * @param maxColumnCount -1 to deactivate
+   */
+  public DynamicWidthComboBoxSkin(ComboBox<T> combo, int minColumnCount, int maxColumnCount) {
     super(combo);
-    // share the editor’s font to measure the text correctly
-    measurer.fontProperty().bind(combo.getEditor().fontProperty());
-    measurer.styleProperty().bind(combo.getEditor().styleProperty());
-    measurer.applyCss();
+    combo.setEditable(true);
+    skin = new DynamicTextFieldSkin(getEditor(), minColumnCount, maxColumnCount);
+    // no need to set skin. it is not updated somehow so need to calc pref width in method manually
+//    getEditor().setSkin(skin);
   }
 
   @Override
   protected double computePrefWidth(double height, double topInset, double rightInset,
       double bottomInset, double leftInset) {
-    String txt = getEditor().getText();
-    measurer.setText(txt == null ? "" : txt);
-
-    double textW = measurer.getLayoutBounds().getWidth();
-    double arrowButtonWidth = 50; // a bit more for extra spacing
-
-    // default arrow glyph + padding
-    // total = insets + text + arrow area
-    return Math.max(leftInset + textW + arrowButtonWidth + rightInset, 80);
+    final Insets i = getEditor().getInsets();
+    final double displayNodeWidth = skin.computePrefWidth(getEditor().getHeight(), i.getTop(),
+        i.getRight(), i.getBottom(), i.getLeft());
+    final int buttonSize = 25;
+    final double totalWidth = displayNodeWidth + buttonSize;
+    return leftInset + totalWidth + rightInset;
   }
-
-  ComboBox<T> getCombo() {
-    return (ComboBox<T>) getSkinnable();
-  }
-
 }

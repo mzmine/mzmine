@@ -39,6 +39,8 @@ public class ExtensionFilters {
   public static final ExtensionFilter MZ_BATCH = new ExtensionFilter("mzmine batch", "*.mzbatch");
   public static final ExtensionFilter MZ_WIZARD = new ExtensionFilter("mzmine mzwizard",
       "*.mzmwizard");
+  public static final ExtensionFilter MZ_PRESETS = new ExtensionFilter("mzmine presets",
+      "*.mzpresets");
   public static final ExtensionFilter MZ_PROJECT = new ExtensionFilter("mzmine project file",
       "*.mzmine");
   public static final ExtensionFilter MZ_LOG = new ExtensionFilter("mzmine log file", "*.log");

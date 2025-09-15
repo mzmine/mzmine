@@ -49,15 +49,14 @@
 <?import javafx.stage.Screen?>
 <?import org.controlsfx.control.NotificationPane?>
 <?import org.controlsfx.control.StatusBar?>
+<?import impl.org.controlsfx.skin.DecorationPane?>
 <Scene xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
   fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController"
   fx:id="mainScene">
-  <BorderPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="400"
-    minWidth="600"
-    prefHeight="${screen.visualBounds.height*0.9}"
-    prefWidth="${screen.visualBounds.width*0.9}"
-    xmlns="http://javafx.com/javafx/14.0.1"
-    fx:id="mainPane">
+
+<!--  For controlsfx ValidatorSupport -->
+  <DecorationPane>
+  <BorderPane fx:id="mainPane">
     <bottom>
       <VBox fx:id="bottomBox" maxHeight="130">
         <StatusBar maxHeight="30" minHeight="30" fx:id="statusBar">
@@ -79,10 +78,10 @@
       </VBox>
     </bottom>
     <center>
-      <SplitPane BorderPane.alignment="CENTER" dividerPositions="0.22">
+      <SplitPane fx:id="splitPane" BorderPane.alignment="CENTER" dividerPositions="0.30" >
         <items>
           <!--              Left side-->
-          <TabPane fx:id="projectTabPane" tabClosingPolicy="UNAVAILABLE">
+          <TabPane fx:id="projectTabPane" tabClosingPolicy="UNAVAILABLE" SplitPane.resizableWithParent="false">
             <tabs>
               <Tab fx:id="tabMsData" closable="false" text="MS data files">
                 <content>
@@ -221,6 +220,7 @@
       <fx:include source="MainMenu.fxml"/>
     </top>
   </BorderPane>
+</DecorationPane>
   <stylesheets>
     <URL value="@/themes/MZmine_default.css"/>
   </stylesheets>

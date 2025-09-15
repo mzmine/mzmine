@@ -30,6 +30,7 @@ import io.github.mzmine.gui.JavaFxDesktop;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.javafx.util.FxTextUtils;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
@@ -40,9 +41,13 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,11 +57,19 @@ public class DialogLoggerUtil {
   private static final Logger logger = Logger.getLogger(DialogLoggerUtil.class.getName());
 
   public static void showErrorDialog(String title, String message) {
-    showDialog(AlertType.ERROR, title, message, true);
+    showErrorDialog(null, title, message);
   }
 
   public static void showWarningDialog(String title, String message) {
-    showDialog(AlertType.WARNING, title, message, true);
+    showWarningDialog(null, title, message);
+  }
+
+  public static void showErrorDialog(final @Nullable Window owner, String title, String message) {
+    showDialog(AlertType.ERROR, owner, title, message, true);
+  }
+
+  public static void showWarningDialog(final @Nullable Window owner, String title, String message) {
+    showDialog(AlertType.WARNING, owner, title, message, true);
   }
 
   /**
@@ -89,12 +102,12 @@ public class DialogLoggerUtil {
 
     if (modal) {
       FxThread.runOnFxThreadAndWait(() -> {
-        createAlert(AlertType.INFORMATION, title, content).showAndWait();
+        createAlert(AlertType.INFORMATION, null, title, content).showAndWait();
       });
     } else {
       // non blocking
       FxThread.runLater(() -> {
-        createAlert(AlertType.INFORMATION, title, content).show();
+        createAlert(AlertType.INFORMATION, null, title, content).show();
       });
     }
   }
@@ -110,25 +123,44 @@ public class DialogLoggerUtil {
 
     if (modal) {
       FxThread.runOnFxThreadAndWait(() -> {
-        createAlert(AlertType.INFORMATION, title, message).showAndWait();
+        createAlert(AlertType.INFORMATION, null, title, message).showAndWait();
       });
     } else {
       // non blocking
       FxThread.runLater(() -> {
-        createAlert(AlertType.INFORMATION, title, message).show();
+        createAlert(AlertType.INFORMATION, null, title, message).show();
       });
     }
   }
 
-  public static void applyMainWindowStyle(final Alert alert) {
+  /**
+   * @return main window if desktop is a {@link JavaFxDesktop}
+   */
+  @Nullable
+  public static Stage getMainWindow() {
     if (DesktopService.getDesktop() instanceof JavaFxDesktop fx) {
-      var alertScene = alert.getDialogPane().getScene();
-      alertScene.getStylesheets().setAll(fx.getMainWindow().getScene().getStylesheets());
-
-      if (alertScene.getWindow() instanceof Stage alertStage) {
-        alertStage.getIcons().setAll(fx.getMainWindow().getIcons());
-      }
+      return fx.getMainWindow();
     }
+    return null;
+  }
+
+  /**
+   * @return the currently focused window
+   */
+  public static Optional<Window> getFocusedWindow() {
+    return Window.getWindows().stream().filter(Window::isFocused).findFirst();
+  }
+
+  /**
+   * Set owner to the focused window or if not available to mainWindow. This sets the style sheets,
+   * icons, and lets dialogs spawn in the center of that window.
+   */
+  public static void applyFocusedWindowStyle(final Dialog<?> dialog) {
+    final Window parentWindow = getFocusedWindow().orElseGet(DialogLoggerUtil::getMainWindow);
+    if (parentWindow == null) {
+      return;
+    }
+    dialog.initOwner(parentWindow);
   }
 
   /**
@@ -170,7 +202,19 @@ public class DialogLoggerUtil {
    */
   public static Optional<ButtonType> showDialog(AlertType type, String title, String message,
       boolean blockingModal) {
-    return showDialog(type, title, message, blockingModal, new ButtonType[0]);
+    return showDialog(type, null, title, message, blockingModal);
+  }
+
+  /**
+   * @param type          usually uses {@link AlertType#CONFIRMATION}
+   * @param title         title of dialog and also repeated in dialog header
+   * @param message       message in box wrapped
+   * @param blockingModal open dialog and block
+   * @return optional button type. Easy to use the ButtonData or title to match the button
+   */
+  public static Optional<ButtonType> showDialog(AlertType type, final @Nullable Window owner,
+      String title, String message, boolean blockingModal) {
+    return showDialog(type, owner, title, message, blockingModal, new ButtonType[0]);
   }
 
   /**
@@ -187,6 +231,23 @@ public class DialogLoggerUtil {
    */
   public static Optional<ButtonType> showDialog(AlertType type, String title, String message,
       boolean blockingModal, @Nullable ButtonType... buttons) {
+    return showDialog(type, null, title, message, blockingModal, buttons);
+  }
+
+  /**
+   * @param type          usually uses {@link AlertType#CONFIRMATION}
+   * @param title         title of dialog and also repeated in dialog header
+   * @param message       message in box wrapped
+   * @param blockingModal open dialog and block
+   * @param buttons       Either use predefined buttons or define new buttons with
+   *                      {@link ButtonType#ButtonType(String, ButtonData)} (String,
+   *                      ButtonData)}requires a {@link ButtonData#CANCEL_CLOSE} or
+   *                      {@link ButtonData#NO} button that will also trigger on X close button.
+   *                      Otherwise X button will not work
+   * @return optional button type. Easy to use the ButtonData or title to match the button
+   */
+  public static Optional<ButtonType> showDialog(AlertType type, final @Nullable Window owner,
+      String title, String message, boolean blockingModal, @Nullable ButtonType... buttons) {
     if (DesktopService.isHeadLess()) {
       logger.info(title + ": " + message);
       return Optional.empty();
@@ -194,14 +255,14 @@ public class DialogLoggerUtil {
     if (blockingModal) {
       final AtomicReference<Optional<ButtonType>> result = new AtomicReference<>();
       FxThread.runOnFxThreadAndWait(() -> {
-        var alert = createAlert(type, title, message, buttons);
+        var alert = createAlert(type, owner, title, message, buttons);
         result.set(alert.showAndWait());
       });
       return result.get();
     } else {
       // non blocking
       FxThread.runLater(() -> {
-        createAlert(type, title, message, buttons).show();
+        createAlert(type, owner, title, message, buttons).show();
       });
       return Optional.empty();
     }
@@ -210,23 +271,27 @@ public class DialogLoggerUtil {
   /**
    * Internal method to create an alert. use {@link #showDialog}
    */
-  private static @NotNull Alert createAlert(final AlertType type, final String title,
-      final String message, @Nullable final ButtonType... buttons) {
+  private static @NotNull Alert createAlert(final AlertType type, final @Nullable Window owner,
+      final String title, final String message, @Nullable final ButtonType... buttons) {
     // seems like a good size for the dialog message when an old batch is loaded into new version
     Text label = new Text(message);
     label.setWrappingWidth(415);
     HBox box = new HBox(label);
     box.setPadding(new Insets(5));
-    return createAlert(type, title, box, buttons);
+    return createAlert(type, owner, title, box, buttons);
   }
 
   /**
    * Internal method to create an alert. use {@link #showDialog}
    */
-  private static @NotNull Alert createAlert(final AlertType type, final String title,
-      final Node content, @Nullable final ButtonType... buttons) {
+  private static @NotNull Alert createAlert(final AlertType type, final @Nullable Window owner,
+      final String title, final Node content, @Nullable final ButtonType... buttons) {
     Alert alert = new Alert(type, "", buttons);
-    applyMainWindowStyle(alert);
+    if (owner == null) {
+      applyFocusedWindowStyle(alert);
+    } else {
+      alert.initOwner(owner);
+    }
 
     alert.setTitle(title);
     alert.setHeaderText(title);
@@ -261,13 +326,49 @@ public class DialogLoggerUtil {
       if (DesktopService.isHeadLess()) {
         return;
       }
-      var alert = createAlert(type, title, message);
+      var alert = createAlert(type, null, title, message);
       alert.show();
 
       PauseTransition delay = new PauseTransition(Duration.millis(timeMillis));
       delay.setOnFinished(_ -> alert.hide());
       delay.play();
     });
+  }
+
+
+  /**
+   * @return the selected option or null if cancelled
+   */
+  @Nullable
+  public static <T> T showAndWaitChoiceDialog(T selected, T[] options, String title,
+      String content) {
+    return showAndWaitChoiceDialog(selected, List.of(options), title, content);
+  }
+
+  /**
+   * @return the selected option or null if cancelled
+   */
+  @Nullable
+  public static <T> T showAndWaitChoiceDialog(T selected, List<T> options, String title,
+      String content) {
+    ChoiceDialog<T> choiceDialog = new ChoiceDialog<>(selected, options);
+    // applies style and more
+    applyFocusedWindowStyle(choiceDialog);
+    choiceDialog.setTitle(title);
+    choiceDialog.setContentText(content);
+    choiceDialog.showAndWait();
+    return choiceDialog.getResult();
+  }
+
+  public static TextInputDialog createTextInputDialog(@NotNull String title, @NotNull String header,
+      @NotNull String content) {
+    TextInputDialog dialog = new TextInputDialog();
+    // applies style and more
+    applyFocusedWindowStyle(dialog);
+    dialog.setTitle(title);
+    dialog.setHeaderText(header);
+    dialog.setContentText(content);
+    return dialog;
   }
 
   public static void showNotification(@NotNull NotificationType type, @NotNull String title,

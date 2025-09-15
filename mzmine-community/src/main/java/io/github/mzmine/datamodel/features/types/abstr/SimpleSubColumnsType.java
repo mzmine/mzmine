@@ -88,7 +88,7 @@ public abstract class SimpleSubColumnsType<T extends ModularDataRecord> extends
         } catch (XMLStreamException e) {
           logger.log(Level.WARNING,
               "Error while writing data type " + sub.getClass().getSimpleName() + " with value "
-              + subValue + " to xml.  " + e.getMessage(), e);
+                  + subValue + " to xml.  " + e.getMessage(), e);
         }
         // end sub parameter
         writer.writeEndElement();
@@ -104,7 +104,7 @@ public abstract class SimpleSubColumnsType<T extends ModularDataRecord> extends
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
     SimpleModularDataModel model = SubColumnsFactory.super.loadSubColumnsFromXML(reader, project,
         flist, row, feature, file);
-    return model.isEmpty()? null : createRecord(model);
+    return model.isEmpty() ? null : createRecord(model);
   }
 
   @Override
@@ -117,7 +117,7 @@ public abstract class SimpleSubColumnsType<T extends ModularDataRecord> extends
     // create column per name
     for (int index = 0; index < subTypes.size(); index++) {
       DataType type = subTypes.get(index);
-      if(type instanceof NullColumnType) {
+      if (type instanceof NullColumnType) {
         continue;
       }
       if (this.equals(type)) {
