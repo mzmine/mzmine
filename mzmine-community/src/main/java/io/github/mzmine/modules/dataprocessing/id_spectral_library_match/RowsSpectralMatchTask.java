@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,14 +55,12 @@ import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.ScanAlignment;
-import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -71,7 +69,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -727,8 +724,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
    * @return false if both polarities are defined and do not match, true otherwise.
    */
   public boolean weakPolarityCheck(String entryPolarityString, PolarityType scanPolarity) {
-    if (scanPolarity == null || scanPolarity == PolarityType.UNKNOWN
-        || scanPolarity == PolarityType.ANY || scanPolarity == PolarityType.NEUTRAL) {
+    // only if filter was defined
+    if (!PolarityType.isDefined(scanPolarity)) {
       return true;
     }
     final PolarityType entryPolarity = PolarityType.parseFromString(entryPolarityString);
