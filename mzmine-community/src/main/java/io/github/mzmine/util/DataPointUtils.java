@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.collections.BinarySearch;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout.OfDouble;
 import java.nio.DoubleBuffer;
@@ -188,18 +189,18 @@ public class DataPointUtils {
       double noiseLevel) {
     assert rawMzs.length == rawIntensities.length;
 
-    List<Double> mzs = new ArrayList<>();
-    List<Double> intensities = new ArrayList<>();
+    final DoubleArrayList mzs = new DoubleArrayList(rawMzs.length);
+    final DoubleArrayList intensities = new DoubleArrayList(rawIntensities.length);
 
     for (int i = 0; i < rawMzs.length; i++) {
-      if (rawIntensities[i] > noiseLevel) {
+      if (rawIntensities[i] >= noiseLevel) {
         mzs.add(rawMzs[i]);
         intensities.add(rawIntensities[i]);
       }
     }
     double[][] data = new double[2][];
-    data[0] = Doubles.toArray(mzs);
-    data[1] = Doubles.toArray(intensities);
+    data[0] = mzs.toDoubleArray();
+    data[1] = intensities.toDoubleArray();
     return data;
   }
 
