@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,23 +29,14 @@ import com.sun.jna.Platform;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
-import io.github.mzmine.gui.DesktopService;
-import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
-import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.StringUtils;
-import io.github.mzmine.util.ZipUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -55,7 +46,6 @@ import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -181,7 +171,7 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
   private @Nullable ProcessBuilder createProcessFromThermoFileParser() throws IOException {
     taskDescription = "Opening file " + fileToOpen;
 
-    final File parserPath = getParserPathForForOs();
+    final File parserPath = getParserPathForOs();
     final String thermoRawFileParserCommand = parserPath.getAbsolutePath();
 
     if (Platform.isWindows() && !thermoRawFileParserCommand.endsWith("ThermoRawFileParser.exe")) {
@@ -203,7 +193,7 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
     final List<String> cmdLine = new ArrayList<>(); //
     cmdLine.add(thermoRawFileParserCommand); // program to run
     cmdLine.add("-s"); // output mzML to stdout
-    if(!parameters.getValue(AllSpectralDataImportParameters.applyVendorCentroiding)) {
+    if (!parameters.getValue(AllSpectralDataImportParameters.applyVendorCentroiding)) {
       cmdLine.add("-p"); // no peak picking
     }
     cmdLine.add("-z"); // no zlib compression (higher speed)
@@ -239,7 +229,7 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
     }
   }
 
-  private File getParserPathForForOs() {
+  private File getParserPathForOs() {
     if (Platform.isWindows()) {
       return new File("external_tools/thermo_raw_file_parser/ThermoRawFileParser.exe");
     }
@@ -249,7 +239,8 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
     if (Platform.isMac()) {
       return new File("external_tools/thermo_raw_file_parser/ThermoRawFileParserMac");
     }
-    throw new IllegalStateException("Invalid operating system for parsing thermo files via the ThermoRawFileParser.");
+    throw new IllegalStateException(
+        "Invalid operating system for parsing thermo files via the ThermoRawFileParser.");
   }
 
   @Override
