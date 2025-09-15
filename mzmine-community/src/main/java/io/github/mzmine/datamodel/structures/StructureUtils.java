@@ -29,6 +29,7 @@ import io.github.dan2097.jnainchi.InchiKeyOutput;
 import io.github.dan2097.jnainchi.InchiKeyStatus;
 import io.github.dan2097.jnainchi.InchiStatus;
 import io.github.dan2097.jnainchi.JnaInchi;
+import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;
@@ -215,7 +216,11 @@ public class StructureUtils {
 
   @NotNull
   public static IMolecularFormula getFormula(@NotNull IAtomContainer structure) {
-    return MolecularFormulaManipulator.getMolecularFormula(structure);
+    IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(structure);
+    if (formula != null) {
+      formula = FormulaUtils.replaceAllIsotopesWithoutExactMass(formula, true);
+    }
+    return formula;
   }
 
   public static double getMonoIsotopicMass(IAtomContainer structure) {
