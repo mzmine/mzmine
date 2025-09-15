@@ -26,8 +26,8 @@
 package io.github.mzmine.util.spectraldb.parser;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
@@ -97,13 +97,7 @@ public class NistMspParser extends SpectralDBTextParser {
             if (isData) {
               // empty row after data
               // add entry and reset
-              SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(library.getStorage(),
-                  fields, dps.toArray(new DataPoint[dps.size()]));
-              // add and push
-              addLibraryEntry(entry);
-              // reset
-              fields.clear();
-              dps.clear();
+              addEntryAndReset(library, fields, dps);
               isData = false;
             }
           }
@@ -116,10 +110,26 @@ public class NistMspParser extends SpectralDBTextParser {
         }
         processedLines.incrementAndGet();
       }
+      // add last entry
+      if (!fields.isEmpty() && !dps.isEmpty()) {
+        addEntryAndReset(library, fields, dps);
+      }
+
       // finish and process all entries
       finish();
       return true;
     }
+  }
+
+  private void addEntryAndReset(SpectralLibrary library, Map<DBEntryField, Object> fields,
+      List<DataPoint> dps) {
+    SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(library.getStorage(), fields,
+        dps.toArray(new DataPoint[dps.size()]));
+    // add and push
+    addLibraryEntry(entry);
+    // reset
+    fields.clear();
+    dps.clear();
   }
 
   /**
@@ -166,7 +176,7 @@ public class NistMspParser extends SpectralDBTextParser {
           // earlier mzmine saved polarity negative as N but this was also used as the single char
           // for Polarity.NEUTRAL so we need to add a special case parsing here
           if (field == DBEntryField.POLARITY && content.equalsIgnoreCase("n")) {
-            value = Polarity.Negative;
+            value = PolarityType.NEGATIVE;
           } else {
             // default parsing of the value by the field
             value = field.convertValue(content);
