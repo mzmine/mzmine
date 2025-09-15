@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,6 +83,8 @@ public class SpectraMerger {
   private final @NotNull MZTolerance mzTol;
   private final @NotNull IntensityMergingType intensityMerging;
   private final boolean excludeMSnScans;
+  private final boolean mergeAcrossMethods;
+  private final boolean acrossEnergies;
   private @Nullable MemoryMapStorage storage;
 
   /**
@@ -95,6 +98,10 @@ public class SpectraMerger {
     this.sampleHandling =
         finalScanSelection.contains(MergedSpectraFinalSelectionTypes.ACROSS_SAMPLES)
             ? SampleHandling.ACROSS_SAMPLES : SampleHandling.SAME_SAMPLE;
+    this.acrossEnergies = finalScanSelection.contains(
+        MergedSpectraFinalSelectionTypes.ACROSS_ENERGIES);
+    this.mergeAcrossMethods = finalScanSelection.contains(
+        MergedSpectraFinalSelectionTypes.ACROSS_FRAGMENT_METHODS);
     this.excludeMSnScans = finalScanSelection.stream()
         .noneMatch(MergedSpectraFinalSelectionTypes::isRequireMSn);
     this.mzTol = mzTol;
@@ -108,13 +115,84 @@ public class SpectraMerger {
 
   /**
    * List of spectra merged on different MSn levels, energies, total merged, single most abundant,
-   * ...
+   * ... First splits by fragmentation method in case multiple methods are available in input list
    *
    * @param scans prefiltered list of scans
    * @return list of merged and single scans
    */
   @NotNull
   public SpectraMergingResults getAllFragmentSpectra(List<Scan> scans) {
+    if (scans == null) {
+      return SpectraMergingResults.ofEmpty();
+    }
+    final Map<String, List<Scan>> byFragmentationMethod = ScanUtils.splitByFragmentationMethod(
+        scans);
+
+    if (byFragmentationMethod.size() == 1) {
+      return mergeGetAllFragmentSpectra(scans);
+    } else {
+      return mergeByFragmentationMethod(byFragmentationMethod);
+    }
+  }
+
+  @NotNull
+  private SpectraMergingResults mergeByFragmentationMethod(
+      Map<String, List<Scan>> byFragmentationMethod) {
+    // merge for each method
+    final List<SpectraMergingResults> resultsByMethod = byFragmentationMethod.values().stream()
+        .map(this::mergeGetAllFragmentSpectra).toList();
+
+    // merge across methods?
+    Scan scanMergedAcrossMethods = null;
+    if (mergeAcrossMethods) {
+      final Stream<Scan> scansToMerge;
+      if (acrossEnergies) {
+        if (sampleHandling == SampleHandling.ACROSS_SAMPLES) {
+          // one scan per method
+          scansToMerge = resultsByMethod.stream()
+              // find the first results node that is MS2 and the scan merged across all energies
+              .map(r -> r.acrossSamples().getFirst().getAcrossEnergiesOrSingleScan());
+        } else {
+          // one scan per sample and method
+          scansToMerge = resultsByMethod.stream().mapMulti((r, consumer) -> r.bySample().stream()
+              .map(SpectraMergingResultsNode::getAcrossEnergiesOrSingleScan).forEach(consumer));
+        }
+      } else {
+        // not merged across energies so take every individual energy
+        // can always use across samples here
+        // in case no merging across samples happened the variable points to for each samples instead
+        scansToMerge = resultsByMethod.stream().mapMulti((r, consumer) -> r.acrossSamples()
+            .forEach(node -> node.streamScanByEnergy().forEach(consumer)));
+      }
+      // do the actual merging on the whole list of scans
+      final List<Scan> toMerge = scansToMerge.toList();
+      scanMergedAcrossMethods = mergeSpectra(toMerge, MergingType.ALL_METHODS);
+    }
+
+    List<SpectraMergingResultsNode> bySample = new ArrayList<>();
+    List<SpectraMergingResultsNode> acrossSamples = new ArrayList<>();
+    Scan msnPseudoMs2 = null;
+    for (SpectraMergingResults result : resultsByMethod) {
+      if (result.msnPseudoMs2() != null) {
+        msnPseudoMs2 = result.msnPseudoMs2();
+      }
+      bySample.addAll(result.bySample());
+      acrossSamples.addAll(result.acrossSamples());
+    }
+    // create new results set with all scans for all methods
+    return new SpectraMergingResults(bySample, acrossSamples, msnPseudoMs2,
+        scanMergedAcrossMethods);
+  }
+
+  /**
+   * List of spectra merged on different MSn levels, energies, total merged, single most abundant,
+   * ... First splits by fragmentation method in case multiple methods are available in input list
+   *
+   * @param scans prefiltered list of scans
+   * @return list of merged and single scans
+   */
+  @NotNull
+  private SpectraMergingResults mergeGetAllFragmentSpectra(List<Scan> scans) {
     if (scans == null) {
       return SpectraMergingResults.ofEmpty();
     }
@@ -192,7 +270,7 @@ public class SpectraMerger {
       mergedAcrossSamples = null;
     }
 
-    return new SpectraMergingResults(mergedBySample, mergedAcrossSamples, pseudoMs2);
+    return new SpectraMergingResults(mergedBySample, mergedAcrossSamples, pseudoMs2, null);
   }
 
   private <T> List<T> mergeBySample(List<Scan> scans, Function<List<Scan>, T> bySampleFunction) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,8 +44,8 @@ import org.jetbrains.annotations.Nullable;
  * @param scanByEnergy    map of energy groups to scan
  * @param allEnergiesScan all merged across energies
  */
-public record SpectraMergingResultsNode(@NotNull Map<FloatGrouping, @NotNull Scan> scanByEnergy,
-                                        @Nullable Scan allEnergiesScan) {
+record SpectraMergingResultsNode(@NotNull Map<FloatGrouping, @NotNull Scan> scanByEnergy,
+                                 @Nullable Scan allEnergiesScan) {
 
   /**
    * Map a single scan to its collision energy group

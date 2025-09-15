@@ -57,6 +57,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -299,6 +300,85 @@ public class ScanUtils {
       }
       return null;
     }).filter(Objects::nonNull).distinct().toList();
+  }
+
+  /**
+   * Includes all source scans of {@link MergedMassSpectrum} in listing all fragmentation methods
+   *
+   * @param spectrum any mass spectrum like {@link MergedMassSpectrum}
+   * @return a list of distinct sorted fragmentation methods. null ==
+   * {@link ActivationMethod#UNKNOWN}. Maybe strings or {@link ActivationMethod}
+   */
+  @NotNull
+  public static List<Object> extractFragmentationMethods(MassSpectrum spectrum) {
+    return streamSourceScans(spectrum).map(s -> switch (s) {
+      case Scan scan -> {
+        final MsMsInfo info = scan.getMsMsInfo();
+        if (info != null) {
+          yield info.getActivationMethod();
+        } else {
+          yield ActivationMethod.UNKNOWN;
+        }
+      }
+      case SpectralLibraryEntry entry -> {
+        final Object m = entry.getOrElse(DBEntryField.FRAGMENTATION_METHOD, null);
+        if (m instanceof ActivationMethod a) {
+          yield a;
+        } else if (m != null) {
+          yield m;
+        } else {
+          yield ActivationMethod.UNKNOWN;
+        }
+      }
+      default -> throw new IllegalStateException(
+          "Unhandled class of mass spectrum in extractFragmentationMethod: " + s);
+    }).filter(Objects::nonNull).distinct().sorted().toList();
+  }
+
+  /**
+   * Includes all source scans of {@link MergedMassSpectrum} in listing all fragmentation methods.
+   *
+   * @param spectrum any mass spectrum like {@link MergedMassSpectrum}
+   * @return Long name. Either a unique {@link ActivationMethod#getName()} or
+   * {@link ActivationMethod#MIXED} if multiple activation methods were merged. null ==
+   * {@link ActivationMethod#UNKNOWN}. Might use other string values if loaded for spectral
+   * library.
+   */
+  @NotNull
+  public static String extractFragmentationMethodLongName(MassSpectrum spectrum) {
+    var methods = extractFragmentationMethods(spectrum);
+
+    if (methods.size() > 1) {
+      return ActivationMethod.MIXED.getName();
+    } else if (methods.size() == 1) {
+      final Object first = methods.getFirst();
+      return first instanceof ActivationMethod m ? m.getName() : first.toString();
+    } else {
+      return ActivationMethod.UNKNOWN.getName();
+    }
+  }
+
+  /**
+   * Includes all source scans of {@link MergedMassSpectrum} in listing all fragmentation methods.
+   *
+   * @param spectrum any mass spectrum like {@link MergedMassSpectrum}
+   * @return Short abbreviation. Either a unique {@link ActivationMethod#getName()} or
+   * {@link ActivationMethod#MIXED} if multiple activation methods were merged. null ==
+   * {@link ActivationMethod#UNKNOWN}. Might use other string values if loaded for spectral
+   * library.
+   */
+  @NotNull
+  public static String extractFragmentationMethodShort(MassSpectrum spectrum) {
+    var methods = extractFragmentationMethods(spectrum);
+
+    if (methods.size() > 1) {
+      return ActivationMethod.MIXED.getAbbreviation();
+    } else if (methods.size() == 1) {
+      final Object first = methods.getFirst();
+      return first instanceof ActivationMethod m ? m.getAbbreviation() : first.toString();
+    } else {
+      return ActivationMethod.UNKNOWN.getAbbreviation();
+    }
   }
 
   /**
@@ -1545,7 +1625,9 @@ public class ScanUtils {
 
     // Keeps MS2 scans sorted by decreasing quality
     // Filter top N scans into an immutable list
-    return scans.stream().sorted(new ScanSorter(0, ScanSortMode.MAX_TIC)).limit(topN).toList();
+    return scans.stream()
+        .sorted(new ScanSorter(0, io.github.mzmine.util.scans.sorting.ScanSortMode.MAX_TIC))
+        .limit(topN).toList();
   }
 
   /**
@@ -2052,6 +2134,23 @@ public class ScanUtils {
   public static Map<String, List<Scan>> splitBySample(final List<Scan> scans) {
     return scans.stream().collect(
         Collectors.groupingBy(scan -> requireNonNullElse(getSourceFile(scan), "UNDEFINED_SAMPLE")));
+  }
+
+
+  /**
+   * Groups scans by their fragmentation method ({@link ActivationMethod} or other string from
+   * spectral libraries). Includes all source scans of {@link MergedMassSpectrum} in listing all
+   * fragmentation methods.
+   *
+   * @param scans list of spectra to be grouped
+   * @return maps fragmentation method to list of scans with keys: Either unique
+   * {@link ActivationMethod#getName()} (other strings possible) or {@link ActivationMethod#MIXED}
+   * if multiple activation methods were merged. null == {@link ActivationMethod#UNKNOWN}. Might use
+   * other string values if loaded for spectral library.
+   */
+  public static Map<String, List<Scan>> splitByFragmentationMethod(List<Scan> scans) {
+    return scans.stream()
+        .collect(Collectors.groupingBy(ScanUtils::extractFragmentationMethodShort));
   }
 
   /**
@@ -2577,6 +2676,7 @@ public class ScanUtils {
     return scan instanceof PseudoSpectrum pseudo
         && pseudo.getPseudoSpectrumType() == PseudoSpectrumType.GC_EI;
   }
+
 
   /**
    * Binning modes
