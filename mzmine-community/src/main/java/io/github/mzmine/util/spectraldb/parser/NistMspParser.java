@@ -176,7 +176,7 @@ public class NistMspParser extends SpectralDBTextParser {
           // earlier mzmine saved polarity negative as N but this was also used as the single char
           // for Polarity.NEUTRAL so we need to add a special case parsing here
           if (field == DBEntryField.POLARITY && content.equalsIgnoreCase("n")) {
-            value = PolarityType.NEGATIVE;
+            value = PolarityType.NEGATIVE.toLabel();
           } else {
             // default parsing of the value by the field
             value = field.convertValue(content);

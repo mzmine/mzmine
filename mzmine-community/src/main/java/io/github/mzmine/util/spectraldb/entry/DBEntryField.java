@@ -897,13 +897,6 @@ public enum DBEntryField {
     if (getObjectClass().equals(RIRecord.class)) {
       return new RIRecord(content);
     }
-
-    if (this == POLARITY) {
-      // polarity may use String or PolarityType as not all strings may be parsed
-      final PolarityType polarity = PolarityType.parseFromString(content);
-      return polarity != PolarityType.UNKNOWN ? polarity : content;
-    }
-
     // TODO currently we can only parse this as list of strings - should be either json list or java object list
     // FloatArrayList IntArrayList and other specialized classes help to load numbers
     else if (getObjectClass().equals(List.class) && content != null) {
