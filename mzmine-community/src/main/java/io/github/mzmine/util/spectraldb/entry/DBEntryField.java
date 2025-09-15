@@ -354,22 +354,15 @@ public enum DBEntryField {
       case SplashType _ -> SPLASH;
       case HeightType _ -> FEATURE_MS1_HEIGHT;
       case RelativeHeightType _ -> FEATURE_MS1_REL_HEIGHT;
-      case CommentType _ -> io.github.mzmine.util.spectraldb.entry.DBEntryField.COMMENT;
-      case ClassyFireSuperclassType _ ->
-          io.github.mzmine.util.spectraldb.entry.DBEntryField.CLASSYFIRE_SUPERCLASS;
-      case ClassyFireClassType _ ->
-          io.github.mzmine.util.spectraldb.entry.DBEntryField.CLASSYFIRE_CLASS;
-      case ClassyFireSubclassType _ ->
-          io.github.mzmine.util.spectraldb.entry.DBEntryField.CLASSYFIRE_SUBCLASS;
-      case ClassyFireParentType _ ->
-          io.github.mzmine.util.spectraldb.entry.DBEntryField.CLASSYFIRE_PARENT;
-      case NPClassifierSuperclassType _ ->
-          io.github.mzmine.util.spectraldb.entry.DBEntryField.NPCLASSIFIER_SUPERCLASS;
-      case NPClassifierClassType _ ->
-          io.github.mzmine.util.spectraldb.entry.DBEntryField.NPCLASSIFIER_CLASS;
-      case NPClassifierPathwayType _ ->
-          io.github.mzmine.util.spectraldb.entry.DBEntryField.NPCLASSIFIER_PATHWAY;
-      case PubChemIdType _ -> io.github.mzmine.util.spectraldb.entry.DBEntryField.PUBCHEM;
+      case CommentType _ -> DBEntryField.COMMENT;
+      case ClassyFireSuperclassType _ -> DBEntryField.CLASSYFIRE_SUPERCLASS;
+      case ClassyFireClassType _ -> DBEntryField.CLASSYFIRE_CLASS;
+      case ClassyFireSubclassType _ -> DBEntryField.CLASSYFIRE_SUBCLASS;
+      case ClassyFireParentType _ -> DBEntryField.CLASSYFIRE_PARENT;
+      case NPClassifierSuperclassType _ -> DBEntryField.NPCLASSIFIER_SUPERCLASS;
+      case NPClassifierClassType _ -> DBEntryField.NPCLASSIFIER_CLASS;
+      case NPClassifierPathwayType _ -> DBEntryField.NPCLASSIFIER_PATHWAY;
+      case PubChemIdType _ -> DBEntryField.PUBCHEM;
       case CASType _ -> CAS;
       case IupacNameType _ -> IUPAC_NAME;
       case InternalIdType _ -> INTERNAL_ID;
