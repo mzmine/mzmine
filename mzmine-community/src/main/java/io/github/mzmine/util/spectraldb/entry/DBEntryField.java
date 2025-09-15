@@ -241,14 +241,17 @@ public enum DBEntryField {
     if (key == null || key.isBlank()) {
       return;
     }
-    final DBEntryField old = FIELD_ALTERNATIVE_KEYS.put(key.toLowerCase(), field);
+    final DBEntryField old = FIELD_ALTERNATIVE_KEYS.get(key.toLowerCase());
     if (old != null && !field.equals(old)) {
       throw new IllegalArgumentException("""
-          Key %s is already in use for type %s and type %s is a duplicates the keys use.
+          Key %s is already in use for type %s and type %s is a duplicates the key use.
           This is not allowed and will lead to issues loading library entries.
+          Will keep using first mapped value: %s
           Remove this all together or handle separately in each format.""".formatted(key, old,
-          field));
+          field, old));
     }
+
+    FIELD_ALTERNATIVE_KEYS.put(key.toLowerCase(), field);
   }
 
   private final Class clazz;
