@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -335,7 +336,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
               case OptionalParameter<?> p -> ((FileNameParameter) p.getEmbeddedParameter());
               default -> null;
             };
-            if (fnp == null) {
+            if (fnp == null || fnp.getType() != FileSelectionType.OPEN) {
               continue;
             }
 
