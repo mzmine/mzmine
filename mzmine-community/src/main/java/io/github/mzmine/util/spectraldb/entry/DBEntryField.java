@@ -198,9 +198,12 @@ public enum DBEntryField {
       // add the primary keys for many formats
       addAlternativeKey(f.getMgfID(), f);
       addAlternativeKey(f.getNistMspID(), f);
-      addAlternativeKey(f.getGnpsBatchSubmissionID(), f);
       addAlternativeKey(f.getJdxID(), f);
       addAlternativeKey(f.getMZmineJsonID(), f);
+      // need to exclude instrument from gnps batch sumbission that maps to a INSTRUMENT_TYPE here
+      if (f != DBEntryField.INSTRUMENT_TYPE) {
+        addAlternativeKey(f.getGnpsBatchSubmissionID(), f);
+      }
     }
     // add more alternative keys as lower case to cover inconsistencies
     addAlternativeKey("precursortype", DBEntryField.ION_TYPE); // RIKEN NIST
@@ -538,9 +541,9 @@ public enum DBEntryField {
     return switch (this) {
       case CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
            NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, ACQUISITION, GNPS_ID,
-           MONA_ID, CHEMSPIDER, RESOLUTION, SYNONYMS, MOLWEIGHT, PUBCHEM, PUBMED,
-           PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, DATA_COLLECTOR, SOURCE_SCAN_USI ->
-          this.name().toLowerCase();
+           MONA_ID, CHEMSPIDER, RESOLUTION, SYNONYMS, PUBCHEM, PUBMED, PRINCIPAL_INVESTIGATOR,
+           CHARGE, CAS, SOFTWARE, DATA_COLLECTOR, SOURCE_SCAN_USI -> this.name().toLowerCase();
+      case MOLWEIGHT -> "MW"; // found in massbank NIST format
       case SCAN_NUMBER -> "scan_number";
       case MERGED_SPEC_TYPE -> "merge_type";
       case MERGED_N_SAMPLES -> "merged_across_n_samples";
@@ -891,6 +894,13 @@ public enum DBEntryField {
     if (getObjectClass().equals(RIRecord.class)) {
       return new RIRecord(content);
     }
+
+    if (this == POLARITY) {
+      // polarity may use String or PolarityType as not all strings may be parsed
+      final PolarityType polarity = PolarityType.parseFromString(content);
+      return polarity != PolarityType.UNKNOWN ? polarity : content;
+    }
+
     // TODO currently we can only parse this as list of strings - should be either json list or java object list
     // FloatArrayList IntArrayList and other specialized classes help to load numbers
     else if (getObjectClass().equals(List.class) && content != null) {
