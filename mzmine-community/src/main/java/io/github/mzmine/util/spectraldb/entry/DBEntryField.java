@@ -216,16 +216,19 @@ public enum DBEntryField {
     addAlternativeKey("ionization", DBEntryField.ION_SOURCE); // RIKEN NIST
     addAlternativeKey("ms_ionisation", DBEntryField.ION_SOURCE); // GNPS2 mgf cleaned
     addAlternativeKey("ms_ionization", DBEntryField.ION_SOURCE);
-    addAlternativeKey("ms_mass_analyzer", DBEntryField.INSTRUMENT); // GNPS2 mgf cleaned
-//    addAlternativeKey("ms_manufacturer", DBEntryField.INSTRUMENT_TYPE); // GNPS2 mgf cleaned
+    addAlternativeKey("ms_mass_analyzer", DBEntryField.INSTRUMENT_TYPE); // GNPS2 mgf cleaned
+//    addAlternativeKey("ms_manufacturer", DBEntryField.INSTRUMENT_TYPE); // GNPS2 mgf cleaned - currently no field
     addAlternativeKey("precursor_mz", DBEntryField.PRECURSOR_MZ); // matchms cleaned mgf
+    addAlternativeKey("parent_mass", DBEntryField.EXACT_MASS); // matchms cleaned mgf
     addAlternativeKey("computed_smiles", DBEntryField.SMILES); // matchms_cleaned mgf
     addAlternativeKey("submitter", DBEntryField.DATA_COLLECTOR); // matchms_cleaned mgf
     addAlternativeKey("author", DBEntryField.PRINCIPAL_INVESTIGATOR); // matchms_cleaned mgf
     addAlternativeKey("source_introduction", DBEntryField.ION_SOURCE); // matchms_cleaned mgf
     addAlternativeKey("ms_dissociation_method",
         DBEntryField.FRAGMENTATION_METHOD); // matchms_cleaned mgf
-//    addAlternativeKey("", DBEntryField.);
+    addAlternativeKey("spectrum_id", DBEntryField.ENTRY_ID); // matchms_cleaned mgf
+    addAlternativeKey("retention_time", DBEntryField.RT); // GNPS cleaned mgf
+    addAlternativeKey("raw_filename", DBEntryField.FILENAME); // GNPS cleaned mgf
 //    addAlternativeKey("", DBEntryField.);
   }
 
@@ -871,9 +874,30 @@ public enum DBEntryField {
       return prepared.isBlank() ? 1 : Integer.parseInt(prepared);
     }
     if (this == RT) {
+      if ("-1".equals(content)) {
+        return null;
+      }
       // sometimes contains "min" at the end
       final String prepared = content.replaceAll("[^0-9.]", "");
       return Float.parseFloat(prepared);
+    }
+    if (this == POLARITY) {
+      // try to harmonize but save type for now as string because not all polarities can be parsed yet
+      final PolarityType polarity = PolarityType.parseFromString(content);
+      return polarity.isDefined() ? polarity.toString() : content;
+    }
+    if (this == SCAN_NUMBER) {
+      // may be List<Integer> or int
+      try {
+        final List<Integer> scans = ParsingUtils.stringToIntList(content, ",");
+        return switch (scans.size()) {
+          case 0 -> null;
+          case 1 -> scans.getFirst();
+          default -> scans;
+        };
+      } catch (Exception e) {
+        return content;
+      }
     }
 
     if (getObjectClass().equals(Double.class)) {

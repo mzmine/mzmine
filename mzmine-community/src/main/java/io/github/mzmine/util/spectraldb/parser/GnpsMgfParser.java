@@ -79,6 +79,7 @@ public class GnpsMgfParser extends SpectralDBTextParser {
     // create db
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
       for (String l; (l = br.readLine()) != null; ) {
+        l = l.trim();
         // main task was canceled?
         if (mainTask != null && mainTask.isCanceled()) {
           return false;
@@ -88,14 +89,14 @@ public class GnpsMgfParser extends SpectralDBTextParser {
             // meta data start?
             if (state.equals(State.WAIT_FOR_META)) {
               if (l.equalsIgnoreCase("BEGIN IONS")) {
-                fields = new EnumMap<>(fields);
+                fields = new EnumMap<>(DBEntryField.class);
                 dps.clear();
                 state = State.META;
               }
             } else {
               if (l.equalsIgnoreCase("END IONS")) {
                 // add entry and reset
-                if (fields.size() > 1 && dps.size() > 1) {
+                if (fields.size() > 1 && dps.size() > 0) {
                   SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(
                       library.getStorage(), fields, dps.toArray(new DataPoint[dps.size()]));
                   // add and push
@@ -103,6 +104,8 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                   correct++;
                 }
                 state = State.WAIT_FOR_META;
+                fields = new EnumMap<>(DBEntryField.class);
+                dps.clear();
               } else {
                 // only 1 split into max of String[2]
                 sep = l.split("=", 2);
