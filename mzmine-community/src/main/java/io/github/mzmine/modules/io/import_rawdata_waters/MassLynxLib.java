@@ -54,6 +54,27 @@ import java.util.stream.*;
 
 import static java.lang.foreign.ValueLayout.*;
 
+/**
+ * Java wrapper around the mass lynx wrapper. How to replace with new version:
+ * <p></p>
+ * - Paste new generated MassLynxLib_h class below here, starting with the class definition.
+ * <p></p>
+ * - refactor from MassLynxLib_h to MassLynxLib
+ * <p></p>
+ * - format and rearrange - replace SYMBOL_LOOKUP with:
+ * <pre>
+ *   {@code
+ * static final SymbolLookup SYMBOL_LOOKUP = getSymbolLookup();
+ * private static synchronized SymbolLookup getSymbolLookup() {
+ *   // load mass lynx base library before
+ *   System.load(Path.of("external_tools\\waters_raw\\MassLynxRaw.dll").toAbsolutePath().toString());
+ *   return SymbolLookup.libraryLookup(
+ *           "external_tools/waters_raw/%s".formatted(System.mapLibraryName("MLReader")), LIBRARY_ARENA)
+ *       .or(SymbolLookup.loaderLookup()).or(Linker.nativeLinker().defaultLookup());
+ * }
+ *   }
+ * </pre>
+ */
 public class MassLynxLib {
 
   public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
@@ -2330,6 +2351,53 @@ public class MassLynxLib {
   /**
    * Function descriptor for:
    * {@snippet lang = c:
+   * int32_t isRawSpectrumContinuum(Handle handle, int32_t function)
+   *}
+   */
+  public static FunctionDescriptor isRawSpectrumContinuum$descriptor() {
+    return isRawSpectrumContinuum.DESC;
+  }
+
+  /**
+   * Downcall method handle for:
+   * {@snippet lang = c:
+   * int32_t isRawSpectrumContinuum(Handle handle, int32_t function)
+   *}
+   */
+  public static MethodHandle isRawSpectrumContinuum$handle() {
+    return isRawSpectrumContinuum.HANDLE;
+  }
+
+  /**
+   * Address for:
+   * {@snippet lang = c:
+   * int32_t isRawSpectrumContinuum(Handle handle, int32_t function)
+   *}
+   */
+  public static MemorySegment isRawSpectrumContinuum$address() {
+    return isRawSpectrumContinuum.ADDR;
+  }
+
+  /**
+   * {@snippet lang = c:
+   * int32_t isRawSpectrumContinuum(Handle handle, int32_t function)
+   *}
+   */
+  public static int isRawSpectrumContinuum(MemorySegment handle, int function) {
+    var mh$ = isRawSpectrumContinuum.HANDLE;
+    try {
+      if (TRACE_DOWNCALLS) {
+        traceDowncall("isRawSpectrumContinuum", handle, function);
+      }
+      return (int) mh$.invokeExact(handle, function);
+    } catch (Throwable ex$) {
+      throw new AssertionError("should not reach here", ex$);
+    }
+  }
+
+  /**
+   * Function descriptor for:
+   * {@snippet lang = c:
    * uint32_t isMsFunction(Handle handle, int32_t function)
    *}
    */
@@ -3875,6 +3943,16 @@ public class MassLynxLib {
         MassLynxLib.C_INT, MassLynxLib.C_INT, MassLynxLib.C_POINTER);
 
     public static final MemorySegment ADDR = MassLynxLib.findOrThrow("getScanInfo");
+
+    public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+  }
+
+  private static class isRawSpectrumContinuum {
+
+    public static final FunctionDescriptor DESC = FunctionDescriptor.of(MassLynxLib.C_INT,
+        MassLynxLib.C_POINTER, MassLynxLib.C_INT);
+
+    public static final MemorySegment ADDR = MassLynxLib.findOrThrow("isRawSpectrumContinuum");
 
     public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
   }

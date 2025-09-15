@@ -332,12 +332,10 @@ public class MassLynxDataAccess implements AutoCloseable {
         .toArray(MassLynxLib.C_DOUBLE);
 
     final SimpleSpectralArrays dataPoints;
-    MassSpectrumType spectrumType =
-        scanInfo.isProfile() > 0 ? MassSpectrumType.PROFILE : MassSpectrumType.CENTROIDED;
+    final MassSpectrumType spectrumType = getProcessedSpectrumType(scanInfo, processor);
     if (processor != null && processor.isMassDetectActive(scanInfo.msLevel())) {
       final SimpleSpectralArrays simpleSpectralArrays = new SimpleSpectralArrays(mzs, intensities);
       dataPoints = processor.processor().processScan(metadataScan, simpleSpectralArrays);
-      spectrumType = MassSpectrumType.CENTROIDED;
     } else {
       dataPoints = new SimpleSpectralArrays(mzs, intensities);
     }
@@ -355,7 +353,6 @@ public class MassLynxDataAccess implements AutoCloseable {
           dataPoints.intensities(), spectrumType, scanInfo.polarityType(), scanDefinition,
           getAcquisitionMassRange(function));
     }
-
   }
 
   public @NotNull ScanInfoWrapper getScanInfo(int function, int scan,
@@ -403,12 +400,10 @@ public class MassLynxDataAccess implements AutoCloseable {
         .toArray(MassLynxLib.C_DOUBLE);
 
     final SimpleSpectralArrays dataPoints;
-    MassSpectrumType spectrumType =
-        scanInfo.isProfile() > 0 ? MassSpectrumType.PROFILE : MassSpectrumType.CENTROIDED;
+    final MassSpectrumType spectrumType = getProcessedSpectrumType(scanInfo, processor);
     if (processor != null && processor.isMassDetectActive(scanInfo.msLevel())) {
       final SimpleSpectralArrays simpleSpectralArrays = new SimpleSpectralArrays(mzs, intensities);
       dataPoints = processor.processor().processScan(metadataScan, simpleSpectralArrays);
-      spectrumType = MassSpectrumType.CENTROIDED;
     } else {
       dataPoints = new SimpleSpectralArrays(mzs, intensities);
     }
@@ -433,20 +428,36 @@ public class MassLynxDataAccess implements AutoCloseable {
     }
 
     final List<BuildingMobilityScan> mobScans = readMobilityScansForFrame(function, scan,
-        scanInfo.driftScanCount(), metadataScan);
+        scanInfo.driftScanCount(), scanInfo);
 
     frame.setMobilityScans(mobScans, false);
     frame.setMobilities(getMobilityValues(function));
     return frame;
   }
 
+  /**
+   * @param scanInfo
+   * @param scanProcessor
+   * @return The {@link MassSpectrumType} after potential centroiding in the c library and after the
+   * {@link ScanImportProcessorConfig}. This does not affect {@link #readMobilityScansForFrame}, as
+   * the method uses
+   * {@link MassLynxLib#getRawMobilityScanDataPoints(MemorySegment, int, int, int, MemorySegment,
+   * MemorySegment, int)}
+   */
+  private MassSpectrumType getProcessedSpectrumType(ScanInfoWrapper scanInfo,
+      ScanImportProcessorConfig scanProcessor) {
+    return scanInfo.metadataOnlyScan().getSpectrumType() == MassSpectrumType.PROFILE
+        && !scanProcessor.isMassDetectActive(scanInfo.msLevel()) ? MassSpectrumType.PROFILE
+        : MassSpectrumType.CENTROIDED;
+  }
+
   private @NotNull List<BuildingMobilityScan> readMobilityScansForFrame(int function, int scan,
-      int driftScanCount, @NotNull final MetadataOnlyScan metadataOnlyScan) {
+      int driftScanCount, @NotNull final ScanInfoWrapper scanInfo) {
     final List<BuildingMobilityScan> mobScans = new ArrayList<>();
 
 //    final Instant mobScanLoadStart = Instant.now();
     for (int i = 0; i < driftScanCount; i++) {
-      final int numMobScanDp = MassLynxLib.getMobilityScanDataPoints(handle, function, scan, i,
+      final int numMobScanDp = MassLynxLib.getRawMobilityScanDataPoints(handle, function, scan, i,
           mzBuffer, intensityBuffer, (int) mzBuffer.byteSize());
 
       if (numMobScanDp * MassLynxLib.C_DOUBLE.byteSize() > mzBuffer.byteSize()) {
@@ -462,15 +473,24 @@ public class MassLynxDataAccess implements AutoCloseable {
           numMobScanDp).toArray(MassLynxLib.C_DOUBLE);
 
       final SimpleSpectralArrays dataPoints;
-      if (processor != null && processor.isMassDetectActive(metadataOnlyScan.getMSLevel())) {
+      // special case here. the scan info takes potential centroiding into account. this method
+      // only loads the raw points, without centroiding in the c++ mass lynx library.
+      MassSpectrumType spectrumType =
+          isRawSpectrumProfile(function) ? MassSpectrumType.PROFILE : MassSpectrumType.CENTROIDED;
+//      MassSpectrumType spectrumType = getProcessedSpectrumType(scanInfo, processor);
+      if (processor != null && processor.isMassDetectActive(
+          scanInfo.metadataOnlyScan().getMSLevel())) {
         final SimpleSpectralArrays simpleSpectralArrays = new SimpleSpectralArrays(mobScanMzs,
             mobScanIntensities);
-        dataPoints = processor.processor().processScan(metadataOnlyScan, simpleSpectralArrays);
+        dataPoints = processor.processor()
+            .processScan(scanInfo.metadataOnlyScan(), simpleSpectralArrays);
+        spectrumType = MassSpectrumType.CENTROIDED;
       } else {
         dataPoints = new SimpleSpectralArrays(mobScanMzs, mobScanIntensities);
       }
 
-      mobScans.add(new BuildingMobilityScan(i, dataPoints.mzs(), dataPoints.intensities()));
+      mobScans.add(
+          new BuildingMobilityScan(i, dataPoints.mzs(), dataPoints.intensities(), spectrumType));
     }
 //    final Instant mobScanLoadEnd = Instant.now();
 //    Duration duration = Duration.between(mobScanLoadStart, mobScanLoadEnd);
@@ -619,5 +639,9 @@ public class MassLynxDataAccess implements AutoCloseable {
   public void setThreshold(@Nullable Float threshold) {
     this.threshold = threshold;
     MassLynxLib.setAbsoluteThreshold(handle, Objects.requireNonNullElse(threshold, -1f));
+  }
+
+  private boolean isRawSpectrumProfile(int function) {
+    return MassLynxLib.isRawSpectrumContinuum(handle, function) > 0;
   }
 }
