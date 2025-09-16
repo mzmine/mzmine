@@ -68,6 +68,7 @@ import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModul
 import io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRemovalModule;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule;
 import io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule;
+import io.github.mzmine.modules.dataprocessing.filter_splitaligned.SplitAlignedFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFillerModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
@@ -192,7 +193,7 @@ public final class AcademicWorkspace extends AbstractWorkspace {
     addModuleMenuItems(menu, "Feature list filtering", DuplicateFilterModule.class,
         RowsFilterModule.class, FeatureFilterModule.class, FeatureListBlankSubtractionModule.class,
         ChromatogramBlankSubtractionModule.class, MobilityMzRegionExtractionModule.class,
-        NeutralLossFilterModule.class);
+        NeutralLossFilterModule.class, SplitAlignedFeatureListModule.class);
     addModuleMenuItems(menu, "Alignment", JoinAlignerModule.class, MergeAlignerModule.class,
         RansacAlignerModule.class, GCAlignerModule.class,
         LcImageAlignerModule.class); // HierarAlignerGcModule, ADAP3AlignerModule (not mit compatible)
