@@ -62,6 +62,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
@@ -77,7 +78,6 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardTab;
-import io.github.mzmine.modules.tools.siriusapi.Sirius;
 import io.github.mzmine.modules.tools.siriusapi.modules.export.ExportToSiriusModule;
 import io.github.mzmine.modules.tools.siriusapi.modules.export.ExportToSiriusParameters;
 import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdModule;
@@ -126,7 +126,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -138,9 +137,9 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.image.ImageView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 /**
  * Conditions should be chosen in a way that exceptions are impossible when the item is clicked. On
@@ -411,19 +410,20 @@ public class FeatureTableContextMenu extends ContextMenu {
           ionType.getMass(selectedRow.getAverageMZ())).showInWindow();
     });
 
-    final Menu siriusSubMenu = new Menu("Sirius");
+    final ImageView siriusImage = FxIconUtil.resizeImage("icons/sirius/sirius_icon.png", 20, 20);
+    final Menu siriusSubMenu = new Menu("SIRIUS", siriusImage);
 
-    final MenuItem sendToSirius = new ConditionalMenuItem("Send to Sirius", this::siriusApiCheck);
+    final MenuItem sendToSirius = new ConditionalMenuItem("Send to SIRIUS", this::siriusApiCheck);
     sendToSirius.setOnAction(_ -> MZmineCore.runMZmineModule(ExportToSiriusModule.class,
         ExportToSiriusParameters.of(selectedRows)));
 
-    final MenuItem runFingerId = new ConditionalMenuItem("Send to Sirius & Compute",
+    final MenuItem runFingerId = new ConditionalMenuItem("Send to SIRIUS & Compute",
         this::siriusApiCheck);
     runFingerId.setOnAction(_ -> MZmineCore.runMZmineModule(SiriusFingerIdModule.class,
         SiriusFingerIdParameters.of(selectedRows)));
 
     final MenuItem rankUsingFingerId = new ConditionalMenuItem(
-        "Rank Compound annotations using Sirius",
+        "Rank Compound annotations using SIRIUS",
         () -> siriusApiCheck() && !selectedRow.getCompoundAnnotations().isEmpty());
     rankUsingFingerId.setOnAction(_ -> RankAnnotationsBySiriusModule.runForRows(selectedRows));
 
