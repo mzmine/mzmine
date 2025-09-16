@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.projectload;
 
 import com.google.common.io.CountingInputStream;
+import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
@@ -272,34 +273,27 @@ public class ProjectOpeningTask extends AbstractTask {
 
     currentLoadedObjectName = "Version";
 
-    Pattern versionPattern = Pattern.compile("^(\\d+)\\.(\\d+)\\.?(\\d+)?");
-
-    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-    String projectVersionString = reader.readLine();
-    String mzmineVersionString = String.valueOf(SemverVersionReader.getMZmineVersion());
-
-    // todo adjust for new version when project load/save is done
-    Matcher m = versionPattern.matcher(mzmineVersionString);
-    if (!m.find()) {
-      throw new IOException("Invalid MZmine version " + mzmineVersionString);
+    String projectVersionString = null;
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
+      projectVersionString = reader.readLine();
     }
-    int mzmineMajorVersion = Integer.valueOf(m.group(1));
-    int mzmineMinorVersion = Integer.valueOf(m.group(2));
-
-    m = versionPattern.matcher(projectVersionString);
-    if (!m.find()) {
-      throw new IOException("Invalid project version " + projectVersionString);
+    if(projectVersionString == null) {
+      throw new IOException("Cannot open mzmine project due to a missing version specification.");
     }
 
-    int projectMajorVersion = Integer.valueOf(m.group(1));
-    int projectMinorVersion = Integer.valueOf(m.group(2));
+    final Semver mzmineVersion = SemverVersionReader.getMZmineVersion();
+    final Semver projectVersion = new Semver(projectVersionString);
+
+    final int mzmineMajorVersion = mzmineVersion.getMajor();
+    final int mzmineMinorVersion = mzmineVersion.getMinor();
+
+    final int projectMajorVersion = projectVersion.getMajor();
+    final int projectMinorVersion = projectVersion.getMinor();
 
     // Check if project was saved with an old version
     if (projectMajorVersion < 3) {
-      String message = new StringBuilder(
-          "The requested project was processed with an old version of MZmine ").append(
-              projectVersionString).append(".\n It cannot be opened with MZmine ")
-          .append(mzmineVersionString).toString();
+      final String message = "The requested project was processed with an old version of mzmine "
+          + projectVersionString + ".\nIt cannot be opened with mzmine " + mzmineVersion;
       MZmineCore.getDesktop().displayErrorMessage(message);
       setStatus(TaskStatus.FINISHED);
       return;
@@ -310,7 +304,7 @@ public class ProjectOpeningTask extends AbstractTask {
       if ((projectMajorVersion > mzmineMajorVersion) || ((projectMajorVersion == mzmineMajorVersion)
           && (projectMinorVersion > mzmineMinorVersion))) {
         String warning = "Warning: this project was saved with a newer version of MZmine ("
-            + projectVersionString + "). Opening this project in MZmine " + mzmineVersionString
+            + projectVersionString + "). Opening this project in mzmine " + mzmineVersion
             + " may result in errors or loss of information.";
         MZmineCore.getDesktop().displayMessage(warning);
       }
@@ -320,7 +314,7 @@ public class ProjectOpeningTask extends AbstractTask {
 //    peakListOpenHandler = new PeakListOpenHandler_3_0_old(dataFilesIDMap);
 //    userParameterOpenHandler = new UserParameterOpenHandler_3_0(newProject, dataFilesIDMap);
 
-    rawDataFileOpenHandler = RawDataFileOpenHandler.forVersion(projectVersionString,
+    rawDataFileOpenHandler = RawDataFileOpenHandler.forVersion(projectVersion,
         getModuleCallDate());
   }
 
