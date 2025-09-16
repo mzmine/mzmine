@@ -1,0 +1,97 @@
+name: Bug report
+description: Report a reproducible problem in MZmine
+labels:
+  - type: Bug
+title: "[Bug]: "
+body:
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Provide clear, minimal steps to reproduce the issue.
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. Run ...
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened?
+    validations:
+      required: true
+  - type: textarea
+    id: parameters
+    attributes:
+      label: Parameters used
+      description: List all relevant MZmine module parameters you used.
+      placeholder: |
+        Module: ...
+        Parameter A: ...
+        Parameter B: ...
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / stack traces
+      description: Paste relevant parts of your log (mzmine.log) or stack traces.
+      render: shell
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Paste screenshots of errors or UI state here (drag-and-drop images into this field).
+    validations:
+      required: false
+  - type: textarea
+    id: example_project
+    attributes:
+      label: Example project or data
+      description: |
+        Provide a link to a small, standalone MZmine project demonstrating the problem.
+        Alternatively, include a batch file plus minimal raw files to reproduce.
+        You may use cloud storage links (e.g., Google Drive, Dropbox). Issues without an example project are unlikely to be processed.
+      placeholder: |
+        Link to example project or data:
+    validations:
+      required: false
+  - type: input
+    id: mzmine_version
+    attributes:
+      label: MZmine version/build
+      description: Example "4.7.33" or commit SHA / nightly build info.
+      placeholder: 4.7.33
+    validations:
+      required: true
+  - type: input
+    id: java_version
+    attributes:
+      label: Java version
+      description: Output of `java -version`.
+      placeholder: e.g., OpenJDK 17.0.10
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      multiple: false
+      options:
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
