@@ -10,6 +10,7 @@ import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectralSimilarity;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import org.jetbrains.annotations.Nullable;
 
 public class IsotopePatternScoring {
 
@@ -24,10 +25,13 @@ public class IsotopePatternScoring {
    * detected isotope pattern with the calculated (theoretical) pattern
    */
 
-  public Double calculateIsotopeScore(IsotopePattern detectedPattern,
+  public double calculateIsotopeScore(IsotopePattern detectedPattern,
       IsotopePattern calculatedPattern, MZTolerance mzTolerance, double minHeight) {
     nDetectedPattern = normalizeIsotopePattern(detectedPattern, minHeight);
     nCalculatedPattern = normalizeIsotopePattern(calculatedPattern, minHeight);
+    if(nDetectedPattern == null || nCalculatedPattern == null) {
+      return 0d;
+    }
     DataPoint[] detectedDataPoints = new DataPoint[nDetectedPattern.getNumberOfDataPoints()];
     for (int i = 0; i < detectedDataPoints.length; i++) {
       SimpleDataPoint dp = new SimpleDataPoint(nDetectedPattern.getMzValue(i),
@@ -52,7 +56,12 @@ public class IsotopePatternScoring {
     return score;
   }
 
+  @Nullable
   public IsotopePattern normalizeIsotopePattern(IsotopePattern pattern, double minHeight) {
+
+    if(pattern.getBasePeakIntensity() == null) {
+      return null;
+    }
 
     final double highestIntensity = pattern.getBasePeakIntensity();
 
@@ -64,6 +73,10 @@ public class IsotopePatternScoring {
         filteredMzs.add(pattern.getMzValue(i));
         filteredNormalizedIntensities.add(pattern.getIntensityValue(i) / highestIntensity);
       }
+    }
+
+    if(filteredMzs.isEmpty()) {
+      return null;
     }
 
     return new SimpleIsotopePattern(filteredMzs.toDoubleArray(),
