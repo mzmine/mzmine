@@ -90,8 +90,8 @@ body:
       label: Operating system
       multiple: false
       options:
-        - macOS
         - Windows
         - Linux
+        - macOS
     validations:
       required: true
