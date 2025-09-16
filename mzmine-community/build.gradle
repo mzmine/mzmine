@@ -48,7 +48,6 @@ plugins {
 
     id("maven-publish")
     id("version-catalog")
-    id "com.google.cloud.artifactregistry.gradle-plugin" version("2.2.0")
 }
 
 // save version to main resources

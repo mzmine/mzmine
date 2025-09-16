@@ -5,12 +5,17 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
 
-public class CsiScoreType extends ScoreType {
+public class SiriusCsiScoreType extends ScoreType {
 
   private static final NumberFormat FORMAT = new DecimalFormat("#.##");
 
   @Override
   public NumberFormat getFormat() {
+    return FORMAT;
+  }
+
+  @Override
+  public NumberFormat getExportFormat() {
     return FORMAT;
   }
 

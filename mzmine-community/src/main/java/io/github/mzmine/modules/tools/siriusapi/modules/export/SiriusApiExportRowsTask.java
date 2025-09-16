@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.io.export_features_sirius.SiriusExportParameters;
 import io.github.mzmine.modules.tools.siriusapi.MzmineToSirius;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
 import io.github.mzmine.parameters.ParameterSet;
@@ -48,10 +47,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-public class ExportToSiriusTask extends AbstractFeatureListTask implements
+public class SiriusApiExportRowsTask extends AbstractFeatureListTask implements
     TaskSubSupplier<Map<Integer, String>> {
 
-  private static final Logger logger = Logger.getLogger(ExportToSiriusTask.class.getName());
+  private static final Logger logger = Logger.getLogger(SiriusApiExportRowsTask.class.getName());
   private final String idString;
   private Map<Integer, String> rowIdToSiriusId = null;
   private ModularFeatureList flist;
@@ -62,12 +61,12 @@ public class ExportToSiriusTask extends AbstractFeatureListTask implements
    *                       stored in ram. For now, one storage should be created per module call in
    * @param moduleCallDate the call date of module to order execution order
    */
-  protected ExportToSiriusTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+  protected SiriusApiExportRowsTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
-    flist = parameters.getValue(ExportToSiriusParameters.flist)
+    flist = parameters.getValue(SiriusApiExportRowsParameters.flist)
         .getMatchingFeatureLists()[0];
-    idString = parameters.getOptionalValue(ExportToSiriusParameters.rowIds).orElse("");
+    idString = parameters.getOptionalValue(SiriusApiExportRowsParameters.rowIds).orElse("");
   }
 
   @Override

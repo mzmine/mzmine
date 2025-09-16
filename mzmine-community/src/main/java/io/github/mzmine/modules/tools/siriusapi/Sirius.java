@@ -28,12 +28,11 @@ package io.github.mzmine.modules.tools.siriusapi;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.dialogs.NotificationService;
 import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
-import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdModule;
-import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdParameters;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdParameters;
 import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -55,8 +54,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -266,8 +263,8 @@ public class Sirius implements AutoCloseable {
     config.setAlignedFeatureIds(List.of(siriusId));
     final Job job = sirius.jobs()
         .startJob(projectSpace.getProjectId(), config, List.of(JobOptField.PROGRESS));
-    JobWaiterTask task = new JobWaiterTask(SiriusFingerIdModule.class, Instant.now(),
-        SiriusFingerIdParameters.of(List.of(row)), () -> sirius.jobs()
+    JobWaiterTask task = new JobWaiterTask(SiriusApiFingerIdModule.class, Instant.now(),
+        SiriusApiFingerIdParameters.of(List.of(row)), () -> sirius.jobs()
         .getJob(projectSpace.getProjectId(), job.getId(), List.of(JobOptField.PROGRESS)),
         () -> SiriusToMzmine.importResultsForRows(this, List.of(row)));
 

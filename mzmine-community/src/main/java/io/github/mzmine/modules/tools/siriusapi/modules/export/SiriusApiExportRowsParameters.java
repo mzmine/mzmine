@@ -22,13 +22,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.siriusapi.modules.rank_annotations;
+package io.github.mzmine.modules.tools.siriusapi.modules.export;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdModule;
-import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -38,38 +36,40 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.util.FeatureUtils;
 import java.util.List;
 
-public class RankAnnotationsBySiriusParameters extends SimpleParameterSet {
+public class SiriusApiExportRowsParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1);
 
   public static final OptionalParameter<StringParameter> rowIds = new OptionalParameter<>(
       new StringParameter("Row IDs",
-          "The ids of the rows to run Sirius for. If not selected, the whole feature list will be processed."));
+          "If selected, only specific features will be exported. Otherwise, the complete feature list is exported. The ids of the rows to run CSI:FingerID for."),
+      false);
 
-  public RankAnnotationsBySiriusParameters() {
+  public SiriusApiExportRowsParameters() {
     super(flist, rowIds);
   }
 
-  public static RankAnnotationsBySiriusParameters of(List<? extends FeatureListRow> rows) {
+  public static SiriusApiExportRowsParameters of(List<? extends FeatureListRow> rows) {
     final String ids = FeatureUtils.rowsToIdString(rows);
 
     final ModularFeatureList featureList = (ModularFeatureList) rows.stream()
         .map(r -> r.getFeatureList()).findFirst().get();
 
     final ParameterSet parameters = ConfigService.getConfiguration()
-        .getModuleParameters(RankAnnotationsBySiriusModule.class).cloneParameterSet();
+        .getModuleParameters(SiriusApiExportRowsModule.class).cloneParameterSet();
 
     parameters.setParameter(flist, new FeatureListsSelection(featureList));
     parameters.setParameter(rowIds, true, ids);
-    return (RankAnnotationsBySiriusParameters) parameters;
+    return (SiriusApiExportRowsParameters) parameters;
   }
 
-  public static RankAnnotationsBySiriusParameters of(ModularFeatureList flist) {
+  public static SiriusApiExportRowsParameters of(ModularFeatureList flist) {
     final ParameterSet parameters = ConfigService.getConfiguration()
-        .getModuleParameters(RankAnnotationsBySiriusModule.class).cloneParameterSet();
+        .getModuleParameters(SiriusApiExportRowsModule.class).cloneParameterSet();
 
-    parameters.setParameter(SiriusFingerIdParameters.flist, new FeatureListsSelection(flist));
+    parameters.setParameter(SiriusApiExportRowsParameters.flist, new FeatureListsSelection(flist));
     parameters.setParameter(rowIds, false, "");
-    return (RankAnnotationsBySiriusParameters) parameters;
+    return (SiriusApiExportRowsParameters) parameters;
   }
+
 }

@@ -78,11 +78,11 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardTab;
-import io.github.mzmine.modules.tools.siriusapi.modules.export.ExportToSiriusModule;
-import io.github.mzmine.modules.tools.siriusapi.modules.export.ExportToSiriusParameters;
-import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdModule;
-import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdParameters;
-import io.github.mzmine.modules.tools.siriusapi.modules.rank_annotations.RankAnnotationsBySiriusModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.export.SiriusApiExportRowsModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.export.SiriusApiExportRowsParameters;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdParameters;
+import io.github.mzmine.modules.tools.siriusapi.modules.rank_annotations.SiriusApiRankAnnotationsModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
@@ -414,18 +414,18 @@ public class FeatureTableContextMenu extends ContextMenu {
     final Menu siriusSubMenu = new Menu("SIRIUS", siriusImage);
 
     final MenuItem sendToSirius = new ConditionalMenuItem("Send to SIRIUS", this::siriusApiCheck);
-    sendToSirius.setOnAction(_ -> MZmineCore.runMZmineModule(ExportToSiriusModule.class,
-        ExportToSiriusParameters.of(selectedRows)));
+    sendToSirius.setOnAction(_ -> MZmineCore.runMZmineModule(SiriusApiExportRowsModule.class,
+        SiriusApiExportRowsParameters.of(selectedRows)));
 
     final MenuItem runFingerId = new ConditionalMenuItem("Send to SIRIUS & Compute",
         this::siriusApiCheck);
-    runFingerId.setOnAction(_ -> MZmineCore.runMZmineModule(SiriusFingerIdModule.class,
-        SiriusFingerIdParameters.of(selectedRows)));
+    runFingerId.setOnAction(_ -> MZmineCore.runMZmineModule(SiriusApiFingerIdModule.class,
+        SiriusApiFingerIdParameters.of(selectedRows)));
 
     final MenuItem rankUsingFingerId = new ConditionalMenuItem(
         "Rank Compound annotations using SIRIUS",
         () -> siriusApiCheck() && !selectedRow.getCompoundAnnotations().isEmpty());
-    rankUsingFingerId.setOnAction(_ -> RankAnnotationsBySiriusModule.runForRows(selectedRows));
+    rankUsingFingerId.setOnAction(_ -> SiriusApiRankAnnotationsModule.runForRows(selectedRows));
 
     siriusSubMenu.getItems().addAll(sendToSirius, runFingerId, rankUsingFingerId);
 

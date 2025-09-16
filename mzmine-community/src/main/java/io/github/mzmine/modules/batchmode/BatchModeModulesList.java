@@ -160,9 +160,9 @@ import io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPrevie
 import io.github.mzmine.modules.tools.output_analyze_logs.AnalyzeLogFileModule;
 import io.github.mzmine.modules.tools.output_compare_csv.CompareModularCsvModule;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule;
-import io.github.mzmine.modules.tools.siriusapi.modules.export.ExportToSiriusModule;
-import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdModule;
-import io.github.mzmine.modules.tools.siriusapi.modules.import_annotations.SiriusResultsImportModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.export.SiriusApiExportRowsModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.import_annotations.SiriusApiResultsImportModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
@@ -390,8 +390,8 @@ public class BatchModeModulesList {
           PrecursorDBSearchModule.class, //
           SpectralLibrarySearchModule.class, //
           BioTransformerModule.class, //
-          SiriusResultsImportModule.class, //
-          SiriusFingerIdModule.class, //
+          SiriusApiResultsImportModule.class, //
+          SiriusApiFingerIdModule.class, //
 
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_IO}
@@ -407,7 +407,7 @@ public class BatchModeModulesList {
           AdapMspExportModule.class, //
           NetCDFExportModule.class, //
           SiriusExportModule.class, //
-          ExportToSiriusModule.class, //
+          SiriusApiExportRowsModule.class, //
           MZTabmImportModule.class, //
           CSVExportModularModule.class, //
           LegacyCSVExportModule.class, //

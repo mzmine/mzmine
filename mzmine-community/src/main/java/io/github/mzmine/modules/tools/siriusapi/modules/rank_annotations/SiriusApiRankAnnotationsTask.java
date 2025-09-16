@@ -34,8 +34,8 @@ import io.github.mzmine.modules.tools.siriusapi.JobWaiterTask;
 import io.github.mzmine.modules.tools.siriusapi.MzmineToSirius;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
 import io.github.mzmine.modules.tools.siriusapi.SiriusToMzmine;
-import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdModule;
-import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdParameters;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.FeatureTableFXUtil;
@@ -52,7 +52,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RankAnnotationsBySiriusTask extends AbstractFeatureListTask {
+public class SiriusApiRankAnnotationsTask extends AbstractFeatureListTask {
 
   private final @NotNull String idStr;
   private final @NotNull ModularFeatureList flist;
@@ -66,12 +66,12 @@ public class RankAnnotationsBySiriusTask extends AbstractFeatureListTask {
    * @param parameters
    * @param moduleClass
    */
-  protected RankAnnotationsBySiriusTask(@Nullable MemoryMapStorage storage,
+  protected SiriusApiRankAnnotationsTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
       @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
-    idStr = parameters.getOptionalValue(SiriusFingerIdParameters.rowIds).orElse("");
-    flist = parameters.getValue(SiriusFingerIdParameters.flist).getMatchingFeatureLists()[0];
+    idStr = parameters.getOptionalValue(SiriusApiFingerIdParameters.rowIds).orElse("");
+    flist = parameters.getValue(SiriusApiFingerIdParameters.flist).getMatchingFeatureLists()[0];
   }
 
   @Override
@@ -125,8 +125,8 @@ public class RankAnnotationsBySiriusTask extends AbstractFeatureListTask {
 
         final Job job = sirius.api().jobs()
             .startJob(sirius.getProject().getProjectId(), config, List.of(JobOptField.PROGRESS));
-        JobWaiterTask task = new JobWaiterTask(SiriusFingerIdModule.class, Instant.now(),
-            SiriusFingerIdParameters.of(List.of(row)), () -> sirius.api().jobs()
+        JobWaiterTask task = new JobWaiterTask(SiriusApiFingerIdModule.class, Instant.now(),
+            SiriusApiFingerIdParameters.of(List.of(row)), () -> sirius.api().jobs()
             .getJob(sirius.getProject().getProjectId(), job.getId(), List.of(JobOptField.PROGRESS)),
             () -> {
             });

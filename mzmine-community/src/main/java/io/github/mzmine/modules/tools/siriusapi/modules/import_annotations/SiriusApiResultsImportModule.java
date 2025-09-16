@@ -11,10 +11,10 @@ import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SiriusResultsImportModule extends TaskPerFeatureListModule {
+public class SiriusApiResultsImportModule extends TaskPerFeatureListModule {
 
-  public SiriusResultsImportModule() {
-    super("Import results from Sirius project (API)", SiriusResultsImportParameters.class,
+  public SiriusApiResultsImportModule() {
+    super("Import results from Sirius project (API)", SiriusApiResultsImportParameters.class,
         MZmineModuleCategory.ANNOTATION, false, "Import results from a Sirius project");
   }
 
@@ -22,6 +22,6 @@ public class SiriusResultsImportModule extends TaskPerFeatureListModule {
   public @NotNull Task createTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage,
       @NotNull FeatureList featureList) {
-    return new SiriusResultsImportTask(moduleCallDate, parameters, featureList);
+    return new SiriusApiResultsImportTask(moduleCallDate, parameters, featureList);
   }
 }

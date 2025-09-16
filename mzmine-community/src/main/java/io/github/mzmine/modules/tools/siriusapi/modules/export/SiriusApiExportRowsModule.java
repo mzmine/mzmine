@@ -35,7 +35,7 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ExportToSiriusModule implements MZmineProcessingModule {
+public class SiriusApiExportRowsModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getDescription() {
@@ -47,7 +47,7 @@ public class ExportToSiriusModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    tasks.add(new ExportToSiriusTask(null, moduleCallDate, parameters, this.getClass()));
+    tasks.add(new SiriusApiExportRowsTask(null, moduleCallDate, parameters, this.getClass()));
 
     return ExitCode.OK;
   }
@@ -64,6 +64,6 @@ public class ExportToSiriusModule implements MZmineProcessingModule {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return ExportToSiriusParameters.class;
+    return SiriusApiExportRowsParameters.class;
   }
 }

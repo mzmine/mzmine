@@ -40,7 +40,7 @@ import io.github.mzmine.util.FeatureUtils;
 import java.util.List;
 import java.util.Map;
 
-public class SiriusFingerIdParameters extends SimpleParameterSet {
+public class SiriusApiFingerIdParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1);
 
@@ -51,30 +51,30 @@ public class SiriusFingerIdParameters extends SimpleParameterSet {
   public static final HiddenParameter<Map<String, Boolean>> countWarningOptOut = new HiddenParameter<>(
       new OptOutParameter("Feature count warning", ""));
 
-  public SiriusFingerIdParameters() {
+  public SiriusApiFingerIdParameters() {
     super(flist, rowIds, countWarningOptOut);
   }
 
-  public static SiriusFingerIdParameters of(List<? extends FeatureListRow> rows) {
+  public static SiriusApiFingerIdParameters of(List<? extends FeatureListRow> rows) {
     final String ids = FeatureUtils.rowsToIdString(rows);
 
     final ModularFeatureList featureList = (ModularFeatureList) rows.stream()
         .map(r -> r.getFeatureList()).findFirst().get();
 
     final ParameterSet parameters = ConfigService.getConfiguration()
-        .getModuleParameters(SiriusFingerIdModule.class).cloneParameterSet();
+        .getModuleParameters(SiriusApiFingerIdModule.class).cloneParameterSet();
 
     parameters.setParameter(flist, new FeatureListsSelection(featureList));
     parameters.setParameter(rowIds, true, ids);
-    return (SiriusFingerIdParameters) parameters;
+    return (SiriusApiFingerIdParameters) parameters;
   }
 
-  public static SiriusFingerIdParameters of(ModularFeatureList flist) {
+  public static SiriusApiFingerIdParameters of(ModularFeatureList flist) {
     final ParameterSet parameters = ConfigService.getConfiguration()
-        .getModuleParameters(SiriusFingerIdModule.class).cloneParameterSet();
+        .getModuleParameters(SiriusApiFingerIdModule.class).cloneParameterSet();
 
-    parameters.setParameter(SiriusFingerIdParameters.flist, new FeatureListsSelection(flist));
+    parameters.setParameter(SiriusApiFingerIdParameters.flist, new FeatureListsSelection(flist));
     parameters.setParameter(rowIds, false, "");
-    return (SiriusFingerIdParameters) parameters;
+    return (SiriusApiFingerIdParameters) parameters;
   }
 }

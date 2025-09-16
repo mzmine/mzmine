@@ -43,7 +43,7 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.CsiScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.SiriusCsiScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.gui.preferences.NumberFormats;
@@ -100,7 +100,7 @@ public class SiriusToMzmine {
     annotation.putIfNotNull(NeutralMassType.class, neutralMass);
     annotation.put(CommentType.class,
         "Imported from Sirius. CSI score: %s".formatted(formats.score(structure.getCsiScore())));
-    annotation.putIfNotNull(CsiScoreType.class, structure.getCsiScore().floatValue());
+    annotation.putIfNotNull(SiriusCsiScoreType.class, structure.getCsiScore().floatValue());
 //    annotation.putIfNotNull(DatabaseNameType.class,
 //        structure.getDbLinks().isEmpty() ? null : structure.getDbLinks().getFirst().getName());
     annotation.putIfNotNull(ALogPType.class, structure.getXlogP().floatValue());

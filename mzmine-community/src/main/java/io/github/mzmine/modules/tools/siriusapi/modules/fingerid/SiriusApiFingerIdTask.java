@@ -39,9 +39,7 @@ import io.github.mzmine.modules.tools.siriusapi.Sirius;
 import io.github.mzmine.modules.tools.siriusapi.SiriusToMzmine;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
-import io.github.mzmine.parameters.parametertypes.OptOutParameter;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
-import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -59,7 +57,7 @@ import javafx.scene.text.TextFlow;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SiriusFingerIdTask extends AbstractFeatureListTask {
+public class SiriusApiFingerIdTask extends AbstractFeatureListTask {
 
   public static final int FEATURE_COUNT_THRESHOLD = 50;
   private static final CloseableReentrantReadWriteLock optOutLock = new CloseableReentrantReadWriteLock();
@@ -75,11 +73,11 @@ public class SiriusFingerIdTask extends AbstractFeatureListTask {
    * @param parameters
    * @param moduleClass
    */
-  protected SiriusFingerIdTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+  protected SiriusApiFingerIdTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
-    idStr = parameters.getOptionalValue(SiriusFingerIdParameters.rowIds).orElse("");
-    flist = parameters.getValue(SiriusFingerIdParameters.flist).getMatchingFeatureLists()[0];
+    idStr = parameters.getOptionalValue(SiriusApiFingerIdParameters.rowIds).orElse("");
+    flist = parameters.getValue(SiriusApiFingerIdParameters.flist).getMatchingFeatureLists()[0];
   }
 
   @Override
@@ -136,8 +134,8 @@ public class SiriusFingerIdTask extends AbstractFeatureListTask {
     }
 
     final HiddenParameter<Map<String, Boolean>> optOutParam = ConfigService.getConfiguration()
-        .getModuleParameters(SiriusFingerIdModule.class)
-        .getParameter(SiriusFingerIdParameters.countWarningOptOut);
+        .getModuleParameters(SiriusApiFingerIdModule.class)
+        .getParameter(SiriusApiFingerIdParameters.countWarningOptOut);
     final String userHash = String.valueOf(CurrentUserService.getUserName().hashCode());
 
     try (var _ = optOutLock.lockRead()) {

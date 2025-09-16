@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.jetbrains.annotations.NotNull;
 
-public class SiriusResultsImportTask extends AbstractTask {
+public class SiriusApiResultsImportTask extends AbstractTask {
 
   private final File siriusProject;
   @NotNull
@@ -26,12 +26,12 @@ public class SiriusResultsImportTask extends AbstractTask {
   private long siriusFeatures = 0;
   private long importedFeatures = 0;
 
-  protected SiriusResultsImportTask(@NotNull Instant moduleCallDate,
+  protected SiriusApiResultsImportTask(@NotNull Instant moduleCallDate,
       @NotNull ParameterSet parameters, @NotNull FeatureList featureList) {
     super(moduleCallDate);
     this.parameters = parameters;
     this.flist = featureList;
-    siriusProject = parameters.getValue(SiriusResultsImportParameters.sirius);
+    siriusProject = parameters.getValue(SiriusApiResultsImportParameters.sirius);
   }
 
   @Override
@@ -53,7 +53,7 @@ public class SiriusResultsImportTask extends AbstractTask {
     }
 
     flist.getAppliedMethods().add(
-        new SimpleFeatureListAppliedMethod(SiriusResultsImportModule.class, parameters,
+        new SimpleFeatureListAppliedMethod(SiriusApiResultsImportModule.class, parameters,
             getModuleCallDate()));
     setStatus(TaskStatus.FINISHED);
   }

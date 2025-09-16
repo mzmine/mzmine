@@ -7,7 +7,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 
-public class SiriusResultsImportParameters extends SimpleParameterSet {
+public class SiriusApiResultsImportParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1);
 
@@ -15,7 +15,7 @@ public class SiriusResultsImportParameters extends SimpleParameterSet {
       "Select the sirius project file to import results from.",
       List.of(new ExtensionFilter("Sirius project", "*.sirius")), FileSelectionType.OPEN);
 
-  public SiriusResultsImportParameters() {
+  public SiriusApiResultsImportParameters() {
     super(flist, sirius);
   }
 }
