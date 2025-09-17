@@ -41,8 +41,10 @@ public class SiriusApiExportRowsParameters extends SimpleParameterSet {
   public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1);
 
   public static final OptionalParameter<StringParameter> rowIds = new OptionalParameter<>(
-      new StringParameter("Row IDs",
-          "If selected, only specific features will be exported. Otherwise, the complete feature list is exported. The ids of the rows to run CSI:FingerID for."),
+      new StringParameter("Row IDs", """
+          If selected, only specific features will be exported. Otherwise, the complete feature list is exported.
+          The ids of the rows to run CSI:FingerID for.
+          Specify row IDs as ranges or lists: 1,5-8,10"""),
       false);
 
   public SiriusApiExportRowsParameters() {

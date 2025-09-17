@@ -31,9 +31,9 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.AbstractSimpleTask;
-import io.sirius.ms.sdk.SiriusSDK;
-import io.sirius.ms.sdk.SiriusSDKUtils;
+import io.github.mzmine.taskcontrol.Task;
 import io.sirius.ms.sdk.model.Job;
+import io.sirius.ms.sdk.model.JobProgress;
 import io.sirius.ms.sdk.model.JobState;
 import java.time.Instant;
 import java.util.Arrays;
@@ -44,11 +44,14 @@ import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class JobWaiterTask extends AbstractSimpleTask {
+public class SiriusJobWaiterTask extends AbstractSimpleTask {
 
-  private static final Logger logger = Logger.getLogger(JobWaiterTask.class.getName());
+  private static final Logger logger = Logger.getLogger(SiriusJobWaiterTask.class.getName());
 
+  @Nullable
+  private final Task parentTask;
   private final @NotNull Supplier<Job> jobSupplier;
   private final @NotNull Runnable onFinished;
   private final @NotNull FeatureList[] flist;
@@ -56,10 +59,12 @@ public class JobWaiterTask extends AbstractSimpleTask {
   /**
    * @param jobSupplier supplier to retrieve the job status from the sirius api.
    */
-  public JobWaiterTask(@NotNull Class<? extends MZmineModule> callingModule,
-      @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
-      @NotNull Supplier<Job> jobSupplier, @NotNull Runnable onFinished) {
+  public SiriusJobWaiterTask(@Nullable Task parentTask,
+      @NotNull Class<? extends MZmineModule> callingModule, @NotNull Instant moduleCallDate,
+      @NotNull ParameterSet parameters, @NotNull Supplier<Job> jobSupplier,
+      @NotNull Runnable onFinished) {
     super(null, moduleCallDate, parameters, callingModule);
+    this.parentTask = parentTask;
     this.jobSupplier = jobSupplier;
     this.onFinished = onFinished;
     flist = ParameterUtils.getMatchingFeatureListsFromParameter(getParameters());
@@ -69,6 +74,9 @@ public class JobWaiterTask extends AbstractSimpleTask {
   protected void process() {
     try {
       while (!hasFinished(jobSupplier.get())) {
+        if (parentTask != null && (parentTask.isFinished() || parentTask.isCanceled())) {
+          break;
+        }
         TimeUnit.MILLISECONDS.sleep(100);
       }
     } catch (InterruptedException e) {
@@ -76,7 +84,7 @@ public class JobWaiterTask extends AbstractSimpleTask {
     }
 
     if (!wasSuccessful(jobSupplier.get())) {
-      logger.warning(() -> "Sirius job was not successful.");
+      error("Sirius job was not successful.");
       return;
     }
 
@@ -85,7 +93,7 @@ public class JobWaiterTask extends AbstractSimpleTask {
 
   @Override
   protected @NotNull List<FeatureList> getProcessedFeatureLists() {
-    return Arrays.stream(flist).toList();
+    return List.of();
   }
 
   @Override
@@ -99,19 +107,33 @@ public class JobWaiterTask extends AbstractSimpleTask {
         .collect(Collectors.joining(", "));
   }
 
-  boolean hasFinished(Job job) {
-    final JobState state = job.getProgress().getState();
+  boolean hasFinished(@NotNull Job job) {
+    final JobProgress progress = job.getProgress();
+    if (progress == null) {
+      throw new IllegalStateException(
+          "Sirius job %s does not specify its progress.".formatted(job.toString()));
+    }
+    final JobState state = progress.getState();
     return switch (state) {
       case WAITING, READY, QUEUED, SUBMITTED, RUNNING -> false;
       case CANCELED, FAILED, DONE -> true;
+      case null -> throw new IllegalStateException(
+          "Sirius job %s does not specify its state.".formatted(job.toString()));
     };
   }
 
-  boolean wasSuccessful(Job job) {
-    final JobState state = job.getProgress().getState();
+  boolean wasSuccessful(@NotNull Job job) {
+    final JobProgress progress = job.getProgress();
+    if (progress == null) {
+      throw new IllegalStateException(
+          "Sirius job %s does not specify its progress.".formatted(job.toString()));
+    }
+    final JobState state = progress.getState();
     return switch (state) {
       case WAITING, READY, QUEUED, SUBMITTED, RUNNING, CANCELED, FAILED -> false;
       case DONE -> true;
+      case null -> throw new IllegalStateException(
+          "Sirius job %s does not specify its state.".formatted(job.toString()));
     };
   }
 

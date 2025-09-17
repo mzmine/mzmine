@@ -59,7 +59,7 @@ public class SiriusApiExportRowsModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getName() {
-    return "Export to Sirius (API)";
+    return "Export to SIRIUS (API)";
   }
 
   @Override

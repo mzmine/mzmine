@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.tools.siriusapi;
 
 import com.google.common.collect.Range;
-import com.opencsv.CSVWriterBuilder;
 import com.opencsv.ICSVWriter;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
@@ -41,7 +40,9 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
+import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.WriterOptions;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -57,8 +58,6 @@ import io.sirius.ms.sdk.model.SearchableDatabaseParameters;
 import io.sirius.ms.sdk.model.SimplePeak;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -126,6 +125,9 @@ public class MzmineToSirius {
         || scan.getMassList().getNumberOfDataPoints() == 0
         || scan.getMassList().getBasePeakIntensity() == null || (scan instanceof PseudoSpectrum ps
         && ps.getPseudoSpectrumType() == PseudoSpectrumType.GC_EI)) {
+      if (scan != null && scan.getMassList() == null) {
+        throw new MissingMassListException(scan);
+      }
       return null;
     }
 
@@ -185,12 +187,11 @@ public class MzmineToSirius {
       final @NotNull List<CompoundDBAnnotation> compounds, @NotNull Sirius sirius) {
 
     final Map<String, CompoundDBAnnotation> uniqueCompounds = compounds.stream()
-        .filter(a -> a.getSmiles() != null)
-        .collect(Collectors.toMap(CompoundDBAnnotation::getSmiles, a -> a));
+        .filter(a -> a.getStructure() != null && a.getStructure().isomericSmiles() != null)
+        .collect(Collectors.toMap(a -> a.getStructure().isomericSmiles(), a -> a));
     final File dbFile = writeCompoundsToFile(uniqueCompounds);
 
     final SearchableDatabasesApi databases = sirius.api().databases();
-    databases.getCustomDatabases(false, false);
 
     final SearchableDatabase database = databases.getCustomDatabases(false, false).stream()
         .filter(db -> db.getDatabaseId().equals(Sirius.mzmineCustomDbId)).findFirst()
@@ -215,11 +216,8 @@ public class MzmineToSirius {
       file.getParentFile().mkdirs();
     }
 
-    try (var bufferedWriter = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8,
-        WriterOptions.REPLACE.toOpenOption())) {
-      CSVWriterBuilder builder = new CSVWriterBuilder(bufferedWriter).withSeparator('\t');
-      final ICSVWriter writer = builder.build();
-
+    try (final ICSVWriter writer = CSVParsingUtils.createDefaultWriter(file, '\t',
+        WriterOptions.REPLACE);) {
       for (Entry<String, CompoundDBAnnotation> entry : db.entrySet()) {
         final String smiles = entry.getKey();
         final CompoundDBAnnotation annotation = entry.getValue();
@@ -228,7 +226,6 @@ public class MzmineToSirius {
         writer.writeNext(new String[]{smiles, Objects.requireNonNullElse(inChIKey, ""), name},
             false);
       }
-      bufferedWriter.flush();
     } catch (IOException e) {
       logger.log(Level.SEVERE, e.getMessage(), e);
       throw new RuntimeException(e);
@@ -250,7 +247,7 @@ public class MzmineToSirius {
       @NotNull List<? extends @NotNull FeatureListRow> rows) {
     sirius.checkLogin();
 
-    final Map<Integer, String> alreadyImportedIds = getAllAlignedFeatureIds(sirius);
+    final Map<Integer, String> alreadyImportedIds = SiriusToMzmine.getAllAlignedFeatureIds(sirius);
 
     // only send the features that are not already imported
     final List<? extends FeatureListRow> notImportedRows = rows.stream()
@@ -279,19 +276,4 @@ public class MzmineToSirius {
     return idMap;
   }
 
-  /**
-   * @param sirius The sirius instance.
-   * @return A map of {@link FeatureListRow#getID()} ->
-   * {@link AlignedFeature#getAlignedFeatureId()}.
-   */
-  private static @NotNull Map<Integer, String> getAllAlignedFeatureIds(@NotNull Sirius sirius) {
-    final Map<Integer, String> alreadyImportedFeatures = sirius.api().features()
-        .getAlignedFeatures(sirius.getProject().getProjectId(), null,
-            List.of(AlignedFeatureOptField.NONE)).stream()
-        .filter(af -> af.getAlignedFeatureId() != null && af.getExternalFeatureId() != null)
-        .collect(Collectors.toMap(
-            alignedFeature -> Integer.valueOf(alignedFeature.getExternalFeatureId()),
-            AlignedFeature::getAlignedFeatureId));
-    return alreadyImportedFeatures;
-  }
 }

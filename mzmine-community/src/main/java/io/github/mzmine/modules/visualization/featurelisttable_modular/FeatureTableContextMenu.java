@@ -423,7 +423,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         SiriusApiFingerIdParameters.of(selectedRows)));
 
     final MenuItem rankUsingFingerId = new ConditionalMenuItem(
-        "Rank Compound annotations using SIRIUS",
+        "Rank compound annotations using SIRIUS",
         () -> siriusApiCheck() && !selectedRow.getCompoundAnnotations().isEmpty());
     rankUsingFingerId.setOnAction(_ -> SiriusApiRankAnnotationsModule.runForRows(selectedRows));
 

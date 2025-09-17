@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.tools.siriusapi.JobWaiterTask;
+import io.github.mzmine.modules.tools.siriusapi.SiriusJobWaiterTask;
 import io.github.mzmine.modules.tools.siriusapi.MzmineToSirius;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
 import io.github.mzmine.modules.tools.siriusapi.SiriusToMzmine;
@@ -125,20 +125,20 @@ public class SiriusApiRankAnnotationsTask extends AbstractFeatureListTask {
 
         final Job job = sirius.api().jobs()
             .startJob(sirius.getProject().getProjectId(), config, List.of(JobOptField.PROGRESS));
-        JobWaiterTask task = new JobWaiterTask(SiriusApiFingerIdModule.class, Instant.now(),
+        SiriusJobWaiterTask task = new SiriusJobWaiterTask(this, SiriusApiFingerIdModule.class, Instant.now(),
+            //
             SiriusApiFingerIdParameters.of(List.of(row)), () -> sirius.api().jobs()
             .getJob(sirius.getProject().getProjectId(), job.getId(), List.of(JobOptField.PROGRESS)),
+            //
             () -> {
+              final List<CompoundDBAnnotation> rankedAnnotations = SiriusToMzmine.getSiriusAnnotations(
+                  sirius, siriusId, row);
+              row.setCompoundAnnotations(rankedAnnotations);
+              FeatureTableFXUtil.updateCellsForFeatureList(flist);
             });
 
         task.run();
 
-        final List<CompoundDBAnnotation> rankedAnnotations = SiriusToMzmine.getSiriusAnnotations(
-            sirius, siriusId, row);
-
-        row.setCompoundAnnotations(rankedAnnotations);
-
-        FeatureTableFXUtil.updateCellsForFeatureList(flist);
         finishedItems.getAndIncrement();
 
         if (isCanceled()) {

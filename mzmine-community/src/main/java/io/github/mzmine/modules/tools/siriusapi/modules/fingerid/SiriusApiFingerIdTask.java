@@ -33,7 +33,7 @@ import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.tools.siriusapi.JobWaiterTask;
+import io.github.mzmine.modules.tools.siriusapi.SiriusJobWaiterTask;
 import io.github.mzmine.modules.tools.siriusapi.MzmineToSirius;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
 import io.github.mzmine.modules.tools.siriusapi.SiriusToMzmine;
@@ -63,7 +63,7 @@ public class SiriusApiFingerIdTask extends AbstractFeatureListTask {
   private static final CloseableReentrantReadWriteLock optOutLock = new CloseableReentrantReadWriteLock();
   private final ModularFeatureList flist;
   private final String idStr;
-  private JobWaiterTask jobWaiterTask = null;
+  private SiriusJobWaiterTask jobWaiterTask = null;
 
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
@@ -115,7 +115,7 @@ public class SiriusApiFingerIdTask extends AbstractFeatureListTask {
       final Job job = sirius.api().jobs()
           .startJob(sirius.getProject().getProjectId(), submission, List.of(JobOptField.PROGRESS));
 
-      jobWaiterTask = new JobWaiterTask(getModuleClass(), moduleCallDate, parameters,
+      jobWaiterTask = new SiriusJobWaiterTask(this, getModuleClass(), moduleCallDate, parameters,
           () -> sirius.api().jobs()
               .getJob(sirius.getProject().getProjectId(), job.getId(), List.of()),
           () -> SiriusToMzmine.importResultsForRows(sirius, rows));

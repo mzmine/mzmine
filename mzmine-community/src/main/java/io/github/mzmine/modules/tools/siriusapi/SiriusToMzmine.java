@@ -194,7 +194,8 @@ public class SiriusToMzmine {
 
     if (alignedFeature == null) {
       throw new AlignedFeatureDoesNotExistException(siriusFeatureId,
-          sirius.getProject().getProjectId(), row);
+          Objects.requireNonNullElse(sirius.getProject().getProjectId(), "no project specified"),
+          row);
     }
     checkSiriusMzmineFeatureMatch(sirius.getProject(), alignedFeature, row);
 
@@ -226,11 +227,7 @@ public class SiriusToMzmine {
   public static Map<FeatureListRow, String> mapFeatureToSiriusId(@NotNull Sirius sirius,
       List<? extends FeatureListRow> rows) {
     sirius.checkLogin();
-    final Map<Integer, String> mzmineIdToSiriusId = sirius.api().features()
-        .getAlignedFeatures(sirius.getProject().getProjectId(), null,
-            List.of(AlignedFeatureOptField.NONE)).stream().collect(Collectors.toMap(
-            alignedFeature -> Integer.valueOf(alignedFeature.getExternalFeatureId()),
-            AlignedFeature::getAlignedFeatureId));
+    final Map<Integer, String> mzmineIdToSiriusId = SiriusToMzmine.getAllAlignedFeatureIds(sirius);
 
     final Map<FeatureListRow, String> map = new HashMap<>();
     for (FeatureListRow r : rows) {
@@ -254,11 +251,41 @@ public class SiriusToMzmine {
         .toList();
 
     final List<CompoundDBAnnotation> siriusAnnotations = structureCandidates.stream()
-        .sorted(Comparator.comparingInt(StructureCandidateFormula::getRank))
         .map(s -> structureCandidateToMzmine(s, sirius.api(), sirius.getProject(), siriusFeatureId))
         .filter(Objects::nonNull).toList();
-    final List<CompoundDBAnnotation> annotations = new ArrayList<>();
-    annotations.addAll(siriusAnnotations);
-    return annotations;
+    return new ArrayList<>(siriusAnnotations);
+  }
+
+  /**
+   * @param sirius The sirius instance.
+   * @return A map of {@link FeatureListRow#getID()} ->
+   * {@link AlignedFeature#getAlignedFeatureId()}.
+   */
+  public static @NotNull Map<Integer, String> getAllAlignedFeatureIds(@NotNull Sirius sirius) {
+    return sirius.api().features().getAlignedFeatures(sirius.getProject().getProjectId(), null,
+            List.of(AlignedFeatureOptField.NONE)).stream().filter(SiriusToMzmine::isSiriusFeatureValid)
+        .collect(Collectors.toMap(
+            alignedFeature -> Integer.valueOf(alignedFeature.getExternalFeatureId()),
+            AlignedFeature::getAlignedFeatureId));
+  }
+
+  /**
+   * Checks if the Sirius {@link AlignedFeature} can be parsed to an mzmine row in theory. (int only
+   * external id)
+   */
+  private static boolean isSiriusFeatureValid(AlignedFeature af) {
+    if (af.getAlignedFeatureId() != null && af.getExternalFeatureId() != null) {
+      try {
+        if (Integer.parseInt(af.getAlignedFeatureId()) >= 0) {
+          return true;
+        }
+      } catch (NumberFormatException e) {
+        logger.warning(
+            () -> "Sirius AlignedFeature with external id %s cannot be imported, as it is not an mzmine feature.".formatted(
+                af.getExternalFeatureId()));
+        return false;
+      }
+    }
+    return false;
   }
 }

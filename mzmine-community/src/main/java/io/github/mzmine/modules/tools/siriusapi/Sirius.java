@@ -54,6 +54,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -100,7 +101,7 @@ public class Sirius implements AutoCloseable {
     if (alreadyRunning != null) {
       sirius = alreadyRunning;
     } else {
-      NotificationService.show(NotificationType.INFO, "Starting Sirius",
+      NotificationService.show(NotificationType.INFO, "Starting SIRIUS",
           "Trying to start Sirius. This may take a moment.");
       sirius = SiriusSDK.startAndConnectLocally(ShutdownMode.NEVER, true);
     }
@@ -110,11 +111,11 @@ public class Sirius implements AutoCloseable {
     while (!SiriusSDKUtils.restHealthCheck(sirius.getApiClient()) && tries < maxTries) {
       tries++;
       Thread.sleep(50);
-      logger.finest("Waiting for Sirius API startup. Try %d/%d".formatted(tries, maxTries));
+      logger.finest("Waiting for SIRIUS API startup. Try %d/%d".formatted(tries, maxTries));
     }
 
     if (!SiriusSDKUtils.restHealthCheck(sirius.getApiClient())) {
-      throw new RuntimeException("Could not connect to Sirius API.");
+      throw new RuntimeException("Could not connect to SIRIUS API.");
     }
 
     checkLogin();
@@ -132,7 +133,7 @@ public class Sirius implements AutoCloseable {
       return;
     }
     for (GuiInfo gui : sirius.gui().getGuis()) {
-      if (gui.getProjectId().equals(projectSpace.getProjectId())) {
+      if (Objects.equals(gui.getProjectId(), projectSpace.getProjectId())) {
         return;
       }
     }
@@ -153,7 +154,7 @@ public class Sirius implements AutoCloseable {
         return projectSpace;
       }
     } catch (WebClientResponseException e) {
-      logger.log(Level.FINEST, "Sirius project not opened yet, trying to open.");
+      logger.log(Level.FINEST, "SIRIUS project not opened yet, trying to open.");
     }
 
     try {
@@ -163,7 +164,7 @@ public class Sirius implements AutoCloseable {
         return projectSpace;
       }
     } catch (WebClientResponseException e) {
-      logger.finest(() -> "Sirius project not created yet, trying to create.");
+      logger.finest(() -> "SIRIUS project not created yet, trying to create.");
     }
 
     try {
@@ -205,7 +206,10 @@ public class Sirius implements AutoCloseable {
       if (allowedFeatures == null) {
         return false;
       }
-      return allowedFeatures.isApi();
+      if(!Boolean.TRUE.equals(allowedFeatures.isApi())) {
+        throw new SiriusLicenseHasNoApiException();
+      }
+      return true;
     }).orElse(false)) {
       DesktopService.getDesktop().displayErrorMessageAndThrow(new SiriusNotLoggedInException());
     }
@@ -221,53 +225,9 @@ public class Sirius implements AutoCloseable {
     sirius.close();
   }
 
+  @NotNull
   public SiriusSDK api() {
     return sirius;
   }
 
-
-  /**
-   * Ranks the current {@link CompoundDBAnnotation}s by exporting to a custom database and using
-   * only that database for possible structures.
-   *
-   * @param row
-   */
-  public void rankCurrentCompoundAnnotations(@NotNull final FeatureListRow row) {
-    // could be refactored into a module?
-    final List<CompoundDBAnnotation> annotations = row.getCompoundAnnotations();
-
-    if (annotations.isEmpty()) {
-      return;
-    }
-
-    // inchi may be there but not the smiles
-    annotations.forEach(CompoundDBAnnotation::enrichMetadata);
-    final SearchableDatabase customDatabase = MzmineToSirius.toCustomDatabase(annotations, this);
-
-    final String siriusId = MzmineToSirius.exportToSiriusUnique(this, List.of(row))
-        .get(row.getID());
-    JobSubmission config = sirius.jobs().getDefaultJobConfig(false, false, true);
-    StructureDbSearch structureDbParams = config.getStructureDbSearchParams();
-    structureDbParams.setStructureSearchDBs(List.of(customDatabase.getDatabaseId()));
-    structureDbParams.setExpansiveSearchConfidenceMode(
-        ConfidenceMode.OFF); // no fallback to pubchem for this application
-
-    final PolarityType polarity = FeatureUtils.extractBestPolarity(row)
-        .orElse(PolarityType.POSITIVE);
-
-    switch (polarity) {
-      case NEGATIVE -> config.setFallbackAdducts(List.of("[M-H]-"));
-      default -> config.setFallbackAdducts(List.of("[M+H]+", "[M+NH4]+", "[M+Na]+"));
-    }
-
-    config.setAlignedFeatureIds(List.of(siriusId));
-    final Job job = sirius.jobs()
-        .startJob(projectSpace.getProjectId(), config, List.of(JobOptField.PROGRESS));
-    JobWaiterTask task = new JobWaiterTask(SiriusApiFingerIdModule.class, Instant.now(),
-        SiriusApiFingerIdParameters.of(List.of(row)), () -> sirius.jobs()
-        .getJob(projectSpace.getProjectId(), job.getId(), List.of(JobOptField.PROGRESS)),
-        () -> SiriusToMzmine.importResultsForRows(this, List.of(row)));
-
-    TaskService.getController().addTask(task);
-  }
 }
