@@ -186,7 +186,7 @@ public class MzmineToSirius {
 
     final Map<String, CompoundDBAnnotation> uniqueCompounds = compounds.stream()
         .filter(a -> a.getStructure() != null && a.getStructure().isomericSmiles() != null)
-        .collect(Collectors.toMap(a -> a.getStructure().isomericSmiles(), a -> a));
+        .collect(Collectors.toMap(a -> a.getStructure().isomericSmiles(), a -> a, (a, _) -> a));
     final File dbFile = writeCompoundsToFile(uniqueCompounds);
 
     final SearchableDatabasesApi databases = sirius.api().databases();
@@ -196,8 +196,11 @@ public class MzmineToSirius {
         .orElseGet(() -> {
           SearchableDatabaseParameters dbParam = new SearchableDatabaseParameters();
           dbParam.setDisplayName(Sirius.mzmineCustomDbId);
-          dbParam.setLocation(new File(new File(FileAndPathUtil.getMzmineDir(), "sirius_databases"),
-              Sirius.mzmineCustomDbId).getAbsolutePath());
+          // .mzmine/external_resources/sirius/
+          final File databaseFile = FileAndPathUtil.resolveInDownloadResourcesDir(
+              "sirius/" + Sirius.mzmineCustomDbId);
+          dbParam.setLocation(databaseFile.getAbsolutePath());
+
           return databases.createDatabase(Sirius.mzmineCustomDbId, dbParam);
         });
 
@@ -208,6 +211,7 @@ public class MzmineToSirius {
   private static File writeCompoundsToFile(final Map<String, CompoundDBAnnotation> db) {
     final File file = new File(new File(FileAndPathUtil.getTempDir(), "sirius_databases"),
         "custom_%s.tsv".formatted(Sirius.getDefaultSessionId()));
+
     file.deleteOnExit();
 
     if (!file.getParentFile().exists()) {

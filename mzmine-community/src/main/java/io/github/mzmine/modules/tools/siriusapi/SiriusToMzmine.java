@@ -268,7 +268,9 @@ public class SiriusToMzmine {
             List.of(AlignedFeatureOptField.NONE)).stream().filter(SiriusToMzmine::isSiriusFeatureValid)
         .collect(Collectors.toMap(
             alignedFeature -> Integer.valueOf(alignedFeature.getExternalFeatureId()),
-            AlignedFeature::getAlignedFeatureId));
+            AlignedFeature::getAlignedFeatureId, (a, _) -> {
+              throw new SiriusDuplicateFeatureIdException(a);
+            }));
   }
 
   /**
@@ -278,7 +280,7 @@ public class SiriusToMzmine {
   private static boolean isSiriusFeatureValid(AlignedFeature af) {
     if (af.getAlignedFeatureId() != null && af.getExternalFeatureId() != null) {
       try {
-        if (Integer.parseInt(af.getAlignedFeatureId()) >= 0) {
+        if (Integer.parseInt(af.getExternalFeatureId()) >= 0) {
           return true;
         }
       } catch (NumberFormatException e) {
