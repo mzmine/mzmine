@@ -132,16 +132,8 @@ public class MzmineToSirius {
     }
 
     final MassList ml = scan.getMassList();
-    final BasicSpectrum spectrum = new BasicSpectrum();
-    final Double bpi = ml.getBasePeakIntensity();
-    spectrum.absIntensityFactor(bpi);
-
-    for (int i = 0; i < ml.getNumberOfDataPoints(); i++) {
-      final SimplePeak p = new SimplePeak();
-      p.setIntensity(ml.getIntensityValue(i) / bpi);
-      p.setMz(ml.getMzValue(i));
-      spectrum.addPeaksItem(p);
-    }
+    BasicSpectrum spectrum = new BasicSpectrum();
+    addPeaksToSiriusSpectrum(spectrum, ml);
 
     final MsMsInfo msMsInfo = scan.getMsMsInfo();
     if (msMsInfo != null) {
@@ -167,7 +159,16 @@ public class MzmineToSirius {
       return spectrum(row.getBestFeature().getRepresentativeScan());
     }
 
-    final BasicSpectrum spectrum = new BasicSpectrum();
+    BasicSpectrum spectrum = new BasicSpectrum();
+    addPeaksToSiriusSpectrum(spectrum, correlated);
+
+    spectrum.setMsLevel(1);
+    spectrum.setName("Correlated MS1 spectrum");
+    return spectrum;
+  }
+
+  private static BasicSpectrum addPeaksToSiriusSpectrum(BasicSpectrum spectrum,
+      MassSpectrum correlated) {
     final Double bpi = correlated.getBasePeakIntensity();
     spectrum.absIntensityFactor(bpi);
 
@@ -177,9 +178,6 @@ public class MzmineToSirius {
       p.setMz(correlated.getMzValue(i));
       spectrum.addPeaksItem(p);
     }
-
-    spectrum.setMsLevel(1);
-    spectrum.setName("Correlated MS1 spectrum");
     return spectrum;
   }
 

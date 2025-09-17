@@ -530,6 +530,7 @@ public class CSVParsingUtils {
       }
     }
 
+    a.enrichMetadata();
     return a;
   }
 

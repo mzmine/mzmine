@@ -538,10 +538,13 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
   void setStructure(MolecularStructure structure);
 
+  /**
+   * convenience method to derive additional fields from fields that are present. Recommended to
+   * call this method after retrieving the annotation from an external source.
+   */
   default void enrichMetadata() {
-    MolecularStructure struc = StructureParser.silent()
-        .parseStructure(getSmiles(), getInChI());
-    if(struc != null) {
+    MolecularStructure struc = StructureParser.silent().parseStructure(getSmiles(), getInChI());
+    if (struc != null) {
       setStructure(struc);
     }
   }
