@@ -42,8 +42,9 @@ public class SiriusApiRankAnnotationsParameters extends SimpleParameterSet {
   public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1);
 
   public static final OptionalParameter<StringParameter> rowIds = new OptionalParameter<>(
-      new StringParameter("Row IDs",
-          "The ids of the rows to run Sirius for. If not selected, the whole feature list will be processed."));
+      new StringParameter("Row IDs", """
+          The ids of the rows to run Sirius for. If not selected, the whole feature list will be processed.
+          Specify row IDs as ranges or lists: 1,5-8,10"""), false);
 
   public SiriusApiRankAnnotationsParameters() {
     super(flist, rowIds);
