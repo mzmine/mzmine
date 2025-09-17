@@ -107,6 +107,8 @@ public class SiriusToMzmine {
 
     transferClassyfireAnnotations(structure, sirius, projectInfo, id, annotation);
 
+    annotation.enrichMetadata();
+
     return annotation;
   }
 
