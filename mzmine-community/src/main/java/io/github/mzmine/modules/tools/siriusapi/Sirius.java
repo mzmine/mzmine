@@ -25,40 +25,27 @@
 
 package io.github.mzmine.modules.tools.siriusapi;
 
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.dialogs.NotificationService;
 import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
-import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdModule;
-import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdParameters;
-import io.github.mzmine.taskcontrol.TaskService;
-import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.sirius.ms.sdk.SiriusSDK;
 import io.sirius.ms.sdk.SiriusSDK.ShutdownMode;
 import io.sirius.ms.sdk.SiriusSDKUtils;
 import io.sirius.ms.sdk.model.AllowedFeatures;
-import io.sirius.ms.sdk.model.ConfidenceMode;
 import io.sirius.ms.sdk.model.GuiInfo;
-import io.sirius.ms.sdk.model.Job;
-import io.sirius.ms.sdk.model.JobOptField;
-import io.sirius.ms.sdk.model.JobSubmission;
 import io.sirius.ms.sdk.model.ProjectInfo;
 import io.sirius.ms.sdk.model.ProjectInfoOptField;
-import io.sirius.ms.sdk.model.SearchableDatabase;
-import io.sirius.ms.sdk.model.StructureDbSearch;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
 import java.io.File;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 public class Sirius implements AutoCloseable {
 
@@ -80,7 +67,7 @@ public class Sirius implements AutoCloseable {
   private final ProjectInfo projectSpace;
 
   /**
-   * Default constructor to initialise a temporary project. This is a time consuming operation.
+   * Default constructor to initialise a temporary project. This is a time-consuming operation.
    * Don't run on the GUI.
    */
   public Sirius() throws Exception {
@@ -89,39 +76,55 @@ public class Sirius implements AutoCloseable {
   }
 
   /**
-   * This is a time consuming operation. Don't run on the GUI.
+   * This is a time-consuming operation. Don't run on the GUI.
    *
    * @param project project file to open.
    * @throws Exception
    */
   public Sirius(File project) throws Exception {
 
-    // try to connect to running instance
-    final SiriusSDK alreadyRunning = SiriusSDK.findAndConnectLocally(ShutdownMode.NEVER, true);
-    if (alreadyRunning != null) {
-      sirius = alreadyRunning;
-    } else {
-      NotificationService.show(NotificationType.INFO, "Starting SIRIUS",
-          "Trying to start Sirius. This may take a moment.");
-      sirius = SiriusSDK.startAndConnectLocally(ShutdownMode.NEVER, true);
+    try {
+      // try to connect to running instance
+      final SiriusSDK alreadyRunning = SiriusSDK.findAndConnectLocally(ShutdownMode.NEVER, true);
+      if (alreadyRunning != null) {
+        sirius = alreadyRunning;
+      } else {
+        NotificationService.show(NotificationType.INFO, "Starting SIRIUS",
+                "Trying to start Sirius. This may take a moment.");
+
+        sirius = SiriusSDK.startAndConnectLocally(ShutdownMode.NEVER, true);
+      }
+    } catch (Exception e) {
+      // this catches situations where SIRIUS is not available or has not been installed properly.
+      DesktopService.getDesktop().displayMessage("Error when Starting SIRIUS",
+              "Make sure SIRIUS executable is in your PATH or that SIRIUS_EXE environment variable has been set.\n\n"
+              + "SIRIUS error message: " + e.getMessage(), null);
+      throw e;
     }
 
-    int tries = 0;
-    final int maxTries = 10;
-    while (!SiriusSDKUtils.restHealthCheck(sirius.getApiClient()) && tries < maxTries) {
-      tries++;
-      Thread.sleep(50);
-      logger.finest("Waiting for SIRIUS API startup. Try %d/%d".formatted(tries, maxTries));
-    }
 
-    if (!SiriusSDKUtils.restHealthCheck(sirius.getApiClient())) {
-      throw new RuntimeException("Could not connect to SIRIUS API.");
-    }
+      try {
+          int tries = 0;
+          final int maxTries = 10;
+          while (!SiriusSDKUtils.restHealthCheck(sirius.getApiClient()) && tries < maxTries) {
+            tries++;
+            Thread.sleep(50);
+            logger.finest("Waiting for SIRIUS API startup. Try %d/%d".formatted(tries, maxTries));
+          }
 
-    checkLogin();
-    logger.finest(sirius.infos().getInfo(null, null).toString());
-    projectSpace = activateSiriusProject(project);
-    showGuiForProject();
+          if (!SiriusSDKUtils.restHealthCheck(sirius.getApiClient())) {
+            throw new RuntimeException("Could not connect to SIRIUS API.");
+          }
+
+          checkLogin();
+          logger.finest(sirius.infos().getInfo(null, null).toString());
+          projectSpace = activateSiriusProject(project);
+          showGuiForProject();
+      } catch (Exception e) {
+        // this catches, e.g., situations where the user's license does not allow API usage.
+        DesktopService.getDesktop().displayMessage("Error when connecting to SIRIUS", "SIRIUS error message: " + e.getMessage(), null);
+        throw e;
+      }
   }
 
   public static String getDefaultSessionId() {
