@@ -28,10 +28,10 @@
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
           "size": 50667,
-          "sha512": "e3fb96fd8a50338d40eb60c84123c8a625e5103921b37cb8b0940b2f209bf53f76602df31be7046abb6f86ee63de0f02dd5d9854e5e686f5be13ff1ac6f40181",
-          "sha256": "037d501afff375813ff7a6093722a97fe9e4d3cff1e613af0b9d45a5e113fe74",
-          "sha1": "aa87faab66a06d0c8db404ff9c9b8e4683296e22",
-          "md5": "afcd158662ac12c87602a71c587005a6"
+          "sha512": "f8db084980dc4e213aaf14ccc3cdf34179622e595b1e030a622414692d1739ba4c9f13b06b3aa036510739e3734adf2cc8cf1dd92889a942a8126bca80f0f21d",
+          "sha256": "d08910728780fd84395919f0b5e3b72c813e767956cac73b7c79051e471d959c",
+          "sha1": "d11a50228d56d2b3f11fa7b9df1398e75962e7bc",
+          "md5": "8e611756cd2f603d91cbf3489c80ec29"
         }
       ]
     },
@@ -56,7 +56,7 @@
           "group": "org.controlsfx",
           "module": "controlsfx",
           "version": {
-            "requires": "11.1.1"
+            "requires": "11.2.2"
           }
         },
         {
@@ -168,10 +168,10 @@
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
           "size": 50667,
-          "sha512": "e3fb96fd8a50338d40eb60c84123c8a625e5103921b37cb8b0940b2f209bf53f76602df31be7046abb6f86ee63de0f02dd5d9854e5e686f5be13ff1ac6f40181",
-          "sha256": "037d501afff375813ff7a6093722a97fe9e4d3cff1e613af0b9d45a5e113fe74",
-          "sha1": "aa87faab66a06d0c8db404ff9c9b8e4683296e22",
-          "md5": "afcd158662ac12c87602a71c587005a6"
+          "sha512": "f8db084980dc4e213aaf14ccc3cdf34179622e595b1e030a622414692d1739ba4c9f13b06b3aa036510739e3734adf2cc8cf1dd92889a942a8126bca80f0f21d",
+          "sha256": "d08910728780fd84395919f0b5e3b72c813e767956cac73b7c79051e471d959c",
+          "sha1": "d11a50228d56d2b3f11fa7b9df1398e75962e7bc",
+          "md5": "8e611756cd2f603d91cbf3489c80ec29"
         }
       ]
     }

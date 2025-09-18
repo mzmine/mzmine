@@ -27,11 +27,11 @@
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 34283,
-          "sha512": "f631264faace2275c0c0eb3ee883ae792e0233f510ba45613774cab87493af668a33811aa3c7d2c642b32ff820caa9c39f49148219fd5eca088b5fbe5b3d8dec",
-          "sha256": "77ba9e48597748af8f605690f3276652d53061a99937507e80b3930e0e559225",
-          "sha1": "26daaf668d577e9287c3d9bf9298307c7a09ec1d",
-          "md5": "6981f449badab2aceccaf4ca5aa42fc6"
+          "size": 60619,
+          "sha512": "7b78482d58c50fa5710720f9956e15282585f5f724fb7b3ecb624177215aedac182e783bcbfd44e8be6fd289ac5563c873940a3b35848d8ede6f3c076f609823",
+          "sha256": "6324c5da325628d3140237f2ea15a2751c23ce897e25f4bbdb6dbd6553c92fd1",
+          "sha1": "516ec6933dcf0d90659328f37c111751f87787fc",
+          "md5": "cba6bfecf5a09b5e520d5085c5b0c08f"
         }
       ]
     },
@@ -84,7 +84,7 @@
           "group": "org.keycloak",
           "module": "keycloak-installed-adapter",
           "version": {
-            "requires": "24.0.1"
+            "requires": "24.0.3"
           }
         }
       ],
@@ -92,11 +92,11 @@
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 34283,
-          "sha512": "f631264faace2275c0c0eb3ee883ae792e0233f510ba45613774cab87493af668a33811aa3c7d2c642b32ff820caa9c39f49148219fd5eca088b5fbe5b3d8dec",
-          "sha256": "77ba9e48597748af8f605690f3276652d53061a99937507e80b3930e0e559225",
-          "sha1": "26daaf668d577e9287c3d9bf9298307c7a09ec1d",
-          "md5": "6981f449badab2aceccaf4ca5aa42fc6"
+          "size": 60619,
+          "sha512": "7b78482d58c50fa5710720f9956e15282585f5f724fb7b3ecb624177215aedac182e783bcbfd44e8be6fd289ac5563c873940a3b35848d8ede6f3c076f609823",
+          "sha256": "6324c5da325628d3140237f2ea15a2751c23ce897e25f4bbdb6dbd6553c92fd1",
+          "sha1": "516ec6933dcf0d90659328f37c111751f87787fc",
+          "md5": "cba6bfecf5a09b5e520d5085c5b0c08f"
         }
       ]
     }

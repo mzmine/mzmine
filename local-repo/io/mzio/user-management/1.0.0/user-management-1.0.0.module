@@ -27,11 +27,11 @@
         {
           "name": "user-management-1.0.0.jar",
           "url": "user-management-1.0.0.jar",
-          "size": 34824,
-          "sha512": "f314dff6605a643cb41e1755e4641e2279c9ef73826b8051df31c4e2f552b384a199f5d9662d0f270a4a2a223c0b0ea4839d3d514060b5e38f2692e12e6e741f",
-          "sha256": "23a1a879e9c63808ec9aac46ec5e72b262c6dbff9ab4d8f5fb09e22b0eb3f803",
-          "sha1": "3844cba321228673c7428325961356e6df70808e",
-          "md5": "7b2bfe8062476810ade46f26181e778f"
+          "size": 8491,
+          "sha512": "a52d22c9d80df1515091c1bf517359707ba50e91cab2e3890728d070b3a069018178d1a473424bcc87911bdfb0b2b92a50a1de74bf3f160b36ae84bbbd83fa55",
+          "sha256": "cc54cc8717b0956b94b665dbf00e907e1a1d24e93a2b0290743056c966fb0171",
+          "sha1": "4c0dc3c234f96a083b40cb8cb64306f05f01bb09",
+          "md5": "e938a132987bcbb67610dd4c70d781cb"
         }
       ]
     },
@@ -53,13 +53,6 @@
           }
         },
         {
-          "group": "io.mzio",
-          "module": "global-events",
-          "version": {
-            "requires": "1.0.0"
-          }
-        },
-        {
           "group": "com.javax0.license3j",
           "module": "license3j",
           "version": {
@@ -78,11 +71,11 @@
         {
           "name": "user-management-1.0.0.jar",
           "url": "user-management-1.0.0.jar",
-          "size": 34824,
-          "sha512": "f314dff6605a643cb41e1755e4641e2279c9ef73826b8051df31c4e2f552b384a199f5d9662d0f270a4a2a223c0b0ea4839d3d514060b5e38f2692e12e6e741f",
-          "sha256": "23a1a879e9c63808ec9aac46ec5e72b262c6dbff9ab4d8f5fb09e22b0eb3f803",
-          "sha1": "3844cba321228673c7428325961356e6df70808e",
-          "md5": "7b2bfe8062476810ade46f26181e778f"
+          "size": 8491,
+          "sha512": "a52d22c9d80df1515091c1bf517359707ba50e91cab2e3890728d070b3a069018178d1a473424bcc87911bdfb0b2b92a50a1de74bf3f160b36ae84bbbd83fa55",
+          "sha256": "cc54cc8717b0956b94b665dbf00e907e1a1d24e93a2b0290743056c966fb0171",
+          "sha1": "4c0dc3c234f96a083b40cb8cb64306f05f01bb09",
+          "md5": "e938a132987bcbb67610dd4c70d781cb"
         }
       ]
     }
