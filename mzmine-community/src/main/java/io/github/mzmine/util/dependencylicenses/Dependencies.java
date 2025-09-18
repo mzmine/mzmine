@@ -52,8 +52,9 @@ public record Dependencies(List<Dependency> dependencies) {
       // thermo
       new Dependency("ThermoFisher RawFileReader", "", List.of(), List.of(
           new ModuleLicense("SOFTWARE LICENSE AGREEMENT (“License”) FOR RawFileReader",
-              new File("external_tools/thermo_raw_file_parser/THERMO_LICENSE").getAbsolutePath()))),
-      new Dependency("Compomics ThermoRawFileParser", "", List.of(), List.of(
+              new File("external_tools/thermo_raw_file_parser/THERMO_LICENSE.txt").getAbsolutePath()))),
+      new Dependency("Compomics ThermoRawFileParser", "",
+          List.of("https://github.com/compomics/ThermoRawFileParser"), List.of(
           new ModuleLicense("Apache-2.0 license", "https://www.apache.org/licenses/LICENSE-2.0"))));
 
   public static List<Dependency> of(String resourcePath) {
