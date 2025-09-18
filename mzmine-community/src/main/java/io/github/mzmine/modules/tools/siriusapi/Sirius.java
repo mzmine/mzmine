@@ -25,9 +25,14 @@
 
 package io.github.mzmine.modules.tools.siriusapi;
 
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
+import com.google.common.io.Files;
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.dialogs.NotificationService;
 import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
+import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.sirius.ms.sdk.SiriusSDK;
 import io.sirius.ms.sdk.SiriusSDK.ShutdownMode;
@@ -36,7 +41,10 @@ import io.sirius.ms.sdk.model.AllowedFeatures;
 import io.sirius.ms.sdk.model.GuiInfo;
 import io.sirius.ms.sdk.model.ProjectInfo;
 import io.sirius.ms.sdk.model.ProjectInfoOptField;
+import java.io.IOException;
+import javafx.scene.control.Alert.AlertType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.File;
@@ -61,6 +69,10 @@ public class Sirius implements AutoCloseable {
    */
   private static final String sessionId = FileAndPathUtil.safePathEncode(
       "mzmine_%s".formatted(creationDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm"))));
+
+  private static final CloseableReentrantReadWriteLock projectCreationLock = new CloseableReentrantReadWriteLock();
+  private static volatile @Nullable File sessionSpecificTempProject = null;
+
   @NotNull
   private final SiriusSDK sirius;
   @NotNull
@@ -71,8 +83,22 @@ public class Sirius implements AutoCloseable {
    * Don't run on the GUI.
    */
   public Sirius() throws Exception {
-    final File projectFile = new File(FileAndPathUtil.getTempDir(), sessionId + ".sirius");
-    this(projectFile);
+
+    if (sessionSpecificTempProject == null) {
+      // only set once and use the same file for default projects.
+      try (var _ = projectCreationLock.lockWrite()) {
+        if (sessionSpecificTempProject == null) {
+          sessionSpecificTempProject = new File(FileAndPathUtil.getTempDir(),
+              sessionId + ".sirius");
+        }
+      }
+    }
+
+    if (sessionSpecificTempProject == null) {
+      throw new IllegalStateException(
+          "Failed to initialize session specific temp project for SIRIUS.");
+    }
+    this(sessionSpecificTempProject);
   }
 
   /**
@@ -90,45 +116,89 @@ public class Sirius implements AutoCloseable {
         sirius = alreadyRunning;
       } else {
         NotificationService.show(NotificationType.INFO, "Starting SIRIUS",
-                "Trying to start Sirius. This may take a moment.");
+            "Trying to start Sirius. This may take a moment.");
 
         sirius = SiriusSDK.startAndConnectLocally(ShutdownMode.NEVER, true);
       }
     } catch (Exception e) {
       // this catches situations where SIRIUS is not available or has not been installed properly.
-      DesktopService.getDesktop().displayMessage("Error when Starting SIRIUS",
-              "Make sure SIRIUS executable is in your PATH or that SIRIUS_EXE environment variable has been set.\n\n"
-              + "SIRIUS error message: " + e.getMessage(), null);
+      DialogLoggerUtil.showDialog(AlertType.ERROR, "Error when Starting SIRIUS", """
+          No SIRIUS installation found.
+          Make sure SIRIUS executable is in your PATH or that SIRIUS_EXE environment variable has been set.
+          Re-installation of SIRIUS should fix this issue.
+          
+          SIRIUS error message:
+          
+          """ + e.getMessage(), null);
       throw e;
     }
 
-
-      try {
-          int tries = 0;
-          final int maxTries = 10;
-          while (!SiriusSDKUtils.restHealthCheck(sirius.getApiClient()) && tries < maxTries) {
-            tries++;
-            Thread.sleep(50);
-            logger.finest("Waiting for SIRIUS API startup. Try %d/%d".formatted(tries, maxTries));
-          }
-
-          if (!SiriusSDKUtils.restHealthCheck(sirius.getApiClient())) {
-            throw new RuntimeException("Could not connect to SIRIUS API.");
-          }
-
-          checkLogin();
-          logger.finest(sirius.infos().getInfo(null, null).toString());
-          projectSpace = activateSiriusProject(project);
-          showGuiForProject();
-      } catch (Exception e) {
-        // this catches, e.g., situations where the user's license does not allow API usage.
-        DesktopService.getDesktop().displayMessage("Error when connecting to SIRIUS", "SIRIUS error message: " + e.getMessage(), null);
-        throw e;
+    try {
+      int tries = 0;
+      final int maxTries = 10;
+      while (!SiriusSDKUtils.restHealthCheck(sirius.getApiClient()) && tries < maxTries) {
+        tries++;
+        Thread.sleep(50);
+        logger.finest("Waiting for SIRIUS API startup. Try %d/%d".formatted(tries, maxTries));
       }
+
+      if (!SiriusSDKUtils.restHealthCheck(sirius.getApiClient())) {
+        throw new RuntimeException("Could not connect to SIRIUS API.");
+      }
+
+      checkLogin();
+      logger.finest(sirius.infos().getInfo(null, null).toString());
+      projectSpace = activateSiriusProject(project);
+      showGuiForProject();
+    } catch (Exception e) {
+      // this catches, e.g., situations where the user's license does not allow API usage.
+      DesktopService.getDesktop().displayMessage("Error when connecting to SIRIUS",
+          "SIRIUS error message: " + e.getMessage(), null);
+      throw e;
+    }
   }
 
   public static String getDefaultSessionId() {
     return sessionId;
+  }
+
+  /**
+   * @return The file or null if no project was initialized.
+   */
+  public static @Nullable File getSessionSpecificTempProject() {
+    try (var _ = projectCreationLock.lockRead()) {
+      return sessionSpecificTempProject;
+    }
+  }
+
+  /**
+   * Copies the current state of the default project to the specific file. Does not change the
+   * default project. Any further changes will have to be applied to the "to" file will have to call
+   * this method again to copy the respective file.
+   *
+   * @param to Full file path including file name and suffix.
+   */
+  public static void copyDefaultProject(@NotNull final File to) {
+    if (getSessionSpecificTempProject() == null) {
+      return;
+    }
+
+    try {
+      Files.copy(Sirius.getSessionSpecificTempProject(), to);
+    } catch (IOException e) {
+      // first one is silent, project still opened.
+    }
+
+    try (Sirius sirius = new Sirius(getSessionSpecificTempProject())) {
+      sirius.api().projects().closeProject(sirius.getProject().getProjectId(), false);
+      Files.copy(Sirius.getSessionSpecificTempProject(), to);
+    } catch (Exception e) {
+      logger.log(Level.INFO, e.getMessage(), e);
+      DialogLoggerUtil.showDialog(AlertType.ERROR, "Cannot save SIRIUS project",
+          "An error occurred while copying the SIRIUS project %s to %s. Please save it manually.".formatted(
+              inQuotes(Sirius.getSessionSpecificTempProject().getAbsolutePath()),
+              inQuotes(to.getAbsolutePath())));
+    }
   }
 
   private void showGuiForProject() {
@@ -209,7 +279,7 @@ public class Sirius implements AutoCloseable {
       if (allowedFeatures == null) {
         return false;
       }
-      if(!Boolean.TRUE.equals(allowedFeatures.isApi())) {
+      if (!Boolean.TRUE.equals(allowedFeatures.isApi())) {
         throw new SiriusLicenseHasNoApiException();
       }
       return true;
@@ -232,5 +302,4 @@ public class Sirius implements AutoCloseable {
   public SiriusSDK api() {
     return sirius;
   }
-
 }

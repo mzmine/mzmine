@@ -81,9 +81,7 @@ public class MzmineToSirius {
    */
   @Nullable
   public static FeatureImport feature(@NotNull FeatureListRow row) {
-    if (!row.hasMs2Fragmentation() || !row.hasIsotopePattern() || (
-        row.getMostIntenseFragmentScan() instanceof PseudoSpectrum ps
-            && ps.getPseudoSpectrumType() == PseudoSpectrumType.GC_EI)) {
+    if (!isSiriusCompatible(row)) {
       return null;
     }
     final int charge = FeatureUtils.extractBestSignedChargeState(row,
@@ -118,6 +116,15 @@ public class MzmineToSirius {
     f.setRtApexSeconds(row.getAverageRT() * 60d);
 
     return f;
+  }
+
+  public static boolean isSiriusCompatible(@NotNull FeatureListRow row) {
+    if ((!row.hasMs2Fragmentation() && !row.hasIsotopePattern()) || (
+        row.getMostIntenseFragmentScan() instanceof PseudoSpectrum ps
+            && ps.getPseudoSpectrumType() == PseudoSpectrumType.GC_EI)) {
+      return false;
+    }
+    return true;
   }
 
   public static @Nullable BasicSpectrum spectrum(@Nullable Scan scan) {

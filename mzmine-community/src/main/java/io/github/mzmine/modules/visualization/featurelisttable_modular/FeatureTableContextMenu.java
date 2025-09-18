@@ -37,7 +37,6 @@ import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PseudoSpectrum;
-import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -78,6 +77,7 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardTab;
+import io.github.mzmine.modules.tools.siriusapi.MzmineToSirius;
 import io.github.mzmine.modules.tools.siriusapi.modules.export.SiriusApiExportRowsModule;
 import io.github.mzmine.modules.tools.siriusapi.modules.export.SiriusApiExportRowsParameters;
 import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdModule;
@@ -924,13 +924,6 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private boolean siriusApiCheck() {
-    return selectedRow != null && selectedRows.stream().anyMatch(r -> {
-      if (r.getMostIntenseFragmentScan() instanceof PseudoSpectrum ps
-          && ps.getPseudoSpectrumType() == PseudoSpectrumType.GC_EI) {
-        // do not allow GC Ei spectra for now
-        return false;
-      }
-      return true;
-    });
+    return selectedRow != null && selectedRows.stream().anyMatch(MzmineToSirius::isSiriusCompatible);
   }
 }
