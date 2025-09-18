@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.IntConsumer;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public sealed interface IndexRange permits EmptyIndexRange, SimpleIndexRange, SingleIndexRange {
@@ -75,6 +76,11 @@ public sealed interface IndexRange permits EmptyIndexRange, SimpleIndexRange, Si
       }
     }
     return ranges;
+  }
+
+  static String asString(@NotNull final List<@NotNull IndexRange> ranges) {
+    return ranges.stream().map(IndexRange::toString)
+        .collect(Collectors.joining(","));
   }
 
   static IndexRange ofSingleValue(int value) {

@@ -23,31 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui;
+package io.github.mzmine.modules.tools.siriusapi.modules.fingerid;
 
-import javafx.stage.Stage;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.impl.AbstractProcessingModule;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * A javafx desktop
- */
-public interface JavaFxDesktop extends Desktop {
+public class SiriusApiFingerIdModule extends AbstractProcessingModule {
 
-  void handleShowTaskView();
-
-  @NotNull String getName();
-
-  /**
-   * Returns a reference to main application window. May return null if MZmine is running in
-   * headless (batch) mode.
-   *
-   * @return Main window
-   */
-  Stage getMainWindow();
+  public SiriusApiFingerIdModule() {
+    super("Export to Sirius (API) and compute", SiriusApiFingerIdParameters.class, MZmineModuleCategory.ANNOTATION,
+        "Executes the default Sirius job on the selected features/the selected feature list.");
+  }
 
   @Override
-  default boolean isGUI() {
-    return true;
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Instant moduleCallDate) {
+
+    tasks.add(new SiriusApiFingerIdTask(null, moduleCallDate, parameters, this.getClass()));
+    return ExitCode.OK;
   }
 
 }

@@ -23,31 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui;
+package io.github.mzmine.modules.tools.siriusapi;
 
-import javafx.stage.Stage;
-import org.jetbrains.annotations.NotNull;
+public class SiriusNotLoggedInException extends RuntimeException {
 
-/**
- * A javafx desktop
- */
-public interface JavaFxDesktop extends Desktop {
-
-  void handleShowTaskView();
-
-  @NotNull String getName();
-
-  /**
-   * Returns a reference to main application window. May return null if MZmine is running in
-   * headless (batch) mode.
-   *
-   * @return Main window
-   */
-  Stage getMainWindow();
-
-  @Override
-  default boolean isGUI() {
-    return true;
+  public SiriusNotLoggedInException() {
+    super("Not logged into Sirius yet, please login first.");
   }
-
 }
