@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -225,6 +226,7 @@ public class IntegrationTests {
   }
 
   @Test
+  @Disabled("This test needs to be run from the $ProjectFileDir$ working directory to resolve to the correct path.")
   void testThermo(@TempDir File tempDir) {
     // only run the test on local machines
     if (!new File("D:\\OneDrive - mzio GmbH").exists()) {
