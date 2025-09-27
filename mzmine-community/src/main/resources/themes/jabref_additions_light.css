@@ -23,6 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+.root {
+  -chart-plot-background: white;
+}
+
 .region-match-chart-bg, .tool-bar, .status-bar, .button-bar {
   -fx-background-color: -jr-menu-background;
 }
