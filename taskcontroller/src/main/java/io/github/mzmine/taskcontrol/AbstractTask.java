@@ -26,16 +26,18 @@
 package io.github.mzmine.taskcontrol;
 
 import io.github.mzmine.util.MemoryMapStorage;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import static java.util.Objects.requireNonNullElse;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static java.util.Objects.requireNonNullElse;
 
 /**
  * An abstract implementation of task which defines common methods to make Task implementation
@@ -83,7 +85,7 @@ public abstract class AbstractTask implements Task {
    * @param moduleCallDate the call date of module to order execution order
    */
   protected AbstractTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
-      @NotNull String name) {
+                         @NotNull String name) {
     this.name.set(name);
     this.storage = storage;
     this.moduleCallDate = moduleCallDate;
