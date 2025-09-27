@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Contains precomputed values in case they need to be accessed more frequently
@@ -42,4 +43,12 @@ public record PrecomputedMolecularStructure(@NotNull IAtomContainer structure,
                                             double mostAbundantMass,
                                             int totalFormalCharge) implements MolecularStructure {
 
+  @Override
+  public @NotNull String toString() {
+    return "PrecomputedMolecularStructure[" + "formula=" + MolecularFormulaManipulator.getString(formula())
+        + ", " + "canonicalSmiles=" + canonicalSmiles + ", " + "isomericSmiles=" + isomericSmiles
+        + ", " + "inchi=" + inchi + ", " + "inchiKey=" + inchiKey + ", " + "monoIsotopicMass="
+        + monoIsotopicMass + ", " + "mostAbundantMass=" + mostAbundantMass + ", "
+        + "totalFormalCharge=" + totalFormalCharge + ']';
+  }
 }

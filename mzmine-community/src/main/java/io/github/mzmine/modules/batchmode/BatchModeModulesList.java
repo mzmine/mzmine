@@ -55,7 +55,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_maldispotfeaturedetection
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
-import io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule;
@@ -161,6 +160,9 @@ import io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPrevie
 import io.github.mzmine.modules.tools.output_analyze_logs.AnalyzeLogFileModule;
 import io.github.mzmine.modules.tools.output_compare_csv.CompareModularCsvModule;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.export.SiriusApiExportRowsModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.import_annotations.SiriusApiResultsImportModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
@@ -388,6 +390,8 @@ public class BatchModeModulesList {
           PrecursorDBSearchModule.class, //
           SpectralLibrarySearchModule.class, //
           BioTransformerModule.class, //
+          SiriusApiResultsImportModule.class, //
+          SiriusApiFingerIdModule.class, //
 
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_IO}
@@ -403,6 +407,7 @@ public class BatchModeModulesList {
           AdapMspExportModule.class, //
           NetCDFExportModule.class, //
           SiriusExportModule.class, //
+          SiriusApiExportRowsModule.class, //
           MZTabmImportModule.class, //
           CSVExportModularModule.class, //
           LegacyCSVExportModule.class, //

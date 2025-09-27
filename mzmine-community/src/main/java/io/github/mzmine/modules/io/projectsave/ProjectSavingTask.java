@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.tools.siriusapi.Sirius;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -215,6 +216,14 @@ public class ProjectSavingTask extends AbstractTask {
         return;
       }
 
+      // stage 6 - copy sirius file, same filename as mzmine project, but .sirius
+      if (Sirius.getSessionSpecificTempProject() != null) {
+        logger.info("Saving SIRIUS project.");
+        Sirius.copyDefaultProject(
+            FileAndPathUtil.getRealFilePath(saveFile.getParentFile(), saveFile.getName(),
+                ".sirius"));
+      }
+
       // Move the temporary ZIP file to the final location
       if (saveFile.exists() && !saveFile.delete()) {
         throw new IOException("Could not delete old file " + saveFile);
@@ -359,13 +368,11 @@ public class ProjectSavingTask extends AbstractTask {
           zipStream);
 
       AtomicBoolean finished = new AtomicBoolean(false);
-      saveTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      saveTask.addTaskStatusListener((_, newStatus, _) -> {
         switch (newStatus) {
           case WAITING, PROCESSING -> {
           }
-          case FINISHED, ERROR, CANCELED -> {
-            finished.set(true);
-          }
+          case FINISHED, ERROR, CANCELED -> finished.set(true);
         }
       });
       MZmineCore.getTaskController().addTask(saveTask);

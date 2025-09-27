@@ -167,8 +167,8 @@ public class FxMenuUtil {
     return subMenu;
   }
 
-
   public static void addSeparator(Menu menu) {
     menu.getItems().add(new SeparatorMenuItem());
   }
+
 }
