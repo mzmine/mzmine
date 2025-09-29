@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,31 +22,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui;
+package io.github.mzmine.modules.tools.siriusapi;
 
-import javafx.stage.Stage;
-import org.jetbrains.annotations.NotNull;
+public class SiriusDuplicateFeatureIdException extends RuntimeException {
 
-/**
- * A javafx desktop
- */
-public interface JavaFxDesktop extends Desktop {
-
-  void handleShowTaskView();
-
-  @NotNull String getName();
-
-  /**
-   * Returns a reference to main application window. May return null if MZmine is running in
-   * headless (batch) mode.
-   *
-   * @return Main window
-   */
-  Stage getMainWindow();
-
-  @Override
-  default boolean isGUI() {
-    return true;
+  public SiriusDuplicateFeatureIdException(String a) {
+    super("Error while importing feature from Sirius. The external ID %s exists twice. Cannot import.".formatted(a));
   }
-
 }
