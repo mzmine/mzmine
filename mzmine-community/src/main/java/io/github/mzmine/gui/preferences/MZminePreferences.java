@@ -85,12 +85,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class MZminePreferences extends SimpleParameterSet {
 
-  public static final HiddenParameter<String> username = new HiddenParameter<>(
-      new StringParameter("username", "last active username", "", false, true));
-
-  public static final HiddenParameter<Boolean> showQuickStart = new HiddenParameter<>(
-      new BooleanParameter("Show quick start video", "", true));
-
   public static final NumberFormatParameter mzFormat = new NumberFormatParameter("m/z value format",
       "Format of m/z values", false, new DecimalFormat("0.0000"));
 
@@ -173,11 +167,6 @@ public class MZminePreferences extends SimpleParameterSet {
       "If checked, fonts in the MZmine gui will be enlarged. The chart fonts are still controlled by the chart theme.",
       false);
 
-  public static final HiddenParameter<Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
-      new OptOutParameter("Ion mobility compatibility warnings",
-          "Shows a warning message when a module without explicit ion mobility support is "
-              + "used to process ion mobility data."));
-
   public static final DirectoryParameter tempDirectory = new DirectoryParameter(
       "Temporary file directory", "Directory where temporary files"
       + " will be stored. Directory should be located on a drive with fast read and write "
@@ -216,9 +205,6 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final BooleanParameter showPrecursorWindow = new BooleanParameter(
       "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
       true);
-
-  public static final HiddenParameter<Boolean> showTempFolderAlert = new HiddenParameter<>(
-      new BooleanParameter("Show temp alert", "Show temp folder alert", true));
 
   public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<ImageNormalization>(
       "Normalize images",
@@ -285,6 +271,25 @@ public class MZminePreferences extends SimpleParameterSet {
           "Apply lockmass correction for native Waters raw data during raw data import via MSConvert.",
           new WatersLockmassParameters()), true);
 
+  // ---------------------------------------------- Hidden parameters
+
+  public static final HiddenParameter<Boolean> showTempFolderAlert = new HiddenParameter<>(
+      new BooleanParameter("Show temp alert", "Show temp folder alert", true));
+
+  public static final HiddenParameter<String> username = new HiddenParameter<>(
+      new StringParameter("username", "last active username", "", false, true));
+
+  public static final HiddenParameter<Boolean> showQuickStart = new HiddenParameter<>(
+      new BooleanParameter("Show quick start video", "", true));
+
+  public static final HiddenParameter<Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
+      new OptOutParameter("Ion mobility compatibility warnings",
+          "Shows a warning message when a module without explicit ion mobility support is "
+              + "used to process ion mobility data."));
+
+  public static final HiddenParameter<Map<String, Boolean>> siriusCountWarningOptOut = new HiddenParameter<>(
+      new OptOutParameter("Sirius feature count warning", ""));
+
   public MZminePreferences() {
     super(// start with performance
         new Parameter[]{numOfThreads, memoryOption, imsOptimization, tempDirectory,
@@ -301,7 +306,7 @@ public class MZminePreferences extends SimpleParameterSet {
             imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
             windowSettings, useTabSubtitles,
             // silent parameters without controls
-            showTempFolderAlert, username, showQuickStart,
+            showTempFolderAlert, username, showQuickStart, siriusCountWarningOptOut,
             //
             applyVendorCentroiding, msConvertPath, keepConvertedFile, watersLockmass,
             thermoRawFileParserPath, thermoImportChoice},

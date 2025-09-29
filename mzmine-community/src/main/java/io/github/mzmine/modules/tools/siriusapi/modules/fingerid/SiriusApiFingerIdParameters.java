@@ -50,11 +50,8 @@ public class SiriusApiFingerIdParameters extends SimpleParameterSet {
           Specify row IDs as ranges or lists: 1,5-8,10
           """), false);
 
-  public static final HiddenParameter<Map<String, Boolean>> countWarningOptOut = new HiddenParameter<>(
-      new OptOutParameter("Feature count warning", ""));
-
   public SiriusApiFingerIdParameters() {
-    super(flist, rowIds, countWarningOptOut);
+    super(flist, rowIds);
   }
 
   public static SiriusApiFingerIdParameters of(List<? extends FeatureListRow> rows) {

@@ -3477,11 +3477,15 @@
         },
         {
             "moduleName": "org.slf4j:slf4j-jdk14",
-            "moduleVersion": "1.7.36",
+            "moduleVersion": "2.0.17",
             "moduleUrls": [
                 "http://www.slf4j.org"
             ],
             "moduleLicenses": [
+                {
+                    "moduleLicense": null,
+                    "moduleLicenseUrl": "https://opensource.org/license/mit"
+                },
                 {
                     "moduleLicense": "MIT License",
                     "moduleLicenseUrl": "https://opensource.org/licenses/MIT"

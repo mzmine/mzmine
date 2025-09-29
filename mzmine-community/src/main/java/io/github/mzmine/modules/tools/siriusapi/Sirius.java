@@ -129,7 +129,7 @@ public class Sirius implements AutoCloseable {
           
           SIRIUS error message:
           
-          """ + e.getMessage(), null);
+          """ + e.getMessage());
       throw e;
     }
 
@@ -183,14 +183,17 @@ public class Sirius implements AutoCloseable {
       return;
     }
 
-    try {
-      Files.copy(Sirius.getSessionSpecificTempProject(), to);
-    } catch (IOException e) {
-      // first one is silent, project still opened.
+    final SiriusSDK alreadyRunning = SiriusSDK.findAndConnectLocally(ShutdownMode.AUTO, true);
+    if(alreadyRunning != null) {
+      try {
+        final String projectId = getProjectIdFromFile(Sirius.getSessionSpecificTempProject());
+        alreadyRunning.projects().closeProject(projectId, false);
+      } catch (Exception e) {
+        logger.log(Level.INFO, e.getMessage(), e);
+      }
     }
 
-    try (Sirius sirius = new Sirius(getSessionSpecificTempProject())) {
-      sirius.api().projects().closeProject(sirius.getProject().getProjectId(), false);
+    try {
       Files.copy(Sirius.getSessionSpecificTempProject(), to);
     } catch (Exception e) {
       logger.log(Level.INFO, e.getMessage(), e);
@@ -219,7 +222,7 @@ public class Sirius implements AutoCloseable {
   private @NotNull ProjectInfo activateSiriusProject(@NotNull File projectFile) {
     ProjectInfo projectSpace;
 
-    final String projectName = FileAndPathUtil.eraseFormat(projectFile.getName());
+    final String projectName = getProjectIdFromFile(projectFile);
 
     try {
       projectSpace = sirius.projects().getProject(projectName, List.of(ProjectInfoOptField.NONE));
@@ -254,11 +257,16 @@ public class Sirius implements AutoCloseable {
     throw new RuntimeException("Could not create or open project space for this mzmine session.");
   }
 
+  private static @NotNull String getProjectIdFromFile(@NotNull File projectFile) {
+    return FileAndPathUtil.eraseFormat(projectFile.getName());
+  }
+
   /**
    * checks if the user is logged in (=has valid license) and if his license allows api usage.
    */
   public void checkLogin() {
     if (!sirius.account().isLoggedIn()) {
+      sirius.shutdown();
       DesktopService.getDesktop().displayErrorMessageAndThrow(new SiriusNotLoggedInException());
     }
 

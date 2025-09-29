@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
@@ -73,8 +74,9 @@ public class SiriusApiFingerIdTask extends AbstractFeatureListTask {
    * @param parameters
    * @param moduleClass
    */
-  protected SiriusApiFingerIdTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
-      @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass) {
+  protected SiriusApiFingerIdTask(@Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
+      @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
     idStr = parameters.getOptionalValue(SiriusApiFingerIdParameters.rowIds).orElse("");
     flist = parameters.getValue(SiriusApiFingerIdParameters.flist).getMatchingFeatureLists()[0];
@@ -134,8 +136,7 @@ public class SiriusApiFingerIdTask extends AbstractFeatureListTask {
     }
 
     final HiddenParameter<Map<String, Boolean>> optOutParam = ConfigService.getConfiguration()
-        .getModuleParameters(SiriusApiFingerIdModule.class)
-        .getParameter(SiriusApiFingerIdParameters.countWarningOptOut);
+        .getPreferences().getParameter(MZminePreferences.siriusCountWarningOptOut);
     final String userHash = String.valueOf(CurrentUserService.getUserName().hashCode());
 
     try (var _ = optOutLock.lockRead()) {
