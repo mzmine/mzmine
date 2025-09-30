@@ -233,6 +233,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   // IMS parameter currently all the same
   protected final boolean isImsActive;
   protected final boolean isNativeIms;
+  protected final boolean allMobilityScansCentroided;
   protected final boolean imsSmoothing;
   protected final MobilityType imsInstrumentType;
   protected final Integer minImsDataPoints;
@@ -302,8 +303,12 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     imsSmoothing = getValue(params, IonMobilityWizardParameters.smoothing);
     imsFwhm = getValue(params, IonMobilityWizardParameters.approximateImsFWHM);
     imsFwhmMobTolerance = new MobilityTolerance(imsFwhm.floatValue());
-    isNativeIms = Arrays.stream(dataFiles).map(RawDataFileTypeDetector::detectDataFileType)
-        .allMatch(type -> type == RawDataFileType.BRUKER_TDF);
+
+    final List<RawDataFileType> allFileTypes = Arrays.stream(dataFiles)
+        .map(RawDataFileTypeDetector::detectDataFileType).toList();
+    isNativeIms = allFileTypes.stream()
+        .allMatch(type -> (type == RawDataFileType.BRUKER_TDF || type == RawDataFileType.WATERS_RAW_IMS));
+    allMobilityScansCentroided = allFileTypes.stream().allMatch(type -> (type == RawDataFileType.BRUKER_TDF));
 
     // Imaging
     isImaging = steps.isImaging();
@@ -1097,7 +1102,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(ImsExpanderParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(ImsExpanderParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(ImsExpanderParameters.useRawData, isNativeIms);
+    param.setParameter(ImsExpanderParameters.useRawData, isNativeIms && allMobilityScansCentroided);
     param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter().setValue(1E1);
     param.setParameter(ImsExpanderParameters.mzTolerance, mzTolScans);
     // need to set SLIM specifically here, as it looks like TWIMS in the raw data.
