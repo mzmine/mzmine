@@ -27,11 +27,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 50667,
-          "sha512": "e3fb96fd8a50338d40eb60c84123c8a625e5103921b37cb8b0940b2f209bf53f76602df31be7046abb6f86ee63de0f02dd5d9854e5e686f5be13ff1ac6f40181",
-          "sha256": "037d501afff375813ff7a6093722a97fe9e4d3cff1e613af0b9d45a5e113fe74",
-          "sha1": "aa87faab66a06d0c8db404ff9c9b8e4683296e22",
-          "md5": "afcd158662ac12c87602a71c587005a6"
+          "size": 52937,
+          "sha512": "31bb6b9265f200cbd7acc96474e6307d72d963ead6a402920b87ce455abb6144679e4f6a8f61473b3e39edf123071c7f56d5882a53682f45474fae955f47d9f3",
+          "sha256": "f04dce3022af890725edb2d816d6289cc033ffd4d1efd30aa9161223bfd85768",
+          "sha1": "0e4240c8a6117de5ffcbe76ae7c9bd3d7264d189",
+          "md5": "2451ca4e02e4ba2f88f1e27149d9db63"
         }
       ]
     },
@@ -56,7 +56,7 @@
           "group": "org.controlsfx",
           "module": "controlsfx",
           "version": {
-            "requires": "11.1.1"
+            "requires": "11.2.2"
           }
         },
         {
@@ -167,11 +167,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 50667,
-          "sha512": "e3fb96fd8a50338d40eb60c84123c8a625e5103921b37cb8b0940b2f209bf53f76602df31be7046abb6f86ee63de0f02dd5d9854e5e686f5be13ff1ac6f40181",
-          "sha256": "037d501afff375813ff7a6093722a97fe9e4d3cff1e613af0b9d45a5e113fe74",
-          "sha1": "aa87faab66a06d0c8db404ff9c9b8e4683296e22",
-          "md5": "afcd158662ac12c87602a71c587005a6"
+          "size": 52937,
+          "sha512": "31bb6b9265f200cbd7acc96474e6307d72d963ead6a402920b87ce455abb6144679e4f6a8f61473b3e39edf123071c7f56d5882a53682f45474fae955f47d9f3",
+          "sha256": "f04dce3022af890725edb2d816d6289cc033ffd4d1efd30aa9161223bfd85768",
+          "sha1": "0e4240c8a6117de5ffcbe76ae7c9bd3d7264d189",
+          "md5": "2451ca4e02e4ba2f88f1e27149d9db63"
         }
       ]
     }

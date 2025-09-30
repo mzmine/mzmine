@@ -27,11 +27,11 @@
         {
           "name": "taskcontroller-1.0.0.jar",
           "url": "taskcontroller-1.0.0.jar",
-          "size": 34980,
-          "sha512": "2ed05f05a5d5b78639013dea11daee570288c226b0481d6b04b006f5090657861fb14dda2630b6cff66c3841cc9c22e7e4c21885d8742e8c23d2c39ce02fd6e5",
-          "sha256": "8b08b4315dd5c844a6220c9ae638f619a1ecc92d085bb6b97fc3c67c42e62b74",
-          "sha1": "7bcb5b600b9454b5cb72255110b261c276011eb5",
-          "md5": "cec237243d481d88d71fdc8cbcff8c72"
+          "size": 35009,
+          "sha512": "01dbd64259b9965e513fd2b0bb0a508854f43eb53b105c28a9d8edb0f3a98d9d776b18e49063ccfdffe85bf026488ae2b66f28f1398f7ab7b87a2b8756d51d3c",
+          "sha256": "732a3dd6e22c0a316eecb9d960375f0bd54a6e23202878e0b336a3bab0ae22c5",
+          "sha1": "ea4424966e9b80e264f208ee6b7ae634ff36c183",
+          "md5": "9a98f8a00e0b960fb92a6dcce3c2611a"
         }
       ]
     },
@@ -56,7 +56,7 @@
           "group": "org.controlsfx",
           "module": "controlsfx",
           "version": {
-            "requires": "11.1.1"
+            "requires": "11.2.2"
           }
         },
         {
@@ -97,6 +97,13 @@
         {
           "group": "io.mzio",
           "module": "user-management",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "io.mzio",
+          "module": "user-client",
           "version": {
             "requires": "1.0.0"
           }
@@ -163,11 +170,11 @@
         {
           "name": "taskcontroller-1.0.0.jar",
           "url": "taskcontroller-1.0.0.jar",
-          "size": 34980,
-          "sha512": "2ed05f05a5d5b78639013dea11daee570288c226b0481d6b04b006f5090657861fb14dda2630b6cff66c3841cc9c22e7e4c21885d8742e8c23d2c39ce02fd6e5",
-          "sha256": "8b08b4315dd5c844a6220c9ae638f619a1ecc92d085bb6b97fc3c67c42e62b74",
-          "sha1": "7bcb5b600b9454b5cb72255110b261c276011eb5",
-          "md5": "cec237243d481d88d71fdc8cbcff8c72"
+          "size": 35009,
+          "sha512": "01dbd64259b9965e513fd2b0bb0a508854f43eb53b105c28a9d8edb0f3a98d9d776b18e49063ccfdffe85bf026488ae2b66f28f1398f7ab7b87a2b8756d51d3c",
+          "sha256": "732a3dd6e22c0a316eecb9d960375f0bd54a6e23202878e0b336a3bab0ae22c5",
+          "sha1": "ea4424966e9b80e264f208ee6b7ae634ff36c183",
+          "md5": "9a98f8a00e0b960fb92a6dcce3c2611a"
         }
       ]
     }

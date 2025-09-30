@@ -28,10 +28,10 @@
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
           "size": 13361,
-          "sha512": "53598f603c91b80b31988b9cfc2b17a638351a5fd2694bf434d0834bd84732ef9085c5c7d1c2a4f8c5c473f9e4b791f616364626fe0ecb290068f440bb17d48d",
-          "sha256": "b851fe480c0fd470dc9e53daf41fcc797d554a7aad34e5d203b7bd230cfde4b3",
-          "sha1": "949dc849da5a8f86b213c4051c1d93cd65c5ef1d",
-          "md5": "7463568cb6085d3fa1d9d9e6e6ee9b36"
+          "sha512": "c8ee394c93c7a06ce72135f9acbe643b1973f9ff972dc1281ba2bae818de689cbfe4bffe1372647ae191cf979ed3bc093a20b4808e2fa8bd04c782638b6b0e3a",
+          "sha256": "3eb72460c5ca7240f05e210374570ab56ce226b52c5cb300be4bc77f4befeef3",
+          "sha1": "d30cb5df55655333da6c1cd41738caa720b31620",
+          "md5": "d1b819c65ec47f28175cb7c02fb8d4fc"
         }
       ]
     },
@@ -56,7 +56,7 @@
           "group": "org.controlsfx",
           "module": "controlsfx",
           "version": {
-            "requires": "11.1.1"
+            "requires": "11.2.2"
           }
         },
         {
@@ -160,10 +160,10 @@
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
           "size": 13361,
-          "sha512": "53598f603c91b80b31988b9cfc2b17a638351a5fd2694bf434d0834bd84732ef9085c5c7d1c2a4f8c5c473f9e4b791f616364626fe0ecb290068f440bb17d48d",
-          "sha256": "b851fe480c0fd470dc9e53daf41fcc797d554a7aad34e5d203b7bd230cfde4b3",
-          "sha1": "949dc849da5a8f86b213c4051c1d93cd65c5ef1d",
-          "md5": "7463568cb6085d3fa1d9d9e6e6ee9b36"
+          "sha512": "c8ee394c93c7a06ce72135f9acbe643b1973f9ff972dc1281ba2bae818de689cbfe4bffe1372647ae191cf979ed3bc093a20b4808e2fa8bd04c782638b6b0e3a",
+          "sha256": "3eb72460c5ca7240f05e210374570ab56ce226b52c5cb300be4bc77f4befeef3",
+          "sha1": "d30cb5df55655333da6c1cd41738caa720b31620",
+          "md5": "d1b819c65ec47f28175cb7c02fb8d4fc"
         }
       ]
     }
