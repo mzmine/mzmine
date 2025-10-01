@@ -23,12 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_diams2;
+package io.github.mzmine.modules.dataprocessing.filter_diams2_nocorr;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -38,23 +39,21 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DiaMs2CorrModule implements MZmineProcessingModule {
-
-  public static final String NAME = "DIA pseudo MS2 builder (experimental)";
+public class DiaMs2NoCorrModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getName() {
-    return NAME;
+    return "DIA pseudo MS2 builder (no correlation) (experimental)";
   }
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return DiaMs2CorrParameters.class;
+    return DiaMs2NoCorrParameters.class;
   }
 
   @Override
   public @NotNull String getDescription() {
-    return "Builds pseudo MS2 scans based on feature shape correlation.";
+    return "Pairs the closest MS2 spectrum based on retention time and ion mobility dimension without filtering for feature shape correlation.";
   }
 
   @Override
@@ -62,9 +61,10 @@ public class DiaMs2CorrModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
-    for (ModularFeatureList matchingFeatureList : parameters.getValue(DiaMs2CorrParameters.flists)
+    for (ModularFeatureList matchingFeatureList : parameters.getValue(DiaMs2NoCorrParameters.flists)
         .getMatchingFeatureLists()) {
-      tasks.add(new DiaMs2CorrTask(storage, moduleCallDate, matchingFeatureList, parameters));
+      tasks.add(new DiaMs2NoCorrTask(storage, moduleCallDate, parameters, this.getClass(),
+          matchingFeatureList));
     }
     return ExitCode.OK;
   }
