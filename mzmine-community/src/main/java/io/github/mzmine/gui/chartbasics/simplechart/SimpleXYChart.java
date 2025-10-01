@@ -232,10 +232,8 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     nextDataSetNum++;
     notifyDatasetChangeListeners(new DatasetChangeEvent(this, dataset));
 
+    // if true this will auto trigger chart changed event and draw update
     setNotifyChange(oldNotify);
-    if (isNotifyChange()) {
-      fireChangeEvent();
-    }
     return nextDataSetNum - 1;
   }
 
@@ -292,11 +290,12 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     if (notify && ds != null) {
       notifyDatasetChangeListeners(new DatasetChangeEvent(this, ds));
     }
+    // if true this will auto trigger chart changed event and draw update
     setNotifyChange(notify);
-    if (isNotifyChange()) {
-      fireChangeEvent();
+    // both could be true and that would both trigger a chart update
+    if (notify != oldNotify) {
+      setNotifyChange(oldNotify);
     }
-    setNotifyChange(oldNotify);
     return ds;
   }
 
@@ -326,7 +325,15 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     });
   }
 
-  public void setDatasets(@NotNull List<@NotNull DatasetAndRenderer> datasets) {
+  public void setDatasets(@NotNull Collection<? extends ColoredXYDataset> datasets) {
+    // if old notify state was true this will auto trigger chart changed event and draw update
+    applyWithNotifyChanges(false, () -> {
+      removeAllDatasets();
+      addDatasets(datasets);
+    });
+  }
+
+  public void setDatasetsAndRenderers(@NotNull List<@NotNull DatasetAndRenderer> datasets) {
     applyWithNotifyChanges(false, () -> {
       removeAllDatasets();
       datasets.forEach(ds -> addDataset(ds.dataset(), ds.renderer()));
