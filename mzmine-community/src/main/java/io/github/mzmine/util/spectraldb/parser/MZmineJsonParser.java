@@ -83,7 +83,7 @@ public class MZmineJsonParser extends SpectralDBTextParser {
           if (entry != null) {
             correct++;
             // add entry and process
-            addLibraryEntry(entry);
+            addLibraryEntry(library.getStorage(), errors, entry);
           } else {
             error++;
           }

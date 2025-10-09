@@ -82,7 +82,7 @@ public class GNPSJsonParser extends SpectralDBParser {
         try {
           SpectralLibraryEntry entry = mapper.readValue(jsonParser, GnpsLibraryEntry.class)
               .toSpectralLibraryEntry(library);
-          addLibraryEntry(entry);
+          addLibraryEntry(library.getStorage(), errors, entry);
         } catch (Exception ex) {
           errors.addUnknownException("GNPS json parsing error: " + ex.getMessage());
           int totalErrors = errors.addUnknownException("Total GNPS json parsing errors");

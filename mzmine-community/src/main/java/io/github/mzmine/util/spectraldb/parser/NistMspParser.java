@@ -159,7 +159,7 @@ public class NistMspParser extends SpectralDBTextParser {
     if (!fatalEntryError && !dps.isEmpty() && !fields.isEmpty()) {
       SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(library.getStorage(), fields,
           dps.toArray(new DataPoint[0]));
-      addLibraryEntry(entry);
+      addLibraryEntry(library.getStorage(), errors, entry);
     }
 
     if (fatalEntryError) {

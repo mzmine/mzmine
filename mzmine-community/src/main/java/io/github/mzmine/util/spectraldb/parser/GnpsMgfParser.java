@@ -119,7 +119,7 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                   SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(
                       library.getStorage(), fields, dps.toArray(new DataPoint[dps.size()]));
                   // add and push
-                  addLibraryEntry(entry);
+                  addLibraryEntry(library.getStorage(), errors, entry);
                   correct++;
                 } else if (fatalEntryError) {
                   errors.addUnknownException("Skipped entry");
