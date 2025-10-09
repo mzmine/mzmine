@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,8 +49,9 @@ import java.util.logging.Logger;
  */
 public class JdxParser extends SpectralDBTextParser {
 
-  public JdxParser(int bufferEntries, LibraryEntryProcessor processor) {
-    super(bufferEntries, processor);
+  public JdxParser(int bufferEntries, LibraryEntryProcessor processor,
+      boolean extensiveErrorLogging) {
+    super(bufferEntries, processor, extensiveErrorLogging);
   }
 
   private static final Logger logger = Logger.getLogger(NistMspParser.class.getName());

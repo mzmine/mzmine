@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,16 +37,24 @@ import java.io.IOException;
  */
 public class AutoLibraryParser extends SpectralDBParser {
 
+  private final boolean extensiveErrorLogging;
   private SpectralDBParser subParser;
 
   public AutoLibraryParser(int bufferEntries, LibraryEntryProcessor processor) {
+    this(bufferEntries, processor, true);
+  }
+
+  public AutoLibraryParser(int bufferEntries, LibraryEntryProcessor processor,
+      boolean extensiveErrorLogging) {
     super(bufferEntries, processor);
+    this.extensiveErrorLogging = extensiveErrorLogging;
   }
 
   @Override
   public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
       throws UnsupportedFormatException, IOException {
-    subParser = SpectralLibraryFormatChecker.getParser(dataBaseFile, bufferEntries, processor);
+    subParser = SpectralLibraryFormatChecker.getParser(dataBaseFile, bufferEntries, processor,
+        extensiveErrorLogging);
     // parse the file
     return subParser.parse(mainTask, dataBaseFile, library);
   }

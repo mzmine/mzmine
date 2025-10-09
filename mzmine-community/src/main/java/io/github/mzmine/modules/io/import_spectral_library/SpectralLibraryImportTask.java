@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -115,9 +115,11 @@ public class SpectralLibraryImportTask extends AbstractTask {
    */
   private SpectralLibrary parseFile(File dataBaseFile)
       throws UnsupportedFormatException, IOException {
-    //
+    // TODO maybe turn this into an advanced parameter but what about the all data import module?
+    boolean extensiveErrorLogging = true;
     SpectralLibrary library = new SpectralLibrary(MemoryMapStorage.forMassList(), dataBaseFile);
-    parser = new AutoLibraryParser(1000, (list, alreadyProcessed) -> library.addEntries(list));
+    parser = new AutoLibraryParser(1000, (list, alreadyProcessed) -> library.addEntries(list),
+        extensiveErrorLogging);
     // return tasks
     parser.parse(this, dataBaseFile, library);
     return library;

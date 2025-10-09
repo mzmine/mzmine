@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
@@ -69,8 +68,9 @@ public class MonaJsonParser extends SpectralDBTextParser {
 
   private static final Logger logger = Logger.getLogger(MonaJsonParser.class.getName());
 
-  public MonaJsonParser(int bufferEntries, LibraryEntryProcessor processor) {
-    super(bufferEntries, processor);
+  public MonaJsonParser(int bufferEntries, LibraryEntryProcessor processor,
+      boolean extensiveErrorLogging) {
+    super(bufferEntries, processor, extensiveErrorLogging);
   }
 
   @Override
@@ -84,13 +84,15 @@ public class MonaJsonParser extends SpectralDBTextParser {
 
     List<SpectralLibraryEntry> results = new ArrayList<>();
 
+    final LibraryParsingErrors errors = new LibraryParsingErrors(library.getName());
+
     // create db
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
       // test on first ten if it is really a MoNA file
       String l = br.readLine();
       while (l != null) {
         if (l.length() > 2) {
-          final SpectralLibraryEntry entry = parseLineToEntry(library, correct, error, l);
+          final SpectralLibraryEntry entry = parseLineToEntry(errors, library, correct, error, l);
           if (entry != null) {
             results.add(entry);
           }
@@ -106,8 +108,8 @@ public class MonaJsonParser extends SpectralDBTextParser {
 
       if (error.get() > correct.get()) {
         logger.warning("Stopping to parse file " + dataBaseFile.getName() + " as MoNA library, "
-                       + "there were too many entries with mismatching format. This is usually the case when "
-                       + "reading GNPS json libraries and just to determine the file type.");
+            + "there were too many entries with mismatching format. This is usually the case when "
+            + "reading GNPS json libraries and just to determine the file type.");
         return false;
       }
 
@@ -115,7 +117,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
       final List<SpectralLibraryEntry> entries = br.lines().filter(line -> {
             processedLines.incrementAndGet();
             return line.length() > 2;
-          }).parallel().map(line -> parseLineToEntry(library, correct, error, line))
+          }).parallel().map(line -> parseLineToEntry(errors, library, correct, error, line))
           .filter(Objects::nonNull).toList();
 
       if (error.get() > 0) {
@@ -126,14 +128,18 @@ public class MonaJsonParser extends SpectralDBTextParser {
       // combine
       results.addAll(entries);
       processor.processNextEntries(results, 0);
+
+      // log errors
+      logger.info(isExtensiveErrorLogging() ? errors.toString() : errors.toStringShort());
+
       return true;
     }
   }
 
-  private SpectralLibraryEntry parseLineToEntry(SpectralLibrary library, AtomicInteger correct,
-      AtomicInteger error, String l) {
+  private SpectralLibraryEntry parseLineToEntry(LibraryParsingErrors errors,
+      SpectralLibrary library, AtomicInteger correct, AtomicInteger error, String l) {
     try {
-      final SpectralLibraryEntry entry = parseToEntry(library, l);
+      final SpectralLibraryEntry entry = parseToEntry(errors, library, l);
       if (entry != null) {
         correct.getAndIncrement();
         return entry;
@@ -141,33 +147,36 @@ public class MonaJsonParser extends SpectralDBTextParser {
         error.getAndIncrement();
       }
     } catch (Exception ex) {
-      logger.log(Level.FINEST, "During mona parser read: " + ex.getMessage());
+//      logger.log(Level.FINEST, "During mona parser read: " + ex.getMessage());
       error.getAndIncrement();
     }
     return null;
   }
 
   @Nullable
-  private SpectralLibraryEntry parseToEntry(SpectralLibrary library, String line) {
+  private SpectralLibraryEntry parseToEntry(LibraryParsingErrors errors, SpectralLibrary library,
+      String line) {
     try (JsonReader reader = Json.createReader(new StringReader(line))) {
       JsonObject json = reader.readObject();
-      return getDBEntry(library, json);
+      return getDBEntry(errors, library, json);
     }
   }
 
-  public SpectralLibraryEntry getDBEntry(SpectralLibrary library, JsonObject main) {
+  public SpectralLibraryEntry getDBEntry(LibraryParsingErrors errors, SpectralLibrary library,
+      JsonObject main) {
     // extract dps
-    DataPoint[] dps = getDataPoints(main);
+    DataPoint[] dps = getDataPoints(errors, main);
     if (dps == null || dps.length == 0) {
       return null;
     }
     // metadata
     Map<DBEntryField, Object> map = new EnumMap<>(DBEntryField.class);
-    extractAllFields(main, map);
+    extractAllFields(errors, main, map);
     return SpectralLibraryEntryFactory.create(library.getStorage(), map, dps);
   }
 
-  public void extractAllFields(JsonObject main, Map<DBEntryField, Object> map) {
+  public void extractAllFields(LibraryParsingErrors errors, JsonObject main,
+      Map<DBEntryField, Object> map) {
     for (DBEntryField f : DBEntryField.values()) {
       Object value = null;
       JsonValue j = null;
@@ -380,20 +389,27 @@ public class MonaJsonParser extends SpectralDBTextParser {
     return main.getJsonArray(COMPOUND).getJsonObject(0).getString(id, null);
   }
 
-  public DataPoint[] getDataPoints(JsonObject main) {
+  public DataPoint[] getDataPoints(LibraryParsingErrors errors, JsonObject main) {
     String spec = main.getString("spectrum");
     if (spec == null) {
+      errors.addUnknownException("'spectrum' key for data points not found");
       return null;
     }
-    String[] data = spec.split(" ");
-    DataPoint[] dps = new DataPoint[data.length];
-    for (int i = 0; i < dps.length; i++) {
-      String[] dp = data[i].split(":");
-      double mz = Double.parseDouble(dp[0]);
-      double intensity = Double.parseDouble(dp[1]);
-      dps[i] = new SimpleDataPoint(mz, intensity);
+
+    try {
+      String[] data = spec.split(" ");
+      DataPoint[] dps = new DataPoint[data.length];
+      for (int i = 0; i < dps.length; i++) {
+        String[] dp = data[i].split(":");
+        double mz = Double.parseDouble(dp[0]);
+        double intensity = Double.parseDouble(dp[1]);
+        dps[i] = new SimpleDataPoint(mz, intensity);
+      }
+      return dps;
+    } catch (Exception e) {
+      errors.addUnknownException("Error parsing data points");
+      throw e; // was thrown before to count errors
     }
-    return dps;
   }
 
 }
