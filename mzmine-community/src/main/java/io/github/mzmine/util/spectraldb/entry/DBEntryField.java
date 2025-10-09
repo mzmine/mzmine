@@ -215,6 +215,9 @@ public enum DBEntryField {
     addAlternativeKey("ontology", DBEntryField.CLASSYFIRE_CLASS); // RIKEN NIST
     addAlternativeKey("ionization", DBEntryField.ION_SOURCE); // RIKEN NIST
     addAlternativeKey("ms_ionisation", DBEntryField.ION_SOURCE); // GNPS2 mgf cleaned
+    addAlternativeKey("precursorcharge", DBEntryField.CHARGE); // user msp
+    addAlternativeKey("mass", DBEntryField.EXACT_MASS); // user msp
+    addAlternativeKey("spectra_id", DBEntryField.ENTRY_ID); // user msp
     addAlternativeKey("ms_ionization", DBEntryField.ION_SOURCE);
     addAlternativeKey("ms_mass_analyzer", DBEntryField.INSTRUMENT_TYPE); // GNPS2 mgf cleaned
 //    addAlternativeKey("ms_manufacturer", DBEntryField.INSTRUMENT_TYPE); // GNPS2 mgf cleaned - currently no field
