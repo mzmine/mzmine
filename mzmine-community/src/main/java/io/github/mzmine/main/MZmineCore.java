@@ -27,6 +27,7 @@ package io.github.mzmine.main;
 
 import static java.util.Objects.requireNonNullElse;
 
+import com.github.markusbernhardt.proxy.ProxySearch;
 import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -68,6 +69,7 @@ import io.mzio.users.user.UserNotificationUtils;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.net.ProxySelector;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -224,6 +226,9 @@ public final class MZmineCore {
    * @param argsParser Args parser for easy access to e.g. the batch file.
    */
   public static void launchBatchOrGui(String[] args, MZmineCoreArgumentParser argsParser) {
+    // handle proxy
+    initAutoProxySelector();
+
     // batch mode defined by command line argument
     final File batchFile = argsParser.getBatchFile();
     final boolean isCliBatchProcessing = batchFile != null;
@@ -283,6 +288,21 @@ public final class MZmineCore {
       exit(batchTask);
     }
 
+  }
+
+  /**
+   * <a href="https://github.com/akuhtz/proxy-vole">...</a>
+   */
+  private static void initAutoProxySelector() {
+    logger.info("Initializing auto proxy selector");
+// configured with the default proxy search strategies for the current environment.
+    ProxySearch proxySearch = ProxySearch.getDefaultProxySearch();
+
+// Invoke the proxy search. This will create a ProxySelector with the detected proxy settings.
+    ProxySelector proxySelector = proxySearch.getProxySelector();
+
+// Install this ProxySelector as default ProxySelector for all connections.
+    ProxySelector.setDefault(proxySelector);
   }
 
   private static void launchGui(String[] args) {
@@ -387,7 +407,7 @@ public final class MZmineCore {
 
   /**
    *
-    * @return An unmodifiable copy of the currently initialized modules.
+   * @return An unmodifiable copy of the currently initialized modules.
    */
   public static Map<String, MZmineModule> getInitializedModules() {
     return Map.copyOf(getInstance().initializedModules);
@@ -407,23 +427,22 @@ public final class MZmineCore {
   @NotNull
   public static List<MZmineModule> getModulesForParameterSet(ParameterSet parameterSet) {
     final String definedName = parameterSet.getModuleNameAttribute();
-    final List<MZmineModule> matches = getInitializedModules().entrySet().stream()
-        .filter(entry -> {
-          final String className = entry.getKey();
-          final MZmineModule module = entry.getValue();
-          if (module == null) {
-            return false;
-          }
-          if (definedName != null && (definedName.equals(module.getName()) || definedName.equals(
-              className))) {
-            return true;
-          }
-          // check parameterset class
-          final ParameterSet moduleParameters = ConfigService.getConfiguration()
-              .getModuleParameters(module.getClass());
-          return moduleParameters != null && moduleParameters.getClass().getName()
-              .equals(parameterSet.getClass().getName());
-        }).map(Entry::getValue).toList();
+    final List<MZmineModule> matches = getInitializedModules().entrySet().stream().filter(entry -> {
+      final String className = entry.getKey();
+      final MZmineModule module = entry.getValue();
+      if (module == null) {
+        return false;
+      }
+      if (definedName != null && (definedName.equals(module.getName()) || definedName.equals(
+          className))) {
+        return true;
+      }
+      // check parameterset class
+      final ParameterSet moduleParameters = ConfigService.getConfiguration()
+          .getModuleParameters(module.getClass());
+      return moduleParameters != null && moduleParameters.getClass().getName()
+          .equals(parameterSet.getClass().getName());
+    }).map(Entry::getValue).toList();
     return matches;
   }
 
