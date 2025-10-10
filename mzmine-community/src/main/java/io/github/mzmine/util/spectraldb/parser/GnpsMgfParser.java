@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Main format for library entries in GNPS
@@ -51,6 +52,17 @@ import java.util.logging.Logger;
  * @author Robin Schmid
  */
 public class GnpsMgfParser extends SpectralDBTextParser {
+
+  /**
+   * Gnps mgfs have the adduct after the name, e.g.
+   *<p></p>
+   * NAME=Umbelliferon M+H
+   * <p></p>
+   * NAME=Gamma-aminobutyric_acid M-H
+   * <p></p>
+   * Looks like no brackets and charge indicator are present usually
+   */
+  final Pattern gnpsNameAdductPattern = Pattern.compile("(M[\\+\\-][\\d\\+\\-\\w]+)");
 
   public GnpsMgfParser(int bufferEntries, LibraryEntryProcessor processor) {
     super(bufferEntries, processor);
@@ -143,20 +155,7 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                             // only attempt parsing of adduct from name if there is no adduct already.
                             if (field.equals(DBEntryField.NAME)
                                 && fields.get(DBEntryField.ION_TYPE) == null) {
-                              String name = ((String) value);
-                              int lastSpace = name.lastIndexOf(' ');
-                              if (lastSpace != -1 && lastSpace < name.length() - 2) {
-                                String adductCandidate = name.substring(lastSpace + 1);
-                                // check for valid
-                                // adduct with the
-                                // adduct parser
-                                // from export
-                                // use as adduct
-                                IonType adduct = IonTypeParser.parse(adductCandidate);
-                                if (adduct != null && !adduct.isUndefinedAdduct()) {
-                                  fields.put(DBEntryField.ION_TYPE, adduct.toString(false));
-                                }
-                              }
+                              tryExtractAdductFromName((String) value, fields);
                             }
                             // retention time is in seconds, mzmine uses minutes
                             if (field.equals(DBEntryField.RT)) {
@@ -188,6 +187,34 @@ public class GnpsMgfParser extends SpectralDBTextParser {
       // finish and process all entries
       finish();
       return true;
+    }
+  }
+
+  /**
+   * Gnps mgfs have the adduct after the name, e.g.
+   *<p></p>
+   * NAME=Umbelliferon M+H
+   * <p></p>
+   * NAME=Gamma-aminobutyric_acid M-H
+   * @param value the field value
+   * @param fields the currently parsed fields
+   */
+  private void tryExtractAdductFromName(String value, Map<DBEntryField, Object> fields) {
+    final String name = value;
+    final int lastSpace = name.lastIndexOf(' ');
+    if (lastSpace == -1 || lastSpace >= name.length() - 2) {
+      return;
+    }
+
+    final String adductCandidate = name.substring(lastSpace + 1);
+    if (!gnpsNameAdductPattern.matcher(adductCandidate).matches()) {
+      return;
+    }
+    // check for valid adduct with the adduct parser from export
+    // use as adduct
+    final IonType adduct = IonTypeParser.parse(adductCandidate);
+    if (adduct != null && !adduct.isUndefinedAdduct()) {
+      fields.put(DBEntryField.ION_TYPE, adduct.toString(false));
     }
   }
 
