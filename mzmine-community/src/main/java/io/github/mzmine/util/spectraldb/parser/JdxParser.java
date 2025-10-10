@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,8 +49,9 @@ import java.util.logging.Logger;
  */
 public class JdxParser extends SpectralDBTextParser {
 
-  public JdxParser(int bufferEntries, LibraryEntryProcessor processor) {
-    super(bufferEntries, processor);
+  public JdxParser(int bufferEntries, LibraryEntryProcessor processor,
+      boolean extensiveErrorLogging) {
+    super(bufferEntries, processor, extensiveErrorLogging);
   }
 
   private static final Logger logger = Logger.getLogger(NistMspParser.class.getName());
@@ -60,6 +61,8 @@ public class JdxParser extends SpectralDBTextParser {
       throws IOException {
     super.parse(mainTask, dataBaseFile, library);
     logger.info("Parsing jdx spectral library " + dataBaseFile.getAbsolutePath());
+
+    final LibraryParsingErrors errors = new LibraryParsingErrors(library.getName());
 
     boolean isData = false;
     Map<DBEntryField, Object> fields = new EnumMap<>(DBEntryField.class);
@@ -77,18 +80,21 @@ public class JdxParser extends SpectralDBTextParser {
           // meta data?
           sep = isData ? -1 : l.indexOf("=");
           if (sep != -1) {
-            DBEntryField field = DBEntryField.forJdxID(l.substring(0, sep));
-            if (field != null) {
+            final String key = l.substring(0, sep);
+            DBEntryField field = DBEntryField.forJdxID(key);
+
+            if (field == null) {
+              if (!key.isBlank()) {
+                errors.addUnknownKey(key);
+              }
+            } else {
               String content = l.substring(sep + 1);
               if (content.length() > 0) {
                 try {
                   Object value = field.convertValue(content);
                   fields.put(field, value);
                 } catch (Exception e) {
-                  logger.log(Level.WARNING, """
-                      Cannot convert value '%s' to type %s
-                      Parsing will skip this value for field %s""".formatted(content,
-                      field.getObjectClass(), field.toString()));
+                  errors.addValueParsingError(field, key, content);
                 }
               }
             }
@@ -103,18 +109,30 @@ public class JdxParser extends SpectralDBTextParser {
                       Double.parseDouble(data[1])));
                   isData = true;
                 } catch (Exception e) {
+                  // use generic message as exception will be unique for each value and will create too long error log
+                  int dataPointErrors = errors.addUnknownException("Cannot parse data points");
+                  // log the 2 first data point errors
+                  if (dataPointErrors <= 2 && isExtensiveErrorLogging()) {
+                    logger.log(Level.WARNING, "Cannot parse data point: " + e.getMessage(), e);
+                  }
                 }
               }
             }
           }
-          if (l.contains("END")) {
+          if (l.trim().equalsIgnoreCase("end")) {
             // row with END
             // add entry and reset
-            SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(library.getStorage(),
-                fields, dps.toArray(new DataPoint[dps.size()]));
-            fields = new EnumMap<>(fields);
+            if (!fields.isEmpty() || !dps.isEmpty()) {
+              // skipped some read information
+              errors.addUnknownException("Skipped entry");
+            } else {
+              SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(library.getStorage(),
+                  fields, dps.toArray(new DataPoint[dps.size()]));
+              addLibraryEntry(library.getStorage(), errors, entry);
+            }
+
+            fields = new EnumMap<>(DBEntryField.class);
             dps.clear();
-            addLibraryEntry(entry);
             // reset
             isData = false;
           }
@@ -127,6 +145,9 @@ public class JdxParser extends SpectralDBTextParser {
 
     // finish and push last entries
     finish();
+
+    // log errors
+    logger.info(isExtensiveErrorLogging() ? errors.toString() : errors.toStringShort());
 
     return true;
   }

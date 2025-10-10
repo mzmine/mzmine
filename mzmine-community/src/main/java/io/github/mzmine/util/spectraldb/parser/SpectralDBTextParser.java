@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,12 +40,15 @@ import java.util.logging.Logger;
 public abstract class SpectralDBTextParser extends SpectralDBParser {
 
   private static final Logger logger = Logger.getLogger(SpectralDBTextParser.class.getName());
+  private final boolean extensiveErrorLogging;
 
   protected long totalLines = 0L;
   protected AtomicLong processedLines = new AtomicLong(0L);
 
-  public SpectralDBTextParser(int bufferEntries, LibraryEntryProcessor processor) {
+  public SpectralDBTextParser(int bufferEntries, LibraryEntryProcessor processor,
+      boolean extensiveErrorLogging) {
     super(bufferEntries, processor);
+    this.extensiveErrorLogging = extensiveErrorLogging;
   }
 
   @Override
@@ -72,5 +75,9 @@ public abstract class SpectralDBTextParser extends SpectralDBParser {
 
   public void setTotalLines(long totalLines) {
     this.totalLines = totalLines;
+  }
+
+  public boolean isExtensiveErrorLogging() {
+    return extensiveErrorLogging;
   }
 }

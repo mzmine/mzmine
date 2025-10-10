@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,7 +48,7 @@ class GnpsJsonParserTest {
     List<SpectralLibraryEntry> list = new ArrayList<>();
     new GNPSJsonParser(0, (newList, alreadyProcessed) -> {
       list.addAll(newList);
-    }).parse(null, file, null);
+    }, true).parse(null, file, null);
 
     assert list.size() == 4;
   }
