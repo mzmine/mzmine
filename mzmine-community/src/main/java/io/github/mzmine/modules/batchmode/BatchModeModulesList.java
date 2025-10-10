@@ -159,6 +159,7 @@ import io.github.mzmine.modules.tools.clear_project.ClearProjectModule;
 import io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule;
 import io.github.mzmine.modules.tools.output_analyze_logs.AnalyzeLogFileModule;
 import io.github.mzmine.modules.tools.output_compare_csv.CompareModularCsvModule;
+import io.github.mzmine.modules.tools.proxy_test.ProxyTestModule;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule;
 import io.github.mzmine.modules.tools.siriusapi.modules.export.SiriusApiExportRowsModule;
 import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdModule;
@@ -449,6 +450,7 @@ public class BatchModeModulesList {
           BatchWizardModule.class, //
           CompareModularCsvModule.class, //
           AnalyzeLogFileModule.class, //
+          ProxyTestModule.class, //
 
           // visualizers
           SpectraVisualizerModule.class, //
