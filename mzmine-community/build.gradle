@@ -164,6 +164,7 @@ dependencies {
 //    implementation "org.graphstream:gs-core:2.0"
     // use patched version via jitpack from https://github.com/robinschmid/gs-core/tree/patch-1
     implementation(libs.guava)
+    implementation(libs.proxy.vole)
 //    implementation(libs.commons.math) // remove at some point?
     implementation(libs.commons.math3)
     implementation(libs.commons.cli)
