@@ -196,3 +196,7 @@
   -fx-background-color: -highlight;
   -fx-box-border: -highlight;
 }
+
+.chart-plot-background {
+  -fx-background-color: white;
+}
