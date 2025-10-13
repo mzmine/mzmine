@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       public_repo_full_name:
-        description: 'steffenheu/mzmine3'
+        description: 'steffenheu/cpplecture'
         required: true
         type: string
 
