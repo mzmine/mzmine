@@ -137,7 +137,11 @@ public final class MZmineCore {
     // handle proxy first
     initAutoProxySelector();
 
+    // this also changes proxy settings after load
     ArgsToConfigUtils.applyArgsToConfig(argsParser);
+
+    // so log state after load
+    logProxyState("Auto proxy after config loading:");
 
     CurrentUserService.subscribe(user -> {
       var nickname = user == null ? null : user.getNickname();
@@ -298,11 +302,7 @@ public final class MZmineCore {
    * <a href="https://github.com/akuhtz/proxy-vole">...</a>
    */
   private static void initAutoProxySelector() {
-    List<String> testUrls = List.of("https://auth.mzio.io/", MzioMZmineLinks.MZIO.getUrl());
-
-    logger.info("Initial proxy settings were:");
-    logSystemProperties();
-    logProxyDetails(testUrls);
+    logProxyState("Initial proxy settings were:");
 
     logger.info("Initializing auto proxy selector");
 // configured with the default proxy search strategies for the current environment.
@@ -314,13 +314,19 @@ public final class MZmineCore {
 // Install this ProxySelector as default ProxySelector for all connections.
     if (proxySelector != null) {
       ProxySelector.setDefault(proxySelector);
-      logger.info("Auto proxy selector, now proxy settings are:");
-      logSystemProperties();
-      logProxyDetails(testUrls);
+      logProxyState("Auto proxy selector, now proxy settings are:");
     } else {
       logger.warning(
           "Auto proxy selector could not be initialized. Proxy settings are not detected.");
     }
+  }
+
+  private static void logProxyState(String msg) {
+    List<String> testUrls = List.of("https://auth.mzio.io/", MzioMZmineLinks.MZIO.getUrl());
+
+    logger.info(msg);
+    logSystemProperties();
+    logProxyDetails(testUrls);
   }
 
   /**
