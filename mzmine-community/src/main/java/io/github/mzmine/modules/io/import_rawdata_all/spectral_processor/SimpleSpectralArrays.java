@@ -27,6 +27,7 @@ package io.github.mzmine.modules.io.import_rawdata_all.spectral_processor;
 
 import io.github.mzmine.datamodel.Scan;
 import java.util.Arrays;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Data structure to represent spectral data in memory
@@ -45,14 +46,16 @@ public record SimpleSpectralArrays(double[] mzs, double[] intensities) {
 
   /**
    *
-   * @param data
-   * @return the zero filtered spectrum or the input if all non zero
+   * @param data           a spectrum
+   * @param noiseThreshold only retains data > noiseThreshold
+   * @return the noise filtered (>noiseThreshold) spectrum or the input
    */
-  public static SimpleSpectralArrays filterOutZeroIntensity(SimpleSpectralArrays data) {
+  public static SimpleSpectralArrays filterGreaterNoise(@NotNull SimpleSpectralArrays data,
+      double noiseThreshold) {
     int remaining = 0;
     boolean[] keep = new boolean[data.mzs.length];
     for (int i = 0; i < data.intensities.length; i++) {
-      if (data.intensities[i] > 0) {
+      if (data.intensities[i] > noiseThreshold) {
         keep[i] = true;
         remaining++;
       }
