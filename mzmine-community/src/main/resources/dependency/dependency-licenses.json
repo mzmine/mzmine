@@ -686,7 +686,7 @@
         },
         {
             "moduleName": "commons-logging:commons-logging",
-            "moduleVersion": "1.3.0",
+            "moduleVersion": "1.3.2",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-logging/"
             ],
@@ -1696,7 +1696,7 @@
         },
         {
             "moduleName": "net.java.dev.jna:jna",
-            "moduleVersion": "5.13.0",
+            "moduleVersion": "5.15.0",
             "moduleUrls": [
                 "https://github.com/java-native-access/jna"
             ],
@@ -1713,7 +1713,7 @@
         },
         {
             "moduleName": "net.java.dev.jna:jna-platform",
-            "moduleVersion": "5.5.0",
+            "moduleVersion": "5.15.0",
             "moduleUrls": [
                 "https://github.com/java-native-access/jna"
             ],
@@ -1807,6 +1807,19 @@
             ]
         },
         {
+            "moduleName": "org.apache.commons:commons-configuration2",
+            "moduleVersion": "2.11.0",
+            "moduleUrls": [
+                "https://commons.apache.org/proper/commons-configuration/"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.apache.commons:commons-lang3",
             "moduleVersion": "3.15.0",
             "moduleUrls": [
@@ -1864,7 +1877,7 @@
         },
         {
             "moduleName": "org.apache.commons:commons-text",
-            "moduleVersion": "1.10.0",
+            "moduleVersion": "1.12.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-text"
             ],
@@ -2375,6 +2388,19 @@
             ]
         },
         {
+            "moduleName": "org.bidib.com.github.markusbernhardt:proxy-vole",
+            "moduleVersion": "1.1.6",
+            "moduleUrls": [
+                "https://github.com/akuhtz/proxy-vole"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "org.bouncycastle:bcpkix-jdk15on",
             "moduleVersion": "1.68",
             "moduleUrls": [
@@ -2755,6 +2781,27 @@
                 "https://code.google.com/p/jbzip2/"
             ],
             "moduleLicenses": [
+                {
+                    "moduleLicense": "MIT License",
+                    "moduleLicenseUrl": "https://opensource.org/licenses/MIT"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.javadelight:delight-rhino-sandbox",
+            "moduleVersion": "0.0.17",
+            "moduleUrls": [
+                "https://github.com/javadelight/delight-rhino-sandbox"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                },
+                {
+                    "moduleLicense": "GPL",
+                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-3.0.en.html"
+                },
                 {
                     "moduleLicense": "MIT License",
                     "moduleLicenseUrl": "https://opensource.org/licenses/MIT"
@@ -3181,6 +3228,19 @@
                 {
                     "moduleLicense": "Apache License, Version 2.0",
                     "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.mozilla:rhino-runtime",
+            "moduleVersion": "1.7.15",
+            "moduleUrls": [
+                "https://mozilla.github.io/rhino/"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Mozilla Public License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.mozilla.org/en-US/MPL/2.0"
                 }
             ]
         },
