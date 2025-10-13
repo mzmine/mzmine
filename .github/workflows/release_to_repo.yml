@@ -1,0 +1,217 @@
+name: Copy Private Release Artifacts to Public Repo (from Private Repo)
+
+on:
+  workflow_dispatch:
+    inputs:
+      public_repo_full_name:
+        description: 'steffenheu/mzmine3'
+        required: true
+        type: string
+
+jobs:
+  copy_artifacts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # This workflow runs in the private repo, so only read access needed for its content.
+
+    steps:
+      - name: Install jq
+        # jq is a lightweight and flexible command-line JSON processor, used here to parse GitHub API responses.
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Extract Repository Details
+        id: repo_details
+        run: |
+          set -euo pipefail # Exit immediately if a command exits with a non-zero status.
+          PRIVATE_REPO_FULL_NAME="${{ github.repository }}" # This workflow runs in the private repo
+          PRIVATE_REPO_OWNER=$(echo "$PRIVATE_REPO_FULL_NAME" | cut -d'/' -f1)
+          PRIVATE_REPO_NAME=$(echo "$PRIVATE_REPO_FULL_NAME" | cut -d'/' -f2)
+          PUBLIC_REPO_FULL_NAME="${{ github.event.inputs.public_repo_full_name }}"
+          PUBLIC_REPO_OWNER=$(echo "$PUBLIC_REPO_FULL_NAME" | cut -d'/' -f1)
+          PUBLIC_REPO_NAME=$(echo "$PUBLIC_REPO_FULL_NAME" | cut -d'/' -f2)
+          
+          echo "PRIVATE_REPO_FULL_NAME=$PRIVATE_REPO_FULL_NAME" >> "$GITHUB_OUTPUT"
+          echo "PRIVATE_REPO_OWNER=$PRIVATE_REPO_OWNER" >> "$GITHUB_OUTPUT"
+          echo "PRIVATE_REPO_NAME=$PRIVATE_REPO_NAME" >> "$GITHUB_OUTPUT"
+          echo "PUBLIC_REPO_FULL_NAME=$PUBLIC_REPO_FULL_NAME" >> "$GITHUB_OUTPUT"
+          echo "PUBLIC_REPO_OWNER=$PUBLIC_REPO_OWNER" >> "$GITHUB_OUTPUT"
+          echo "PUBLIC_REPO_NAME=$PUBLIC_REPO_NAME" >> "$GITHUB_OUTPUT"
+
+          echo "Private Repository (this repo): $PRIVATE_REPO_FULL_NAME"
+          echo "Public Repository: $PUBLIC_REPO_FULL_NAME"
+
+      - name: Get Latest Private Release Info
+        id: get_private_release
+        env:
+          # Use the built-in GITHUB_TOKEN for the private repo to fetch its release info
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRIVATE_REPO_OWNER: ${{ steps.repo_details.outputs.PRIVATE_REPO_OWNER }}
+          PRIVATE_REPO_NAME: ${{ steps.repo_details.outputs.PRIVATE_REPO_NAME }}
+        run: |
+          set -euo pipefail
+          echo "Fetching latest release from ${{ env.PRIVATE_REPO_OWNER }}/${{ env.PRIVATE_REPO_NAME }}"
+          # Use gh CLI to fetch the latest release information
+          release_info=$(gh api \
+            --jq '{tag_name: .tag_name, name: .name, body: .body, assets: [.assets[] | {name: .name, url: .url, content_type: .content_type}]}' \
+            "/repos/${{ env.PRIVATE_REPO_OWNER }}/${{ env.PRIVATE_REPO_NAME }}/releases/latest")
+
+          RELEASE_TAG=$(echo "$release_info" | jq -r '.tag_name')
+          RELEASE_NAME=$(echo "$release_info" | jq -r '.name')
+          RELEASE_BODY=$(echo "$release_info" | jq -r '.body')
+
+          if [ "$RELEASE_TAG" == "null" ]; then
+            echo "Error: Could not find a latest release in the private repository '${{ env.PRIVATE_REPO_OWNER }}/${{ env.PRIVATE_REPO_NAME }}'."
+            exit 1
+          fi
+
+          # Output release details for subsequent steps
+          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "RELEASE_NAME=$RELEASE_NAME" >> "$GITHUB_OUTPUT"
+          echo "RELEASE_BODY<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$RELEASE_BODY" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "RELEASE_ASSETS_JSON=$release_info" >> "$GITHUB_OUTPUT" # Store full JSON for asset details
+
+          echo "Found private release tag: $RELEASE_TAG"
+          echo "Private release name: $RELEASE_NAME"
+
+      - name: Download and Filter Private Release Assets
+        id: download_assets
+        env:
+          # Use the built-in GITHUB_TOKEN for the private repo to download its assets
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRIVATE_REPO_OWNER: ${{ steps.repo_details.outputs.PRIVATE_REPO_OWNER }}
+          PRIVATE_REPO_NAME: ${{ steps.repo_details.outputs.PRIVATE_REPO_NAME }}
+          RELEASE_TAG: ${{ steps.get_private_release.outputs.RELEASE_TAG }}
+          RELEASE_ASSETS_JSON: ${{ steps.get_private_release.outputs.RELEASE_ASSETS_JSON }}
+        run: |
+          set -euo pipefail
+          mkdir -p downloaded_artifacts
+          cd downloaded_artifacts
+
+          echo "Processing assets for download and filtering..."
+          downloaded_assets_info_json="[]" # JSON array to store name and content_type of downloaded artifacts
+
+          # Construct names for default GitHub-generated source code archives
+          DEFAULT_SOURCE_ZIP="${PRIVATE_REPO_NAME}-${RELEASE_TAG}.zip"
+          DEFAULT_SOURCE_TAR="${PRIVATE_REPO_NAME}-${RELEASE_TAG}.tar.gz"
+
+          # Loop through each asset found in the private release
+          echo "$RELEASE_ASSETS_JSON" | jq -c '.assets[]' | while read -r asset; do
+            asset_name=$(echo "$asset" | jq -r '.name')
+            asset_url=$(echo "$asset" | jq -r '.url')
+            asset_content_type=$(echo "$asset" | jq -r '.content_type')
+
+            # Filtering logic
+            if [[ "$asset_name" == *[Mm]acOS* ]]; then
+              echo "Skipping artifact '$asset_name' (contains 'macOS')."
+              continue
+            elif [[ "$asset_name" == "$DEFAULT_SOURCE_ZIP" || "$asset_name" == "$DEFAULT_SOURCE_TAR" ]]; then
+              echo "Skipping artifact '$asset_name' (default source archive)."
+              continue
+            elif [[ "${asset_name,,}" == *source* || "${asset_name,,}" == *source-code* ]]; then # case-insensitive check
+              echo "Skipping artifact '$asset_name' (likely source code artifact)."
+              continue
+            fi
+
+            echo "Downloading artifact: $asset_name"
+            # Download the artifact using curl, authenticated with the GITHUB_TOKEN
+            curl -L -H "Authorization: token $GH_TOKEN" \
+                 -H "Accept: application/octet-stream" \
+                 -o "$asset_name" \
+                 "$asset_url"
+
+            if [ $? -eq 0 ]; then
+              echo "Downloaded $asset_name successfully."
+              # Add downloaded asset info to the JSON array
+              downloaded_assets_info_json=$(echo "$downloaded_assets_info_json" | jq ". + [{name: \"$asset_name\", content_type: \"$asset_content_type\"}]")
+            else
+              echo "Failed to download $asset_name."
+              exit 1
+            fi
+          done
+          echo "DOWNLOADED_ASSET_INFO_JSON=$downloaded_assets_info_json" >> "$GITHUB_OUTPUT"
+          echo "Downloaded assets for upload: $(echo "$downloaded_assets_info_json" | jq -r '.[].name')"
+
+      - name: Create Public Release
+        id: create_public_release
+        env:
+          # Use the PUBLIC_REPO_PAT for the public repo to create a release
+          GH_TOKEN: ${{ secrets.PUBLISH_PACKAGE_TOKEN }}
+          PUBLIC_REPO_FULL_NAME: ${{ steps.repo_details.outputs.PUBLIC_REPO_FULL_NAME }}
+        run: |
+          set -euo pipefail
+          RELEASE_TAG="${{ steps.get_private_release.outputs.RELEASE_TAG }}"
+          RELEASE_NAME="${{ steps.get_private_release.outputs.RELEASE_NAME }}"
+          RELEASE_BODY="${{ steps.get_private_release.outputs.RELEASE_BODY }}"
+          PUBLIC_REPO="${{ env.PUBLIC_REPO_FULL_NAME }}"
+
+          echo "Attempting to create public release with tag: $RELEASE_TAG"
+          echo "Release Name: $RELEASE_NAME"
+
+          # Check if a release with this tag already exists in the public repository
+          existing_release_tag=$(gh api \
+            --jq '.tag_name' \
+            "/repos/$PUBLIC_REPO/releases/tags/$RELEASE_TAG" \
+            --header "Authorization: token $GH_TOKEN" 2>/dev/null || echo "null")
+
+          if [ "$existing_release_tag" != "null" ]; then
+            echo "Error: A release with tag '$RELEASE_TAG' already exists in the public repository '$PUBLIC_REPO'. Aborting to prevent overwrite."
+            echo "Please delete the existing public release/tag manually if you wish to proceed."
+            exit 1
+          fi
+
+          # Create the new public release using gh CLI
+          gh release create \
+            "$RELEASE_TAG" \
+            --repo "$PUBLIC_REPO" \
+            --title "$RELEASE_NAME" \
+            --notes "$RELEASE_BODY" \
+            --draft=false \
+            --prerelease=false \
+            --target "$RELEASE_TAG" # Use the tag itself as the target for the release commitish
+
+          echo "Public release '$RELEASE_NAME' ($RELEASE_TAG) created successfully in $PUBLIC_REPO."
+          echo "PUBLIC_RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Public Release Assets
+        env:
+          # Use the PUBLIC_REPO_PAT for the public repo to upload assets
+          GH_TOKEN: ${{ secrets.PUBLISH_PACKAGE_TOKEN }}
+          DOWNLOADED_ASSET_INFO_JSON: ${{ steps.download_assets.outputs.DOWNLOADED_ASSET_INFO_JSON }}
+          PUBLIC_RELEASE_TAG: ${{ steps.create_public_release.outputs.PUBLIC_RELEASE_TAG }}
+          PUBLIC_REPO_FULL_NAME: ${{ steps.repo_details.outputs.PUBLIC_REPO_FULL_NAME }}
+        run: |
+          set -euo pipefail
+          cd downloaded_artifacts
+          PUBLIC_REPO="${{ env.PUBLIC_REPO_FULL_NAME }}"
+
+          # Check if there are any artifacts to upload after filtering
+          if [ "$(echo "$DOWNLOADED_ASSET_INFO_JSON" | jq 'length')" -eq 0 ]; then
+            echo "No artifacts to upload after filtering criteria."
+            exit 0
+          fi
+
+          # Loop through downloaded asset info to upload each artifact
+          echo "$DOWNLOADED_ASSET_INFO_JSON" | jq -c '.[]' | while read -r asset; do
+            asset_name=$(echo "$asset" | jq -r '.name')
+            asset_content_type=$(echo "$asset" | jq -r '.content_type')
+            asset_path="./$asset_name"
+
+            echo "Uploading $asset_name to public release '${PUBLIC_RELEASE_TAG}' in $PUBLIC_REPO..."
+
+            gh release upload \
+              --repo "$PUBLIC_REPO" \
+              --clobber \
+              "${PUBLIC_RELEASE_TAG}" \
+              "$asset_path" \
+              --asset-name "$asset_name" \
+              --mimetype "$asset_content_type"
+
+            if [ $? -eq 0 ]; then
+              echo "Uploaded $asset_name successfully."
+            else
+              echo "Failed to upload $asset_name."
+              exit 1
+            fi
+          done
