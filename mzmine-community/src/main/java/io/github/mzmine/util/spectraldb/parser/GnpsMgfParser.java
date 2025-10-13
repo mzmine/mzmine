@@ -215,8 +215,8 @@ public class GnpsMgfParser extends SpectralDBTextParser {
     }
 
     final String adductCandidate = name.substring(lastSpace + 1);
-    // uses matcher.find for substring match
-    // matcher.match requires full match
+    // uses the Pattern.asPredicate() that internally uses matcher.find for substring match
+    // matcher.match requires full match which does not work here
     if (!gnpsNameAdductPattern.test(adductCandidate)) {
       return;
     }
