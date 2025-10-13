@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -52,8 +54,8 @@ public abstract class SpectralDBTextParser extends SpectralDBParser {
   }
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
-      throws IOException {
+  public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
+      @NotNull SpectralLibrary library) throws IOException {
     if (totalLines == 0L) {
       try {
         logger.fine(

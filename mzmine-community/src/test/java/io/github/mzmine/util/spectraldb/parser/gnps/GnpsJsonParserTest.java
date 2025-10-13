@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonParseException;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.File;
 import java.io.IOException;
@@ -45,10 +46,12 @@ class GnpsJsonParserTest {
     File file = new File(
         GnpsJsonParserTest.class.getClassLoader().getResource("json/gnps.json").getFile());
 
+    final SpectralLibrary library = new SpectralLibrary(null, file);
+
     List<SpectralLibraryEntry> list = new ArrayList<>();
     new GNPSJsonParser(0, (newList, alreadyProcessed) -> {
       list.addAll(newList);
-    }, true).parse(null, file, null);
+    }, true).parse(null, file, library);
 
     assert list.size() == 4;
   }

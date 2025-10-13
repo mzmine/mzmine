@@ -29,6 +29,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Auto detects library format
@@ -51,8 +53,8 @@ public class AutoLibraryParser extends SpectralDBParser {
   }
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
-      throws UnsupportedFormatException, IOException {
+  public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
+      @NotNull SpectralLibrary library) throws UnsupportedFormatException, IOException {
     subParser = SpectralLibraryFormatChecker.getParser(dataBaseFile, bufferEntries, processor,
         extensiveErrorLogging);
     // parse the file

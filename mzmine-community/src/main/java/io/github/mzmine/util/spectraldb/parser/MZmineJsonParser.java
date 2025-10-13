@@ -47,6 +47,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MZmineJsonParser extends SpectralDBTextParser {
@@ -59,8 +60,8 @@ public class MZmineJsonParser extends SpectralDBTextParser {
   }
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
-      throws IOException {
+  public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
+      @NotNull SpectralLibrary library) throws IOException {
     super.parse(mainTask, dataBaseFile, library);
 
     logger.info("Parsing MZmine spectral library " + dataBaseFile.getAbsolutePath());

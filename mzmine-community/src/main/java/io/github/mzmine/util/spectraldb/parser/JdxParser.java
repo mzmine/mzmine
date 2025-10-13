@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Parser for .jdx DB files for spectra database matching
@@ -57,8 +59,8 @@ public class JdxParser extends SpectralDBTextParser {
   private static final Logger logger = Logger.getLogger(NistMspParser.class.getName());
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
-      throws IOException {
+  public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
+      @NotNull SpectralLibrary library) throws IOException {
     super.parse(mainTask, dataBaseFile, library);
     logger.info("Parsing jdx spectral library " + dataBaseFile.getAbsolutePath());
 

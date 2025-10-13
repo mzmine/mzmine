@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
@@ -38,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 // top level json objects/arrays
@@ -60,8 +62,8 @@ public class GNPSJsonParser extends SpectralDBParser {
   }
 
   @Override
-  public boolean parse(@Nullable AbstractTask mainTask, File dataBaseFile,
-      @Nullable SpectralLibrary library) throws IOException {
+  public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
+      @NotNull SpectralLibrary library) throws IOException {
     logger.info("Parsing GNPS spectral json library " + dataBaseFile.getAbsolutePath());
 
     final LibraryParsingErrors errors = new LibraryParsingErrors(
@@ -76,13 +78,14 @@ public class GNPSJsonParser extends SpectralDBParser {
       if (jsonParser.nextToken() != JsonToken.START_ARRAY) {
         throw new IllegalStateException("Expected content to be an array");
       }
+      final MemoryMapStorage storage = library == null ? null : library.getStorage();
 
       // Iterate over the tokens until the end of the array
       while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
         try {
           SpectralLibraryEntry entry = mapper.readValue(jsonParser, GnpsLibraryEntry.class)
               .toSpectralLibraryEntry(library);
-          addLibraryEntry(library.getStorage(), errors, entry);
+          addLibraryEntry(storage, errors, entry);
         } catch (Exception ex) {
           errors.addUnknownException("GNPS json parsing error: " + ex.getMessage());
           int totalErrors = errors.addUnknownException("Total GNPS json parsing errors");

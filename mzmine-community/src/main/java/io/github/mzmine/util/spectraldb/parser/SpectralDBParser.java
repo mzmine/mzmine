@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class SpectralDBParser {
@@ -63,8 +64,8 @@ public abstract class SpectralDBParser {
    * @return the list or an empty list if something went wrong (e.g., wrong format)
    * @throws IOException exception while reading file
    */
-  public abstract boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
-      throws UnsupportedFormatException, IOException;
+  public abstract boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
+      @NotNull SpectralLibrary library) throws UnsupportedFormatException, IOException;
 
   /**
    * Add DB entry and push every 1000 entries. Does not allow 0 intensity values.

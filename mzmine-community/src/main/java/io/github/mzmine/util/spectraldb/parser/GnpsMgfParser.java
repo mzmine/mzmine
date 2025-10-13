@@ -46,6 +46,8 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Main format for library entries in GNPS
@@ -79,8 +81,8 @@ public class GnpsMgfParser extends SpectralDBTextParser {
   private final static Logger logger = Logger.getLogger(GnpsMgfParser.class.getName());
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
-      throws IOException {
+  public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
+      @NotNull SpectralLibrary library) throws IOException {
     super.parse(mainTask, dataBaseFile, library);
     logger.info("Parsing mgf spectral library " + dataBaseFile.getAbsolutePath());
 
