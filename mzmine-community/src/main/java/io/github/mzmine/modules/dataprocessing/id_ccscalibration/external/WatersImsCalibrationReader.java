@@ -102,7 +102,7 @@ public class WatersImsCalibrationReader {
     final double exp = Double.parseDouble(strExponent);
     final double t0 = Double.parseDouble(strT0);
 
-    final File externInf = new File(file.getParentFile(), WATERS_EXTERN_INF);
+    final File externInf = new File(calFile.getParentFile(), WATERS_EXTERN_INF);
 
     if (!file.exists() || !file.canRead()) {
       throw new IllegalArgumentException("Cannot find or read extern.inf file.");
@@ -167,7 +167,7 @@ public class WatersImsCalibrationReader {
     final File calibrationFile;
     if (file.isDirectory()) {
       if (file.getName().endsWith(".raw")) {
-        calibrationFile = new File(file.getAbsolutePath() + File.separator + WATERS_MOB_CAL);
+        calibrationFile = new File(file.getAbsolutePath(), WATERS_MOB_CAL);
         if (!calibrationFile.exists()) {
           logger.warning(() -> "Waters raw " + file.getAbsolutePath() + " is not calibrated. File "
               + file.toPath().relativize(calibrationFile.toPath()) + " does not exist.");

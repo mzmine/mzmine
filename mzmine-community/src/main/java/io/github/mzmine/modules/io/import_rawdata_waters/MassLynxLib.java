@@ -57,9 +57,9 @@ import static java.lang.foreign.ValueLayout.*;
 /**
  * Java wrapper around the mass lynx wrapper. How to replace with new version:
  * <p></p>
- * - Paste new generated MassLynxLib_h class below here, starting with the class definition.
+ * - Paste new generated MassLynxLib class below here, starting with the class definition.
  * <p></p>
- * - refactor from MassLynxLib_h to MassLynxLib
+ * - refactor from MassLynxLib to MassLynxLib
  * <p></p>
  * - format and rearrange - replace SYMBOL_LOOKUP with:
  * <pre>
@@ -366,7 +366,10 @@ public class MassLynxLib {
 
   private static synchronized SymbolLookup getSymbolLookup() {
     // load mass lynx base library before
-    System.load(Path.of("external_tools\\waters_raw\\MassLynxRaw.dll").toAbsolutePath().toString());
+    System.load(
+        Path.of("external_tools/waters_raw/%s".formatted(System.mapLibraryName("MassLynxRaw")))
+            .toAbsolutePath().toString());
+
     return SymbolLookup.libraryLookup(
             "external_tools/waters_raw/%s".formatted(System.mapLibraryName("MLReader")), LIBRARY_ARENA)
         .or(SymbolLookup.loaderLookup()).or(Linker.nativeLinker().defaultLookup());
@@ -1410,43 +1413,43 @@ public class MassLynxLib {
   /**
    * Function descriptor for:
    * {@snippet lang = c:
-   * uint32_t isLockMassCorrected(Handle handle)
+   * uint32_t isLockmassCorrected(Handle handle)
    *}
    */
-  public static FunctionDescriptor isLockMassCorrected$descriptor() {
-    return isLockMassCorrected.DESC;
+  public static FunctionDescriptor isLockmassCorrected$descriptor() {
+    return isLockmassCorrected.DESC;
   }
 
   /**
    * Downcall method handle for:
    * {@snippet lang = c:
-   * uint32_t isLockMassCorrected(Handle handle)
+   * uint32_t isLockmassCorrected(Handle handle)
    *}
    */
-  public static MethodHandle isLockMassCorrected$handle() {
-    return isLockMassCorrected.HANDLE;
+  public static MethodHandle isLockmassCorrected$handle() {
+    return isLockmassCorrected.HANDLE;
   }
 
   /**
    * Address for:
    * {@snippet lang = c:
-   * uint32_t isLockMassCorrected(Handle handle)
+   * uint32_t isLockmassCorrected(Handle handle)
    *}
    */
-  public static MemorySegment isLockMassCorrected$address() {
-    return isLockMassCorrected.ADDR;
+  public static MemorySegment isLockmassCorrected$address() {
+    return isLockmassCorrected.ADDR;
   }
 
   /**
    * {@snippet lang = c:
-   * uint32_t isLockMassCorrected(Handle handle)
+   * uint32_t isLockmassCorrected(Handle handle)
    *}
    */
-  public static int isLockMassCorrected(MemorySegment handle) {
-    var mh$ = isLockMassCorrected.HANDLE;
+  public static int isLockmassCorrected(MemorySegment handle) {
+    var mh$ = isLockmassCorrected.HANDLE;
     try {
       if (TRACE_DOWNCALLS) {
-        traceDowncall("isLockMassCorrected", handle);
+        traceDowncall("isLockmassCorrected", handle);
       }
       return (int) mh$.invokeExact(handle);
     } catch (Throwable ex$) {
@@ -3746,12 +3749,12 @@ public class MassLynxLib {
     public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
   }
 
-  private static class isLockMassCorrected {
+  private static class isLockmassCorrected {
 
     public static final FunctionDescriptor DESC = FunctionDescriptor.of(MassLynxLib.C_INT,
         MassLynxLib.C_POINTER);
 
-    public static final MemorySegment ADDR = MassLynxLib.findOrThrow("isLockMassCorrected");
+    public static final MemorySegment ADDR = MassLynxLib.findOrThrow("isLockmassCorrected");
 
     public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
   }
