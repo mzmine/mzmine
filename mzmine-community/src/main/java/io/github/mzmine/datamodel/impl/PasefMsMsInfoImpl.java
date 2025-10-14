@@ -42,6 +42,7 @@ import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -55,7 +56,7 @@ import org.jetbrains.annotations.Nullable;
 public class PasefMsMsInfoImpl implements PasefMsMsInfo {
 
   public static final String XML_TYPE_NAME = "pasefmsmsinfo";
-
+  private static final Logger logger = Logger.getLogger(PasefMsMsInfoImpl.class.getName());
   private final double precursorMz;
   private final Float collisionEnergy;
   private final Integer precursorCharge;
@@ -83,6 +84,8 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
     this.parentFrame = parentScan;
     this.fragmentFrame = fragmentFrameNumber;
     this.isolationWindow = SimpleRange.ofDouble(isolationWindow);
+
+    checkSpectrumRanges();
   }
 
   /**
@@ -202,6 +205,7 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
       return false;
     }
     fragmentFrame = frame;
+    checkSpectrumRanges();
     return true;
   }
 
@@ -279,9 +283,8 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
 
   @Override
   public MsMsInfo createCopy() {
-    return new PasefMsMsInfoImpl(precursorMz,
-        SimpleRange.guavaOrNull(spectrumNumberRange), collisionEnergy,
-        precursorCharge, parentFrame, fragmentFrame,
+    return new PasefMsMsInfoImpl(precursorMz, SimpleRange.guavaOrNull(spectrumNumberRange),
+        collisionEnergy, precursorCharge, parentFrame, fragmentFrame,
         isolationWindow != null ? isolationWindow.guava() : null);
   }
 }
