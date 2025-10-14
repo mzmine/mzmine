@@ -37,7 +37,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -57,12 +56,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ThermoRawImportTask extends AbstractTask implements RawDataImportTask {
 
-  public static final String THERMO_RAW_PARSER_DIR = "mzmine_thermo_raw_parser";
-
   private static final Logger logger = Logger.getLogger(ThermoRawImportTask.class.getName());
-  private static final CloseableReentrantReadWriteLock unzipLock = new CloseableReentrantReadWriteLock();
-  private static final File DEFAULT_PARSER_DIR = new File(
-      FileAndPathUtil.resolveInMzmineDir("external_resources"), "thermo_raw_file_parser");
 
   private final File fileToOpen;
   private final MZmineProject project;
@@ -230,14 +224,24 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
   }
 
   private File getParserPathForOs() {
+    final File mainDir = FileAndPathUtil.getSoftwareMainDirectory();
+    File parserDirectory = null;
+    if (mainDir != null) {
+      parserDirectory = new File(mainDir, "external_tools/thermo_raw_file_parser/");
+    }
+    if (parserDirectory == null || !parserDirectory.exists()) {
+      parserDirectory = new File("external_tools/thermo_raw_file_parser/");
+    }
+
     if (Platform.isWindows()) {
-      return new File("external_tools/thermo_raw_file_parser/ThermoRawFileParser.exe");
+      return new File(parserDirectory, "ThermoRawFileParser.exe");
     }
     if (Platform.isLinux()) {
-      return new File("external_tools/thermo_raw_file_parser/ThermoRawFileParserLinux");
+      return new File(parserDirectory, "ThermoRawFileParserLinux");
     }
     if (Platform.isMac()) {
-      return new File("external_tools/thermo_raw_file_parser/ThermoRawFileParserMac");
+      return new File(parserDirectory, "ThermoRawFileParserMac");
+//          new File("external_tools/thermo_raw_file_parser/ThermoRawFileParserMac");
     }
     throw new IllegalStateException(
         "Invalid operating system for parsing thermo files via the ThermoRawFileParser.");
