@@ -464,7 +464,7 @@ task signApp(dependsOn: jpackage) {
             }
 
             // sign thermo raw file parser
-            def thermoParserPath = imageDir.resolve("Contents").resolve("external_tools").resolve("ThermoRawFileParserMac").toAbsolutePath()
+            def thermoParserPath = imageDir.resolve("Contents").resolve("external_tools").resolve("thermo_raw_file_parser").resolve("ThermoRawFileParserMac").toAbsolutePath()
             getLogger().info("Thermo parser path " + thermoParserPath)
             codesign(thermoParserPath)
 
