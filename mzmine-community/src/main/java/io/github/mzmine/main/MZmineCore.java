@@ -28,6 +28,7 @@ package io.github.mzmine.main;
 import static java.util.Objects.requireNonNullElse;
 
 import com.github.markusbernhardt.proxy.ProxySearch;
+import com.github.markusbernhardt.proxy.ProxySearch.Strategy;
 import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -38,6 +39,7 @@ import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.MZminePreferences.ProxyOptions;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.dialogs.NotificationService;
@@ -129,6 +131,20 @@ public final class MZmineCore {
   }
 
 
+  //TODO REMOVE TEST CODE
+  private static volatile ProxySelector JVM_PROXY_SELECTOR;
+
+  public static void setProxyOption(ProxyOptions option) {
+    logger.info("Setting proxy option to " + option);
+    if (option.isJavaProxy()) {
+      ProxySelector.setDefault(JVM_PROXY_SELECTOR);
+    } else {
+      setAutoProxySelector(option);
+    }
+  }
+  // TODO END OF TEST
+
+
   /**
    * Loads the configuration, parses the arguments and initializes everything, but does not launch
    * the batch or gui. Note: not static so it ensures that the {@link MZmineCore#init()} method is
@@ -139,8 +155,11 @@ public final class MZmineCore {
     // for now this just disables the changes done to clear or set proxy by config
     ProxyUtils.setAllowChanges(false);
 
+    JVM_PROXY_SELECTOR = ProxySelector.getDefault();
+    logProxyState("Initial proxy settings were: " + JVM_PROXY_SELECTOR);
+
     // handle proxy first
-    initAutoProxySelector();
+    setAutoProxySelector(ProxyOptions.AUTO_PROXY);
 
     // this also changes proxy settings after load
     ArgsToConfigUtils.applyArgsToConfig(argsParser);
@@ -306,12 +325,43 @@ public final class MZmineCore {
   /**
    * <a href="https://github.com/akuhtz/proxy-vole">...</a>
    */
-  private static void initAutoProxySelector() {
-    logProxyState("Initial proxy settings were:");
+  private static void setAutoProxySelector(ProxyOptions options) {
+    ProxySearch s = new ProxySearch();
 
-    logger.info("Initializing auto proxy selector");
+    logger.info("Initializing auto proxy selector as " + options);
 // configured with the default proxy search strategies for the current environment.
-    ProxySearch proxySearch = ProxySearch.getDefaultProxySearch();
+    ProxySearch proxySearch = switch (options) {
+      case JAVA_PROXY -> null;
+      case AUTO_PROXY -> ProxySearch.getDefaultProxySearch();
+      case BROWSER_PROXY -> {
+        final ProxySearch search = new ProxySearch();
+        search.addStrategy(Strategy.BROWSER);
+        yield search;
+      }
+      case SYSTEM_PROXY -> {
+        final ProxySearch search = new ProxySearch();
+        search.addStrategy(Strategy.OS_DEFAULT);
+        yield search;
+      }
+      case WPAD -> {
+        final ProxySearch search = new ProxySearch();
+        search.addStrategy(Strategy.WPAD);
+        yield search;
+      }
+      case WIN -> {
+        final ProxySearch search = new ProxySearch();
+        search.addStrategy(Strategy.WIN);
+        yield search;
+      }
+      case AUTO_LIB_JAVA -> {
+        final ProxySearch search = new ProxySearch();
+        search.addStrategy(Strategy.JAVA);
+        yield search;
+      }
+    };
+    if (proxySearch == null) {
+      return;
+    }
 
 // Invoke the proxy search. This will create a ProxySelector with the detected proxy settings.
     ProxySelector proxySelector = proxySearch.getProxySelector();
@@ -319,7 +369,7 @@ public final class MZmineCore {
 // Install this ProxySelector as default ProxySelector for all connections.
     if (proxySelector != null) {
       ProxySelector.setDefault(proxySelector);
-      logProxyState("Auto proxy selector, now proxy settings are:");
+      logProxyState("Auto proxy selector, now proxy settings are: " + options);
     } else {
       logger.warning(
           "Auto proxy selector could not be initialized. Proxy settings are not detected.");
@@ -378,7 +428,7 @@ public final class MZmineCore {
         logger.info("Detected " + proxies.size() + " proxy setting(s) via ProxySelector:");
 
         for (Proxy proxy : proxies) {
-          logProxyDetails(proxy);
+          logProxyDetails(url, proxy);
         }
 
       } catch (Exception e) {
@@ -388,19 +438,21 @@ public final class MZmineCore {
     }
   }
 
-  private static void logProxyDetails(Proxy proxy) {
+  private static void logProxyDetails(String url, Proxy proxy) {
     logger.info("--> Proxy Type: " + proxy.type());
 
     switch (proxy.type()) {
       case DIRECT -> logger.info("    Connection will be made directly, without a proxy.");
       case HTTP -> {
         InetSocketAddress addr = (InetSocketAddress) proxy.address();
+        logger.info("    For target URL: " + url);
         logger.info("    HTTP Proxy Name: " + addr.getHostName());
         logger.info("    HTTP Proxy Server: " + addr.getHostString());
         logger.info("    Port: " + addr.getPort());
       }
       case SOCKS -> {
         InetSocketAddress addr = (InetSocketAddress) proxy.address();
+        logger.info("    For target URL: " + url);
         logger.info("    SOCKS Proxy Name: " + addr.getHostName());
         logger.info("    SOCKS Proxy Server: " + addr.getHostString());
         logger.info("    Port: " + addr.getPort());
