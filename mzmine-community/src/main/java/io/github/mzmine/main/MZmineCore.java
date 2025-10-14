@@ -58,6 +58,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.web.ProxyChangedEvent;
+import io.github.mzmine.util.web.ProxyUtils;
 import io.mzio.events.AuthRequiredEvent;
 import io.mzio.events.EventService;
 import io.mzio.links.MzioMZmineLinks;
@@ -134,6 +135,10 @@ public final class MZmineCore {
    * called.
    */
   public void startUp(@NotNull final MZmineCoreArgumentParser argsParser) {
+    // TODO remove this line and rework proxy
+    // for now this just disables the changes done to clear or set proxy by config
+    ProxyUtils.setAllowChanges(false);
+
     // handle proxy first
     initAutoProxySelector();
 
