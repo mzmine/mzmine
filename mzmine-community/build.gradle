@@ -436,8 +436,9 @@ task signApp(dependsOn: jpackage) {
 
             // Define codesign command
             Consumer<Path> codesign = { Path p ->
+                // added vervose logging
                 exec {
-                    commandLine(["codesign", "--deep", "--force", "--timestamp", "-s", "${developerID}", "--options",
+                    commandLine(["codesign", "-verbose=4", "--deep", "--force", "--timestamp", "-s", "${developerID}", "--options",
                                  "runtime", "--entitlements", "${entitlementsPth}", "-f", "-v", "${p}"])
                 }
             }
@@ -468,6 +469,9 @@ task signApp(dependsOn: jpackage) {
             getLogger().info("Thermo parser path " + thermoParserPath)
             codesign(thermoParserPath)
 
+            exec {
+                commandLine(["spctl", "--assess", "-verbose=4", "${thermoParserPath}"])
+            }
 
             getLogger().lifecycle("Signing libraires nested in jars...")
 
