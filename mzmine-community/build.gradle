@@ -505,17 +505,15 @@ task signApp(dependsOn: jpackage) {
 
             // sign thermo raw file parser
             def thermoParserPath = imageDir.resolve("Contents").resolve("external_tools").resolve("thermo_raw_file_parser").resolve("ThermoRawFileParserMac").toAbsolutePath()
-            // check signing
             getLogger().info("Thermo parser path " + thermoParserPath)
-            exec {
-                commandLine(["spctl", "--assess", "-verbose=4", "${thermoParserPath}"])
-            }
+            // ensure executable bit and remove quarantine
+            exec { commandLine(['chmod', '+x', "${thermoParserPath}"]) }
+            exec { commandLine(['xattr', '-d', 'com.apple.quarantine', "${thermoParserPath}"]); ignoreExitValue = true }
+            // pre-check (non-fatal) and sign
+            exec { commandLine(['/usr/sbin/spctl', '--assess', '--type', 'execute', '--verbose=4', "${thermoParserPath}"]); ignoreExitValue = true }
             codesign(thermoParserPath)
-
-            // check signing
-            exec {
-                commandLine(["spctl", "--assess", "-verbose=4", "${thermoParserPath}"])
-            }
+            // verify after signing
+            exec { commandLine(['/usr/sbin/spctl', '--assess', '--type', 'execute', '--verbose=4', "${thermoParserPath}"]) }
 
             getLogger().lifecycle("Signing libraires nested in jars...")
 
