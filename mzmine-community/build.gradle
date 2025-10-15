@@ -451,12 +451,17 @@ task signApp(dependsOn: jpackage) {
             getLogger().info("jarsDir file " + jarsDir.toFile())
             getLogger().info("entitlementsPth " + entitlementsPth)
 
-            // Define codesign command
-            Consumer<Path> codesign = { Path p ->
-                // added vervose logging
+            // Define codesign commands
+            Consumer<Path> codesignWithEntitlements = { Path p ->
                 exec {
                     commandLine(["codesign", "--deep", "--force", "--timestamp", "-s", "${developerID}", "--options",
                                  "runtime", "--entitlements", "${entitlementsPth}", "-f", "-v", "${p}"])
+                }
+            }
+            Consumer<Path> codesignRuntimeOnly = { Path p ->
+                exec {
+                    commandLine(["codesign", "--force", "--timestamp", "-s", "${developerID}", "--options",
+                                 "runtime", "-v", "${p}"])
                 }
             }
 
@@ -500,7 +505,7 @@ task signApp(dependsOn: jpackage) {
             } as java.util.function.BiPredicate)
                     .forEach { Path nativeLib ->
                         getLogger().lifecycle("Signing native lib '${nativeLib}'")
-                        codesign(nativeLib.toAbsolutePath())
+                        codesignRuntimeOnly(nativeLib.toAbsolutePath())
                     }
 
             // sign thermo raw file parser
@@ -509,11 +514,11 @@ task signApp(dependsOn: jpackage) {
             // ensure executable bit and remove quarantine
             exec { commandLine(['chmod', '+x', "${thermoParserPath}"]) }
             exec { commandLine(['xattr', '-d', 'com.apple.quarantine', "${thermoParserPath}"]); ignoreExitValue = true }
-            // pre-check (non-fatal) and sign
+            // pre-check (non-fatal) and sign without entitlements
             exec { commandLine(['/usr/sbin/spctl', '--assess', '--type', 'execute', '--verbose=4', "${thermoParserPath}"]); ignoreExitValue = true }
-            codesign(thermoParserPath)
-            // verify after signing
-            exec { commandLine(['/usr/sbin/spctl', '--assess', '--type', 'execute', '--verbose=4', "${thermoParserPath}"]) }
+            codesignRuntimeOnly(thermoParserPath)
+            // verify after signing (non-fatal)
+            exec { commandLine(['/usr/sbin/spctl', '--assess', '--type', 'execute', '--verbose=4', "${thermoParserPath}"]); ignoreExitValue = true }
 
             getLogger().lifecycle("Signing libraires nested in jars...")
 
@@ -533,7 +538,7 @@ task signApp(dependsOn: jpackage) {
                             getLogger().lifecycle("Found native library in ${jarFile.name}: ${path}")
                             Path tmpPath = tmpJarsDir.resolve(jarFile.name + "_" + path.getFileName().toString())
                             Files.copy(path, tmpPath, StandardCopyOption.REPLACE_EXISTING)
-                            codesign(tmpPath.toAbsolutePath())
+                        codesignRuntimeOnly(tmpPath.toAbsolutePath())
                             Files.copy(tmpPath, path, StandardCopyOption.REPLACE_EXISTING)
                         }
                     } as java.util.function.Consumer)
@@ -563,7 +568,7 @@ task signApp(dependsOn: jpackage) {
             } as java.util.function.BiPredicate)
                     .forEach { Path jar ->
                         getLogger().lifecycle("Signing jar '${jar}'")
-                        codesign(jar.toAbsolutePath())
+                        codesignRuntimeOnly(jar.toAbsolutePath())
                     }
 
             // delete duplicated libs
@@ -571,7 +576,8 @@ task signApp(dependsOn: jpackage) {
 
             // Sign .app directory
             getLogger().lifecycle("Signing .app directory...")
-            codesign(imageDir)
+            // Sign the .app with entitlements last
+            codesignWithEntitlements(imageDir)
         }
     }
 }
