@@ -315,6 +315,23 @@ tasks.jpackage.doFirst {
         from EXTERNAL_TOOLS_SRC
         into EXTERNAL_TOOLS_DESTINATION
     }
+    if (OperatingSystem.current().isMacOsX()) {
+        // Ensure external tools are executable and not quarantined on macOS
+        try {
+            def externalToolsDir = EXTERNAL_TOOLS_DESTINATION.asFile
+            def trfpMac = new File(externalToolsDir, "thermo_raw_file_parser/ThermoRawFileParserMac")
+            if (trfpMac.exists()) {
+                exec { commandLine(['chmod', '+x', trfpMac.absolutePath]) }
+            }
+            // Remove quarantine attributes recursively (ignore failures on files without the attribute)
+            exec {
+                commandLine(['xattr', '-r', '-d', 'com.apple.quarantine', externalToolsDir.absolutePath])
+                ignoreExitValue = true
+            }
+        } catch (Exception ignored) {
+            // best-effort; continue
+        }
+    }
 }
 
 /*
@@ -442,11 +459,31 @@ task signApp(dependsOn: jpackage) {
                 }
             }
 
+            // Clear any quarantine attributes on the entire app before signing
+            try {
+                exec {
+                    commandLine(['xattr', '-r', '-d', 'com.apple.quarantine', imageDir.toFile().absolutePath])
+                    ignoreExitValue = true
+                }
+            } catch (Exception ignored) {
+                // best-effort; continue
+            }
+
             getLogger().lifecycle('Deleting unused "non-notarizable" libraries...')
 
             // Delete unused dependencies of dependencies causing notarization issues
-            jarsDir.toFile().listFiles((FilenameFilter) ((d, n) -> n.startsWith('netlib') || n.startsWith('jblas')
-                    || n.startsWith('jocl'))).stream().forEach(File::delete)
+            jarsDir.toFile()
+                    .listFiles({ File d, String n -> n.startsWith('netlib') || n.startsWith('jblas') || n.startsWith('jocl') } as FilenameFilter)
+                    ?.each { File f -> f.delete() }
+
+            // Remove non-mac executables from external tools to reduce Gatekeeper friction
+            try {
+                Path toolsDir = imageDir.resolve('Contents').resolve('external_tools').resolve('thermo_raw_file_parser')
+                Files.deleteIfExists(toolsDir.resolve('ThermoRawFileParserLinux'))
+                Files.deleteIfExists(toolsDir.resolve('ThermoRawFileParser.exe'))
+            } catch (Exception ignored) {
+                // optional cleanup
+            }
 
             // unzip previously done for internal parser
 //            String mzmineJarName = "mzmine-community-${semver.version}"
@@ -456,12 +493,14 @@ task signApp(dependsOn: jpackage) {
 
             // Traverse over whole .app and sign each native library
             Path runtimeDir = imageDir.resolve('Contents').resolve('runtime')
-            for (Path nativeLib : Files.find(imageDir, 999, (p, bfa)  // 999 is a recursive depth
-                    -> bfa.isRegularFile() && p.getFileName().toString().matches(".*\\.dylib|.*\\.so|.*\\.dll|.*\\.a|.*\\.lib")
-                    && !p.toAbsolutePath().startsWith(runtimeDir.toAbsolutePath()))) {
-                getLogger().lifecycle("Signing native lib '${nativeLib}'")
-                codesign(nativeLib.toAbsolutePath())
-            }
+            Files.find(imageDir, 999, { p, bfa ->
+                bfa.isRegularFile() && p.getFileName().toString().matches(".*\\.dylib|.*\\.so|.*\\.dll|.*\\.a|.*\\.lib") &&
+                        !p.toAbsolutePath().startsWith(runtimeDir.toAbsolutePath())
+            } as java.util.function.BiPredicate)
+                    .forEach { Path nativeLib ->
+                        getLogger().lifecycle("Signing native lib '${nativeLib}'")
+                        codesign(nativeLib.toAbsolutePath())
+                    }
 
 
             getLogger().lifecycle("Signing libraires nested in jars...")
@@ -473,9 +512,11 @@ task signApp(dependsOn: jpackage) {
             // Find all JAR files in the app directory
             jarsDir.toFile().listFiles().findAll { it.name.endsWith('.jar') }.each { jarFile ->
                 getLogger().lifecycle("Processing jar for native libraries: ${jarFile.name}")
-                try (java.nio.file.FileSystem jarFs = FileSystems.newFileSystem(jarFile.toPath(), [:])) {
+                java.nio.file.FileSystem jarFs = null
+                try {
+                    jarFs = FileSystems.newFileSystem(jarFile.toPath(), [:])
                     // Find all native libraries in this JAR
-                    Files.walk(jarFs.getPath("/")).each { path ->
+                    Files.walk(jarFs.getPath("/")).forEach({ path ->
                         if (path.getFileName().toString().matches(".*\\.(dylib|jnilib|so|dll)")) {
                             getLogger().lifecycle("Found native library in ${jarFile.name}: ${path}")
                             Path tmpPath = tmpJarsDir.resolve(jarFile.name + "_" + path.getFileName().toString())
@@ -483,18 +524,35 @@ task signApp(dependsOn: jpackage) {
                             codesign(tmpPath.toAbsolutePath())
                             Files.copy(tmpPath, path, StandardCopyOption.REPLACE_EXISTING)
                         }
-                    }
+                    } as java.util.function.Consumer)
+                } finally {
+                    try { jarFs?.close() } catch (Exception ignored) {}
                 }
+            }
+
+            // Explicitly sign embedded executables (e.g., ThermoRawFileParserMac)
+            try {
+                Path trfpPath = imageDir.resolve('Contents').resolve('external_tools').resolve('thermo_raw_file_parser').resolve('ThermoRawFileParserMac')
+                if (Files.exists(trfpPath)) {
+                    getLogger().lifecycle("Signing embedded executable '${trfpPath}'")
+                    // Ensure executable bit
+                    exec { commandLine(['chmod', '+x', trfpPath.toFile().absolutePath]) }
+                    codesign(trfpPath.toAbsolutePath())
+                }
+            } catch (Exception ignored) {
+                // proceed even if missing
             }
 
             getLogger().lifecycle("Signing jars...")
 
             // Traverse over entire .app and sign each .jar
-            for (Path jar : Files.find(imageDir, 999, (p, bfa)  // 999 is a recursive depth
-                    -> bfa.isRegularFile() && p.getFileName().toString().matches(".*\\.jar"))) {
-                getLogger().lifecycle("Signing jar '${jar}'")
-                codesign(jar.toAbsolutePath())
-            }
+            Files.find(imageDir, 999, { p, bfa ->
+                bfa.isRegularFile() && p.getFileName().toString().matches(".*\\.jar")
+            } as java.util.function.BiPredicate)
+                    .forEach { Path jar ->
+                        getLogger().lifecycle("Signing jar '${jar}'")
+                        codesign(jar.toAbsolutePath())
+                    }
 
             // delete duplicated libs
             //jarsDir.resolveSibling('runtime/Contents/MacOS').resolve("libjli.dylib").toFile().delete()
@@ -514,6 +572,22 @@ task notarizeApp(dependsOn: signApp) {
             exec {
                 commandLine(['npm', 'install', '--python=python3.11', '-g', 'appdmg'])
                 ignoreExitValue = true // In case it's already installed
+            }
+
+            // Notarize and staple the .app bundle itself first to avoid quarantine when copied from DMG
+            getLogger().lifecycle("Notarizing .app bundle...")
+            ExecResult appNotarize = exec {
+                commandLine(["xcrun", "notarytool", "submit", "--wait", "--apple-id", "${appleID}",
+                             "--password", "${appleIDPassword}", "--team-id", "${appleTeamID}",
+                             layout.buildDirectory.dir("jpackage").get().dir("mzmine.app").asFile.absolutePath])
+            }
+            if (appNotarize.getExitValue() != 0) {
+                throw new GradleException("Error ${appNotarize.getExitValue()} during app bundle notarization.")
+            }
+            getLogger().lifecycle("Stapling .app bundle...")
+            exec {
+                commandLine(["xcrun", "stapler", "staple",
+                             layout.buildDirectory.dir("jpackage").get().dir("mzmine.app").asFile.absolutePath])
             }
 
             // Create DMG using appdmg with the existing configuration
