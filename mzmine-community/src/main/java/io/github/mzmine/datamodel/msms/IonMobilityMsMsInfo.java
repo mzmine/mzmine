@@ -53,4 +53,15 @@ public interface IonMobilityMsMsInfo extends MsMsInfo {
   }
 
   Frame getMsMsFrame();
+
+  default void checkSpectrumRanges() {
+    if (getSpectrumNumberRange() != null && getMsMsFrame() != null && (
+        getSpectrumNumberRange().lowerEndpoint() < 0
+            || getSpectrumNumberRange().upperEndpoint() > getMsMsFrame().getNumberOfMobilityScans())) {
+      throw new RuntimeException(
+          "Invalid spectrum number range (%d-%d) for frame with %d mobility scans.".formatted(
+              getSpectrumNumberRange().lowerEndpoint(), getSpectrumNumberRange().upperEndpoint(),
+              getMsMsFrame().getNumberOfMobilityScans()));
+    }
+  }
 }
