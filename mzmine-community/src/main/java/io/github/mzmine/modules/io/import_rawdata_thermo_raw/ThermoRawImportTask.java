@@ -233,24 +233,14 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
       return prefPath.get();
     }
 
-    // relative to
-    final File mainDir = FileAndPathUtil.getSoftwareMainDirectory();
-    File parserDirectory = null;
-    if (mainDir != null) {
-      parserDirectory = new File(mainDir, "external_tools/thermo_raw_file_parser/");
-    }
-    if (parserDirectory == null || !parserDirectory.exists()) {
-      parserDirectory = new File("external_tools/thermo_raw_file_parser/");
-    }
-
     if (Platform.isWindows()) {
-      return new File(parserDirectory, "ThermoRawFileParser.exe");
+      return FileAndPathUtil.resolveInExternalToolsDir("external_tools/ThermoRawFileParser.exe");
     }
     if (Platform.isLinux()) {
-      return new File(parserDirectory, "ThermoRawFileParserLinux");
+      return FileAndPathUtil.resolveInExternalToolsDir("external_tools/ThermoRawFileParserLinux");
     }
     if (Platform.isMac()) {
-      return new File(parserDirectory, "ThermoRawFileParserMac");
+      return FileAndPathUtil.resolveInExternalToolsDir("external_tools/ThermoRawFileParserMac");
 //          new File("external_tools/thermo_raw_file_parser/ThermoRawFileParserMac");
     }
     throw new IllegalStateException(

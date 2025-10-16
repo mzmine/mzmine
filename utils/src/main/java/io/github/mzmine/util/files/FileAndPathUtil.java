@@ -776,4 +776,26 @@ public class FileAndPathUtil {
         .max(Entry.comparingByValue(Comparator.reverseOrder())).map(Entry::getKey).orElse(null);
   }
 
+  /**
+   * External tools live in the installation main directory /external_tools/
+   */
+  public static @NotNull File resolveInExternalToolsDir(String path) {
+    return new File(getExternalToolsDir(), path);
+  }
+
+  /**
+   * External tools live in the installation main directory /external_tools/
+   *
+   */
+  private static @NotNull File getExternalToolsDir() {
+    final File mainDir = FileAndPathUtil.getSoftwareMainDirectory();
+    File parserDirectory = null;
+    if (mainDir != null) {
+      parserDirectory = new File(mainDir, "external_tools/");
+    }
+    if (parserDirectory == null || !parserDirectory.exists()) {
+      parserDirectory = new File("external_tools/");
+    }
+    return parserDirectory;
+  }
 }
