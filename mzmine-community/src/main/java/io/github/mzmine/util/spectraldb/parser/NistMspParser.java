@@ -43,20 +43,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NistMspParser extends SpectralDBTextParser {
 
   private static final Logger logger = Logger.getLogger(NistMspParser.class.getName());
 
-  public NistMspParser(int bufferEntries, LibraryEntryProcessor processor) {
-    super(bufferEntries, processor);
+  public NistMspParser(int bufferEntries, LibraryEntryProcessor processor,
+      boolean extensiveErrorLogging) {
+    super(bufferEntries, processor, extensiveErrorLogging);
   }
 
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
-      throws IOException {
+  public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
+      @NotNull SpectralLibrary library) throws IOException {
     super.parse(mainTask, dataBaseFile, library);
     logger.info("Parsing NIST msp spectral library " + dataBaseFile.getAbsolutePath());
 
@@ -69,6 +71,11 @@ public class NistMspParser extends SpectralDBTextParser {
     String[] sep = null;
     String[] EMPTY = new String[0];
 
+    // flag to skip entry on fatal error like in data
+    boolean fatalEntryError = false;
+
+    final LibraryParsingErrors errors = new LibraryParsingErrors(library.getName());
+
     // read DB file
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
       for (String l; (l = br.readLine()) != null; ) {
@@ -77,19 +84,29 @@ public class NistMspParser extends SpectralDBTextParser {
           return false;
         }
         try {
-          if (l.length() > 1) {
+          if (!l.isBlank()) {
             // meta data?
             sep = isData ? EMPTY : l.split(": ", 2);
             if (sep.length > 1) {
-              extractMetaData(fields, l, sep);
+              extractMetaData(errors, fields, l, sep);
             } else {
               // data?
-              DataPoint dp = extractDataPoint(l);
-              if (dp != null) {
-                dps.add(dp);
-                isData = true;
-              } else {
-                isData = false;
+              try {
+                DataPoint dp = extractDataPoint(l);
+                if (dp != null) {
+                  dps.add(dp);
+                  isData = true;
+                } else {
+                  isData = false;
+                }
+              } catch (Exception e) {
+                fatalEntryError = true;
+                // use generic message as exception will be unique for each value and will create too long error log
+                int dataPointErrors = errors.addUnknownException("Cannot parse data points");
+                // log the 2 first data point errors
+                if (dataPointErrors <= 2 && isExtensiveErrorLogging()) {
+                  logger.log(Level.WARNING, "Cannot parse data point", e);
+                }
               }
             }
           } else {
@@ -97,36 +114,59 @@ public class NistMspParser extends SpectralDBTextParser {
             if (isData) {
               // empty row after data
               // add entry and reset
-              addEntryAndReset(library, fields, dps);
+              addEntryAndReset(errors, fatalEntryError, library, fields, dps);
+              fatalEntryError = false;
               isData = false;
             }
           }
         } catch (Exception ex) {
-          logger.log(Level.WARNING, "Error for entry", ex);
+          errors.addUnknownException(ex.getMessage());
+          // add this to count unknown errors and log first 5 only
+          int unknowns = errors.addUnknownException("unknown error");
+          if (unknowns <= 5 && isExtensiveErrorLogging()) {
+            logger.log(Level.WARNING, "Error for entry: " + ex.getMessage(), ex);
+          }
+
+          if (!fields.isEmpty() || !dps.isEmpty()) {
+            // skipped some read information
+            errors.addUnknownException("Skipped entry");
+          }
+
           // reset on error
           isData = false;
           fields.clear();
           dps.clear();
+          fatalEntryError = false;
         }
         processedLines.incrementAndGet();
       }
       // add last entry
       if (!fields.isEmpty() && !dps.isEmpty()) {
-        addEntryAndReset(library, fields, dps);
+        addEntryAndReset(errors, fatalEntryError, library, fields, dps);
       }
 
       // finish and process all entries
       finish();
+
+      // log errors
+      logger.info(isExtensiveErrorLogging() ? errors.toString() : errors.toStringShort());
+
       return true;
     }
   }
 
-  private void addEntryAndReset(SpectralLibrary library, Map<DBEntryField, Object> fields,
-      List<DataPoint> dps) {
-    SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(library.getStorage(), fields,
-        dps.toArray(new DataPoint[dps.size()]));
+  private void addEntryAndReset(LibraryParsingErrors errors, boolean fatalEntryError,
+      SpectralLibrary library, Map<DBEntryField, Object> fields, List<DataPoint> dps) {
+    if (!fatalEntryError && !dps.isEmpty() && !fields.isEmpty()) {
+      SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(library.getStorage(), fields,
+          dps.toArray(new DataPoint[0]));
+      addLibraryEntry(library.getStorage(), errors, entry);
+    }
+
+    if (fatalEntryError) {
+      errors.addUnknownException("Skipped entry");
+    }
     // add and push
-    addLibraryEntry(entry);
     // reset
     fields.clear();
     dps.clear();
@@ -144,13 +184,10 @@ public class NistMspParser extends SpectralDBTextParser {
     String[] dataAndComment = line.split("\"");
     // split by space or tab
     String[] data = dataAndComment[0].trim().split("[ \t]+");
-    if (data.length == 2) {
-      try {
-        return new SimpleDataPoint(Double.parseDouble(data[0].trim()),
-            Double.parseDouble(data[1].trim()));
-      } catch (Exception e) {
-        logger.log(Level.WARNING, "Cannot parse data point", e);
-      }
+    // there might be a comment after the data points
+    if (data.length >= 2) {
+      return new SimpleDataPoint(Double.parseDouble(data[0].trim()),
+          Double.parseDouble(data[1].trim()));
     }
 
     return null;
@@ -159,14 +196,20 @@ public class NistMspParser extends SpectralDBTextParser {
   /**
    * Extracts metadata from a line which is separated by ': ' and inserts the metadata inta a map
    *
+   * @param errors
    * @param fields The map of metadata fields
    * @param line   String with metadata
-   * @param sep    index of the separation char ':'
+   * @param sep    separated by ':'
    */
-  private void extractMetaData(Map<DBEntryField, Object> fields, String line, String[] sep) {
+  private void extractMetaData(LibraryParsingErrors errors, Map<DBEntryField, Object> fields,
+      String line, String[] sep) {
     String key = sep[0].trim();
     DBEntryField field = DBEntryField.forID(key);
-    if (field != null) {
+    if (field == null) {
+      if (!key.isBlank()) {
+        errors.addUnknownKey(key);
+      }
+    } else {
       // spe +2 for colon and space
       String content = sep[1].trim();
       if (!content.isEmpty()) {
@@ -185,10 +228,12 @@ public class NistMspParser extends SpectralDBTextParser {
             fields.put(field, value);
           }
         } catch (Exception e) {
-          logger.log(Level.WARNING, """
-              Cannot convert value '%s' to type %s
-              Parsing will skip this value for field %s""".formatted(content,
-              field.getObjectClass(), field.toString()));
+          errors.addValueParsingError(field, key, content);
+          // pushed logging to later in the errors object to not overflow log
+//          logger.log(Level.WARNING, """
+//              Cannot convert value '%s' to type %s
+//              Parsing will skip this value for field %s""".formatted(content,
+//              field.getObjectClass(), field.toString()));
         }
       }
     }

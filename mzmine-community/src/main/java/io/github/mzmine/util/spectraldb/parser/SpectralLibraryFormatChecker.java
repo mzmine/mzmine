@@ -38,7 +38,8 @@ import java.io.IOException;
 public class SpectralLibraryFormatChecker {
 
   public static SpectralDBParser getParser(File dataBaseFile, int bufferEntries,
-      final LibraryEntryProcessor processor) throws UnsupportedFormatException, IOException {
+      final LibraryEntryProcessor processor, boolean extensiveErrorLogging)
+      throws UnsupportedFormatException, IOException {
 
     FileTypeFilter json = new FileTypeFilter("json", "");
     FileTypeFilter msp = new FileTypeFilter("msp", "");
@@ -48,17 +49,17 @@ public class SpectralLibraryFormatChecker {
     FileTypeFilter jdx = new FileTypeFilter("jdx", "");
 
     if (json.accept(dataBaseFile)) {
-      return getJsonParser(dataBaseFile, bufferEntries, processor);
+      return getJsonParser(dataBaseFile, bufferEntries, processor, extensiveErrorLogging);
     }
     // msp, jdx or mgf
     if (msp.accept(dataBaseFile) || mspRIKEN.accept(dataBaseFile) || mspNIST.accept(dataBaseFile)) {
       // load NIST msp format
-      return new NistMspParser(bufferEntries, processor);
+      return new NistMspParser(bufferEntries, processor, extensiveErrorLogging);
     } else if (jdx.accept(dataBaseFile)) {
       // load jdx format
-      return new JdxParser(bufferEntries, processor);
+      return new JdxParser(bufferEntries, processor, extensiveErrorLogging);
     } else if (mgf.accept(dataBaseFile)) {
-      return new GnpsMgfParser(bufferEntries, processor);
+      return new GnpsMgfParser(bufferEntries, processor, extensiveErrorLogging);
     } else {
       throw new UnsupportedFormatException(
           "Format not supported: " + dataBaseFile.getAbsolutePath());
@@ -66,7 +67,7 @@ public class SpectralLibraryFormatChecker {
   }
 
   private static SpectralDBParser getJsonParser(final File dataBaseFile, final int bufferEntries,
-      final LibraryEntryProcessor processor) throws IOException {
+      final LibraryEntryProcessor processor, boolean extensiveErrorLogging) throws IOException {
     try (FileReader reader = new FileReader(
         dataBaseFile); BufferedReader bufferedReader = new BufferedReader((reader))) {
       char[] chars = new char[4048];
@@ -76,17 +77,17 @@ public class SpectralLibraryFormatChecker {
         int read = bufferedReader.read(chars);
         content = new String(chars, 0, read);
         if (content.contains("peaks_json") || content.contains("library_membership")) {
-          return new GNPSJsonParser(bufferEntries, processor);
+          return new GNPSJsonParser(bufferEntries, processor, extensiveErrorLogging);
         } else if (content.contains("\"compound\"") && content.contains("\"computed\"")
             && content.contains("\"tags\"")) {
-          return new MonaJsonParser(bufferEntries, processor);
+          return new MonaJsonParser(bufferEntries, processor, extensiveErrorLogging);
         } else {
-          return new MZmineJsonParser(bufferEntries, processor);
+          return new MZmineJsonParser(bufferEntries, processor, extensiveErrorLogging);
         }
       } catch (Exception e) {
         // this may be triggered when the file is empty or very small
         // try mzmine parser as this might be a small library
-        return new MZmineJsonParser(bufferEntries, processor);
+        return new MZmineJsonParser(bufferEntries, processor, extensiveErrorLogging);
       }
     }
   }
