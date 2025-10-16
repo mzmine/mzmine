@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,6 @@ package io.github.mzmine.util.dependencylicenses;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -46,14 +45,15 @@ public record Dependencies(List<Dependency> dependencies) {
           new ModuleLicense("EULA TDF-SDK (Bruker Daltonics GmbH & Co.KG)", (String) null))),
       new Dependency("Baf2Sql Software Development Kit, Bruker Daltonics GmbH & Co.KG", "2.9.0",
           List.of(), List.of(new ModuleLicense("EULA BAF-SDK (Bruker Daltonics GmbH & Co.KG)",
-              new File("external_tools/bruker_baf/README.txt")),
+              FileAndPathUtil.resolveInExternalToolsDir("bruker_baf/README.txt")),
           new ModuleLicense("EULA BAF-SDK (Bruker Daltonics GmbH & Co.KG)",
-              new File("external_tools/bruker_baf/THIRD-PARTY-LICENSE-README.txt")))),
+              FileAndPathUtil.resolveInExternalToolsDir(
+                  "bruker_baf/THIRD-PARTY-LICENSE-README.txt")))),
       // thermo
       new Dependency("ThermoFisher RawFileReader", "", List.of(), List.of(
           new ModuleLicense("SOFTWARE LICENSE AGREEMENT (“License”) FOR RawFileReader",
-              new File("external_tools/thermo_raw_file_parser/THERMO_LICENSE.txt").getAbsolutePath()))),
-      new Dependency("Compomics ThermoRawFileParser", "",
+              FileAndPathUtil.resolveInExternalToolsDir("thermo_raw_file_parser/THERMO_LICENSE.txt")
+                  .getAbsolutePath()))), new Dependency("Compomics ThermoRawFileParser", "",
           List.of("https://github.com/compomics/ThermoRawFileParser"), List.of(
           new ModuleLicense("Apache-2.0 license", "https://www.apache.org/licenses/LICENSE-2.0"))));
 
