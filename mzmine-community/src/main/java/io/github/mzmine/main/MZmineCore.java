@@ -47,6 +47,7 @@ import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
+import io.github.mzmine.modules.tools.proxy_test.ProxyClientTestUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
@@ -132,7 +133,7 @@ public final class MZmineCore {
 
 
   //TODO REMOVE TEST CODE
-  private static volatile ProxySelector JVM_PROXY_SELECTOR;
+  public static volatile ProxySelector JVM_PROXY_SELECTOR;
 
   public static void setProxyOption(ProxyOptions option) {
     logger.info("Setting proxy option to " + option);
@@ -157,6 +158,9 @@ public final class MZmineCore {
 
     JVM_PROXY_SELECTOR = ProxySelector.getDefault();
     logProxyState("Initial proxy settings were: " + JVM_PROXY_SELECTOR);
+
+    // test proxy with different clients
+    ProxyClientTestUtils.testAll();
 
     // handle proxy first
     setAutoProxySelector(ProxyOptions.AUTO_PROXY);
@@ -325,10 +329,10 @@ public final class MZmineCore {
   /**
    * <a href="https://github.com/akuhtz/proxy-vole">...</a>
    */
-  private static void setAutoProxySelector(ProxyOptions options) {
+  @Nullable
+  public static ProxySelector createAutoProxySelector(ProxyOptions options) {
     ProxySearch s = new ProxySearch();
 
-    logger.info("Initializing auto proxy selector as " + options);
 // configured with the default proxy search strategies for the current environment.
     ProxySearch proxySearch = switch (options) {
       case JAVA_PROXY -> null;
@@ -360,20 +364,27 @@ public final class MZmineCore {
       }
     };
     if (proxySearch == null) {
+      return null;
+    }
+    return proxySearch.getProxySelector();
+  }
+
+  /**
+   * <a href="https://github.com/akuhtz/proxy-vole">...</a>
+   */
+  private static void setAutoProxySelector(ProxyOptions options) {
+    logger.info("Initializing auto proxy selector as " + options);
+// Invoke the proxy search. This will create a ProxySelector with the detected proxy settings.
+    ProxySelector proxySelector = createAutoProxySelector(options);
+    if (proxySelector == null) {
+      logger.warning(
+          "Auto proxy selector could not be initialized. Proxy settings are not detected.");
       return;
     }
 
-// Invoke the proxy search. This will create a ProxySelector with the detected proxy settings.
-    ProxySelector proxySelector = proxySearch.getProxySelector();
-
 // Install this ProxySelector as default ProxySelector for all connections.
-    if (proxySelector != null) {
-      ProxySelector.setDefault(proxySelector);
-      logProxyState("Auto proxy selector, now proxy settings are: " + options);
-    } else {
-      logger.warning(
-          "Auto proxy selector could not be initialized. Proxy settings are not detected.");
-    }
+    ProxySelector.setDefault(proxySelector);
+    logProxyState("Auto proxy selector, now proxy settings are: " + options);
   }
 
   private static void logProxyState(String msg) {
