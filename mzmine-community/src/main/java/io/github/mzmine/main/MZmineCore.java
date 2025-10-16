@@ -47,7 +47,6 @@ import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
-import io.github.mzmine.modules.tools.proxy_test.ProxyClientTestUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
@@ -158,9 +157,6 @@ public final class MZmineCore {
 
     JVM_PROXY_SELECTOR = ProxySelector.getDefault();
     logProxyState("Initial proxy settings were: " + JVM_PROXY_SELECTOR);
-
-    // test proxy with different clients
-    ProxyClientTestUtils.testAll();
 
     // handle proxy first
     setAutoProxySelector(ProxyOptions.AUTO_PROXY);
