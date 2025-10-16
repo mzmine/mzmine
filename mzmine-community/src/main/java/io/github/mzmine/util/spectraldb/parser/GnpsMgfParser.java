@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -55,14 +56,20 @@ public class GnpsMgfParser extends SpectralDBTextParser {
 
   /**
    * Gnps mgfs have the adduct after the name, e.g.
-   *<p></p>
+   * <p>
    * NAME=Umbelliferon M+H
-   * <p></p>
+   * <p>
+   * NAME=Umbelliferon [2M-H2O+H]+
+   * <p>
    * NAME=Gamma-aminobutyric_acid M-H
-   * <p></p>
-   * Looks like no brackets and charge indicator are present usually
+   * <p>
+   * Looks like no brackets and charge indicator are present sometimes but sometimes they are (like
+   * in IIMN library)
+   * <p>
+   * This predicate uses matcher.find to find any substring matching the regex
    */
-  final Pattern gnpsNameAdductPattern = Pattern.compile("(M[\\+\\-][\\d\\+\\-\\w]+)");
+  final Predicate<String> gnpsNameAdductPattern = Pattern.compile("(M[+\\-][\\d+\\-\\w]+)")
+      .asPredicate();
 
   public GnpsMgfParser(int bufferEntries, LibraryEntryProcessor processor) {
     super(bufferEntries, processor);
@@ -192,11 +199,12 @@ public class GnpsMgfParser extends SpectralDBTextParser {
 
   /**
    * Gnps mgfs have the adduct after the name, e.g.
-   *<p></p>
+   * <p></p>
    * NAME=Umbelliferon M+H
    * <p></p>
    * NAME=Gamma-aminobutyric_acid M-H
-   * @param value the field value
+   *
+   * @param value  the field value
    * @param fields the currently parsed fields
    */
   private void tryExtractAdductFromName(String value, Map<DBEntryField, Object> fields) {
@@ -207,7 +215,9 @@ public class GnpsMgfParser extends SpectralDBTextParser {
     }
 
     final String adductCandidate = name.substring(lastSpace + 1);
-    if (!gnpsNameAdductPattern.matcher(adductCandidate).matches()) {
+    // uses the Pattern.asPredicate() that internally uses matcher.find for substring match
+    // matcher.match requires full match which does not work here
+    if (!gnpsNameAdductPattern.test(adductCandidate)) {
       return;
     }
     // check for valid adduct with the adduct parser from export
