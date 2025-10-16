@@ -29,6 +29,8 @@ import com.sun.jna.Platform;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
@@ -37,7 +39,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -46,6 +47,7 @@ import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,12 +59,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ThermoRawImportTask extends AbstractTask implements RawDataImportTask {
 
-  public static final String THERMO_RAW_PARSER_DIR = "mzmine_thermo_raw_parser";
-
   private static final Logger logger = Logger.getLogger(ThermoRawImportTask.class.getName());
-  private static final CloseableReentrantReadWriteLock unzipLock = new CloseableReentrantReadWriteLock();
-  private static final File DEFAULT_PARSER_DIR = new File(
-      FileAndPathUtil.resolveInMzmineDir("external_resources"), "thermo_raw_file_parser");
 
   private final File fileToOpen;
   private final MZmineProject project;
@@ -230,14 +227,31 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
   }
 
   private File getParserPathForOs() {
+    final Optional<File> prefPath = ConfigService.getPreferences()
+        .getOptionalValue(MZminePreferences.thermoRawFileParserPath);
+    if (prefPath.isPresent()) {
+      return prefPath.get();
+    }
+
+    // relative to
+    final File mainDir = FileAndPathUtil.getSoftwareMainDirectory();
+    File parserDirectory = null;
+    if (mainDir != null) {
+      parserDirectory = new File(mainDir, "external_tools/thermo_raw_file_parser/");
+    }
+    if (parserDirectory == null || !parserDirectory.exists()) {
+      parserDirectory = new File("external_tools/thermo_raw_file_parser/");
+    }
+
     if (Platform.isWindows()) {
-      return new File("external_tools/thermo_raw_file_parser/ThermoRawFileParser.exe");
+      return new File(parserDirectory, "ThermoRawFileParser.exe");
     }
     if (Platform.isLinux()) {
-      return new File("external_tools/thermo_raw_file_parser/ThermoRawFileParserLinux");
+      return new File(parserDirectory, "ThermoRawFileParserLinux");
     }
     if (Platform.isMac()) {
-      return new File("external_tools/thermo_raw_file_parser/ThermoRawFileParserMac");
+      return new File(parserDirectory, "ThermoRawFileParserMac");
+//          new File("external_tools/thermo_raw_file_parser/ThermoRawFileParserMac");
     }
     throw new IllegalStateException(
         "Invalid operating system for parsing thermo files via the ThermoRawFileParser.");
