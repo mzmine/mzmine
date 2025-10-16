@@ -789,13 +789,13 @@ public class FileAndPathUtil {
    */
   private static @NotNull File getExternalToolsDir() {
     final File mainDir = FileAndPathUtil.getSoftwareMainDirectory();
-    File parserDirectory = null;
+    File toolsDirectory = null;
     if (mainDir != null) {
-      parserDirectory = new File(mainDir, "external_tools/");
+      toolsDirectory = new File(mainDir, "external_tools/");
     }
-    if (parserDirectory == null || !parserDirectory.exists()) {
-      parserDirectory = new File("external_tools/");
+    if (toolsDirectory == null || !toolsDirectory.exists()) {
+      toolsDirectory = new File("external_tools/");
     }
-    return parserDirectory;
+    return toolsDirectory;
   }
 }
