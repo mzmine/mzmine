@@ -80,7 +80,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
-import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.Nullable;
 
 public class MZminePreferences extends SimpleParameterSet {
@@ -134,6 +133,19 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final OptionalModuleParameter<ProxyParameters> proxySettings = new OptionalModuleParameter<>(
       "Use proxy", "Use proxy for internet connection?", new ProxyParameters(), false);
+
+  // TODO REMOVE THIS HANDLING IS JUST FOR TEST
+  public enum ProxyOptions {
+    JAVA_PROXY, AUTO_PROXY, SYSTEM_PROXY, BROWSER_PROXY, WIN, WPAD, AUTO_LIB_JAVA;
+
+    public boolean isJavaProxy() {
+      return this == JAVA_PROXY;
+    }
+  }
+
+  public static final ComboParameter<ProxyOptions> proxyOptions = new ComboParameter<>(
+      "Proxy options", "", ProxyOptions.values(), ProxyOptions.JAVA_PROXY);
+  // TODO END OF TEST
 
 //  public static final BooleanParameter sendStatistics = new BooleanParameter(
 //      "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
@@ -288,7 +300,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public MZminePreferences() {
     super(// start with performance
         new Parameter[]{numOfThreads, memoryOption, imsOptimization, tempDirectory,
-            runGCafterBatchStep, deleteTempFiles, proxySettings,
+            runGCafterBatchStep, deleteTempFiles, proxySettings, proxyOptions,
             /*applyTimsPressureCompensation,*/
             // visuals
             // number formats
@@ -331,7 +343,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
     final List<ParameterGroup> groups = List.of( //
         new ParameterGroup("General", numOfThreads, memoryOption, imsOptimization, tempDirectory,
-            runGCafterBatchStep, deleteTempFiles, proxySettings
+            runGCafterBatchStep, deleteTempFiles, proxySettings, proxyOptions
             /*, applyTimsPressureCompensation*/), //
         new ParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
             intensityFormat, ppmFormat, scoreFormat, percentFormat, unitFormat), //
@@ -559,6 +571,13 @@ public class MZminePreferences extends SimpleParameterSet {
   }
 
   private void updateSystemProxySettings() {
+    // TODO REMOVE THIS HANDLING IS JUST FOR TEST
+    final ProxyOptions option = getValue(proxyOptions);
+    MZmineCore.setProxyOption(option);
+    if (true) {
+      return;
+    }
+
     // Update system proxy settings
     Boolean proxyEnabled = getParameter(proxySettings).getValue();
     if ((proxyEnabled != null) && (proxyEnabled)) {
