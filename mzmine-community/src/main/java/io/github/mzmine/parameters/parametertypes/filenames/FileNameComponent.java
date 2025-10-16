@@ -30,6 +30,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.modules.io.download.DownloadAsset;
 import io.github.mzmine.modules.io.download.DownloadAssetButton;
+import io.github.mzmine.util.StringUtils;
 import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
@@ -173,7 +174,7 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
 
   public File getValue() {
     String fileName = txtFilename.getText();
-    return fileName.isBlank() ? null : new File(fileName);
+    return StringUtils.isBlank(fileName) ? null : new File(fileName);
   }
 
   public void setValue(File value) {
@@ -181,10 +182,8 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
   }
 
   public File getValue(boolean allowEmptyString) {
-    String fileName = txtFilename.getText();
-    if (!allowEmptyString && fileName.trim().isEmpty()) {
-      return null;
-    }
+    // we never allow empty strings in the component as this would lead to a new File("")
+    // which is saves interpreted as a relative path during load/save from xml
     return getValue();
   }
 
