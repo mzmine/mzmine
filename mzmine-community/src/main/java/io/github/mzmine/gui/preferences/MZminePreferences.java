@@ -546,8 +546,7 @@ public class MZminePreferences extends SimpleParameterSet {
     // no way to know if the parameter was actively deselected by user
     // therefore no way to activate this parameter automatically
     // only activate for macOS as macOS needs external for now
-    final boolean isMacOS = System.getProperty("os.name").toLowerCase().contains("mac");
-    if (isMacOS) {
+    if (com.sun.jna.Platform.isMac()) {
       final OptionalParameter<FileNameWithDownloadParameter> parserPath = (OptionalParameter<FileNameWithDownloadParameter>) loadedParams.get(
           thermoRawFileParserPath.getName());
       if (parserPath != null) {
