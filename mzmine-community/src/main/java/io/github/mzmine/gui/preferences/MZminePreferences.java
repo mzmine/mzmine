@@ -64,7 +64,7 @@ import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.web.Proxy;
+import io.github.mzmine.util.web.ProxyDefinition;
 import io.github.mzmine.util.web.ProxyType;
 import io.github.mzmine.util.web.ProxyUtils;
 import io.mzio.users.gui.fx.UsersController;
@@ -632,9 +632,9 @@ public class MZminePreferences extends SimpleParameterSet {
   }
 
   /**
-   * Set system proxy in preferences and {@link ProxyUtils#setSystemProxy(Proxy)}
+   * Set system proxy in preferences and {@link ProxyUtils#setSystemProxy(ProxyDefinition)}
    */
-  public void setProxy(final Proxy proxy) {
+  public void setProxy(final ProxyDefinition proxy) {
     OptionalModuleParameter<ProxyParameters> pp = getParameter(proxySettings);
     pp.setValue(proxy.active());
     ProxyParameters params = pp.getEmbeddedParameters();

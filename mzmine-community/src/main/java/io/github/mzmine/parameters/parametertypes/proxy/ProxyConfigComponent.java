@@ -23,10 +23,34 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.web;
+package io.github.mzmine.parameters.parametertypes.proxy;
 
-import io.mzio.events.MzEvent;
+import io.github.mzmine.parameters.ValuePropertyComponent;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.layout.BorderPane;
 
-public record ProxyChangedEvent(ProxyDefinition proxy) implements MzEvent {
+public class ProxyConfigComponent extends BorderPane implements
+    ValuePropertyComponent<FullProxyConfig> {
 
+  private final ObjectProperty<FullProxyConfig> value = new SimpleObjectProperty<>();
+
+  public ProxyConfigComponent(FullProxyConfig value) {
+    this.value.set(value);
+  }
+
+
+  public void setValue(FullProxyConfig value) {
+    this.value.set(value);
+  }
+
+  public FullProxyConfig getValue() {
+    return value.get();
+  }
+
+  @Override
+  public Property<FullProxyConfig> valueProperty() {
+    return value;
+  }
 }
