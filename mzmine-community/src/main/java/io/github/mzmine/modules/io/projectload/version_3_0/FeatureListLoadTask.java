@@ -29,15 +29,12 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
-import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
@@ -47,7 +44,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
-import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.ZipUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -198,8 +194,6 @@ public class FeatureListLoadTask extends AbstractTask {
         // disable buffering after the import (replace references to CachedIMSRawDataFiles with IMSRawDataFiles
         flist.replaceCachedFilesAndScans();
 
-        featureListPostProcessing(flist);
-
         project.addFeatureList(flist);
         processedFlists++;
       }
@@ -215,36 +209,6 @@ public class FeatureListLoadTask extends AbstractTask {
     // disable caching on project level
     project.setProjectLoadImsImportCaching(false);
     setStatus(TaskStatus.FINISHED);
-  }
-
-  /**
-   * After loading the feature list apply some processing for compatibility with newer versions
-   */
-  private void featureListPostProcessing(ModularFeatureList flist) {
-    moveCommentsFromManualAnnotationToCommentType(flist);
-  }
-
-  /**
-   * Move comments from manual annotation <4.8 to CommentType as row column
-   */
-  private static void moveCommentsFromManualAnnotationToCommentType(ModularFeatureList flist) {
-    // copy ManualAnnotationType.comment to CommentType
-    if (!flist.hasRowType(ManualAnnotationType.class)) {
-      return;
-    }
-
-    final ManualAnnotationType manualType = DataTypes.get(ManualAnnotationType.class);
-    for (FeatureListRow row : flist.getRows()) {
-      final ManualAnnotation manual = row.get(manualType);
-      // skip rows that already have a comment
-      if (manual == null || StringUtils.hasValue(row.getComment())) {
-        continue;
-      }
-      final String comment = manual.getComment();
-      if (StringUtils.hasValue(comment)) {
-        row.setComment(comment);
-      }
-    }
   }
 
   private void parseFeatureList(MemoryMapStorage storage, MZmineProject project,
