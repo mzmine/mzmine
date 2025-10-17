@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -120,6 +121,11 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
     final ManualAnnotation manual = new ManualAnnotation();
     for (DataType type : model.getTypes()) {
       manual.set(type, model.get(type));
+    }
+
+    final String comment = manual.getComment();
+    if (StringUtils.isBlank(row.getComment()) && StringUtils.hasValue(comment)) {
+      row.setComment(comment);
     }
     return manual;
   }
