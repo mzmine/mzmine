@@ -23,10 +23,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.web;
+package io.github.mzmine.parameters.parametertypes.proxy;
 
-import io.mzio.events.MzEvent;
+import org.jetbrains.annotations.NotNull;
 
-public record ProxyChangedEvent(ProxyDefinition proxy) implements MzEvent {
+/**
+ * Combines configs from manual and auto
+ *
+ * @param option       auto, manual, none
+ * @param manualConfig manual config
+ */
+public record FullProxyConfig(@NotNull ProxyConfigOption option,
+                              @NotNull ManualProxyConfig manualConfig) {
 
+
+  public static FullProxyConfig defaultConfig() {
+    return new FullProxyConfig(ProxyConfigOption.AUTO_PROXY, ManualProxyConfig.defaultConfig());
+  }
 }

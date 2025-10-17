@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,25 +25,28 @@
 
 package io.github.mzmine.util.web;
 
-import io.github.mzmine.util.objects.ObjectUtils;
 import static java.util.Objects.requireNonNullElse;
+
+import io.github.mzmine.util.objects.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * @param address prefix of http or https:// are removed internally
  */
-public record Proxy(boolean active, @Nullable String address, @Nullable String port,
-                    @NotNull ProxyType type) {
+public record ProxyDefinition(boolean active, @Nullable String address, @Nullable String port,
+                              @NotNull ProxyType type) {
 
-  public static final Proxy EMPTY = new Proxy(false, null, null, ProxyType.HTTP);
+  public static final ProxyDefinition EMPTY = new ProxyDefinition(false, null, null,
+      ProxyType.HTTP);
 
-  public Proxy(final boolean active, @Nullable final String address, @Nullable final String port) {
+  public ProxyDefinition(final boolean active, @Nullable final String address,
+      @Nullable final String port) {
     this(active, address, port, null);
   }
 
-  public Proxy(final boolean active, @Nullable final String address, @Nullable final String port,
-      @Nullable ProxyType type) {
+  public ProxyDefinition(final boolean active, @Nullable final String address,
+      @Nullable final String port, @Nullable ProxyType type) {
     // deactivate if any is null
     this.active = active && ObjectUtils.noneNull(address, port);
     this.port = port;

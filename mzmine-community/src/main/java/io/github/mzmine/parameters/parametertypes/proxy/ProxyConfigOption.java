@@ -23,10 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.web;
+package io.github.mzmine.parameters.parametertypes.proxy;
 
-import io.mzio.events.MzEvent;
+public enum ProxyConfigOption {
+  AUTO_PROXY("Auto-detect proxy"), NO_PROXY("No proxy"), MANUAL_PROXY("Manual proxy");
 
-public record ProxyChangedEvent(ProxyDefinition proxy) implements MzEvent {
+  private final String text;
 
+  ProxyConfigOption(String text) {
+    this.text = text;
+  }
+
+  @Override
+  public String toString() {
+    return text;
+  }
 }

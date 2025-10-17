@@ -23,10 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.web;
+package io.github.mzmine.parameters.parametertypes.proxy;
 
-import io.mzio.events.MzEvent;
+import java.net.Proxy;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-public record ProxyChangedEvent(ProxyDefinition proxy) implements MzEvent {
+/**
+ *
+ * @param type          HTTP or SOCKS
+ * @param host          name
+ * @param port          port
+ * @param nonProxyHosts hosts that should not be proxied
+ */
+public record ManualProxyConfig(@NotNull Proxy.Type type, @NotNull String host, int port,
+                                @NotNull List<String> nonProxyHosts) {
 
+  public static ManualProxyConfig defaultConfig() {
+    return new ManualProxyConfig(Proxy.Type.HTTP, "", 80, List.of());
+  }
 }
