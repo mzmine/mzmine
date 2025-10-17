@@ -42,11 +42,12 @@ public record Dependencies(List<Dependency> dependencies) {
   private static final List<Dependency> other = List.of(
       new Dependency("TDF Software Development Kit, Bruker Daltonics GmbH & Co.KG",
           "2.8.7.1-win32-vc141", List.of(), List.of(
-          new ModuleLicense("EULA TDF-SDK (Bruker Daltonics GmbH & Co.KG)", (String) null))),
+          new ModuleLicense("EULA TDF-SDK (Bruker Daltonics GmbH & Co.KG)",
+              "https://mzio.io/wp-content/uploads/2025/09/tdf_THIRD-PARTY-LICENSE-README.txt"))),
       new Dependency("Baf2Sql Software Development Kit, Bruker Daltonics GmbH & Co.KG", "2.9.0",
           List.of(), List.of(new ModuleLicense("EULA BAF-SDK (Bruker Daltonics GmbH & Co.KG)",
               FileAndPathUtil.resolveInExternalToolsDir("bruker_baf/README.txt")),
-          new ModuleLicense("EULA BAF-SDK (Bruker Daltonics GmbH & Co.KG)",
+          new ModuleLicense("THIRD-PARTY-LICENSE-README.txt",
               FileAndPathUtil.resolveInExternalToolsDir(
                   "bruker_baf/THIRD-PARTY-LICENSE-README.txt")))),
       // thermo
