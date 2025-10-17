@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.proxy;
+package io.github.mzmine.util.web.proxy;
 
 import org.jetbrains.annotations.NotNull;
 

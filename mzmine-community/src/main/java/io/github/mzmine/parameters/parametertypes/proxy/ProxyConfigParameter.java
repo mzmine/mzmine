@@ -29,6 +29,7 @@ import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.parameters.AbstractParameter;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.util.web.proxy.FullProxyConfig;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

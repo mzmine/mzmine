@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.web;
 
+import io.github.mzmine.util.web.proxy.FullProxyConfig;
 import io.mzio.events.EventService;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -36,11 +37,23 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ProxyUtils {
 
   private static final Logger logger = Logger.getLogger(ProxyUtils.class.getName());
   private static boolean allowChanges = true;
+
+  // keep track of all initial proxy values from the startup
+  private static final String DEFAULT_HTTP_NON_PROXY_HOSTS = System.getProperty(
+      "http.nonProxyHosts");
+  private static final String DEFAULT_HTTP_HOST = System.getProperty("http.proxyHost");
+  private static final String DEFAULT_HTTP_PORT = System.getProperty("http.proxyPort");
+  private static final String DEFAULT_HTTPS_HOST = System.getProperty("https.proxyHost");
+  private static final String DEFAULT_HTTPS_PORT = System.getProperty("https.proxyPort");
+  private static final String DEFAULT_SOCKS_HOST = System.getProperty("socksProxyHost");
+  private static final String DEFAULT_SOCKS_PORT = System.getProperty("socksProxyPort");
+
 
   public static synchronized void setAllowChanges(final boolean allowChanges) {
     ProxyUtils.allowChanges = allowChanges;
@@ -85,15 +98,28 @@ public class ProxyUtils {
    * @param uri The URI to determine proxy settings for
    * @return true if proxy was configured, false otherwise
    */
-  public static boolean syncProxySelectorToSystemProperties(URI uri) {
+  public static boolean syncProxySelectorToSystemProperties(String uri) {
     ProxySelector proxySelector = ProxySelector.getDefault();
+    return syncProxySelectorToSystemProperties(uri, proxySelector);
+  }
+
+  /**
+   * Synchronizes system properties with the default ProxySelector for a given URI. This allows
+   * JavaFX WebView to use the same proxy as other Java HTTP clients.
+   *
+   * @param uri           The URI to determine proxy settings for
+   * @param proxySelector the selector to use
+   * @return true if proxy was configured, false otherwise
+   */
+  public static boolean syncProxySelectorToSystemProperties(String uri,
+      @Nullable ProxySelector proxySelector) {
     if (proxySelector == null) {
       clearSystemProxy();
       return false;
     }
 
     try {
-      List<Proxy> proxies = proxySelector.select(uri);
+      List<Proxy> proxies = proxySelector.select(URI.create(uri));
 
       if (proxies == null || proxies.isEmpty()) {
         clearSystemProxy();
@@ -270,5 +296,86 @@ public class ProxyUtils {
     var proxy = setSystemProxy(fullProxy);
     setAllowChanges(false);
     return proxy;
+  }
+
+  public static void applyConfig(@NotNull FullProxyConfig value) {
+    switch (value.option()) {
+      case AUTO_PROXY -> {
+        applySystemDefaults();
+      }
+      case NO_PROXY -> {
+        clearSystemProxy();
+      }
+      case MANUAL_PROXY -> {
+      }
+    }
+  }
+
+  /**
+   * Applies system defaults from startup of JVM or if those are empty tries to find the proxy with
+   * {@link ProxySelector#getDefault()} by checking https://auth.mzio.io/.
+   */
+  public static void applySystemDefaults() {
+    if (!allowChanges) {
+      return;
+    }
+
+    ProxyDefinition old = getSelectedSystemProxy();
+
+    boolean anyHttpHostDefined = false;
+
+    if (DEFAULT_HTTP_NON_PROXY_HOSTS != null) {
+      System.setProperty("http.nonProxyHosts", DEFAULT_HTTP_NON_PROXY_HOSTS);
+    } else {
+      System.clearProperty("http.nonProxyHosts");
+    }
+    if (DEFAULT_HTTP_HOST != null) {
+      System.setProperty("http.proxyHost", DEFAULT_HTTP_HOST);
+      anyHttpHostDefined = true;
+    } else {
+      System.clearProperty("http.proxyHost");
+    }
+    if (DEFAULT_HTTP_PORT != null) {
+      System.setProperty("http.proxyPort", DEFAULT_HTTP_PORT);
+    } else {
+      System.clearProperty("http.proxyPort");
+    }
+
+    if (DEFAULT_HTTPS_HOST != null) {
+      System.setProperty("https.proxyHost", DEFAULT_HTTPS_HOST);
+      anyHttpHostDefined = true;
+    } else {
+      System.clearProperty("https.proxyHost");
+    }
+    if (DEFAULT_HTTPS_PORT != null) {
+      System.setProperty("https.proxyPort", DEFAULT_HTTPS_PORT);
+    } else {
+      System.clearProperty("https.proxyPort");
+    }
+
+    if (DEFAULT_SOCKS_HOST != null) {
+      System.setProperty("socksProxyHost", DEFAULT_SOCKS_HOST);
+    } else {
+      System.clearProperty("socksProxyHost");
+    }
+    if (DEFAULT_SOCKS_PORT != null) {
+      System.setProperty("socksProxyPort", DEFAULT_SOCKS_PORT);
+    } else {
+      System.clearProperty("socksProxyPort");
+    }
+
+    logger.info("Proxy settings restored to system defaults");
+
+    if (!anyHttpHostDefined) {
+      final ProxySelector selector = ProxySelector.getDefault();
+      if (selector != null) {
+        syncProxySelectorToSystemProperties("https://auth.mzio.io/", selector);
+      }
+    }
+
+    ProxyDefinition current = getSelectedSystemProxy();
+    if (!Objects.equals(old, current)) {
+      EventService.post(new ProxyChangedEvent(current));
+    }
   }
 }
