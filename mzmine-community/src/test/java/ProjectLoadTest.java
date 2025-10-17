@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.time.Instant;
-import java.util.Comparator;
 import java.util.Objects;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -92,11 +91,8 @@ public class ProjectLoadTest {
     // two library matches
     assertEquals(2, flist.getRows().stream().filter(FeatureListRow::isIdentified).count());
 
-    assertEquals(15,
-        flist.getRows().stream().max(Comparator.comparingInt(r -> r.getTypes().size())).get()
-            .getTypes().size());
-    assertEquals(16, flist.getRows().stream().flatMap(r -> r.streamFeatures())
-        .max(Comparator.comparingInt(f -> f.getTypes().size())).get().getTypes().size());
+    assertEquals(14, flist.getRowTypes().size());
+    assertEquals(16, flist.getFeatureTypes().size());
 
     ProjectService.getProjectManager().clearProject();
     ProjectService.getProject().clearSpectralLibrary();
