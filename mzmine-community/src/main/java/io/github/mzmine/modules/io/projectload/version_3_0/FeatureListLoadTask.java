@@ -217,10 +217,16 @@ public class FeatureListLoadTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
+  /**
+   * After loading the feature list apply some processing for compatibility with newer versions
+   */
   private void featureListPostProcessing(ModularFeatureList flist) {
     moveCommentsFromManualAnnotationToCommentType(flist);
   }
 
+  /**
+   * Move comments from manual annotation <4.8 to CommentType as row column
+   */
   private static void moveCommentsFromManualAnnotationToCommentType(ModularFeatureList flist) {
     // copy ManualAnnotationType.comment to CommentType
     if (!flist.hasRowType(ManualAnnotationType.class)) {
