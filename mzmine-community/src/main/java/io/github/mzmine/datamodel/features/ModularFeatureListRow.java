@@ -418,7 +418,8 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
     final String manualComment = manual == null ? null : manual.getComment();
 
     // added in mzmine 4.8 the CommentType is now a row type and should replace the manual annotation
-    // for now concatenate the comments from both
+    // for now concatenate the comments from both to support old projects
+    // may remove the concat in future releases
     final String comment = get(CommentType.class);
     final boolean hasManual = StringUtils.hasValue(manualComment);
     final boolean hasComment = StringUtils.hasValue(comment);
@@ -432,12 +433,8 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
 
   @Override
   public void setComment(String comment) {
-    ManualAnnotation manual = getManualAnnotation();
-    if (manual == null) {
-      manual = new ManualAnnotation();
-    }
-    manual.setComment(comment);
-    set(ManualAnnotationType.class, manual);
+    // was changed in mzmine 4.8 from ManualAnnotationType to CommentType as a row column
+    set(CommentType.class, comment);
   }
 
   @Override
