@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,13 +28,14 @@ package io.github.mzmine.util.web;
 import org.jetbrains.annotations.Nullable;
 
 public enum ProxyType {
-  HTTP, HTTPS;
+  HTTP, HTTPS, SOCKS;
 
   @Nullable
   public static ProxyType parse(final String type) {
     return switch (type.toLowerCase()) {
       case "http" -> HTTP;
       case "https" -> HTTPS;
+      case "socks" -> SOCKS;
       case null, default -> null;
     };
   }
@@ -44,6 +45,7 @@ public enum ProxyType {
     return switch (this) {
       case HTTP -> "http";
       case HTTPS -> "https";
+      case SOCKS -> "socks";
     };
   }
 }

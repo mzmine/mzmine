@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.proxy;
+package io.github.mzmine.util.web.proxy;
 
 import java.net.Proxy;
 import java.util.List;

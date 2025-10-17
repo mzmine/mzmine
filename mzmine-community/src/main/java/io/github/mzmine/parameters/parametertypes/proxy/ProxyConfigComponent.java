@@ -25,32 +25,113 @@
 
 package io.github.mzmine.parameters.parametertypes.proxy;
 
-import io.github.mzmine.parameters.ValuePropertyComponent;
+import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
+
+import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxComboBox;
+import io.github.mzmine.javafx.components.factories.FxTextFields;
+import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.util.StringUtils;
+import io.github.mzmine.util.web.ProxyUtils;
+import io.github.mzmine.util.web.proxy.FullProxyConfig;
+import io.github.mzmine.util.web.proxy.ManualProxyConfig;
+import io.github.mzmine.util.web.proxy.ProxyConfigOption;
+import java.net.Proxy;
+import java.net.Proxy.Type;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Region;
 
-public class ProxyConfigComponent extends BorderPane implements
-    ValuePropertyComponent<FullProxyConfig> {
+public class ProxyConfigComponent extends BorderPane {
 
-  private final ObjectProperty<FullProxyConfig> value = new SimpleObjectProperty<>();
+  private final ObjectProperty<ProxyConfigOption> option = new SimpleObjectProperty<>(
+      ProxyConfigOption.AUTO_PROXY);
+
+  // manual
+  private final ObjectProperty<Proxy.Type> proxyType = new SimpleObjectProperty<>(Type.HTTP);
+  private final StringProperty host = new SimpleStringProperty("");
+  private final ObjectProperty<Integer> port = new SimpleObjectProperty<>(80);
+  private final StringProperty nonProxyHosts = new SimpleStringProperty("");
+
+  // content for each option (some are null)
+  private final Map<ProxyConfigOption, Region> optionPanes = HashMap.newHashMap(3);
+
 
   public ProxyConfigComponent(FullProxyConfig value) {
-    this.value.set(value);
+    setValue(value);
+    createLayout();
   }
 
+  private void createLayout() {
+    createOptionContentPanes();
+
+    final ComboBox<ProxyConfigOption> optionCombo = FxComboBox.createComboBox(
+        "Options how to set proxy settings", ProxyConfigOption.values(), option);
+
+    final GridPane grid = FxLayout.newGrid2Col();
+
+    final Button testButton = FxButtons.createButton("Test",
+        "Apply and test proxy configuration for important websites. Results will be printed to the logs.",
+        this::testProxy);
+
+    setTop(FxLayout.newHBox(optionCombo, testButton));
+    setCenter(grid);
+  }
+
+  private void createOptionContentPanes() {
+    // manual
+    GridPane grid = FxLayout.newGrid2Col( //
+        newBoldLabel("Host name"), FxTextFields.newTextField(host, "Host name like 'localhost'"), //
+        newBoldLabel("Port number"), FxTextFields.newIntegerField(port, "Port number like 80"), //
+        newBoldLabel("No proxy for"), FxTextFields.newTextField(nonProxyHosts,
+            "Comma-separated hosts that are excluded. Example: '*.example.com, 192.168.*'") //
+    );
+
+    optionPanes.put(ProxyConfigOption.MANUAL_PROXY, grid);
+
+    // AUTO and NO_PROXY have no content so far but could get fallback options later
+  }
+
+  private void testProxy() {
+    final FullProxyConfig value = getValue();
+    ProxyUtils.applyConfig(value);
+
+  }
 
   public void setValue(FullProxyConfig value) {
-    this.value.set(value);
+    option.set(value.option());
+
+    // manual
+    proxyType.set(value.manualConfig().type());
+    host.set(value.manualConfig().host());
+    port.set(value.manualConfig().port());
+    nonProxyHosts.set(String.join(",", value.manualConfig().nonProxyHosts()));
   }
 
   public FullProxyConfig getValue() {
-    return value.get();
+    final List<String> nonProxyHosts = getNonProxyHosts();
+    final ManualProxyConfig manual = new ManualProxyConfig(proxyType.get(), host.get(), port.get(),
+        nonProxyHosts);
+    return new FullProxyConfig(option.get(), manual);
   }
 
-  @Override
-  public Property<FullProxyConfig> valueProperty() {
-    return value;
+  private List<String> getNonProxyHosts() {
+    final String hosts = this.nonProxyHosts.get();
+    if (hosts == null) {
+      return List.of();
+    }
+    // split and remove spaces
+    return Arrays.stream(hosts.split(",")).map(String::trim).filter(StringUtils::hasValue).toList();
   }
+
 }
