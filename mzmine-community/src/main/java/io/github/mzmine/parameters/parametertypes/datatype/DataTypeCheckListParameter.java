@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.datatype;
 
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
@@ -270,6 +271,9 @@ public class DataTypeCheckListParameter implements
    */
   private void defaultDisableColumns() {
     if (getName().toLowerCase().contains("row")) {
+      // activate comment column for rows
+      value.put(getKey(false, CommentType.class, null), true);
+
       value.put(getKey(false, IonIdentityListType.class, MZType.class), false);
 
       value.put(getKey(false, SpectralLibraryMatchesType.class, FormulaType.class), false);
