@@ -76,7 +76,6 @@ import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.scans.FragmentScanSorter;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
@@ -414,21 +413,10 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   @Override
   @Nullable
   public String getComment() {
-    ManualAnnotation manual = getManualAnnotation();
-    final String manualComment = manual == null ? null : manual.getComment();
-
     // added in mzmine 4.8 the CommentType is now a row type and should replace the manual annotation
-    // for now concatenate the comments from both to support old projects
-    // may remove the concat in future releases
-    final String comment = get(CommentType.class);
-    final boolean hasManual = StringUtils.hasValue(manualComment);
-    final boolean hasComment = StringUtils.hasValue(comment);
-    if (hasManual && hasComment) {
-      return comment + " " + manualComment;
-    } else if (hasManual) {
-      return manualComment;
-    }
-    return comment;
+    // compatibility with old projects is ensured by copying over comments
+    // from manual --> comment type
+    return get(CommentType.class);
   }
 
   @Override
