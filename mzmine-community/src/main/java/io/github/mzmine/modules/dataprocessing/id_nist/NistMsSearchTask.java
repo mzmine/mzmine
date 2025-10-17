@@ -28,7 +28,6 @@ package io.github.mzmine.modules.dataprocessing.id_nist;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.DOT_PRODUCT;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.IMPORT_PARAMETER;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.INTEGER_MZ;
-import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MERGE_PARAMETER;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.NIST_MS_SEARCH_DIR;
 
 import io.github.mzmine.datamodel.DataPoint;
@@ -37,15 +36,13 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectModuleOptions;
 import io.github.mzmine.modules.dataprocessing.id_spectral_match_sort.SortSpectralMatchesTask;
-import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
-import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
-import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
@@ -122,7 +119,7 @@ public class NistMsSearchTask extends AbstractTask {
   private static final Object SEMAPHORE = new Object();
 
   // Polling period for the search results file.
-  private static final long POLL_RESULTS = 1000L;
+  private static final long POLL_RESULTS = 50L;
   // Import Options.
   private static ImportOption importOption;
   // The mass-list and peak-list.
@@ -132,7 +129,6 @@ public class NistMsSearchTask extends AbstractTask {
   // Dot Product cut-offs.
   private final Double minDotProduct;
   // Optional params.
-  private final MsMsSpectraMergeParameters mergeParameters;
   private final IntegerMode integerMZ;
   // NIST MS Search directory and executable.
   private final File nistMsSearchDir;
@@ -141,6 +137,7 @@ public class NistMsSearchTask extends AbstractTask {
   // Progress counters.
   private int progress;
   private int progressMax;
+  private FragmentScanSelection fragmentScanSelection;
 
   /**
    * Create the task.
@@ -176,13 +173,12 @@ public class NistMsSearchTask extends AbstractTask {
     nistMsSearchDir = params.getParameter(NIST_MS_SEARCH_DIR).getValue();
     nistMsSearchExe = ((NistMsSearchParameters) params).getNistMsSearchExecutable();
     importOption = params.getParameter(IMPORT_PARAMETER).getValue();
+    final SpectraMergeSelectModuleOptions value = params.getValue(
+        NistMsSearchParameters.spectraMergeSelect);
+    fragmentScanSelection = value.createFragmentScanSelection(getMemoryMapStorage(),
+        value.getModuleParameters());
 
     // Optional parameters.
-    if (params.getParameter(MERGE_PARAMETER).getValue()) {
-      mergeParameters = params.getParameter(MERGE_PARAMETER).getEmbeddedParameters();
-    } else {
-      mergeParameters = null;
-    }
     if (params.getParameter(INTEGER_MZ).getValue()) {
       integerMZ = params.getParameter(INTEGER_MZ).getEmbeddedParameter().getValue();
     } else {
@@ -201,16 +197,10 @@ public class NistMsSearchTask extends AbstractTask {
    */
   private static void writeSecondaryLocatorFile(final File locatorFile, final File spectraFile)
       throws IOException {
-
     // Write the spectra file name to the secondary locator file.
-    final BufferedWriter writer = new BufferedWriter(new FileWriter(locatorFile));
-    try {
-
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(locatorFile))) {
       writer.write(spectraFile.getCanonicalPath() + " " + importOption.toString());
       writer.newLine();
-    } finally {
-
-      writer.close();
     }
   }
 
@@ -275,37 +265,36 @@ public class NistMsSearchTask extends AbstractTask {
           // Configure locator files.
           final File locatorFile1 = new File(nistMsSearchDir, PRIMARY_LOCATOR_FILE_NAME);
           locatorFile2 = getSecondLocatorFile(locatorFile1);
-          if (locatorFile2 == null) {
 
+          if (locatorFile2 == null) {
             throw new IOException("Primary locator file " + locatorFile1
-                                  + " doesn't contain the name of a valid file.");
+                + " doesn't contain the name of a valid file.");
           }
 
           // Is MS Search already running?
           if (locatorFile2.exists()) {
-
             throw new IllegalStateException(
                 "NIST MS Search appears to be busy - please wait until it finishes its current task and then try again.  Alternatively, try manually deleting the file "
-                + locatorFile2);
+                    + locatorFile2);
           }
         }
 
         // Search command string.
         final String command = nistMsSearchExe.getAbsolutePath() + ' ' + COMMAND_LINE_ARGS;
 
-        List<FeatureListRow> peakRow = new ArrayList<>();
+        List<FeatureListRow> rows = new ArrayList<>();
 
         // Searching FeatureList or FeatureListRow?
         if (peakListRow == null) {
-          peakRow = peakList.getRows();
+          rows = peakList.getRows();
         } else {
-          peakRow.add(peakListRow);
+          rows.add(peakListRow);
         }
 
         // Perform searches for each feature list row.
         progress = 0;
-        progressMax = peakList.getNumberOfRows();
-        for (final FeatureListRow row : peakRow) {
+        progressMax = rows.size();
+        for (final FeatureListRow row : rows) {
 
           DataPoint[] dataPoints = null;
           String comment = null;
@@ -314,50 +303,38 @@ public class NistMsSearchTask extends AbstractTask {
             progress++;
             continue;
           }
+
           // Merge multiple MSn fragment spectra.
-          if (mergeParameters != null) {
-            MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(
-                MsMsSpectraMergeModule.class);
-            assert merger != null;
-            MergedSpectrum spectrum = merger.getBestMergedSpectrum(mergeParameters, row);
-            if (spectrum != null) {
-              dataPoints = spectrum.data;
-              comment = "MERGED_STATS= " + spectrum.getMergeStatsDescription();
+          final List<Scan> msMsScans = fragmentScanSelection.getAllFragmentSpectra(row);
+          for (Scan scan : msMsScans) {
+            dataPoints = ScanUtils.extractDataPoints(scan, true);
+            comment = scan.getScanDefinition();
+
+            // Round high-res to low-res.
+            if (integerMZ != null & dataPoints != null) {
+              dataPoints = ScanUtils.integerDataPoints(dataPoints, integerMZ);
             }
-          } else {
 
-            // Get best fragment scan.
-            Scan scan = row.getMostIntenseFragmentScan();
-            dataPoints = ScanUtils.extractDataPoints(scan);
-            comment =
-                "DATA_FILE = " + scan.getDataFile().getName() + " SCAN = " + scan.getScanNumber();
-          }
+            if (!isCanceled()) {
 
-          // Round high-res to low-res.
-          if (integerMZ != null & dataPoints != null) {
-            dataPoints = ScanUtils.integerDataPoints(dataPoints, integerMZ);
-          }
+              // Write spectra file.
+              final File spectraFile = writeSpectraFile(row, dataPoints, comment);
 
-          if (!isCanceled()) {
+              // Write locator file.
+              writeSecondaryLocatorFile(locatorFile2, spectraFile);
 
-            // Write spectra file.
-            final File spectraFile = writeSpectraFile(row, dataPoints, comment);
+              // Run the search.
+              runNistMsSearch(command);
 
-            // Write locator file.
-            writeSecondaryLocatorFile(locatorFile2, spectraFile);
+              // Read the search results file and store the results.
+              List<SpectralDBAnnotation> identities = readSearchResults(row, scan);
 
-            // Run the search.
-            runNistMsSearch(command);
-
-            // Read the search results file and store the results.
-            List<SpectralDBAnnotation> identities = readSearchResults(row);
-
-            if (identities != null) {
-              addIdentities(row, identities);
-              SortSpectralMatchesTask.sortIdentities(row);
+              if (identities != null) {
+                addIdentities(row, identities);
+                SortSpectralMatchesTask.sortIdentities(row);
+              }
             }
           }
-
           progress++;
         }
       } finally {
@@ -377,16 +354,15 @@ public class NistMsSearchTask extends AbstractTask {
    * @return a list of identities corresponding to the search results, or null if none is found.
    * @throws IOException if and i/o problem occurs.
    */
-  private List<SpectralDBAnnotation> readSearchResults(final FeatureListRow row)
-      throws IOException {
+  private List<SpectralDBAnnotation> readSearchResults(final FeatureListRow row,
+      @NotNull final Scan queryScan) throws IOException {
 
     // Search results.
     List<SpectralDBAnnotation> ids = null;
 
     // Read the results file.
-    final BufferedReader reader = new BufferedReader(
-        new FileReader(new File(nistMsSearchDir, SEARCH_RESULTS_FILE_NAME)));
-    try {
+    try (BufferedReader reader = new BufferedReader(
+        new FileReader(new File(nistMsSearchDir, SEARCH_RESULTS_FILE_NAME)))) {
 
       // Read results.
       int lineCount = 1;
@@ -404,16 +380,14 @@ public class NistMsSearchTask extends AbstractTask {
           final int rowID = row.getID();
           final int hitID = Integer.parseInt(scanMatcher.group(1));
           if (rowID == hitID) {
-
             // Create a new list for the hits.
             ids = new ArrayList<>(1);
 
           } else {
-
             // Search results are for the wrong peak.
             throw new IllegalArgumentException(
                 "Search results are for a different peak.  Expected peak: " + rowID + " but found: "
-                + hitID);
+                    + hitID);
           }
         } else if (cmpMatcher.find()) {
 
@@ -469,7 +443,7 @@ public class NistMsSearchTask extends AbstractTask {
               }
               if (libMatcher.find()) {
                 lib = "Library: " + libMatcher.group(1) + "\n"
-                      + "NIST results only viewable in NIST MS Search";
+                    + "NIST results only viewable in NIST MS Search";
               }
 
               // Compound ion_type is combined with name field for LC-MS/MS field.
@@ -492,7 +466,7 @@ public class NistMsSearchTask extends AbstractTask {
                   dotProduct, 100, Double.NaN);
 
               final SpectralDBAnnotation libraryID = new SpectralDBAnnotation(entry, similarity,
-                  null, null, row.getAverageMZ(), row.getAverageRT());
+                  queryScan, null, row.getAverageMZ(), row.getAverageRT());
 
               ids.add(libraryID);
             }
@@ -509,8 +483,6 @@ public class NistMsSearchTask extends AbstractTask {
         line = reader.readLine();
         lineCount++;
       }
-    } finally {
-      reader.close();
     }
 
     return ids;
@@ -528,7 +500,7 @@ public class NistMsSearchTask extends AbstractTask {
     final File srcReady = new File(nistMsSearchDir, SEARCH_POLL_FILE_NAME);
     if (srcReady.exists() && !srcReady.delete()) {
       throw new IOException("Couldn't delete the search results polling file " + srcReady
-                            + ".  Please delete it manually.");
+          + ".  Please delete it manually.");
     }
 
     // Execute NIS MS Search.
@@ -538,10 +510,8 @@ public class NistMsSearchTask extends AbstractTask {
     // Wait for the search to finish by polling the results file.
     while (!srcReady.exists() && !isCanceled()) {
       try {
-
         Thread.sleep(POLL_RESULTS);
       } catch (InterruptedException ignore) {
-
         // uninterruptible.
       }
     }
@@ -562,15 +532,14 @@ public class NistMsSearchTask extends AbstractTask {
     final File spectraFile = FileAndPathUtil.createTempFile(SPECTRA_FILE_PREFIX,
         SPECTRA_FILE_SUFFIX);
     spectraFile.deleteOnExit();
-    final BufferedWriter writer = new BufferedWriter(new FileWriter(spectraFile));
-    try {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(spectraFile))) {
       logger.finest("Writing spectra to file " + spectraFile);
 
       // Write header.
       final FeatureIdentity identity = peakRow.getPreferredFeatureIdentity();
       final String name =
           SPECTRUM_NAME_PREFIX + peakRow.getID() + (identity == null ? "" : " (" + identity + ')')
-          + " of " + peakList.getName();
+              + " of " + peakList.getName();
       writer.write("Name: " + name.substring(0, Math.min(SPECTRUM_NAME_MAX_LENGTH, name.length())));
       writer.newLine();
       writer.write("PrecursorMZ: " + peakRow.getAverageMZ());
@@ -606,10 +575,6 @@ public class NistMsSearchTask extends AbstractTask {
           writer.newLine();
         }
       }
-    } finally {
-
-      // Close the open file.
-      writer.close();
     }
     return spectraFile;
   }
@@ -626,27 +591,20 @@ public class NistMsSearchTask extends AbstractTask {
     // Check for the primary locator file.
     if (!primaryLocatorFile.exists()) {
       logger.warning("Primary locator file not found - writing new " + primaryLocatorFile);
-
       // Write the primary locator file.
-      final BufferedWriter writer = new BufferedWriter(new FileWriter(primaryLocatorFile));
-      try {
+      try (BufferedWriter writer = new BufferedWriter(new FileWriter(primaryLocatorFile))) {
         writer.write(new File(nistMsSearchDir, SECONDARY_LOCATOR_FILE_NAME).getCanonicalPath());
         writer.newLine();
-      } finally {
-        writer.close();
       }
     }
 
     // Read the secondary locator file.
     File locatorFile2 = null;
-    final BufferedReader reader = new BufferedReader(new FileReader(primaryLocatorFile));
-    try {
+    try (BufferedReader reader = new BufferedReader(new FileReader(primaryLocatorFile))) {
       final String line = reader.readLine();
       if (line != null) {
         locatorFile2 = new File(line);
       }
-    } finally {
-      reader.close();
     }
 
     return locatorFile2;

@@ -322,6 +322,7 @@ public class SpectralSimilarity {
    *
    * @return DataPoint[library, query][datapoints]
    */
+  @Nullable
   public DataPoint[][] getAlignedDataPoints() {
     return aligned;
   }
