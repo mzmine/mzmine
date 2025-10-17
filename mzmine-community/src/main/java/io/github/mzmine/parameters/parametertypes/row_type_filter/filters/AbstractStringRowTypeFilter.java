@@ -27,17 +27,25 @@ package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
 
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
+import io.github.mzmine.util.StringUtils;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 abstract class AbstractStringRowTypeFilter extends AbstractRowTypeFilter {
 
   private final boolean caseSensitive;
+  private final @NotNull String[] queryWords;
 
   public AbstractStringRowTypeFilter(@NotNull RowTypeFilterOption selectedType,
       @NotNull MatchingMode matchingMode, @NotNull String query, boolean caseSensitive) {
     super(selectedType, matchingMode, caseSensitive ? query.trim() : query.toLowerCase().trim());
     this.caseSensitive = caseSensitive;
+
+    // split by any whitespace char in case of list operations
+    // use this.query as it may be lower case already
+    queryWords = Arrays.stream(this.query().split("\\s+")).filter(StringUtils::hasValue)
+        .toArray(String[]::new);
   }
 
   public boolean matchesString(@Nullable Object valueObject) {
@@ -54,6 +62,8 @@ abstract class AbstractStringRowTypeFilter extends AbstractRowTypeFilter {
       case NOT_EQUAL -> !query.equals(value);
       case LESSER_EQUAL -> value.compareTo(query) <= 0;
       case GREATER_EQUAL -> value.compareTo(query) >= 0;
+      case ANY -> Arrays.stream(queryWords).anyMatch(value::contains);
+      case ALL -> Arrays.stream(queryWords).allMatch(value::contains);
     };
   }
 

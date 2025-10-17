@@ -53,6 +53,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.StringUtils;
@@ -347,5 +348,19 @@ public class CompoundAnnotationUtils {
           final List<ResultFormula> formulas = row.getFormulas();
           return formulas.isEmpty() ? null : formulas.getFirst().getFormulaAsString();
         });
+  }
+
+  /**
+   * An additional json string that may contain additional fields that are otherwise not captured.
+   *
+   */
+  @Nullable
+  public static String getAdditionalJson(FeatureAnnotation annotation) {
+    return switch (annotation) {
+      case CompoundDBAnnotation db -> db.getAdditionalJson();
+      case SpectralDBAnnotation db -> db.getAdditionalJson();
+      case MatchedLipid db -> null;
+      default -> null;
+    };
   }
 }

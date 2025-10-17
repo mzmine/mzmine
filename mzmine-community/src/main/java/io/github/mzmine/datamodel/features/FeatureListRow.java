@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,7 +57,8 @@ import org.jetbrains.annotations.Nullable;
 public interface FeatureListRow extends ModularDataModel {
 
   /**
-   * Return unmodifiable list of all raw data files in this feature list even those without detection in this row
+   * Return unmodifiable list of all raw data files in this feature list even those without
+   * detection in this row
    */
   List<RawDataFile> getRawDataFiles();
 
@@ -206,7 +207,7 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Returns comment for this row
    */
-  String getComment();
+  @Nullable String getComment();
 
   /**
    * Sets comment for this row

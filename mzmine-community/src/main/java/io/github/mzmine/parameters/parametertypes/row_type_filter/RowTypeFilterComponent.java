@@ -92,7 +92,6 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
 
     // adjust matching modes to selected type
     optionCombo.valueProperty().subscribe((nv) -> {
-      final MatchingMode old = matchingModeCombo.getValue();
       if (nv == null) {
         matchingModeCombo.getItems().clear();
         matchingModeCombo.getSelectionModel().clearSelection();
@@ -105,12 +104,8 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
       queryField.setPromptText(nv.getQueryPromptText());
 
       matchingModeCombo.getItems().setAll(nv.getMatchingModes());
-      if (old != null && nv.getMatchingModes().contains(old)) {
-        matchingModeCombo.setValue(old);
-      } else {
-        // select first as it is the preferred
-        matchingModeCombo.getSelectionModel().select(0);
-      }
+      // always select first as it is the preferred option
+      matchingModeCombo.getSelectionModel().select(0);
     });
 
     setValue(value);
