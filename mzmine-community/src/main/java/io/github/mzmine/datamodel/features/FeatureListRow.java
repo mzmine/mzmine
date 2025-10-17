@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
@@ -241,6 +242,13 @@ public interface FeatureListRow extends ModularDataModel {
   @ScheduledForRemoval
   void removeFeatureIdentity(FeatureIdentity identity);
 
+  /**
+   * ManualAnnotation will be removed in the future together with {@link FeatureIdentity}. Manual
+   * annotations are now also in {@link CompoundDatabaseMatchesType} as
+   * {@link CompoundDBAnnotation}
+   *
+   */
+  @Deprecated(since = "4.8.0")
   @Nullable ManualAnnotation getManualAnnotation();
 
   /**
