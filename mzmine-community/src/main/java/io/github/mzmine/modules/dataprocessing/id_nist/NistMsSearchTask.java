@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectModuleOptions;
 import io.github.mzmine.modules.dataprocessing.id_spectral_match_sort.SortSpectralMatchesTask;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
@@ -46,6 +47,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
@@ -141,6 +143,7 @@ public class NistMsSearchTask extends AbstractTask {
   // Progress counters.
   private int progress;
   private int progressMax;
+  private FragmentScanSelection fragmentScanSelection;
 
   /**
    * Create the task.
@@ -176,13 +179,12 @@ public class NistMsSearchTask extends AbstractTask {
     nistMsSearchDir = params.getParameter(NIST_MS_SEARCH_DIR).getValue();
     nistMsSearchExe = ((NistMsSearchParameters) params).getNistMsSearchExecutable();
     importOption = params.getParameter(IMPORT_PARAMETER).getValue();
+    final SpectraMergeSelectModuleOptions value = params.getValue(
+        NistMsSearchParameters.spectraMergeSelect);
+    fragmentScanSelection = value.createFragmentScanSelection(
+        getMemoryMapStorage(), value.getModuleParameters());
 
     // Optional parameters.
-    if (params.getParameter(MERGE_PARAMETER).getValue()) {
-      mergeParameters = params.getParameter(MERGE_PARAMETER).getEmbeddedParameters();
-    } else {
-      mergeParameters = null;
-    }
     if (params.getParameter(INTEGER_MZ).getValue()) {
       integerMZ = params.getParameter(INTEGER_MZ).getEmbeddedParameter().getValue();
     } else {
@@ -377,7 +379,7 @@ public class NistMsSearchTask extends AbstractTask {
    * @return a list of identities corresponding to the search results, or null if none is found.
    * @throws IOException if and i/o problem occurs.
    */
-  private List<SpectralDBAnnotation> readSearchResults(final FeatureListRow row)
+  private List<SpectralDBAnnotation> readSearchResults(final FeatureListRow row, @NotNull final Scan queryScan)
       throws IOException {
 
     // Search results.
@@ -492,7 +494,7 @@ public class NistMsSearchTask extends AbstractTask {
                   dotProduct, 100, Double.NaN);
 
               final SpectralDBAnnotation libraryID = new SpectralDBAnnotation(entry, similarity,
-                  null, null, row.getAverageMZ(), row.getAverageRT());
+                  queryScan, null, row.getAverageMZ(), row.getAverageRT());
 
               ids.add(libraryID);
             }
