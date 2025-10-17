@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
-import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
@@ -179,7 +178,6 @@ public class ModularFeatureList implements FeatureList {
 
     // only a few standard types
     addRowType(new IDType());
-    addRowType(new ManualAnnotationType());
     addDefaultListeners();
   }
 
@@ -291,7 +289,8 @@ public class ModularFeatureList implements FeatureList {
    * @param listener    the listener for value changes
    */
   @Override
-  public void addFeatureTypeValueListener(DataType featureType, DataTypeValueChangeListener listener) {
+  public void addFeatureTypeValueListener(DataType featureType,
+      DataTypeValueChangeListener listener) {
     featuresSchema.addDataTypeValueChangeListener(featureType, listener);
   }
 
