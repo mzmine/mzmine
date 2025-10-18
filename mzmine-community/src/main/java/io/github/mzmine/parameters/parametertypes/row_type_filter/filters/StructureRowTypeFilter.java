@@ -49,6 +49,8 @@ final class StructureRowTypeFilter extends AbstractRowTypeFilter {
     final StructureMatchMode structureMatchMode = switch (matchingMode) {
       case EQUAL -> StructureMatchMode.EXACT;
       case CONTAINS, GREATER_EQUAL, LESSER_EQUAL, NOT_EQUAL -> StructureMatchMode.SUBSTRUCTURE;
+      case ALL, ANY -> throw new UnsupportedOperationException(
+          "The selected matching mode is not implemented for this filter: " + matchingMode);
     };
 
     final boolean isSmiles = selectedType == RowTypeFilterOption.SMILES;

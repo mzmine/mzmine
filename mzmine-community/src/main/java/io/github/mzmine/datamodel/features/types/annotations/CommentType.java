@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,8 +33,8 @@ import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
 import org.jetbrains.annotations.NotNull;
 
-public class CommentType extends StringType
-    implements EditableColumnType, StringParser<String>, AnnotationType {
+public class CommentType extends StringType implements EditableColumnType, StringParser<String>,
+    AnnotationType {
 
   private StringConverter<String> converter = new DefaultStringConverter();
 
@@ -60,4 +60,11 @@ public class CommentType extends StringType
     return "comment";
   }
 
+  @Override
+  public boolean getDefaultVisibility() {
+    // visible as row type so that users can easily add text comments like flags to a row
+    // row visibility overwritten in DataTypeCheckListParameter#defaultDisableColumns
+    // but false for all other comments in annotations etc
+    return false;
+  }
 }

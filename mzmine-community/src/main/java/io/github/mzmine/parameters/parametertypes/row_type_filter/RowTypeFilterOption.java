@@ -25,19 +25,29 @@
 
 package io.github.mzmine.parameters.parametertypes.row_type_filter;
 
+import static io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode.ALL;
+import static io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode.ANY;
+import static io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode.CONTAINS;
+import static io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode.EQUAL;
+import static io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode.GREATER_EQUAL;
+import static io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode.LESSER_EQUAL;
+import static io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode.NOT_EQUAL;
+import static io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode.getStringMatchingModes;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.annotation.JsonFormat.Feature;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
+@JsonNaming(SnakeCaseStrategy.class)
+@JsonFormat(with = Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
 public enum RowTypeFilterOption implements UniqueIdSupplier {
-  ION_IDENTITY_ID, ION_TYPE, COMPOUND_NAME, IUPAC_NAME, FORMULA, FORMULA_RANGE, SMILES, INCHI, SMARTS, LIPID, FRAGMENT_SCANS;
+  ROW_COMMENT, ANNOTATION_COMMENT, ION_IDENTITY_ID, ION_TYPE, COMPOUND_NAME, IUPAC_NAME, FORMULA, FORMULA_RANGE, SMILES, INCHI, SMARTS, LIPID, FRAGMENT_SCANS;
 
   @JsonCreator
   @Nullable
@@ -48,6 +58,8 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
   @Override
   public String toString() {
     return switch (this) {
+      case ROW_COMMENT -> "Comment (row)";
+      case ANNOTATION_COMMENT -> "Comment (annotation)";
       case ION_IDENTITY_ID -> "Ion identity ID";
       case ION_TYPE -> "Ion type";
       case COMPOUND_NAME -> "Compound name";
@@ -73,6 +85,8 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
       case SMARTS -> "smarts";
       case FRAGMENT_SCANS -> "fragment_scans";
       case LIPID -> "lipid";
+      case ROW_COMMENT -> "row_comment";
+      case ANNOTATION_COMMENT -> "annotation_comment";
       case ION_IDENTITY_ID -> "ion_identity_id";
       case ION_TYPE -> "ion_type";
       case COMPOUND_NAME -> "compound_name";
@@ -81,6 +95,10 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
 
   public @NotNull String getDescription() {
     return switch (this) {
+      case ROW_COMMENT ->
+          "Filter for comments in the row comment column that can be used to flag features";
+      case ANNOTATION_COMMENT ->
+          "Filter for comments in annotations (this also includes the JSON column if available)";
       case ION_IDENTITY_ID -> "Filter for the ion identity network ID";
       case ION_TYPE -> "Filter for the ion type (adduct, in-source, and clusters) like [M+H]+";
       case COMPOUND_NAME -> "Filter for the compound name in any annotation";
@@ -110,7 +128,7 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
     return switch (this) {
       case FRAGMENT_SCANS, ION_IDENTITY_ID -> true;
       case FORMULA, SMILES, INCHI, SMARTS, LIPID, ION_TYPE, COMPOUND_NAME, FORMULA_RANGE,
-           IUPAC_NAME -> false;
+           IUPAC_NAME, ROW_COMMENT, ANNOTATION_COMMENT -> false;
     };
   }
 
@@ -121,21 +139,16 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
    */
   public List<MatchingMode> getMatchingModes() {
     return switch (this) {
-      case ION_IDENTITY_ID ->
-          List.of(MatchingMode.EQUAL, MatchingMode.GREATER_EQUAL, MatchingMode.LESSER_EQUAL,
-              MatchingMode.NOT_EQUAL);
-      case FRAGMENT_SCANS ->
-          List.of(MatchingMode.GREATER_EQUAL, MatchingMode.EQUAL, MatchingMode.LESSER_EQUAL,
-              MatchingMode.NOT_EQUAL);
-      case SMILES, INCHI ->
-          List.of(MatchingMode.CONTAINS, MatchingMode.EQUAL, MatchingMode.NOT_EQUAL);
-      case LIPID -> List.of(MatchingMode.CONTAINS, MatchingMode.EQUAL);
-      case SMARTS -> List.of(MatchingMode.CONTAINS);
-      case ION_TYPE, COMPOUND_NAME, IUPAC_NAME ->
-          List.of(MatchingMode.EQUAL, MatchingMode.CONTAINS);
-      case FORMULA ->
-          List.of(MatchingMode.GREATER_EQUAL, MatchingMode.EQUAL, MatchingMode.LESSER_EQUAL);
-      case FORMULA_RANGE -> List.of(MatchingMode.CONTAINS);
+      case COMPOUND_NAME, IUPAC_NAME, ROW_COMMENT, ANNOTATION_COMMENT -> getStringMatchingModes();
+      // ION_TYPE uses string matching but uses ALL as the default (first) and this is different in other string matchers
+      case ION_TYPE -> List.of(ALL, ANY, CONTAINS, EQUAL);
+      case ION_IDENTITY_ID -> List.of(EQUAL, GREATER_EQUAL, LESSER_EQUAL, NOT_EQUAL);
+      case FRAGMENT_SCANS -> List.of(GREATER_EQUAL, EQUAL, LESSER_EQUAL, NOT_EQUAL);
+      case SMILES, INCHI -> List.of(CONTAINS, EQUAL, NOT_EQUAL);
+      case LIPID -> List.of(CONTAINS, EQUAL);
+      case SMARTS -> List.of(CONTAINS);
+      case FORMULA -> List.of(GREATER_EQUAL, EQUAL, LESSER_EQUAL);
+      case FORMULA_RANGE -> List.of(CONTAINS);
     };
   }
 
@@ -149,4 +162,5 @@ public enum RowTypeFilterOption implements UniqueIdSupplier {
       default -> "";
     };
   }
+
 }

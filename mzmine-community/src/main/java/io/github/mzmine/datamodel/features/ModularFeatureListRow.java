@@ -45,6 +45,7 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
@@ -410,19 +411,18 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   @Override
+  @Nullable
   public String getComment() {
-    ManualAnnotation manual = getManualAnnotation();
-    return manual == null ? null : manual.getComment();
+    // added in mzmine 4.8 the CommentType is now a row type and should replace the manual annotation
+    // compatibility with old projects is ensured by copying over comments
+    // from manual --> comment type
+    return get(CommentType.class);
   }
 
   @Override
   public void setComment(String comment) {
-    ManualAnnotation manual = getManualAnnotation();
-    if (manual == null) {
-      manual = new ManualAnnotation();
-    }
-    manual.setComment(comment);
-    set(ManualAnnotationType.class, manual);
+    // was changed in mzmine 4.8 from ManualAnnotationType to CommentType as a row column
+    set(CommentType.class, comment);
   }
 
   @Override

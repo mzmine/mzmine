@@ -272,4 +272,9 @@ public interface FeatureAnnotation {
   default void writeClosingTag(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeEndElement();
   }
+
+  /**
+   * A comment
+   */
+  @Nullable String getComment();
 }
