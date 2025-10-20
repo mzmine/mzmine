@@ -267,12 +267,14 @@ public class Sirius implements AutoCloseable {
   public void checkLogin() {
     if (!sirius.account().isLoggedIn()) {
       sirius.shutdown();
+      SiriusSDKUtils.restShutdown(sirius.getApiClient());
       DesktopService.getDesktop().displayErrorMessageAndThrow(new SiriusNotLoggedInException());
     }
 
     final String activeSubscriptionId = sirius.account().getAccountInfo(true)
         .getActiveSubscriptionId();
     if (activeSubscriptionId == null) {
+      SiriusSDKUtils.restShutdown(sirius.getApiClient());
       DesktopService.getDesktop().displayErrorMessageAndThrow(new SiriusNotLoggedInException());
     }
 
