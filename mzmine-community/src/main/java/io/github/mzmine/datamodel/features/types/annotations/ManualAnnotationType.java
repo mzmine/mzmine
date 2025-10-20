@@ -126,6 +126,7 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
     final String comment = manual.getComment();
     if (StringUtils.isBlank(row.getComment()) && StringUtils.hasValue(comment)) {
       row.setComment(comment);
+      manual.setComment(null);
     }
     return manual;
   }
