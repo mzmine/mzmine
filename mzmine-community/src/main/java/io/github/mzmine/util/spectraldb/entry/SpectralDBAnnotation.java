@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -370,6 +370,11 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
   }
 
   @Override
+  public @Nullable String getComment() {
+    return entry.getOrElse(DBEntryField.COMMENT, null);
+  }
+
+  @Override
   public int compareTo(@NotNull final SpectralDBAnnotation o) {
     if (o.getScore() == null && getScore() == null) {
       return 0;
@@ -382,5 +387,14 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
     }
 
     return Float.compare(this.getScore(), o.getScore());
+  }
+
+
+  /**
+   * An additional json string that may contain additional fields that are otherwise not captured.
+   *
+   */
+  public @Nullable String getAdditionalJson() {
+    return entry.getOrElse(DBEntryField.JSON_STRING, null);
   }
 }
