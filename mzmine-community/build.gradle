@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -132,8 +132,6 @@ repositories {
     }
     // For jmzml, etc.
     maven { url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/" }
-    // For SIRIUS ID modules
-    maven { url = "https://bio.informatik.uni-jena.de/repository/libs-oss/" }
 //    maven { url = "https://jitpack.io" } // should not be used at best - better push local
     maven { url = "https://www.xypron.de/repository/" }
     // For cpdetector
@@ -142,7 +140,7 @@ repositories {
     // maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
 
     // for batik-xml-commons-ext package (svg export)
-    maven {url = "https://repository.everit.biz/nexus/content/groups/public/"}
+    maven { url = "https://repository.everit.biz/nexus/content/groups/public/" }
 }
 
 ext {
