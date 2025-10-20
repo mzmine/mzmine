@@ -184,15 +184,12 @@ public class DataTypeCheckListParameter implements
 
   @Override
   public void setValueFromComponent(DataTypeCheckListComponent dataTypeCheckListComponent) {
-    assert dataTypeCheckListComponent == comp;
-
     value = dataTypeCheckListComponent.getValue();
   }
 
   @Override
   public void setValueToComponent(DataTypeCheckListComponent dataTypeCheckListComponent,
       @Nullable Map<String, Boolean> newValue) {
-    assert dataTypeCheckListComponent == comp;
     if (!(newValue instanceof HashMap)) {
       return;
     }

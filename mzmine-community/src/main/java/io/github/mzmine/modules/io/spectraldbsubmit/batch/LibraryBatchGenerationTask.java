@@ -185,6 +185,8 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
     totalRows = Arrays.stream(flists).mapToLong(ModularFeatureList::getNumberOfRows).sum();
 
+    FileAndPathUtil.createDirectory(outFile.getParentFile());
+    
     try (var writer = Files.newBufferedWriter(outFile.toPath(), StandardCharsets.UTF_8,
         WriterOptions.REPLACE.toOpenOption())) {
       for (ModularFeatureList flist : flists) {
