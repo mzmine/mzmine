@@ -24,6 +24,12 @@
  */
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.italicText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
@@ -37,9 +43,11 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import java.io.File;
 import java.util.Collection;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,8 +78,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
       "The minimum cosine similarity score (dot product) for identification",
       MZmineCore.getConfiguration().getScoreFormat(), 0.7, 0.0, 1.0);
 
-  public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createFullSetupWithSimplePreset(
-      SpectraMergeSelectPresets.SINGLE_MERGED_SCAN);
+  public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createLimitedToFewScans();
 
   /**
    * Optional MZ rounding.
@@ -84,7 +91,9 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * Spectrum import option: Overwrite or Append.
    */
   public static final ComboParameter<ImportOption> IMPORT_PARAMETER = new ComboParameter<>(
-      "Spectrum Import", "Import Options", ImportOption.values(), ImportOption.OVERWRITE);
+      "Spectrum Import",
+      "Select if the spectra shall be added to the NIST search history (Append) or if the search history shall be overwritten (Overwrite).",
+      ImportOption.values(), ImportOption.OVERWRITE);
 
   // NIST MS Search executable.
   private static final String NIST_MS_SEARCH_EXE = "nistms$.exe";
@@ -93,9 +102,10 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * Construct the parameter set.
    */
   public NistMsSearchParameters() {
-    super(new Parameter[]{PEAK_LISTS, NIST_MS_SEARCH_DIR, DOT_PRODUCT, spectraMergeSelect, INTEGER_MZ,
-            IMPORT_PARAMETER},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectra_NIST/NIST-ms-search.html");
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectra_NIST/NIST-ms-search.html",
+        PEAK_LISTS, NIST_MS_SEARCH_DIR, DOT_PRODUCT, spectraMergeSelect, INTEGER_MZ,
+        IMPORT_PARAMETER);
   }
 
   /**
@@ -160,5 +170,17 @@ public class NistMsSearchParameters extends SimpleParameterSet {
       case 3 -> "Improved spectral merging options. Please reconfigure the NIST MS search step.";
       default -> null;
     };
+  }
+
+  @Override
+  public @Nullable Region getMessage() {
+    return FxTextFlows.newTextFlowInAccordion("Information", true, text("""
+            You must have a valid NIST library installation and the "Automation" check box under"""),
+        italicText(" Options"), text(" -> "), italicText("Library search options"), text(" -> "),
+        italicText("Other options"), text(" -> "), italicText("Automation"),
+        text(" must be enabled."),
+        text("\nThis search may take longer than spectral library searches in mzmine."),
+        text("\nWe recommend to "), boldText("not interact"),
+        text(" with the MS Search interface during the search."));
   }
 }
