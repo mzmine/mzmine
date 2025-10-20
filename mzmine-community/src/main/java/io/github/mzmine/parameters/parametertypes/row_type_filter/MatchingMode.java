@@ -43,12 +43,14 @@ public enum MatchingMode implements UniqueIdSupplier {
 
   /**
    * any is a list operation where any should match. For example, in Strings this is used by
-   * separating the query string by space symbols and searching for ANY substring
+   * separating the query string by space, comma, or semicolon symbols and searching for ANY
+   * substring
    */
   ANY,
   /**
    * ALL is a list operation where ALL should match. For example, in Strings this is used by
-   * separating the query string by space symbols and searching for ALL substring
+   * separating the query string by space, comma, or semicolon symbols and searching for ALL
+   * substring
    */
   ALL;
 
@@ -88,9 +90,9 @@ public enum MatchingMode implements UniqueIdSupplier {
       case NOT_EQUAL -> "Not equal";
       case CONTAINS -> "Contains (e.g., substring, substructure)";
       case ANY ->
-          "Search for ANY substring match to any query word. Separate words by space symbols like: 'alpha hydroxy'. This query requires ANY of the two words in any order.";
+          "Search for ANY substring match to any query word. Separate words by space, comma, or semicolon symbols like: 'alpha hydroxy'. This query requires ANY of the two words in any order.";
       case ALL ->
-          "Search for ALL substring matches to any query word. Separate words by space symbols like: 'alpha hydroxy'. This query requires ALL of the two words in any order.";
+          "Search for ALL substring matches to any query word. Separate words by space, comma, or semicolon symbols like: 'alpha hydroxy'. This query requires ALL of the two words in any order.";
     };
   }
 
@@ -108,7 +110,7 @@ public enum MatchingMode implements UniqueIdSupplier {
   }
 
   /**
-   * Should split query strings by spaces and search for each
+   * Should split query strings by spaces, comma, and semicolons and search for each
    */
   public boolean isStringListOperation() {
     return switch (this) {

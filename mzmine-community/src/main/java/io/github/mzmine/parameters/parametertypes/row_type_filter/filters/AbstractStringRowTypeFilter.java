@@ -42,9 +42,9 @@ abstract class AbstractStringRowTypeFilter extends AbstractRowTypeFilter {
     super(selectedType, matchingMode, caseSensitive ? query.trim() : query.toLowerCase().trim());
     this.caseSensitive = caseSensitive;
 
-    // split by any whitespace char in case of list operations
+    // split by any whitespace char, comma, or semicolon in case of list operations
     // use this.query as it may be lower case already
-    queryWords = Arrays.stream(this.query().split("\\s+")).filter(StringUtils::hasValue)
+    queryWords = Arrays.stream(this.query().split("[\\s,;]+")).filter(StringUtils::hasValue)
         .toArray(String[]::new);
   }
 
