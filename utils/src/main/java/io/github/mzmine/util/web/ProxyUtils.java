@@ -25,7 +25,20 @@
 
 package io.github.mzmine.util.web;
 
+import static io.github.mzmine.util.web.ProxySystemVar.HTTPS_HOST;
+import static io.github.mzmine.util.web.ProxySystemVar.HTTPS_PORT;
+import static io.github.mzmine.util.web.ProxySystemVar.HTTPS_SELECTED;
+import static io.github.mzmine.util.web.ProxySystemVar.HTTP_HOST;
+import static io.github.mzmine.util.web.ProxySystemVar.HTTP_NON_PROXY_HOSTS;
+import static io.github.mzmine.util.web.ProxySystemVar.HTTP_PORT;
+import static io.github.mzmine.util.web.ProxySystemVar.HTTP_SELECTED;
+import static io.github.mzmine.util.web.ProxySystemVar.SOCKS_HOST;
+import static io.github.mzmine.util.web.ProxySystemVar.SOCKS_PORT;
+import static io.github.mzmine.util.web.ProxySystemVar.SOCKS_SELECTED;
+import static io.github.mzmine.util.web.ProxySystemVar.TYPE;
+
 import io.github.mzmine.util.web.proxy.FullProxyConfig;
+import io.github.mzmine.util.web.proxy.ManualProxyConfig;
 import io.mzio.events.EventService;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -76,6 +89,7 @@ public class ProxyUtils {
     System.clearProperty("http.proxySet");
     System.clearProperty("http.proxyHost");
     System.clearProperty("http.proxyPort");
+    System.clearProperty("http.nonProxyHosts");
 
     System.clearProperty("https.proxySet");
     System.clearProperty("https.proxyHost");
@@ -208,7 +222,8 @@ public class ProxyUtils {
     }
 
     if (!proxy.active()) {
-      clearSystemProxy();
+      // do not clear just because one proxy is set to off
+//      clearSystemProxy();
       return ProxyDefinition.EMPTY;
     }
     // if any is null active == false
@@ -218,13 +233,20 @@ public class ProxyUtils {
 
     ProxyDefinition old = getSelectedSystemProxy();
 
-    System.setProperty("http.proxySet", "true");
-    System.setProperty("http.proxyHost", proxy.address());
-    System.setProperty("http.proxyPort", proxy.port());
-    System.setProperty("https.proxySet", "true");
-    System.setProperty("https.proxyHost", proxy.address());
-    System.setProperty("https.proxyPort", proxy.port());
-    System.setProperty("proxyType", proxy.type().toString()); // needed for login service
+    if (proxy.type() == ProxyType.SOCKS) {
+      setOrClear(SOCKS_SELECTED, "true");
+      setOrClear(SOCKS_HOST, proxy.address());
+      setOrClear(SOCKS_PORT, proxy.port());
+    } else {
+      setOrClear(HTTP_SELECTED, "true");
+      setOrClear(HTTP_HOST, proxy.address());
+      setOrClear(HTTP_PORT, proxy.port());
+      setOrClear(HTTPS_SELECTED, "true");
+      setOrClear(HTTPS_HOST, proxy.address());
+      setOrClear(HTTPS_PORT, proxy.port());
+    }
+
+    setOrClear(TYPE, proxy.type().name());
 
     if (!Objects.equals(old, proxy)) {
       EventService.post(new ProxyChangedEvent(proxy));
@@ -239,6 +261,10 @@ public class ProxyUtils {
   public static synchronized ProxyDefinition getSelectedSystemProxy() {
     String type = System.getProperty("proxyType");
     if (type == null) {
+      // then just find the first set
+      String host = get(HTTP_HOST);
+      find http or https or socks and return first
+
       return ProxyDefinition.EMPTY;
     }
     try {
@@ -292,7 +318,10 @@ public class ProxyUtils {
   @NotNull
   public static synchronized ProxyDefinition setSystemProxyAndBlockLaterChanges(
       final String fullProxy) throws InputMismatchException {
-    setAllowChanges(true);
+    if (!allowChanges) {
+      throw new IllegalStateException(
+          "Cannot set proxy twice with this method as it was already disabled");
+    }
     var proxy = setSystemProxy(fullProxy);
     setAllowChanges(false);
     return proxy;
@@ -307,7 +336,20 @@ public class ProxyUtils {
         clearSystemProxy();
       }
       case MANUAL_PROXY -> {
+        applyManualProxyConfig(value.manualConfig());
       }
+    }
+  }
+
+  private static void applyManualProxyConfig(@NotNull ManualProxyConfig config) {
+    if (!allowChanges) {
+      return;
+    }
+
+    clearSystemProxy();
+
+    switch (config.type()) {
+
     }
   }
 
@@ -322,47 +364,17 @@ public class ProxyUtils {
 
     ProxyDefinition old = getSelectedSystemProxy();
 
-    boolean anyHttpHostDefined = false;
+    boolean anyHttpHostDefined = //
+        setOrClear(HTTP_HOST, DEFAULT_HTTP_HOST) || //
+            setOrClear(HTTPS_HOST, DEFAULT_HTTPS_HOST);
 
-    if (DEFAULT_HTTP_NON_PROXY_HOSTS != null) {
-      System.setProperty("http.nonProxyHosts", DEFAULT_HTTP_NON_PROXY_HOSTS);
-    } else {
-      System.clearProperty("http.nonProxyHosts");
-    }
-    if (DEFAULT_HTTP_HOST != null) {
-      System.setProperty("http.proxyHost", DEFAULT_HTTP_HOST);
-      anyHttpHostDefined = true;
-    } else {
-      System.clearProperty("http.proxyHost");
-    }
-    if (DEFAULT_HTTP_PORT != null) {
-      System.setProperty("http.proxyPort", DEFAULT_HTTP_PORT);
-    } else {
-      System.clearProperty("http.proxyPort");
-    }
+    setOrClear(HTTP_NON_PROXY_HOSTS, DEFAULT_HTTP_NON_PROXY_HOSTS);
+    setOrClear(HTTP_PORT, DEFAULT_HTTP_PORT);
 
-    if (DEFAULT_HTTPS_HOST != null) {
-      System.setProperty("https.proxyHost", DEFAULT_HTTPS_HOST);
-      anyHttpHostDefined = true;
-    } else {
-      System.clearProperty("https.proxyHost");
-    }
-    if (DEFAULT_HTTPS_PORT != null) {
-      System.setProperty("https.proxyPort", DEFAULT_HTTPS_PORT);
-    } else {
-      System.clearProperty("https.proxyPort");
-    }
+    setOrClear(HTTPS_PORT, DEFAULT_HTTPS_PORT);
 
-    if (DEFAULT_SOCKS_HOST != null) {
-      System.setProperty("socksProxyHost", DEFAULT_SOCKS_HOST);
-    } else {
-      System.clearProperty("socksProxyHost");
-    }
-    if (DEFAULT_SOCKS_PORT != null) {
-      System.setProperty("socksProxyPort", DEFAULT_SOCKS_PORT);
-    } else {
-      System.clearProperty("socksProxyPort");
-    }
+    setOrClear(SOCKS_HOST, DEFAULT_SOCKS_HOST);
+    setOrClear(SOCKS_PORT, DEFAULT_SOCKS_PORT);
 
     logger.info("Proxy settings restored to system defaults");
 
@@ -376,6 +388,25 @@ public class ProxyUtils {
     ProxyDefinition current = getSelectedSystemProxy();
     if (!Objects.equals(old, current)) {
       EventService.post(new ProxyChangedEvent(current));
+    }
+  }
+
+  @Nullable
+  private static String get(ProxySystemVar key) {
+    return System.getProperty(key.getKey());
+  }
+
+  /**
+   *
+   * @return true if value was set false if it was cleared (value was null)
+   */
+  private static boolean setOrClear(ProxySystemVar key, String value) {
+    if (value != null) {
+      System.setProperty(key.getKey(), value);
+      return true;
+    } else {
+      System.clearProperty(key.getKey());
+      return false;
     }
   }
 }
