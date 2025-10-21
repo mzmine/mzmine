@@ -24,7 +24,7 @@
 
 package import_data;
 
-import io.github.mzmine.modules.io.import_rawdata_waters.MassLynxLib;
+import io.github.mzmine.modules.io.import_rawdata_masslynx.MassLynxLib;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.util.logging.Logger;
