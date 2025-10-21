@@ -31,12 +31,14 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gestures.SimpleDataDragGestureHandler;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
@@ -146,6 +148,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private int selectedChromatogramDatasetIndex;
   private FontIcon massDetectionScanIcon;
   private FontIcon massDetectionFrameIcon;
+  private Frame aFrame;
 
   /**
    * Creates a BorderPane layout.
@@ -265,11 +268,12 @@ public class IMSRawDataOverviewPane extends BorderPane {
         mobilityScanNoiseLevel);//selectedFrame.get();//
     heatmapChart.setDataset(new FrameHeatmapProvider(cachedFrame));
     mobilogramChart.addDataset(new FrameSummedMobilogramProvider(cachedFrame, binWidth));
-    summedSpectrumChart.addDataset(new FrameSummedSpectrumProvider(cachedFrame));
+    summedSpectrumChart.addDataset(new FrameSummedSpectrumProvider(cachedFrame), getRendererForScan(cachedFrame, summedSpectrumChart));
     if (selectedMobilityScan.get() != null) {
       singleSpectrumChart.addDataset(new SingleMobilityScanProvider(cachedFrame.getMobilityScan(
-          Math.min(selectedMobilityScan.get().getMobilityScanNumber(),
-              selectedFrame.get().getNumberOfMobilityScans() - 1))), getRendererForMobilityScan());
+              Math.min(selectedMobilityScan.get().getMobilityScanNumber(),
+                  selectedFrame.get().getNumberOfMobilityScans() - 1))),
+          getRendererForScan(selectedMobilityScan.get(), singleSpectrumChart));
     }
     MZmineCore.getTaskController().addTask(
         new BuildMultipleMobilogramRanges(controlsPanel.getMobilogramRangesList(),
@@ -316,17 +320,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
     }
   }
 
-  private @NotNull XYItemRenderer getRendererForMobilityScan() {
+  private @NotNull XYItemRenderer getRendererForScan(@Nullable Scan scan, EChartViewer chart) {
     XYItemRenderer renderer;
-    if (selectedMobilityScan.get() != null
-        && selectedMobilityScan.get().getSpectrumType() == MassSpectrumType.PROFILE) {
+    if (scan != null && scan.getSpectrumType() == MassSpectrumType.PROFILE) {
       renderer = new ColoredXYLineRenderer();
     } else {
       renderer = new ColoredXYBarRenderer(false);
     }
-    singleSpectrumChart.setDefaultRenderer(renderer);
-    renderer.setDefaultItemLabelGenerator(
-        new SimpleXYLabelGenerator(singleSpectrumChart));
+    renderer.setDefaultItemLabelGenerator(new SimpleXYLabelGenerator(chart));
     renderer.setDefaultToolTipGenerator(new SimpleToolTipGenerator());
     return renderer;
   }
@@ -381,7 +382,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
     axis.setAutoRangeIncludesZero(false);
     axis.setAutoRangeStickyZero(false);
 
-    final XYItemRenderer singleSpectrumRenderer = getRendererForMobilityScan();
+    final XYItemRenderer singleSpectrumRenderer = getRendererForScan(selectedMobilityScan.get(),
+        singleSpectrumChart);
     singleSpectrumChart.setDefaultRenderer(singleSpectrumRenderer);
     singleSpectrumChart.setShowCrosshair(false);
 
@@ -480,7 +482,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     selectedMobilityScan.addListener(((_, _, _) -> {
       singleSpectrumChart.removeAllDatasets();
       singleSpectrumChart.addDataset(new SingleMobilityScanProvider(selectedMobilityScan.get()),
-          getRendererForMobilityScan());
+          getRendererForScan(selectedMobilityScan.get(), singleSpectrumChart));
       updateValueMarkers();
     }));
 
@@ -664,7 +666,16 @@ public class IMSRawDataOverviewPane extends BorderPane {
     updateTicPlot();
     updateAxisLabels();
     ionTraceChart.removeAllDatasets();
-    setSelectedFrame(((IMSRawDataFile) rawDataFile).getFrames().stream().findFirst().get());
+    aFrame = ((IMSRawDataFile) rawDataFile).getFrames().stream().findFirst().get();
+    if(aFrame.getSpectrumType() == MassSpectrumType.PROFILE) {
+      controlsPanel.setFrameNoiseLevel(0d);
+      frameNoiseLevel = 0;
+    }
+    if(aFrame.getMobilityScan(0).getSpectrumType() == MassSpectrumType.PROFILE) {
+      controlsPanel.setMobilityScanNoiseLevel(0);
+      mobilityScanNoiseLevel = 0;
+    }
+    setSelectedFrame(aFrame);
   }
 
   public void setMzTolerance(MZTolerance mzTolerance) {
