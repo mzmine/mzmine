@@ -35,6 +35,8 @@ import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.MassLynxImportOptions;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -229,7 +231,6 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final boolean rsdQcFilter;
   protected final AbsoluteAndRelativeInt minAlignedSamples;
   protected final OriginalFeatureListOption handleOriginalFeatureLists;
-  private final OptionalValue<MinimumSamplesFilterConfig> minNumberOfSamplesInAnyGroup;
   // IMS parameter currently all the same
   protected final boolean isImsActive;
   protected final boolean isNativeIms;
@@ -239,10 +240,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final Integer minImsDataPoints;
   protected final Double imsFwhm;
   protected final MobilityTolerance imsFwhmMobTolerance;
-
   //Imaging
   protected final boolean isImaging;
-
   // MS parameters currently all the same
   protected final WizardMassDetectorNoiseLevels massDetectorOption;
   protected final Double minFeatureHeight;
@@ -250,6 +249,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final MZTolerance mzTolFeaturesIntraSample;
   protected final MZTolerance mzTolInterSample;
   protected final WizardMsPolarity polarity;
+  private final OptionalValue<MinimumSamplesFilterConfig> minNumberOfSamplesInAnyGroup;
   // csv database
   private final boolean checkLocalCsvDatabase;
   // lipid annotation
@@ -306,9 +306,12 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     final List<RawDataFileType> allFileTypes = Arrays.stream(dataFiles)
         .map(RawDataFileTypeDetector::detectDataFileType).toList();
-    isNativeIms = allFileTypes.stream()
-        .allMatch(type -> (type == RawDataFileType.BRUKER_TDF || type == RawDataFileType.WATERS_RAW_IMS));
-    allMobilityScansCentroided = allFileTypes.stream().allMatch(type -> (type == RawDataFileType.BRUKER_TDF));
+    isNativeIms = allFileTypes.stream().allMatch(
+        type -> (type == RawDataFileType.BRUKER_TDF || (type == RawDataFileType.WATERS_RAW_IMS
+            && ConfigService.getPreference(MZminePreferences.watersImportChoice)
+            == MassLynxImportOptions.NATIVE)));
+    allMobilityScansCentroided = allFileTypes.stream()
+        .allMatch(type -> (type == RawDataFileType.BRUKER_TDF));
 
     // Imaging
     isImaging = steps.isImaging();
