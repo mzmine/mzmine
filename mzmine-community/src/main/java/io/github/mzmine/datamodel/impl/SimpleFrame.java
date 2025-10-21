@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -58,7 +59,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   private final MobilityType mobilityType;
 
   @NotNull
-  private Set<IonMobilityMsMsInfo> precursorInfos;
+  private Set<IonMobilityMsMsInfo> precursorInfos = new HashSet<>();
   private Range<Double> mobilityRange;
 
   private int mobilitySegment = -1;
@@ -170,7 +171,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @NotNull
   @Override
   public Set<IonMobilityMsMsInfo> getImsMsMsInfos() {
-    return precursorInfos;
+    return Set.copyOf(precursorInfos);
   }
 
   @Nullable
@@ -206,10 +207,24 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return mobilitySegment;
   }
 
+  // todo: rename to setImsMsMsInfos
   public void setPrecursorInfos(@Nullable Set<IonMobilityMsMsInfo> precursorInfos) {
     // precursorInfos needs to be modifiable
-    this.precursorInfos = precursorInfos != null ? precursorInfos : new HashSet<>(0);
-    this.precursorInfos.forEach(i -> i.setMsMsScan(this));
+    this.precursorInfos = precursorInfos != null ? new HashSet<>(precursorInfos) : HashSet.newHashSet(0);
+    for (IonMobilityMsMsInfo info : this.precursorInfos) {
+      addImsMsMsInfo(info);
+    }
+  }
+
+  public void addImsMsMsInfo(@Nullable IonMobilityMsMsInfo info) {
+    if(info == null) {
+      return;
+    }
+
+    final var thisInfo = info.createCopy();
+    thisInfo.setMsMsScan(this);
+    checkSpectrumRanges(thisInfo);
+    precursorInfos.add(thisInfo);
   }
 
   /**
@@ -250,5 +265,17 @@ public class SimpleFrame extends SimpleScan implements Frame {
       throw new IllegalStateException("Mobility scans not set");
     }
     return mobilityScanStorage.getMassListTotalNumPoints();
+  }
+
+  void checkSpectrumRanges(IonMobilityMsMsInfo info) {
+    if (info.getSpectrumNumberRange() != null && info.getMsMsFrame() == this
+        && this.mobilityScanStorage != null && (info.getSpectrumNumberRange().lowerEndpoint() < 0
+        || info.getSpectrumNumberRange().upperEndpoint() > this.getNumberOfMobilityScans())) {
+      throw new RuntimeException(
+          "Invalid spectrum number range (%d-%d) for frame id %d with %d mobility scans.".formatted(
+              info.getSpectrumNumberRange().lowerEndpoint(),
+              info.getSpectrumNumberRange().upperEndpoint(), getFrameId(),
+              getNumberOfMobilityScans()));
+    }
   }
 }
