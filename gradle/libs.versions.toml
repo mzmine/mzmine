@@ -4,8 +4,8 @@ javafx = { strictly = "23.0.2" }
 javafx-plugin = "0.1.0"
 log4j-core = { strictly = "[2.23.0, 2.23.0[", prefer = "2.23.0" }
 
-licenseplugin = "2.8"
-beryx-runtime = "1.13.1"
+licenseplugin = "2.9"
+beryx-runtime = "2.0.0"
 semver = "1.0.4"
 msdk = "0.0.27"
 # update to 2.9? from 2.5
