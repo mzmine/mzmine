@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,11 +29,13 @@ import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.util.IconCodeSupplier;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,7 +73,7 @@ public class FxButtons {
     return createButton(label, tooltip, null, onAction);
   }
 
-  
+
   public static Button createButton(@Nullable String label, @Nullable String tooltip,
       @Nullable Node icon, EventHandler<ActionEvent> onAction) {
     Button b = new Button(label, icon);
@@ -131,5 +133,31 @@ public class FxButtons {
     return FxButtons.createButton("Help", "Open the documentation",
         FxIconUtil.getFontIcon(FxIcons.QUESTIONMARK),
         () -> DesktopService.getDesktop().openWebPage(url));
+  }
+
+  public static ToggleButton createToggleButton(@Nullable String selectedLabel,
+      @Nullable String unselectedLabel, @Nullable BooleanProperty selected) {
+    return createToggleButton(selectedLabel, unselectedLabel, selected, null);
+  }
+
+  public static ToggleButton createToggleButton(@Nullable String selectedLabel,
+      @Nullable String unselectedLabel, @Nullable BooleanProperty selected,
+      @Nullable String tooltip) {
+    final ToggleButton button = new ToggleButton();
+    if (tooltip != null) {
+      button.setTooltip(new Tooltip(tooltip));
+    }
+    button.selectedProperty().bindBidirectional(selected);
+
+    if (selectedLabel != null && unselectedLabel != null) {
+      button.textProperty().bind(
+          button.selectedProperty().map(state -> state ? selectedLabel : unselectedLabel)
+              .orElse(selectedLabel));
+    } else if (selectedLabel != null ^ unselectedLabel != null) {
+      throw new IllegalArgumentException(
+          "Either both selected and unselected labels are set or null. Here one is null and one is set.");
+    }
+
+    return button;
   }
 }

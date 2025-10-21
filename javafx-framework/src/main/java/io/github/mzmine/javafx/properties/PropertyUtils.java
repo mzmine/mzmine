@@ -114,4 +114,5 @@ public class PropertyUtils {
   public static <T> ObservableValue<T> firstElementProperty(ObjectProperty<List<T>> listProp) {
     return listProp.map(list -> list == null || list.isEmpty() ? null : list.getFirst());
   }
+
 }
