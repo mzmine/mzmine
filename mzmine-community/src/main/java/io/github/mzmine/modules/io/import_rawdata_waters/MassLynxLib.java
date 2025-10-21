@@ -24,6 +24,7 @@ package io.github.mzmine.modules.io.import_rawdata_waters;
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.lang.foreign.ValueLayout.OfBoolean;
 import java.lang.foreign.ValueLayout.OfByte;
 import java.lang.foreign.ValueLayout.OfFloat;
@@ -360,18 +361,18 @@ public class MassLynxLib {
   private static final long SIZE_MAX = -1L;
   private static final int SIG_ATOMIC_MIN = (int) -2147483648L;
   private static final int SIG_ATOMIC_MAX = (int) 2147483647L;
+
   MassLynxLib() {
     // Should not be called directly
   }
 
   private static synchronized SymbolLookup getSymbolLookup() {
     // load mass lynx base library before
-    System.load(
-        Path.of("external_tools/waters_raw/%s".formatted(System.mapLibraryName("MassLynxRaw")))
-            .toAbsolutePath().toString());
+    System.load(FileAndPathUtil.resolveInExternalToolsDir(
+        "waters_raw/%s".formatted(System.mapLibraryName("MassLynxRaw"))).getAbsolutePath());
 
-    return SymbolLookup.libraryLookup(
-            "external_tools/waters_raw/%s".formatted(System.mapLibraryName("MLReader")), LIBRARY_ARENA)
+    return SymbolLookup.libraryLookup(FileAndPathUtil.resolveInExternalToolsDir(
+            "waters_raw/%s".formatted(System.mapLibraryName("MLReader"))).toPath(), LIBRARY_ARENA)
         .or(SymbolLookup.loaderLookup()).or(Linker.nativeLinker().defaultLookup());
   }
 
