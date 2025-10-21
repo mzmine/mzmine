@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '23.0.2'
+          java-version: '25.0.0'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -156,7 +156,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '23.0.2'
+          java-version: '25.0.0'
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v3

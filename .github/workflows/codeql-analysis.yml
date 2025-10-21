@@ -43,7 +43,7 @@ jobs:
     - uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
-        java-version: '23.0.2'
+        java-version: '25.0.0'
         cache: gradle
     
     # Initializes the CodeQL tools for scanning.
