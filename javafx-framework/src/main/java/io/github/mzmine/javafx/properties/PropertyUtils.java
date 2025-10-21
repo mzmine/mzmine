@@ -33,7 +33,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.scene.Node;
 import javafx.util.Duration;
 import javafx.util.Subscription;
 
@@ -116,14 +115,4 @@ public class PropertyUtils {
     return listProp.map(list -> list == null || list.isEmpty() ? null : list.getFirst());
   }
 
-  /**
-   * Bind managed to visible. Managed usually needs to be false if visible is false so that it does
-   * not take the space in the layout. But default is not bound. Sometimes this is not wanted.
-   *
-   * @return the input node
-   */
-  public static <T extends Node> T bindManagedToVisible(T node) {
-    node.managedProperty().bind(node.visibleProperty());
-    return node;
-  }
 }
