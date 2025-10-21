@@ -22,18 +22,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_waters;
+package io.github.mzmine.modules.io.import_rawdata_masslynx;
 
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+public class MassLynxConstants {
 
-public class MassLynxRawImportParameters extends SimpleParameterSet {
+  public static final float DEFAULT_FLOAT = -1.0f;
+  public static final int DEFAULT_INT = -1;
 
-  public static final FileNamesParameter fileNames = new FileNamesParameter("File names");
-
-  public MassLynxRawImportParameters() {
-    super(fileNames);
-  }
+  public static final float NO_PRECURSOR = DEFAULT_FLOAT;
+  public static final float NO_QUAD_ISOLATION = DEFAULT_FLOAT;
+  public static final float NO_COLLISION_ENERGY = DEFAULT_FLOAT;
+  public static final float NO_MOBILITY = DEFAULT_FLOAT;
+  public static final int NO_DRIFT_SCANS = DEFAULT_INT;
+  public static final int NO_LOCKMASS_FUNCTION = DEFAULT_INT;
+  public static final float NO_RT = DEFAULT_FLOAT;
+  public static final float NO_POSITION = DEFAULT_FLOAT;
 
 }

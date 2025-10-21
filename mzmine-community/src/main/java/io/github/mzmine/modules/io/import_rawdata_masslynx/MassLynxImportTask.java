@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_waters;
+package io.github.mzmine.modules.io.import_rawdata_masslynx;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
-import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
@@ -132,12 +131,17 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
     setStatus(TaskStatus.PROCESSING);
     final boolean centroid = parameters.getValue(
         AllSpectralDataImportParameters.applyVendorCentroiding);
-    logger.finest(
-        "Importing %s data for file %s.".formatted(centroid ? "centroid" : "profile (if available)",
-            rawFolder.getName()));
 
     try (final MassLynxDataAccess ml = new MassLynxDataAccess(rawFolder, centroid, storage,
         processor)) {
+
+      if (ml.isSonarFile() && !ml.isImsFile()) {
+        error(
+            "SONAR data without IMS dimension is not currently supported in mzmine (%s).".formatted(
+                rawFolder.getAbsolutePath()));
+        return;
+      }
+
       readTotalItems(ml);
 
       dataFile = ml.createDataFile();

@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_waters;
+package io.github.mzmine.modules.io.import_rawdata_masslynx;
 
 /*
  * Copyright (c) 2004-2024 The mzmine Development Team
@@ -56,12 +56,10 @@ import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.MassLynxImportOptions;
-import io.github.mzmine.gui.preferences.ThermoImportOptions;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
-import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractSimpleTask;
 import io.github.mzmine.taskcontrol.TaskStatus;

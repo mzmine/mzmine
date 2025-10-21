@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_waters;
+package io.github.mzmine.modules.io.import_rawdata_masslynx;
 
 enum FunctionType {
   MS, IMS_MS, MRM, LOCKMASS, NOT_MS

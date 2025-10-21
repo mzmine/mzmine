@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_waters;
+package io.github.mzmine.modules.io.import_rawdata_masslynx;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -62,6 +62,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -131,8 +132,8 @@ public class MassLynxDataAccess implements AutoCloseable {
   public MassLynxDataAccess(@NotNull File rawFolder, boolean centroid,
       @Nullable MemoryMapStorage storage, @Nullable ScanImportProcessorConfig processor) {
     handle = MassLynxLib.openFile(arena.allocateFrom(rawFolder.getAbsolutePath()));
-    if(handle == null) {
-      throw new RuntimeException("Error opening file");
+    if (handle == null || handle.address() == 0x0) { // nullptr returned on error
+      throw new RuntimeException("Error opening file. Returned handle: %s".formatted(Objects.toString(handle)));
     }
 
     this.rawFolder = rawFolder;
@@ -143,7 +144,6 @@ public class MassLynxDataAccess implements AutoCloseable {
     isDdaFile = MassLynxLib.isDdaFile(handle) > 0;
     numberOfFunctions = MassLynxLib.getNumberOfFunctions(handle);
     analogChannelCount = MassLynxLib.getAnalogChannelCount(handle);
-    requestedSpectrumType = centroid ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
 
     final MemorySegment dateBuffer = arena.allocate(MassLynxLib.C_CHAR, 32);
     MassLynxLib.getAcquisitionDate(handle, dateBuffer, (int) dateBuffer.byteSize());
@@ -155,7 +155,12 @@ public class MassLynxDataAccess implements AutoCloseable {
     }
 
     checkAndApplyLockMassCorrection(rawFolder);
-    MassLynxLib.setCentroid(handle, centroid ? 1 : 0);
+    requestedSpectrumType =
+        centroid && !isImsFile ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
+    MassLynxLib.setCentroid(handle, requestedSpectrumType == MassSpectrumType.CENTROIDED ? 1 : 0);
+    logger.finest("Importing %s data for file %s.".formatted(
+        requestedSpectrumType.isCentroided() ? "centroid" : "profile (if available)",
+        rawFolder.getName()));
 
     // its possible that a file has coordinates, but does not have more than one coordinate.
     // In that case, import as LC file.
@@ -172,6 +177,11 @@ public class MassLynxDataAccess implements AutoCloseable {
       metadata = null;
       isImagingFile = false;
     }
+
+    logger.finest(
+        "MassLynx file %s:\tDDA or DIA: %s\tIMS: %b\tImaging: %b\tSonar: %b\tFunctions: %d\tAnalogChannels: %d".formatted(
+            rawFolder.getName(), isDdaFile ? "DDA" : "DIA", isImsFile, isImagingFile(), isSonarFile(),
+            getNumberOfFunctions(), analogChannelCount));
   }
 
   public @NotNull RawDataFileImpl createDataFile() {
@@ -646,5 +656,13 @@ public class MassLynxDataAccess implements AutoCloseable {
 
   private boolean isRawSpectrumProfile(int function) {
     return MassLynxLib.isRawSpectrumContinuum(handle, function) > 0;
+  }
+
+  public boolean isSonarFile() {
+    return MassLynxLib.isSonarFile(handle) > 0;
+  }
+
+  public String getAcqDate() {
+    return acqDate;
   }
 }
