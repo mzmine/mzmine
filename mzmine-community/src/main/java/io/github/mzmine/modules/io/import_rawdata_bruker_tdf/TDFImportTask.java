@@ -509,7 +509,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
             building.getCollisionEnergy(), building.getPrecursorCharge(), parentFrame, frame,
             building.getIsolationWindow());
 
-        frame.getImsMsMsInfos().add(info);
+        ((SimpleFrame)frame).addImsMsMsInfo(info);
         constructed++;
       }
     }
@@ -577,7 +577,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
       final float ce = frameMsMsInfoTable.getCe().get(frameMsMsTableIndex).floatValue();
       final DIAImsMsMsInfoImpl diaImsMsMsInfo = new DIAImsMsMsInfoImpl(
           Range.closed(0, frame.getNumberOfMobilityScans() - 1), ce, frame, mzRange);
-      frame.getImsMsMsInfos().add(diaImsMsMsInfo);
+      ((SimpleFrame)frame).addImsMsMsInfo(diaImsMsMsInfo);
     }
   }
 
@@ -608,7 +608,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
 
       final PasefMsMsInfo ddaImsMsMsInfo = frameMsMsInfoTable.getImsAutoMsMsInfo(
           frameMsMsTableIndex, frame, null);
-      frame.getImsMsMsInfos().add(ddaImsMsMsInfo);
+      ((SimpleFrame)frame).addImsMsMsInfo(ddaImsMsMsInfo);
     }
   }
 
