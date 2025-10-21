@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,8 +42,10 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Main format for library entries in GNPS
@@ -51,6 +53,23 @@ import java.util.logging.Logger;
  * @author Robin Schmid
  */
 public class GnpsMgfParser extends SpectralDBTextParser {
+
+  /**
+   * Gnps mgfs have the adduct after the name, e.g.
+   * <p>
+   * NAME=Umbelliferon M+H
+   * <p>
+   * NAME=Umbelliferon [2M-H2O+H]+
+   * <p>
+   * NAME=Gamma-aminobutyric_acid M-H
+   * <p>
+   * Looks like no brackets and charge indicator are present sometimes but sometimes they are (like
+   * in IIMN library)
+   * <p>
+   * This predicate uses matcher.find to find any substring matching the regex
+   */
+  final Predicate<String> gnpsNameAdductPattern = Pattern.compile("(M[+\\-][\\d+\\-\\w]+)")
+      .asPredicate();
 
   public GnpsMgfParser(int bufferEntries, LibraryEntryProcessor processor) {
     super(bufferEntries, processor);
@@ -75,10 +94,11 @@ public class GnpsMgfParser extends SpectralDBTextParser {
     State state = State.WAIT_FOR_META;
     Map<DBEntryField, Object> fields = new EnumMap<>(DBEntryField.class);
     List<DataPoint> dps = new ArrayList<>();
-    int sep = -1;
+    String[] sep = null;
     // create db
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
       for (String l; (l = br.readLine()) != null; ) {
+        l = l.trim();
         // main task was canceled?
         if (mainTask != null && mainTask.isCanceled()) {
           return false;
@@ -88,14 +108,14 @@ public class GnpsMgfParser extends SpectralDBTextParser {
             // meta data start?
             if (state.equals(State.WAIT_FOR_META)) {
               if (l.equalsIgnoreCase("BEGIN IONS")) {
-                fields = new EnumMap<>(fields);
+                fields = new EnumMap<>(DBEntryField.class);
                 dps.clear();
                 state = State.META;
               }
             } else {
               if (l.equalsIgnoreCase("END IONS")) {
                 // add entry and reset
-                if (fields.size() > 1 && dps.size() > 1) {
+                if (fields.size() > 1 && dps.size() > 0) {
                   SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(
                       library.getStorage(), fields, dps.toArray(new DataPoint[dps.size()]));
                   // add and push
@@ -103,9 +123,12 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                   correct++;
                 }
                 state = State.WAIT_FOR_META;
+                fields = new EnumMap<>(DBEntryField.class);
+                dps.clear();
               } else {
-                sep = l.indexOf('=');
-                if (sep == -1) {
+                // only 1 split into max of String[2]
+                sep = l.split("=", 2);
+                if (sep.length == 1) {
                   // data starts
                   state = State.DATA;
                 }
@@ -120,10 +143,13 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                         Double.parseDouble(data[1])));
                     break;
                   case META:
-                    if (sep != -1 && sep < l.length() - 1) {
-                      DBEntryField field = DBEntryField.forMgfID(l.substring(0, sep));
+                    if (sep.length == 2) {
+                      final String key = sep[0];
+                      String content = sep[1];
+                      // check many alternative names
+                      DBEntryField field = DBEntryField.forID(key);
+
                       if (field != null) {
-                        String content = l.substring(sep + 1);
                         if (!content.isBlank()) {
                           try {
                             // allow 1+ as 1 and 2- as -2
@@ -136,20 +162,7 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                             // only attempt parsing of adduct from name if there is no adduct already.
                             if (field.equals(DBEntryField.NAME)
                                 && fields.get(DBEntryField.ION_TYPE) == null) {
-                              String name = ((String) value);
-                              int lastSpace = name.lastIndexOf(' ');
-                              if (lastSpace != -1 && lastSpace < name.length() - 2) {
-                                String adductCandidate = name.substring(lastSpace + 1);
-                                // check for valid
-                                // adduct with the
-                                // adduct parser
-                                // from export
-                                // use as adduct
-                                IonType adduct = IonTypeParser.parse(adductCandidate);
-                                if (adduct != null && !adduct.isUndefinedAdduct()) {
-                                  fields.put(DBEntryField.ION_TYPE, adduct.toString(false));
-                                }
-                              }
+                              tryExtractAdductFromName((String) value, fields);
                             }
                             // retention time is in seconds, mzmine uses minutes
                             if (field.equals(DBEntryField.RT)) {
@@ -181,6 +194,37 @@ public class GnpsMgfParser extends SpectralDBTextParser {
       // finish and process all entries
       finish();
       return true;
+    }
+  }
+
+  /**
+   * Gnps mgfs have the adduct after the name, e.g.
+   * <p></p>
+   * NAME=Umbelliferon M+H
+   * <p></p>
+   * NAME=Gamma-aminobutyric_acid M-H
+   *
+   * @param value  the field value
+   * @param fields the currently parsed fields
+   */
+  private void tryExtractAdductFromName(String value, Map<DBEntryField, Object> fields) {
+    final String name = value;
+    final int lastSpace = name.lastIndexOf(' ');
+    if (lastSpace == -1 || lastSpace >= name.length() - 2) {
+      return;
+    }
+
+    final String adductCandidate = name.substring(lastSpace + 1);
+    // uses the Pattern.asPredicate() that internally uses matcher.find for substring match
+    // matcher.match requires full match which does not work here
+    if (!gnpsNameAdductPattern.test(adductCandidate)) {
+      return;
+    }
+    // check for valid adduct with the adduct parser from export
+    // use as adduct
+    final IonType adduct = IonTypeParser.parse(adductCandidate);
+    if (adduct != null && !adduct.isUndefinedAdduct()) {
+      fields.put(DBEntryField.ION_TYPE, adduct.toString(false));
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,9 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
+import io.github.mzmine.datamodel.features.types.JsonStringType;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
@@ -60,6 +62,7 @@ import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotati
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
@@ -355,6 +358,12 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return get(DatabaseNameType.class);
   }
 
+  @Override
+  @Nullable
+  default String getComment() {
+    return get(CommentType.class);
+  }
+
   boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
       @Nullable Double percentCCSTolerance);
@@ -536,4 +545,23 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
   }
 
   void setStructure(MolecularStructure structure);
+
+  /**
+   * convenience method to derive additional fields from fields that are present. Recommended to
+   * call this method after retrieving the annotation from an external source.
+   */
+  default void enrichMetadata() {
+    MolecularStructure struc = StructureParser.silent().parseStructure(getSmiles(), getInChI());
+    if (struc != null) {
+      setStructure(struc);
+    }
+  }
+
+  /**
+   * An additional json string that may contain additional fields that are otherwise not captured.
+   *
+   */
+  default @Nullable String getAdditionalJson() {
+    return get(JsonStringType.class);
+  }
 }

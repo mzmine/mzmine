@@ -392,7 +392,7 @@ public class BatchComponentController implements LastFilesComponent {
     // Serialize batch queue.
     batchQueue.saveToXml(element);
 
-    String extension = ExtensionFilters.getExtensionName(ExtensionFilters.MZ_BATCH);
+    String extension = ExtensionFilters.getFirstCleanExtensionName(ExtensionFilters.MZ_BATCH);
     file = FileAndPathUtil.getRealFilePath(file, extension);
 
     XMLUtils.saveToFile(file, document);

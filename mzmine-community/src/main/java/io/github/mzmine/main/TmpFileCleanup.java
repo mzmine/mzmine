@@ -25,7 +25,6 @@
 
 package io.github.mzmine.main;
 
-import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -88,7 +87,8 @@ public class TmpFileCleanup implements Runnable {
         if (name.matches("mzmine.*\\.tmp") || name.matches(
             "(.)*%s(.)*".formatted(RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER))
             || name.matches("(.)*%s(.)*".formatted(FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER))
-            || name.matches("(.)*%s(.)*".formatted(ThermoRawImportTask.THERMO_RAW_PARSER_DIR))) {
+            // old thermo raw file parser was extracted to a folder in old mzmine versions
+            || name.matches("(.)*%s(.)*".formatted("mzmine_thermo_raw_parser"))) {
           return true;
         }
         return false;

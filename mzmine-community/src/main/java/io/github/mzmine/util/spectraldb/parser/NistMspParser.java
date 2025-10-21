@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.util.spectraldb.parser;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -62,10 +63,11 @@ public class NistMspParser extends SpectralDBTextParser {
     // metadata fields and data points
     Map<DBEntryField, Object> fields = new EnumMap<>(DBEntryField.class);
     List<DataPoint> dps = new ArrayList<>();
-    // separation index (metadata is separated by ': '
-    int sep = -1;
     // currently loading data?
     boolean isData = false;
+
+    String[] sep = null;
+    String[] EMPTY = new String[0];
 
     // read DB file
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
@@ -77,8 +79,8 @@ public class NistMspParser extends SpectralDBTextParser {
         try {
           if (l.length() > 1) {
             // meta data?
-            sep = isData ? -1 : l.indexOf(": ");
-            if (sep != -1 && sep < l.length() - 2) {
+            sep = isData ? EMPTY : l.split(": ", 2);
+            if (sep.length > 1) {
               extractMetaData(fields, l, sep);
             } else {
               // data?
@@ -95,13 +97,7 @@ public class NistMspParser extends SpectralDBTextParser {
             if (isData) {
               // empty row after data
               // add entry and reset
-              SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(library.getStorage(),
-                  fields, dps.toArray(new DataPoint[dps.size()]));
-              // add and push
-              addLibraryEntry(entry);
-              // reset
-              fields.clear();
-              dps.clear();
+              addEntryAndReset(library, fields, dps);
               isData = false;
             }
           }
@@ -114,10 +110,26 @@ public class NistMspParser extends SpectralDBTextParser {
         }
         processedLines.incrementAndGet();
       }
+      // add last entry
+      if (!fields.isEmpty() && !dps.isEmpty()) {
+        addEntryAndReset(library, fields, dps);
+      }
+
       // finish and process all entries
       finish();
       return true;
     }
+  }
+
+  private void addEntryAndReset(SpectralLibrary library, Map<DBEntryField, Object> fields,
+      List<DataPoint> dps) {
+    SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(library.getStorage(), fields,
+        dps.toArray(new DataPoint[dps.size()]));
+    // add and push
+    addLibraryEntry(entry);
+    // reset
+    fields.clear();
+    dps.clear();
   }
 
   /**
@@ -130,20 +142,12 @@ public class NistMspParser extends SpectralDBTextParser {
   private DataPoint extractDataPoint(String line) {
     // comment possible as mz intensity"
     String[] dataAndComment = line.split("\"");
-    // split by space
-    String[] data = dataAndComment[0].split(" ");
+    // split by space or tab
+    String[] data = dataAndComment[0].trim().split("[ \t]+");
     if (data.length == 2) {
       try {
-        return new SimpleDataPoint(Double.parseDouble(data[0]), Double.parseDouble(data[1]));
-      } catch (Exception e) {
-        logger.log(Level.WARNING, "Cannot parse data point", e);
-      }
-    }
-
-    data = dataAndComment[0].split("\t");
-    if (data.length == 2) {
-      try {
-        return new SimpleDataPoint(Double.parseDouble(data[0]), Double.parseDouble(data[1]));
+        return new SimpleDataPoint(Double.parseDouble(data[0].trim()),
+            Double.parseDouble(data[1].trim()));
       } catch (Exception e) {
         logger.log(Level.WARNING, "Cannot parse data point", e);
       }
@@ -159,17 +163,27 @@ public class NistMspParser extends SpectralDBTextParser {
    * @param line   String with metadata
    * @param sep    index of the separation char ':'
    */
-  private void extractMetaData(Map<DBEntryField, Object> fields, String line, int sep) {
-    String key = line.substring(0, sep);
-    DBEntryField field = DBEntryField.forMspID(key);
+  private void extractMetaData(Map<DBEntryField, Object> fields, String line, String[] sep) {
+    String key = sep[0].trim();
+    DBEntryField field = DBEntryField.forID(key);
     if (field != null) {
       // spe +2 for colon and space
-      String content = line.substring(sep + 2);
-      if (content.length() > 0) {
+      String content = sep[1].trim();
+      if (!content.isEmpty()) {
         try {
           // convert into value type
-          Object value = field.convertValue(content);
-          fields.put(field, value);
+          final Object value;
+          // earlier mzmine saved polarity negative as N but this was also used as the single char
+          // for Polarity.NEUTRAL so we need to add a special case parsing here
+          if (field == DBEntryField.POLARITY && content.equalsIgnoreCase("n")) {
+            value = PolarityType.NEGATIVE.toString();
+          } else {
+            // default parsing of the value by the field
+            value = field.convertValue(content);
+          }
+          if (value != null) {
+            fields.put(field, value);
+          }
         } catch (Exception e) {
           logger.log(Level.WARNING, """
               Cannot convert value '%s' to type %s

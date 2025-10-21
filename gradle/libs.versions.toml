@@ -12,7 +12,7 @@ msdk = "0.0.27"
 cdk = "2.11"
 swagger = "1.5.22"
 okhttp = "2.7.5"
-slf4j = '1.7.36'
+slf4j = '2.0.17'
 poi = '5.0.0'
 batik = { require = "1.19" }
 controlsfx = '11.2.2'
@@ -131,7 +131,7 @@ graphstream = ["graphstream-algo", "graphstream-core", "graphstream-javafx"]
 cdk = ["cdk-core", "cdk-data", "cdk-formula", "cdk-interfaces", "cdk-io", "cdk-renderawt", "cdk-renderbasic", "cdk-fingerprint", "cdk-sdg", "cdk-silent", "cdk-smiles", "cdk-standard", "cdk-inchi"]
 msdk = ["msdk-adap3d", "msdk-mzml", "msdk-netcdf"]
 # logging and other utils
-slf4j = ["slf4j-api", "slf4j-jdk14"]
+slf4j = ["slf4j-api", "slf4j-jdk14"] # libraries should only use slf4j-api, no other dependencies
 poi = ["poi", "poi-ooxml"]
 okhttp = ["okhttp", "okhttp-logging-interceptor"]
 junit-mockito = ["junit-jupiter", "junit-platform", "mockito"]
