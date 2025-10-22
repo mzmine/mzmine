@@ -225,9 +225,6 @@ dependencies {
     implementation(libs.woodstox.core)
     implementation(libs.aalto.xml)
 
-    // test only
-    testImplementation(libs.bundles.mzio.test)
-
     // sirius api
     implementation 'io.sirius-ms:sirius-sdk:3.1+sirius6.3.0'
 }
