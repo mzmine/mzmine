@@ -124,7 +124,7 @@ repositories {
     // mavenLocal()
     maven { url = "https://repo.maven.apache.org/maven2" }
     // local repo needs to be early before other repos otherwise the resolving of local libs failed
-    maven { url = uri("file://" + layout.projectDirectory.dir("../local-repo")) }
+    maven { url = uri(layout.projectDirectory.dir("../local-repo/")) }
     // sirius sdk
     maven {
         url 'https://gitlab.com/api/v4/projects/66031889/packages/maven'
@@ -225,9 +225,6 @@ dependencies {
     implementation(libs.woodstox.core)
     implementation(libs.aalto.xml)
 
-    // test only
-    testImplementation(libs.bundles.mzio.test)
-
     // sirius api
     implementation 'io.sirius-ms:sirius-sdk:3.1+sirius6.3.0'
 }
@@ -319,7 +316,8 @@ tasks.jpackage.doFirst {
  * Build the JVM runtime using jlink
  */
 runtime {
-    options = ["--compress", "2", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
+    // compress 6 is default for jlink
+    options = ["--compress=zip-6", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
     modules = ["java.desktop",
                "java.logging",
                "java.net.http",

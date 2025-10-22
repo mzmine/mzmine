@@ -11,7 +11,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Hercules-patched
-        uses: mzmine/mzmine3@master
+        uses: mzmine/mzmine@master
       - uses: actions/upload-artifact@master
         with:
           name: hercules_charts
