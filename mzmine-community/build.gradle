@@ -226,7 +226,7 @@ dependencies {
     implementation(libs.aalto.xml)
 
     // sirius api
-    implementation 'io.sirius-ms:sirius-sdk:3.1+sirius6.3.0'
+    implementation (libs.sirius.api)
 }
 
 /*
