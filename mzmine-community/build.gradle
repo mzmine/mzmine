@@ -319,7 +319,8 @@ tasks.jpackage.doFirst {
  * Build the JVM runtime using jlink
  */
 runtime {
-    options = ["--compress", "2", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
+    // compress 6 is default for jlink
+    options = ["--compress=zip-6", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
     modules = ["java.desktop",
                "java.logging",
                "java.net.http",
