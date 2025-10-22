@@ -131,10 +131,15 @@ public class MassLynxDataAccess implements AutoCloseable {
 
   public MassLynxDataAccess(@NotNull File rawFolder, boolean centroid,
       @Nullable MemoryMapStorage storage, @Nullable ScanImportProcessorConfig processor) {
-    handle = MassLynxLib.openFile(arena.allocateFrom(rawFolder.getAbsolutePath()));
-    if (handle == null || handle.address() == 0x0) { // nullptr returned on error
-      throw new RuntimeException("Error opening file. Returned handle: %s".formatted(Objects.toString(handle)));
+    MemorySegment tempHandle = MassLynxLib.openFile(arena.allocateFrom(rawFolder.getAbsolutePath()));
+    if (tempHandle == null || tempHandle.address() == 0x0) { // nullptr returned on error
+      // retry once
+      tempHandle = MassLynxLib.openFile(arena.allocateFrom(rawFolder.getAbsolutePath()));
+      if (tempHandle == null || tempHandle.address() == 0x0) {
+        throw new RuntimeException("Error opening file. Returned handle: %s".formatted(Objects.toString(tempHandle)));
+      }
     }
+    handle = tempHandle;
 
     this.rawFolder = rawFolder;
     this.storage = storage;
