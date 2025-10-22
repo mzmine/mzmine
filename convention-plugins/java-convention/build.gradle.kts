@@ -37,9 +37,9 @@ semver {
 val pushOnline: Boolean = project.findProperty("mziorepo")?.toString()?.toBoolean() ?: false
 
 
-kotlin {
-    jvmToolchain(25)
-}
+//kotlin {
+//    jvmToolchain(23)
+//}
 
 dependencies {
     implementation(libs.javafx.plugin)
