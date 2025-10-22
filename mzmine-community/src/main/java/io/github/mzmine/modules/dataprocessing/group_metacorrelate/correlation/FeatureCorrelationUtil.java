@@ -661,8 +661,7 @@ public class FeatureCorrelationUtil {
      * {@link Arrays#copyOfRange(int[], int, int)} Null if there are no values within the given
      * range.
      */
-    @Nullable
-    private static int[] getAllowedRange(double[] x, Range<Double> allowedXRange) {
+    private static int @Nullable [] getAllowedRange(double[] x, Range<Double> allowedXRange) {
       int startIndex = -1;
       int endIndex = x.length;
 
