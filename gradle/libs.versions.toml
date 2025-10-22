@@ -90,6 +90,8 @@ msdk-mzml = { module = "io.github.msdk:msdk-io-mzml", version.ref = "msdk" }
 msdk-adap3d = { module = "io.github.msdk:msdk-featuredetection-adap3d", version.ref = "msdk" }
 msdk-netcdf = { module = "io.github.msdk:msdk-io-netcdf", version.ref = "msdk" }
 
+sirius-api = { module = "io.sirius-ms:sirius-sdk", version = "3.1+sirius6.3.3" }
+
 #batik-xml-commons = {group = "org.apache.xmlcommons", name="xml-apis", version="1.4.01"} # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
 batik-xml-commons-ext = { group = "org.apache.xmlcommons", name = "xml-apis-ext", version = "1.4.01" } # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
 batik-anim = { group = "org.apache.xmlgraphics", name = "batik-anim", version.ref = "batik" }
