@@ -226,7 +226,7 @@ dependencies {
     implementation(libs.aalto.xml)
 
     // sirius api
-    implementation (libs.sirius.api)
+    implementation(libs.sirius.api)
 }
 
 /*
@@ -376,12 +376,14 @@ runtime {
                         "--mac-package-name", appName,
                         "--mac-package-identifier", "io.github.mzmine.main",
                         "--mac-signing-key-user-name", developerID,
+                        "--mac-signing-keychain", "/usr/bin/codesign/build.keychain",
                         "--verbose"
                 ]
                 installerOptions = [
 //                        "--license-file", "LICENSE.txt", not required
 "--mac-sign",
 "--mac-signing-key-user-name", developerID,
+"--mac-signing-keychain", "/usr/bin/codesign/build.keychain",
                 ]
             }
             installerName = "mzmine_macOS_installer-academia"
