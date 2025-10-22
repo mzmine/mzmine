@@ -68,7 +68,7 @@ jobs:
       # - name: Autobuild
       #  uses: github/codeql-action/autobuild@v2
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v5
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Execute Gradle build
         run: ./gradlew --stacktrace --info
