@@ -580,6 +580,9 @@ test {
     testLogging {
         events "passed", "skipped", "failed"
     }
+    jvmArgs += [
+            "-javaagent:${classpath.find { it.name.contains('mockito-core') || it.name.contains('mockito-inline') }}"
+    ]
 }
 
 task copyTestResources(type: Copy) {
