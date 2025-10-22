@@ -527,7 +527,6 @@ public class FeatureCorrelationUtil {
 
       // index offset between f1 and f2 data arrays (not all features are based on the same scans) ~2021 Steffen
       // 2024 ~Steffen: this method is mostly called after DIA.getInterpolatedShape for bot series, so all indices are the same
-//      final int maxIndexInB = ArrayUtils.indexOf(f1[0][maxIndexOfA], f2[0]);
       final int maxIndexInB = BinarySearch.binarySearch(f2[0], f1[0][maxIndexOfA],
           DefaultTo.MINUS_INSERTION_POINT);
       if (maxIndexInB <= -1) {
@@ -579,7 +578,7 @@ public class FeatureCorrelationUtil {
         i2++;
       }
       // check right and total dp
-      int right = corrData.size() - 1 - left;
+      final int right = corrData.size() - 1 - left;
       // return pearson r
       if (corrData.size() >= minCorrelatedDataPoints && right >= minCorrDPOnFeatureEdge) {
         return new FullCorrelationData(corrData);
@@ -633,8 +632,8 @@ public class FeatureCorrelationUtil {
       final int minLength = Math.min(mainEnd - mainStart, otherEnd - otherStart);
       if (mainX.length != otherX.length && Arrays.equals(mainX, mainStart, mainStart + minLength,
           otherX, otherStart, otherStart + minLength)) {
-        // may be exactly the same x values, but range lengths may be different
-        return new double[][]{otherX, otherY};
+        // may be exactly the same x values, but range lengths may be different. copy of the specific range
+        return new double[][]{Arrays.copyOfRange(otherX, otherStart, otherEnd), Arrays.copyOfRange(otherY, otherStart, otherEnd)};
       }
 
       // create array for the interpolated data
@@ -665,7 +664,7 @@ public class FeatureCorrelationUtil {
     @Nullable
     private static int[] getAllowedRange(double[] x, Range<Double> allowedXRange) {
       int startIndex = -1;
-      int endIndex = x.length - 1;
+      int endIndex = x.length;
 
       for (int i = 0; i < x.length; i++) {
         if (allowedXRange.contains(x[i])) {
