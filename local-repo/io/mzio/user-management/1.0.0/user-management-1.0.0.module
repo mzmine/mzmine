@@ -28,10 +28,10 @@
           "name": "user-management-1.0.0.jar",
           "url": "user-management-1.0.0.jar",
           "size": 9899,
-          "sha512": "b74a9d255aa7a81de973332f68403fdc67b038d8da8606f2b96938d28d602c5c55e23d7634195e9187ff9af3707b5179c6720922f84d9ccbb70675814cba888d",
-          "sha256": "d3c73bfdba7c7c3e5a3bb50185dbab75f14fadab33d0c02038fa6d77f118911c",
-          "sha1": "48fa685e24f8e1355ec46f6d583173f435bfb3f9",
-          "md5": "4f0a515d2aaa042ef9593ec1b0533a08"
+          "sha512": "421435b1a132f96de5def75c423bc20a214ef97469ec1708434f12a208bd33c3267eeef0e55f9a05bc5fc6d86d4a29983400745ad6c3b6fb0482d69126ddb44f",
+          "sha256": "0f965de3338e21701bdfbcd28ae72d9cb8531af389c999c706b217c35cc1a43f",
+          "sha1": "7c640f3f0994abfcc46a5b4a2a6a0711243320c3",
+          "md5": "5def50f296c96207edb20ee739d9f362"
         }
       ]
     },
@@ -72,10 +72,10 @@
           "name": "user-management-1.0.0.jar",
           "url": "user-management-1.0.0.jar",
           "size": 9899,
-          "sha512": "b74a9d255aa7a81de973332f68403fdc67b038d8da8606f2b96938d28d602c5c55e23d7634195e9187ff9af3707b5179c6720922f84d9ccbb70675814cba888d",
-          "sha256": "d3c73bfdba7c7c3e5a3bb50185dbab75f14fadab33d0c02038fa6d77f118911c",
-          "sha1": "48fa685e24f8e1355ec46f6d583173f435bfb3f9",
-          "md5": "4f0a515d2aaa042ef9593ec1b0533a08"
+          "sha512": "421435b1a132f96de5def75c423bc20a214ef97469ec1708434f12a208bd33c3267eeef0e55f9a05bc5fc6d86d4a29983400745ad6c3b6fb0482d69126ddb44f",
+          "sha256": "0f965de3338e21701bdfbcd28ae72d9cb8531af389c999c706b217c35cc1a43f",
+          "sha1": "7c640f3f0994abfcc46a5b4a2a6a0711243320c3",
+          "md5": "5def50f296c96207edb20ee739d9f362"
         }
       ]
     }
