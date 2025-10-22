@@ -61,7 +61,7 @@ public class DiaMs2CorrParameters extends SimpleParameterSet {
   public static final IntegerParameter numCorrPoints = new IntegerParameter(
       "Number of correlated points",
       "The number of points to be correlated in MS1 and MS2 features.\n"
-          + "Depends on cycle time and chromatographic resolution.", 5, 5, Integer.MAX_VALUE);
+          + "Depends on cycle time and chromatographic resolution.", 5);
 
   public static final DoubleParameter minPearson = new DoubleParameter(
       "Minimum pearson correlation",
