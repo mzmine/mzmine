@@ -226,7 +226,7 @@ dependencies {
     implementation(libs.aalto.xml)
 
     // sirius api
-    implementation 'io.sirius-ms:sirius-sdk:3.1+sirius6.3.0'
+    implementation (libs.sirius.api)
 }
 
 /*
@@ -580,6 +580,9 @@ test {
     testLogging {
         events "passed", "skipped", "failed"
     }
+    jvmArgs += [
+            "-javaagent:${classpath.find { it.name.contains('mockito-core') || it.name.contains('mockito-inline') }}"
+    ]
 }
 
 task copyTestResources(type: Copy) {
