@@ -525,6 +525,25 @@ task signApp(dependsOn: jpackage) {
             // verify after signing (non-fatal)
             exec { commandLine(['/usr/sbin/spctl', '--assess', '--type', 'execute', '--verbose=4', "${thermoParserPath}"]); ignoreExitValue = true }
 
+            // Sign additional executables shipped with the parser
+            Path trfpDirForExecs = imageDir.resolve('Contents').resolve('external_tools').resolve('thermo_raw_file_parser')
+            try {
+                // Clear quarantine on the entire parser directory (best-effort)
+                exec { commandLine(['xattr', '-r', '-d', 'com.apple.quarantine', trfpDirForExecs.toFile().absolutePath]); ignoreExitValue = true }
+            } catch (Exception ignored) {}
+            if (Files.exists(trfpDirForExecs)) {
+                Files.find(trfpDirForExecs, 10, { p, bfa ->
+                    bfa.isRegularFile() && java.nio.file.Files.isExecutable(p)
+                } as java.util.function.BiPredicate).forEach { Path exe ->
+                    try {
+                        getLogger().lifecycle("Signing external tool executable '${exe}'")
+                        // Ensure executable bit
+                        exec { commandLine(['chmod', '+x', exe.toFile().absolutePath]) }
+                        codesignRuntimeOnly(exe.toAbsolutePath())
+                    } catch (Exception ignored) {}
+                }
+            }
+
             getLogger().lifecycle("Signing libraires nested in jars...")
 
             // Dynamically find and sign all native libraries in JARs
