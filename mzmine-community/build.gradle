@@ -173,8 +173,8 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.bundles.djl.pytorch)
     implementation "edu.ucar:netcdf4:4.5.5"
-    implementation 'org.jetbrains:annotations:22.0.0'
-    implementation 'net.sourceforge.jmol:jmol:14.31.10'
+    implementation "org.jetbrains:annotations:22.0.0"
+    implementation "net.sourceforge.jmol:jmol:14.31.10"
 
     implementation(libs.bundles.jfreechart)
     // search icons here
@@ -190,32 +190,33 @@ dependencies {
     implementation "org.postgresql:postgresql:9.3-1102-jdbc41"
     implementation "org.freehep:freehep-graphicsio-emf:2.4"
     implementation("eu.hansolo.fx:charts:21.0.7")
-    implementation group: 'net.sf.trove4j', name: 'trove4j', version: '3.0.3'
-    implementation 'org.eclipse.parsson:jakarta.json:1.1.0'
-    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
+
+    implementation "net.sf.trove4j:trove4j:3.0.3"
+    implementation "org.eclipse.parsson:jakarta.json:1.1.0"
+    implementation "org.apache.httpcomponents:httpclient:4.5"
 
 //    implementation "org.du-lab.adap:adap:4.1.10"
-    implementation 'org.xerial:sqlite-jdbc:3.41.2.2'
+    implementation "org.xerial:sqlite-jdbc:3.41.2.2"
 
-    implementation 'com.github.librepdf:openpdf:2.0.0'
+    implementation "com.github.librepdf:openpdf:2.0.0"
     implementation "com.miglayout:miglayout:3.7.4"
 
     implementation "javax.activation:javax.activation-api:1.2.0"
     implementation "javax.mail:javax.mail-api:1.6.2"
     implementation "io.swagger:swagger-annotations:$swaggerVersion"
-    implementation 'com.google.code.gson:gson:2.8.9'
-    implementation 'io.gsonfire:gson-fire:1.8.5'
+    implementation "com.google.code.gson:gson:2.8.9"
+    implementation "io.gsonfire:gson-fire:1.8.5"
     implementation "org.threeten:threetenbp:1.3.8"
-    implementation 'org.json:json:20211205'
+    implementation "org.json:json:20211205"
     implementation "com.github.oshi:oshi-core:4.5.2"
     // because the version that is pulled by SIRIUS crashes
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
     implementation(libs.opencsv)
 
-    implementation 'net.java.dev.jna:jna:$jnaVersion'
-    //implementation 'com.github.robinschmid:jimzMLParser:mzmine_local_obo-SNAPSHOT'
-    //implementation 'com.github.alanrace:jimzMLParser:1.0.6'
-    implementation group: 'com.alanmrace', name: 'jimzmlparser', version: '1.0.3'
+    implementation "net.java.dev.jna:jna:$jnaVersion"
+    //implementation "com.github.robinschmid:jimzMLParser:mzmine_local_obo-SNAPSHOT"
+    //implementation "com.github.alanrace:jimzMLParser:1.0.6"
+    implementation "com.alanmrace:jimzmlparser:1.0.3"
     implementation "com.github.yannrichet:JMathPlot:1.0.1"
     implementation "de.jensd:fontawesomefx-fontawesome:4.7.0-9.1.2"
 
@@ -234,7 +235,7 @@ dependencies {
  * The org.w3c.dom package is present in the java.xml module as well as in these dependencies.
  * That is illegal (https://bugs.eclipse.org/bugs/show_bug.cgi?id=536928).
  */
-configurations.all {
+configurations.configureEach {
     exclude group: "xml-apis", module: "xml-apis"
     exclude group: "xml-apis", module: "xml-apis-ext"
     exclude group: "xom", module: "xom"
@@ -385,6 +386,7 @@ runtime {
 "--mac-sign",
 "--mac-signing-key-user-name", developerID,
 //                        /Users/runner/Library/Keychains/build.keychain-db
+// this keychain option seems to be optional. Somehow it is not found though
 "--mac-signing-keychain", "build.keychain",
                 ]
             }
@@ -424,7 +426,11 @@ runtime {
 }
 
 
-task signApp(dependsOn: jpackage) {
+def signApp = tasks.register("signApp") {
+    // see all the way at bottomn. Maybe this needs to run before or as finish jpackageImage
+    // that should be the task that does the .app
+    // then jpackage will be able to just create the dmg and notarize without the additional python dependency
+    dependsOn(tasks.jpackage)
 
     if (OperatingSystem.current().isMacOsX() && macSigning) {
 
@@ -436,6 +442,7 @@ task signApp(dependsOn: jpackage) {
             getLogger().info("entitlementsPth " + entitlementsPth)
 
             // Define codesign command
+//             should remove deep option from all codesign as it is deprecated since macOS 13
             Consumer<Path> codesign = { Path p ->
                 exec {
                     commandLine(["codesign", "--deep", "--force", "--timestamp", "-s", "${developerID}", "--options",
@@ -507,7 +514,8 @@ task signApp(dependsOn: jpackage) {
     }
 }
 
-task notarizeApp(dependsOn: signApp) {
+tasks.register('notarizeApp') {
+    dependsOn(signApp)
     if (OperatingSystem.current().isMacOsX() && macSigning) {
         doLast {
             // Install appdmg if not already installed
@@ -586,15 +594,16 @@ test {
         events "passed", "skipped", "failed"
     }
     jvmArgs += [
+            // need to activate the mockito agent
             "-javaagent:${classpath.find { it.name.contains('mockito-core') || it.name.contains('mockito-inline') }}"
     ]
 }
 
-task copyTestResources(type: Copy) {
+var copyTestResources = tasks.register("copyTestResources", Copy) {
     from layout.projectDirectory.dir("src/test/resources")
     into layout.buildDirectory.dir("classes/test")
 }
-processTestResources.dependsOn copyTestResources
+processTestResources.dependsOn(copyTestResources)
 
 licenseReport {
     // By default this plugin will collect the union of all licenses from
@@ -663,6 +672,12 @@ tasks.compileJava.dependsOn(checkLicense, copyLicenseInformationToResources, cop
 tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
 tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
 
+
+// option that may work by signing before jpackageImage task
+//if (os.isMacOsX()) {
+//    jpackageImage.finalizedBy(finalizeMacOSResources)
+//    jpackageImage.dependsOn(prepareMacOSResources)
+//}
 
 // make sure the publish action is run after the semver plugin has been evaluated,
 // otherwise the version will always be 1.0.0
