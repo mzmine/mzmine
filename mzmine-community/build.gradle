@@ -359,6 +359,11 @@ runtime {
             ]
         }
         if (OperatingSystem.current().isMacOsX()) {
+            def keychain = new File("/usr/Library/Keychains/build.keychain-db")
+            def keychainAlternative = new File("/usr/Library/Keychains/build.keychain-db")
+            getLogger().lifecycle("Keychain file /usr/Library/Keychains/build.keychain-db exists: " + keychain.exists())
+            getLogger().lifecycle("Keychain file /usr/Library/Keychains/build.keychain exists: " + keychainAlternative.exists())
+
 //            installerType = "dmg"
             skipInstaller = true // no installer for macOS as we are generating it in GitHub action
             // additional options for jpackage
@@ -378,7 +383,8 @@ runtime {
                         "--mac-package-identifier", "io.github.mzmine.main",
                         "--mac-signing-key-user-name", developerID,
 //                        /Users/runner/Library/Keychains/build.keychain-db
-                        "--mac-signing-keychain", "build.keychain",
+//                        "--mac-signing-keychain", "build.keychain",
+                        "--mac-signing-keychain", "/usr/Library/Keychains/build.keychain-db",
                         "--verbose"
                 ]
                 installerOptions = [
@@ -387,7 +393,8 @@ runtime {
 "--mac-signing-key-user-name", developerID,
 //                        /Users/runner/Library/Keychains/build.keychain-db
 // this keychain option seems to be optional. Somehow it is not found though
-"--mac-signing-keychain", "build.keychain",
+"--mac-signing-keychain", "/usr/Library/Keychains/build.keychain-db",
+//"--mac-signing-keychain", "build.keychain",
                 ]
             }
             installerName = "mzmine_macOS_installer-academia"
@@ -435,11 +442,13 @@ def signApp = tasks.register("signApp") {
     if (OperatingSystem.current().isMacOsX() && macSigning) {
 
         doLast {
+
             Path entitlementsPth = layout.projectDirectory.dir('gradle/macos.entitlements').asFile.toPath()
             getLogger().info("imageDir " + imageDir)
             getLogger().info("jarsDir " + jarsDir)
             getLogger().info("jarsDir file " + jarsDir.toFile())
             getLogger().info("entitlementsPth " + entitlementsPth)
+
 
             // Define codesign command
 //             should remove deep option from all codesign as it is deprecated since macOS 13
