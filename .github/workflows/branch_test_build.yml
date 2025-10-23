@@ -90,7 +90,7 @@ jobs:
         if: runner.os == 'macOS'
         uses: actions/setup-node@v3  # Required for appdmg in Gradle build
 
-      - name: Execute Gradle build on macOS (signed and notarized)
+      - name: Certificate
         if: runner.os == 'macOS'
         run: |
           echo "$MACOS_DEVELOPER_CERTIFICATE" | base64 --decode > certificate.p12
@@ -102,6 +102,10 @@ jobs:
           security list-keychains -s ~/Library/Keychains/build.keychain
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 ~/Library/Keychains/build.keychain
           security find-identity -v -p codesigning
+
+      - name: Execute Gradle build on macOS (signed and notarized)
+        if: runner.os == 'macOS'
+        run: |
           ./gradlew -p mzmine-community notarizeApp --info --stacktrace -x test
         env:
           MACOS_DEVELOPER_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERTIFICATE }}
