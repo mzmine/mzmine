@@ -175,7 +175,7 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
         "ThermoRawFileParserLinux")) {
       error("Invalid raw file parser setting for linux. Please select the linux parser.");
       return null;
-    } else if (Platform.isMac() && !thermoRawFileParserCommand.endsWith("ThermoRawFileParserMac")) {
+    } else if (Platform.isMac() && !thermoRawFileParserCommand.endsWith("ThermoRawFileParser")) {
       error("Invalid raw file parser setting for mac. Please select the mac parser.");
       return null;
     } else if (!Platform.isWindows() && !Platform.isLinux() && !Platform.isMac()) {
@@ -225,12 +225,31 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
 
   private File getParserPathForOs() {
     final File mainDir = FileAndPathUtil.getSoftwareMainDirectory();
+
     File parserDirectory = null;
     if (mainDir != null) {
-      parserDirectory = new File(mainDir, "external_tools/thermo_raw_file_parser/");
+      File extAtAppRoot = new File(mainDir, "external_tools/thermo_raw_file_parser/");
+      if (extAtAppRoot.exists()) {
+        parserDirectory = extAtAppRoot;
+      }
     }
-    if (parserDirectory == null || !parserDirectory.exists()) {
-      parserDirectory = new File("external_tools/thermo_raw_file_parser/");
+    // Prior behavior when running from project root
+    if (parserDirectory == null) {
+      File extLocal = new File("external_tools/thermo_raw_file_parser/");
+      if (extLocal.exists()) {
+        parserDirectory = extLocal;
+      }
+    }
+    // Dev-run from module dir: parent project root
+    if (parserDirectory == null) {
+      File extParent = new File("../external_tools/thermo_raw_file_parser/");
+      if (extParent.exists()) {
+        parserDirectory = extParent;
+      }
+    }
+    if (parserDirectory == null) {
+      throw new IllegalStateException(
+          "ThermoRawFileParser directory not found. Expected one of: '<app>/external_tools/thermo_raw_file_parser/', 'external_tools/thermo_raw_file_parser/', '../external_tools/thermo_raw_file_parser/'.");
     }
 
     if (Platform.isWindows()) {
@@ -240,8 +259,7 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
       return new File(parserDirectory, "ThermoRawFileParserLinux");
     }
     if (Platform.isMac()) {
-      return new File(parserDirectory, "ThermoRawFileParserMac");
-//          new File("external_tools/thermo_raw_file_parser/ThermoRawFileParserMac");
+      return new File(parserDirectory, "ThermoRawFileParser");
     }
     throw new IllegalStateException(
         "Invalid operating system for parsing thermo files via the ThermoRawFileParser.");
