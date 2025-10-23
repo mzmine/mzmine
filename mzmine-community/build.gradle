@@ -248,12 +248,12 @@ configurations.all {
 }
 
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
     options.compilerArgs += ['--enable-preview']
 }
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
     jvmArgs = [
             "--enable-preview",
             "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
@@ -272,7 +272,7 @@ tasks.withType(Test) {
 //    }
 }
 
-tasks.withType(JavaExec) {
+tasks.withType(JavaExec).configureEach {
     jvmArgs += '--enable-preview'
 }
 
@@ -376,14 +376,16 @@ runtime {
                         "--mac-package-name", appName,
                         "--mac-package-identifier", "io.github.mzmine.main",
                         "--mac-signing-key-user-name", developerID,
-                        "--mac-signing-keychain", "/usr/bin/codesign/build.keychain",
+//                        /Users/runner/Library/Keychains/build.keychain-db
+                        "--mac-signing-keychain", "build.keychain",
                         "--verbose"
                 ]
                 installerOptions = [
 //                        "--license-file", "LICENSE.txt", not required
 "--mac-sign",
 "--mac-signing-key-user-name", developerID,
-"--mac-signing-keychain", "/usr/bin/codesign/build.keychain",
+//                        /Users/runner/Library/Keychains/build.keychain-db
+"--mac-signing-keychain", "build.keychain",
                 ]
             }
             installerName = "mzmine_macOS_installer-academia"
@@ -420,6 +422,7 @@ runtime {
         ]
     }
 }
+
 
 task signApp(dependsOn: jpackage) {
 
