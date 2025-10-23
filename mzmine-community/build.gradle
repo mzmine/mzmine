@@ -132,8 +132,7 @@ repositories {
     }
     // For jmzml, etc.
     maven { url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/" }
-    // For SIRIUS ID modules
-    maven { url = "https://bio.informatik.uni-jena.de/repository/libs-oss/" }
+    
 //    maven { url = "https://jitpack.io" } // should not be used at best - better push local
     maven { url = "https://www.xypron.de/repository/" }
     // For cpdetector
