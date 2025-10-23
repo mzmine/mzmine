@@ -597,22 +597,6 @@ task notarizeApp(dependsOn: signApp) {
                 ignoreExitValue = true // In case it's already installed
             }
 
-            // Notarize and staple the .app bundle itself first to avoid quarantine when copied from DMG
-            getLogger().lifecycle("Notarizing .app bundle...")
-            ExecResult appNotarize = exec {
-                commandLine(["xcrun", "notarytool", "submit", "--wait", "--apple-id", "${appleID}",
-                             "--password", "${appleIDPassword}", "--team-id", "${appleTeamID}",
-                             layout.buildDirectory.dir("jpackage").get().dir("mzmine.app").asFile.absolutePath])
-            }
-            if (appNotarize.getExitValue() != 0) {
-                throw new GradleException("Error ${appNotarize.getExitValue()} during app bundle notarization.")
-            }
-            getLogger().lifecycle("Stapling .app bundle...")
-            exec {
-                commandLine(["xcrun", "stapler", "staple",
-                             layout.buildDirectory.dir("jpackage").get().dir("mzmine.app").asFile.absolutePath])
-            }
-
             // Create DMG using appdmg with the existing configuration
             getLogger().lifecycle("Creating DMG with appdmg...")
             exec {
