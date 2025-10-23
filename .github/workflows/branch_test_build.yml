@@ -94,12 +94,13 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           echo "$MACOS_DEVELOPER_CERTIFICATE" | base64 --decode > certificate.p12
-          security create-keychain -p abc123 build.keychain
-          security default-keychain -s build.keychain
-          security set-keychain-settings -lut 1800 build.keychain
-          security unlock-keychain -p abc123 build.keychain
-          security import certificate.p12 -k build.keychain -P "$MACOS_DEVELOPER_CERTIFICATE_PWD" -T /usr/bin/codesign -T /usr/bin/security
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 build.keychain
+          security create-keychain -p abc123 ~/Library/Keychains/build.keychain
+          security set-keychain-settings -lut 1800 ~/Library/Keychains/build.keychain
+          security import certificate.p12 -k ~/Library/Keychains/build.keychain -P "$MACOS_DEVELOPER_CERTIFICATE_PWD" -T /usr/bin/codesign -T /usr/bin/security
+          security default-keychain -s ~/Library/Keychains/build.keychain
+          security unlock-keychain -p abc123 ~/Library/Keychains/build.keychain
+          security list-keychains -s ~/Library/Keychains/build.keychain
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 ~/Library/Keychains/build.keychain
           security find-identity -v -p codesigning
           ./gradlew -p mzmine-community notarizeApp --info --stacktrace -x test
         env:
