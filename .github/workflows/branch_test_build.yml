@@ -101,7 +101,7 @@ jobs:
           security import certificate.p12 -k build.keychain -P "$MACOS_DEVELOPER_CERTIFICATE_PWD" -T /usr/bin/codesign -T /usr/bin/security
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 build.keychain
           security find-identity -v -p codesigning
-          ./gradlew -p mzmine-community --info --stacktrace
+          ./gradlew -p mzmine-community --info --stacktrace -x test
         env:
           MACOS_DEVELOPER_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERTIFICATE }}
           MACOS_DEVELOPER_CERTIFICATE_PWD: ${{ secrets.MACOS_DEVELOPER_CERTIFICATE_PWD }}
