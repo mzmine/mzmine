@@ -363,6 +363,10 @@ runtime {
             def keychainAlternative = new File("/usr/Library/Keychains/build.keychain-db")
             getLogger().lifecycle("Keychain file /usr/Library/Keychains/build.keychain-db exists: " + keychain.exists())
             getLogger().lifecycle("Keychain file /usr/Library/Keychains/build.keychain exists: " + keychainAlternative.exists())
+            def keychain2 = new File("~/Library/Keychains/build.keychain-db")
+            def keychainAlternative2 = new File("~/Library/Keychains/build.keychain-db")
+            getLogger().lifecycle("Keychain file ~/Library/Keychains/build.keychain-db exists: " + keychain2.exists())
+            getLogger().lifecycle("Keychain file ~/Library/Keychains/build.keychain exists: " + keychainAlternative2.exists())
 
 //            installerType = "dmg"
             skipInstaller = true // no installer for macOS as we are generating it in GitHub action
