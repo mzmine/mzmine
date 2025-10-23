@@ -37,7 +37,6 @@ import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupPane.GroupView;
@@ -56,6 +55,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithDownloadParameter;
 import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePaletteParameter;
+import io.github.mzmine.parameters.parametertypes.proxy.ProxyConfigParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.ExitCode;
@@ -67,6 +67,9 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.web.ProxyDefinition;
 import io.github.mzmine.util.web.ProxyType;
 import io.github.mzmine.util.web.ProxyUtils;
+import io.github.mzmine.util.web.proxy.FullProxyConfig;
+import io.github.mzmine.util.web.proxy.ManualProxyConfig;
+import io.github.mzmine.util.web.proxy.ProxyConfigOption;
 import io.mzio.users.gui.fx.UsersController;
 import java.io.File;
 import java.text.DecimalFormat;
@@ -80,6 +83,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.Nullable;
 
 public class MZminePreferences extends SimpleParameterSet {
@@ -131,21 +135,11 @@ public class MZminePreferences extends SimpleParameterSet {
       This options is only added temporarily to allow using the old temp file cleanup, which should not be necessary.
       Default is true (checked).""", true);
 
-  public static final OptionalModuleParameter<ProxyParameters> proxySettings = new OptionalModuleParameter<>(
+  public static final ProxyConfigParameter proxyConfig = new ProxyConfigParameter();
+
+  // OLD PARAMETER THAT IS NOW MAPPED
+  private final OptionalModuleParameter<ProxyParameters> LEGACY_PROXY_SETTINGS = new OptionalModuleParameter<>(
       "Use proxy", "Use proxy for internet connection?", new ProxyParameters(), false);
-
-  // TODO REMOVE THIS HANDLING IS JUST FOR TEST
-  public enum ProxyOptions {
-    JAVA_PROXY, AUTO_PROXY, SYSTEM_PROXY, BROWSER_PROXY, WIN, WPAD, AUTO_LIB_JAVA;
-
-    public boolean isJavaProxy() {
-      return this == JAVA_PROXY;
-    }
-  }
-
-  public static final ComboParameter<ProxyOptions> proxyOptions = new ComboParameter<>(
-      "Proxy options", "", ProxyOptions.values(), ProxyOptions.JAVA_PROXY);
-  // TODO END OF TEST
 
 //  public static final BooleanParameter sendStatistics = new BooleanParameter(
 //      "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
@@ -300,7 +294,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public MZminePreferences() {
     super(// start with performance
         new Parameter[]{numOfThreads, memoryOption, imsOptimization, tempDirectory,
-            runGCafterBatchStep, deleteTempFiles, proxySettings, proxyOptions,
+            runGCafterBatchStep, deleteTempFiles, proxyConfig,
             /*applyTimsPressureCompensation,*/
             // visuals
             // number formats
@@ -343,7 +337,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
     final List<ParameterGroup> groups = List.of( //
         new ParameterGroup("General", numOfThreads, memoryOption, imsOptimization, tempDirectory,
-            runGCafterBatchStep, deleteTempFiles, proxySettings, proxyOptions
+            runGCafterBatchStep, deleteTempFiles, proxyConfig
             /*, applyTimsPressureCompensation*/), //
         new ParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
             intensityFormat, ppmFormat, scoreFormat, percentFormat, unitFormat), //
@@ -568,38 +562,30 @@ public class MZminePreferences extends SimpleParameterSet {
         }
       }
     }
+
+    // set old manual proxy to config
+    final var oldProxy = (OptionalModuleParameter<ProxyParameters>) loadedParams.get(
+        LEGACY_PROXY_SETTINGS.getName());
+    if (oldProxy != null && oldProxy.getValue()) {
+      String address = oldProxy.getEmbeddedParameters().getValue(ProxyParameters.proxyAddress);
+      int port = 80;
+      try {
+        final String portStr = oldProxy.getEmbeddedParameters().getValue(ProxyParameters.proxyPort);
+        if (portStr != null) {
+          port = Integer.parseInt(portStr);
+        }
+      } catch (Exception e) {
+      }
+      final FullProxyConfig config = new FullProxyConfig(ProxyConfigOption.MANUAL_PROXY,
+          new ManualProxyConfig(ProxyType.HTTP, address, port, List.of()));
+      ProxyUtils.applyConfig(config);
+    }
   }
 
   private void updateSystemProxySettings() {
-    // TODO REMOVE THIS HANDLING IS JUST FOR TEST
-    final ProxyOptions option = getValue(proxyOptions);
-    MZmineCore.setProxyOption(option);
-    if (true) {
-      return;
-    }
-
     // Update system proxy settings
-    Boolean proxyEnabled = getParameter(proxySettings).getValue();
-    if ((proxyEnabled != null) && (proxyEnabled)) {
-      ParameterSet proxyParams = getParameter(proxySettings).getEmbeddedParameters();
-      String address = proxyParams.getParameter(ProxyParameters.proxyAddress).getValue();
-      String port = proxyParams.getParameter(ProxyParameters.proxyPort).getValue();
-
-      // some proxy urls contain http:// at the beginning, we need to filter this out
-      if (address.startsWith("http://")) {
-        proxyParams.setParameter(ProxyParameters.proxyType, ProxyType.HTTP);
-        address = address.replaceFirst("http://", "");
-      } else if (address.startsWith("https://")) {
-        proxyParams.setParameter(ProxyParameters.proxyType, ProxyType.HTTPS);
-        address = address.replaceFirst("https://", "");
-      }
-
-      final ProxyType proxyType = proxyParams.getValue(ProxyParameters.proxyType);
-      // need to set both proxies anyway
-      ProxyUtils.setSystemProxy(address, port, proxyType);
-    } else {
-      ProxyUtils.clearSystemProxy();
-    }
+    final FullProxyConfig config = getValue(proxyConfig);
+    ProxyUtils.applyConfig(config);
   }
 
 
@@ -632,14 +618,11 @@ public class MZminePreferences extends SimpleParameterSet {
   }
 
   /**
-   * Set system proxy in preferences and {@link ProxyUtils#setSystemProxy(ProxyDefinition)}
+   * Set system proxy in preferences and {@link ProxyUtils#setManualProxy(ProxyDefinition)}
    */
-  public void setProxy(final ProxyDefinition proxy) {
-    OptionalModuleParameter<ProxyParameters> pp = getParameter(proxySettings);
-    pp.setValue(proxy.active());
-    ProxyParameters params = pp.getEmbeddedParameters();
-    params.setProxy(proxy);
-    ProxyUtils.setSystemProxy(proxy);
+  public void setProxy(final FullProxyConfig proxy) {
+    setParameter(proxyConfig, proxy);
+    ProxyUtils.applyConfig(proxy);
   }
 
   @Override
@@ -658,4 +641,6 @@ public class MZminePreferences extends SimpleParameterSet {
         getParameter(MZminePreferences.applyVendorCentroiding));
     return map;
   }
+
+
 }

@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util.web;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Easier to find system variables and custom system vars
  */
@@ -33,7 +35,7 @@ public enum ProxySystemVar {
   TYPE("proxyType"), // needed for login service
   HTTP_SELECTED("http.proxySet"), //
   HTTPS_SELECTED("https.proxySet"), //
-  SOCKS_SELECTED("socks.proxySet"), //
+  SOCKS_SELECTED("socksProxySet"), //
   /**
    * Seems to be used be all others as well
    */
@@ -58,5 +60,23 @@ public enum ProxySystemVar {
   @Override
   public String toString() {
     return getKey();
+  }
+
+  @Nullable
+  public String getSystemValue() {
+    return System.getProperty(this.getKey());
+  }
+
+  /**
+   * @return true if value was set false if it was cleared (value was null)
+   */
+  public boolean setSystemValue(@Nullable String value) {
+    if (value != null) {
+      System.setProperty(getKey(), value);
+      return true;
+    } else {
+      System.clearProperty(getKey());
+      return false;
+    }
   }
 }

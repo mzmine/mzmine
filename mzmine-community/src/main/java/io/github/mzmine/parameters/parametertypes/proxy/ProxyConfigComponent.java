@@ -32,12 +32,11 @@ import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.util.StringUtils;
+import io.github.mzmine.util.web.ProxyType;
 import io.github.mzmine.util.web.ProxyUtils;
 import io.github.mzmine.util.web.proxy.FullProxyConfig;
 import io.github.mzmine.util.web.proxy.ManualProxyConfig;
 import io.github.mzmine.util.web.proxy.ProxyConfigOption;
-import java.net.Proxy;
-import java.net.Proxy.Type;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -58,13 +57,13 @@ public class ProxyConfigComponent extends BorderPane {
       ProxyConfigOption.AUTO_PROXY);
 
   // manual
-  private final ObjectProperty<Proxy.Type> proxyType = new SimpleObjectProperty<>(Type.HTTP);
+  private final ObjectProperty<ProxyType> proxyType = new SimpleObjectProperty<>(ProxyType.HTTP);
   private final StringProperty host = new SimpleStringProperty("");
   private final ObjectProperty<Integer> port = new SimpleObjectProperty<>(80);
   private final StringProperty nonProxyHosts = new SimpleStringProperty("");
 
   // content for each option (some are null)
-  private final Map<ProxyConfigOption, Region> optionPanes = HashMap.newHashMap(3);
+  private final Map<ProxyConfigOption, Region> optionPanes = HashMap.newHashMap(4);
 
 
   public ProxyConfigComponent(FullProxyConfig value) {
@@ -78,14 +77,13 @@ public class ProxyConfigComponent extends BorderPane {
     final ComboBox<ProxyConfigOption> optionCombo = FxComboBox.createComboBox(
         "Options how to set proxy settings", ProxyConfigOption.values(), option);
 
-    final GridPane grid = FxLayout.newGrid2Col();
-
     final Button testButton = FxButtons.createButton("Test",
         "Apply and test proxy configuration for important websites. Results will be printed to the logs.",
         this::testProxy);
 
     setTop(FxLayout.newHBox(optionCombo, testButton));
-    setCenter(grid);
+
+    centerProperty().bind(option.map(optionPanes::get).orElse(null));
   }
 
   private void createOptionContentPanes() {
@@ -98,8 +96,8 @@ public class ProxyConfigComponent extends BorderPane {
     );
 
     optionPanes.put(ProxyConfigOption.MANUAL_PROXY, grid);
-
     // AUTO and NO_PROXY have no content so far but could get fallback options later
+
   }
 
   private void testProxy() {

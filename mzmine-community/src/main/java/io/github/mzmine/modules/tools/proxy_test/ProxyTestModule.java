@@ -60,7 +60,7 @@ public class ProxyTestModule extends AbstractRunnableModule {
     final File file = parameters.getValue(ProxyTestParameters.exportFile);
 
     // test proxy with different clients
-    ProxyClientTestUtils.testAll();
+//    ProxyClientTestUtils.testAll();
 
     // report with default
     proxyTestReport(file);

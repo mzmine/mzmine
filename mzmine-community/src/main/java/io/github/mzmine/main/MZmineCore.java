@@ -27,8 +27,6 @@ package io.github.mzmine.main;
 
 import static java.util.Objects.requireNonNullElse;
 
-import com.github.markusbernhardt.proxy.ProxySearch;
-import com.github.markusbernhardt.proxy.ProxySearch.Strategy;
 import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -39,7 +37,6 @@ import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.gui.preferences.MZminePreferences.ProxyOptions;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.dialogs.NotificationService;
@@ -60,10 +57,11 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.web.ProxyChangedEvent;
+import io.github.mzmine.util.web.ProxyTestUtils;
 import io.github.mzmine.util.web.ProxyUtils;
+import io.github.mzmine.util.web.proxy.FullProxyConfig;
 import io.mzio.events.AuthRequiredEvent;
 import io.mzio.events.EventService;
-import io.mzio.links.MzioMZmineLinks;
 import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
 import io.mzio.users.gui.fx.LoginOptions;
 import io.mzio.users.gui.fx.UsersController;
@@ -73,10 +71,6 @@ import io.mzio.users.user.UserNotificationUtils;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.ProxySelector;
-import java.net.URI;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -131,41 +125,21 @@ public final class MZmineCore {
   }
 
 
-  //TODO REMOVE TEST CODE
-  public static volatile ProxySelector JVM_PROXY_SELECTOR;
-
-  public static void setProxyOption(ProxyOptions option) {
-    logger.info("Setting proxy option to " + option);
-    if (option.isJavaProxy()) {
-      ProxySelector.setDefault(JVM_PROXY_SELECTOR);
-    } else {
-      setAutoProxySelector(option);
-    }
-  }
-  // TODO END OF TEST
-
-
   /**
    * Loads the configuration, parses the arguments and initializes everything, but does not launch
    * the batch or gui. Note: not static so it ensures that the {@link MZmineCore#init()} method is
    * called.
    */
   public void startUp(@NotNull final MZmineCoreArgumentParser argsParser) {
-    // TODO remove this line and rework proxy
-    // for now this just disables the changes done to clear or set proxy by config
-    ProxyUtils.setAllowChanges(false);
-
-    JVM_PROXY_SELECTOR = ProxySelector.getDefault();
-    logProxyState("Initial proxy settings were: " + JVM_PROXY_SELECTOR);
-
-    // handle proxy first
-    setAutoProxySelector(ProxyOptions.AUTO_PROXY);
+    ProxyTestUtils.logProxyState("Proxy on startup:");
+    ProxyUtils.applyConfig(FullProxyConfig.defaultConfig());
+    ProxyTestUtils.logProxyState("Proxy after default config:");
 
     // this also changes proxy settings after load
     ArgsToConfigUtils.applyArgsToConfig(argsParser);
 
     // so log state after load
-    logProxyState("Auto proxy after config loading:");
+    ProxyTestUtils.logProxyState("Auto proxy after config loading:");
 
     CurrentUserService.subscribe(user -> {
       var nickname = user == null ? null : user.getNickname();
@@ -224,7 +198,7 @@ public final class MZmineCore {
         }
       }
       if (mzEvent instanceof ProxyChangedEvent pevent) {
-        ConfigService.getPreferences().setProxy(pevent.proxy());
+        ConfigService.getPreferences().setProxy(pevent.config());
       }
     });
   }
@@ -320,152 +294,6 @@ public final class MZmineCore {
       exit(batchTask);
     }
 
-  }
-
-  /**
-   * <a href="https://github.com/akuhtz/proxy-vole">...</a>
-   */
-  @Nullable
-  public static ProxySelector createAutoProxySelector(ProxyOptions options) {
-    ProxySearch s = new ProxySearch();
-
-// configured with the default proxy search strategies for the current environment.
-    ProxySearch proxySearch = switch (options) {
-      case JAVA_PROXY -> null;
-      case AUTO_PROXY -> ProxySearch.getDefaultProxySearch();
-      case BROWSER_PROXY -> {
-        final ProxySearch search = new ProxySearch();
-        search.addStrategy(Strategy.BROWSER);
-        yield search;
-      }
-      case SYSTEM_PROXY -> {
-        final ProxySearch search = new ProxySearch();
-        search.addStrategy(Strategy.OS_DEFAULT);
-        yield search;
-      }
-      case WPAD -> {
-        final ProxySearch search = new ProxySearch();
-        search.addStrategy(Strategy.WPAD);
-        yield search;
-      }
-      case WIN -> {
-        final ProxySearch search = new ProxySearch();
-        search.addStrategy(Strategy.WIN);
-        yield search;
-      }
-      case AUTO_LIB_JAVA -> {
-        final ProxySearch search = new ProxySearch();
-        search.addStrategy(Strategy.JAVA);
-        yield search;
-      }
-    };
-    if (proxySearch == null) {
-      return null;
-    }
-    return proxySearch.getProxySelector();
-  }
-
-  /**
-   * <a href="https://github.com/akuhtz/proxy-vole">...</a>
-   */
-  private static void setAutoProxySelector(ProxyOptions options) {
-    logger.info("Initializing auto proxy selector as " + options);
-// Invoke the proxy search. This will create a ProxySelector with the detected proxy settings.
-    ProxySelector proxySelector = createAutoProxySelector(options);
-    if (proxySelector == null) {
-      logger.warning(
-          "Auto proxy selector could not be initialized. Proxy settings are not detected.");
-      return;
-    }
-
-// Install this ProxySelector as default ProxySelector for all connections.
-    ProxySelector.setDefault(proxySelector);
-    logProxyState("Auto proxy selector, now proxy settings are: " + options);
-  }
-
-  private static void logProxyState(String msg) {
-    List<String> testUrls = List.of("https://auth.mzio.io/", MzioMZmineLinks.MZIO.getUrl());
-
-    logger.info(msg);
-    logSystemProperties();
-    logProxyDetails(testUrls);
-  }
-
-  /**
-   * Logs the standard Java networking system properties related to proxies.
-   */
-  private static void logSystemProperties() {
-    logger.info("Checking Java System Properties for Proxies...");
-
-    String[] properties = {"java.net.useSystemProxies", "http.proxyHost", "http.proxyPort",
-        "http.nonProxyHosts", "https.proxyHost", "https.proxyPort", "ftp.proxyHost",
-        "ftp.proxyPort", "socksProxyHost", "socksProxyPort"};
-
-    boolean found = false;
-    for (String prop : properties) {
-      String value = System.getProperty(prop);
-      if (value != null && !value.trim().isEmpty()) {
-        // 3. Use the logger for informational output
-        logger.info("System Property: " + prop + " = " + value);
-        found = true;
-      }
-    }
-
-    if (!found) {
-      logger.info("No standard proxy system properties are set.");
-    }
-  }
-
-  private static void logProxyDetails(List<String> urls) {
-    ProxySelector defaultSelector = ProxySelector.getDefault();
-    if (defaultSelector == null) {
-      logger.info("No default proxy selector is set.");
-      return;
-    }
-    for (String url : urls) {
-      try {
-        URI testUri = new URI(url);
-        List<Proxy> proxies = defaultSelector.select(testUri);
-
-        if (proxies == null || proxies.isEmpty()) {
-          logger.info("No proxies returned from the selector.");
-          return;
-        }
-
-        logger.info("Detected " + proxies.size() + " proxy setting(s) via ProxySelector:");
-
-        for (Proxy proxy : proxies) {
-          logProxyDetails(url, proxy);
-        }
-
-      } catch (Exception e) {
-        // 2. Log exceptions at a SEVERE level, including the stack trace
-        logger.log(Level.SEVERE, "An error occurred while detecting proxies", e);
-      }
-    }
-  }
-
-  private static void logProxyDetails(String url, Proxy proxy) {
-    logger.info("--> Proxy Type: " + proxy.type());
-
-    switch (proxy.type()) {
-      case DIRECT -> logger.info("    Connection will be made directly, without a proxy.");
-      case HTTP -> {
-        InetSocketAddress addr = (InetSocketAddress) proxy.address();
-        logger.info("    For target URL: " + url);
-        logger.info("    HTTP Proxy Name: " + addr.getHostName());
-        logger.info("    HTTP Proxy Server: " + addr.getHostString());
-        logger.info("    Port: " + addr.getPort());
-      }
-      case SOCKS -> {
-        InetSocketAddress addr = (InetSocketAddress) proxy.address();
-        logger.info("    For target URL: " + url);
-        logger.info("    SOCKS Proxy Name: " + addr.getHostName());
-        logger.info("    SOCKS Proxy Server: " + addr.getHostString());
-        logger.info("    Port: " + addr.getPort());
-      }
-      default -> logger.warning("    An unknown proxy type was detected.");
-    }
   }
 
 

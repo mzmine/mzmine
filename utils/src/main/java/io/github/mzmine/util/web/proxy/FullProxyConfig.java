@@ -40,4 +40,8 @@ public record FullProxyConfig(@NotNull ProxyConfigOption option,
   public static FullProxyConfig defaultConfig() {
     return new FullProxyConfig(ProxyConfigOption.AUTO_PROXY, ManualProxyConfig.defaultConfig());
   }
+
+  public static @NotNull FullProxyConfig noProxy() {
+    return new FullProxyConfig(ProxyConfigOption.NO_PROXY, ManualProxyConfig.defaultConfig());
+  }
 }

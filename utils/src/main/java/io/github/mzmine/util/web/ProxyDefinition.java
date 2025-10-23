@@ -34,8 +34,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @param address prefix of http or https:// are removed internally
  */
-public record ProxyDefinition(boolean active, @Nullable String address, @Nullable String port,
-                              @NotNull ProxyType type) {
+public record ProxyDefinition(boolean manuallySelected, @Nullable String address,
+                              @Nullable String port, @NotNull ProxyType type) {
 
   public static final ProxyDefinition EMPTY = new ProxyDefinition(false, null, null,
       ProxyType.HTTP);
@@ -45,15 +45,18 @@ public record ProxyDefinition(boolean active, @Nullable String address, @Nullabl
     this(active, address, port, null);
   }
 
-  public ProxyDefinition(final boolean active, @Nullable final String address,
+  public ProxyDefinition(final boolean manuallySelected, @Nullable final String address,
       @Nullable final String port, @Nullable ProxyType type) {
     // deactivate if any is null
-    this.active = active && ObjectUtils.noneNull(address, port);
+    this.manuallySelected = manuallySelected && ObjectUtils.noneNull(address, port);
     this.port = port;
 
     // some proxy urls contain http:// at the beginning, we need to filter this out
     if (address == null) {
       this.address = address;
+    } else if (address.toLowerCase().startsWith("socks://")) {
+      this.address = address.replaceFirst("socks://", "");
+      type = ProxyType.SOCKS;
     } else if (address.toLowerCase().startsWith("http://")) {
       this.address = address.replaceFirst("http://", "");
       type = ProxyType.HTTP;
@@ -64,6 +67,11 @@ public record ProxyDefinition(boolean active, @Nullable String address, @Nullabl
       this.address = address;
     }
     this.type = requireNonNullElse(type, ProxyType.HTTP);
+  }
+
+  public ProxyDefinition(boolean manuallySelected, @NotNull String host, int port,
+      @NotNull ProxyType type) {
+    this(manuallySelected, host, Integer.toString(port), type);
   }
 
   /**

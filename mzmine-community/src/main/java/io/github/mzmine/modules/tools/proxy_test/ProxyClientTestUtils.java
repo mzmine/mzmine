@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.tools.proxy_test;
 
-import io.github.mzmine.gui.preferences.MZminePreferences.ProxyOptions;
-import io.github.mzmine.main.MZmineCore;
 import io.mzio.links.MzioMZmineLinks;
 import java.net.ProxySelector;
 import java.net.URI;
@@ -51,41 +49,41 @@ public class ProxyClientTestUtils {
     List<String> testUrls = List.of("https://auth.mzio.io/", MzioMZmineLinks.MZIO.getUrl(),
         "https://zenodo.org/", "https://pubchem.ncbi.nlm.nih.gov/");
 
-    testUrls(testUrls);
+//    testUrls(testUrls);
   }
 
-  public static void testUrls(List<String> urls) {
-    testJdkClient(urls, "JDK NULL selector", null, Redirect.NORMAL);
-    testJdkClient(urls, "JDK default selector", MZmineCore.JVM_PROXY_SELECTOR, Redirect.NORMAL);
-    testJdkClient(urls, "JDK default selector", MZmineCore.JVM_PROXY_SELECTOR, Redirect.NEVER);
-    testJdkClient(urls, "JDK default selector", MZmineCore.JVM_PROXY_SELECTOR, Redirect.ALWAYS);
-    testJdkClient(urls, "Auto proxy selector",
-        MZmineCore.createAutoProxySelector(ProxyOptions.AUTO_PROXY), Redirect.NORMAL);
-    testJdkClient(urls, "Auto proxy selector",
-        MZmineCore.createAutoProxySelector(ProxyOptions.AUTO_PROXY), Redirect.NEVER);
-    testJdkClient(urls, "Auto proxy selector",
-        MZmineCore.createAutoProxySelector(ProxyOptions.AUTO_PROXY), Redirect.ALWAYS);
-    testJdkClient(urls, "Auto Browser proxy selector",
-        MZmineCore.createAutoProxySelector(ProxyOptions.BROWSER_PROXY), Redirect.NORMAL);
-    testJdkClient(urls, "Auto SYSTEM proxy selector",
-        MZmineCore.createAutoProxySelector(ProxyOptions.SYSTEM_PROXY), Redirect.NORMAL);
-    testJdkClient(urls, "Auto WIN proxy selector",
-        MZmineCore.createAutoProxySelector(ProxyOptions.WIN), Redirect.NORMAL);
-    testJdkClient(urls, "Auto WPAD proxy selector",
-        MZmineCore.createAutoProxySelector(ProxyOptions.WPAD), Redirect.NORMAL);
-
-    // test apache client
-    testApacheClient(urls, "Apache NULL SYSTEM selector", null, true);
-    testApacheClient(urls, "Apache NULL selector", null);
-    testApacheClient(urls, "Apache default selector", MZmineCore.JVM_PROXY_SELECTOR);
-    testApacheClient(urls, "Apache auto proxy selector",
-        MZmineCore.createAutoProxySelector(ProxyOptions.AUTO_PROXY));
-    testApacheClient(urls, "Apache browser proxy selector",
-        MZmineCore.createAutoProxySelector(ProxyOptions.BROWSER_PROXY));
-    testApacheClient(urls, "Apache system proxy selector",
-        MZmineCore.createAutoProxySelector(ProxyOptions.SYSTEM_PROXY));
-
-  }
+//  public static void testUrls(List<String> urls) {
+//    testJdkClient(urls, "JDK NULL selector", null, Redirect.NORMAL);
+//    testJdkClient(urls, "JDK default selector", MZmineCore.JVM_PROXY_SELECTOR, Redirect.NORMAL);
+//    testJdkClient(urls, "JDK default selector", MZmineCore.JVM_PROXY_SELECTOR, Redirect.NEVER);
+//    testJdkClient(urls, "JDK default selector", MZmineCore.JVM_PROXY_SELECTOR, Redirect.ALWAYS);
+//    testJdkClient(urls, "Auto proxy selector",
+//        MZmineCore.createAutoProxySelector(ProxyOptions.AUTO_PROXY), Redirect.NORMAL);
+//    testJdkClient(urls, "Auto proxy selector",
+//        MZmineCore.createAutoProxySelector(ProxyOptions.AUTO_PROXY), Redirect.NEVER);
+//    testJdkClient(urls, "Auto proxy selector",
+//        MZmineCore.createAutoProxySelector(ProxyOptions.AUTO_PROXY), Redirect.ALWAYS);
+//    testJdkClient(urls, "Auto Browser proxy selector",
+//        MZmineCore.createAutoProxySelector(ProxyOptions.BROWSER_PROXY), Redirect.NORMAL);
+//    testJdkClient(urls, "Auto SYSTEM proxy selector",
+//        MZmineCore.createAutoProxySelector(ProxyOptions.SYSTEM_PROXY), Redirect.NORMAL);
+//    testJdkClient(urls, "Auto WIN proxy selector",
+//        MZmineCore.createAutoProxySelector(ProxyOptions.WIN), Redirect.NORMAL);
+//    testJdkClient(urls, "Auto WPAD proxy selector",
+//        MZmineCore.createAutoProxySelector(ProxyOptions.WPAD), Redirect.NORMAL);
+//
+//    // test apache client
+//    testApacheClient(urls, "Apache NULL SYSTEM selector", null, true);
+//    testApacheClient(urls, "Apache NULL selector", null);
+//    testApacheClient(urls, "Apache default selector", MZmineCore.JVM_PROXY_SELECTOR);
+//    testApacheClient(urls, "Apache auto proxy selector",
+//        MZmineCore.createAutoProxySelector(ProxyOptions.AUTO_PROXY));
+//    testApacheClient(urls, "Apache browser proxy selector",
+//        MZmineCore.createAutoProxySelector(ProxyOptions.BROWSER_PROXY));
+//    testApacheClient(urls, "Apache system proxy selector",
+//        MZmineCore.createAutoProxySelector(ProxyOptions.SYSTEM_PROXY));
+//
+//  }
 
   private static void testJdkClient(List<String> urls, String title, ProxySelector selector,
       Redirect redirect) {

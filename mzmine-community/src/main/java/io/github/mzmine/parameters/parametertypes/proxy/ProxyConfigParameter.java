@@ -29,16 +29,21 @@ import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.parameters.AbstractParameter;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.util.web.ProxyType;
 import io.github.mzmine.util.web.proxy.FullProxyConfig;
+import io.github.mzmine.util.web.proxy.ManualProxyConfig;
+import io.github.mzmine.util.web.proxy.ProxyConfigOption;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class ProxyConfigParameter extends AbstractParameter<FullProxyConfig, ProxyConfigComponent> {
 
   @NotNull
   private FullProxyConfig value = FullProxyConfig.defaultConfig();
+
 
   public ProxyConfigParameter() {
     super("Proxy config", "Proxy configuration");
@@ -83,12 +88,31 @@ public class ProxyConfigParameter extends AbstractParameter<FullProxyConfig, Pro
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
+    final ProxyConfigOption option = ProxyConfigOption.valueOf(
+        xmlElement.getAttribute("proxyOption"));
 
+    Element manualEl = (Element) xmlElement.getElementsByTagName("manual").item(0);
+    final ProxyType type = ProxyType.valueOf(manualEl.getAttribute("type"));
+    final String host = manualEl.getAttribute("host");
+    final String port = manualEl.getAttribute("port");
+    final String nonProxyHosts = manualEl.getAttribute("nonProxyHosts");
+
+    value = new FullProxyConfig(option, new ManualProxyConfig(type, host, port, nonProxyHosts));
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
+    xmlElement.setAttribute("proxyOption", value.option().name());
 
+    // child
+    final ManualProxyConfig manual = value.manualConfig();
+    Document parentDocument = xmlElement.getOwnerDocument();
+    Element manualEl = parentDocument.createElement("manual");
+    manualEl.setAttribute("host", manual.host());
+    manualEl.setAttribute("port", manual.portString());
+    manualEl.setAttribute("type", manual.type().name());
+    manualEl.setAttribute("nonProxyHosts", String.join(",", manual.nonProxyHosts()));
+    xmlElement.appendChild(manualEl);
   }
 
   @Override
