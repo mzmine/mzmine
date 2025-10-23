@@ -365,8 +365,8 @@ runtime {
             getLogger().lifecycle("Keychain file /usr/Library/Keychains/build.keychain exists: " + keychainAlternative.exists())
             def keychain3 = new File("/Users/runner/Library/Keychains/build.keychain-db")
             def keychainAlternative3 = new File("/Users/runner/Library/Keychains/build.keychain")
-            getLogger().lifecycle("Keychain file /usr/Library/Keychains/build.keychain-db exists: " + keychain3.exists())
-            getLogger().lifecycle("Keychain file /usr/Library/Keychains/build.keychain exists: " + keychainAlternative3.exists())
+            getLogger().lifecycle("Keychain file /Users/runner//Keychains/build.keychain-db exists: " + keychain3.exists())
+            getLogger().lifecycle("Keychain file /Users/runner/Library/Keychains/build.keychain exists: " + keychainAlternative3.exists())
             def keychain2 = new File("~/Library/Keychains/build.keychain-db")
             def keychainAlternative2 = new File("~/Library/Keychains/build.keychain-db")
             getLogger().lifecycle("Keychain file ~/Library/Keychains/build.keychain-db exists: " + keychain2.exists())
@@ -392,7 +392,7 @@ runtime {
                         "--mac-signing-key-user-name", developerID,
 //                        /Users/runner/Library/Keychains/build.keychain-db
 //                        "--mac-signing-keychain", "build.keychain",
-                        "--mac-signing-keychain", "/usr/Library/Keychains/build.keychain-db",
+                        "--mac-signing-keychain", "/Users/runner/Library/Keychains/build.keychain-db",
                         "--verbose"
                 ]
                 installerOptions = [
@@ -401,7 +401,7 @@ runtime {
 "--mac-signing-key-user-name", developerID,
 //                        /Users/runner/Library/Keychains/build.keychain-db
 // this keychain option seems to be optional. Somehow it is not found though
-"--mac-signing-keychain", "/usr/Library/Keychains/build.keychain-db",
+"--mac-signing-keychain", "/Users/runner/Library/Keychains/build.keychain-db",
 //"--mac-signing-keychain", "build.keychain",
                 ]
             }
