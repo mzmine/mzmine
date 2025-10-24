@@ -79,7 +79,7 @@ public class ProxyConfigComponent extends BorderPane {
 
     final Button testButton = FxButtons.createButton("Test",
         "Apply and test proxy configuration for important websites. Results will be printed to the logs.",
-        this::testProxy);
+        this::testProxyDialog);
 
     setTop(FxLayout.newHBox(optionCombo, testButton));
 
@@ -100,10 +100,11 @@ public class ProxyConfigComponent extends BorderPane {
 
   }
 
-  private void testProxy() {
+  private void testProxyDialog() {
     final FullProxyConfig value = getValue();
     ProxyUtils.applyConfig(value);
 
+    new ProxyTestDialogController().showDialog();
   }
 
   public void setValue(FullProxyConfig value) {
