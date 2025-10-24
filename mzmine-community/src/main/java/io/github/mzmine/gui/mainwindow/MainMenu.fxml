@@ -25,14 +25,11 @@
   ~ OTHER DEALINGS IN THE SOFTWARE.
   -->
 <?import io.github.mzmine.util.javafx.WindowsMenu?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.SeparatorMenuItem?>
-<?import javafx.scene.input.KeyCodeCombination?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.input.*?>
 <MenuBar useSystemMenuBar="true"
-  xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
-  fx:controller="io.github.mzmine.gui.mainwindow.MainMenuController">
+         xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8"
+         fx:controller="io.github.mzmine.gui.mainwindow.MainMenuController">
 
   <Menu onShowing="#fillRecentProjects" text="Project">
     <Menu text="Open recent project..." fx:id="recentProjectsMenu"/>
@@ -142,6 +139,8 @@
         userData="io.github.mzmine.modules.dataprocessing.featdet_denormalize_by_inject_time.DenormalizeScansMultiplyByInjectTimeModule"/>
       <MenuItem text="Split MALDI spots to raw data files" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_maldipseudofilegenerator.MaldiPseudoFileGeneratorModule"/>
+      <MenuItem text="Retention Time → Temperature" onAction="#runModule"
+                userData="io.github.mzmine.modules.dataprocessing.transform_rttotemperature.RTtoTemperatureModule"/>
     </Menu>
 
     <SeparatorMenuItem/>
