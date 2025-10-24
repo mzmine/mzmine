@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class caches feature data and either preloads all features of all provided feature list rows
@@ -45,6 +46,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class CachedFeatureDataAccess {
 
+  private final boolean preloadMz;
+  private final boolean preloadIntensity;
   protected final Map<Feature, double[]> intensityMap;
   protected final Map<Feature, double[]> mzMap;
 
@@ -54,6 +57,8 @@ public class CachedFeatureDataAccess {
    * for the same feature. Otherwise, access the feature data directly.
    */
   public CachedFeatureDataAccess() {
+    preloadMz = false;
+    preloadIntensity = false;
     intensityMap = new ConcurrentHashMap<>();
     mzMap = new ConcurrentHashMap<>();
   }
@@ -83,8 +88,11 @@ public class CachedFeatureDataAccess {
    */
   public CachedFeatureDataAccess(FeatureListRow[] rows, boolean preloadMz,
       boolean preloadIntensity) {
-    intensityMap = new HashMap<>();
-    mzMap = new HashMap<>();
+    this.preloadMz = preloadMz;
+    this.preloadIntensity = preloadIntensity;
+    // needs to be threadsafe if not preloaded
+    intensityMap = preloadIntensity ? new HashMap<>() : new ConcurrentHashMap<>();
+    mzMap = preloadMz ? new HashMap<>() : new ConcurrentHashMap<>();
     if (preloadMz) {
       loadMzValues(rows);
     }
@@ -99,8 +107,12 @@ public class CachedFeatureDataAccess {
    * @param f feature
    * @return the intensity array of this feature
    */
-  public double[] getIntensityValues(Feature f) {
-    assert f != null;
+  public double[] getIntensityValues(@NotNull Feature f) {
+    if (preloadIntensity) {
+      // just return whats loaded - as there are no more that need computation
+      return intensityMap.get(f);
+    }
+
     return intensityMap.computeIfAbsent(f, feature -> feature.getFeatureData()
         .getIntensityValues(new double[feature.getNumberOfDataPoints()]));
   }
@@ -111,8 +123,11 @@ public class CachedFeatureDataAccess {
    * @param f feature
    * @return the m/z array of this feature
    */
-  public double[] getMzValues(Feature f) {
-    assert f != null;
+  public double[] getMzValues(@NotNull Feature f) {
+    if (preloadMz) {
+      // just return whats loaded - as there are no more that need computation
+      return mzMap.get(f);
+    }
     return mzMap.computeIfAbsent(f, feature -> feature.getFeatureData()
         .getMzValues(new double[feature.getNumberOfDataPoints()]));
   }
@@ -125,7 +140,8 @@ public class CachedFeatureDataAccess {
   private void loadIntensityValues(FeatureListRow[] rows) {
     for (FeatureListRow row : rows) {
       for (Feature feature : row.getFeatures()) {
-        if (feature != null && !feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
+        if (feature != null && !feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN)
+            && feature.getFeatureData() != null) {
           intensityMap.put(feature, feature.getFeatureData()
               .getIntensityValues(new double[feature.getNumberOfDataPoints()]));
         }
@@ -141,9 +157,10 @@ public class CachedFeatureDataAccess {
   private void loadMzValues(FeatureListRow[] rows) {
     for (FeatureListRow row : rows) {
       for (Feature feature : row.getFeatures()) {
-        if (feature != null && !feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
-          mzMap.put(feature, feature.getFeatureData()
-              .getMzValues(new double[feature.getNumberOfDataPoints()]));
+        if (feature != null && !feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN)
+            && feature.getFeatureData() != null) {
+          mzMap.put(feature,
+              feature.getFeatureData().getMzValues(new double[feature.getNumberOfDataPoints()]));
         }
       }
     }
