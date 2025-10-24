@@ -69,7 +69,6 @@ public class DIAImsMsMsInfoImpl implements IonMobilityMsMsInfo {
     this.collisionEnergy = collisionEnergy;
     this.fragmentFrame = fragmentFrameNumber;
     this.isolationWindow = SimpleRange.ofDouble(isolationWindow);
-    checkSpectrumRanges();
   }
 
   /**
@@ -159,7 +158,6 @@ public class DIAImsMsMsInfoImpl implements IonMobilityMsMsInfo {
       return false;
     }
     fragmentFrame = frame;
-    checkSpectrumRanges();
     return true;
   }
 
