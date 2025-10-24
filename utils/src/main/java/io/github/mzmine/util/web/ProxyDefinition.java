@@ -85,4 +85,7 @@ public record ProxyDefinition(boolean manuallySelected, @Nullable String address
     return "%s://%s:%s".formatted(type, address, port);
   }
 
+  public boolean isEmpty() {
+    return address == null || address.isBlank();
+  }
 }
