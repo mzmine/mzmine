@@ -51,11 +51,12 @@ public class ProxyTestDialogController extends FxController<ProxyTestDialogModel
     final boolean testNoProxy = ProxyTestUtils.testDefaultClient(false);
 
     final String results = ProxyTestUtils.testAll();
+    final String log = ProxyTestUtils.logProxyState("Proxy config test: ");
 
     FxThread.runLater(() -> {
       model.setProxyTest(testProxy);
       model.setNoProxyTest(testNoProxy);
-      model.setMessage(results);
+      model.setMessage(results + "\n\n" + log);
       model.setTestsFinished(true);
     });
   }
@@ -66,8 +67,10 @@ public class ProxyTestDialogController extends FxController<ProxyTestDialogModel
   }
 
   public void showDialog() {
-    final Alert dialog = DialogLoggerUtil.createAlert(AlertType.NONE,
-        DialogLoggerUtil.getMainWindow(), "Proxy connection test", buildView(), ButtonType.CLOSE);
-    dialog.show();
+    FxThread.runLater(() -> {
+      final Alert dialog = DialogLoggerUtil.createAlert(AlertType.NONE,
+          DialogLoggerUtil.getMainWindow(), "Proxy connection test", buildView(), ButtonType.CLOSE);
+      dialog.show();
+    });
   }
 }
