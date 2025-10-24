@@ -58,7 +58,10 @@ public class ProxyUtils {
 
   private static final Logger logger = Logger.getLogger(ProxyUtils.class.getName());
   private static volatile boolean allowChanges = true;
-  private static volatile FullProxyConfig currentConfig;
+
+  @NotNull
+  private static volatile FullProxyConfig currentConfig = FullProxyConfig.create(
+      ProxyConfigOption.STARTUP);
 
   // keep track of all initial proxy values from the startup
   private static final String DEFAULT_HTTP_NON_PROXY_HOSTS = HTTP_NON_PROXY_HOSTS.getSystemValue();
@@ -68,7 +71,6 @@ public class ProxyUtils {
   private static final String DEFAULT_HTTPS_PORT = HTTPS_PORT.getSystemValue();
   private static final String DEFAULT_SOCKS_HOST = SOCKS_HOST.getSystemValue();
   private static final String DEFAULT_SOCKS_PORT = SOCKS_PORT.getSystemValue();
-
 
   public static synchronized void setAllowChanges(final boolean allowChanges) {
     ProxyUtils.allowChanges = allowChanges;
@@ -102,20 +104,13 @@ public class ProxyUtils {
     }
 
     switch (value.option()) {
-      case SYSTEM -> {
-        // use system defaults and only use selector for those that are missing
-        applySystemDefaults(false);
-      }
-      case AUTO_PROXY -> {
-        // use system defaults and force selector even if default is not missing
-        applySystemDefaults(true);
-      }
-      case NO_PROXY -> {
-        clearSystemProxy();
-      }
-      case MANUAL_PROXY -> {
-        applyManualProxyConfig(value.manualConfig());
-      }
+      // use system defaults and only use selector for those that are missing
+      case SYSTEM -> applySystemDefaults(SynchronizeProxySelectorOptions.IF_SYSTEM_PROP_MISSING);
+      // use system defaults and force selector even if default is not missing
+      case AUTO_PROXY -> applySystemDefaults(SynchronizeProxySelectorOptions.ALWAYS);
+      case STARTUP -> applySystemDefaults(SynchronizeProxySelectorOptions.NEVER);
+      case NO_PROXY -> clearSystemProxy();
+      case MANUAL_PROXY -> applyManualProxyConfig(value.manualConfig());
     }
 
     // send event that proxy has changed
@@ -338,7 +333,7 @@ public class ProxyUtils {
    * Applies system defaults from startup of JVM or if those are empty tries to find the proxy with
    * {@link ProxySelector#getDefault()} by checking https://auth.mzio.io/.
    */
-  private static void applySystemDefaults(boolean alwaysApplyProxySelector) {
+  private static void applySystemDefaults(SynchronizeProxySelectorOptions synchronize) {
     if (!allowChanges) {
       return;
     }
@@ -364,7 +359,8 @@ public class ProxyUtils {
 
     logger.info("Proxy settings restored to system defaults");
 
-    if (alwaysApplyProxySelector || !anyHttpHostDefined) {
+    if (synchronize == SynchronizeProxySelectorOptions.ALWAYS || (!anyHttpHostDefined
+        && synchronize == SynchronizeProxySelectorOptions.IF_SYSTEM_PROP_MISSING)) {
       final ProxySelector selector = ProxySelector.getDefault();
       if (selector != null) {
         syncProxySelectorToSystemProperties("https://auth.mzio.io/", selector);
@@ -372,4 +368,12 @@ public class ProxyUtils {
     }
   }
 
+  /**
+   *
+   * @return only null on startup but should be notnull after
+   */
+  @NotNull
+  public static FullProxyConfig getConfig() {
+    return currentConfig;
+  }
 }

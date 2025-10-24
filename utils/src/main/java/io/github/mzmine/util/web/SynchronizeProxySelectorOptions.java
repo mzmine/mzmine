@@ -23,29 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.web.proxy;
+package io.github.mzmine.util.web;
 
-import org.jetbrains.annotations.NotNull;
-
-/**
- * Combines configs from manual and auto
- *
- * @param option       auto, manual, none
- * @param manualConfig manual config
- */
-public record FullProxyConfig(@NotNull ProxyConfigOption option,
-                              @NotNull ManualProxyConfig manualConfig) {
-
-
-  public static FullProxyConfig defaultConfig() {
-    return FullProxyConfig.create(ProxyConfigOption.AUTO_PROXY);
-  }
-
-  public static @NotNull FullProxyConfig noProxy() {
-    return FullProxyConfig.create(ProxyConfigOption.NO_PROXY);
-  }
-
-  public static @NotNull FullProxyConfig create(@NotNull ProxyConfigOption option) {
-    return new FullProxyConfig(option, ManualProxyConfig.defaultConfig());
-  }
+public enum SynchronizeProxySelectorOptions {
+  /**
+   * This is the default auto option now
+   */
+  ALWAYS,
+  /**
+   * this is the system auto option that only replaces missing http hosts etc
+   */
+  IF_SYSTEM_PROP_MISSING,
+  /**
+   * This is the JDK default where the system properties may not be set
+   */
+  NEVER
 }

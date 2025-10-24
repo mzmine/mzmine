@@ -75,7 +75,7 @@ public class ProxyConfigComponent extends BorderPane {
     createOptionContentPanes();
 
     final ComboBox<ProxyConfigOption> optionCombo = FxComboBox.createComboBox(
-        "Options how to set proxy settings", ProxyConfigOption.values(), option);
+        "Options how to set proxy settings", ProxyConfigOption.defaultValues(), option);
 
     final Button testButton = FxButtons.createButton("Test",
         "Apply and test proxy configuration for important websites. Results will be printed to the logs.",

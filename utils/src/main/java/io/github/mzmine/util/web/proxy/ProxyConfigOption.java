@@ -25,14 +25,42 @@
 
 package io.github.mzmine.util.web.proxy;
 
+import io.github.mzmine.util.web.ProxySystemVar;
+import java.net.ProxySelector;
+import java.util.Arrays;
+
 public enum ProxyConfigOption {
-  AUTO_PROXY("Auto-detect proxy"), SYSTEM("System auto proxy"), NO_PROXY("No proxy"), MANUAL_PROXY(
-      "Manual proxy");
+
+  /**
+   * Sets the default system vars in {@link ProxySystemVar} and will overwrite them with the proxy
+   * for auth.mzio.io website found through {@link ProxySelector#getDefault()}
+   */
+  AUTO_PROXY("Auto-detect proxy"),
+  /**
+   * Sets the default system vars in {@link ProxySystemVar} and IF THEY ARE EMPTY, they will be
+   * overwritten with the proxy for auth.mzio.io website found through
+   * {@link ProxySelector#getDefault()}
+   */
+  SYSTEM("System auto proxy"), NO_PROXY("No proxy"), MANUAL_PROXY("Manual proxy"),
+  /**
+   * This is only here to describe the state at start up. Users should not be able to select it
+   * though. AUTO_PROXY is preferred as it synchronizes the settings between
+   * {@link ProxySelector#getDefault()} and the System.getProperty values from
+   * {@link ProxySystemVar}
+   */
+  STARTUP("Startup proxy");
 
   private final String text;
 
   ProxyConfigOption(String text) {
     this.text = text;
+  }
+
+  /**
+   * {@link #STARTUP} is not selectable in parameters. Only present at startup
+   */
+  public static ProxyConfigOption[] defaultValues() {
+    return Arrays.stream(values()).filter(o -> o != STARTUP).toArray(ProxyConfigOption[]::new);
   }
 
   @Override
