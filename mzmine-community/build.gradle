@@ -30,6 +30,8 @@ import com.github.jk1.license.render.InventoryHtmlReportRenderer
 import com.github.jk1.license.render.JsonReportRenderer
 import org.gradle.internal.os.OperatingSystem
 
+import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
@@ -609,6 +611,10 @@ task signApp(dependsOn: jpackage) {
 task notarizeApp(dependsOn: signApp) {
     if (OperatingSystem.current().isMacOsX() && macSigning) {
         doLast {
+            File jpackageDir = layout.buildDirectory.dir("jpackage").get().asFile
+            File dmgFile = new File(jpackageDir, "mzmine_macOS_installer_academia.dmg")
+            File appBundle = new File(jpackageDir, "mzmine.app")
+
             // Install appdmg if not already installed
             getLogger().lifecycle("Installing appdmg...")
             exec {
@@ -622,38 +628,60 @@ task notarizeApp(dependsOn: signApp) {
                 commandLine(['appdmg',
                              "${layout.projectDirectory.dir('gradle/appdmg.json').asFile.absolutePath}",
                              'mzmine_macOS_installer_academia.dmg'])
-                workingDir layout.buildDirectory.dir("jpackage").get().asFile
+                workingDir jpackageDir
             }
 
             // Sign the DMG itself
             getLogger().lifecycle("Signing DMG...")
             exec {
                 commandLine(['codesign', '--force', '--sign', "${developerID}", '--timestamp',
-                             '--options', 'runtime', 'mzmine_macOS_installer_academia.dmg'])
-                workingDir layout.buildDirectory.dir("jpackage").get().asFile
+                             '--options', 'runtime', dmgFile.name])
+                workingDir jpackageDir
             }
 
             getLogger().lifecycle("Notarizing DMG...")
             // Notarize the DMG
+            ByteArrayOutputStream notaryStdout = new ByteArrayOutputStream()
+            ByteArrayOutputStream notaryStderr = new ByteArrayOutputStream()
             ExecResult execResult = exec {
                 commandLine(["xcrun", "notarytool", "submit", "--wait", "--apple-id", "${appleID}",
                              "--password", "${appleIDPassword}", "--team-id", "${appleTeamID}",
-                             "${layout.buildDirectory.dir("jpackage").get().asFile.absolutePath}/mzmine_macOS_installer_academia.dmg"])
+                             dmgFile.absolutePath])
+                standardOutput = notaryStdout
+                errorOutput = notaryStderr
+                ignoreExitValue = true
             }
-            int returnCode = execResult.getExitValue()
-            if (returnCode != 0) {
-                throw new GradleException("Error ${returnCode} during notarization.")
+            String notaryOut = new String(notaryStdout.toByteArray(), StandardCharsets.UTF_8)
+            String notaryErr = new String(notaryStderr.toByteArray(), StandardCharsets.UTF_8)
+            if (!notaryOut.isBlank()) {
+                getLogger().lifecycle(notaryOut.trim())
+            }
+            if (execResult.getExitValue() != 0 || !(notaryOut =~ /status:\s+Accepted/i)) {
+                throw new GradleException("Notarization failed (exit ${execResult.getExitValue()}). Output:\n${notaryOut}\n${notaryErr}")
             }
 
             getLogger().lifecycle("Stapling DMG...")
             // Staple the DMG directly (try with --force if regular stapling fails)
-            execResult = exec {
-                commandLine(["xcrun", "stapler", "staple",
-                             "${layout.buildDirectory.dir("jpackage").get().asFile.absolutePath}/mzmine_macOS_installer_academia.dmg"])
-                ignoreExitValue = true // Don't fail if stapling fails
+            ExecResult staplerResult = exec {
+                commandLine(["xcrun", "stapler", "staple", dmgFile.absolutePath])
+                ignoreExitValue = true
             }
-            if (execResult.getExitValue() != 0) {
-                getLogger().warn("Stapling failed, but DMG is still notarized and will work for users.")
+            if (staplerResult.getExitValue() != 0) {
+                throw new GradleException("Stapling DMG failed with exit ${staplerResult.getExitValue()}.")
+            }
+
+            getLogger().lifecycle("Stapling app bundle...")
+            ExecResult appStapleResult = exec {
+                commandLine(["xcrun", "stapler", "staple", appBundle.absolutePath])
+                ignoreExitValue = true
+            }
+            if (appStapleResult.getExitValue() != 0) {
+                getLogger().warn("Stapling app bundle failed (exit ${appStapleResult.getExitValue()}). Falling back to online ticket lookup.")
+            } else {
+                exec {
+                    commandLine(['/usr/sbin/spctl', '--assess', '--type', 'exec', '--verbose=4', appBundle.absolutePath])
+                    ignoreExitValue = true
+                }
             }
 
             // Also create portable ZIP from the original .app for those who want it
@@ -661,7 +689,7 @@ task notarizeApp(dependsOn: signApp) {
             exec {
                 commandLine(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent',
                              'mzmine.app', 'mzmine_macOS_portable_academia.zip'])
-                workingDir layout.buildDirectory.dir("jpackage").get().asFile
+                workingDir jpackageDir
             }
 
             getLogger().lifecycle("DMG notarization complete!")
