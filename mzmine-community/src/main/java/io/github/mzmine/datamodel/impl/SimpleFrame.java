@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -171,7 +172,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @NotNull
   @Override
   public Set<IonMobilityMsMsInfo> getImsMsMsInfos() {
-    return Set.copyOf(precursorInfos);
+    return Collections.unmodifiableSet(precursorInfos);
   }
 
   @Nullable
