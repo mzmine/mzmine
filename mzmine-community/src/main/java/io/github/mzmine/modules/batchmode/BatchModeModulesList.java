@@ -35,6 +35,7 @@ import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.PrecursorPu
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotModule;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotRegionExtractionModule;
+import io.github.mzmine.modules.dataprocessing.align_append_rows.MergeAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_lcimage.LcImageAlignerModule;
@@ -309,6 +310,7 @@ public class BatchModeModulesList {
           PathAlignerModule.class, //
           RansacAlignerModule.class, //
           LcImageAlignerModule.class, //
+          MergeAlignerModule.class, //
 
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
