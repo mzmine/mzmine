@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.reporting.jasper.JRCountingBeanCollectionDataSource;
 import io.github.mzmine.util.reporting.jasper.ReportUtils;
 import io.mzmine.reports.FeatureDetail;
@@ -108,8 +109,8 @@ public class AlignedFeatureReport implements ReportModule {
     summarySource = new JRCountingBeanCollectionDataSource(summary);
     jasperParameters.put("SUMMARY_DATA_SOURCE", summarySource);
 
-    final File file = new File("external_tools/report_templates/aligned_report",
-        "aligned_report_cover.jasper");
+    final File file = FileAndPathUtil.resolveInExternalToolsDir(
+        "report_templates/aligned_report/aligned_report_cover.jasper");
     return JasperFillManager.fillReport(file.getAbsolutePath(), jasperParameters,
         new JREmptyDataSource());
   }

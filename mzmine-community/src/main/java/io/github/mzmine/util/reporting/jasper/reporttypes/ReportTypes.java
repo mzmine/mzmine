@@ -42,4 +42,11 @@ public enum ReportTypes implements ModuleOptionsEnum<ReportModule> {
       case ALIGNED_FEATURE_REPORT -> "aligned_feature_report";
     };
   }
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case ALIGNED_FEATURE_REPORT -> "Aligned feature report";
+    };
+  }
 }

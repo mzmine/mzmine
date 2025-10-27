@@ -105,8 +105,6 @@ public class ReportUtils {
   private final ExportBoxplot boxPlot = new ExportBoxplot();
   private final Function<RawDataFile, Color> getSpectrumColor = RawDataFile::getColorAWT;
   private final MetadataColumn<?> groupingColumn;
-  private final int FIGURE_WIDTH = 231;
-  private final int FIGURE_HEIGHT = 146;
   private final AbundanceMeasure boxPlotAbundanceMeasure = AbundanceMeasure.Area;
   private @Nullable String structureString = null;
   private EChartViewer mirrorChart = null; // must be regenerated for each match
