@@ -60,12 +60,15 @@ public class ThermoImportTaskDelegator extends AbstractSimpleTask implements Raw
 
     super(storage, moduleCallDate, parameters, moduleClass);
 
-    final ThermoImportOptions importChoice = ConfigService.getPreference(
-        MZminePreferences.thermoImportChoice);
-    actualTask = importChoice == ThermoImportOptions.MSCONVERT ? new MSConvertImportTask(storage,
-        moduleCallDate, file, processorConfig, project, moduleClass, parameters)
-        : new ThermoRawImportTask(storage, project, file, moduleClass, parameters, moduleCallDate,
-            processorConfig);
+//    final ThermoImportOptions importChoice = ConfigService.getPreference(
+//        MZminePreferences.thermoImportChoice);
+//    actualTask = importChoice == ThermoImportOptions.MSCONVERT ? new MSConvertImportTask(storage,
+//        moduleCallDate, file, processorConfig, project, moduleClass, parameters)
+//        : new ThermoRawImportTask(storage, project, file, moduleClass, parameters, moduleCallDate,
+//            processorConfig);
+
+    actualTask = new ThermoRawImportTask(storage, project, file, moduleClass, parameters,
+        moduleCallDate, processorConfig);
 
     // cancel the underlying task if this task is canceled
     this.addTaskStatusListener((_, newStatus, _) -> actualTask.setStatus(newStatus));

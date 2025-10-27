@@ -28,9 +28,16 @@ package io.github.mzmine.util;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -89,5 +96,23 @@ public class FeatureTableFXUtil {
     final Optional<TreeItem<ModularFeatureListRow>> selected = children.stream()
         .filter(item -> item.getValue().equals(row)).findAny();
     selectAndScrollTo(selected.orElse(null), table);
+  }
+
+  public static void updateCellsForFeatureList(FeatureList flist) {
+    if (!DesktopService.isGUI()) {
+      return;
+    }
+
+    final MZmineGUI desktop = (MZmineGUI) DesktopService.getDesktop();
+    final List<FeatureTableFX> featureTables = desktop.getAllTabs().stream()
+        .filter(FeatureTableTab.class::isInstance).map(FeatureTableTab.class::cast)
+        .map(FeatureTableTab::getController).map(FxFeatureTableController::getFeatureTable)
+        .filter(t -> t.getFeatureList() == flist).toList();
+
+    FxThread.runLater(() -> {
+      for (FeatureTableFX featureTable : featureTables) {
+        featureTable.refresh();
+      }
+    });
   }
 }

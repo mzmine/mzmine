@@ -99,6 +99,16 @@ Text.warning-label {
     -fx-font-weight: bold;
 }
 
+/* this was somehow forgotten in jabref_light.css which is the base for many styles
+ This led to toggle button hard to make out as button. */
+.toggle-button {
+    -fx-background-color: transparent;
+    -fx-border-color: -fx-outer-border; /* rgba(0, 0, 0, 0.23); */
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-padding: 0.5em 1em 0.5em 1em;
+}
+
 .text-field {
   -fx-prompt-text-fill: gray;
 }

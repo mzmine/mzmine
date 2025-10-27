@@ -69,6 +69,10 @@ public interface RowTypeFilter {
       case COMPOUND_NAME ->
           new AnnotationAsStringRowTypeFilter(selectedType, matchingMode, query, false,
               FeatureAnnotation::getCompoundName);
+      case ROW_COMMENT -> new SimpleStringRowTypeFilter(selectedType, matchingMode, query, false,
+          FeatureListRow::getComment);
+      case ANNOTATION_COMMENT ->
+          new AnnotationCommentAndJsonRowTypeFilter(selectedType, matchingMode, query, false);
       case IUPAC_NAME ->
           new AnnotationAsStringRowTypeFilter(selectedType, matchingMode, query, false,
               FeatureAnnotation::getIupacName);
