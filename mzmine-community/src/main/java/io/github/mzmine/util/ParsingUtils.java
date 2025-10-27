@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.nio.DoubleBuffer;
@@ -178,11 +179,28 @@ public class ParsingUtils {
     return b.toString().trim();
   }
 
+  /**
+   * Removes brackets and spaces but not other chars as , E and other chars may be used in number
+   * formats
+   */
+  private static @NotNull String removeExtraChars(@NotNull String string) {
+    return string.replaceAll("[\\[\\]\\s]", "");
+  }
+
+  public static List<Integer> stringToIntList(String string, String separator) {
+    return IntList.of(stringToIntArray(string, separator));
+  }
+
   public static int[] stringToIntArray(String string) {
-    final String[] strValues = string.split(ParsingUtils.SEPARATOR);
+    return stringToIntArray(string, SEPARATOR);
+  }
+
+  public static int[] stringToIntArray(String string, String separator) {
+    // remove [] that may be there
+    final String[] strValues = removeExtraChars(string).split(separator);
     final int[] values = new int[strValues.length];
     for (int i = 0; i < strValues.length; i++) {
-      values[i] = Integer.parseInt(strValues[i]);
+      values[i] = Integer.parseInt(strValues[i].trim());
     }
     return values;
   }
@@ -537,7 +555,8 @@ public class ParsingUtils {
     final Element element = (Element) parent.getElementsByTagName("polynomialsplinefunction")
         .item(0);
 
-    final Element polynomialsElement = (Element) element.getElementsByTagName("polynomials").item(0);
+    final Element polynomialsElement = (Element) element.getElementsByTagName("polynomials")
+        .item(0);
     final String polynomialsText = polynomialsElement.getTextContent();
     final PolynomialFunction[] parsedPolynomials = Arrays.stream(
             polynomialsText.split(SEPARATOR + SEPARATOR)).map(ParsingUtils::stringToDoubleArray)

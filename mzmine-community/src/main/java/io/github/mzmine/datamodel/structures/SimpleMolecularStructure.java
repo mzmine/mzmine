@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.inchi.InChIGenerator;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * All values are computed on demand. So if accessed often use {@link #precomputeValues()} to create
@@ -79,11 +80,7 @@ public record SimpleMolecularStructure(@NotNull IAtomContainer structure) implem
 
   @Nullable
   public String inchiKey() {
-    InChIGenerator inchi = StructureUtils.getInchiGenerator(structure());
-    if (inchi == null) {
-      return null;
-    }
-    return inchi.getInchi();
+    return StructureUtils.getInchiKey(structure());
   }
 
   /**
@@ -99,5 +96,15 @@ public record SimpleMolecularStructure(@NotNull IAtomContainer structure) implem
     return new PrecomputedMolecularStructure(structure, formula(), canonicalSmiles(),
         isomericSmiles(), inchi, inchiKey, monoIsotopicMass(), mostAbundantMass(),
         totalFormalCharge());
+  }
+
+  @Override
+  public @NotNull String toString() {
+    final PrecomputedMolecularStructure val = precomputeValues();
+    return "SimpleMolecularStructure[" + "formula=" + MolecularFormulaManipulator.getString(val.formula())
+        + ", " + "canonicalSmiles=" + val.canonicalSmiles() + ", " + "isomericSmiles=" + val.isomericSmiles()
+        + ", " + "inchi=" + val.inchi() + ", " + "inchiKey=" + val.inchiKey() + ", " + "monoIsotopicMass="
+        + val.monoIsotopicMass() + ", " + "mostAbundantMass=" + val.mostAbundantMass() + ", "
+        + "totalFormalCharge=" + val.totalFormalCharge() + ']';
   }
 }

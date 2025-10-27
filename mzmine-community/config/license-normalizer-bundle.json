@@ -104,6 +104,7 @@
     { "bundleName" : "LGPL-3.0-only", "licenseNamePattern" : "lgplv?3" },
     { "bundleName" : "LGPL-3.0-only", "licenseNamePattern" : "GNU LGPL" },
     { "bundleName" : "LGPL-3.0-only", "licenseUrlPattern" : ".*(www\\.)?gnu\\.org/licenses(/old-licenses)?/lgpl(-3)?(\\.(html|txt))?" },
+    { "bundleName" : "LGPL-3.0-only", "licenseNamePattern" : "GNU Lesser General Public License, Version 3.0" },
 
     { "bundleName" : "MIT", "licenseNamePattern" : "(The\\s)?MIT(\\slicen(c|s)e)?(\\s\\(MIT\\))?" },
     { "bundleName" : "MIT", "licenseNamePattern" : "Bouncy Castle Licence" },

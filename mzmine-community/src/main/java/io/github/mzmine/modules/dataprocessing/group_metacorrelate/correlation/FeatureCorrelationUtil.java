@@ -614,7 +614,8 @@ public class FeatureCorrelationUtil {
       }
 
       // looks like we have exactly the same values, then we do not need to interpolate
-      if(mainX.length == otherX.length && mainRange.equals(otherRange) && Arrays.equals(mainX, otherX)) {
+      if (mainX.length == otherX.length && mainRange.equals(otherRange) && Arrays.equals(mainX,
+          otherX)) {
         return new double[][]{otherX, otherY};
       }
 
@@ -628,6 +629,13 @@ public class FeatureCorrelationUtil {
       final int mainEnd = mainIndicesEndExclusive[1];
       final int otherStart = otherIndicesEndExclusive[0];
       final int otherEnd = otherIndicesEndExclusive[1];
+
+      final int minLength = Math.min(mainEnd - mainStart, otherEnd - otherStart);
+      if (mainX.length != otherX.length && Arrays.equals(mainX, mainStart, mainStart + minLength,
+          otherX, otherStart, otherStart + minLength)) {
+        // may be exactly the same x values, but range lengths may be different
+        return new double[][]{otherX, otherY};
+      }
 
       // create array for the interpolated data
       // copy the x values of both arrays to the new array

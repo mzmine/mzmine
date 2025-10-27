@@ -355,8 +355,20 @@ public final class MZmineCore {
     return module;
   }
 
+  /**
+   *
+   * @return An unmodifiable copy of the currently initialized modules.
+   */
   public static Collection<MZmineModule> getAllModules() {
-    return getInstance().initializedModules.values();
+    return List.copyOf(getInstance().initializedModules.values());
+  }
+
+  /**
+   *
+    * @return An unmodifiable copy of the currently initialized modules.
+   */
+  public static Map<String, MZmineModule> getInitializedModules() {
+    return Map.copyOf(getInstance().initializedModules);
   }
 
   @NotNull
@@ -372,9 +384,7 @@ public final class MZmineCore {
   @NotNull
   public static List<MZmineModule> getModulesForParameterSet(ParameterSet parameterSet) {
     final String definedName = parameterSet.getModuleNameAttribute();
-
-    // todo: prevent potential concurrent modification in this stream. Maybe if a module was not initialized yet?
-    final List<MZmineModule> matches = getInstance().initializedModules.entrySet().stream()
+    final List<MZmineModule> matches = getInitializedModules().entrySet().stream()
         .filter(entry -> {
           final String className = entry.getKey();
           final MZmineModule module = entry.getValue();

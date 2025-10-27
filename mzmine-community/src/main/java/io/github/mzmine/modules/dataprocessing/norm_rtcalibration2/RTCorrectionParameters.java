@@ -90,7 +90,7 @@ public class RTCorrectionParameters extends SimpleParameterSet {
   public RTCorrectionParameters() {
     super(new Parameter[]{featureLists, sampleTypes, MZTolerance, RTTolerance, minHeight, rtMeasure,
             calibrationFunctionModule},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/norm_rt_calibration/norm_rt_calibration.html");
+        "https://mzmine.github.io/mzmine_documentation/module_docs/norm_rt_calibration_scans/scan-based-rt-corr.html");
   }
 
   @Override

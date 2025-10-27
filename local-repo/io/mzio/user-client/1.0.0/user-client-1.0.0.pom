@@ -60,7 +60,7 @@
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-installed-adapter</artifactId>
-      <version>24.0.1</version>
+      <version>24.0.3</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>

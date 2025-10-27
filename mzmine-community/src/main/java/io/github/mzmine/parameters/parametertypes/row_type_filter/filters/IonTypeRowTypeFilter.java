@@ -31,6 +31,12 @@ import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Uses String matching for now. So default mode would be to match for ALL substring words separated
+ * by spaces.
+ * <p>
+ * First matches the best ion identity then all other annotations.
+ */
 class IonTypeRowTypeFilter extends AnnotationAsStringRowTypeFilter {
 
   public IonTypeRowTypeFilter(@NotNull RowTypeFilterOption selectedType,
