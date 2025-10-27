@@ -29,8 +29,11 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import java.io.File;
 import java.util.List;
+import java.util.Map;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javax.validation.constraints.NotNull;
 
 public class ReportingVendorParameters extends SimpleParameterSet {
 
@@ -58,4 +61,12 @@ public class ReportingVendorParameters extends SimpleParameterSet {
     super(vendorCompany, vendorAddress, contact, logoPath);
   }
 
+
+  public void addToMetadata(@NotNull Map<String, Object> jasperParameters) {
+    jasperParameters.put("META_COMPANY", getValue(ReportingVendorParameters.vendorCompany));
+    jasperParameters.put("META_LAB_DESCRIPTION", getValue(ReportingVendorParameters.contact));
+    final File logoPath = getValue(ReportingVendorParameters.logoPath);
+    jasperParameters.put("META_LOGO_PATH", logoPath != null ? logoPath.getAbsolutePath() : null);
+    jasperParameters.put("LAB_ADDRESS", getValue(ReportingVendorParameters.vendorAddress));
+  }
 }

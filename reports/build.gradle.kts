@@ -1,5 +1,6 @@
 plugins {
     id("java")
+//    id("io.github.mzmine.java-library-conv")
 }
 
 group = "io.mzmine"
@@ -10,6 +11,7 @@ repositories {
 }
 
 dependencies {
+    implementation(libs.bundles.jasper)
 }
 
 tasks.test {

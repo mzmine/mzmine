@@ -92,33 +92,15 @@ public class ReportingTask extends AbstractFeatureListTask {
 
     final ReportingVendorParameters vendorParam = parameters.getValue(
         ReportingParameters.reportingVendorParam);
-    param.put("META_COMPANY", vendorParam.getValue(ReportingVendorParameters.vendorCompany));
-    param.put("META_LAB_DESCRIPTION", vendorParam.getValue(ReportingVendorParameters.contact));
-    final File logoPath = vendorParam.getValue(ReportingVendorParameters.logoPath);
-    param.put("META_LOGO_PATH", logoPath != null ? logoPath.getAbsolutePath() : null);
-    param.put("LAB_ADDRESS", vendorParam.getValue(ReportingVendorParameters.vendorAddress));
+    vendorParam.addToMetadata(param);
 
     final ReportingOrderParameters orderParam = parameters.getValue(
         ReportingParameters.reportingOrderParam);
-    param.put("META_ORDER_NUMBER", orderParam.getValue(ReportingOrderParameters.orderNumber));
-    param.put("META_ORDER_REQUEST_DATE",
-        orderParam.getValue(ReportingOrderParameters.orderRequestDate));
-    param.put("META_ORDER_FINISHED_DATE",
-        orderParam.getValue(ReportingOrderParameters.orderFinishedDate));
-    param.put("META_ORDER_SAMPLEIDS", orderParam.getValue(ReportingOrderParameters.orderSampleIds));
-    param.put("META_ORDER_DESC", orderParam.getValue(ReportingOrderParameters.orderDescription));
+    orderParam.addToMetadata(param);
 
     final ReportingCustomerParameters customerParam = parameters.getValue(
         ReportingParameters.reportingCustomerParam);
-
-    param.put("META_CUSTOMER_NAME",
-        customerParam.getValue(ReportingCustomerParameters.customerName));
-    param.put("META_CUSTOMER_DEPARTMENT",
-        customerParam.getValue(ReportingCustomerParameters.customerDepartment));
-    param.put("META_CUSTOMER_ADDRESS",
-        customerParam.getValue(ReportingCustomerParameters.customerAddress));
-    param.put("META_CUSTOMER_PROJECT",
-        customerParam.getValue(ReportingCustomerParameters.customerProject));
+    customerParam.addToMetadata(param);
 
     return param;
   }

@@ -36,6 +36,8 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.ConfigService;
 import io.mzmine.reports.FeatureDetail;
 import io.mzmine.reports.ReportDataFactory;
+import io.mzmine.reports.SingleFigureRow;
+import io.mzmine.reports.TwoFigureRow;
 import java.awt.Color;
 import java.awt.Toolkit;
 import java.io.FileNotFoundException;
@@ -146,10 +148,12 @@ public class ReportGenerator {
 //        parameters.put("SUMMARY_DATA_SOURCE", new JRBeanCollectionDataSource(summaryData));
 
     // Data source for the Detailed Features (if passed to a subreport/list component)
-    final JRCountingBeanCollectionDataSource detail = new JRCountingBeanCollectionDataSource(createDetailData());
+    final JRCountingBeanCollectionDataSource detail = new JRCountingBeanCollectionDataSource(
+        createDetailData());
     parameters.put("DETAILED_FEATURES_DATA_SOURCE", detail);
 
-    final JRCountingBeanCollectionDataSource summary = new JRCountingBeanCollectionDataSource(ReportDataFactory.getSummary());
+    final JRCountingBeanCollectionDataSource summary = new JRCountingBeanCollectionDataSource(
+        ReportDataFactory.getSummary());
     parameters.put("SUMMARY_DATA_SOURCE", summary);
 
     // Main report's data source (can be empty if it's just a container)
@@ -160,8 +164,8 @@ public class ReportGenerator {
 
     // 4. Fill the report
     JasperPrint jasperPrint = JasperFillManager.fillReport(
-        "C:\\Users\\Steffen\\JaspersoftWorkspace\\MyReports\\testreport.jasper", parameters,
-        mainReportDataSource);
+        "C:\\Users\\Steffen\\JaspersoftWorkspace\\MyReports\\mzmine_reports\\aligned_report\\aligned_report_cover.jasper",
+        parameters, mainReportDataSource);
 
     // 5. View/Export the report
 //    JasperViewer.viewReport(jasperPrint, false);
@@ -206,15 +210,15 @@ public class ReportGenerator {
           String.valueOf(523.2123 + 5 * i), String.valueOf(12.2 + i * 0.3),
           String.valueOf(1512 + i),
           "Exact mass: 2318\ndelta m/z: 0.005\nInternal ID: 13sijawDSA8\nCAS: 231-2365-21",
-          "C:\\Users\\Steffen\\Documents\\report_figures\\structure.png",
-          "C:\\Users\\Steffen\\Documents\\report_figures\\eic.png",
-          "Fig 1: Eic",
-          "C:\\Users\\Steffen\\Documents\\report_figures\\mobilogram.png",
-          "Fig 2: Mobilogram",
-          "C:\\Users\\Steffen\\Documents\\report_figures\\libmatch.png", "Fig 3: Library match",
+          "C:\\Users\\Steffen\\Documents\\report_figures\\structure.png", "Additional text",
+          List.of(new TwoFigureRow("C:\\Users\\Steffen\\Documents\\report_figures\\eic.png",
+                  "Fig 1: Eic", "C:\\Users\\Steffen\\Documents\\report_figures\\mobilogram.png",
+                  "Fig 2: Mobilogram"),
+              new TwoFigureRow("C:\\Users\\Steffen\\Documents\\report_figures\\libmatch.png",
+                  "Fig 3: Library match",
 
-          "C:\\Users\\Steffen\\Documents\\report_figures\\uv.png", "Fig 4: Correlation",
-          svgChartString().getBytes(), "Fig 5: Svg", "Additional text"));
+                  "C:\\Users\\Steffen\\Documents\\report_figures\\uv.png", "Fig 4: Correlation")),
+          List.of(new SingleFigureRow(svgChartString().getBytes(), "Fig 5: Svg"))));
     }
     return data;
   }

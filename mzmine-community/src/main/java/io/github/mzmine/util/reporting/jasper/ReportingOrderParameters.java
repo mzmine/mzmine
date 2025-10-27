@@ -27,6 +27,8 @@ package io.github.mzmine.util.reporting.jasper;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
+import java.util.Map;
+import javax.validation.constraints.NotNull;
 
 public class ReportingOrderParameters extends SimpleParameterSet {
 
@@ -43,5 +45,14 @@ public class ReportingOrderParameters extends SimpleParameterSet {
 
   public ReportingOrderParameters() {
     super(orderNumber, orderRequestDate, orderFinishedDate, orderSampleIds, orderDescription);
+  }
+
+  public void addToMetadata(@NotNull Map<String, Object> jasperParam) {
+    jasperParam.put("META_ORDER_NUMBER", getValue(ReportingOrderParameters.orderNumber));
+    jasperParam.put("META_ORDER_REQUEST_DATE", getValue(ReportingOrderParameters.orderRequestDate));
+    jasperParam.put("META_ORDER_FINISHED_DATE",
+        getValue(ReportingOrderParameters.orderFinishedDate));
+    jasperParam.put("META_ORDER_SAMPLEIDS", getValue(ReportingOrderParameters.orderSampleIds));
+    jasperParam.put("META_ORDER_DESC", getValue(ReportingOrderParameters.orderDescription));
   }
 }

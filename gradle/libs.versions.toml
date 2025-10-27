@@ -114,7 +114,6 @@ opencsv = { group = "com.opencsv", name = "opencsv", version = "5.8" }
 # reporting
 jasper-main = { group = "net.sf.jasperreports", name = "jasperreports", version.ref = "jasper" }
 jasper-pdf = { group = "net.sf.jasperreports", name = "jasperreports-pdf", version.ref = "jasper" }
-jasper-html = { group = "net.sf.jasperreports", name = "jasperreports-html-component", version.ref = "jasper" }
 
 # testing
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
@@ -143,7 +142,7 @@ okhttp = ["okhttp", "okhttp-logging-interceptor"]
 junit-mockito = ["junit-jupiter", "junit-platform", "mockito"]
 jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv", "jackson-datetime", "jackson-datatype"]
 batik = ["batik-anim", "batik-svggen", "batik-swing", "batik-xml-commons-ext"] #, "batik-xml-commons"]
-jasper = ["jasper-main", "jasper-pdf", "jasper-html"]
+jasper = ["jasper-main", "jasper-pdf"]
 
 [plugins]
 semver = { id = "net.thauvin.erik.gradle.semver", version.ref = "semver" }

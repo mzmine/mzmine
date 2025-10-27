@@ -106,6 +106,7 @@ public class ReportUtils {
   private final MetadataColumn<?> groupingColumn;
   private final int FIGURE_WIDTH = 231;
   private final int FIGURE_HEIGHT = 146;
+  private final AbundanceMeasure boxPlotAbundanceMeasure = AbundanceMeasure.Area;
   private Image boxPlotImage = null;
   private @Nullable String structureString = null;
   private EChartViewer mirrorChart = null; // must be regenerated for each match
@@ -212,65 +213,46 @@ public class ReportUtils {
         row);
     final String compoundSummary = getCompoundSummary(row, annotation, format, id, mz, rt, ccs);
 
-    final List<FigureAndCaption> figures = new ArrayList<>();
+    final FigureCollection figures = new FigureCollection();
     int chartCounter = 1;
     try {
       if (updateEicChart(row)) {
-        figures.add(new FigureAndCaption(
-            ChartExportUtil.writeChartToSvgString(eicChart.getChart(), FIGURE_WIDTH, FIGURE_HEIGHT)
-                .getBytes(),
+        figures.addTwoFigureRowFigure(FigureAndCaption.asTwoColumnSvg(eicChart,
             "Figure %s.%d: EICs (line) and features (area).".formatted(id, chartCounter++)));
       }
       if (updateMobilogramChart(row)) {
-        figures.add(new FigureAndCaption(
-            ChartExportUtil.writeChartToSvgString(mobilogramChart.getChart(), FIGURE_WIDTH,
-                FIGURE_HEIGHT).getBytes(),
+        figures.addTwoFigureRowFigure(FigureAndCaption.asTwoColumnSvg(mobilogramChart,
             "Figure %s.%d: EIMs of feature %s.".formatted(id, chartCounter++, id)));
       }
       if (updateBoxPlot(row)) {
-        figures.add(new FigureAndCaption(boxPlotImage,
+        figures.addTwoFigureRowFigure(FigureAndCaption.asTwoColumnPng(boxPlot,
             "Figure %s.%d: %s distribution grouped by %s.".formatted(id, chartCounter++,
-                AbundanceMeasure.Area, groupingColumn.getTitle())));
+                boxPlotAbundanceMeasure, groupingColumn.getTitle())));
       }
       if (updateMs1Chart(row)) {
-        figures.add(new FigureAndCaption(
-            ChartExportUtil.writeChartToSvgString(ms1Chart.getChart(), FIGURE_WIDTH, FIGURE_HEIGHT)
-                .getBytes(),
+        figures.addTwoFigureRowFigure(FigureAndCaption.asTwoColumnSvg(ms1Chart,
             "Figure %s.%d: MS1 spectrum of feature %s.".formatted(id, chartCounter++, id)));
       }
       if (updateMirrorChart(row)) {
-        figures.add(new FigureAndCaption(
-            ChartExportUtil.writeChartToSvgString(mirrorChart.getChart(), FIGURE_WIDTH,
-                FIGURE_HEIGHT).getBytes(),
+        figures.addTwoFigureRowFigure(FigureAndCaption.asTwoColumnSvg(mirrorChart,
             "Figure %s.%d: Spectral match of feature %s.".formatted(id, chartCounter++, id)));
       }
       if (updateMs2Chart(row)) {
-        figures.add(new FigureAndCaption(
-            ChartExportUtil.writeChartToSvgString(ms2Chart.getChart(), FIGURE_WIDTH, FIGURE_HEIGHT)
-                .getBytes(),
+        figures.addTwoFigureRowFigure(FigureAndCaption.asTwoColumnSvg(ms2Chart,
             "Figure %s.%d: MS2 spectrum of feature %s.".formatted(id, chartCounter++, id)));
       }
       if (updateLipidSpectrum(row)) {
-        figures.add(new FigureAndCaption(
-            ChartExportUtil.writeChartToSvgString(lipidChart.getChart(), FIGURE_WIDTH,
-                FIGURE_HEIGHT).getBytes(),
+        figures.addTwoFigureRowFigure(FigureAndCaption.asTwoColumnSvg(lipidChart,
             "Figure %s.%d: Matched lipid signals for feature %s.".formatted(id, chartCounter++,
                 id)));
       }
-      if(updateUvMsChart(row)) {
-        figures.add(new FigureAndCaption(
-            ChartExportUtil.writeChartToSvgString(uvMsOverlay.getChart(), FIGURE_WIDTH,
-                FIGURE_HEIGHT).getBytes(),
-            "Figure %s.%d: Correlated trace in file %s.".formatted(id, chartCounter++,
-                id)));
+      if (updateUvMsChart(row)) {
+        figures.addSingleFigureRow(FigureAndCaption.asSingleColumnSvg(uvMsOverlay,
+            "Figure %s.%d: Correlated trace in file %s.".formatted(id, chartCounter++, id)));
       }
       updateStructure(row);
     } catch (Exception e) {
       throw new RuntimeException(e);
-    }
-
-    while (figures.size() < 5) {
-      figures.add(new FigureAndCaption(null, null));
     }
 
     final String additional = "This feature was detected in the sample(s): %s.".formatted(
@@ -279,10 +261,8 @@ public class ReportUtils {
             .collect(Collectors.joining(", ")));
 
     return new FeatureDetail(title, id, mz, rt, ccs, compoundSummary,
-        structureString != null ? structureString.getBytes() : null, figures.get(0).chartSvg(),
-        figures.get(0).caption(), figures.get(1).chartSvg(), figures.get(1).caption(),
-        figures.get(2).chartSvg(), figures.get(2).caption(), figures.get(3).chartSvg(),
-        figures.get(3).caption(), figures.get(4).chartSvg(), figures.get(4).caption(), additional);
+        structureString != null ? structureString.getBytes() : null, additional,
+        figures.getTwoFigureRows(), figures.getSingleFigureRows());
   }
 
   private boolean updateEicChart(@NotNull FeatureListRow row) {
@@ -493,7 +473,8 @@ public class ReportUtils {
   }
 
   private boolean updateBoxPlot(@NotNull FeatureListRow row) {
-    final RowBoxPlotDataset ds = new RowBoxPlotDataset(row, groupingColumn, AbundanceMeasure.Area);
+    final RowBoxPlotDataset ds = new RowBoxPlotDataset(row, groupingColumn,
+        boxPlotAbundanceMeasure);
     if (ds.getColumnCount() == 0 || ds.getRowCount() == 0) {
       boxPlotImage = null;
       return false;

@@ -26,6 +26,8 @@ package io.github.mzmine.util.reporting.jasper;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import java.util.Map;
+import javax.validation.constraints.NotNull;
 
 public class ReportingCustomerParameters extends SimpleParameterSet {
 
@@ -40,5 +42,13 @@ public class ReportingCustomerParameters extends SimpleParameterSet {
 
   public ReportingCustomerParameters() {
     super(customerName, customerDepartment, customerAddress, customerProject);
+  }
+
+  public void addToMetadata(@NotNull Map<String, Object> jasperParam) {
+    jasperParam.put("META_CUSTOMER_NAME", getValue(ReportingCustomerParameters.customerName));
+    jasperParam.put("META_CUSTOMER_DEPARTMENT",
+        getValue(ReportingCustomerParameters.customerDepartment));
+    jasperParam.put("META_CUSTOMER_ADDRESS", getValue(ReportingCustomerParameters.customerAddress));
+    jasperParam.put("META_CUSTOMER_PROJECT", getValue(ReportingCustomerParameters.customerProject));
   }
 }

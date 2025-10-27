@@ -447,7 +447,7 @@ public class ChartExportUtil {
   }
 
   public static String writeChartToSvgString(JFreeChart chart, int width, int height)
-      throws Exception {
+      throws SVGGraphics2DIOException {
     // Get a DOMImplementation
     DOMImplementation domImpl = SVGDOMImplementation.getDOMImplementation();
     org.w3c.dom.Document document = domImpl.createDocument(null, "svg", null);
