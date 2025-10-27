@@ -141,6 +141,9 @@ repositories {
 
     // for batik-xml-commons-ext package (svg export)
     maven { url = "https://repository.everit.biz/nexus/content/groups/public/" }
+
+    // for cdk snapshot
+    maven {url = "https://central.sonatype.com/repository/maven-snapshots/"}
 }
 
 ext {
@@ -226,7 +229,7 @@ dependencies {
     implementation(libs.aalto.xml)
 
     // sirius api
-    implementation (libs.sirius.api)
+    implementation(libs.sirius.api)
 }
 
 /*
