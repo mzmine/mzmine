@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.gui.chartbasics.graphicsexport.ChartExportUtil;
+import io.github.mzmine.gui.chartbasics.graphicsexport.ExportChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
@@ -107,7 +108,6 @@ public class ReportUtils {
   private final int FIGURE_WIDTH = 231;
   private final int FIGURE_HEIGHT = 146;
   private final AbundanceMeasure boxPlotAbundanceMeasure = AbundanceMeasure.Area;
-  private Image boxPlotImage = null;
   private @Nullable String structureString = null;
   private EChartViewer mirrorChart = null; // must be regenerated for each match
   private LipidSpectrumPlot lipidChart = null;
@@ -137,7 +137,7 @@ public class ReportUtils {
       final Double deltaMz = precursorMz != null ? row.getAverageMZ() - precursorMz : null;
       return """
           Exact mass: %s
-          Δ m/z (abs): %s
+          m/z error (abs): %s
           Name: %s
           Formula: %s
           Internal ID: %s
@@ -248,7 +248,7 @@ public class ReportUtils {
       }
       if (updateUvMsChart(row)) {
         figures.addSingleFigureRow(FigureAndCaption.asSingleColumnSvg(uvMsOverlay,
-            "Figure %s.%d: Correlated trace in file %s.".formatted(id, chartCounter++, id)));
+            "Figure %s.%d: Correlated trace in file %s.".formatted(id, chartCounter++, row.getBestFeature().getRawDataFile().getName())));
       }
       updateStructure(row);
     } catch (Exception e) {
@@ -386,6 +386,10 @@ public class ReportUtils {
     final IsotopePattern iso = f.getIsotopePattern();
     final Scan scan = f.getRepresentativeScan();
 
+    if (iso == null && scan == null) {
+      return false;
+    }
+
     final Range<Double> mzRange;
     if (iso != null) {
       final double lower = iso.getMzValue(0) - 1.5;
@@ -399,14 +403,17 @@ public class ReportUtils {
     final XYDataset isoOrPeak = iso != null ? new IsotopesDataSet(iso, "Isotope pattern")
         : new ColoredXYDataset(new AnyXYProvider(Color.RED, "Isotope pattern", 1, _ -> f.getMZ(),
             _ -> f.getHeight().doubleValue()), RunOption.THIS_THREAD);
-    final ScanDataSet scanDataSet = new ScanDataSet(scan);
 
     ms1Chart.applyWithNotifyChanges(false, () -> {
       ms1Chart.removeAllDatasets();
-      final Color color = getSpectrumColor.apply(scan.getDataFile());
-      ms1Chart.addDataset(scanDataSet,
-          scan.getSpectrumType() == MassSpectrumType.PROFILE ? new ContinuousRenderer(color, false)
-              : new PeakRenderer(color, false));
+      final Color color = scan != null ? getSpectrumColor.apply(scan.getDataFile()) : Color.BLACK;
+      if (scan != null) {
+        final ScanDataSet scanDataSet = new ScanDataSet(scan);
+        ms1Chart.addDataset(scanDataSet,
+            scan.getSpectrumType() == MassSpectrumType.PROFILE ? new ContinuousRenderer(color,
+                false) : new PeakRenderer(color, false));
+      }
+
       ms1Chart.addDataset(isoOrPeak, new PeakRenderer(
           ColorUtils.getContrastPaletteColorAWT(color, ConfigService.getDefaultColorPalette()),
           false));
@@ -475,19 +482,10 @@ public class ReportUtils {
   private boolean updateBoxPlot(@NotNull FeatureListRow row) {
     final RowBoxPlotDataset ds = new RowBoxPlotDataset(row, groupingColumn,
         boxPlotAbundanceMeasure);
-    if (ds.getColumnCount() == 0 || ds.getRowCount() == 0) {
-      boxPlotImage = null;
+    if (ds.getColumnCount() == 0 || ds.getRowCount() == 0 || row.getRawDataFiles().size() <= 1) {
       return false;
     }
     boxPlot.setDataset(ds);
-    try {
-      boxPlotImage = ChartExportUtil.paintScaledChartToBufferedImage(boxPlot.getChart(),
-          boxPlot.getRenderingInfo(), FIGURE_WIDTH, FIGURE_HEIGHT, 150,
-          BufferedImage.TYPE_INT_ARGB);
-    } catch (IOException e) {
-      boxPlotImage = null;
-      return false;
-    }
     return true;
   }
 
@@ -585,5 +583,6 @@ public class ReportUtils {
   private void initChart(@NotNull EChartViewer chart) {
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
     chart.getChart().getPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
+    ExportChartThemeParameters export = (ExportChartThemeParameters) new ExportChartThemeParameters().cloneParameterSet();
   }
 }

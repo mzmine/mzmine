@@ -40,9 +40,6 @@ public class ReportingVendorParameters extends SimpleParameterSet {
   public static final StringParameter vendorCompany = new StringParameter("Company",
       "Your company/institute name.");
 
-  public static final StringParameter vendorAddress = new StringParameter("Company address",
-      "Your company/institute address.");
-
   public static final TextParameter contact = new TextParameter("Contact", """
       Your Job description/contact address, e.g.:
       <Your name>
@@ -58,7 +55,7 @@ public class ReportingVendorParameters extends SimpleParameterSet {
       FileSelectionType.OPEN, true);
 
   public ReportingVendorParameters() {
-    super(vendorCompany, vendorAddress, contact, logoPath);
+    super(vendorCompany, contact, logoPath);
   }
 
 
@@ -67,6 +64,5 @@ public class ReportingVendorParameters extends SimpleParameterSet {
     jasperParameters.put("META_LAB_DESCRIPTION", getValue(ReportingVendorParameters.contact));
     final File logoPath = getValue(ReportingVendorParameters.logoPath);
     jasperParameters.put("META_LOGO_PATH", logoPath != null ? logoPath.getAbsolutePath() : null);
-    jasperParameters.put("LAB_ADDRESS", getValue(ReportingVendorParameters.vendorAddress));
   }
 }

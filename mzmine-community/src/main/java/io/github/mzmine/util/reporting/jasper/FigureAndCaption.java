@@ -56,7 +56,7 @@ public record FigureAndCaption(@Nullable Object chartSvg, @Nullable String capti
   @NotNull
   static FigureAndCaption asTwoColumnPng(@NotNull final EChartViewer chart,
       final @Nullable String caption) throws IOException {
-    return asTwoColumn(chart, Format.SVG, caption);
+    return asTwoColumn(chart, Format.PNG, caption);
   }
 
   enum Format {

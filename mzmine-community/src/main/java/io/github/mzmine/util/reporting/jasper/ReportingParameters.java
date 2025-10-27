@@ -1,5 +1,6 @@
 package io.github.mzmine.util.reporting.jasper;
 
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
@@ -13,6 +14,7 @@ import io.github.mzmine.util.reporting.jasper.reporttypes.ReportTypes;
 import java.util.List;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class ReportingParameters extends SimpleParameterSet {
 
@@ -45,5 +47,10 @@ public class ReportingParameters extends SimpleParameterSet {
   public ReportingParameters() {
     super(flists, reportTitle, reportingVendorParam, reportingCustomerParam, reportingOrderParam,
         freeText, reportType, exportFile);
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }
