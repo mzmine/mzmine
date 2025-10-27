@@ -85,12 +85,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class MZminePreferences extends SimpleParameterSet {
 
-  public static final HiddenParameter<String> username = new HiddenParameter<>(
-      new StringParameter("username", "last active username", "", false, true));
-
-  public static final HiddenParameter<Boolean> showQuickStart = new HiddenParameter<>(
-      new BooleanParameter("Show quick start video", "", true));
-
   public static final NumberFormatParameter mzFormat = new NumberFormatParameter("m/z value format",
       "Format of m/z values", false, new DecimalFormat("0.0000"));
 
@@ -173,11 +167,6 @@ public class MZminePreferences extends SimpleParameterSet {
       "If checked, fonts in the MZmine gui will be enlarged. The chart fonts are still controlled by the chart theme.",
       false);
 
-  public static final HiddenParameter<Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
-      new OptOutParameter("Ion mobility compatibility warnings",
-          "Shows a warning message when a module without explicit ion mobility support is "
-              + "used to process ion mobility data."));
-
   public static final DirectoryParameter tempDirectory = new DirectoryParameter(
       "Temporary file directory", "Directory where temporary files"
       + " will be stored. Directory should be located on a drive with fast read and write "
@@ -217,9 +206,6 @@ public class MZminePreferences extends SimpleParameterSet {
       "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
       true);
 
-  public static final HiddenParameter<Boolean> showTempFolderAlert = new HiddenParameter<>(
-      new BooleanParameter("Show temp alert", "Show temp folder alert", true));
-
   public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<ImageNormalization>(
       "Normalize images",
       "Specifies if displayed images shall be normalized to the average TIC or shown according to the raw data."
@@ -229,12 +215,46 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final ComboParameter<PaintScaleTransform> imageTransformation = new ComboParameter<>(
       "Image paint scale transformation", "Transforms the paint scale for images.",
       PaintScaleTransform.values(), PaintScaleTransform.LINEAR);
+  public static final FileNameParameter msConvertPath = new FileNameWithDownloadParameter(
+      "MSConvert path",
+      "Set a path to MSConvert to automatically convert unknown vendor formats to mzML while importing.",
+      List.of(MSCONVERT), AssetGroup.MSCONVERT);
+  public static final BooleanParameter keepConvertedFile = new BooleanParameter(
+      "Keep files converted by MSConvert",
+      "Store the files after conversion by MSConvert to an mzML file.\n"
+          + "This will reduce the import time when re-processing, but require more disc space.",
+      false);
+  public static final BooleanParameter applyVendorCentroiding = new BooleanParameter(
+      "Apply vendor centroiding (recommended)", """
+      Apply vendor centroiding (peak picking) during import of native vendor files.
+      Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.
+      """, true);
+// default is now to always use the raw file parser
+//  public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(
+//      "Thermo data import", """
+//      Specify which path you want to use for Thermo raw data import.
+//      """, ThermoImportOptions.getOptionsForOs(), ThermoImportOptions.THERMO_RAW_FILE_PARSER);
 
+
+  public static final OptionalParameter<FileNameWithDownloadParameter> thermoRawFileParserPath = new OptionalParameter<>(
+      new FileNameWithDownloadParameter("Thermo raw file parser location",
+          "This is the optional external location to overwrite the internal thermo raw file parsing default. Disable to use the internal parser. macOS currently requires mono installed and the external raw file parser (see download button on the right).",
+          List.of(new ExtensionFilter("Executable or zip", "ThermoRawFileParser.exe",
+                  "ThermoRawFileParserLinux", "ThermoRawFileParserMac", "ThermoRawFileParser.zip"),
+              new ExtensionFilter("zip", "ThermoRawFileParser.zip"),
+              new ExtensionFilter("Windows executable", "ThermoRawFileParser.exe"),
+              new ExtensionFilter("Linux executable", "ThermoRawFileParserLinux"),
+              new ExtensionFilter("Mac executable", "ThermoRawFileParserMac")),
+          AssetGroup.ThermoRawFileParser));
+
+  public static final OptionalParameter<ParameterSetParameter<WatersLockmassParameters>> watersLockmass = new OptionalParameter<>(
+      new ParameterSetParameter<>("Apply lockmass on import (Waters)",
+          "Apply lockmass correction for native Waters raw data during raw data import via MSConvert.",
+          new WatersLockmassParameters()), true);
   private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
       new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
       new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.####"),
       new DecimalFormat("0.###"), UnitFormat.DIVIDE);
-
   /**
    * Set of formats that will never be changed. For example to generate stable row IDs with a fixed
    * precision for mz etc. See {@link FeatureUtils#rowToFullId(FeatureListRow)}
@@ -243,47 +263,27 @@ public class MZminePreferences extends SimpleParameterSet {
       new DecimalFormat("0.0000"), new DecimalFormat("0.0000"), new DecimalFormat("0.000"),
       new DecimalFormat("0.0000E0"), new DecimalFormat("0.00"), new DecimalFormat("0.0000"),
       new DecimalFormat("0.0000"), UnitFormat.DIVIDE);
-
   private final BooleanProperty darkModeProperty = new SimpleBooleanProperty(false);
   private NumberFormats guiFormat = exportFormat; // default value
 
-  public static final FileNameParameter msConvertPath = new FileNameWithDownloadParameter(
-      "MSConvert path",
-      "Set a path to MSConvert to automatically convert unknown vendor formats to mzML while importing.",
-      List.of(MSCONVERT), AssetGroup.MSCONVERT);
+  // ---------------------------------------------- Hidden parameters
 
-  public static final BooleanParameter keepConvertedFile = new BooleanParameter(
-      "Keep files converted by MSConvert",
-      "Store the files after conversion by MSConvert to an mzML file.\n"
-          + "This will reduce the import time when re-processing, but require more disc space.",
-      false);
+  public static final HiddenParameter<Boolean> showTempFolderAlert = new HiddenParameter<>(
+      new BooleanParameter("Show temp alert", "Show temp folder alert", true));
 
-  public static final BooleanParameter applyVendorCentroiding = new BooleanParameter(
-      "Apply vendor centroiding (recommended)", """
-      Apply vendor centroiding (peak picking) during import of native vendor files.
-      Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.
-      """, true);
+  public static final HiddenParameter<String> username = new HiddenParameter<>(
+      new StringParameter("username", "last active username", "", false, true));
 
-  public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(
-      "Thermo data import", """
-      Specify which path you want to use for Thermo raw data import. MSConvert allows import of
-      UV spectra and chromatograms and is therefore recommended, but only available on windows.
-      """, ThermoImportOptions.getOptionsForOs(), ThermoImportOptions.MSCONVERT);
+  public static final HiddenParameter<Boolean> showQuickStart = new HiddenParameter<>(
+      new BooleanParameter("Show quick start video", "", true));
 
-  public static final FileNameWithDownloadParameter thermoRawFileParserPath = new FileNameWithDownloadParameter(
-      "Thermo raw file parser location", "The file path to the thermo raw file parser.", List.of(
-      new ExtensionFilter("Executable or zip", "ThermoRawFileParser.exe",
-          "ThermoRawFileParserLinux", "ThermoRawFileParserMac", "ThermoRawFileParser.zip"),
-      new ExtensionFilter("zip", "ThermoRawFileParser.zip"),
-      new ExtensionFilter("Windows executable", "ThermoRawFileParser.exe"),
-      new ExtensionFilter("Linux executable", "ThermoRawFileParserLinux"),
-      new ExtensionFilter("Mac executable", "ThermoRawFileParserMac")),
-      AssetGroup.ThermoRawFileParser);
+  public static final HiddenParameter<Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
+      new OptOutParameter("Ion mobility compatibility warnings",
+          "Shows a warning message when a module without explicit ion mobility support is "
+              + "used to process ion mobility data."));
 
-  public static final OptionalParameter<ParameterSetParameter<WatersLockmassParameters>> watersLockmass = new OptionalParameter<>(
-      new ParameterSetParameter<>("Apply lockmass on import (Waters)",
-          "Apply lockmass correction for native Waters raw data during raw data import via MSConvert.",
-          new WatersLockmassParameters()), true);
+  public static final HiddenParameter<Map<String, Boolean>> siriusCountWarningOptOut = new HiddenParameter<>(
+      new OptOutParameter("Sirius feature count warning", ""));
 
   public MZminePreferences() {
     super(// start with performance
@@ -301,10 +301,10 @@ public class MZminePreferences extends SimpleParameterSet {
             imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
             windowSettings, useTabSubtitles,
             // silent parameters without controls
-            showTempFolderAlert, username, showQuickStart,
-            //
-            applyVendorCentroiding, msConvertPath, keepConvertedFile, watersLockmass,
-            thermoRawFileParserPath, thermoImportChoice},
+            showTempFolderAlert, username, showQuickStart, siriusCountWarningOptOut,
+            // conversion, data handling
+            applyVendorCentroiding, msConvertPath, thermoRawFileParserPath, keepConvertedFile,
+            watersLockmass},
         "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
     darkModeProperty.subscribe(state -> {
@@ -339,7 +339,7 @@ public class MZminePreferences extends SimpleParameterSet {
             chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
             imageNormalization, windowSettings), //
         new ParameterGroup("MS data import", applyVendorCentroiding, msConvertPath,
-            keepConvertedFile, watersLockmass, thermoRawFileParserPath, thermoImportChoice) //
+            thermoRawFileParserPath, keepConvertedFile, watersLockmass) //
     );
     // imsModuleWarnings, showTempFolderAlert, showQuickStart  are hidden parameters
 
@@ -350,7 +350,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
     dialog.setWidth(800);
     dialog.setHeight(800);
-    
+
     // check
     dialog.showAndWait();
     final ExitCode retVal = dialog.getExitCode();
@@ -541,6 +541,20 @@ public class MZminePreferences extends SimpleParameterSet {
     // loads all users already logged in from the user folder
     if (StringUtils.hasValue(username)) {
       UsersController.getInstance().setCurrentUserByName(username);
+    }
+
+    // no way to know if the parameter was actively deselected by user
+    // therefore no way to activate this parameter automatically
+    // only activate for macOS as macOS needs external for now
+    if (com.sun.jna.Platform.isMac()) {
+      final OptionalParameter<FileNameWithDownloadParameter> parserPath = (OptionalParameter<FileNameWithDownloadParameter>) loadedParams.get(
+          thermoRawFileParserPath.getName());
+      if (parserPath != null) {
+        final File path = parserPath.getEmbeddedParameter().getValue();
+        if (path != null && path.getPath().endsWith("ThermoRawFileParserMac")) {
+          setParameter(thermoRawFileParserPath, true);
+        }
+      }
     }
   }
 

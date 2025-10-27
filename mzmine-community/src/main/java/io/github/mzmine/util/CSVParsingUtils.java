@@ -164,6 +164,7 @@ public class CSVParsingUtils {
                 () -> "Library file contains two columns called \"" + columnName + "\".");
           }
           importType.setColumnIndex(i);
+          importType.setCsvColumnName(columnName); // need to set to the specific upper/lower case for getCompoundFromLine
         }
       }
     }
@@ -490,7 +491,7 @@ public class CSVParsingUtils {
       @NotNull String[] values, @NotNull List<ImportType<?>> linesWithIndices,
       @NotNull final ExtraColumnHandler extraColumnHandler) {
 
-    final Map<@NotNull String, @Nullable String> data = new HashMap<>(csvHeaders.length, 1f);
+    final Map<@NotNull String, @Nullable String> data = HashMap.newHashMap(csvHeaders.length);
     for (int i = 0; i < csvHeaders.length; i++) {
       data.put(csvHeaders[i], values[i]);
     }
@@ -530,6 +531,7 @@ public class CSVParsingUtils {
       }
     }
 
+    a.enrichMetadata();
     return a;
   }
 

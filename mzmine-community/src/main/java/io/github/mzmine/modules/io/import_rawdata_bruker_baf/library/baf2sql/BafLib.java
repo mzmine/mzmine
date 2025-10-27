@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import static java.lang.foreign.ValueLayout.OfInt;
 import static java.lang.foreign.ValueLayout.OfLong;
 import static java.lang.foreign.ValueLayout.OfShort;
 
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.lang.foreign.AddressLayout;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
@@ -98,7 +99,8 @@ public class BafLib {
   }
 
   static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.libraryLookup(
-          "external_tools/bruker_baf/%s".formatted(System.mapLibraryName("baf2sql_c")), LIBRARY_ARENA)
+          FileAndPathUtil.resolveInExternalToolsDir(
+              "bruker_baf/%s".formatted(System.mapLibraryName("baf2sql_c"))).toPath(), LIBRARY_ARENA)
       .or(SymbolLookup.loaderLookup()).or(Linker.nativeLinker().defaultLookup());
 
   public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;

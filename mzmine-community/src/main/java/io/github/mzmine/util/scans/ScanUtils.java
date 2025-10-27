@@ -2485,8 +2485,7 @@ public class ScanUtils {
     var scanRanges = IndexRange.findRanges(
         allScans.stream().filter(s -> !(s instanceof MobilityScan)).map(Scan::getScanNumber)
             .toList());
-    final String scanString = scanRanges.stream().map(IndexRange::toString)
-        .collect(Collectors.joining(","));
+    final String scanString = IndexRange.asString(scanRanges);
     return scanString;
   }
 
@@ -2521,8 +2520,7 @@ public class ScanUtils {
     }
     final List<IndexRange> ranges = IndexRange.findRanges(
         mobilityScans.stream().map(MobilityScan::getMobilityScanNumber).toList());
-    return "%d[%s]".formatted(frame.getScanNumber(),
-        ranges.stream().map(IndexRange::toString).collect(Collectors.joining(",")));
+    return "%d[%s]".formatted(frame.getScanNumber(), IndexRange.asString(ranges));
   }
 
 
