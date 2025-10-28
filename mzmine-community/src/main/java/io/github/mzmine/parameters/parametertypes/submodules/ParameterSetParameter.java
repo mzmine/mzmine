@@ -24,6 +24,7 @@
  */
 package io.github.mzmine.parameters.parametertypes.submodules;
 
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
@@ -47,18 +48,31 @@ public class ParameterSetParameter<SUB extends ParameterSet> implements
   private final boolean isSensitive;
   private final String name;
   private final String description;
+  private final Class<? extends MZmineModule> moduleForPresets;
   private SUB value;
 
   public ParameterSetParameter(String name, String description, SUB parameters) {
     this(name, description, parameters, false);
   }
 
-  public ParameterSetParameter(String name, String description, SUB parameters, boolean isSensitive) {
+  public ParameterSetParameter(String name, String description, SUB parameters,
+      @Nullable Class<? extends MZmineModule> moduleForPresets) {
+    this(name, description, parameters, false, moduleForPresets);
+  }
+
+  public ParameterSetParameter(String name, String description, SUB parameters,
+      boolean isSensitive) {
+    this(name, description, parameters, isSensitive, null);
+  }
+
+  public ParameterSetParameter(String name, String description, SUB parameters, boolean isSensitive,
+      @Nullable Class<? extends MZmineModule> moduleForPresets) {
     this.name = name;
     this.description = description;
     // requires cloning to avoid usage of static parameters
     this.value = (SUB) parameters.cloneParameterSet();
     this.isSensitive = isSensitive;
+    this.moduleForPresets = moduleForPresets;
   }
 
   public SUB getValue() {
@@ -86,8 +100,9 @@ public class ParameterSetParameter<SUB extends ParameterSet> implements
 
   @Override
   public ParameterSetParameter<SUB> cloneParameter() {
-    return new ParameterSetParameter<>(this.name, this.description,
-        (SUB) value.cloneParameterSet());
+    return new ParameterSetParameter<>(this.name, this.description, (SUB) value.cloneParameterSet(),
+        isSensitive,
+        moduleForPresets);
   }
 
   @Override
@@ -103,7 +118,8 @@ public class ParameterSetParameter<SUB extends ParameterSet> implements
 
   @Override
   public OptionalModuleComponent createEditingComponent() {
-    return new OptionalModuleComponent(this.value, EmbeddedComponentOptions.VIEW_IN_PANEL, true);
+    return new OptionalModuleComponent(this.value, EmbeddedComponentOptions.VIEW_IN_PANEL, "", true,
+        true, true, moduleForPresets);
   }
 
   @Override
