@@ -37,6 +37,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.util.function.Consumer
+import java.util.Locale
+import groovy.json.JsonSlurper
 
 plugins {
     id("io.github.mzmine.java-app-conv")
@@ -656,27 +658,92 @@ task notarizeApp(dependsOn: signApp) {
             if (!notaryOut.isBlank()) {
                 getLogger().lifecycle(notaryOut.trim())
             }
-            if (execResult.getExitValue() != 0 || !(notaryOut =~ /status:\s+Accepted/i)) {
+            if (!notaryErr.isBlank()) {
+                getLogger().info(notaryErr.trim())
+            }
+            boolean notarizationAccepted = notaryOut.toLowerCase(Locale.US).contains("status: accepted")
+            if (execResult.getExitValue() != 0 || !notarizationAccepted) {
                 throw new GradleException("Notarization failed (exit ${execResult.getExitValue()}). Output:\n${notaryOut}\n${notaryErr}")
+            }
+
+            // Extract submission ID to poll for ticket availability
+            String submissionId = null
+            def matcher = (notaryOut =~ /id:\s*([0-9a-fA-F-]+)/)
+            if (matcher.find()) {
+                submissionId = matcher.group(1)
+            }
+            if (submissionId == null || submissionId.isBlank()) {
+                getLogger().warn("Could not parse submission ID from notarytool output; stapling may need additional delay.")
+            } else {
+                getLogger().lifecycle("Waiting for ticket to become available for submission ${submissionId}...")
+                JsonSlurper slurper = new JsonSlurper()
+                boolean ticketReady = false
+                int maxTicketChecks = 12 // up to 6 minutes with 30s sleep
+                for (int check = 1; check <= maxTicketChecks; check++) {
+                    ByteArrayOutputStream logStdout = new ByteArrayOutputStream()
+                    ByteArrayOutputStream logStderr = new ByteArrayOutputStream()
+                    ExecResult logResult = exec {
+                        commandLine(["xcrun", "notarytool", "log", submissionId, "--apple-id", "${appleID}",
+                                     "--password", "${appleIDPassword}", "--team-id", "${appleTeamID}", "--output-format", "json"])
+                        standardOutput = logStdout
+                        errorOutput = logStderr
+                        ignoreExitValue = true
+                    }
+                    String logOut = new String(logStdout.toByteArray(), StandardCharsets.UTF_8)
+                    String logErr = new String(logStderr.toByteArray(), StandardCharsets.UTF_8)
+                    if (logResult.getExitValue() != 0) {
+                        getLogger().warn("notarytool log (attempt ${check}) failed: ${logErr.trim()}")
+                    } else {
+                        try {
+                            def json = slurper.parseText(logOut)
+                            def ticketContents = json?.ticketContents
+                            if (ticketContents instanceof Collection && !ticketContents.isEmpty()) {
+                                ticketReady = true
+                                getLogger().lifecycle("Ticket is available (attempt ${check}).")
+                                break
+                            }
+                        } catch (Exception parseEx) {
+                            getLogger().warn("Could not parse notarytool log output: ${parseEx.message}")
+                        }
+                    }
+                    if (check < maxTicketChecks) {
+                        getLogger().lifecycle("Ticket not yet available (attempt ${check}); waiting 30 seconds...")
+                        Thread.sleep(30_000)
+                    }
+                }
+                if (!ticketReady) {
+                    getLogger().warn("Ticket not confirmed after polling; proceeding with stapling (stapler may still fail if ticket propagation is delayed).")
+                }
             }
 
             getLogger().lifecycle("Stapling DMG...")
             // Staple the DMG directly (try with --force if regular stapling fails)
-            ExecResult staplerResult = exec {
-                commandLine(["xcrun", "stapler", "staple", dmgFile.absolutePath])
-                ignoreExitValue = true
+            def stapleWithRetry = { File target, String label ->
+                int maxAttempts = 5
+                for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+                    ExecResult stapleResult = exec {
+                        commandLine(["xcrun", "stapler", "staple", target.absolutePath])
+                        ignoreExitValue = true
+                    }
+                    if (stapleResult.getExitValue() == 0) {
+                        getLogger().lifecycle("Stapling ${label} succeeded on attempt ${attempt}.")
+                        return true
+                    }
+                    if (attempt < maxAttempts) {
+                        getLogger().warn("Stapling ${label} failed (exit ${stapleResult.getExitValue()}). Retrying in 30 seconds...")
+                        Thread.sleep(30_000)
+                    }
+                }
+                return false
             }
-            if (staplerResult.getExitValue() != 0) {
-                throw new GradleException("Stapling DMG failed with exit ${staplerResult.getExitValue()}.")
+            if (!stapleWithRetry(dmgFile, "DMG")) {
+                throw new GradleException("Stapling DMG failed after retries.")
             }
 
             getLogger().lifecycle("Stapling app bundle...")
-            ExecResult appStapleResult = exec {
-                commandLine(["xcrun", "stapler", "staple", appBundle.absolutePath])
-                ignoreExitValue = true
-            }
-            if (appStapleResult.getExitValue() != 0) {
-                getLogger().warn("Stapling app bundle failed (exit ${appStapleResult.getExitValue()}). Falling back to online ticket lookup.")
+            boolean appStapled = stapleWithRetry(appBundle, "app bundle")
+            if (!appStapled) {
+                getLogger().warn("Stapling app bundle failed after retries. Falling back to online ticket lookup.")
             } else {
                 exec {
                     commandLine(['/usr/sbin/spctl', '--assess', '--type', 'exec', '--verbose=4', appBundle.absolutePath])
