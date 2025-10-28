@@ -80,6 +80,10 @@ import org.jfree.data.xy.XYDataset;
 import org.openscience.cdk.exception.CDKException;
 import org.w3c.dom.DOMImplementation;
 
+/**
+ * Utils class to generate the charts for reports. Future will show how many other reports will be
+ * able to use this class. May be a good class to refactor.
+ */
 public class ReportUtils {
 
   private final SimpleXYChart<PlotXYDataProvider> eicChart = new SimpleXYChart<>(
@@ -241,7 +245,8 @@ public class ReportUtils {
       }
       if (updateUvMsChart(row)) {
         figures.addSingleFigureRow(FigureAndCaption.asSingleColumnSvg(uvMsOverlay,
-            "Figure %s.%d: Correlated trace in file %s.".formatted(id, chartCounter++, row.getBestFeature().getRawDataFile().getName())));
+            "Figure %s.%d: Correlated trace in file %s.".formatted(id, chartCounter++,
+                row.getBestFeature().getRawDataFile().getName())));
       }
       updateStructure(row);
     } catch (Exception e) {
