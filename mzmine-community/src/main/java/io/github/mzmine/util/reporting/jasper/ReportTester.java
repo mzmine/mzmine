@@ -42,7 +42,6 @@ import java.awt.Color;
 import java.awt.Toolkit;
 import java.io.FileNotFoundException;
 import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,7 +49,7 @@ import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-public class ReportGenerator {
+public class ReportTester {
 
   public static final double[] x = {2.906069279, 2.913792133, 2.921446085, 2.929477453, 2.936477423,
       2.9437356, 2.951177359, 2.958379269, 2.965985537, 2.97361064, 2.980741739, 2.988462448,
@@ -68,49 +67,10 @@ public class ReportGenerator {
     FxThread.initJavaFxInHeadlessMode();
 
     testMainReport();
-//    testFeatureReport();
   }
 
   private static void testMainReport() throws FileNotFoundException, JRException {
-    // 1. Compile your JRXML templates
-    // Assuming you have MainReport.jrxml, SummarySubreport.jrxml, FeatureDetailSubreport.jrxml
-//    InputStream mainReportStream = new FileInputStream(
-//        new File("C:\\Users\\Steffen\\JaspersoftWorkspace\\MyReports\\testreport.jrxml"));
-//    JasperReport jasperMainReport = JasperCompileManager.compileReport(mainReportStream);
 
-//        InputStream summarySubreportStream = ReportGenerator.class.getResourceAsStream("/reports/SummarySubreport.jrxml");
-//        JasperReport jasperSummarySubreport = JasperCompileManager.compileReport(summarySubreportStream);
-
-//        InputStream featureDetailSubreportStream = ReportGenerator.class.getResourceAsStream("/reports/FeatureDetailSubreport.jrxml");
-//        JasperReport jasperFeatureDetailSubreport = JasperCompileManager.compileReport(featureDetailSubreportStream);
-
-    // 2. Prepare your data (JavaBeans)
-
-        /*// Summary Data
-        List<FeatureSummary> summaryData = new ArrayList<>();
-        summaryData.add(new FeatureSummary(100.123, 5.2, "Compound A"));
-        summaryData.add(new FeatureSummary(201.456, 12.8, "Compound B"));
-        // ... populate more summary features
-
-        // Detailed Data (each containing rasterized SVG as InputStream)
-        List<FeatureDetail> detailedData = new ArrayList<>();
-        // For demonstration, let's create some dummy details with generated images
-        for (int i = 0; i < 3; i++) {
-            FeatureDetail detail = new FeatureDetail(100.0 + i, 5.0 + i, "Feature " + (char)('A'+i));
-            // Simulate SVG to PNG conversion (as discussed in previous answer)
-            try {
-                String simulatedSvg = "<svg width=\"300\" height=\"150\">" +
-                                      "<circle cx=\"150\" cy=\"75\" r=\"50\" fill=\"lightgreen\"/>" +
-                                      "<text x=\"10\" y=\"20\">Details for " + detail.getId() + "</text>" +
-                                      "</svg>";
-                detail.generateChromatogramImageFromSvg(simulatedSvg);
-            } catch (Exception e) {
-                e.printStackTrace(); // Handle error gracefully
-            }
-            detailedData.add(detail);
-        }*/
-
-    // 3. Set up parameters and data sources for the main report
     Map<String, Object> parameters = new HashMap<>();
     parameters.put("META_COMPANY", "mzio GmbH");
     parameters.put("META_TITLE", "Example report");
@@ -140,7 +100,6 @@ public class ReportGenerator {
 
     parameters.put("LAB_ADDRESS", "Altenwall 26, 28195 Bremen");
 
-    // Pass compiled subreports as parameters so the main report can reference them
 //        parameters.put("SUMMARY_SUBREPORT", jasperSummarySubreport);
 //        parameters.put("FEATURE_DETAIL_SUBREPORT", jasperFeatureDetailSubreport);
 
@@ -167,40 +126,11 @@ public class ReportGenerator {
         "C:\\Users\\Steffen\\JaspersoftWorkspace\\MyReports\\mzmine_reports\\aligned_report\\aligned_report_cover.jasper",
         parameters, mainReportDataSource);
 
-    // 5. View/Export the report
-//    JasperViewer.viewReport(jasperPrint, false);
 
     System.out.println("start");
     JasperExportManager.exportReportToPdfFile(jasperPrint,
         "C:\\Users\\Steffen\\Desktop\\testreport_full.pdf");
-//    JasperExportManager.exportReportToHtmlFile(jasperPrint,
-//        "C:\\Users\\Steffen\\Desktop\\testreport_full.html");
-
-//    JRDocxExporter docExporter = new JRDocxExporter();
-//    docExporter.setExporterInput(new SimpleExporterInput(jasperPrint));
-//    docExporter.setExporterOutput(
-//        new SimpleOutputStreamExporterOutput("C:\\Users\\Steffen\\Desktop\\testreport_full.docx"));
-//    docExporter.exportReport();
     System.out.println("done");
-  }
-
-  public static void testFeatureReport() throws FileNotFoundException, JRException {
-    // 1. Compile your JRXML templates
-    // Assuming you have MainReport.jrxml, SummarySubreport.jrxml, FeatureDetailSubreport.jrxml
-//    InputStream mainReportStream = new FileInputStream(
-//        new File("C:\\Users\\Steffen\\JaspersoftWorkspace\\MyReports\\feature_report.jrxml"));
-//    JasperReport jasperMainReport = JasperCompileManager.compileReport(mainReportStream);
-
-    // Detailed Data (each containing rasterized SVG as InputStream)
-    final List<FeatureDetail> data = createDetailData();
-
-    // 4. Fill the report
-    JasperPrint jasperPrint = JasperFillManager.fillReport(
-        "C:\\Users\\Steffen\\JaspersoftWorkspace\\MyReports\\feature_report.jasper",
-        new HashMap<>(), new JRBeanCollectionDataSource(data));
-
-    // 5. View/Export the report
-//    JasperViewer.viewReport(jasperPrint, false);
   }
 
   private static @NotNull List<FeatureDetail> createDetailData() {

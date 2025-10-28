@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
-import io.github.mzmine.gui.chartbasics.graphicsexport.ChartExportUtil;
 import io.github.mzmine.gui.chartbasics.graphicsexport.ExportChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
@@ -39,7 +38,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTim
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
-import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowBoxPlotDataset;
@@ -62,9 +60,6 @@ import io.mzmine.reports.FeatureDetail;
 import io.mzmine.reports.FeatureSummary;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -582,5 +577,9 @@ public class ReportUtils {
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
     chart.getChart().getPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
     ExportChartThemeParameters export = (ExportChartThemeParameters) new ExportChartThemeParameters().cloneParameterSet();
+  }
+
+  public enum MirrorOrMs2 {
+    MIRROR, MS2;
   }
 }

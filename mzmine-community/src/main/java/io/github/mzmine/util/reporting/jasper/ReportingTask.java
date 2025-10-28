@@ -9,6 +9,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.reporting.jasper.reporttypes.ReportModule;
 import io.github.mzmine.util.reporting.jasper.reporttypes.ReportTypes;
 import io.mzmine.reports.FeatureDetail;
@@ -29,6 +30,10 @@ import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.export.ooxml.JRDocxExporter;
+import net.sf.jasperreports.export.SimpleExporterInput;
+import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.xmlbeans.impl.soap.Detail;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,13 +77,23 @@ public class ReportingTask extends AbstractFeatureListTask {
         reportModule.cancel();
         return;
       }
-      if(jasperPrint == null) {
+      if (jasperPrint == null) {
         error("Unknown error. Could not create print file.");
         return;
       }
       desc = "Exporting report for feature list %s to pdf.".formatted(flist.getName());
+
+      final File exportPdf = getParameters().getValue(ReportingParameters.exportFile);
       JasperExportManager.exportReportToPdfFile(jasperPrint,
-          getParameters().getValue(ReportingParameters.exportFile).getAbsolutePath());
+          FileAndPathUtil.getRealFilePath(exportPdf, "pdf").getAbsolutePath());
+      desc = "Exporting report for feature list %s to HTML.".formatted(flist.getName());
+
+      final File htmlDir = new File(exportPdf.getParent(),
+          FilenameUtils.removeExtension(exportPdf.getName()) + "_html");
+      FileAndPathUtil.createDirectory(htmlDir);
+      JasperExportManager.exportReportToHtmlFile(jasperPrint,
+          FileAndPathUtil.getRealFilePath(htmlDir, exportPdf.getName(), ".html").getAbsolutePath());
+      desc = "Exporting report for feature list %s to docx.".formatted(flist.getName());
     } catch (JRException e) {
       logger.log(Level.SEVERE, e.getMessage(), e);
     }
@@ -118,7 +133,7 @@ public class ReportingTask extends AbstractFeatureListTask {
   @Override
   public void cancel() {
     super.cancel();
-    if(reportModule != null) {
+    if (reportModule != null) {
       reportModule.cancel();
     }
   }
