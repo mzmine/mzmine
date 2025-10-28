@@ -4,15 +4,12 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.reporting.jasper.reporttypes.ReportTypes;
 import java.util.List;
-import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,13 +22,13 @@ public class ReportingParameters extends SimpleParameterSet {
 
   public static final ParameterSetParameter<ReportingVendorParameters> reportingVendorParam = new ParameterSetParameter<>(
       "Vendor description", "Description of your company/institute.",
-      new ReportingVendorParameters(), false);
+      new ReportingVendorParameters(), false, ReportingVendorModule.class);
 
   public static final ParameterSetParameter<ReportingCustomerParameters> reportingCustomerParam = new ParameterSetParameter<>(
-      "Customer description", "Customer related data.", new ReportingCustomerParameters(), true);
+      "Customer description", "Customer related data.", new ReportingCustomerParameters(), true, ReportingCustomerModule.class);
 
   public static final ParameterSetParameter<ReportingOrderParameters> reportingOrderParam = new ParameterSetParameter<>(
-      "Order description", "Order related fields", new ReportingOrderParameters(), true);
+      "Order description", "Order related fields", new ReportingOrderParameters(), true, ReportingOrderModule.class);
 
   public static final TextParameter freeText = new TextParameter("Free text",
       "Include additional text, e.g. a greeting and describing your methods.");

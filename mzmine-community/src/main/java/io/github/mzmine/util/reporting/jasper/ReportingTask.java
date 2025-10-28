@@ -113,7 +113,7 @@ public class ReportingTask extends AbstractFeatureListTask {
         ReportingParameters.reportingOrderParam);
     orderParam.addToMetadata(param);
 
-    final ReportingCustomerParameters customerParam = parameters.getValue(
+    final ReportingCustomerParameters customerParam = (ReportingCustomerParameters) parameters.getEmbeddedParameterValue(
         ReportingParameters.reportingCustomerParam);
     customerParam.addToMetadata(param);
 
