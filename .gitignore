@@ -1,5 +1,6 @@
 .DS_Store
 .vscode
+.sdkmanrc
 .project
 .classpath
 .gradle
