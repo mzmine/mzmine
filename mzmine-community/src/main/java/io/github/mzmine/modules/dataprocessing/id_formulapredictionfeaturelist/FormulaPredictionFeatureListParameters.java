@@ -25,6 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist;
 
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.id_formula_sort.FormulaSortParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionParameters;
@@ -34,6 +35,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsCompositionRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -78,10 +80,15 @@ public class FormulaPredictionFeatureListParameters extends SimpleParameterSet {
   public static final OptionalModuleParameter<MSMSScoreParameters> msmsFilter = new OptionalModuleParameter<>(
       "MS/MS filter", "Check MS/MS data", new MSMSScoreParameters(), true);
 
+  public static final DoubleParameter highMassLimit = new DoubleParameter(
+      "Exclude features above m/z",
+      "Exclude masses above the given m/z ratio as computation for high m/zs will take more time.",
+      ConfigService.getGuiFormats().mzFormat(), 800d, 0d, Double.MAX_VALUE);
+
   public FormulaPredictionFeatureListParameters() {
     super(
         new Parameter[]{FEATURE_LISTS, ionization, sorting, mzTolerance, maxBestFormulasPerFeature,
-            elements, elementalRatios, rdbeRestrictions, isotopeFilter, msmsFilter},
+            elements, elementalRatios, rdbeRestrictions, isotopeFilter, msmsFilter, highMassLimit},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectra_chem_formula/chem-formula-pred.html");
   }
 

@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.id_formula_sort.FormulaSortParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
@@ -48,11 +49,13 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.FormulaUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
@@ -65,8 +68,7 @@ import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
 class FormulaPredictionSubTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(
-      FormulaPredictionSubTask.class.getName());
+  private static final Logger logger = Logger.getLogger(FormulaPredictionSubTask.class.getName());
 
   private final MolecularFormulaRange elementCounts;
   private final Double minIsotopeScore;
@@ -96,12 +98,13 @@ class FormulaPredictionSubTask extends AbstractTask {
   private Double msmsMinScore;
   private int topNmsmsSignals;
   private MZTolerance msmsMzTolerance;
+  private final double highMassLimit;
 
   /**
    * @param parameters
    */
-  FormulaPredictionSubTask(ParameterSet parameters,
-      @NotNull Instant moduleCallDate, ConcurrentLinkedQueue<FeatureListRow> rows) {
+  FormulaPredictionSubTask(ParameterSet parameters, @NotNull Instant moduleCallDate,
+      ConcurrentLinkedQueue<FeatureListRow> rows) {
     super(null, moduleCallDate); // no new data stored -> null
 
     ionType = parameters.getParameter(FormulaPredictionFeatureListParameters.ionization).getValue();
@@ -173,6 +176,7 @@ class FormulaPredictionSubTask extends AbstractTask {
           .floatValue();
     }
     message = "Formula Prediction";
+    highMassLimit = parameters.getValue(FormulaPredictionFeatureListParameters.highMassLimit);
     this.parameters = parameters;
   }
 
@@ -199,10 +203,20 @@ class FormulaPredictionSubTask extends AbstractTask {
     FeatureListRow row = null;
     while ((row = rows.poll()) != null) {
 
-      List<ResultFormula> resultingFormulas = new ArrayList<>();
+      if (isCanceled()) {
+        return;
+      }
 
-      final double searchedMass =
-          (row.getAverageMZ() - ionType.getAddedMass()) * Math.abs(ionType.getCharge());
+      List<ResultFormula> resultingFormulas = new ArrayList<>();
+      final double rowMz = row.getAverageMZ();
+      if(rowMz > highMassLimit) {
+        continue;
+      }
+
+      final Optional<IonType> it = FeatureUtils.extractBestIonIdentity(null, row);
+      final double searchedMass = it.map(ion -> ion.getMass(rowMz))
+          .orElse((rowMz - ionType.getAddedMass()) * Math.abs(ionType.getCharge()));
+
       final Range<Double> massRange = mzTolerance.getToleranceRange(searchedMass);
 
       message = "Formula prediction for " + ConfigService.getGuiFormats().mz(searchedMass);
@@ -227,10 +241,6 @@ class FormulaPredictionSubTask extends AbstractTask {
         }
       }
 
-      if (isCanceled()) {
-        return;
-      }
-
       // Add the new formula entry top results
       if (!resultingFormulas.isEmpty()) {
         FormulaUtils.sortFormulaList(resultingFormulas, sortPPMFactor, sortIsotopeFactor,
@@ -241,9 +251,6 @@ class FormulaPredictionSubTask extends AbstractTask {
         row.setFormulas(topNFormulas);
       }
 
-      if (isCanceled()) {
-        return;
-      }
       finishedRows++;
     }
 
@@ -310,9 +317,8 @@ class FormulaPredictionSubTask extends AbstractTask {
       if (msmsScan != null) {
         MassList ms2MassList = msmsScan.getMassList();
         if (ms2MassList == null) {
-          error(
-              "The MS/MS scan #" + msmsScan.getScanNumber() + " in file " + msmsScan.getDataFile()
-                  .getName() + " does not have a mass list");
+          error("The MS/MS scan #" + msmsScan.getScanNumber() + " in file " + msmsScan.getDataFile()
+              .getName() + " does not have a mass list");
           return null;
         }
 
