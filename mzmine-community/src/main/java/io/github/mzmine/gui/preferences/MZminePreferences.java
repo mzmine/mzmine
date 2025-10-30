@@ -235,6 +235,18 @@ public class MZminePreferences extends SimpleParameterSet {
 //      Specify which path you want to use for Thermo raw data import.
 //      """, ThermoImportOptions.getOptionsForOs(), ThermoImportOptions.THERMO_RAW_FILE_PARSER);
 
+
+  public static final OptionalParameter<FileNameWithDownloadParameter> thermoRawFileParserPath = new OptionalParameter<>(
+      new FileNameWithDownloadParameter("Thermo raw file parser location",
+          "This is the optional external location to overwrite the internal thermo raw file parsing default. Disable to use the internal parser. macOS currently requires mono installed and the external raw file parser (see download button on the right).",
+          List.of(new ExtensionFilter("Executable or zip", "ThermoRawFileParser.exe",
+                  "ThermoRawFileParserLinux", "ThermoRawFileParserMac", "ThermoRawFileParser.zip"),
+              new ExtensionFilter("zip", "ThermoRawFileParser.zip"),
+              new ExtensionFilter("Windows executable", "ThermoRawFileParser.exe"),
+              new ExtensionFilter("Linux executable", "ThermoRawFileParserLinux"),
+              new ExtensionFilter("Mac executable", "ThermoRawFileParserMac")),
+          AssetGroup.ThermoRawFileParser));
+
   public static final OptionalParameter<ParameterSetParameter<WatersLockmassParameters>> watersLockmass = new OptionalParameter<>(
       new ParameterSetParameter<>("Apply lockmass on import (Waters)",
           "Apply lockmass correction for native Waters raw data during raw data import via MSConvert.",
@@ -290,8 +302,9 @@ public class MZminePreferences extends SimpleParameterSet {
             windowSettings, useTabSubtitles,
             // silent parameters without controls
             showTempFolderAlert, username, showQuickStart, siriusCountWarningOptOut,
-            //
-            applyVendorCentroiding, msConvertPath, keepConvertedFile, watersLockmass},
+            // conversion, data handling
+            applyVendorCentroiding, msConvertPath, thermoRawFileParserPath, keepConvertedFile,
+            watersLockmass},
         "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
     darkModeProperty.subscribe(state -> {
@@ -326,7 +339,7 @@ public class MZminePreferences extends SimpleParameterSet {
             chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
             imageNormalization, windowSettings), //
         new ParameterGroup("MS data import", applyVendorCentroiding, msConvertPath,
-            keepConvertedFile, watersLockmass) //
+            thermoRawFileParserPath, keepConvertedFile, watersLockmass) //
     );
     // imsModuleWarnings, showTempFolderAlert, showQuickStart  are hidden parameters
 
@@ -337,7 +350,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
     dialog.setWidth(800);
     dialog.setHeight(800);
-    
+
     // check
     dialog.showAndWait();
     final ExitCode retVal = dialog.getExitCode();
@@ -528,6 +541,20 @@ public class MZminePreferences extends SimpleParameterSet {
     // loads all users already logged in from the user folder
     if (StringUtils.hasValue(username)) {
       UsersController.getInstance().setCurrentUserByName(username);
+    }
+
+    // no way to know if the parameter was actively deselected by user
+    // therefore no way to activate this parameter automatically
+    // only activate for macOS as macOS needs external for now
+    if (com.sun.jna.Platform.isMac()) {
+      final OptionalParameter<FileNameWithDownloadParameter> parserPath = (OptionalParameter<FileNameWithDownloadParameter>) loadedParams.get(
+          thermoRawFileParserPath.getName());
+      if (parserPath != null) {
+        final File path = parserPath.getEmbeddedParameter().getValue();
+        if (path != null && path.getPath().endsWith("ThermoRawFileParserMac")) {
+          setParameter(thermoRawFileParserPath, true);
+        }
+      }
     }
   }
 

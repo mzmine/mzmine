@@ -24,7 +24,15 @@
  */
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.italicText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -35,10 +43,13 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import java.io.File;
 import java.util.Collection;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Holds NIST MS Search parameters.
@@ -67,13 +78,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
       "The minimum cosine similarity score (dot product) for identification",
       MZmineCore.getConfiguration().getScoreFormat(), 0.7, 0.0, 1.0);
 
-  /**
-   * Optional MS/MS merging parameters.
-   */
-  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>(
-      "Merge MS/MS (experimental)",
-      "Merge high-quality MS/MS instead of exporting just the most intense one.",
-      new MsMsSpectraMergeParameters(), false);
+  public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createLimitedToFewScans();
 
   /**
    * Optional MZ rounding.
@@ -86,7 +91,9 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * Spectrum import option: Overwrite or Append.
    */
   public static final ComboParameter<ImportOption> IMPORT_PARAMETER = new ComboParameter<>(
-      "Spectrum Import", "Import Options", ImportOption.values(), ImportOption.OVERWRITE);
+      "Spectrum Import",
+      "Select if the spectra shall be added to the NIST search history (Append) or if the search history shall be overwritten (Overwrite).",
+      ImportOption.values(), ImportOption.OVERWRITE);
 
   // NIST MS Search executable.
   private static final String NIST_MS_SEARCH_EXE = "nistms$.exe";
@@ -95,9 +102,20 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * Construct the parameter set.
    */
   public NistMsSearchParameters() {
-    super(new Parameter[]{PEAK_LISTS, NIST_MS_SEARCH_DIR, DOT_PRODUCT, MERGE_PARAMETER, INTEGER_MZ,
-            IMPORT_PARAMETER},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectra_NIST/NIST-ms-search.html");
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectra_NIST/NIST-ms-search.html",
+        PEAK_LISTS, NIST_MS_SEARCH_DIR, DOT_PRODUCT, spectraMergeSelect, INTEGER_MZ,
+        IMPORT_PARAMETER);
+  }
+
+  /**
+   * Is this a Windows OS?
+   *
+   * @return true/false if the os.name property does/doesn't contain "Windows".
+   */
+  private static boolean isWindows() {
+
+    return System.getProperty("os.name").toUpperCase().contains("WINDOWS");
   }
 
   @Override
@@ -118,7 +136,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
     if (executable == null || !executable.exists()) {
 
       errorMessages.add("NIST MS Search executable (" + NIST_MS_SEARCH_EXE
-                        + ") not found.  Please set the to the full path of the directory containing the NIST MS Search executable.");
+          + ") not found.  Please set the to the full path of the directory containing the NIST MS Search executable.");
       result = false;
     }
 
@@ -136,23 +154,33 @@ public class NistMsSearchParameters extends SimpleParameterSet {
     return dir == null ? null : new File(dir, NIST_MS_SEARCH_EXE);
   }
 
-  /**
-   * Is this a Windows OS?
-   *
-   * @return true/false if the os.name property does/doesn't contain "Windows".
-   */
-  private static boolean isWindows() {
-
-    return System.getProperty("os.name").toUpperCase().contains("WINDOWS");
-  }
-
   @Override
   public int getVersion() {
-    return 2;
+    return 3;
   }
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 3 -> "Improved spectral merging options. Please reconfigure the NIST MS search step.";
+      default -> null;
+    };
+  }
+
+  @Override
+  public @Nullable Region getMessage() {
+    return FxTextFlows.newTextFlowInAccordion("Information", true, text("""
+            You must have a valid NIST library installation and the "Automation" check box under"""),
+        italicText(" Options"), text(" -> "), italicText("Library search options"), text(" -> "),
+        italicText("Other options"), text(" -> "), italicText("Automation"),
+        text(" must be enabled."),
+        text("\nThis search may take longer than spectral library searches in mzmine."),
+        text("\nWe recommend to "), boldText("not interact"),
+        text(" with the MS Search interface during the search."));
   }
 }

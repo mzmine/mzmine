@@ -23,23 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-dependencyResolutionManagement {
-    repositories {
-        gradlePluginPortal()
-    }
-    versionCatalogs {
-        create("libs") {
-            from(files("../gradle/libs.versions.toml"))
-        }
-    }
+package io.github.mzmine.modules.batchmode;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Contains mappings of old module names and packages to new ones for batch config import.
+ */
+public class ModuleMappingUtils {
+
+  /**
+   *
+   * @return map of old to new module names
+   */
+  public static Map<String, String> getOldModuleNamesMap() {
+    Map<String, String> oldNames = HashMap.newHashMap(5);
+    oldNames.put("io.mzio.mzminepro.modules.otherdata.filt_shifttraces.ShiftTracesModule",
+        "io.mzio.mzminepro.modules.otherdata.filt_shifttraces.ShiftTrimAndBinTracesModule");
+
+    return oldNames;
+  }
+
 }
-
-//plugins {
-// this resolution should not be needed if we do not force a specific JDK
-// github actions already have their own jdk defined
-//    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-//}
-
-rootProject.name = "convention-plugins"
-
-include("java-convention")

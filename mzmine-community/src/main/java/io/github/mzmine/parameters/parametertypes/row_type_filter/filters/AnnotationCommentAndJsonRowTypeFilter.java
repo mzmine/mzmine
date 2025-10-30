@@ -26,48 +26,34 @@
 package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.QueryFormatException;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
-import java.util.function.Function;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-final class NumericRowTypeFilter extends AbstractRowTypeFilter {
+/**
+ * Matches the comment and additional json column
+ */
+class AnnotationCommentAndJsonRowTypeFilter extends AbstractStringRowTypeFilter {
 
-  private final double queryNumber;
-  private final @NotNull Function<FeatureListRow, ? extends @Nullable Number> valueFunction;
-
-  NumericRowTypeFilter(@NotNull RowTypeFilterOption selectedType,
-      @NotNull MatchingMode matchingMode, @NotNull String query,
-      @NotNull Function<FeatureListRow, ? extends @Nullable Number> valueFunction) {
-    super(selectedType, matchingMode, query);
-    try {
-      this.queryNumber = Double.parseDouble(query);
-    } catch (NumberFormatException e) {
-      throw new QueryFormatException("Invalid numeric query: " + query + ". ");
-    }
-    this.valueFunction = valueFunction;
+  public AnnotationCommentAndJsonRowTypeFilter(@NotNull RowTypeFilterOption selectedType,
+      @NotNull MatchingMode matchingMode, @NotNull String query, boolean caseSensitive) {
+    super(selectedType, matchingMode, query, caseSensitive);
   }
-
 
   @Override
   public boolean matches(FeatureListRow row) {
-    final Number value = valueFunction.apply(row);
-    if (value == null) {
-      return false;
+    return CompoundAnnotationUtils.streamFeatureAnnotations(row)
+        .anyMatch(this::matchesCommentOrJson);
+  }
+
+  private boolean matchesCommentOrJson(FeatureAnnotation annotation) {
+    if (matchesString(annotation.getComment())) {
+      return true;
     }
-    final int compare = Double.compare(queryNumber, value.doubleValue());
-    return switch (matchingMode) {
-      case EQUAL -> compare == 0;
-      case LESSER_EQUAL -> compare >= 0;
-      case GREATER_EQUAL -> compare <= 0;
-      case NOT_EQUAL -> compare != 0;
-      case CONTAINS -> throw new UnsupportedOperationException(
-          "CONTAINS matching mode is not applicable to numeric filters");
-      case ALL, ANY -> throw new UnsupportedOperationException(
-          "The selected matching mode is not implemented for this filter: " + matchingMode);
-    };
+
+    return matchesString(CompoundAnnotationUtils.getAdditionalJson(annotation));
   }
 
 }

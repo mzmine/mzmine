@@ -1,11 +1,11 @@
 [versions]
-jdk = { strictly = "23" }
-javafx = { strictly = "23.0.2" }
+jdk = { strictly = "25" }
+javafx = { strictly = "24.0.2" }
 javafx-plugin = "0.1.0"
 log4j-core = { strictly = "[2.23.0, 2.23.0[", prefer = "2.23.0" }
 
-licenseplugin = "2.8"
-beryx-runtime = "1.13.1"
+licenseplugin = "2.9"
+beryx-runtime = "2.0.0"
 semver = "1.0.4"
 msdk = "0.0.27"
 # update to 2.9? from 2.5
@@ -18,8 +18,8 @@ batik = { require = "1.19" }
 controlsfx = '11.2.2'
 jmzTabm = "1.0.6"
 jna = '5.12.1'
-junit = '5.12.0'
-mockito = '5.16.0'
+junit = '5.14.0'
+mockito = '5.20.0'
 jackson = '2.18.0'
 ikonli = "12.3.1"
 graphstream = "2.0"
@@ -35,7 +35,6 @@ mzio-user-client = { module = "io.mzio:user-client", version.ref = "mzio" }
 mzio-mzmine-core = { module = "io.mzio:mzmine-core", version.ref = "mzio" }
 mzio-memory-management = { module = "io.mzio:memory-management", version.ref = "mzio" }
 mzio-global-events = { module = "io.mzio:global-events", version.ref = "mzio" }
-mzio-test-utils = { module = "io.mzio:mzmine-test-utils", version.ref = "mzio" }
 #
 javafx-plugin = { module = "org.openjfx.javafxplugin:org.openjfx.javafxplugin.gradle.plugin", version.ref = "javafx-plugin" }
 # productivity
@@ -91,8 +90,10 @@ msdk-mzml = { module = "io.github.msdk:msdk-io-mzml", version.ref = "msdk" }
 msdk-adap3d = { module = "io.github.msdk:msdk-featuredetection-adap3d", version.ref = "msdk" }
 msdk-netcdf = { module = "io.github.msdk:msdk-io-netcdf", version.ref = "msdk" }
 
+sirius-api = { module = "io.sirius-ms:sirius-sdk", version = "3.1+sirius6.3.3" }
+
 #batik-xml-commons = {group = "org.apache.xmlcommons", name="xml-apis", version="1.4.01"} # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
-batik-xml-commons-ext = {group = "org.apache.xmlcommons", name="xml-apis-ext", version="1.4.01"} # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
+batik-xml-commons-ext = { group = "org.apache.xmlcommons", name = "xml-apis-ext", version = "1.4.01" } # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
 batik-anim = { group = "org.apache.xmlgraphics", name = "batik-anim", version.ref = "batik" }
 batik-swing = { group = "org.apache.xmlgraphics", name = "batik-swing", version.ref = "batik" }
 batik-svggen = { group = "org.apache.xmlgraphics", name = "batik-svggen", version.ref = "batik" }
@@ -122,7 +123,6 @@ javafx-convention = ["controlsfx", "ikonli-javafx", "ikonli-bootstrap", "ikonli-
 productivity = ["jetbrains-annotations"]
 djl-pytorch = ["djl-api", "djl-pytorch-engine"]
 mzio = ["mzio-memory-management", "mzio-taskcontroller", "mzio-user-client", "mzio-user-management", "mzio-user-management-fx", "mzio-global-events", "mzio-mzmine-core"]
-mzio-test = ["mzio-test-utils"]
 # UI
 ikonli = ["ikonli-bootstrap", "ikonli-javafx", "ikonli-lineawesome"]
 jfreechart = ["jfree-core", "jfree-fx", "jfree-fxgraphics"]
