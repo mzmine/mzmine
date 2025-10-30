@@ -41,7 +41,9 @@ import io.github.mzmine.parameters.parametertypes.elements.ElementsCompositionRa
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FormulaPredictionFeatureListParameters extends SimpleParameterSet {
 
@@ -51,8 +53,9 @@ public class FormulaPredictionFeatureListParameters extends SimpleParameterSet {
       "Sorting", "Apply sorting to all resulting lists", new FormulaSortParameters(true), true);
 
   public static final ComboParameter<IonizationType> ionization = new ComboParameter<>(
-      "Ionization type", "Ionization type", IonizationType.values(),
-      IonizationType.POSITIVE_HYDROGEN);
+      "Fallback adduct",
+      "Ionization type of features that are not annotated by IIN or other annotations.",
+      IonizationType.values(), IonizationType.POSITIVE_HYDROGEN);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(0.002, 5);
 
@@ -96,4 +99,25 @@ public class FormulaPredictionFeatureListParameters extends SimpleParameterSet {
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
   }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 2 ->
+          "Formula prediction for feature lists was updated and parallelized. A filter to exclude high m/z ratios was added for performance tuning. Adduct annotations by IIN now override the 'Ionization type'. Parameter name was changed to 'Fallback adduct'";
+      default -> null;
+    };
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var map =  super.getNameParameterMap();
+    map.put("Ionization type", getParameter(ionization));
+    return map;
+  };
 }
