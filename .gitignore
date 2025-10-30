@@ -30,3 +30,6 @@ not-bio
 
 # VS Code settings
 .vscode/
+
+dev-run.sh
+.sdkmanrc

@@ -109,8 +109,3 @@ and review rejection details.
 security delete-keychain mzmine-signing.keychain-db
 unset MACOS_APP_IDENTITY_ID MACOS_APPLE_ID_PWD MACOS_APP_IDENTITY_TEAM_ID
 ```
-
----
-
-## 8. Sharing the Manual
-Distribute this file outside the repository (e.g., internal wiki or secure shared storage). Ensure the password vault entry links here and includes the latest `.p12` bundle and app-specific password instructions.
