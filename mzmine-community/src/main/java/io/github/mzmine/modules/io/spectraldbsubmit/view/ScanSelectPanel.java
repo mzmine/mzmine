@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -625,7 +625,7 @@ public class ScanSelectPanel extends BorderPane {
       Scan scan = scans.get(selectedScanI);
       MassList massList = scan.getMassList();
       if (massList != null) {
-        return ScanUtils.getBelowThreshold(massList.getDataPoints(), noiseLevel);
+        return ScanUtils.getFilteredNoise(massList.getDataPoints(), noiseLevel);
       }
     }
     return null;
