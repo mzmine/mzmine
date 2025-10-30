@@ -141,9 +141,6 @@ repositories {
 
     // for batik-xml-commons-ext package (svg export)
     maven { url = "https://repository.everit.biz/nexus/content/groups/public/" }
-
-    // for cdk snapshot
-    maven {url = "https://central.sonatype.com/repository/maven-snapshots/"}
 }
 
 ext {
