@@ -28,13 +28,13 @@ package io.github.mzmine.util.spectraldb.parser;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -80,20 +80,21 @@ public abstract class SpectralDBParser {
       SpectralLibraryEntry entry) {
     // zero intensity may be due to normalization and then number formatting
     // or too many (50%) zero values may be profile spectrum
-    final List<DataPoint> zeroFiltered = Arrays.stream(entry.getDataPoints())
-        .filter(dp -> dp.getIntensity() > 0).toList();
-    if (zeroFiltered.isEmpty()) {
+    final DataPoint[] zeroFiltered = ScanUtils.getFiltered(entry.getDataPoints(), 0);
+
+    if (zeroFiltered.length == 0) {
       errors.addUnknownException("Skipped entry with empty spectrum");
       return false;
-    } else if (zeroFiltered.size() * 2 < entry.getNumberOfDataPoints()) {
-      // 50% zero values so filtered out as profile
+    } else if (zeroFiltered.length * 4 < entry.getNumberOfDataPoints()) {
+      // detected as profile due to many 0 values = skip entry
+      // msconvert used to add zero datapoints left and right of a centroid when using local max algorithm
+      // therefore use a higher factor of zero values
       errors.addUnknownException(
           "Skipped entry with >50% zero-intensity values (maybe profile spectrum).");
       return false;
     } else {
       // only a few zero values so maybe just bad formatting
-      entry = SpectralLibraryEntryFactory.create(storage, entry.getFields(),
-          zeroFiltered.toArray(new DataPoint[0]));
+      entry = SpectralLibraryEntryFactory.create(storage, entry.getFields(), zeroFiltered);
     }
 
     synchronized (LOCK) {

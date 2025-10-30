@@ -156,7 +156,7 @@ public class MZmineJsonParser extends SpectralDBTextParser {
     return main.getJsonNumber(id);
   }
 
-  public SpectralLibraryEntry getDBEntry(LibraryParsingErrors errors, SpectralLibrary library,
+  private SpectralLibraryEntry getDBEntry(LibraryParsingErrors errors, SpectralLibrary library,
       JsonObject main) {
     // extract dps
     DataPoint[] dps = getDataPoints(main);
@@ -214,7 +214,7 @@ public class MZmineJsonParser extends SpectralDBTextParser {
    * @param main
    * @return
    */
-  public DataPoint[] getDataPoints(JsonObject main) {
+  private DataPoint[] getDataPoints(JsonObject main) {
     JsonArray data = main.getJsonArray("peaks");
     return getDataPointsFromJsonArray(data);
   }

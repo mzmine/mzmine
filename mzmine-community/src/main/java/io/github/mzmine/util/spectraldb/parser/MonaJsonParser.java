@@ -163,7 +163,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
     }
   }
 
-  public SpectralLibraryEntry getDBEntry(LibraryParsingErrors errors, SpectralLibrary library,
+  private SpectralLibraryEntry getDBEntry(LibraryParsingErrors errors, SpectralLibrary library,
       JsonObject main) {
     // extract dps
     DataPoint[] dps = getDataPoints(errors, main);
@@ -176,7 +176,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
     return SpectralLibraryEntryFactory.create(library.getStorage(), map, dps);
   }
 
-  public void extractAllFields(LibraryParsingErrors errors, JsonObject main,
+  private void extractAllFields(LibraryParsingErrors errors, JsonObject main,
       Map<DBEntryField, Object> map) {
     for (DBEntryField f : DBEntryField.values()) {
       Object value = null;
@@ -390,7 +390,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
     return main.getJsonArray(COMPOUND).getJsonObject(0).getString(id, null);
   }
 
-  public DataPoint[] getDataPoints(LibraryParsingErrors errors, JsonObject main) {
+  private DataPoint[] getDataPoints(LibraryParsingErrors errors, JsonObject main) {
     String spec = main.getString("spectrum");
     if (spec == null) {
       errors.addUnknownException("'spectrum' key for data points not found");

@@ -101,7 +101,7 @@ public class GnpsMgfParser extends SpectralDBTextParser {
     String[] sep = null;
 
     // flag that entry should be skipped
-    boolean fatalEntryError = false;
+    boolean skipEntryError = false;
 
     // create db
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
@@ -119,23 +119,24 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                 fields = new EnumMap<>(DBEntryField.class);
                 dps.clear();
                 state = State.META;
+                skipEntryError = false; // make sure its skip is reset
               }
             } else {
               if (l.equalsIgnoreCase("END IONS")) {
                 // add entry and reset
-                if (!fatalEntryError && fields.size() > 0 && dps.size() > 0) {
+                if (!skipEntryError && fields.size() > 0 && dps.size() > 0) {
                   SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(
                       library.getStorage(), fields, dps.toArray(new DataPoint[dps.size()]));
                   // add and push
                   addLibraryEntry(library.getStorage(), errors, entry);
                   correct++;
-                } else if (fatalEntryError) {
+                } else if (skipEntryError) {
                   errors.addUnknownException("Skipped entry");
                 }
                 state = State.WAIT_FOR_META;
                 fields = new EnumMap<>(DBEntryField.class);
                 dps.clear();
-                fatalEntryError = false;
+                skipEntryError = false;
               } else {
                 // only 1 split into max of String[2]
                 sep = l.split("=", 2);
@@ -158,7 +159,7 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                         dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
                             Double.parseDouble(data[1])));
                       } catch (Exception ex) {
-                        fatalEntryError = true; // skip entry
+                        skipEntryError = true; // skip entry
                         // use generic message as exception will be unique for each value and will create too long error log
                         int dataPointErrors = errors.addUnknownException(
                             "Cannot parse data points");

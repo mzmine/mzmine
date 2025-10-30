@@ -47,13 +47,15 @@ public class SpectralLibraryImportTask extends AbstractTask {
 
   private final MZmineProject project;
   private final File dataBaseFile;
+  private final boolean extensiveErrorLogging;
   private AutoLibraryParser parser;
 
   public SpectralLibraryImportTask(MZmineProject project, File dataBaseFile,
-      @NotNull Instant moduleCallDate) {
+      @NotNull Instant moduleCallDate, boolean extensiveErrorLogging) {
     super(MemoryMapStorage.forMassList(), moduleCallDate);
     this.project = project;
     this.dataBaseFile = dataBaseFile;
+    this.extensiveErrorLogging = extensiveErrorLogging;
   }
 
   @Override
@@ -115,8 +117,6 @@ public class SpectralLibraryImportTask extends AbstractTask {
    */
   private SpectralLibrary parseFile(File dataBaseFile)
       throws UnsupportedFormatException, IOException {
-    // TODO maybe turn this into an advanced parameter but what about the all data import module?
-    boolean extensiveErrorLogging = true;
     SpectralLibrary library = new SpectralLibrary(MemoryMapStorage.forMassList(), dataBaseFile);
     parser = new AutoLibraryParser(1000, (list, alreadyProcessed) -> library.addEntries(list),
         extensiveErrorLogging);
