@@ -25,40 +25,29 @@
 package io.mzmine.reports;
 
 /**
- * 227 x 146 pixels.
+ * 454 x 146 pixels.
  * <br>
  * figure must be the bytes of an SVG-XML or a BufferedImage.
  */
-public class TwoFigureRow {
+public class SingleColumnRow {
 
-  public static final int WIDTH = 227;
+  public static final int WIDTH = 454;
   public static final int HEIGHT = 146;
 
-  private final Object figure1;
-  private final String figure1Caption;
-  private final Object figure2;
-  private final String figure2Caption;
+  private final Object figure;
+  private final String figureCaption;
 
-  public TwoFigureRow(Object figure1, String figure1Caption, Object figure2, String figure2Caption) {
-    this.figure1 = figure1;
-    this.figure1Caption = figure1Caption;
-    this.figure2 = figure2;
-    this.figure2Caption = figure2Caption;
+  public SingleColumnRow(Object figure, String figureCaption) {
+    this.figure = figure;
+    this.figureCaption = figureCaption;
   }
 
-  public Object getFigure1() {
-    return figure1;
+  public Object getFigure() {
+    return figure;
   }
 
-  public String getFigure1Caption() {
-    return figure1Caption;
+  public String getFigureCaption() {
+    return figureCaption;
   }
 
-  public Object getFigure2() {
-    return figure2;
-  }
-
-  public String getFigure2Caption() {
-    return figure2Caption;
-  }
 }

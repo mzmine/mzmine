@@ -46,7 +46,7 @@ public final class FeatureDetail {
 
   public FeatureDetail(String title, String id, String mz, String rtInMinutes, String ccsInA,
       String compoundSummary, Object compoundStructureImage, String additionalText,
-      Collection<TwoFigureRow> twoFigureRows, Collection<SingleFigureRow> singleFigureRows) {
+      Collection<TwoColumnRow> twoColumnRows, Collection<SingleColumnRow> singleColumnRows) {
     this.title = title;
     this.id = id;
     this.mz = mz;
@@ -55,10 +55,10 @@ public final class FeatureDetail {
     this.compoundSummary = compoundSummary;
     this.compoundStructureImage = compoundStructureImage;
     this.additionalText = additionalText;
-    this.twoFigureRows = twoFigureRows != null ? new JRBeanCollectionDataSource(twoFigureRows)
+    this.twoFigureRows = twoColumnRows != null ? new JRBeanCollectionDataSource(twoColumnRows)
         : new JRBeanCollectionDataSource(Collections.emptyList());
     this.singleFigureRows =
-        singleFigureRows != null ? new JRBeanCollectionDataSource(singleFigureRows)
+        singleColumnRows != null ? new JRBeanCollectionDataSource(singleColumnRows)
             : new JRBeanCollectionDataSource(Collections.emptyList());
   }
 

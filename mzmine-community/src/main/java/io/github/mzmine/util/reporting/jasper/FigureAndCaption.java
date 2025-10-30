@@ -2,8 +2,8 @@ package io.github.mzmine.util.reporting.jasper;
 
 import io.github.mzmine.gui.chartbasics.graphicsexport.ChartExportUtil;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.mzmine.reports.SingleFigureRow;
-import io.mzmine.reports.TwoFigureRow;
+import io.mzmine.reports.SingleColumnRow;
+import io.mzmine.reports.TwoColumnRow;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +26,7 @@ public record FigureAndCaption(@Nullable Object chartSvg, @Nullable String capti
   @NotNull
   static FigureAndCaption asSingleColumn(@NotNull final EChartViewer chart,
       @NotNull final Format format, final @Nullable String caption) throws IOException {
-    return of(chart, format, SingleFigureRow.WIDTH, SingleFigureRow.HEIGHT, caption);
+    return of(chart, format, SingleColumnRow.WIDTH, SingleColumnRow.HEIGHT, caption);
   }
 
   @NotNull
@@ -44,7 +44,7 @@ public record FigureAndCaption(@Nullable Object chartSvg, @Nullable String capti
   @NotNull
   static FigureAndCaption asTwoColumn(@NotNull final EChartViewer chart,
       @NotNull final Format format, final @Nullable String caption) throws IOException {
-    return of(chart, format, TwoFigureRow.WIDTH, TwoFigureRow.HEIGHT, caption);
+    return of(chart, format, TwoColumnRow.WIDTH, TwoColumnRow.HEIGHT, caption);
   }
 
   @NotNull

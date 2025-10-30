@@ -1,7 +1,5 @@
 package io.mzmine.reports;
 
-import com.sun.istack.internal.NotNull;
-import com.sun.org.apache.xerces.internal.util.ParserConfigurationSettings;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,12 +16,12 @@ public class ReportDataFactory {
     List<FeatureDetail> data = new ArrayList<>();
     for (int i = 0; i < 3; i++) {
 
-      List<TwoFigureRow> rows = new ArrayList<>();
+      List<TwoColumnRow> rows = new ArrayList<>();
       rows.add(
-          new TwoFigureRow("C:\\Users\\Steffen\\Documents\\report_figures\\eic.png", "Fig 1: Eic",
+          new TwoColumnRow("C:\\Users\\Steffen\\Documents\\report_figures\\eic.png", "Fig 1: Eic",
               "C:\\Users\\Steffen\\Documents\\report_figures\\mobilogram.png",
               "Fig 2: Mobilogram"));
-      rows.add(new TwoFigureRow("C:\\Users\\Steffen\\Documents\\report_figures\\libmatch.png",
+      rows.add(new TwoColumnRow("C:\\Users\\Steffen\\Documents\\report_figures\\libmatch.png",
           "Fig 3: Library match", "C:\\Users\\Steffen\\Documents\\report_figures\\uv.png",
           "Fig 4: Correlation"));
 

@@ -24,8 +24,8 @@
 
 package io.github.mzmine.util.reporting.jasper;
 
-import io.mzmine.reports.SingleFigureRow;
-import io.mzmine.reports.TwoFigureRow;
+import io.mzmine.reports.SingleColumnRow;
+import io.mzmine.reports.TwoColumnRow;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -35,8 +35,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class FigureCollection {
 
-  private final List<SingleFigureRow> singleFigureRows = new ArrayList<>();
-  private final List<TwoFigureRow> twoFigureRows = new ArrayList<>();
+  private final List<SingleColumnRow> singleColumnRows = new ArrayList<>();
+  private final List<TwoColumnRow> twoColumnRows = new ArrayList<>();
   private FigureAndCaption tempFirstFigure = null;
 
   private boolean finished = false;
@@ -49,7 +49,7 @@ public class FigureCollection {
     if (finished) {
       throw new IllegalStateException("Cannot add a new figure if results were already queried.");
     }
-    singleFigureRows.add(new SingleFigureRow(fig.chartSvg(), fig.caption()));
+    singleColumnRows.add(new SingleColumnRow(fig.chartSvg(), fig.caption()));
   }
 
   /**
@@ -67,26 +67,26 @@ public class FigureCollection {
       return;
     }
 
-    twoFigureRows.add(
-        new TwoFigureRow(tempFirstFigure.chartSvg(), tempFirstFigure.caption(), fig.chartSvg(),
+    twoColumnRows.add(
+        new TwoColumnRow(tempFirstFigure.chartSvg(), tempFirstFigure.caption(), fig.chartSvg(),
             fig.caption()));
     tempFirstFigure = null;
   }
 
-  public List<TwoFigureRow> getTwoFigureRows() {
+  public List<TwoColumnRow> getTwoFigureRows() {
     finished = true;
 
     if (tempFirstFigure != null) {
       // add potential last figure
-      twoFigureRows.add(
-          new TwoFigureRow(tempFirstFigure.chartSvg(), tempFirstFigure.caption(), null, null));
+      twoColumnRows.add(
+          new TwoColumnRow(tempFirstFigure.chartSvg(), tempFirstFigure.caption(), null, null));
       tempFirstFigure = null;
     }
-    return twoFigureRows;
+    return twoColumnRows;
   }
 
-  public List<SingleFigureRow> getSingleFigureRows() {
+  public List<SingleColumnRow> getSingleFigureRows() {
     finished = true;
-    return singleFigureRows;
+    return singleColumnRows;
   }
 }

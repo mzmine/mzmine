@@ -36,8 +36,8 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.ConfigService;
 import io.mzmine.reports.FeatureDetail;
 import io.mzmine.reports.ReportDataFactory;
-import io.mzmine.reports.SingleFigureRow;
-import io.mzmine.reports.TwoFigureRow;
+import io.mzmine.reports.SingleColumnRow;
+import io.mzmine.reports.TwoColumnRow;
 import java.awt.Color;
 import java.awt.Toolkit;
 import java.io.FileNotFoundException;
@@ -141,14 +141,14 @@ public class ReportTester {
           String.valueOf(1512 + i),
           "Exact mass: 2318\ndelta m/z: 0.005\nInternal ID: 13sijawDSA8\nCAS: 231-2365-21",
           "C:\\Users\\Steffen\\Documents\\report_figures\\structure.png", "Additional text",
-          List.of(new TwoFigureRow("C:\\Users\\Steffen\\Documents\\report_figures\\eic.png",
+          List.of(new TwoColumnRow("C:\\Users\\Steffen\\Documents\\report_figures\\eic.png",
                   "Fig 1: Eic", "C:\\Users\\Steffen\\Documents\\report_figures\\mobilogram.png",
                   "Fig 2: Mobilogram"),
-              new TwoFigureRow("C:\\Users\\Steffen\\Documents\\report_figures\\libmatch.png",
+              new TwoColumnRow("C:\\Users\\Steffen\\Documents\\report_figures\\libmatch.png",
                   "Fig 3: Library match",
 
                   "C:\\Users\\Steffen\\Documents\\report_figures\\uv.png", "Fig 4: Correlation")),
-          List.of(new SingleFigureRow(svgChartString().getBytes(), "Fig 5: Svg"))));
+          List.of(new SingleColumnRow(svgChartString().getBytes(), "Fig 5: Svg"))));
     }
     return data;
   }
