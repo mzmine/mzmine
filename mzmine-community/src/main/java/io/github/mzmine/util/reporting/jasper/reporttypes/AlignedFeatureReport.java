@@ -26,6 +26,7 @@ package io.github.mzmine.util.reporting.jasper.reporttypes;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
@@ -53,14 +54,19 @@ public class AlignedFeatureReport implements ReportModule {
   private final boolean includeEvidence;
   private final AtomicLong totalItemsToPrepare = new AtomicLong(1);
   private final AtomicLong preparedItems = new AtomicLong();
+  private final AtomicBoolean isCanceled = new AtomicBoolean(false);
+  @NotNull
+  private final MetadataColumn<?> groupingCol;
+  @NotNull
+  private final EStandardChartTheme theme;
   private JRCountingBeanCollectionDataSource detailSource = null;
   private JRCountingBeanCollectionDataSource summarySource = null;
-  private AtomicBoolean isCanceled = new AtomicBoolean(false);
-  private MetadataColumn<?> groupingCol;
 
   public AlignedFeatureReport() {
     includeSummary = true;
     includeEvidence = true;
+    theme = new EStandardChartTheme("Aligned feature report");
+    groupingCol = ProjectService.getMetadata().getSampleTypeColumn();
   }
 
   public AlignedFeatureReport(ParameterSet parameters) {
@@ -68,6 +74,8 @@ public class AlignedFeatureReport implements ReportModule {
     includeEvidence = parameters.getValue(AlignedFeatureReportParameters.includeEvidencePages);
     groupingCol = ProjectService.getMetadata()
         .getColumnByName(parameters.getValue(AlignedFeatureReportParameters.grouping));
+    theme = new EStandardChartTheme("Aligned feature report");
+    parameters.getValue(AlignedFeatureReportParameters.chartThemeParam).applyToChartTheme(theme);
   }
 
   @Override
@@ -86,7 +94,7 @@ public class AlignedFeatureReport implements ReportModule {
 
     totalItemsToPrepare.set(flist.getNumberOfRows());
 
-    final ReportUtils reportUtils = new ReportUtils(groupingCol);
+    final ReportUtils reportUtils = new ReportUtils(groupingCol, theme);
 
     final List<FeatureListRow> rows = flist.getRowsCopy();
     final List<FeatureDetail> detail = new ArrayList<>();
@@ -103,11 +111,15 @@ public class AlignedFeatureReport implements ReportModule {
       }
     }
 
-    detailSource = new JRCountingBeanCollectionDataSource(detail);
-    jasperParameters.put("DETAILED_FEATURES_DATA_SOURCE", detailSource);
+    if(includeEvidence) {
+      detailSource = new JRCountingBeanCollectionDataSource(detail);
+      jasperParameters.put("DETAILED_FEATURES_DATA_SOURCE", detailSource);
+    }
 
-    summarySource = new JRCountingBeanCollectionDataSource(summary);
-    jasperParameters.put("SUMMARY_DATA_SOURCE", summarySource);
+    if(includeSummary) {
+      summarySource = new JRCountingBeanCollectionDataSource(summary);
+      jasperParameters.put("SUMMARY_DATA_SOURCE", summarySource);
+    }
 
     final File file = FileAndPathUtil.resolveInExternalToolsDir(
         "report_templates/aligned_report/aligned_report_cover.jasper");

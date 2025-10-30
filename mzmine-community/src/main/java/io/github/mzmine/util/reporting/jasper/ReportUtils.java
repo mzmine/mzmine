@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.graphicsexport.ExportChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
@@ -60,6 +61,9 @@ import io.mzmine.reports.FeatureDetail;
 import io.mzmine.reports.FeatureSummary;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -104,13 +108,19 @@ public class ReportUtils {
   private final ExportBoxplot boxPlot = new ExportBoxplot();
   private final Function<RawDataFile, Color> getSpectrumColor = RawDataFile::getColorAWT;
   private final MetadataColumn<?> groupingColumn;
+  @NotNull
+  private final EStandardChartTheme theme;
   private final AbundanceMeasure boxPlotAbundanceMeasure = AbundanceMeasure.Area;
-  private @Nullable String structureString = null;
+  /**
+   * Bytes of the svg string or BufferedImage
+   */
+  private @Nullable Object structureImage = null;
   private EChartViewer mirrorChart = null; // must be regenerated for each match
   private LipidSpectrumPlot lipidChart = null;
 
-  public ReportUtils(MetadataColumn<?> groupingColumn) {
+  public ReportUtils(MetadataColumn<?> groupingColumn, @NotNull EStandardChartTheme theme) {
     this.groupingColumn = groupingColumn;
+    this.theme = theme;
 
     initChart(mobilogramChart);
     mobilogramChart.setRangeAxisNumberFormatOverride(
@@ -258,8 +268,7 @@ public class ReportUtils {
             .map(RawDataFile::getName).sorted(Comparator.comparing(String::toString))
             .collect(Collectors.joining(", ")));
 
-    return new FeatureDetail(title, id, mz, rt, ccs, compoundSummary,
-        structureString != null ? structureString.getBytes() : null, additional,
+    return new FeatureDetail(title, id, mz, rt, ccs, compoundSummary, structureImage, additional,
         figures.getTwoFigureRows(), figures.getSingleFigureRows());
   }
 
@@ -444,23 +453,25 @@ public class ReportUtils {
     final MolecularStructure structure = annotation.map(FeatureAnnotation::getStructure)
         .orElse(null);
     if (structure == null) {
-      this.structureString = null;
+      this.structureImage = null;
       return false;
     }
 
     try {
       Structure2DComponentAWT comp = new Structure2DComponentAWT(structure.structure());
-      comp.setSize(110, 70);
+      comp.setSize(227 * 3, 130 * 3);
 
-      final SVGGraphics2D svgGenerator = renderJComponentToSvgGraphics(comp, 110, 70);
+//      final SVGGraphics2D svgGenerator = renderJComponentToSvgGraphics(comp, 110, 70);
+//      StringWriter stringWriter = new StringWriter();
+//      svgGenerator.stream(stringWriter, true);
+//      structureImage = stringWriter.toString().getBytes();
 
-      StringWriter stringWriter = new StringWriter();
-      svgGenerator.stream(stringWriter, true);
+      // svg renderer does not produce nice structures
+      structureImage = createBufferedImageFromComponent(comp, comp.getWidth(), comp.getHeight());
 
-      structureString = stringWriter.toString(); // Return the complete SVG XML as a String
       return true;
-    } catch (CDKException | SVGGraphics2DIOException e) {
-      structureString = null;
+    } catch (CDKException /*| SVGGraphics2DIOException*/ e) {
+      structureImage = null;
       return false;
     }
   }
@@ -474,6 +485,7 @@ public class ReportUtils {
     }
 
     lipidChart = new LipidSpectrumPlot(lipid, false, RunOption.THIS_THREAD);
+    theme.apply(lipidChart);
     return true;
   }
 
@@ -554,7 +566,7 @@ public class ReportUtils {
     return true;
   }
 
-  /*private BufferedImage createBufferedImageFromComponent(JComponent comp, int width, int height) {
+  private BufferedImage createBufferedImageFromComponent(JComponent comp, int width, int height) {
     BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     Graphics2D g2 = image.createGraphics();
 
@@ -562,14 +574,16 @@ public class ReportUtils {
     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
     g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
-    g2.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-    g2.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+    g2.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING,
+        RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+    g2.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION,
+        RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
 
     // Paint the component
     comp.paint(g2);
     g2.dispose();
     return image;
-  }*/
+  }
 
 
   private MirrorOrMs2 isMs2OrMirror(@NotNull FeatureListRow row) {
@@ -581,7 +595,7 @@ public class ReportUtils {
   private void initChart(@NotNull EChartViewer chart) {
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
     chart.getChart().getPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
-    ExportChartThemeParameters export = (ExportChartThemeParameters) new ExportChartThemeParameters().cloneParameterSet();
+    theme.apply(chart);
   }
 
   public enum MirrorOrMs2 {

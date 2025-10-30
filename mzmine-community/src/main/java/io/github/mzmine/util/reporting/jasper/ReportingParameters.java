@@ -1,5 +1,8 @@
 package io.github.mzmine.util.reporting.jasper;
 
+import io.github.mzmine.gui.chartbasics.graphicsexport.ExportChartThemeModule;
+import io.github.mzmine.gui.chartbasics.graphicsexport.ExportChartThemeParameters;
+import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportModule;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -25,10 +28,12 @@ public class ReportingParameters extends SimpleParameterSet {
       new ReportingVendorParameters(), false, ReportingVendorModule.class);
 
   public static final ParameterSetParameter<ReportingCustomerParameters> reportingCustomerParam = new ParameterSetParameter<>(
-      "Customer description", "Customer related data.", new ReportingCustomerParameters(), true, ReportingCustomerModule.class);
+      "Customer description", "Customer related data.", new ReportingCustomerParameters(), true,
+      ReportingCustomerModule.class);
 
   public static final ParameterSetParameter<ReportingOrderParameters> reportingOrderParam = new ParameterSetParameter<>(
-      "Order description", "Order related fields", new ReportingOrderParameters(), true, ReportingOrderModule.class);
+      "Order description", "Order related fields", new ReportingOrderParameters(), true,
+      ReportingOrderModule.class);
 
   public static final TextParameter freeText = new TextParameter("Free text",
       "Include additional text, e.g. a greeting and describing your methods.");

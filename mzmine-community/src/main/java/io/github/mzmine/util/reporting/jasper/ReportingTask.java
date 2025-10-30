@@ -90,6 +90,7 @@ public class ReportingTask extends AbstractFeatureListTask {
 
       final File htmlDir = new File(exportPdf.getParent(),
           FilenameUtils.removeExtension(exportPdf.getName()) + "_html");
+      htmlDir.delete();
       FileAndPathUtil.createDirectory(htmlDir);
       JasperExportManager.exportReportToHtmlFile(jasperPrint,
           FileAndPathUtil.getRealFilePath(htmlDir, exportPdf.getName(), ".html").getAbsolutePath());
