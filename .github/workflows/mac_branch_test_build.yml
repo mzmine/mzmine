@@ -18,7 +18,7 @@ jobs:
         with:
 #          distribution: 'temurin' # had issues for jdk25.0.0
           distribution: 'zulu'
-          java-version: '25.0.0'
+          java-version: '24.0.0'
 #          cache: 'gradle'  # now done with gradle
 
       - name: Setup Gradle
