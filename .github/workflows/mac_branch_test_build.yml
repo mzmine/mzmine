@@ -99,10 +99,20 @@ jobs:
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security default-keychain -s "$KEYCHAIN_PATH"
           security unlock-keychain -p abc123 "$KEYCHAIN_PATH"
-          security import certificate.p12 -k "$KEYCHAIN_PATH" -P "$MACOS_DEVELOPER_CERTIFICATE_PWD" -T /usr/bin/codesign -T /usr/bin/security
+          security import certificate.p12 -k "$KEYCHAIN_PATH" -P "$MACOS_DEVELOPER_CERTIFICATE_PWD" -A -f pkcs12 -T /usr/bin/codesign -T /usr/bin/security
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 "$KEYCHAIN_PATH"
-          security list-keychains -d user -s "$KEYCHAIN_PATH"
-          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" "$HOME/Library/Keychains/login.keychain-db"
+          security list-keychains -d user
+          echo "Codesigning identities in $KEYCHAIN_PATH:"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH" || true
+          ID_STR=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | sed -n 's/.*"\(Developer ID Application:.*\)".*/\1/p' | head -n 1)
+          if [ -n "$ID_STR" ]; then
+            echo "Using identity: $ID_STR"
+            export MACOS_APP_IDENTITY_ID="$ID_STR"
+          else
+            echo "No Developer ID Application identity found in $KEYCHAIN_PATH" >&2
+            exit 1
+          fi
           export MACOS_SIGNING_KEYCHAIN="$KEYCHAIN_PATH"
           ./gradlew -p mzmine-community --info --warning-mode all --stacktrace
         env:
