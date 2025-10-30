@@ -25,9 +25,8 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all.spectral_processor;
 
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.MassSpectrum;
 import java.util.Arrays;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Data structure to represent spectral data in memory
@@ -39,38 +38,36 @@ public record SimpleSpectralArrays(double[] mzs, double[] intensities) {
   public static final SimpleSpectralArrays EMPTY = new SimpleSpectralArrays(new double[0],
       new double[0]);
 
-  public SimpleSpectralArrays(final Scan scan) {
+  public SimpleSpectralArrays(final MassSpectrum scan) {
     this(scan.getMzValues(new double[scan.getNumberOfDataPoints()]),
         scan.getIntensityValues(new double[scan.getNumberOfDataPoints()]));
   }
 
   /**
    *
-   * @param data           a spectrum
    * @param noiseThreshold only retains data > noiseThreshold
    * @return the noise filtered (>noiseThreshold) spectrum or the input
    */
-  public static SimpleSpectralArrays filterGreaterNoise(@NotNull SimpleSpectralArrays data,
-      double noiseThreshold) {
+  public SimpleSpectralArrays filterGreaterNoise(double noiseThreshold) {
     int remaining = 0;
-    boolean[] keep = new boolean[data.mzs.length];
-    for (int i = 0; i < data.intensities.length; i++) {
-      if (data.intensities[i] > noiseThreshold) {
+    boolean[] keep = new boolean[this.mzs.length];
+    for (int i = 0; i < this.intensities.length; i++) {
+      if (this.intensities[i] > noiseThreshold) {
         keep[i] = true;
         remaining++;
       }
     }
-    if (remaining == data.mzs.length) {
-      return data;
+    if (remaining == this.mzs.length) {
+      return this;
     }
 
     int current = 0;
     final double[] mzs = new double[remaining];
     final double[] intensities = new double[remaining];
-    for (int i = 0; i < data.intensities.length; i++) {
+    for (int i = 0; i < this.intensities.length; i++) {
       if (keep[i]) {
-        mzs[current] = data.mzs[i];
-        intensities[current] = data.intensities[i];
+        mzs[current] = this.mzs[i];
+        intensities[current] = this.intensities[i];
         current++;
       }
     }

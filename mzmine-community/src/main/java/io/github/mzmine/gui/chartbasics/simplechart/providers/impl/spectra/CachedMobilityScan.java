@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
-import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import java.util.Iterator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,16 +55,9 @@ public class CachedMobilityScan implements MobilityScan {
   public CachedMobilityScan(MobilityScan scan, double noiseLevel) {
     this.originalMobilityScan = scan;
 
-    double[] allmz = new double[scan.getNumberOfDataPoints()];
-    double[] allintensities = new double[scan.getNumberOfDataPoints()];
-    scan.getMzValues(allmz);
-    scan.getIntensityValues(allintensities);
-
-    double[][] data = DataPointUtils.getDatapointsAboveNoiseLevel(allmz, allintensities,
-        noiseLevel);
-
-    mzs = data[0];
-    intensities = data[1];
+    final SimpleSpectralArrays data = new SimpleSpectralArrays(scan).filterGreaterNoise(noiseLevel);
+    mzs = data.mzs();
+    intensities = data.intensities();
 
     basePeakIndex = -1;
     double tempTic = 0;
