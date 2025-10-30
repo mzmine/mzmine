@@ -320,15 +320,16 @@ tasks.jpackage.doFirst {
     }
     
     if (OperatingSystem.current().isMacOsX()) {
+        def execOps = project.services.get(org.gradle.process.ExecOperations)
         // Ensure external tools are executable and not quarantined on macOS
         try {
             def externalToolsDir = EXTERNAL_TOOLS_DESTINATION.asFile
             def trfpMac = new File(externalToolsDir, "thermo_raw_file_parser/ThermoRawFileParser")
             if (trfpMac.exists()) {
-                exec { commandLine(['chmod', '+x', trfpMac.absolutePath]) }
+                execOps.exec { commandLine(['chmod', '+x', trfpMac.absolutePath]) }
             }
             // Remove quarantine attributes recursively (ignore failures on files without the attribute)
-            exec {
+            execOps.exec {
                 commandLine(['xattr', '-r', '-d', 'com.apple.quarantine', externalToolsDir.absolutePath])
                 ignoreExitValue = true
             }
@@ -450,6 +451,7 @@ task signApp(dependsOn: jpackage) {
     if (OperatingSystem.current().isMacOsX() && macSigning) {
 
         doLast {
+            def execOps = project.services.get(org.gradle.process.ExecOperations)
             Path entitlementsPth = layout.projectDirectory.dir('gradle/macos.entitlements').asFile.toPath()
             getLogger().info("imageDir " + imageDir)
             getLogger().info("jarsDir " + jarsDir)
@@ -458,13 +460,13 @@ task signApp(dependsOn: jpackage) {
 
             // Define codesign commands
             Consumer<Path> codesignWithEntitlements = { Path p ->
-                exec {
+                execOps.exec {
                     commandLine(["codesign", "--deep", "--force", "--timestamp", "-s", "${developerID}", "--options",
                                  "runtime", "--entitlements", "${entitlementsPth}", "-f", "-v", "${p}"])
                 }
             }
             Consumer<Path> codesignRuntimeOnly = { Path p ->
-                exec {
+                execOps.exec {
                     commandLine(["codesign", "--force", "--timestamp", "-s", "${developerID}", "--options",
                                  "runtime", "-v", "${p}"])
                 }
@@ -472,7 +474,7 @@ task signApp(dependsOn: jpackage) {
 
             // Clear any quarantine attributes on the entire app before signing
             try {
-                exec {
+                execOps.exec {
                     commandLine(['xattr', '-r', '-d', 'com.apple.quarantine', imageDir.toFile().absolutePath])
                     ignoreExitValue = true
                 }
@@ -517,19 +519,19 @@ task signApp(dependsOn: jpackage) {
             def thermoParserPath = imageDir.resolve("Contents").resolve("external_tools").resolve("thermo_raw_file_parser").resolve("ThermoRawFileParser").toAbsolutePath()
             getLogger().info("Thermo parser path " + thermoParserPath)
             // ensure executable bit and remove quarantine
-            exec { commandLine(['chmod', '+x', "${thermoParserPath}"]) }
-            exec { commandLine(['xattr', '-d', 'com.apple.quarantine', "${thermoParserPath}"]); ignoreExitValue = true }
+            execOps.exec { commandLine(['chmod', '+x', "${thermoParserPath}"]) }
+            execOps.exec { commandLine(['xattr', '-d', 'com.apple.quarantine', "${thermoParserPath}"]); ignoreExitValue = true }
             // pre-check (non-fatal) before applying entitlements
-            exec { commandLine(['/usr/sbin/spctl', '--assess', '--type', 'execute', '--verbose=4', "${thermoParserPath}"]); ignoreExitValue = true }
+            execOps.exec { commandLine(['/usr/sbin/spctl', '--assess', '--type', 'execute', '--verbose=4', "${thermoParserPath}"]); ignoreExitValue = true }
             codesignWithEntitlements(thermoParserPath)
             // verify after signing (non-fatal)
-            exec { commandLine(['/usr/sbin/spctl', '--assess', '--type', 'execute', '--verbose=4', "${thermoParserPath}"]); ignoreExitValue = true }
+            execOps.exec { commandLine(['/usr/sbin/spctl', '--assess', '--type', 'execute', '--verbose=4', "${thermoParserPath}"]); ignoreExitValue = true }
 
             // Sign additional executables shipped with the parser
             Path trfpDirForExecs = imageDir.resolve('Contents').resolve('external_tools').resolve('thermo_raw_file_parser')
             try {
                 // Clear quarantine on the entire parser directory (best-effort)
-                exec { commandLine(['xattr', '-r', '-d', 'com.apple.quarantine', trfpDirForExecs.toFile().absolutePath]); ignoreExitValue = true }
+                execOps.exec { commandLine(['xattr', '-r', '-d', 'com.apple.quarantine', trfpDirForExecs.toFile().absolutePath]); ignoreExitValue = true }
             } catch (Exception ignored) {}
             if (Files.exists(trfpDirForExecs)) {
                 Files.find(trfpDirForExecs, 10, { p, bfa ->
@@ -538,7 +540,7 @@ task signApp(dependsOn: jpackage) {
                     try {
                         getLogger().lifecycle("Signing external tool executable '${exe}'")
                         // Ensure executable bit
-                        exec { commandLine(['chmod', '+x', exe.toFile().absolutePath]) }
+                        execOps.exec { commandLine(['chmod', '+x', exe.toFile().absolutePath]) }
                         if (exe.fileName.toString() == 'ThermoRawFileParser') {
                             codesignWithEntitlements(exe.toAbsolutePath())
                         } else {
@@ -581,7 +583,7 @@ task signApp(dependsOn: jpackage) {
                 if (Files.exists(trfpPath)) {
                     getLogger().lifecycle("Signing embedded executable '${trfpPath}'")
                     // Ensure executable bit
-                    exec { commandLine(['chmod', '+x', trfpPath.toFile().absolutePath]) }
+                    execOps.exec { commandLine(['chmod', '+x', trfpPath.toFile().absolutePath]) }
                     codesignWithEntitlements(trfpPath.toAbsolutePath())
                 }
             } catch (Exception ignored) {
@@ -613,20 +615,21 @@ task signApp(dependsOn: jpackage) {
 task notarizeApp(dependsOn: signApp) {
     if (OperatingSystem.current().isMacOsX() && macSigning) {
         doLast {
+            def execOps = project.services.get(org.gradle.process.ExecOperations)
             File jpackageDir = layout.buildDirectory.dir("jpackage").get().asFile
             File dmgFile = new File(jpackageDir, "mzmine_macOS_installer_academia.dmg")
             File appBundle = new File(jpackageDir, "mzmine.app")
 
             // Install appdmg if not already installed
             getLogger().lifecycle("Installing appdmg...")
-            exec {
+            execOps.exec {
                 commandLine(['npm', 'install', '--python=python3.11', '-g', 'appdmg'])
                 ignoreExitValue = true // In case it's already installed
             }
 
             // Create DMG using appdmg with the existing configuration
             getLogger().lifecycle("Creating DMG with appdmg...")
-            exec {
+            execOps.exec {
                 commandLine(['appdmg',
                              "${layout.projectDirectory.dir('gradle/appdmg.json').asFile.absolutePath}",
                              'mzmine_macOS_installer_academia.dmg'])
@@ -635,7 +638,7 @@ task notarizeApp(dependsOn: signApp) {
 
             // Sign the DMG itself
             getLogger().lifecycle("Signing DMG...")
-            exec {
+            execOps.exec {
                 commandLine(['codesign', '--force', '--sign', "${developerID}", '--timestamp',
                              '--options', 'runtime', dmgFile.name])
                 workingDir jpackageDir
@@ -645,7 +648,7 @@ task notarizeApp(dependsOn: signApp) {
             // Notarize the DMG
             ByteArrayOutputStream notaryStdout = new ByteArrayOutputStream()
             ByteArrayOutputStream notaryStderr = new ByteArrayOutputStream()
-            ExecResult execResult = exec {
+            ExecResult execResult = execOps.exec {
                 commandLine(["xcrun", "notarytool", "submit", "--wait", "--apple-id", "${appleID}",
                              "--password", "${appleIDPassword}", "--team-id", "${appleTeamID}",
                              dmgFile.absolutePath])
@@ -665,7 +668,7 @@ task notarizeApp(dependsOn: signApp) {
 
             getLogger().lifecycle("Stapling DMG...")
             // Staple the DMG directly (try with --force if regular stapling fails)
-            ExecResult staplerResult = exec {
+            ExecResult staplerResult = execOps.exec {
                 commandLine(["xcrun", "stapler", "staple", dmgFile.absolutePath])
                 ignoreExitValue = true
             }
@@ -674,14 +677,14 @@ task notarizeApp(dependsOn: signApp) {
             }
 
             getLogger().lifecycle("Stapling app bundle...")
-            ExecResult appStapleResult = exec {
+            ExecResult appStapleResult = execOps.exec {
                 commandLine(["xcrun", "stapler", "staple", appBundle.absolutePath])
                 ignoreExitValue = true
             }
             if (appStapleResult.getExitValue() != 0) {
                 getLogger().warn("Stapling app bundle failed (exit ${appStapleResult.getExitValue()}). Falling back to online ticket lookup.")
             } else {
-                exec {
+                execOps.exec {
                     commandLine(['/usr/sbin/spctl', '--assess', '--type', 'exec', '--verbose=4', appBundle.absolutePath])
                     ignoreExitValue = true
                 }
@@ -689,7 +692,7 @@ task notarizeApp(dependsOn: signApp) {
 
             // Also create portable ZIP from the original .app for those who want it
             getLogger().lifecycle("Creating portable ZIP...")
-            exec {
+            execOps.exec {
                 commandLine(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent',
                              'mzmine.app', 'mzmine_macOS_portable_academia.zip'])
                 workingDir jpackageDir
