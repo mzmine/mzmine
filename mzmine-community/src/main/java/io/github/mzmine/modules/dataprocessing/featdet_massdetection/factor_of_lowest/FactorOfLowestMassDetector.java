@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,8 +34,8 @@ import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Remove peaks below the minimum intensity x a user defined factor.
- * Can be applied to profile and centroid mode data
+ * Remove peaks below the minimum intensity x a user defined factor. Can be applied to profile and
+ * centroid mode data
  */
 public class FactorOfLowestMassDetector implements MassDetector {
 
@@ -103,7 +103,10 @@ public class FactorOfLowestMassDetector implements MassDetector {
     // Find possible mzPeaks
     for (int i = 0; i < points; i++) {
       // Is intensity above the noise level?
-      if (intensities[i] >= noiseLevel) {
+      // changed in mzmine>4.8.0 from >= to >
+      // exact mass detector always used > noiselevel
+      // this makes it easier to filter out exact values like 0
+      if (intensities[i] > noiseLevel) {
         // Yes, then mark this index as mzPeak
         pickedMZs.add(mzs[i]);
         pickedIntensities.add(intensities[i]);

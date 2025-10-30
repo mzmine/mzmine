@@ -1311,25 +1311,26 @@ public class ScanUtils {
   }
 
   /**
-   * threshold: keep data points >= noiseLevel
+   * threshold: keep data points > noiseLevel. Needs to be greater so that a fixed noise level like
+   * 0 excludes this number as well.
    *
    * @param data
    * @param noiseLevel
    * @return
    */
   public static DataPoint[] getFiltered(DataPoint[] data, double noiseLevel) {
-    return Stream.of(data).filter(dp -> dp.getIntensity() >= noiseLevel).toArray(DataPoint[]::new);
+    return Stream.of(data).filter(dp -> dp.getIntensity() > noiseLevel).toArray(DataPoint[]::new);
   }
 
   /**
-   * below threshold: keep data points < noiseLevel
+   * The filtered noise which is <= noise level. {@link #getFiltered(DataPoint[], double)}
    *
    * @param data
    * @param noiseLevel
    * @return
    */
-  public static DataPoint[] getBelowThreshold(DataPoint[] data, double noiseLevel) {
-    return Stream.of(data).filter(dp -> dp.getIntensity() < noiseLevel).toArray(DataPoint[]::new);
+  public static DataPoint[] getFilteredNoise(DataPoint[] data, double noiseLevel) {
+    return Stream.of(data).filter(dp -> dp.getIntensity() <= noiseLevel).toArray(DataPoint[]::new);
   }
 
   /**
