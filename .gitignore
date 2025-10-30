@@ -27,3 +27,6 @@ not-bio
 
 # External tools fetched locally (do not commit downloaded parser binaries)
 /external_tools/thermo_raw_file_parser/
+
+# VS Code settings
+.vscode/
