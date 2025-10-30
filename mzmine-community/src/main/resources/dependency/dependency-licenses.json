@@ -40,6 +40,40 @@
             ]
         },
         {
+            "moduleName": "ch.qos.logback:logback-classic",
+            "moduleVersion": "1.5.18",
+            "moduleUrls": [
+                "http://www.qos.ch"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Eclipse Public License - v 1.0",
+                    "moduleLicenseUrl": "http://www.eclipse.org/legal/epl-v10.html"
+                },
+                {
+                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
+                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
+                }
+            ]
+        },
+        {
+            "moduleName": "ch.qos.logback:logback-core",
+            "moduleVersion": "1.5.18",
+            "moduleUrls": [
+                "http://www.qos.ch"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Eclipse Public License - v 1.0",
+                    "moduleLicenseUrl": "http://www.eclipse.org/legal/epl-v10.html"
+                },
+                {
+                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
+                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
+                }
+            ]
+        },
+        {
             "moduleName": "com.beust:jcommander",
             "moduleVersion": "1.35",
             "moduleUrls": [
@@ -1075,7 +1109,7 @@
         },
         {
             "moduleName": "io.micrometer:micrometer-commons",
-            "moduleVersion": "1.14.9",
+            "moduleVersion": "1.14.10",
             "moduleUrls": [
                 "https://github.com/micrometer-metrics/micrometer"
             ],
@@ -1088,7 +1122,7 @@
         },
         {
             "moduleName": "io.micrometer:micrometer-observation",
-            "moduleVersion": "1.14.9",
+            "moduleVersion": "1.14.10",
             "moduleUrls": [
                 "https://github.com/micrometer-metrics/micrometer"
             ],
@@ -1101,7 +1135,7 @@
         },
         {
             "moduleName": "io.netty:netty-buffer",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1114,7 +1148,7 @@
         },
         {
             "moduleName": "io.netty:netty-codec",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1127,7 +1161,7 @@
         },
         {
             "moduleName": "io.netty:netty-codec-dns",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1140,7 +1174,7 @@
         },
         {
             "moduleName": "io.netty:netty-codec-http",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1153,7 +1187,7 @@
         },
         {
             "moduleName": "io.netty:netty-codec-http2",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1166,7 +1200,7 @@
         },
         {
             "moduleName": "io.netty:netty-codec-socks",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1179,7 +1213,7 @@
         },
         {
             "moduleName": "io.netty:netty-common",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1192,7 +1226,7 @@
         },
         {
             "moduleName": "io.netty:netty-handler",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1205,7 +1239,7 @@
         },
         {
             "moduleName": "io.netty:netty-handler-proxy",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1218,7 +1252,7 @@
         },
         {
             "moduleName": "io.netty:netty-resolver",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1231,7 +1265,7 @@
         },
         {
             "moduleName": "io.netty:netty-resolver-dns",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1244,7 +1278,7 @@
         },
         {
             "moduleName": "io.netty:netty-resolver-dns-classes-macos",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1257,7 +1291,7 @@
         },
         {
             "moduleName": "io.netty:netty-resolver-dns-native-macos",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1270,7 +1304,7 @@
         },
         {
             "moduleName": "io.netty:netty-transport",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1283,7 +1317,7 @@
         },
         {
             "moduleName": "io.netty:netty-transport-classes-epoll",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1296,7 +1330,7 @@
         },
         {
             "moduleName": "io.netty:netty-transport-native-epoll",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1309,7 +1343,7 @@
         },
         {
             "moduleName": "io.netty:netty-transport-native-unix-common",
-            "moduleVersion": "4.1.122.Final",
+            "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
             ],
@@ -1322,7 +1356,7 @@
         },
         {
             "moduleName": "io.projectreactor.netty:reactor-netty-core",
-            "moduleVersion": "1.2.8",
+            "moduleVersion": "1.2.9",
             "moduleUrls": [
                 "https://github.com/reactor/reactor-netty"
             ],
@@ -1335,7 +1369,7 @@
         },
         {
             "moduleName": "io.projectreactor.netty:reactor-netty-http",
-            "moduleVersion": "1.2.8",
+            "moduleVersion": "1.2.9",
             "moduleUrls": [
                 "https://github.com/reactor/reactor-netty"
             ],
@@ -1348,7 +1382,7 @@
         },
         {
             "moduleName": "io.projectreactor:reactor-core",
-            "moduleVersion": "3.7.8",
+            "moduleVersion": "3.7.9",
             "moduleUrls": [
                 "https://github.com/reactor/reactor-core"
             ],
@@ -1361,7 +1395,7 @@
         },
         {
             "moduleName": "io.sirius-ms:sirius-sdk",
-            "moduleVersion": "3.1+sirius6.3.0",
+            "moduleVersion": "3.1+sirius6.3.3",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU Affero General Public License, Version 3.0",
@@ -1375,7 +1409,7 @@
         },
         {
             "moduleName": "io.sirius-ms:sirius-sdk.openapi",
-            "moduleVersion": "3.1+sirius6.3.0",
+            "moduleVersion": "3.1+sirius6.3.3",
             "moduleLicenses": [
                 {
                     "moduleLicense": "GNU Affero General Public License, Version 3.0",
@@ -2032,327 +2066,7 @@
             ]
         },
         {
-            "moduleName": "org.apache.xmlcommons:xml-apis",
-            "moduleVersion": "1.4.01",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlcommons:xml-apis-ext",
-            "moduleVersion": "1.4.01",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
             "moduleName": "org.apache.xmlgraphics:batik-all",
-            "moduleVersion": "1.13",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-anim",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-awt-util",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-bridge",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-codec",
-            "moduleVersion": "1.13",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-constants",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-css",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-dom",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-ext",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-extension",
-            "moduleVersion": "1.13",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-gui-util",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-gvt",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-i18n",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-parser",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-rasterizer",
-            "moduleVersion": "1.13",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-rasterizer-ext",
-            "moduleVersion": "1.13",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-script",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-shared-resources",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-slideshow",
-            "moduleVersion": "1.13",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-squiggle",
-            "moduleVersion": "1.13",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-squiggle-ext",
-            "moduleVersion": "1.13",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-svg-dom",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-svgbrowser",
-            "moduleVersion": "1.13",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-svggen",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-svgpp",
-            "moduleVersion": "1.13",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-svgrasterizer",
-            "moduleVersion": "1.13",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-swing",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-transcoder",
-            "moduleVersion": "1.13",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-ttf2svg",
-            "moduleVersion": "1.13",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-util",
-            "moduleVersion": "1.19",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:batik-xml",
             "moduleVersion": "1.19",
             "moduleLicenses": [
                 {
@@ -2431,6 +2145,19 @@
             "moduleVersion": "1.77",
             "moduleUrls": [
                 "https://www.bouncycastle.org/java.html"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "MIT License",
+                    "moduleLicenseUrl": "https://opensource.org/licenses/MIT"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.checkerframework:checker-qual",
+            "moduleVersion": "3.41.0",
+            "moduleUrls": [
+                "https://checkerframework.org/"
             ],
             "moduleLicenses": [
                 {
@@ -3494,7 +3221,7 @@
         },
         {
             "moduleName": "org.springframework.boot:spring-boot",
-            "moduleVersion": "3.4.8",
+            "moduleVersion": "3.4.9",
             "moduleUrls": [
                 "https://spring.io/projects/spring-boot"
             ],
@@ -3507,7 +3234,7 @@
         },
         {
             "moduleName": "org.springframework.boot:spring-boot-autoconfigure",
-            "moduleVersion": "3.4.8",
+            "moduleVersion": "3.4.9",
             "moduleUrls": [
                 "https://spring.io/projects/spring-boot"
             ],
@@ -3520,7 +3247,7 @@
         },
         {
             "moduleName": "org.springframework.boot:spring-boot-starter",
-            "moduleVersion": "3.4.8",
+            "moduleVersion": "3.4.9",
             "moduleUrls": [
                 "https://spring.io/projects/spring-boot"
             ],
@@ -3533,7 +3260,7 @@
         },
         {
             "moduleName": "org.springframework.boot:spring-boot-starter-json",
-            "moduleVersion": "3.4.8",
+            "moduleVersion": "3.4.9",
             "moduleUrls": [
                 "https://spring.io/projects/spring-boot"
             ],
@@ -3546,7 +3273,7 @@
         },
         {
             "moduleName": "org.springframework.boot:spring-boot-starter-logging",
-            "moduleVersion": "3.4.8",
+            "moduleVersion": "3.4.9",
             "moduleUrls": [
                 "https://spring.io/projects/spring-boot"
             ],
@@ -3559,7 +3286,7 @@
         },
         {
             "moduleName": "org.springframework.boot:spring-boot-starter-reactor-netty",
-            "moduleVersion": "3.4.8",
+            "moduleVersion": "3.4.9",
             "moduleUrls": [
                 "https://spring.io/projects/spring-boot"
             ],
@@ -3572,7 +3299,7 @@
         },
         {
             "moduleName": "org.springframework.boot:spring-boot-starter-webflux",
-            "moduleVersion": "3.4.8",
+            "moduleVersion": "3.4.9",
             "moduleUrls": [
                 "https://spring.io/projects/spring-boot"
             ],
@@ -3585,7 +3312,7 @@
         },
         {
             "moduleName": "org.springframework:spring-aop",
-            "moduleVersion": "6.2.9",
+            "moduleVersion": "6.2.10",
             "moduleUrls": [
                 "https://github.com/spring-projects/spring-framework"
             ],
@@ -3598,7 +3325,7 @@
         },
         {
             "moduleName": "org.springframework:spring-beans",
-            "moduleVersion": "6.2.9",
+            "moduleVersion": "6.2.10",
             "moduleUrls": [
                 "https://github.com/spring-projects/spring-framework"
             ],
@@ -3611,7 +3338,7 @@
         },
         {
             "moduleName": "org.springframework:spring-context",
-            "moduleVersion": "6.2.9",
+            "moduleVersion": "6.2.10",
             "moduleUrls": [
                 "https://github.com/spring-projects/spring-framework"
             ],
@@ -3624,7 +3351,7 @@
         },
         {
             "moduleName": "org.springframework:spring-core",
-            "moduleVersion": "6.2.9",
+            "moduleVersion": "6.2.10",
             "moduleUrls": [
                 "https://github.com/spring-projects/spring-framework"
             ],
@@ -3637,7 +3364,7 @@
         },
         {
             "moduleName": "org.springframework:spring-expression",
-            "moduleVersion": "6.2.9",
+            "moduleVersion": "6.2.10",
             "moduleUrls": [
                 "https://github.com/spring-projects/spring-framework"
             ],
@@ -3650,7 +3377,7 @@
         },
         {
             "moduleName": "org.springframework:spring-jcl",
-            "moduleVersion": "6.2.9",
+            "moduleVersion": "6.2.10",
             "moduleUrls": [
                 "https://github.com/spring-projects/spring-framework"
             ],
@@ -3663,7 +3390,7 @@
         },
         {
             "moduleName": "org.springframework:spring-web",
-            "moduleVersion": "6.2.9",
+            "moduleVersion": "6.2.10",
             "moduleUrls": [
                 "https://github.com/spring-projects/spring-framework"
             ],
@@ -3676,7 +3403,7 @@
         },
         {
             "moduleName": "org.springframework:spring-webflux",
-            "moduleVersion": "6.2.9",
+            "moduleVersion": "6.2.10",
             "moduleUrls": [
                 "https://github.com/spring-projects/spring-framework"
             ],
@@ -3809,6 +3536,40 @@
                 {
                     "moduleLicense": "The 2-Clause BSD License",
                     "moduleLicenseUrl": "https://opensource.org/licenses/BSD-2-Clause"
+                }
+            ]
+        },
+        {
+            "moduleName": "xml-apis:xml-apis",
+            "moduleVersion": "1.4.01",
+            "moduleUrls": [
+                "http://xml.apache.org/commons/components/external/"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                },
+                {
+                    "moduleLicense": "The SAX License",
+                    "moduleLicenseUrl": "http://www.saxproject.org/copying.html"
+                },
+                {
+                    "moduleLicense": "The W3C License",
+                    "moduleLicenseUrl": "http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407/java-binding.zip"
+                }
+            ]
+        },
+        {
+            "moduleName": "xml-apis:xml-apis-ext",
+            "moduleVersion": "1.3.04",
+            "moduleUrls": [
+                "http://xml.apache.org/commons/components/external/"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
                 }
             ]
         }
