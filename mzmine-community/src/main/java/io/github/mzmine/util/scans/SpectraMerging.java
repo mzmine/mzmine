@@ -72,6 +72,7 @@ import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -532,17 +533,20 @@ public class SpectraMerging {
     final List<BuildingMobilityScan> buildingMobilityScans = scanMap.entrySet().parallelStream()
         .map(entry -> {
           final List<? extends MassSpectrum> spectra;
+          MassSpectrumType spectrumType = null;
 
           final List<MassList> massLists = entry.getValue().stream().map(MobilityScan::getMassList)
               .filter(Objects::nonNull).toList();
           if (massLists.isEmpty()) {
             spectra = entry.getValue();
+            spectrumType = spectra.getFirst().getSpectrumType();
           } else {
             if (massLists.size() != entry.getValue().size()) {
               throw new IllegalArgumentException(
                   "Not all mobility scans contain a mass list. Cannot merge Frames.");
             }
             spectra = massLists;
+            spectrumType = MassSpectrumType.CENTROIDED; // mass lists are always centroided
           }
           final double[][] mzIntensities = calculatedMergedMzsAndIntensities(spectra, tolerance,
               intensityMergingType, cf, inputNoiseLevel, outputNoiseLevelAbs, minMobilityPeaks);
@@ -550,7 +554,8 @@ public class SpectraMerging {
           processed.getAndIncrement();
           progress.set(processed.get() / totalFrames);
 
-          return new BuildingMobilityScan(entry.getKey(), mzIntensities[0], mzIntensities[1]);
+          return new BuildingMobilityScan(entry.getKey(), mzIntensities[0], mzIntensities[1],
+              spectrumType);
         }).sorted(Comparator.comparingInt(BuildingMobilityScan::getMobilityScanNumber)).toList();
 
     final double[] mobilities = new double[scanMap.size()];

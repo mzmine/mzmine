@@ -675,7 +675,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       spectrumType = MassSpectrumType.CENTROIDED;
     }
     final BuildingMobilityScanStorage buildingMobilityScanStorage = new BuildingMobilityScanStorage(
-        storage, this, processedMobilityScanData);
+        storage, this, processedMobilityScanData, getSpectrumType());
     clearUnusedData();
     return buildingMobilityScanStorage;
   }

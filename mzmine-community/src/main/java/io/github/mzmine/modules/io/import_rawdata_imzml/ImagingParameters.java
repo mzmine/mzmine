@@ -63,7 +63,7 @@ public class ImagingParameters {
   private double lateralHeight;
   private double pixelWidth = 1;
   private double pixelHeight = 1;
-  // max number of pixels in x and y and z (depth)
+  // max number of pixels in x and y and z (depth), not in a single line but as a total span.
   private int maxNumberOfPixelX;
   private int maxNumberOfPixelY;
   private int maxNumberOfPixelZ;
@@ -74,21 +74,40 @@ public class ImagingParameters {
   private Pattern pattern;
   private ScanDirection scanDirection;
 
+  public ImagingParameters(double lateralWidth, double lateralHeight, double pixelWidth,
+      double pixelHeight, int pixelInX, int pixelInY) {
+    this.lateralWidth = lateralWidth;
+    this.lateralHeight = lateralHeight;
+    this.pixelWidth = pixelWidth;
+    this.pixelHeight = pixelHeight;
+    this.maxNumberOfPixelX = pixelInX;
+    this.maxNumberOfPixelY = pixelInY;
+    this.maxNumberOfPixelZ = 1;
+
+    vStart = VerticalStart.TOP;
+    hStart = HorizontalStart.LEFT;
+    spectraPerPixel = 1;
+    pattern = Pattern.UNKNOWN;
+    scanDirection = ScanDirection.HORIZONTAL;
+  }
+
   public ImagingParameters(TDFMetaDataTable metaDataTable,
       TDFMaldiFrameInfoTable maldiFrameInfoTable, TDFMaldiFrameLaserInfoTable laserInfoTable) {
     try {
       maxNumberOfPixelX =
-          Integer.parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMaxXIndexPos)) - Integer
-              .parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMinXIndexPos)) + 1;
+          Integer.parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMaxXIndexPos))
+              - Integer.parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMinXIndexPos)) + 1;
       maxNumberOfPixelY =
-          Integer.parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMaxYIndexPos)) - Integer
-              .parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMinYIndexPos)) + 1;
+          Integer.parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMaxYIndexPos))
+              - Integer.parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMinYIndexPos)) + 1;
     } catch (NumberFormatException e) {
       logger.info(() -> "Number format exception during tdf maldi import.");
-      maxNumberOfPixelX = (int) (maldiFrameInfoTable.getxIndexPosColumn().stream().max(Long::compare).get()
-                - maldiFrameInfoTable.getxIndexPosColumn().stream().min(Long::compare).get());
-      maxNumberOfPixelY = (int) (maldiFrameInfoTable.getyIndexPosColumn().stream().max(Long::compare).get()
-          - maldiFrameInfoTable.getyIndexPosColumn().stream().min(Long::compare).get());
+      maxNumberOfPixelX = (int) (
+          maldiFrameInfoTable.getxIndexPosColumn().stream().max(Long::compare).get()
+              - maldiFrameInfoTable.getxIndexPosColumn().stream().min(Long::compare).get());
+      maxNumberOfPixelY = (int) (
+          maldiFrameInfoTable.getyIndexPosColumn().stream().max(Long::compare).get()
+              - maldiFrameInfoTable.getyIndexPosColumn().stream().min(Long::compare).get());
     }
     maxNumberOfPixelZ = 1;
     spectraPerPixel = 1;
@@ -98,12 +117,12 @@ public class ImagingParameters {
     pattern = Pattern.FLY_BACK;
     scanDirection = ScanDirection.HORIZONTAL;
 
-    lateralWidth = Math
-        .abs(maldiFrameInfoTable.getMotorPositionXColumn().stream().min(Double::compare).get()
+    lateralWidth = Math.abs(
+        maldiFrameInfoTable.getMotorPositionXColumn().stream().min(Double::compare).get()
             - maldiFrameInfoTable.getMotorPositionXColumn().stream().max(Double::compare).get());
 
-    lateralHeight = Math
-        .abs(maldiFrameInfoTable.getMotorPositionYColumn().stream().min(Double::compare).get()
+    lateralHeight = Math.abs(
+        maldiFrameInfoTable.getMotorPositionYColumn().stream().min(Double::compare).get()
             - maldiFrameInfoTable.getMotorPositionYColumn().stream().max(Double::compare).get());
 
     /*pixelWidth = getLateralWidth() / getMaxNumberOfPixelX();
@@ -174,14 +193,14 @@ public class ImagingParameters {
         }
       }
 
-      if(Double.compare(lateralHeight, 0d) == 0) {
+      if (Double.compare(lateralHeight, 0d) == 0) {
         lateralHeight = maxNumberOfPixelY * pixelHeight;
       }
-      if(Double.compare(lateralWidth, 0d) == 0) {
+      if (Double.compare(lateralWidth, 0d) == 0) {
         lateralWidth = maxNumberOfPixelX * pixelWidth;
       }
     }
-    if(pattern == null) {
+    if (pattern == null) {
       pattern = Pattern.UNKNOWN;
     }
   }
