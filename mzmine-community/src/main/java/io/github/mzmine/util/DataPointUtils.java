@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -166,42 +166,9 @@ public class DataPointUtils {
     return data;
   }
 
-  public static double[][] getDatapointsAboveNoiseLevel(DoubleBuffer rawMzs,
-      DoubleBuffer rawIntensities, double noiseLevel) {
-    assert rawMzs.limit() == rawIntensities.limit();
-
-    List<Double> mzs = new ArrayList<>();
-    List<Double> intensities = new ArrayList<>();
-
-    for (int i = 0; i < rawMzs.limit(); i++) {
-      if (rawIntensities.get(i) > noiseLevel) {
-        mzs.add(rawMzs.get(i));
-        intensities.add(rawIntensities.get(i));
-      }
-    }
-    double[][] data = new double[2][];
-    data[0] = Doubles.toArray(mzs);
-    data[1] = Doubles.toArray(intensities);
-    return data;
-  }
-
-  public static double[][] getDatapointsAboveNoiseLevel(double[] rawMzs, double[] rawIntensities,
+  public static SimpleSpectralArrays getDatapointsAboveNoiseLevel(SimpleSpectralArrays data,
       double noiseLevel) {
-    assert rawMzs.length == rawIntensities.length;
-
-    final DoubleArrayList mzs = new DoubleArrayList(rawMzs.length);
-    final DoubleArrayList intensities = new DoubleArrayList(rawIntensities.length);
-
-    for (int i = 0; i < rawMzs.length; i++) {
-      if (rawIntensities[i] >= noiseLevel) {
-        mzs.add(rawMzs[i]);
-        intensities.add(rawIntensities[i]);
-      }
-    }
-    double[][] data = new double[2][];
-    data[0] = mzs.toDoubleArray();
-    data[1] = intensities.toDoubleArray();
-    return data;
+    return data.filterGreaterNoise(noiseLevel);
   }
 
   /**

@@ -124,7 +124,7 @@ repositories {
     // mavenLocal()
     maven { url = "https://repo.maven.apache.org/maven2" }
     // local repo needs to be early before other repos otherwise the resolving of local libs failed
-    maven { url = uri("file://" + layout.projectDirectory.dir("../local-repo")) }
+    maven { url = uri(layout.projectDirectory.dir("../local-repo/")) }
     // sirius sdk
     maven {
         url 'https://gitlab.com/api/v4/projects/66031889/packages/maven'
@@ -138,9 +138,6 @@ repositories {
 //    maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
     // For jimzml
     // maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
-
-    // for batik-xml-commons-ext package (svg export)
-    maven { url = "https://repository.everit.biz/nexus/content/groups/public/" }
 }
 
 ext {
@@ -164,6 +161,7 @@ dependencies {
 //    implementation "org.graphstream:gs-core:2.0"
     // use patched version via jitpack from https://github.com/robinschmid/gs-core/tree/patch-1
     implementation(libs.guava)
+    implementation(libs.proxy.vole)
 //    implementation(libs.commons.math) // remove at some point?
     implementation(libs.commons.math3)
     implementation(libs.commons.cli)
@@ -225,29 +223,12 @@ dependencies {
     implementation(libs.woodstox.core)
     implementation(libs.aalto.xml)
 
-    // test only
-    testImplementation(libs.bundles.mzio.test)
-
     // sirius api
-    implementation 'io.sirius-ms:sirius-sdk:3.1+sirius6.3.0'
+    implementation(libs.sirius.api)
 }
 
-/*
- * Remove the xml-apis dependencies to avoid a compilation error in Eclipse.
- * The org.w3c.dom package is present in the java.xml module as well as in these dependencies.
- * That is illegal (https://bugs.eclipse.org/bugs/show_bug.cgi?id=536928).
- */
 configurations.all {
-    exclude group: "xml-apis", module: "xml-apis"
-    exclude group: "xml-apis", module: "xml-apis-ext"
-    exclude group: "xom", module: "xom"
-    exclude group: "ch.qos.logback", module: "logback-core"
-    exclude group: "ch.qos.logback", module: "logback-classic"
-    exclude group: "gurobi", module: "gurobi-linux64"
-    exclude group: "cplex", module: "cplex"
-    exclude group: "org.checkerframework", module: "checker-qual"
     exclude group: "javax.annotation", module: "javax.annotation-api"
-    exclude group: "log4j", module: "log4j"  // exclude from ADAP packages old version
 }
 
 
@@ -319,7 +300,8 @@ tasks.jpackage.doFirst {
  * Build the JVM runtime using jlink
  */
 runtime {
-    options = ["--compress", "2", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
+    // compress 6 is default for jlink
+    options = ["--compress=zip-6", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
     modules = ["java.desktop",
                "java.logging",
                "java.net.http",
@@ -582,6 +564,9 @@ test {
     testLogging {
         events "passed", "skipped", "failed"
     }
+    jvmArgs += [
+            "-javaagent:${classpath.find { it.name.contains('mockito-core') || it.name.contains('mockito-inline') }}"
+    ]
 }
 
 task copyTestResources(type: Copy) {
