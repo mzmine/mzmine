@@ -42,19 +42,16 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.maths.Precision;
-import java.awt.Color;
-import java.awt.Paint;
-import java.awt.Shape;
-import java.awt.geom.Ellipse2D;
-import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartFactory;
@@ -73,7 +70,14 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataset;
 
-/**
+import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+
+/**A
  * TIC plot.
  * <p>
  * Added the possibility to switch to TIC plot type from a "non-TICVisualizerWindow" context.
@@ -112,7 +116,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   public TICPlot() {
 
     super(ChartFactory.createXYLineChart("", // title
-        "Retention time", // x-axis label
+            "Retention Time (min)", // x-axis label
         "Y", // y-axis label
         null, // data set
         PlotOrientation.VERTICAL, // orientation
@@ -167,6 +171,31 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
     // Set the plot properties.
     plot = chart.getXYPlot();
+// 1) Define the three modes:
+    enum AxisUnit {TIME, CELSIUS, KELVIN}
+
+// 2) Create a context-menu with the choices:
+    ContextMenu unitMenu = new ContextMenu();
+    for (AxisUnit u : AxisUnit.values()) {
+      MenuItem item = new MenuItem(u.name());
+      item.setOnAction(e -> {
+        // 4) When clicked, set the axis label accordingly:
+        switch (u) {
+          case TIME -> plot.getDomainAxis().setLabel("Retention time (min)");
+          case CELSIUS -> plot.getDomainAxis().setLabel("Temperature (°C)");
+          case KELVIN -> plot.getDomainAxis().setLabel("Temperature (K)");
+        }
+      });
+      unitMenu.getItems().add(item);
+    }
+
+// 3) Show the menu on right-click anywhere on the chart:
+    this.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+      if (e.getButton() == MouseButton.SECONDARY) {
+        unitMenu.show(this, e.getScreenX(), e.getScreenY());
+      }
+    });
+
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
     // Set cross-hair (selection) properties.
