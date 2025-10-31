@@ -47,8 +47,16 @@ public class FxTexts {
     return text;
   }
 
+  public static @NotNull Text boldText(@NotNull ObservableValue<String> content) {
+    return styledText(content, Styles.BOLD);
+  }
+
   public static Text boldText(String content) {
     return styledText(content, Styles.BOLD.getStyleClass());
+  }
+
+  public static @NotNull Text italicText(@NotNull ObservableValue<String> content) {
+    return styledText(content, Styles.ITALIC);
   }
 
   public static Text italicText(String content) {

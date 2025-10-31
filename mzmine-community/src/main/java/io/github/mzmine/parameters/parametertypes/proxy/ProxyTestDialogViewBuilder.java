@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.proxy;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.colored;
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
 import static io.github.mzmine.javafx.components.factories.FxTexts.styledText;
@@ -78,10 +79,10 @@ public class ProxyTestDialogViewBuilder extends FxViewBuilder<ProxyTestDialogMod
             styledText("Proxy connection tests:", Styles.BOLD_SEMI_TITLE), //
             linebreak(), //
             text("With proxy connection: "), //
-            colored(text(model.proxyTestMessageProperty()), proxyColor), //
+            colored(boldText(model.proxyTestMessageProperty()), proxyColor), //
             linebreak(), //
             text("Direct connection: "), //
-            colored(text(model.noProxyTestMessageProperty()), noProxyColor), //
+            colored(boldText(model.noProxyTestMessageProperty()), noProxyColor), //
             linebreak(), //
             resolvingInfoText //
         ));
