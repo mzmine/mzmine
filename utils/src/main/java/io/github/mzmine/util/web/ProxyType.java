@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,16 +25,19 @@
 
 package io.github.mzmine.util.web;
 
+import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public enum ProxyType {
-  HTTP, HTTPS;
+  HTTP, HTTPS, SOCKS;
 
   @Nullable
   public static ProxyType parse(final String type) {
     return switch (type.toLowerCase()) {
       case "http" -> HTTP;
       case "https" -> HTTPS;
+      case "socks" -> SOCKS;
       case null, default -> null;
     };
   }
@@ -44,6 +47,64 @@ public enum ProxyType {
     return switch (this) {
       case HTTP -> "http";
       case HTTPS -> "https";
+      case SOCKS -> "socks";
     };
+  }
+
+  @NotNull
+  public ProxySystemVar getHostKey() {
+    return switch (this) {
+      case HTTP -> ProxySystemVar.HTTP_HOST;
+      case HTTPS -> ProxySystemVar.HTTPS_HOST;
+      case SOCKS -> ProxySystemVar.SOCKS_HOST;
+    };
+  }
+
+  @NotNull
+  public ProxySystemVar getPortKey() {
+    return switch (this) {
+      case HTTP -> ProxySystemVar.HTTP_PORT;
+      case HTTPS -> ProxySystemVar.HTTPS_PORT;
+      case SOCKS -> ProxySystemVar.SOCKS_PORT;
+    };
+  }
+
+  @NotNull
+  public ProxySystemVar getSelectedKey() {
+    return switch (this) {
+      case HTTP -> ProxySystemVar.HTTP_SELECTED;
+      case HTTPS -> ProxySystemVar.HTTPS_SELECTED;
+      case SOCKS -> ProxySystemVar.SOCKS_SELECTED;
+    };
+  }
+
+  public boolean isSelectedManually() {
+    return "true".equals(getSelectedKey().getSystemValue());
+  }
+
+  @Nullable
+  public String getHost() {
+    return getHostKey().getSystemValue();
+  }
+
+  @Nullable
+  public String getPort() {
+    return getPortKey().getSystemValue();
+  }
+
+  @NotNull
+  public Optional<ProxyDefinition> createSystemProxyDefinition() {
+    String address = getHost();
+    if (address == null) {
+      return Optional.empty();
+    }
+
+    boolean active = isSelectedManually();
+    String port = getPort();
+    try {
+      return Optional.of(new ProxyDefinition(active, address, port, this));
+    } catch (Exception exception) {
+    }
+    return Optional.empty();
   }
 }

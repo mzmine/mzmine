@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.GestureMouseAdapter;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
@@ -133,15 +134,20 @@ public class ChartGroup {
 
     forAllCharts(chart -> {
       XYPlot p = chart.getXYPlot();
+      if (p instanceof FxXYPlot fxplot) {
+        fxplot.setCursorPosition(pos.getX(), pos.getY());
+      } else {
+        p.setDomainCrosshairValue(pos.getX());
+        p.setRangeCrosshairValue(pos.getY());
+      }
+
       if (showCrosshairDomain) {
         p.setDomainCrosshairLockedOnData(false);
-        p.setDomainCrosshairValue(pos.getX());
         p.setDomainCrosshairStroke(stroke);
         p.setDomainCrosshairVisible(true);
       }
       if (showCrosshairRange) {
         p.setRangeCrosshairLockedOnData(false);
-        p.setRangeCrosshairValue(pos.getY());
         p.setRangeCrosshairStroke(stroke);
         p.setRangeCrosshairVisible(true);
       }

@@ -46,6 +46,8 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Main format for library entries in GNPS
@@ -71,18 +73,20 @@ public class GnpsMgfParser extends SpectralDBTextParser {
   final Predicate<String> gnpsNameAdductPattern = Pattern.compile("(M[+\\-][\\d+\\-\\w]+)")
       .asPredicate();
 
-  public GnpsMgfParser(int bufferEntries, LibraryEntryProcessor processor) {
-    super(bufferEntries, processor);
+  public GnpsMgfParser(int bufferEntries, LibraryEntryProcessor processor,
+      boolean extensiveErrorLogging) {
+    super(bufferEntries, processor, extensiveErrorLogging);
   }
 
   private final static Logger logger = Logger.getLogger(GnpsMgfParser.class.getName());
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
-      throws IOException {
+  public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
+      @NotNull SpectralLibrary library) throws IOException {
     super.parse(mainTask, dataBaseFile, library);
     logger.info("Parsing mgf spectral library " + dataBaseFile.getAbsolutePath());
 
+    final LibraryParsingErrors errors = new LibraryParsingErrors(library.getName());
     // BEGIN IONS
     // meta data
     // SCANS=1 .... n (the scan ID; could be used to put all spectra of the
@@ -95,6 +99,10 @@ public class GnpsMgfParser extends SpectralDBTextParser {
     Map<DBEntryField, Object> fields = new EnumMap<>(DBEntryField.class);
     List<DataPoint> dps = new ArrayList<>();
     String[] sep = null;
+
+    // flag that entry should be skipped
+    boolean skipEntryError = false;
+
     // create db
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
       for (String l; (l = br.readLine()) != null; ) {
@@ -111,20 +119,24 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                 fields = new EnumMap<>(DBEntryField.class);
                 dps.clear();
                 state = State.META;
+                skipEntryError = false; // make sure its skip is reset
               }
             } else {
               if (l.equalsIgnoreCase("END IONS")) {
                 // add entry and reset
-                if (fields.size() > 1 && dps.size() > 0) {
+                if (!skipEntryError && fields.size() > 0 && dps.size() > 0) {
                   SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(
                       library.getStorage(), fields, dps.toArray(new DataPoint[dps.size()]));
                   // add and push
-                  addLibraryEntry(entry);
+                  addLibraryEntry(library.getStorage(), errors, entry);
                   correct++;
+                } else if (skipEntryError) {
+                  errors.addUnknownException("Skipped entry");
                 }
                 state = State.WAIT_FOR_META;
                 fields = new EnumMap<>(DBEntryField.class);
                 dps.clear();
+                skipEntryError = false;
               } else {
                 // only 1 split into max of String[2]
                 sep = l.split("=", 2);
@@ -139,17 +151,38 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                   case DATA:
                     // split for any white space (tab or space ...)
                     String[] data = l.split("\\s+");
-                    dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
-                        Double.parseDouble(data[1])));
+                    if (data.length < 2) {
+                      // no data anymore
+                      state = State.WAIT_FOR_META;
+                    } else {
+                      try {
+                        dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
+                            Double.parseDouble(data[1])));
+                      } catch (Exception ex) {
+                        skipEntryError = true; // skip entry
+                        // use generic message as exception will be unique for each value and will create too long error log
+                        int dataPointErrors = errors.addUnknownException(
+                            "Cannot parse data points");
+                        // log the 2 first data point errors
+                        if (dataPointErrors <= 2 && isExtensiveErrorLogging()) {
+                          logger.log(Level.WARNING, "Cannot parse data point: " + ex.getMessage(),
+                              ex);
+                        }
+                      }
+                    }
                     break;
                   case META:
                     if (sep.length == 2) {
-                      final String key = sep[0];
-                      String content = sep[1];
+                      final String key = sep[0].trim();
+                      String content = sep[1].trim();
                       // check many alternative names
                       DBEntryField field = DBEntryField.forID(key);
 
-                      if (field != null) {
+                      if (field == null) {
+                        if (!key.isBlank()) {
+                          errors.addUnknownKey(key);
+                        }
+                      } else {
                         if (!content.isBlank()) {
                           try {
                             // allow 1+ as 1 and 2- as -2
@@ -173,9 +206,11 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                               fields.put(field, value);
                             }
                           } catch (Exception e) {
-                            logger.log(Level.WARNING,
-                                "Cannot convert value type of " + content + " to "
-                                    + field.getObjectClass().toString(), e);
+                            errors.addValueParsingError(field, key, content);
+                            // pushed logging to later in the errors object to not overflow log
+//                            logger.log(Level.WARNING,
+//                                "Cannot convert value type of " + content + " to "
+//                                    + field.getObjectClass().toString(), e);
                           }
                         }
                       }
@@ -186,13 +221,23 @@ public class GnpsMgfParser extends SpectralDBTextParser {
             }
           }
         } catch (Exception ex) {
-          logger.log(Level.WARNING, "Error for entry", ex);
+          errors.addUnknownException(ex.getMessage());
+          // add this to count unknown errors and log first 5 only
+          int unknowns = errors.addUnknownException("unknown error");
+          if (unknowns <= 5 && isExtensiveErrorLogging()) {
+            logger.log(Level.WARNING, "Error for entry: " + ex.getMessage(), ex);
+          }
+
           state = State.WAIT_FOR_META;
         }
         processedLines.incrementAndGet();
       }
       // finish and process all entries
       finish();
+
+      // log errors
+      logger.info(isExtensiveErrorLogging() ? errors.toString() : errors.toStringShort());
+
       return true;
     }
   }

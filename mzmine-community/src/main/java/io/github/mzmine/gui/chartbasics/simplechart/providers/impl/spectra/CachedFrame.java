@@ -37,7 +37,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
-import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -64,16 +64,10 @@ public class CachedFrame implements Frame {
   public CachedFrame(Frame frame, double frameNoiseLevel, double mobilityScaNoiseLevel) {
     originalFrame = frame;
 
-    double[] allmz = new double[frame.getNumberOfDataPoints()];
-    double[] allintensities = new double[frame.getNumberOfDataPoints()];
-    frame.getMzValues(allmz);
-    frame.getIntensityValues(allintensities);
-
-    double[][] data = DataPointUtils.getDatapointsAboveNoiseLevel(allmz, allintensities,
+    final SimpleSpectralArrays data = new SimpleSpectralArrays(frame).filterGreaterNoise(
         frameNoiseLevel);
-
-    mzs = data[0];
-    intensities = data[1];
+    mzs = data.mzs();
+    intensities = data.intensities();
 
     this.mobilityScans = new ArrayList<>();
     for (MobilityScan scan : frame.getMobilityScans()) {

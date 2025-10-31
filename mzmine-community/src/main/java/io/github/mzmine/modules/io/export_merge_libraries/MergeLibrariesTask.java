@@ -144,7 +144,7 @@ public class MergeLibrariesTask extends AbstractTask {
     if (removeAndImport) {
       FxThread.runLater(() -> ProjectService.getProject()
           .removeSpectralLibrary(libs.toArray(SpectralLibrary[]::new)));
-      importTask = new SpectralLibraryImportTask(project, newFile, getModuleCallDate());
+      importTask = new SpectralLibraryImportTask(project, newFile, getModuleCallDate(), true);
       importTask.run();
     }
     setStatus(TaskStatus.FINISHED);

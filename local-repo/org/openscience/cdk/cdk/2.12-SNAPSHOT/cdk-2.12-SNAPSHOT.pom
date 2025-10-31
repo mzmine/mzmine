@@ -1,0 +1,974 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.openscience.cdk</groupId>
+    <artifactId>cdk</artifactId>
+    <name>cdk</name>
+    <description>Modular library for Cheminformatics</description>
+    <version>2.12-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <url>http://sourceforge.net/projects/cdk/</url>
+    <modules>
+        <module>bundle</module>
+        <module>base</module>
+        <module>descriptor</module>
+        <module>display</module>
+        <module>misc</module>
+        <module>storage</module>
+        <module>tool</module>
+        <module>legacy</module>
+        <module>app</module>
+    </modules>
+    <properties>
+        <argLine></argLine>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <sonar.organization>cdk</sonar.organization>
+        <sonar.language>java</sonar.language>
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+        <!--suppress UnresolvedMavenProperty -->
+        <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/bundle/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+    </properties>
+    <licenses>
+        <license>
+            <name>GNU LGPL 2.1 or later</name>
+            <url>http://www.gnu.org/licenses/lgpl.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <url>https://github.com/cdk/cdk</url>
+        <connection>scm:git:git://github.com/cdk/cdk.git</connection>
+        <developerConnection>scm:git:git@github.com:cdk/cdk.git</developerConnection>
+    </scm>
+    <issueManagement>
+        <url>https://github.com/cdk/cdk/issues</url>
+        <system>SourceForge Tracker</system>
+    </issueManagement>
+    <!-- define the cdk.repo.url and cdk.repo.snapshots.url properties in 
+         ~/.m2/settings.xml -->
+    <distributionManagement>
+        <snapshotRepository>
+            <id>central</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>central</id>
+            <url>https://central.sonatype.com/</url>
+        </repository>
+        <!-- site is staged and then copied to a sub-folder of gh-pages, no
+             url is provided but the field is needed to stage the site. -->
+        <site>
+            <id>cdk.github.com</id>
+            <url>https://cdk.github.io/cdk/</url>
+        </site>
+    </distributionManagement>
+    <repositories>
+        <repository>
+            <id>central-snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+        </repository>
+    </repositories>
+    <!-- developer = commit access -->
+    <developers>
+        <developer>
+            <name>Christoph Steinbeck</name>
+        </developer>
+        <developer>
+            <name>Egon Willighagen</name>
+            <email>egonw@users.sf.net</email>
+            <url>https://chem-bla-ics.linkedchemistry.info/</url>
+        </developer>
+        <developer>
+            <name>Rajarshi Guha</name>
+        </developer>
+        <developer>
+            <name>Miguel Rojas Cherto</name>
+        </developer>
+        <developer>
+            <name>John Mayfield</name>
+            <email>john@nextmovesoftware.com</email>
+            <url>http://www.github.com/johnmay/</url>
+            <timezone>GMT</timezone>
+        </developer>
+    </developers>
+    <contributors>
+        <contributor>
+            <name>Sam Adams</name>
+        </contributor>
+        <contributor>
+            <name>Jonathan Alvarsson</name>
+        </contributor>
+        <contributor>
+            <name>Rich Apodaca</name>
+        </contributor>
+        <contributor>
+            <name>Saravanaraj N Ayyampalayam</name>
+        </contributor>
+        <contributor>
+            <name>Eric Bach</name>
+        </contributor>
+        <contributor>
+            <name>Parit Bansal</name>
+        </contributor>
+        <contributor>
+            <name>Ulrich Bauer</name>
+        </contributor>
+        <contributor>
+            <name>Felix Bänsch</name>
+        </contributor>
+        <contributor>
+            <name>Stephan Beisken</name>
+        </contributor>
+        <contributor>
+            <name>Arvid Berg</name>
+        </contributor>
+        <contributor>
+            <name>Lyle D. Burgoon</name>
+        </contributor>
+        <contributor>
+            <name>Ed Cannon</name>
+        </contributor>
+        <contributor>
+            <name>Zach Charlop-Powers</name>
+        </contributor>
+        <contributor>
+            <name>Alison Choy</name>
+        </contributor>
+        <contributor>
+            <name>Alex Clark</name>
+        </contributor>
+        <contributor>
+            <name>Miguel Correa</name>
+        </contributor>
+        <contributor>
+            <name>Fabian Dortu</name>
+        </contributor>
+        <contributor>
+            <name>Krishna Dole</name>
+        </contributor>
+        <contributor>
+            <name>Tim Dudgeon</name>
+        </contributor>
+        <contributor>
+            <name>Kai Dührkop</name>
+        </contributor>
+        <contributor>
+            <name>Martin Eklund</name>
+        </contributor>
+        <contributor>
+            <name>Luis de Figueiredo</name>
+        </contributor>
+        <contributor>
+            <name>Matteo Floris</name>
+        </contributor>
+        <contributor>
+            <name>Sambit Gaan</name>
+        </contributor>
+        <contributor>
+            <name>Jakub Galgonek</name>
+        </contributor>
+        <contributor>
+            <name>Dan Gezelter</name>
+        </contributor>
+        <contributor>
+            <name>Uli Fechner</name>
+        </contributor>
+        <contributor>
+            <name>Thorsten Flügel</name>
+        </contributor>
+        <contributor>
+            <name>Marco Foscato</name>
+        </contributor>
+        <contributor>
+            <name>Marco Glur</name>
+        </contributor>
+        <contributor>
+            <name>Nimish Gopal</name>
+        </contributor>
+        <contributor>
+            <name>Saulius Gražulis</name>
+        </contributor>
+        <contributor>
+            <name>Martin Gütlein</name>
+        </contributor>
+        <contributor>
+            <name>Yonquan Han</name>
+        </contributor>
+        <contributor>
+            <name>Thierry Hanser</name>
+        </contributor>
+        <contributor>
+            <name>Kai Hartmann</name>
+        </contributor>
+        <contributor>
+            <name>Cyrus Harmon</name>
+        </contributor>
+        <contributor>
+            <name>Tobias Helmus</name>
+        </contributor>
+        <contributor>
+            <name>Christian Hoppe</name>
+        </contributor>
+        <contributor>
+            <name>Oliver Horlacher</name>
+        </contributor>
+        <contributor>
+            <name>Miguel Howard</name>
+        </contributor>
+        <contributor>
+            <name>Andy Howlett</name>
+        </contributor>
+        <contributor>
+            <name>Yi Hsiao</name>
+        </contributor>
+        <contributor>
+            <name>Rafel Israels</name>
+        </contributor>
+        <contributor>
+            <name>Nina Jeliazkova</name>
+        </contributor>
+        <contributor>
+            <name>Geert Josten</name>
+        </contributor>
+        <contributor>
+            <name>Klas Jönsson</name>
+        </contributor>
+        <contributor>
+            <name>Dmitry Katsubo</name>
+        </contributor>
+        <contributor>
+            <name>Danny Katzel</name>
+        </contributor>
+        <contributor>
+            <name>Jules Kerssemakers</name>
+        </contributor>
+        <contributor>
+            <name>Joos Kiener</name>
+        </contributor>
+        <contributor>
+            <name>Valentyn Kolesnikov</name>
+        </contributor>
+        <contributor>
+            <name>Anatoli Krassavine</name>
+        </contributor>
+        <contributor>
+            <name>Stefan Kuhn</name>
+        </contributor>
+        <contributor>
+            <name>Uli Köhler</name>
+        </contributor>
+        <contributor>
+            <name>Violeta Labarta</name>
+        </contributor>
+        <contributor>
+            <name>Jonty Lawson</name>
+        </contributor>
+        <contributor>
+            <name>Kevin Lawson</name>
+        </contributor>
+        <contributor>
+            <name>Daniel Leidert</name>
+        </contributor>
+        <contributor>
+            <name>Katrin Leinweber</name>
+        </contributor>
+        <contributor>
+            <name>Xavier Linn</name>
+        </contributor>
+        <contributor>
+            <name>Qinqing Liu</name>
+        </contributor>
+        <contributor>
+            <name>Edgar Luttmann</name>
+        </contributor>
+        <contributor>
+            <name>Matthias Mailänder</name>
+        </contributor>
+        <contributor>
+            <name>Jean Marois</name>
+        </contributor>
+        <contributor>
+            <name>Todd Martin</name>
+        </contributor>
+        <contributor>
+            <name>Nathanaël Mazuir</name>
+        </contributor>
+        <contributor>
+            <name>Stephan Michels</name>
+        </contributor>
+        <contributor>
+            <name>Martin Morissette</name>
+        </contributor>
+        <contributor>
+            <name>Hirotomo Moriwaki</name>
+        </contributor>
+        <contributor>
+            <name>Scooter Morris</name>
+        </contributor>
+        <contributor>
+            <name>Peter Murray-Rust</name>
+        </contributor>
+        <contributor>
+            <name>Carl Mäsak</name>
+        </contributor>
+        <contributor>
+            <name>Irilenia Nobeli</name>
+        </contributor>
+        <contributor>
+            <name>Noel O'Boyle</name>
+        </contributor>
+        <contributor>
+            <name>Peter Odéus</name>
+        </contributor>
+        <contributor>
+            <name>Magda Oprian</name>
+        </contributor>
+        <contributor>
+            <name>Niels Out</name>
+        </contributor>
+        <contributor>
+            <name>Jerome Pansanel</name>
+        </contributor>
+        <contributor>
+            <name>Julio Peironcely</name>
+        </contributor>
+        <contributor>
+            <name>Diego Pedrosa</name>
+        </contributor>
+        <contributor>
+            <name>Tyler Peryea</name>
+        </contributor>
+        <contributor>
+            <name>Jeffrey Plante</name>
+        </contributor>
+        <contributor>
+            <name>Tomáš Pluskal</name>
+        </contributor>
+        <contributor>
+            <name>Chris Pudney</name>
+        </contributor>
+        <contributor>
+            <name>Syed Asad Rahman</name>
+        </contributor>
+        <contributor>
+            <name>Jonathan Rienstra-Kiracofe</name>
+        </contributor>
+        <contributor>
+            <name>Mark Rijnbeek</name>
+        </contributor>
+        <contributor>
+            <name>David Robinson</name>
+        </contributor>
+        <contributor>
+            <name>Bhupinder Sandhu</name>
+        </contributor>
+        <contributor>
+            <name>Jonas Schaub</name>
+        </contributor>
+        <contributor>
+            <name>Robin Schmid</name>
+        </contributor>
+        <contributor>
+            <name>Jean-Sebastien Senecal</name>
+        </contributor>
+        <contributor>
+            <name>Onkar Shinde</name>
+        </contributor>
+        <contributor>
+            <name>Sulev Sild</name>
+        </contributor>
+        <contributor>
+            <name>Bradley Smith</name>
+        </contributor>
+        <contributor>
+            <name>Ola Spjuth</name>
+        </contributor>
+        <contributor>
+            <name>Christoph Steinbeck</name>
+        </contributor>
+        <contributor>
+            <name>Ralf Stephan</name>
+        </contributor>
+        <contributor>
+            <name>Matt Swain</name>
+        </contributor>
+        <contributor>
+            <name>John K Sterling</name>
+        </contributor>
+        <contributor>
+            <name>Oliver Stueker</name>
+        </contributor>
+        <contributor>
+            <name>Daniel Szisz</name>
+        </contributor>
+        <contributor>
+            <name>Aleksey Tarkhov</name>
+        </contributor>
+        <contributor>
+            <name>Stephan Tomkinson</name>
+        </contributor>
+        <contributor>
+            <name>Gilleain Torrance</name>
+        </contributor>
+        <contributor>
+            <name>Andreas Truszkowski</name>
+        </contributor>
+        <contributor>
+            <name>Paul Turner</name>
+        </contributor>
+        <contributor>
+            <name>Kazuya Ujihara</name>
+        </contributor>
+        <contributor>
+            <name>Tagir Valeev</name>
+        </contributor>
+        <contributor>
+            <name>Mark B Vine</name>
+        </contributor>
+        <contributor>
+            <name>Joerg Wegner</name>
+        </contributor>
+        <contributor>
+            <name>Yap Chun Wei</name>
+        </contributor>
+        <contributor>
+            <name>Michael Wenk</name>
+        </contributor>
+        <contributor>
+            <name>Stephane Werner</name>
+        </contributor>
+        <contributor>
+            <name>Mark Williamson</name>
+        </contributor>
+        <contributor>
+            <name>Lars Willighagen</name>
+        </contributor>
+        <contributor>
+            <name>Yong Zhang</name>
+        </contributor>
+        <contributor>
+            <name>Daniel Zaharevitz</name>
+        </contributor>
+        <contributor>
+            <name>Daniel Katzel</name>
+        </contributor>
+    </contributors>
+    <!-- Plugin repository (EBI) is required for cdk-build-utils and
+         ojdcheck to build the javadoc. -->
+    <pluginRepositories>
+        <pluginRepository>
+            <id>ebi-repo</id>
+            <name>EBI Maven Repository</name>
+            <url>https://www.ebi.ac.uk/~maven/m2repo/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+    <!-- centralised versions for common dependencies -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>uk.ac.ebi.beam</groupId>
+                <artifactId>beam-core</artifactId>
+                <version>1.3.10</version>
+            </dependency>
+            <dependency>
+                <groupId>uk.ac.ebi.beam</groupId>
+                <artifactId>beam-func</artifactId>
+                <version>1.3.10</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>5.13.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <version>5.13.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <version>5.13.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-core</artifactId>
+                <version>3.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest</artifactId>
+                <version>3.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>3.27.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>4.11.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>4.11.0</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.vecmath</groupId>
+                <artifactId>vecmath</artifactId>
+                <version>1.5.2</version>
+            </dependency>
+            <dependency>
+                <groupId>gov.nist.math</groupId>
+                <artifactId>jama</artifactId>
+                <version>1.0.3</version>
+            </dependency>
+            <dependency>
+                <groupId>net.sf.jni-inchi</groupId>
+                <artifactId>jni-inchi</artifactId>
+                <version>0.8</version>
+            </dependency>
+            <dependency>
+                <groupId>xom</groupId>
+                <artifactId>xom</artifactId>
+                <version>1.3.9</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.osgi.core</artifactId>
+                <version>1.4.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>2.25.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>2.25.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-1.2-api</artifactId>
+                <version>2.25.1</version>
+            </dependency>
+            <dependency>
+                <groupId>xerces</groupId>
+                <artifactId>xercesImpl</artifactId>
+                <version>2.12.2</version>
+            </dependency>
+            <dependency>
+                <groupId>xml-apis</groupId>
+                <artifactId>xml-apis</artifactId>
+                <version>2.0.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.8.13</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.6.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-maven</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>3.6.3</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.0</version>
+                <configuration>
+                    <release>8</release>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.3</version>
+                <configuration>
+                    <!-- prevent the annoying ForkedBooter process from stealing
+                         window focus on Mac OS -->
+                    <argLine>@{argLine} -Djava.awt.headless=true -Dcdk.logging.level=ERROR -Xss16m</argLine>
+                    <excludes>
+                        <!-- not a test class -->
+                        <exclude>**/TestMoleculeFactory.java</exclude>
+                        <!-- missing functionality -->
+                        <exclude>**/cdk/limitations/**</exclude>
+                    </excludes>
+                    <excludedGroups>SlowTest</excludedGroups>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <inherited>true</inherited>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.11.2</version>
+                <configuration>
+                    <tags>
+                        <!--cdk.depends and cdk.builddepends no longer used-->
+                        <tag>
+                            <name>cdk.set</name>
+                            <placement>a</placement>
+
+                            <head>Belongs to the set:</head>
+                        </tag>
+                        <tag>
+                            <name>cdk.keyword</name>
+                            <placement>a</placement>
+
+                            <head>Keywords:</head>
+                        </tag>
+                        <tag>
+                            <name>cdk.created</name>
+                            <placement>a</placement>
+
+                            <head>Created on:</head>
+                        </tag>
+                        <tag>
+                            <name>cdk.require</name>
+                            <placement>a</placement>
+
+                            <head>Requires:</head>
+                        </tag>
+                        <tag>
+                            <name>cdk.todo</name>
+                            <placement>a</placement>
+
+                            <head>To do:</head>
+                        </tag>
+                        <tag>
+                            <name>cdk.license</name>
+                            <placement>a</placement>
+
+                            <head>License:</head>
+                        </tag>
+                    </tags>
+                    <taglets>
+                        <taglet>
+                            <tagletClass>net.sf.cdk.tools.doclets.CDKCiteTaglet</tagletClass>
+                        </taglet>
+                        <taglet>
+                            <tagletClass>net.sf.cdk.tools.doclets.CDKBugTaglet</tagletClass>
+                        </taglet>
+                        <taglet>
+                            <tagletClass>net.sf.cdk.tools.doclets.CDKDictRefTaglet</tagletClass>
+                        </taglet>
+                        <taglet>
+                            <tagletClass>net.sf.cdk.tools.doclets.CDKInChITaglet</tagletClass>
+                        </taglet>
+                        <taglet>
+                            <tagletClass>net.sf.cdk.tools.doclets.CDKIOOptionsTaglet</tagletClass>
+                        </taglet>
+                        <taglet>
+                            <tagletClass>net.sf.cdk.tools.doclets.CDKThreadSafeTaglet</tagletClass>
+                        </taglet>
+                        <taglet>
+                            <tagletClass>net.sf.cdk.tools.doclets.CDKThreadNonSafeTaglet
+                            </tagletClass>
+                        </taglet>
+                    </taglets>
+                    <tagletArtifact>
+                        <groupId>org.openscience.cdk</groupId>
+                        <artifactId>cdk-build-utils</artifactId>
+                        <version>1.0.2.9-jdk11</version>
+                    </tagletArtifact>
+                    <failOnError>false</failOnError>
+                    <doctitle>Chemistry Development Kit ${project.version} API</doctitle>
+<!--                    <stylesheetfile>${basedir}/doc/javadoc/stylesheet.css</stylesheetfile>-->
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>aggregate</id>
+                        <goals>
+                            <goal>aggregate</goal>
+                        </goals>
+                        <phase>site</phase>
+                        <configuration>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>5.1.9</version>
+                <configuration>
+                    <instructions>
+                        <Import-Package>
+                            *;resolution:=optional,
+                            org.slf4j;resolution:=dynamic,
+                            org.apache.logging.log4j;resolution:=dynamic
+                        </Import-Package>
+                        <Export-Package>
+                            *;version="${project.version}";-noimport:=true,
+                        </Export-Package>
+                    </instructions>
+                    <noWarningProjectTypes>pom</noWarningProjectTypes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>bundle-manifest</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>manifest</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.27.0</version>
+                <configuration>
+                    <rulesets>
+                        <ruleset>/pmd/custom.xml</ruleset>
+                    </rulesets>
+                    <excludes>
+                        <exclude>.*/smsd/*.java</exclude>
+                    </excludes>
+                    <excludeRoots>
+                        <excludeRoot>${basedir}/target/generated-sources/javacc</excludeRoot>
+                    </excludeRoots>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.openscience.cdk</groupId>
+                        <artifactId>cdk-build-utils</artifactId>
+                        <version>1.0.2.9-jdk11</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>com.googlecode.maven-java-formatter-plugin</groupId>
+                <artifactId>maven-java-formatter-plugin</artifactId>
+                <version>0.4</version>
+                <configuration>
+                    <configFile>cdk-formatting-conventions.xml</configFile>
+                    <lineEnding>LF</lineEnding>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.openscience.cdk</groupId>
+                        <artifactId>cdk-build-utils</artifactId>
+                        <version>1.0.2.9-jdk11</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.8.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <linkXRef>false</linkXRef>
+                    <logViolationsToConsole>true</logViolationsToConsole>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.11.2</version>
+                <reportSets>
+                    <reportSet>
+                        <id>default</id>
+                        <configuration>
+                            <aggregate>false</aggregate>
+                        </configuration>
+                        <reports>
+                            <report>javadoc</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+                <configuration>
+                    <failOnError>false</failOnError>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.27.0</version>
+                <configuration>
+                    <rulesets>
+                        <ruleset>/pmd/custom.xml</ruleset>
+                    </rulesets>
+                    <excludeRoots>
+                        <excludeRoot>${basedir}/target/generated-sources/javacc</excludeRoot>
+                    </excludeRoots>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>3.0.5</version>
+            </plugin>
+        </plugins>
+    </reporting>
+    <profiles>
+        <profile>
+            <id>jacoco</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>slow-tests</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.2.5</version>
+                        <configuration combine.self="override">
+                            <!-- prevent the annoying ForkedBooter process from stealing
+                                 window focus on Mac OS -->
+                            <argLine>-Djava.awt.headless=true</argLine>
+                            <excludes>
+                                <!-- not a test class -->
+                                <exclude>**/TestMoleculeFactory.java</exclude>
+                            </excludes>
+                            <groups>SlowTest</groups>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>ossrh</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.8.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>true</autoPublish>
+                            <waitUntil>published</waitUntil>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.2.8</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>gpg</executable>
+                                    <gpgArguments>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
+                                    <passphrase>${gpg.passphrase}</passphrase>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

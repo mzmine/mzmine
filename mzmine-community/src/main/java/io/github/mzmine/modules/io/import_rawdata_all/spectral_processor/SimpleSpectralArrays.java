@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all.spectral_processor;
 
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.MassSpectrum;
 import java.util.Arrays;
 
 /**
@@ -38,9 +38,40 @@ public record SimpleSpectralArrays(double[] mzs, double[] intensities) {
   public static final SimpleSpectralArrays EMPTY = new SimpleSpectralArrays(new double[0],
       new double[0]);
 
-  public SimpleSpectralArrays(final Scan scan) {
+  public SimpleSpectralArrays(final MassSpectrum scan) {
     this(scan.getMzValues(new double[scan.getNumberOfDataPoints()]),
         scan.getIntensityValues(new double[scan.getNumberOfDataPoints()]));
+  }
+
+  /**
+   *
+   * @param noiseThreshold only retains data > noiseThreshold
+   * @return the noise filtered (>noiseThreshold) spectrum or the input
+   */
+  public SimpleSpectralArrays filterGreaterNoise(double noiseThreshold) {
+    int remaining = 0;
+    boolean[] keep = new boolean[this.mzs.length];
+    for (int i = 0; i < this.intensities.length; i++) {
+      if (this.intensities[i] > noiseThreshold) {
+        keep[i] = true;
+        remaining++;
+      }
+    }
+    if (remaining == this.mzs.length) {
+      return this;
+    }
+
+    int current = 0;
+    final double[] mzs = new double[remaining];
+    final double[] intensities = new double[remaining];
+    for (int i = 0; i < this.intensities.length; i++) {
+      if (keep[i]) {
+        mzs[current] = this.mzs[i];
+        intensities[current] = this.intensities[i];
+        current++;
+      }
+    }
+    return new SimpleSpectralArrays(mzs, intensities);
   }
 
   public int getNumberOfDataPoints() {
