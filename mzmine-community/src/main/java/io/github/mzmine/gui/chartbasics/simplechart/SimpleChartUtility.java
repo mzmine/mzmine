@@ -194,8 +194,6 @@ public class SimpleChartUtility {
           FxThread.runLater(() -> chart.applyWithNotifyChanges(false, () -> {
             chart.setCursorPosition(new PlotCursorPosition(valueProvider.getDomainValue(finalI),
                 valueProvider.getRangeValue(finalI), finalI, dataset));
-            chart.getXYPlot().setDomainCrosshairValue(valueProvider.getDomainValue(finalI));
-            chart.getXYPlot().setRangeCrosshairValue(valueProvider.getRangeValue(finalI));
           }));
           return;
         }

@@ -303,6 +303,13 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     return pos == null ? 0 : pos.getDomainValue();
   }
 
+  /**
+   * Updates the cursor position to the new values
+   */
+  public void setCursorPosition(double domain, double range) {
+    getCursorConfigModel().setCursorPosition(domain, range);
+  }
+
   @Override
   public void setDomainCrosshairValue(double value) {
     getCursorConfigModel().setDomainCursorPosition(value);

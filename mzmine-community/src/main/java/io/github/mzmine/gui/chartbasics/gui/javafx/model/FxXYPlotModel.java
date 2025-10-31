@@ -84,7 +84,7 @@ public class FxXYPlotModel implements FxPlotModel {
   private final MapProperty<Integer, @NotNull XYItemRenderer> renderers = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
 
-  private final PlotCursorConfigModel cursorConfigModel = new PlotCursorConfigModel();
+  private final PlotCursorConfigModel cursorConfigModel;
 
   /**
    * rendering info is passed on from {@link FxEChartViewerModel} and {@link FxJFreeChartModel} and
@@ -99,6 +99,14 @@ public class FxXYPlotModel implements FxPlotModel {
   public FxXYPlotModel(@Nullable XYPlot plot) {
     this.plot.set(plot);
     chart.bind(this.plot.map(xyPlot -> xyPlot != null ? xyPlot.getChart() : null).orElse(null));
+    cursorConfigModel = new PlotCursorConfigModel(this::getAllDatasets);
+  }
+
+  /**
+   * @return A copy of the current datasets
+   */
+  public @NotNull List<XYDataset> getAllDatasets() {
+    return List.copyOf(datasets.values());
   }
 
   // properties

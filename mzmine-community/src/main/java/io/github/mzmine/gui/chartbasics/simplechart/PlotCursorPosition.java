@@ -30,7 +30,6 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorConfigModel;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorUtils;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.MouseEventWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
-import io.github.mzmine.util.maths.Precision;
 import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
 import org.jetbrains.annotations.Nullable;
@@ -59,7 +58,7 @@ public class PlotCursorPosition {
   private final double rangeValue;
   private final double domainValue;
   private final double zValue;
-  private final XYDataset dataset;
+  private final @Nullable XYDataset dataset;
   private final int valueIndex;
   private final @Nullable MouseEventWrapper mouseEvent;
 
@@ -152,19 +151,4 @@ public class PlotCursorPosition {
     return mouseEvent;
   }
 
-  public PlotCursorPosition withDomainValue(double value) {
-    // within float significance return same value - no change triggered
-    if (Precision.equalSignificance(value, domainValue, 6)) {
-      return this;
-    }
-    return new PlotCursorPosition(value, rangeValue, zValue, valueIndex, dataset, mouseEvent);
-  }
-
-  public PlotCursorPosition withRangeValue(double value) {
-    // within float significance return same value - no change triggered
-    if (Precision.equalSignificance(value, rangeValue, 6)) {
-      return this;
-    }
-    return new PlotCursorPosition(domainValue, value, zValue, valueIndex, dataset, mouseEvent);
-  }
 }

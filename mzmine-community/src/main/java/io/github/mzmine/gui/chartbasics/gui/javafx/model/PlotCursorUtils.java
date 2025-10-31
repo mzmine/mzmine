@@ -36,8 +36,11 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.maths.Precision;
 import java.awt.geom.Rectangle2D;
+import java.util.List;
 import javafx.beans.property.ObjectProperty;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
@@ -118,5 +121,145 @@ public class PlotCursorUtils {
       PlotCursorUtils.findSetCursorPosition(e, viewer.getRenderingInfo(), plot,
           cursorPositionProperty);
     }));
+  }
+
+  /**
+   *
+   * @param pos
+   * @param datasets
+   * @param domain
+   * @param range
+   * @return the original position if the xy coordinates are the same, or the moved position with
+   * dataset if found exactly the same data point, or a position without the dataset if there is no
+   * dataset with exactly these coordinates.
+   */
+  @NotNull
+  public static PlotCursorPosition moveCursorFindInData(@Nullable PlotCursorPosition pos,
+      @NotNull List<? extends XYDataset> datasets, double domain, double range) {
+    if (pos != null && Precision.equalSignificance(domain, pos.getDomainValue(), 6)
+        && Precision.equalSignificance(range, pos.getRangeValue(), 6)) {
+      // skip for the same values
+      return pos;
+    }
+
+    if (pos != null && pos.getDataset() != null) {
+      // check old dataset first
+      var newPos = findItemInDataset(pos.getDataset(), domain, range);
+      if (newPos != null) {
+        return newPos;
+      }
+    }
+
+    // find first dataset that contains these values
+    for (XYDataset dataset : datasets) {
+      var newPos = findItemInDataset(dataset, domain, range);
+      if (newPos != null) {
+        return newPos;
+      }
+    }
+    return new PlotCursorPosition(domain, range);
+  }
+
+  /**
+   *
+   * @return the original position if the xy coordinates are the same, or the moved position with
+   * dataset if found exactly the same data point, or a position without the dataset if there is no
+   * dataset with exactly these coordinates.
+   */
+  @NotNull
+  public static PlotCursorPosition moveDomainCursorFindInData(@Nullable PlotCursorPosition pos,
+      List<? extends XYDataset> datasets, double value) {
+    if (pos != null && Precision.equalSignificance(value, pos.getDomainValue(), 6)) {
+      // skip for the same values
+      return pos;
+    }
+
+    if (pos != null && pos.getDataset() != null) {
+      // check old dataset first
+      var newPos = findItemInDatasetByDomain(pos.getDataset(), value);
+      if (newPos != null) {
+        return newPos;
+      }
+    }
+
+    // find first dataset that contains these values
+    for (XYDataset dataset : datasets) {
+      var newPos = findItemInDatasetByDomain(dataset, value);
+      if (newPos != null) {
+        return newPos;
+      }
+    }
+    return new PlotCursorPosition(value, null);
+  }
+
+  /**
+   *
+   * @return the original position if the xy coordinates are the same, or the moved position with
+   * dataset if found exactly the same data point, or a position without the dataset if there is no
+   * dataset with exactly these coordinates.
+   */
+  @NotNull
+  public static PlotCursorPosition moveRangeCursorFindInData(@Nullable PlotCursorPosition pos,
+      List<? extends XYDataset> datasets, double value) {
+    if (pos != null && Precision.equalSignificance(value, pos.getRangeValue(), 6)) {
+      // skip for the same values
+      return pos;
+    }
+
+    if (pos != null && pos.getDataset() != null) {
+      // check old dataset first
+      var newPos = findItemInDatasetByRange(pos.getDataset(), value);
+      if (newPos != null) {
+        return newPos;
+      }
+    }
+
+    // find first dataset that contains these values
+    for (XYDataset dataset : datasets) {
+      var newPos = findItemInDatasetByRange(dataset, value);
+      if (newPos != null) {
+        return newPos;
+      }
+    }
+    return new PlotCursorPosition(value, null);
+  }
+
+  @Nullable
+  private static PlotCursorPosition findItemInDataset(@NotNull XYDataset dataset, double domain,
+      double range) {
+    for (int i = 0; i < dataset.getItemCount(0); i++) {
+      final double x = dataset.getXValue(0, i);
+      final double y = dataset.getYValue(0, i);
+      if (Double.compare(x, domain) == 0 && Double.compare(y, range) == 0) {
+        return new PlotCursorPosition(x, y, i, dataset);
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static PlotCursorPosition findItemInDatasetByDomain(@NotNull XYDataset dataset,
+      double domain) {
+    for (int i = 0; i < dataset.getItemCount(0); i++) {
+      final double x = dataset.getXValue(0, i);
+      final double y = dataset.getYValue(0, i);
+      if (Double.compare(x, domain) == 0) {
+        return new PlotCursorPosition(x, y, i, dataset);
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static PlotCursorPosition findItemInDatasetByRange(@NotNull XYDataset dataset,
+      double range) {
+    for (int i = 0; i < dataset.getItemCount(0); i++) {
+      final double x = dataset.getXValue(0, i);
+      final double y = dataset.getYValue(0, i);
+      if (Double.compare(y, range) == 0) {
+        return new PlotCursorPosition(x, y, i, dataset);
+      }
+    }
+    return null;
   }
 }

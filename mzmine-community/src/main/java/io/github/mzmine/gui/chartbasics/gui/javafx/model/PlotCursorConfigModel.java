@@ -27,12 +27,15 @@ package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import java.awt.Paint;
+import java.util.List;
+import java.util.function.Supplier;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.data.xy.XYDataset;
 
 public class PlotCursorConfigModel {
 
@@ -43,10 +46,17 @@ public class PlotCursorConfigModel {
   // the value markers are modified in place
   private final FxValueMarker domainCursorMarker = new FxValueMarker();
   private final FxValueMarker rangeCursorMarker = new FxValueMarker();
+  private Supplier<@NotNull List<? extends XYDataset>> allDatasetsSupplier;
 
   public PlotCursorConfigModel() {
     // bind props
     cursorPosition.subscribe(this::handleCursorPositionMarkers);
+    // TODO maybe bind both ways to also update the cursor position if marker position changes
+  }
+
+  public PlotCursorConfigModel(
+      @NotNull Supplier<@NotNull List<? extends XYDataset>> allDatasetsSupplier) {
+    this.allDatasetsSupplier = allDatasetsSupplier;
   }
 
   @NotNull
@@ -113,23 +123,25 @@ public class PlotCursorConfigModel {
     this.rangeCursorLockedOnData.set(rangeCursorLockedOnData);
   }
 
-  public void setDomainCursorPosition(Double value) {
-    PlotCursorPosition pos = getCursorPosition();
-    if (pos != null) {
-      pos = pos.withDomainValue(value);
-    } else {
-      pos = new PlotCursorPosition(value, null);
-    }
+
+  /**
+   * Sets the cursor to the current position and updates the selected dataset, datapoint index, etc
+   */
+  public void setCursorPosition(double domain, double range) {
+    PlotCursorPosition pos = PlotCursorUtils.moveCursorFindInData(getCursorPosition(),
+        allDatasetsSupplier.get(), domain, range);
+    setCursorPosition(pos);
+  }
+
+  public void setDomainCursorPosition(double value) {
+    PlotCursorPosition pos = PlotCursorUtils.moveDomainCursorFindInData(getCursorPosition(),
+        allDatasetsSupplier.get(), value);
     setCursorPosition(pos);
   }
 
   public void setRangeCursorPosition(double value) {
-    PlotCursorPosition pos = getCursorPosition();
-    if (pos != null) {
-      pos = pos.withRangeValue(value);
-    } else {
-      pos = new PlotCursorPosition(null, value);
-    }
+    PlotCursorPosition pos = PlotCursorUtils.moveRangeCursorFindInData(getCursorPosition(),
+        allDatasetsSupplier.get(), value);
     setCursorPosition(pos);
   }
 
