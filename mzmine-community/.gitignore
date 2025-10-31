@@ -27,3 +27,4 @@ not-bio
 /src/test/resources/biotransformer/jar/*
 licensereport
 /src/main/resources/MLModels/traced_model_float64.pt
+dev-run.sh
