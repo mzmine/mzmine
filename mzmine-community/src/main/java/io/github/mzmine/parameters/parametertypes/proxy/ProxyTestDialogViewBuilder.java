@@ -54,8 +54,7 @@ public class ProxyTestDialogViewBuilder extends FxViewBuilder<ProxyTestDialogMod
 
   @Override
   public Region build() {
-    final TextArea mainText = FxTextAreas.newTextArea(100, 50, true, model.messageProperty(),
-        "Running connection tests may take a few seconds. If connection issues remain, send this information to info@mzio.io");
+    final TextArea mainText = FxTextAreas.newTextArea(100, 50, true, model.messageProperty(), null);
     mainText.setEditable(false);
     BorderPane content = FxLayout.newBorderPane(mainText);
 
