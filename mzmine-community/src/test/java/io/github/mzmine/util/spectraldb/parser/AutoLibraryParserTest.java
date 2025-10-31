@@ -405,7 +405,7 @@ class AutoLibraryParserTest {
 
     // First entry - sibiricaxanthone B
     final SpectralLibraryEntry firstEntry = entries.get(0);
-    assertEquals("sibiricaxanthone B", firstEntry.getAsString(DBEntryField.NAME).orElse(null));
+    assertEquals("sibiricaxanthone B M+H", firstEntry.getAsString(DBEntryField.NAME).orElse(null));
     assertEquals(539.14, firstEntry.getAsDouble(DBEntryField.PRECURSOR_MZ).orElse(null), 0.01);
     assertEquals("[M+H]+", firstEntry.getAsString(DBEntryField.ION_TYPE).orElse(null));
     assertEquals("O=C1C2=CC(O)=CC=C2OC3=CC(O)=C(C(O)=C13)C4OC(CO)C(O)C(O)C4OC5OCC(O)(CO)C5O",

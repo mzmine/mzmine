@@ -84,8 +84,6 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
     this.parentFrame = parentScan;
     this.fragmentFrame = fragmentFrameNumber;
     this.isolationWindow = SimpleRange.ofDouble(isolationWindow);
-
-    checkSpectrumRanges();
   }
 
   /**
@@ -205,7 +203,6 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
       return false;
     }
     fragmentFrame = frame;
-    checkSpectrumRanges();
     return true;
   }
 
@@ -282,7 +279,7 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
   }
 
   @Override
-  public MsMsInfo createCopy() {
+  public IonMobilityMsMsInfo createCopy() {
     return new PasefMsMsInfoImpl(precursorMz, SimpleRange.guavaOrNull(spectrumNumberRange),
         collisionEnergy, precursorCharge, parentFrame, fragmentFrame,
         isolationWindow != null ? isolationWindow.guava() : null);
