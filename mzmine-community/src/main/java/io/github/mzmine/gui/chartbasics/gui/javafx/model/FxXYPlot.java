@@ -30,6 +30,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.MarkerDefinition;
 import io.github.mzmine.gui.chartbasics.listener.AllDatasetsUpdatedListener;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider;
 import java.awt.Graphics2D;
 import java.awt.Paint;
@@ -234,16 +235,8 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     return plotModel.datasetsProperty();
   }
 
-  public void setDatasets(SequencedCollection<? extends XYDataset> datasets) {
-    plotModel.setDatasets(datasets);
-  }
-
   public MapProperty<Integer, XYItemRenderer> renderersProperty() {
     return plotModel.renderersProperty();
-  }
-
-  public void setRenderers(SequencedCollection<? extends XYItemRenderer> renderers) {
-    plotModel.setRenderers(renderers);
   }
 
   public void setCursorPosition(@Nullable PlotCursorPosition cursorPosition) {
@@ -463,6 +456,26 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
 
   public int getNonNullRendererCount() {
     return plotModel == null ? 0 : plotModel.getRendererCount();
+  }
+
+  public void setDatasets(SequencedCollection<? extends XYDataset> datasets) {
+    plotModel.setDatasets(datasets);
+  }
+
+
+  public void setRenderers(SequencedCollection<? extends XYItemRenderer> renderers) {
+    plotModel.setRenderers(renderers);
+  }
+
+  /**
+   * Replaces all datasets and renderers
+   */
+  public void setDatasetsRenderers(SequencedCollection<XYDatasetAndRenderer> datasets) {
+    plotModel.setDatasetsRenderers(datasets);
+  }
+
+  public void addDatasetsRenderers(SequencedCollection<XYDatasetAndRenderer> datasets) {
+    plotModel.addDatasetsRenderers(datasets);
   }
 
   @Override
@@ -700,32 +713,12 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   }
 
   /**
-   * Convenience method to add both datasets and renderers at once
-   *
-   * @param renderer single renderer for all datasets
-   */
-  public void addDatasets(@NotNull SequencedCollection<? extends XYDataset> datasets,
-      @NotNull XYItemRenderer renderer) {
-    plotModel.addDatasets(datasets, renderer);
-  }
-
-  /**
    * Convenience method to set both datasets and renderers at once
    *
    */
   public void setDatasets(@NotNull SequencedCollection<? extends XYDataset> datasets,
       @NotNull SequencedCollection<XYItemRenderer> renderers) {
     plotModel.setDatasets(datasets, renderers);
-  }
-
-  /**
-   * Convenience method to set both datasets and renderers at once
-   *
-   * @param renderer single renderer for all datasets
-   */
-  public void setDatasets(@NotNull SequencedCollection<? extends XYDataset> datasets,
-      @NotNull XYItemRenderer renderer) {
-    plotModel.setDatasets(datasets, renderer);
   }
 
   public void setCursorCrosshairPaint(Paint color) {

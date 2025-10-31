@@ -74,8 +74,6 @@ public interface SimpleChart<T extends PlotXYDataProvider> {
 
   public void setDefaultRenderer(XYItemRenderer defaultRenderer);
 
-  public ObjectProperty<XYItemRenderer> defaultRendererProperty();
-
   public void setShowCrosshair(boolean show);
 
   public void setItemLabelsVisible(boolean visible);

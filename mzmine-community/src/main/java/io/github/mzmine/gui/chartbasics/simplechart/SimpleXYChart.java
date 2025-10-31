@@ -36,6 +36,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorUtils;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleXYLabelGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ExampleXYProvider;
@@ -314,18 +315,20 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   }
 
   public void addDatasetProviders(Collection<T> datasetProviders) {
-    final List<@NotNull XYDataset> datasets = datasetProviders.stream().filter(Objects::nonNull)
-        .map(this::providerToDataset).toList();
     final XYItemRenderer renderer = prepareRenderer(defaultRenderer.get());
+    final List<XYDatasetAndRenderer> datasets = datasetProviders.stream().filter(Objects::nonNull)
+        .map(this::providerToDataset).map(ds -> XYDatasetAndRenderer.of(ds, renderer)).toList();
 
     // reduces the number of events
-    plot.addDatasets(datasets, renderer);
+    plot.addDatasetsRenderers(datasets);
   }
 
   public void addDatasets(SequencedCollection<? extends ColoredXYDataset> datasets) {
     final XYItemRenderer renderer = prepareRenderer(defaultRenderer.get());
+    final List<XYDatasetAndRenderer> renderedDatasets = datasets.stream()
+        .map(ds -> XYDatasetAndRenderer.of(ds, renderer)).toList();
     // reduces the number of events
-    plot.addDatasets(datasets, renderer);
+    plot.addDatasetsRenderers(renderedDatasets);
   }
 
   public void setDatasets(@NotNull SequencedCollection<? extends ColoredXYDataset> datasets) {
@@ -396,12 +399,9 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     return defaultRenderer.get();
   }
 
+  @Override
   public void setDefaultRenderer(XYItemRenderer defaultRenderer) {
     this.defaultRenderer.set(defaultRenderer);
-  }
-
-  public ObjectProperty<XYItemRenderer> defaultRendererProperty() {
-    return defaultRenderer;
   }
 
   @Override

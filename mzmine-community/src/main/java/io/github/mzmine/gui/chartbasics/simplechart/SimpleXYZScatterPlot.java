@@ -336,11 +336,6 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   }
 
   @Override
-  public ObjectProperty<XYItemRenderer> defaultRendererProperty() {
-    return defaultRenderer;
-  }
-
-  @Override
   public PlotCursorPosition getCursorPosition() {
     return cursorPositionProperty.get();
   }

@@ -28,6 +28,7 @@ package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 import io.github.mzmine.gui.chartbasics.gui.javafx.MarkerDefinition;
 import io.github.mzmine.gui.chartbasics.listener.AllDatasetsUpdatedListener;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
 import io.github.mzmine.taskcontrol.Task;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -518,20 +519,6 @@ public class FxXYPlotModel implements FxPlotModel {
   }
 
   /**
-   * Convenience method to add both datasets and renderers at once
-   *
-   * @param renderer single renderer for all datasets
-   */
-  public void addDatasets(@NotNull SequencedCollection<? extends XYDataset> datasets,
-      @NotNull XYItemRenderer renderer) {
-    final List<XYItemRenderer> renderers = new ArrayList<>(datasets.size());
-    for (int i = 0; i < datasets.size(); i++) {
-      renderers.add(renderer);
-    }
-    addDatasets(List.copyOf(datasets), renderers);
-  }
-
-  /**
    * Convenience method to set both datasets and renderers at once
    */
   public void setDatasets(SequencedCollection<? extends XYDataset> datasets,
@@ -540,18 +527,24 @@ public class FxXYPlotModel implements FxPlotModel {
     setRenderers(renderers);
   }
 
+
   /**
-   * Convenience method to set both datasets and renderers at once
-   *
-   * @param renderer single renderer for all datasets
+   * Replaces all datasets and renderers
    */
-  public void setDatasets(@NotNull SequencedCollection<? extends XYDataset> datasets,
-      @NotNull XYItemRenderer renderer) {
-    final List<XYItemRenderer> renderers = new ArrayList<>(datasets.size());
-    for (int i = 0; i < datasets.size(); i++) {
-      renderers.add(renderer);
-    }
-    setDatasets(datasets, renderers);
+  public void setDatasetsRenderers(SequencedCollection<XYDatasetAndRenderer> datasets) {
+    final var ds = datasets.stream().map(XYDatasetAndRenderer::dataset).toList();
+    final var rs = datasets.stream().map(XYDatasetAndRenderer::renderer).toList();
+    setDatasets(ds, rs);
+  }
+
+  /**
+   * Adds datasets and renderers
+   *
+   */
+  public void addDatasetsRenderers(SequencedCollection<XYDatasetAndRenderer> datasets) {
+    final var ds = datasets.stream().map(XYDatasetAndRenderer::dataset).toList();
+    final var rs = datasets.stream().map(XYDatasetAndRenderer::renderer).toList();
+    addDatasets(ds, rs);
   }
 
   public void clearDomainMarkers(int datasetIndex) {
