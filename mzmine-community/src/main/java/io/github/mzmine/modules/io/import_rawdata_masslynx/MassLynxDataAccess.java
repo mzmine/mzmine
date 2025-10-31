@@ -70,6 +70,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -131,13 +132,25 @@ public class MassLynxDataAccess implements AutoCloseable {
 
   public MassLynxDataAccess(@NotNull File rawFolder, boolean centroid,
       @Nullable MemoryMapStorage storage, @Nullable ScanImportProcessorConfig processor) {
-    MemorySegment tempHandle = MassLynxLib.openFile(arena.allocateFrom(rawFolder.getAbsolutePath()));
-    if (tempHandle == null || tempHandle.address() == 0x0) { // nullptr returned on error
-      // retry once
+    MemorySegment tempHandle = null;
+    // do multiple trys. it is not uncommon that mass lynx fails to open the file
+    for (int tryCount = 0; tryCount < 10; tryCount++) {
       tempHandle = MassLynxLib.openFile(arena.allocateFrom(rawFolder.getAbsolutePath()));
-      if (tempHandle == null || tempHandle.address() == 0x0) {
-        throw new RuntimeException("Error opening file. Returned handle: %s".formatted(Objects.toString(tempHandle)));
+      if (tempHandle.address() == 0x0) {// nullptr returned on error
+        logger.finest("Unable to open file %s. Try %d/10.".formatted(rawFolder, tryCount + 1));
+        try {
+          TimeUnit.MILLISECONDS.sleep(50);
+        } catch (InterruptedException e) {
+          break;
+        }
+      } else {
+        break;
       }
+    }
+
+    if (tempHandle == null || tempHandle.address() == 0x0) {
+      throw new RuntimeException(
+          "Error opening file. Returned handle: %s".formatted(Objects.toString(tempHandle)));
     }
     handle = tempHandle;
 
@@ -185,8 +198,8 @@ public class MassLynxDataAccess implements AutoCloseable {
 
     logger.finest(
         "MassLynx file %s:\tDDA or DIA: %s\tIMS: %b\tImaging: %b\tSonar: %b\tFunctions: %d\tAnalogChannels: %d".formatted(
-            rawFolder.getName(), isDdaFile ? "DDA" : "DIA", isImsFile, isImagingFile(), isSonarFile(),
-            getNumberOfFunctions(), analogChannelCount));
+            rawFolder.getName(), isDdaFile ? "DDA" : "DIA", isImsFile, isImagingFile(),
+            isSonarFile(), getNumberOfFunctions(), analogChannelCount));
   }
 
   public @NotNull RawDataFileImpl createDataFile() {
