@@ -9,7 +9,7 @@ beryx-runtime = "2.0.0"
 semver = "1.0.4"
 msdk = "0.0.27"
 # update to 2.9? from 2.5
-cdk = "2.11"
+cdk = "2.12-SNAPSHOT"
 swagger = "1.5.22"
 okhttp = "2.7.5"
 slf4j = '2.0.17'
