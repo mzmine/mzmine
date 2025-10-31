@@ -38,6 +38,7 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -53,9 +54,10 @@ public class ProxyTestDialogViewBuilder extends FxViewBuilder<ProxyTestDialogMod
 
   @Override
   public Region build() {
-    BorderPane content = FxLayout.newBorderPane(
-        FxTextAreas.newTextArea(100, 50, true, model.messageProperty(),
-            "If the connection issues remain, send this information to info@mzio.io"));
+    final TextArea mainText = FxTextAreas.newTextArea(100, 50, true, model.messageProperty(),
+        "Running connection tests may take a few seconds. If connection issues remain, send this information to info@mzio.io");
+    mainText.setEditable(false);
+    BorderPane content = FxLayout.newBorderPane(mainText);
 
     final Color positive = ConfigService.getDefaultColorPalette().getPositiveColor();
     final Color negative = ConfigService.getDefaultColorPalette().getNegativeColor();
@@ -65,16 +67,28 @@ public class ProxyTestDialogViewBuilder extends FxViewBuilder<ProxyTestDialogMod
     final ObservableValue<Color> noProxyColor = model.noProxyTestProperty()
         .map(state -> state ? positive : negative).orElse(negative);
 
+    final String resolvingInfo = "If these connection issues remain, send this information to info@mzio.io";
+
+    final Text resolvingInfoText = colored(text(resolvingInfo), negative);
+    final var anyTestFailed = model.proxyTestProperty().and(model.noProxyTestProperty()).not();
+    resolvingInfoText.visibleProperty().bind(anyTestFailed);
+    FxLayout.bindManagedToVisible(resolvingInfoText);
+
     final VBox topChecks = newVBox( //
-        FxTextFlows.newTextFlow(styledText("Proxy connection tests:\n", Styles.BOLD_SEMI_TITLE), //
+        FxTextFlows.newTextFlow( //
+            styledText("Proxy connection tests:", Styles.BOLD_SEMI_TITLE), //
+            linebreak(), //
             text("With proxy connection: "), //
             colored(text(model.proxyTestMessageProperty()), proxyColor), //
             linebreak(), //
             text("Direct connection: "), //
-            colored(text(model.noProxyTestMessageProperty()), noProxyColor) //
+            colored(text(model.noProxyTestMessageProperty()), noProxyColor), //
+            linebreak(), //
+            resolvingInfoText //
         ));
 
-    final Text runningTests = styledText("Running tests", Styles.BOLD_SEMI_TITLE);
+    final Text runningTests = styledText("Running tests... this may take a few seconds",
+        Styles.BOLD_SEMI_TITLE);
 
     // show running tests as long as not finished
     content.topProperty().bind(

@@ -576,8 +576,9 @@ public class MZminePreferences extends SimpleParameterSet {
         }
       } catch (Exception e) {
       }
+      final ProxyType type = oldProxy.getEmbeddedParameters().getValue(ProxyParameters.proxyType);
       final FullProxyConfig config = new FullProxyConfig(ProxyConfigOption.MANUAL_PROXY,
-          new ManualProxyConfig(ProxyType.HTTP, address, port, List.of()));
+          new ManualProxyConfig(type, address, port, List.of()));
       ProxyUtils.applyConfig(config);
     }
   }

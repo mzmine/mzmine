@@ -209,7 +209,7 @@ public class ProxyUtils {
   /**
    * Configures non-proxy hosts from system property
    */
-  public static void configureNonProxyHosts(List<String> hosts) {
+  public static void configureNonProxyHosts(@Nullable List<String> hosts) {
     if (hosts == null || hosts.isEmpty()) {
       HTTP_NON_PROXY_HOSTS.setSystemValue(null);
       return;
