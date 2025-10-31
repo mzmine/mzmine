@@ -138,9 +138,6 @@ repositories {
 //    maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
     // For jimzml
     // maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
-
-    // for batik-xml-commons-ext package (svg export)
-    maven { url = "https://repository.everit.biz/nexus/content/groups/public/" }
 }
 
 ext {
@@ -229,22 +226,8 @@ dependencies {
     implementation(libs.sirius.api)
 }
 
-/*
- * Remove the xml-apis dependencies to avoid a compilation error in Eclipse.
- * The org.w3c.dom package is present in the java.xml module as well as in these dependencies.
- * That is illegal (https://bugs.eclipse.org/bugs/show_bug.cgi?id=536928).
- */
 configurations.all {
-    exclude group: "xml-apis", module: "xml-apis"
-    exclude group: "xml-apis", module: "xml-apis-ext"
-    exclude group: "xom", module: "xom"
-    exclude group: "ch.qos.logback", module: "logback-core"
-    exclude group: "ch.qos.logback", module: "logback-classic"
-    exclude group: "gurobi", module: "gurobi-linux64"
-    exclude group: "cplex", module: "cplex"
-    exclude group: "org.checkerframework", module: "checker-qual"
     exclude group: "javax.annotation", module: "javax.annotation-api"
-    exclude group: "log4j", module: "log4j"  // exclude from ADAP packages old version
 }
 
 
