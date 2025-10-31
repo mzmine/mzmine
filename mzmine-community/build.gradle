@@ -159,6 +159,7 @@ dependencies {
     implementation(project(":utils"))
     implementation(project(":taskcontroller"))
     implementation(project(":javafx-framework"))
+    implementation(project(":reports"))
     // mzmine version parsing
     implementation(libs.semver4j)
 //    implementation "org.graphstream:gs-core:2.0"
@@ -225,6 +226,8 @@ dependencies {
     implementation(libs.woodstox.core)
     implementation(libs.aalto.xml)
 
+    // reporting
+    implementation(libs.bundles.jasper)
     // sirius api
     implementation(libs.sirius.api)
 }
@@ -620,6 +623,7 @@ licenseReport {
                 'net.jcip:jcip-annotations', // Creative Commons Attribution License
                 'io.mzio(.*)',
                 'org.openjfx.(.*)',
+                'io.mzmine.reports',
     ]
 
     // Don't exclude bom dependencies.

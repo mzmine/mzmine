@@ -121,28 +121,6 @@ public final class MZmineCore {
     }
   }
 
-
-  /**
-   * Loads the configuration, parses the arguments and initializes everything, but does not launch
-   * the batch or gui. Note: not static so it ensures that the {@link MZmineCore#init()} method is
-   * called.
-   */
-  public void startUp(@NotNull final MZmineCoreArgumentParser argsParser) {
-    ArgsToConfigUtils.applyArgsToConfig(argsParser);
-
-    CurrentUserService.subscribe(user -> {
-      var nickname = user == null ? null : user.getNickname();
-      ConfigService.getPreferences().setParameter(MZminePreferences.username, nickname);
-
-      checkUserRemainingDays(user);
-    });
-
-    addUserRequiredListener();
-
-    // after loading the config and numCores
-    TaskService.init(ConfigService.getConfiguration().getNumOfThreads());
-  }
-
   public static void checkUserRemainingDays(MZmineUser user) {
     if (user != null) {
       final EventHandler<ActionEvent> openUserTabAction = _ -> UsersTab.showTab();
@@ -393,7 +371,6 @@ public final class MZmineCore {
     return Map.copyOf(getInstance().initializedModules);
   }
 
-
   @NotNull
   public static Optional<MZmineModule> getModuleForParameterSetIfUnique(ParameterSet parameterSet) {
     final List<MZmineModule> modules = getModulesForParameterSet(parameterSet);
@@ -535,7 +512,6 @@ public final class MZmineCore {
     // currentProject.logProcessingStep(auditLogEntry);
   }
 
-
   /**
    * @return headless mode or JavaFX GUI
    */
@@ -556,6 +532,27 @@ public final class MZmineCore {
   @Deprecated
   public static @NotNull MetadataTable getProjectMetadata() {
     return ProjectService.getMetadata();
+  }
+
+  /**
+   * Loads the configuration, parses the arguments and initializes everything, but does not launch
+   * the batch or gui. Note: not static so it ensures that the {@link MZmineCore#init()} method is
+   * called.
+   */
+  public void startUp(@NotNull final MZmineCoreArgumentParser argsParser) {
+    ArgsToConfigUtils.applyArgsToConfig(argsParser);
+
+    CurrentUserService.subscribe(user -> {
+      var nickname = user == null ? null : user.getNickname();
+      ConfigService.getPreferences().setParameter(MZminePreferences.username, nickname);
+
+      checkUserRemainingDays(user);
+    });
+
+    addUserRequiredListener();
+
+    // after loading the config and numCores
+    TaskService.init(ConfigService.getConfiguration().getNumOfThreads());
   }
 
   private void init() {
