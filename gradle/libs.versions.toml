@@ -9,7 +9,7 @@ beryx-runtime = "2.0.0"
 semver = "1.0.4"
 msdk = "0.0.27"
 # update to 2.9? from 2.5
-cdk = "2.11"
+cdk = "2.12-SNAPSHOT"
 swagger = "1.5.22"
 okhttp = "2.7.5"
 slf4j = '2.0.17'
@@ -43,6 +43,9 @@ slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-jdk14 = { module = "org.slf4j:slf4j-jdk14", version.ref = "slf4j" }
 
 semver4j = { module = "com.vdurmont:semver4j", version = "3.1.0" }
+
+#proxy auto detection https://github.com/akuhtz/proxy-vole
+proxy-vole = "org.bidib.com.github.markusbernhardt:proxy-vole:1.1.6"
 
 fastutil = { group = "it.unimi.dsi", name = "fastutil", version = "8.5.6" }
 # UI dependent
@@ -92,12 +95,8 @@ msdk-netcdf = { module = "io.github.msdk:msdk-io-netcdf", version.ref = "msdk" }
 
 sirius-api = { module = "io.sirius-ms:sirius-sdk", version = "3.1+sirius6.3.3" }
 
-#batik-xml-commons = {group = "org.apache.xmlcommons", name="xml-apis", version="1.4.01"} # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
-batik-xml-commons-ext = { group = "org.apache.xmlcommons", name = "xml-apis-ext", version = "1.4.01" } # somohow not included but required https://repository.everit.biz/nexus/content/groups/public/
-batik-anim = { group = "org.apache.xmlgraphics", name = "batik-anim", version.ref = "batik" }
-batik-swing = { group = "org.apache.xmlgraphics", name = "batik-swing", version.ref = "batik" }
-batik-svggen = { group = "org.apache.xmlgraphics", name = "batik-svggen", version.ref = "batik" }
-#batik-all = { group = "org.apache.xmlgraphics", name = "batik-all", version.ref = "batik" }
+# we could use individual packages, but some dependencies use batik-all anyway. this way we make sure we at least get the latest version
+batik-all = { group = "org.apache.xmlgraphics", name = "batik-all", version.ref = "batik" }
 guava = { group = "com.google.guava", name = "guava", version = "33.0.0-jre" }
 
 commons-io = { group = "commons-io", name = "commons-io", version = "2.15.1" }
@@ -136,7 +135,7 @@ poi = ["poi", "poi-ooxml"]
 okhttp = ["okhttp", "okhttp-logging-interceptor"]
 junit-mockito = ["junit-jupiter", "junit-platform", "mockito"]
 jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv", "jackson-datetime", "jackson-datatype"]
-batik = ["batik-anim", "batik-svggen", "batik-swing", "batik-xml-commons-ext"] #, "batik-xml-commons"]
+batik = ["batik-all"]#, "batik-xml-commons-ext"] #, "batik-xml-commons"]
 
 [plugins]
 semver = { id = "net.thauvin.erik.gradle.semver", version.ref = "semver" }

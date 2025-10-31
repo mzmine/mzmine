@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -77,7 +77,7 @@ public class SpectralLibrarySelection {
       case SPECIFIC -> getMatchingSpecificFiles();
       case AS_SELECTED_IN_MAIN_WINDOW -> {
         final Desktop desktop = DesktopService.getDesktop();
-        if(desktop instanceof MZmineDesktop desk) {
+        if (desktop instanceof MZmineDesktop desk) {
           yield List.of(desk.getSelectedSpectralLibraries());
         }
         yield List.of();
@@ -144,8 +144,8 @@ public class SpectralLibrarySelection {
           // user wants libraries to be imported
           Instant now = Instant.now();
           List<Task> tasks = missing.stream().map(
-                  file -> (Task) new SpectralLibraryImportTask(ProjectService.getProject(), file, now))
-              .toList();
+              file -> (Task) new SpectralLibraryImportTask(ProjectService.getProject(), file, now,
+                  true)).toList();
           FixedThreadPoolTask masterImportTask = new FixedThreadPoolTask(
               "Import missing spectral libraries", tasks.size(), tasks);
           // block until finished import
