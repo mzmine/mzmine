@@ -160,14 +160,14 @@ ext {
     // trfp.win.url=...
     trfpMacUrl = providers.gradleProperty("trfp.mac.url").orNull 
             ?: System.getenv("TRFP_MAC_URL")
-            ?: "https://github.com/CompOmics/ThermoRawFileParser/releases/download/v.2.0.0-dev/ThermoRawFileParser-v.2.0.0-dev-osx.zip"
+            ?: "https://github.com/mzmine/ThermoRawFileParser/releases/download/v2.0.0-dev/ThermoRawFileParser-v.2.0.0-dev-osx.zip"
 
     trfpLinuxUrl = providers.gradleProperty("trfp.linux.url").orNull
             ?: System.getenv("TRFP_LINUX_URL")
-            ?: "https://github.com/CompOmics/ThermoRawFileParser/releases/download/v.2.0.0-dev/ThermoRawFileParser-v.2.0.0-dev-linux.zip"
+            ?: "https://github.com/mzmine/ThermoRawFileParser/releases/download/v2.0.0-dev/ThermoRawFileParser-v.2.0.0-dev-linux.zip"
     trfpWinUrl = providers.gradleProperty("trfp.win.url").orNull
             ?: System.getenv("TRFP_WIN_URL")
-            ?: "https://github.com/CompOmics/ThermoRawFileParser/releases/download/v.2.0.0-dev/ThermoRawFileParser-v.2.0.0-dev-win.zip"
+            ?: "https://github.com/mzmine/ThermoRawFileParser/releases/download/v2.0.0-dev/ThermoRawFileParser-v.2.0.0-dev-win.zip"
 }
 
 dependencies {
