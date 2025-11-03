@@ -227,6 +227,12 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
   }
 
   private File getParserPathForOs() {
+    final Optional<File> prefPath = ConfigService.getPreferences()
+        .getOptionalValue(MZminePreferences.thermoRawFileParserPath);
+    if (prefPath.isPresent()) {
+      return prefPath.get();
+    }
+
     final File mainDir = FileAndPathUtil.getSoftwareMainDirectory();
 
     File parserDirectory = null;
