@@ -75,6 +75,8 @@ public class WaveletPeakDetector extends AbstractResolver {
   private double[] yPadded = new double[0];
   private final Double topToEdge;
 
+  List<Range<Double>> snrRanges = new ArrayList<>();
+
   private final Map<Integer, Map<Double, double[]>> waveletBuffer = new HashMap<>();
 
   // ... (constants, fields, constructor) ...
@@ -409,7 +411,7 @@ public class WaveletPeakDetector extends AbstractResolver {
       // --- Define Target Number of Background Points per Side ---
       // Reverted calculation to use scale, as width (right-left) is often small
       int targetPointsPerSide = (int) Math.max(MIN_WINDOW_TARGET_POINTS,
-          LOCAL_NOISE_WINDOW_FACTOR * (leftEdgeIdx - rightEdgeIdx));
+          LOCAL_NOISE_WINDOW_FACTOR * (rightEdgeIdx - leftEdgeIdx));
 
       // --- Collect Local Background Samples Dynamically ---
       DoubleArrayList localBackgroundSamples = new DoubleArrayList();
