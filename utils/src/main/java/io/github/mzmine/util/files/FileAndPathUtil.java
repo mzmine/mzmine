@@ -791,9 +791,27 @@ public class FileAndPathUtil {
     final File mainDir = FileAndPathUtil.getSoftwareMainDirectory();
     File toolsDirectory = null;
     if (mainDir != null) {
-      toolsDirectory = new File(mainDir, "external_tools/");
+      File extAtAppRoot = new File(mainDir, "external_tools/");
+      if (extAtAppRoot.exists()) {
+        toolsDirectory = extAtAppRoot;
+      }
     }
-    if (toolsDirectory == null || !toolsDirectory.exists()) {
+    // Prior behavior when running from project root
+    if (toolsDirectory == null) {
+      File extLocal = new File("external_tools/");
+      if (extLocal.exists()) {
+        toolsDirectory = extLocal;
+      }
+    }
+    // Dev-run from module dir: parent project root
+    if (toolsDirectory == null) {
+      File extParent = new File("../external_tools/");
+      if (extParent.exists()) {
+        toolsDirectory = extParent;
+      }
+    }
+    // Fallback to current directory even if it doesn't exist (for error messages)
+    if (toolsDirectory == null) {
       toolsDirectory = new File("external_tools/");
     }
     return toolsDirectory;

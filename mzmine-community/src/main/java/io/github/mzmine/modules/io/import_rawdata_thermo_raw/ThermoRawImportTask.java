@@ -227,30 +227,14 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
   }
 
   private File getParserPathForOs() {
-    final File mainDir = FileAndPathUtil.getSoftwareMainDirectory();
+    final Optional<File> prefPath = ConfigService.getPreferences()
+        .getOptionalValue(MZminePreferences.thermoRawFileParserPath);
+    if (prefPath.isPresent()) {
+      return prefPath.get();
+    }
 
-    File parserDirectory = null;
-    if (mainDir != null) {
-      File extAtAppRoot = new File(mainDir, "external_tools/thermo_raw_file_parser/");
-      if (extAtAppRoot.exists()) {
-        parserDirectory = extAtAppRoot;
-      }
-    }
-    // Prior behavior when running from project root
-    if (parserDirectory == null) {
-      File extLocal = new File("external_tools/thermo_raw_file_parser/");
-      if (extLocal.exists()) {
-        parserDirectory = extLocal;
-      }
-    }
-    // Dev-run from module dir: parent project root
-    if (parserDirectory == null) {
-      File extParent = new File("../external_tools/thermo_raw_file_parser/");
-      if (extParent.exists()) {
-        parserDirectory = extParent;
-      }
-    }
-    if (parserDirectory == null) {
+    File parserDirectory = FileAndPathUtil.resolveInExternalToolsDir("thermo_raw_file_parser/");
+    if (!parserDirectory.exists()) {
       throw new IllegalStateException(
           "ThermoRawFileParser directory not found. Expected one of: '<app>/external_tools/thermo_raw_file_parser/', 'external_tools/thermo_raw_file_parser/', '../external_tools/thermo_raw_file_parser/'.");
     }

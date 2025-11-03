@@ -102,12 +102,8 @@ jobs:
           security import certificate.p12 -k "$KEYCHAIN_PATH" -P "$MACOS_DEVELOPER_CERTIFICATE_PWD" -A -f pkcs12 -T /usr/bin/codesign -T /usr/bin/security
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 "$KEYCHAIN_PATH"
           security list-keychains -d user -s "$KEYCHAIN_PATH" "$HOME/Library/Keychains/login.keychain-db"
-          security list-keychains -d user
-          echo "Codesigning identities in $KEYCHAIN_PATH:"
-          security find-identity -v -p codesigning "$KEYCHAIN_PATH" || true
           ID_STR=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | sed -n 's/.*"\(Developer ID Application:.*\)".*/\1/p' | head -n 1)
           if [ -n "$ID_STR" ]; then
-            echo "Using identity: $ID_STR"
             export MACOS_APP_IDENTITY_ID="$ID_STR"
           else
             echo "No Developer ID Application identity found in $KEYCHAIN_PATH" >&2
@@ -121,7 +117,6 @@ jobs:
           MACOS_APPLE_ID_PWD: ${{ secrets.MACOS_APPLE_ID_PWD }}
           MACOS_APP_IDENTITY_ID: ${{ secrets.MACOS_APP_IDENTITY_ID }}
           MACOS_APP_IDENTITY_TEAM_ID: ${{ secrets.MACOS_APP_IDENTITY_TEAM_ID }}
-          MACOS_SIGNING_KEYCHAIN: /Users/runner/Library/Keychains/build.keychain-db
           TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
 
       # DMG is now created, signed, and notarized in Gradle - just upload it
