@@ -136,7 +136,8 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
     isolationWindow = new MZTolerance((isolationWidth * 1.3) / 2,
         0d); // isolation window typically wider than set
 //    ms2Module = parameters.getValue(TimsTOFImageMsMsParameters.ms2ImagingMode).getModule();
-    if (advancedParam.getValueOrDefault(AdvancedImageMsMsParameters.ms2ImagingMode, false)) {
+    if (advancedParam.getEmbeddedParameters()
+        .getValue(AdvancedImageMsMsParameters.ms2ImagingMode)) {
       var acquisitionModeParam = advancedParam.getEmbeddedParameters()
           .getParameter(AdvancedImageMsMsParameters.ms2ImagingMode).getEmbeddedParameter()
           .getValueWithParameters();
