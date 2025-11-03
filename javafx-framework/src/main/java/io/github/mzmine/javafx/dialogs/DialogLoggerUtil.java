@@ -32,15 +32,10 @@ import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.javafx.util.FxTextUtils;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -48,12 +43,11 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.TextInputDialog;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.DialogPane;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -295,7 +289,7 @@ public class DialogLoggerUtil {
   /**
    * Internal method to create an alert. use {@link #showDialog}
    */
-  private static @NotNull Alert createAlert(final AlertType type, final @Nullable Window owner,
+  public static @NotNull Alert createAlert(final AlertType type, final @Nullable Window owner,
       final String title, final Node content, @Nullable final ButtonType... buttons) {
     Alert alert = new Alert(type, "", buttons);
     if (owner == null) {

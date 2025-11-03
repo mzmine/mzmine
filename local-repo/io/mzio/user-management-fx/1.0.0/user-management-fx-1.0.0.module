@@ -27,11 +27,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 52942,
-          "sha512": "2e7910bd9c2c6e9bc4516b4900f2e79b7eec10f51fe95f4c13b607aff1377a675a085f3380eaee5370bd6c8331c3f004dde2a4d64b14a7a669da3e57971bf26b",
-          "sha256": "1400ac4373fd1fbd0d351a95d65fc4e96916745cba74de35a94b04a263c13554",
-          "sha1": "9864472a9851f357320fa99efc940b705b3d7b2d",
-          "md5": "86028d256f795429ff404d03a5c5d49c"
+          "size": 54211,
+          "sha512": "1a37acd3de536b6fee66aba02bd2d715e10a65029cd3d23733409ec4b2116fc22c13f568e9a7bf9782502ba4cf93134496bd7cb774e275e55e93334ec0b2e6c3",
+          "sha256": "3eae6fabb4bbea70117ee00ef43f6cc0bf7116b48d9b94f8b8084ac0b3dfd558",
+          "sha1": "5cfad047c04ca356d9eabf1b572f87b09f6faed8",
+          "md5": "c3f9026155c2c88d99b1b6a522c69659"
         }
       ]
     },
@@ -124,42 +124,42 @@
           "group": "org.openjfx",
           "module": "javafx-base",
           "version": {
-            "requires": "23.0.2"
+            "requires": "24.0.2"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-graphics",
           "version": {
-            "requires": "23.0.2"
+            "requires": "24.0.2"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-controls",
           "version": {
-            "requires": "23.0.2"
+            "requires": "24.0.2"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-fxml",
           "version": {
-            "requires": "23.0.2"
+            "requires": "24.0.2"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-swing",
           "version": {
-            "requires": "23.0.2"
+            "requires": "24.0.2"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-web",
           "version": {
-            "requires": "23.0.2"
+            "requires": "24.0.2"
           }
         }
       ],
@@ -167,11 +167,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 52942,
-          "sha512": "2e7910bd9c2c6e9bc4516b4900f2e79b7eec10f51fe95f4c13b607aff1377a675a085f3380eaee5370bd6c8331c3f004dde2a4d64b14a7a669da3e57971bf26b",
-          "sha256": "1400ac4373fd1fbd0d351a95d65fc4e96916745cba74de35a94b04a263c13554",
-          "sha1": "9864472a9851f357320fa99efc940b705b3d7b2d",
-          "md5": "86028d256f795429ff404d03a5c5d49c"
+          "size": 54211,
+          "sha512": "1a37acd3de536b6fee66aba02bd2d715e10a65029cd3d23733409ec4b2116fc22c13f568e9a7bf9782502ba4cf93134496bd7cb774e275e55e93334ec0b2e6c3",
+          "sha256": "3eae6fabb4bbea70117ee00ef43f6cc0bf7116b48d9b94f8b8084ac0b3dfd558",
+          "sha1": "5cfad047c04ca356d9eabf1b572f87b09f6faed8",
+          "md5": "c3f9026155c2c88d99b1b6a522c69659"
         }
       ]
     }

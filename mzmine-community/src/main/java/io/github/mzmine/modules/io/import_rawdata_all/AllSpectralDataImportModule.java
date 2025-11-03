@@ -293,7 +293,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           continue;
         }
 
-        Task newTask = new SpectralLibraryImportTask(project, f, moduleCallDate);
+        Task newTask = new SpectralLibraryImportTask(project, f, moduleCallDate, true);
         tasks.add(newTask);
       }
     }
