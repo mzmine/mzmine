@@ -30,7 +30,6 @@ import com.github.jk1.license.render.InventoryHtmlReportRenderer
 import com.github.jk1.license.render.JsonReportRenderer
 import org.gradle.internal.os.OperatingSystem
 
-import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -134,7 +133,7 @@ repositories {
     }
     // For jmzml, etc.
     maven { url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/" }
-    
+
 //    maven { url = "https://jitpack.io" } // should not be used at best - better push local
     maven { url = "https://www.xypron.de/repository/" }
     // For cpdetector
@@ -155,7 +154,7 @@ ext {
     // Configure in gradle.properties or via env vars to override defaults below if needed:
     // trfp.linux.url=...
     // trfp.win.url=...
-    trfpMacUrl = providers.gradleProperty("trfp.mac.url").orNull 
+    trfpMacUrl = providers.gradleProperty("trfp.mac.url").orNull
             ?: System.getenv("TRFP_MAC_URL")
             ?: "https://github.com/mzmine/ThermoRawFileParser/releases/download/v2.0.0-dev/ThermoRawFileParser-v.2.0.0-dev-osx.zip"
 
@@ -312,7 +311,7 @@ tasks.jpackage.doFirst {
         from EXTERNAL_TOOLS_SRC
         into EXTERNAL_TOOLS_DESTINATION
     }
-    
+
     if (OperatingSystem.current().isMacOsX()) {
         def execOps = project.services.get(org.gradle.process.ExecOperations)
         // Ensure external tools are executable and not quarantined on macOS
@@ -514,19 +513,32 @@ task signApp(dependsOn: jpackage) {
             getLogger().info("Thermo parser path " + thermoParserPath)
             // ensure executable bit and remove quarantine
             execOps.exec { commandLine(['chmod', '+x', "${thermoParserPath}"]) }
-            execOps.exec { commandLine(['xattr', '-d', 'com.apple.quarantine', "${thermoParserPath}"]); ignoreExitValue = true }
+            execOps.exec {
+                commandLine(['xattr', '-d', 'com.apple.quarantine', "${thermoParserPath}"]);
+                ignoreExitValue = true
+            }
             // pre-check (non-fatal) before applying entitlements
-            execOps.exec { commandLine(['/usr/sbin/spctl', '--assess', '--type', 'execute', '--verbose=4', "${thermoParserPath}"]); ignoreExitValue = true }
+            execOps.exec {
+                commandLine(['/usr/sbin/spctl', '--assess', '--type', 'execute', '--verbose=4', "${thermoParserPath}"]);
+                ignoreExitValue = true
+            }
             codesignWithEntitlements(thermoParserPath)
             // verify after signing (non-fatal)
-            execOps.exec { commandLine(['/usr/sbin/spctl', '--assess', '--type', 'execute', '--verbose=4', "${thermoParserPath}"]); ignoreExitValue = true }
+            execOps.exec {
+                commandLine(['/usr/sbin/spctl', '--assess', '--type', 'execute', '--verbose=4', "${thermoParserPath}"]);
+                ignoreExitValue = true
+            }
 
             // Sign additional executables shipped with the parser
             Path trfpDirForExecs = imageDir.resolve('Contents').resolve('external_tools').resolve('thermo_raw_file_parser')
             try {
                 // Clear quarantine on the entire parser directory (best-effort)
-                execOps.exec { commandLine(['xattr', '-r', '-d', 'com.apple.quarantine', trfpDirForExecs.toFile().absolutePath]); ignoreExitValue = true }
-            } catch (Exception ignored) {}
+                execOps.exec {
+                    commandLine(['xattr', '-r', '-d', 'com.apple.quarantine', trfpDirForExecs.toFile().absolutePath]);
+                    ignoreExitValue = true
+                }
+            } catch (Exception ignored) {
+            }
             if (Files.exists(trfpDirForExecs)) {
                 Files.find(trfpDirForExecs, 10, { p, bfa ->
                     bfa.isRegularFile() && java.nio.file.Files.isExecutable(p)
@@ -540,7 +552,8 @@ task signApp(dependsOn: jpackage) {
                         // Ensure executable bit
                         execOps.exec { commandLine(['chmod', '+x', exe.toFile().absolutePath]) }
                         codesignRuntimeOnly(exe.toAbsolutePath())
-                    } catch (Exception ignored) {}
+                    } catch (Exception ignored) {
+                    }
                 }
             }
 
@@ -562,12 +575,15 @@ task signApp(dependsOn: jpackage) {
                             getLogger().lifecycle("Found native library in ${jarFile.name}: ${path}")
                             Path tmpPath = tmpJarsDir.resolve(jarFile.name + "_" + path.getFileName().toString())
                             Files.copy(path, tmpPath, StandardCopyOption.REPLACE_EXISTING)
-                        codesignRuntimeOnly(tmpPath.toAbsolutePath())
+                            codesignRuntimeOnly(tmpPath.toAbsolutePath())
                             Files.copy(tmpPath, path, StandardCopyOption.REPLACE_EXISTING)
                         }
                     } as java.util.function.Consumer)
                 } finally {
-                    try { jarFs?.close() } catch (Exception ignored) {}
+                    try {
+                        jarFs?.close()
+                    } catch (Exception ignored) {
+                    }
                 }
             }
 
@@ -686,101 +702,48 @@ task notarizeApp(dependsOn: signApp) {
 }
 notarizeApp.mustRunAfter(signApp)
 
-// macOS only: optionally fetch TRFP (.NET 8) release asset during build, overlay into image
-// No effect on Windows/Linux builds.
-tasks.register('fetchThermoRawFileParserMac') {
-    onlyIf { OperatingSystem.current().isMacOsX() }
-    // Populate repo external tools so gradle run and jpackage see the same location
+// All platforms: fetch TRFP and overlay into image - will run before processing resources
+tasks.register('fetchThermoRawFileParser') {
+    // if this folder exists the task will be skipped (maybe connected to build cache?)
     outputs.dir(new File(layout.projectDirectory.asFile, "../external_tools/thermo_raw_file_parser"))
     doLast {
         def url = trfpMacUrl
+        if (OperatingSystem.current().isWindows()) {
+            url = trfpWinUrl
+        } else if (OperatingSystem.current().isLinux()) {
+            url = trfpLinuxUrl
+        }
+
         if (url == null || url.isBlank()) {
-            logger.lifecycle("TRFP mac URL not configured; skipping download (will use repo external_tools if present)")
+            logger.lifecycle("TRFP URL not configured; skipping download (will use repo external_tools if present)")
             return
         }
 
         def outBase = layout.buildDirectory.get().asFile
-        def tmpDir = new File(outBase, "tmp/trfp"); tmpDir.mkdirs()
-        def zipFile = new File(tmpDir, "trfp_mac.zip")
-        new URL(url).withInputStream { i -> zipFile.withOutputStream { it << i } }
-
-        // No checksum verification by default; upstream URL is pinned in gradle.properties
-
-        def destDir = new File(layout.projectDirectory.asFile, "../external_tools/thermo_raw_file_parser")
-        project.delete(destDir)
-        destDir.mkdirs()
-        copy { from zipTree(zipFile); into destDir }
-
-        // Set executable flag only for the correct name, no fallbacks
-        def f = new File(destDir, "ThermoRawFileParser")
-        if (f.exists()) { f.setExecutable(true) }
-    }
-}
-
-// Ensure the fetch runs before jpackage on macOS only
-if (OperatingSystem.current().isMacOsX()) {
-    tasks.jpackage.dependsOn(tasks.named('fetchThermoRawFileParserMac'))
-}
-
-// Linux: fetch TRFP and overlay into image
-tasks.register('fetchThermoRawFileParserLinux') {
-    onlyIf { OperatingSystem.current().isLinux() }
-    outputs.dir(new File(layout.projectDirectory.asFile, "../external_tools/thermo_raw_file_parser"))
-    doLast {
-        def url = trfpLinuxUrl
-        if (url == null || url.isBlank()) {
-            logger.lifecycle("TRFP linux URL not configured; skipping download (will use repo external_tools if present)")
-            return
-        }
-
-        def outBase = layout.buildDirectory.get().asFile
-        def tmpDir = new File(outBase, "tmp/trfp"); tmpDir.mkdirs()
-        def zipFile = new File(tmpDir, "trfp_linux.zip")
+        def tmpDir = new File(outBase, "tmp/trfp");
+        tmpDir.mkdirs()
+        def zipFile = new File(tmpDir, "trfp.zip")
         new URL(url).withInputStream { i -> zipFile.withOutputStream { it << i } }
 
         def destDir = new File(layout.projectDirectory.asFile, "../external_tools/thermo_raw_file_parser")
-        project.delete(destDir)
+        project.delete(destDir) // delete old files
         destDir.mkdirs()
         copy { from zipTree(zipFile); into destDir }
 
-        // Ensure executable bit
-        def f = new File(destDir, "ThermoRawFileParser")
-        if (f.exists()) { f.setExecutable(true) }
-    }
-}
-
-// Ensure the fetch runs before jpackage on Linux only
-if (OperatingSystem.current().isLinux()) {
-    tasks.jpackage.dependsOn(tasks.named('fetchThermoRawFileParserLinux'))
-}
-
-// Windows: fetch TRFP and overlay into image
-tasks.register('fetchThermoRawFileParserWin') {
-    onlyIf { OperatingSystem.current().isWindows() }
-    outputs.dir(new File(layout.projectDirectory.asFile, "../external_tools/thermo_raw_file_parser"))
-    doLast {
-        def url = trfpWinUrl
-        if (url == null || url.isBlank()) {
-            logger.lifecycle("TRFP Windows URL not configured; skipping download (will use repo external_tools if present)")
-            return
-        }
-
-        def outBase = layout.buildDirectory.get().asFile
-        def tmpDir = new File(outBase, "tmp/trfp"); tmpDir.mkdirs()
-        def zipFile = new File(tmpDir, "trfp_win.zip")
-        new URL(url).withInputStream { i -> zipFile.withOutputStream { it << i } }
-
-        def destDir = new File(layout.projectDirectory.asFile, "../external_tools/thermo_raw_file_parser")
-        project.delete(destDir)
-        destDir.mkdirs()
-        copy { from zipTree(zipFile); into destDir }
         // No special permission changes needed on Windows
+        // Set executable flag on macOS and Linux only for the correct name, no fallbacks
+        def f = new File(destDir, "ThermoRawFileParser")
+        if (f.exists()) {
+            f.setExecutable(true)
+        }
     }
 }
 
-// Ensure the fetch runs before jpackage on Windows only
-if (OperatingSystem.current().isWindows()) {
-    tasks.jpackage.dependsOn(tasks.named('fetchThermoRawFileParserWin'))
+// download extra resources before processing resources so that they are available to all gradle tasks
+// like test, run, jpackage
+// running in intellij will not download the resources so one manual gradle task call is needed
+tasks.named('processResources') {
+    dependsOn(tasks.named('fetchThermoRawFileParser'))
 }
 
 /*
