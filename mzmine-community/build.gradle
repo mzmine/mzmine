@@ -485,6 +485,7 @@ task signApp(dependsOn: jpackage) {
             // Remove non-mac executables from external tools to reduce Gatekeeper friction
             try {
                 Path toolsDir = imageDir.resolve('Contents').resolve('external_tools').resolve('thermo_raw_file_parser')
+                // should be not needed anymore as we are downloading the files online now.
                 Files.deleteIfExists(toolsDir.resolve('ThermoRawFileParserLinux'))
                 Files.deleteIfExists(toolsDir.resolve('ThermoRawFileParser.exe'))
             } catch (Exception ignored) {
