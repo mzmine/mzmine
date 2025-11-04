@@ -37,6 +37,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.StringUtils;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
@@ -44,24 +45,19 @@ import org.jetbrains.annotations.Nullable;
 
 public class WaveletResolverParameters extends GeneralResolverParameters {
 
-  private static final double mergeProximity = 0.1;
-
   public static final DoubleParameter snr = new DoubleParameter("Signal to noise threshold", "",
-      new DecimalFormat("#.#"), 3d, 0d, Double.MAX_VALUE);
-
+      new DecimalFormat("#.#"), 3d, 1d, Double.MAX_VALUE);
   public static final OptionalParameter<DoubleParameter> topToEdge = new OptionalParameter<>(
-      new DoubleParameter("Top to edge (SNR override)", "", new DecimalFormat("#.#"), 3d, 0d,
-          Double.MAX_VALUE));
-
+      new DoubleParameter("Top to edge (SNR override)", "", new DecimalFormat("#.#"), 3d, 1d,
+          Double.MAX_VALUE), false);
   public static final DoubleParameter minHeight = new DoubleParameter("Minimum height", "",
       ConfigService.getGuiFormats().intensityFormat(), 1E3, 0d, Double.MAX_VALUE);
-
   public static final ComboParameter<NoiseCalculation> noiseCalculation = new ComboParameter<>(
       "Noise calculation", "Choose a method to calculate the noise around a potential signal.",
       NoiseCalculation.values(), NoiseCalculation.STANDARD_DEVIATION);
-
   public static final AdvancedParametersParameter<AdvancedWaveletParameters> advancedParameters = new AdvancedParametersParameter<>(
       new AdvancedWaveletParameters());
+  private static final double mergeProximity = 0.1;
 
   public WaveletResolverParameters() {
     super(GeneralResolverParameters.PEAK_LISTS, GeneralResolverParameters.dimension,
@@ -85,29 +81,21 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
     final Double topToEdge = getEmbeddedParameterValueIfSelectedOrElse(
         WaveletResolverParameters.topToEdge, null);
 
-    if (advanced.getValue()) {
-      final double waveletKernel = advanced.getValueOrDefault(
-          AdvancedWaveletParameters.WAVELET_KERNEL_RADIUS_FACTOR,
-          AdvancedWaveletParameters.DEFAULT_WAVELET_KERNEL);
-      final int noiseWindow = advanced.getValueOrDefault(
-          AdvancedWaveletParameters.LOCAL_NOISE_WINDOW_FACTOR,
-          AdvancedWaveletParameters.DEFAULT_NOISE_WINDOW).intValue();
-      final var scales = Arrays.stream(advanced.getValueOrDefault(AdvancedWaveletParameters.scales,
-              AdvancedWaveletParameters.DEFAULT_SCALES).split(",")).map(String::trim)
-          .mapToDouble(Double::valueOf).toArray();
-//      return new WaveletPeakDetector(scales, parameterSet.getValue(snr),
-      return new WaveletPeakDetector(scales, parameterSet.getValue(WaveletResolverParameters.snr),
-          topToEdge, parameterSet.getValue(WaveletResolverParameters.minHeight), mergeProximity,
-          waveletKernel, noiseWindow, flist, parameterSet);
-    }
-
-    final var scales = Arrays.stream(AdvancedWaveletParameters.DEFAULT_SCALES.split(","))
-        .map(String::trim).mapToDouble(Double::valueOf).toArray();
+    final double waveletKernel = advanced.getValueOrDefault(
+        AdvancedWaveletParameters.WAVELET_KERNEL_RADIUS_FACTOR,
+        AdvancedWaveletParameters.DEFAULT_WAVELET_KERNEL);
+    final int noiseWindow = advanced.getValueOrDefault(
+        AdvancedWaveletParameters.LOCAL_NOISE_WINDOW_FACTOR,
+        AdvancedWaveletParameters.DEFAULT_NOISE_WINDOW).intValue();
+    final var scales = Arrays.stream(advanced.getValueOrDefault(AdvancedWaveletParameters.scales,
+            AdvancedWaveletParameters.DEFAULT_SCALES).split(",")).map(String::trim)
+        .filter(s -> !StringUtils.isBlank(s)).mapToDouble(Double::valueOf).toArray();
+    final int minFittingScales = advanced.getValueOrDefault(AdvancedWaveletParameters.requiredFits,
+        AdvancedWaveletParameters.MIN_FITTING_SCALES);
 
     return new WaveletPeakDetector(scales, parameterSet.getValue(WaveletResolverParameters.snr),
         topToEdge, parameterSet.getValue(WaveletResolverParameters.minHeight), mergeProximity,
-        AdvancedWaveletParameters.DEFAULT_WAVELET_KERNEL,
-        AdvancedWaveletParameters.DEFAULT_NOISE_WINDOW, flist, parameterSet);
+        waveletKernel, noiseWindow, minFittingScales, flist, parameterSet);
   }
 
   @Override

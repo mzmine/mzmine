@@ -29,8 +29,8 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
  * @param scale     Scale at which it was prominent
  * @param cwtValue  CWT coefficient value at this point/scale
  * @param originalY y-value in the original signal
- */ // --- Helper Classes ---
-record PotentialPeak(int index, double scale, double cwtValue, double originalY) { /* ... as before ... */
+ */
+record PotentialPeak(int index, double scale, double cwtValue, double originalY) {
 
   @Override
   public String toString() {

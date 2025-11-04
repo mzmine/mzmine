@@ -26,8 +26,10 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.util.StringUtils;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,28 +40,35 @@ import org.jetbrains.annotations.NotNull;
 public class AdvancedWaveletParameters extends SimpleParameterSet {
 
   public static final double DEFAULT_WAVELET_KERNEL = 5d;
-  public static final double DEFAULT_NOISE_WINDOW = 10;
-  public static final @NotNull String DEFAULT_SCALES = Stream.of(1d, 2d, 3d, 4d, 5d, 6d, 8d, 10d)
+  public static final double DEFAULT_NOISE_WINDOW = 3;
+  public static final int MIN_FITTING_SCALES = 2;
+  public static final @NotNull String DEFAULT_SCALES = Stream.of(1d, 1.5d, 2d, 3d, 5d, 8d, 10d)
       .map(Object::toString).collect(Collectors.joining(", "));
 
   public static final OptionalParameter<StringParameter> scales = new OptionalParameter<>(
-      new StringParameter("Scales",
-          "Scales (in data points) of the wavelets. Multiple wavelets allow detection of signals of varying widths.",
-          DEFAULT_SCALES));
-
+      new StringParameter("Scales", """
+          Scales (widths) of the wavelets. Multiple wavelets allow detection of signals of varying widths.
+          Default: %s""".formatted(DEFAULT_SCALES).formatted(), DEFAULT_SCALES));
   public static final OptionalParameter<DoubleParameter> WAVELET_KERNEL_RADIUS_FACTOR = new OptionalParameter<>(
-      new DoubleParameter("Wavelet kernel radius",
-          "A factor that defines the width of the wavelets. Smaller values allow detection of narrower signals.",
+      new DoubleParameter("Wavelet kernel radius", """
+          A factor that defines the width of the wavelets. Smaller values allow detection of narrower signals.
+          Default: %.0f""".formatted(DEFAULT_WAVELET_KERNEL),
           new DecimalFormat("#.###"), DEFAULT_WAVELET_KERNEL, 0d, Double.MAX_VALUE));
 
   public static final OptionalParameter<DoubleParameter> LOCAL_NOISE_WINDOW_FACTOR = new OptionalParameter<>(
       new DoubleParameter("Noise window factor", """
           The window around a potential signal to calculate the signal to noise ratio in.
-          The window is defined by this factor multiplied by the peak width.""",
-          new DecimalFormat("#.###"), DEFAULT_NOISE_WINDOW));
+          The window is defined by this factor multiplied by the peak width.
+          Default: %.0f""".formatted(DEFAULT_NOISE_WINDOW), new DecimalFormat("#.###"),
+          DEFAULT_NOISE_WINDOW));
+
+  public static final OptionalParameter<IntegerParameter> requiredFits = new OptionalParameter<>(
+      new IntegerParameter("Required fitting scales", """
+          Minimum number of fitting wavelet scales for a peak to be retained.
+          Default: %d""".formatted(MIN_FITTING_SCALES), MIN_FITTING_SCALES, 1, Integer.MAX_VALUE));
 
   public AdvancedWaveletParameters() {
-    super(scales, WAVELET_KERNEL_RADIUS_FACTOR, LOCAL_NOISE_WINDOW_FACTOR);
+    super(scales, WAVELET_KERNEL_RADIUS_FACTOR, LOCAL_NOISE_WINDOW_FACTOR, requiredFits);
   }
 
   @Override
@@ -72,7 +81,7 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
       final var scales = Arrays.stream(
               getEmbeddedParameterValueIfSelectedOrElse(AdvancedWaveletParameters.scales,
                   AdvancedWaveletParameters.DEFAULT_SCALES).split(",")).map(String::trim)
-          .mapToDouble(Double::valueOf).toArray();
+          .filter(s -> !StringUtils.isBlank(s)).mapToDouble(Double::valueOf).toArray();
       if (scales.length < 1) {
         errorMessages.add("No scales specified.");
         return false;

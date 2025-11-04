@@ -67,23 +67,22 @@ public class WaveletPeakDetector extends AbstractResolver {
   private final double mergeProximityFactor;
   private final double WAVELET_KERNEL_RADIUS_FACTOR;
   private final double LOCAL_NOISE_WINDOW_FACTOR; // Scales how many points to *try* collecting past edges
-  private final int MIN_LOCAL_SAMPLES = 3; // Minimum total samples for local estimate
-  private final int MIN_WINDOW_TARGET_POINTS = 3; // Minimum target background points per side
+  private final int MIN_WINDOW_TARGET_POINTS_PER_SIDE = 3; // Minimum target background points per side
   private final double ZERO_THRESHOLD = 1e-9;
   private final NoiseCalculation noiseMethod;
   private final int minDataPoints;
-  private double[] yPadded = new double[0];
   private final Double topToEdge;
-
-  List<Range<Double>> snrRanges = new ArrayList<>();
-
   private final Map<Integer, Map<Double, double[]>> waveletBuffer = new HashMap<>();
+  private final int minFittingScales;
+  List<Range<Double>> snrRanges = new ArrayList<>();
+  private double[] yPadded = new double[0];
 
   // ... (constants, fields, constructor) ...
   public WaveletPeakDetector(double[] scales, double minSnr, Double topToEdge, double minPeakHeight,
       double mergeProximityFactor, double waveletKernelRadiusFactor, double localNoiseWindowFactor,
-      ModularFeatureList flist, ParameterSet parameterSet) {
+      int minFittingScales, ModularFeatureList flist, ParameterSet parameterSet) {
     super(parameterSet, flist);
+    this.minFittingScales = minFittingScales;
     if (scales == null || scales.length == 0) {
       throw new IllegalArgumentException("Scales array cannot be null or empty.");
     }
@@ -97,6 +96,29 @@ public class WaveletPeakDetector extends AbstractResolver {
     this.noiseMethod = parameterSet.getValue(WaveletResolverParameters.noiseCalculation);
     this.minDataPoints = parameterSet.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
     this.topToEdge = topToEdge;
+  }
+
+  private static int findClosestLocalMax(double[] y, int initialIndex, int start, int end) {
+    double maxY = y[initialIndex];
+    int bestYIndex = initialIndex;
+    for (int k = initialIndex + 1; k <= end; k++) {
+      if (y[k] > maxY) {
+        maxY = y[k];
+        bestYIndex = k;
+      } else {
+        break;
+      }
+    }
+    // find the closest local maximum to the initial index
+    for (int k = initialIndex - 1; k >= start; k--) {
+      if (y[k] > maxY) {
+        maxY = y[k];
+        bestYIndex = k;
+      } else {
+        break;
+      }
+    }
+    return bestYIndex;
   }
 
   @Override
@@ -149,6 +171,10 @@ public class WaveletPeakDetector extends AbstractResolver {
     // 9. Sort final ranges by start time
     mergedRanges.sort(Comparator.comparing(Range::lowerEndpoint));
 
+    /*return finalPeakRanges.stream().map(p -> {
+      final Range<Integer> range = p.indexRange();
+      return Range.closed(x[range.lowerEndpoint()], x[range.upperEndpoint()]);
+    }).toList();*/
     return mergedRanges;
   }
 
@@ -185,7 +211,7 @@ public class WaveletPeakDetector extends AbstractResolver {
       }
 
       Complex[] convolutionComplex = fft.transform(productFFT, TransformType.INVERSE);
-      double scaleFactor = 1.0 / Math.sqrt(scale);
+      double scaleFactor = 1.0 / Math.sqrt(Math.max(scale, 1));
       for (int j = 0; j < n; j++) {
         cwt[i][j] = convolutionComplex[j].getReal() * scaleFactor;
       }
@@ -199,10 +225,10 @@ public class WaveletPeakDetector extends AbstractResolver {
         i -> new HashMap<>());
 
     return scaleToWaveletMap.computeIfAbsent(scale, _ -> {
-      double[] wavelet = new double[length];
-      double scaleSq = scale * scale;
-      int support = (int) Math.min(length / 2.0, WAVELET_KERNEL_RADIUS_FACTOR * scale);
-      double normFactor = 1.0;
+      final double[] wavelet = new double[length];
+      final double scaleSq = scale * scale;
+      final int support = (int) Math.min(length / 2.0, WAVELET_KERNEL_RADIUS_FACTOR * scale);
+      final double normFactor = 1.0;
 
       for (int i = -support; i <= support; i++) {
         double t = (double) i;
@@ -214,7 +240,7 @@ public class WaveletPeakDetector extends AbstractResolver {
         wavelet[index] = value;
       }
 
-      double sum = Arrays.stream(wavelet).sum();
+      final double sum = Arrays.stream(wavelet).sum();
       if (Math.abs(sum) > 1e-9) {
         double mean = sum / length;
         for (int i = 0; i < length; i++) {
@@ -225,71 +251,85 @@ public class WaveletPeakDetector extends AbstractResolver {
     });
   }
 
-  private List<PotentialPeak> findPotentialPeaksFromCWT(double[][] cwt, double[] scales, double[] x,
-      double[] y) {
-    List<PotentialPeak> potentials = new ArrayList<>();
+  private List<PotentialPeak> findPotentialPeaksFromCWT(double[][] cwt, final double[] scales,
+      final double[] x, final double[] y) {
     int nScales = cwt.length;
     int nPoints = cwt[0].length;
-    Map<Integer, List<PotentialPeak>> maximaByScale = new HashMap<>();
+    final List<PotentialPeak> allMaxima = new ArrayList<>();
 
     for (int i = 0; i < nScales; i++) {
-      maximaByScale.put(i, new ArrayList<>());
       double[] cwtAtScale = cwt[i];
       for (int j = 1; j < nPoints - 1; j++) {
+        // do we have a local maximum in cwt?
         if (cwtAtScale[j] > cwtAtScale[j - 1] && cwtAtScale[j] > cwtAtScale[j + 1]
             && cwtAtScale[j] > 0) {
-          boolean isLocalMaxInY =
-              (j > 0 && j < y.length - 1 && y[j] >= y[j - 1] && y[j] >= y[j + 1]) || (j == 0
-                  && y.length > 1 && y[j] >= y[j + 1]) || (j == y.length - 1 && y.length > 1
-                  && y[j] >= y[j - 1]);
-          if (isLocalMaxInY) {
-            maximaByScale.get(i).add(new PotentialPeak(j, scales[i], cwtAtScale[j], y[j]));
-          }
+          // check if the index of the cwt maximum corresponds to a maximum in the actual y data.
+          // this may sometimes not be the case for non symmetric peaks. -> disabled for now
+//          boolean isLocalMaxInY =
+//              (j > 0 && j < y.length - 1 && y[j] >= y[j - 1] && y[j] >= y[j + 1]) || (j == 0
+//                  && y.length > 1 && y[j] >= y[j + 1]) || (j == y.length - 1 && y.length > 1
+//                  && y[j] >= y[j - 1]);
+//          if (isLocalMaxInY) {
+//            allMaxima.add(new PotentialPeak(j, scales[i], cwtAtScale[j], y[j]));
+//          }
+
+          // find the closest local maximum to the initial index
+          final int searchRadius = Math.max(1, (int) (scales[i] / 2.0));
+          final int start = Math.max(0, j - searchRadius);
+          final int end = Math.min(y.length - 1, j + searchRadius);
+          final int bestYIndex = findClosestLocalMax(y, j, start, end);
+          // set the actual cwtAtScale, but the index and y value at the actual data maximum (not cwt maximum)
+          allMaxima.add(new PotentialPeak(bestYIndex, scales[i], cwtAtScale[j], y[bestYIndex]));
         }
       }
     }
 
-    List<PotentialPeak> allMaxima = maximaByScale.values().stream().flatMap(List::stream)
-        .collect(Collectors.toList());
-    Map<Integer, List<PotentialPeak>> groupedByIndex = allMaxima.stream()
+    final Map<Integer, List<PotentialPeak>> groupedByIndex = allMaxima.stream()
         .collect(Collectors.groupingBy(p -> p.index()));
 
+    List<PotentialPeak> bestPotentials = new ArrayList<>();
     for (Map.Entry<Integer, List<PotentialPeak>> entry : groupedByIndex.entrySet()) {
       List<PotentialPeak> peaksAtIndex = entry.getValue();
-      if (!peaksAtIndex.isEmpty()) {
+      if (peaksAtIndex.size() >= minFittingScales) {
         peaksAtIndex.stream()
             .max(Comparator.comparingDouble(p -> p.cwtValue() / Math.sqrt(p.scale())))
-            .ifPresent(potentials::add);
+            .ifPresent(bestPotentials::add);
       }
     }
-    potentials.sort(Comparator.comparingInt(p -> p.index()));
+    bestPotentials.sort(Comparator.comparingInt(PotentialPeak::index));
 
     List<PotentialPeak> refinedPotentials = new ArrayList<>();
     Set<Integer> addedIndices = new HashSet<>();
-    for (PotentialPeak pp : potentials) {
-      int initialIndex = pp.index();
-      int searchRadius = Math.max(1, (int) (pp.scale() / 2.0));
-      int bestYIndex = initialIndex;
-      double maxY = (initialIndex >= 0 && initialIndex < y.length) ? y[initialIndex]
-          : Double.NEGATIVE_INFINITY;
-      if (Double.isInfinite(maxY)) {
+    for (PotentialPeak pp : bestPotentials) {
+
+      if (Double.isInfinite(y[pp.index()])) {
         continue;
       }
 
+      /*final int initialIndex = pp.index();
+      final int searchRadius = Math.max(1, (int) (pp.scale() / 2.0));
+      int bestYIndex = initialIndex;
+      double maxY = (initialIndex >= 0 && initialIndex < y.length) ? y[initialIndex]
+          : Double.NEGATIVE_INFINITY;
+
       int start = Math.max(0, initialIndex - searchRadius);
       int end = Math.min(y.length - 1, initialIndex + searchRadius);
+
       for (int k = start; k <= end; k++) {
         if (y[k] > maxY) {
           maxY = y[k];
           bestYIndex = k;
         }
-      }
-      if (!addedIndices.contains(bestYIndex)) {
-        refinedPotentials.add(new PotentialPeak(bestYIndex, pp.scale(), pp.cwtValue(), maxY));
-        addedIndices.add(bestYIndex);
+      }*/
+
+      if (!addedIndices.contains(pp.index())) {
+        refinedPotentials.add(
+            new PotentialPeak(pp.index(), pp.scale(), pp.cwtValue(), y[pp.index()]));
+        addedIndices.add(pp.index());
       }
     }
-    refinedPotentials.sort(Comparator.comparingInt(p -> p.index()));
+
+    refinedPotentials.sort(Comparator.comparingInt(PotentialPeak::index));
     return refinedPotentials;
   }
 
@@ -322,16 +362,15 @@ public class WaveletPeakDetector extends AbstractResolver {
    * @param peaks The list of peaks to find and set boundaries for.
    * @param y     The signal intensity array.
    */
-  private void findAndSetLocalMinimaBoundaries(List<DetectedPeak> peaks,
-      double[] y) { // Changed return type to void
+  private void findAndSetLocalMinimaBoundaries(List<DetectedPeak> peaks, double[] y) {
     if (peaks == null || peaks.isEmpty() || y == null || y.length == 0) {
       return;
     }
-    int n = y.length;
+    final int numPoints = y.length;
 
     for (DetectedPeak peak : peaks) {
-      int peakIdx = peak.peakIndex;
-      if (peakIdx < 0 || peakIdx >= n) {
+      final int peakIdx = peak.peakIndex;
+      if (peakIdx < 0 || peakIdx >= numPoints) {
         logger.warning("Invalid peak index " + peakIdx + " encountered during boundary finding.");
         peak.setBoundaryIndices(-1, -1); // Mark as invalid
         continue;
@@ -352,11 +391,12 @@ public class WaveletPeakDetector extends AbstractResolver {
 
       // --- Find Right Boundary Index ---
       int rightIdx = peakIdx;
-      while (rightIdx < n - 1) {
+      while (rightIdx < numPoints - 1) {
         if (y[rightIdx + 1] > y[rightIdx]) { // Valley minimum found
           break;
         }
-        if (rightIdx <= n - 3 && isNearZero(y[rightIdx + 1]) && isNearZero(y[rightIdx + 2])) {
+        if (rightIdx <= numPoints - 3 && isNearZero(y[rightIdx + 1]) && isNearZero(
+            y[rightIdx + 2])) {
           rightIdx++; // Include the first zero
           break;
         }
@@ -380,9 +420,8 @@ public class WaveletPeakDetector extends AbstractResolver {
    * Calculates local noise/baseline and filters by SNR. Now reads boundary indices directly from
    * the peak objects.
    */
-  private List<DetectedPeak> estimateLocalNoiseBaselineAndFilterBySNR(
-      List<DetectedPeak> heightFilteredPeaks, double[] x, double[] y,
-      double minSnr) { // Removed map parameter, added x
+  private List<DetectedPeak> estimateLocalNoiseBaselineAndFilterBySNR(List<DetectedPeak> peaks,
+      final double[] x, final double[] y, final double minSnr) {
 
     List<DetectedPeak> finalPeaks = new ArrayList<>();
     Median medianCalc = new Median();
@@ -390,51 +429,56 @@ public class WaveletPeakDetector extends AbstractResolver {
 
     // *** Build combined exclusion zones from peak boundaries ***
     RangeSet<Integer> allPeakExclusionZones = TreeRangeSet.create();
-    for (DetectedPeak peak : heightFilteredPeaks) {
+    for (DetectedPeak peak : peaks) {
       final Range<Integer> boundaries = peak.getBoundaryIndexRange();
       if (boundaries != null) {
         allPeakExclusionZones.add(boundaries);
       }
     }
 
-    for (DetectedPeak peak : heightFilteredPeaks) {
+    for (DetectedPeak peak : peaks) {
       // --- Get Peak Boundaries directly from object ---
       if (!peak.hasValidBoundaries()) {
         logger.warning(
             "Skipping SNR calculation for peak " + peak.peakIndex + " due to invalid boundaries.");
         continue; // Skip if boundaries are not valid
       }
-      int leftEdgeIdx = peak.leftBoundaryIndex;
-      int rightEdgeIdx = peak.rightBoundaryIndex;
-      double scale = peak.contributingScale;
+      final int leftEdgeIdx = peak.leftBoundaryIndex;
+      final int rightEdgeIdx = peak.rightBoundaryIndex;
+      final double scale = peak.contributingScale;
 
       // --- Define Target Number of Background Points per Side ---
-      // Reverted calculation to use scale, as width (right-left) is often small
-      int targetPointsPerSide = (int) Math.max(MIN_WINDOW_TARGET_POINTS,
-          LOCAL_NOISE_WINDOW_FACTOR * (rightEdgeIdx - leftEdgeIdx));
+      final int targetPointsPerSide = (int) Math.max(MIN_WINDOW_TARGET_POINTS_PER_SIDE,
+          (LOCAL_NOISE_WINDOW_FACTOR * (rightEdgeIdx - leftEdgeIdx)) / 2);
 
       // --- Collect Local Background Samples Dynamically ---
-      DoubleArrayList localBackgroundSamples = new DoubleArrayList();
+      DoubleArrayList localBackgroundSamples = new DoubleArrayList(targetPointsPerSide * 2);
       int leftSamplesCount = 0;
       int rightSamplesCount = 0;
 
       // Search Left
-      for (int i = leftEdgeIdx - 1; i >= 0 && leftSamplesCount < targetPointsPerSide; i--) {
+      for (int i = leftEdgeIdx - 1; i >= 0 &&
+          // allow expansion of the search for a certain range, but not too far so we don't
+          // search in disconnected areas
+          i > leftEdgeIdx - 2 * targetPointsPerSide && leftSamplesCount < targetPointsPerSide;
+          i--) {
         if (!allPeakExclusionZones.contains(i)) {
           localBackgroundSamples.add(y[i]);
           leftSamplesCount++;
         }
       }
       // Search Right
-      for (int i = rightEdgeIdx + 1; i < n && rightSamplesCount < targetPointsPerSide; i++) {
+      for (int i = rightEdgeIdx + 1; i < n && i < rightEdgeIdx + 2 * targetPointsPerSide
+          && rightSamplesCount < targetPointsPerSide; i++) {
         if (!allPeakExclusionZones.contains(i)) {
           localBackgroundSamples.add(y[i]);
           rightSamplesCount++;
         }
       }
 
-      // --- Check for sufficient TOTAL samples ---
-      if (localBackgroundSamples.size() < MIN_LOCAL_SAMPLES) {
+      // check for number of background samples
+      if (localBackgroundSamples.size() < MIN_WINDOW_TARGET_POINTS_PER_SIDE * 2) {
+        // if not reached, fall back to top/edge ratio?
         continue;
       }
 
@@ -453,7 +497,6 @@ public class WaveletPeakDetector extends AbstractResolver {
       double localNoiseStdDev = 0.0;
       final double[] localBackgroundSampleArray = localBackgroundSamples.toDoubleArray();
       try {
-        // Calculate Noise (MAD from local baseline)
         switch (noiseMethod) {
           case STANDARD_DEVIATION ->
               localNoiseStdDev = MathUtils.calcStd(localBackgroundSampleArray);
@@ -535,7 +578,6 @@ public class WaveletPeakDetector extends AbstractResolver {
     return peakRanges;
   }
 
-  // ... (mergePeakRanges remains the same) ...
   private List<Range<Double>> mergePeakRanges(List<PeakRange> peakRanges, double proximityFactor,
       double[] x) {
     if (peakRanges == null || peakRanges.size() <= 1) {
