@@ -150,6 +150,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     final RawDataFileType type = RawDataFileTypeDetector.detectDataFileType(file);
     // we are loading thermo raw files by thermo raw file parser that keeps the .raw extension.
     // MSconvert task can in theory convert thermo .raw so skip the method call instead of changing the way msconvert task works
+    // TODO this will need to change with the data handling parameter that defines which SDK to use for each format.
     final File importedFile = type == RawDataFileType.THERMO_RAW ? file : //
         MSConvertImportTask.applyMsConvertImportNameChanges(file, keepConverted, type);
     return new ImportFile(file, type, importedFile);
