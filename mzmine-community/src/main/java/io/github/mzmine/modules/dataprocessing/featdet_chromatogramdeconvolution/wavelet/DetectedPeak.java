@@ -26,8 +26,8 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 
 import com.google.common.collect.Range;
 import org.jetbrains.annotations.Nullable;
-
-class DetectedPeak {
+// todo: package private again after optimisation
+public class DetectedPeak {
 
   final int peakIndex;     // Index of the maximum in the original signal
   final double peakX;      // X value of the maximum
@@ -39,7 +39,7 @@ class DetectedPeak {
   int leftBoundaryIndex = -1;
   int rightBoundaryIndex = -1;
 
-  DetectedPeak(int peakIndex, double peakX, double peakY, double snr, double contributingScale) {
+  public DetectedPeak(int peakIndex, double peakX, double peakY, double snr, double contributingScale) {
     this.peakIndex = peakIndex;
     this.peakX = peakX;
     this.peakY = peakY;
@@ -61,17 +61,17 @@ class DetectedPeak {
 
   // Getter for boundary range (optional, for convenience)
   @Nullable
-  public Range<Integer> getBoundaryIndexRange() {
-    if (hasValidBoundaries()) {
+  public Range<Integer> getBoundaryIndexRange(int maxSize) {
+    if (hasValidBoundaries(maxSize)) {
       return Range.closed(leftBoundaryIndex, rightBoundaryIndex);
     }
     return null; // Indicate invalid/not set
   }
 
   // Check if boundaries are validly set
-  public boolean hasValidBoundaries() {
+  public boolean hasValidBoundaries(int maxSize) {
     return leftBoundaryIndex >= 0 && rightBoundaryIndex >= 0
-        && leftBoundaryIndex <= rightBoundaryIndex;
+        && leftBoundaryIndex <= rightBoundaryIndex && rightBoundaryIndex < maxSize;
   }
 
 

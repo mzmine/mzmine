@@ -31,11 +31,18 @@ import com.google.common.collect.Range;
  * @param peakY     Height of the peak max
  * @param peakX     X value of the peak max
  */
-record PeakRange(Range<Double> range, Range<Integer> indexRange, int peakIndex, double peakX, double peakY) {
+record PeakRange(Range<Double> range, Range<Integer> indexRange, int peakIndex, double peakX,
+                 double peakY) {
 
   @Override
   public String toString() {
     return "PeakRange{range=" + range + ", peakIdx=" + peakIndex + ", peakY=" + String.format(
         "%.2f", peakY) + "}";
+  }
+
+  public PeakRange withIndexRange(Range<Integer> newIndexRange, double[] x) {
+    return new PeakRange(
+        Range.closed(x[newIndexRange.lowerEndpoint()], x[newIndexRange.upperEndpoint()]),
+        newIndexRange, peakIndex, peakX, peakY);
   }
 }
