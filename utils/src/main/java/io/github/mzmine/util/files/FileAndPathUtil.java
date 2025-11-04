@@ -789,13 +789,19 @@ public class FileAndPathUtil {
    */
   private static @NotNull File getExternalToolsDir() {
     final File mainDir = FileAndPathUtil.getSoftwareMainDirectory();
-    File toolsDirectory = null;
     if (mainDir != null) {
-      toolsDirectory = new File(mainDir, "external_tools/");
+      File extAtAppRoot = new File(mainDir, "external_tools/");
+      if (extAtAppRoot.exists()) {
+        return extAtAppRoot;
+      }
     }
-    if (toolsDirectory == null || !toolsDirectory.exists()) {
-      toolsDirectory = new File("external_tools/");
+    // Dev-run from module dir: parent project root
+    File extParent = new File("../external_tools/");
+    if (extParent.exists()) {
+      return extParent;
     }
-    return toolsDirectory;
+    // when running from project root
+    // Also the fallback to current directory even if it doesn't exist (for error messages)
+    return new File("external_tools/");
   }
 }
