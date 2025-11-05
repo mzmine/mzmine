@@ -77,7 +77,7 @@ public class Test {
         new double[]{1d, 1.5d, 2d, 3d, 5d, 8d, 10d}, 5, null, 1E3, 0.1,
         AdvancedWaveletParameters.DEFAULT_WAVELET_KERNEL,
         AdvancedWaveletParameters.DEFAULT_NOISE_WINDOW,
-        AdvancedWaveletParameters.MIN_FITTING_SCALES, FeatureList.createDummy(),
+        AdvancedWaveletParameters.MIN_FITTING_SCALES, true, FeatureList.createDummy(),
         new WaveletResolverParameters());
 
 //    new DetectedPeak(32, 3.290150166, 1605669760.00, Double.NaN, 0d);

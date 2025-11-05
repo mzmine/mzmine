@@ -74,15 +74,18 @@ public class WaveletPeakDetector extends AbstractResolver {
   private final Double topToEdge;
   private final Map<Integer, Map<Double, double[]>> waveletBuffer = new HashMap<>();
   private final int minFittingScales;
+  private final boolean robustnessIteration;
   List<Range<Double>> snrRanges = new ArrayList<>();
   private double[] yPadded = new double[0];
 
   // ... (constants, fields, constructor) ...
   public WaveletPeakDetector(double[] scales, double minSnr, Double topToEdge, double minPeakHeight,
       double mergeProximityFactor, double waveletKernelRadiusFactor, double localNoiseWindowFactor,
-      int minFittingScales, ModularFeatureList flist, ParameterSet parameterSet) {
+      int minFittingScales, boolean robustnessIteration, ModularFeatureList flist,
+      ParameterSet parameterSet) {
     super(parameterSet, flist);
     this.minFittingScales = minFittingScales;
+    this.robustnessIteration = robustnessIteration;
     if (scales == null || scales.length == 0) {
       throw new IllegalArgumentException("Scales array cannot be null or empty.");
     }
@@ -216,6 +219,17 @@ public class WaveletPeakDetector extends AbstractResolver {
     return Math.abs(value) < ZERO_THRESHOLD;
   }
 
+  private static int peakScaleToDipTolerance(double scale) {
+//    return 0;
+    if (scale < 2) {
+      return 0;
+    }
+    if (scale >= 2 && scale <= 4) {
+      return 1;
+    }
+    return 2;
+  }
+
   @Override
   public List<Range<Double>> resolve(double[] x, double[] y) {
     if (x == null || y == null || x.length != y.length || x.length < 5) {
@@ -247,12 +261,18 @@ public class WaveletPeakDetector extends AbstractResolver {
     final List<DetectedPeak> finalDetectedPeaks = estimateLocalNoiseBaselineAndFilterBySNR(
         heightFilteredPeaks, x, y, minSnr);
     // todo: maybe filter peaks that have a lot of zero->non zero transitions in their proximity
-
     if (finalDetectedPeaks.isEmpty()) {
       return Collections.emptyList();
     }
 
-    final List<PeakRange> finalPeakRanges = convertPeaksToPeakRanges(finalDetectedPeaks, x);
+    // second pass to re-estimate noise without bad peaks.
+    final List<DetectedPeak> secondPassPeaks =
+        robustnessIteration ? estimateLocalNoiseBaselineAndFilterBySNR(finalDetectedPeaks, x, y,
+            minSnr) : finalDetectedPeaks;
+    logger.finest("Second noise pass removed %d signals".formatted(
+        finalDetectedPeaks.size() - secondPassPeaks.size()));
+
+    final List<PeakRange> finalPeakRanges = convertPeaksToPeakRanges(secondPassPeaks, x);
 
     // Merge Overlapping / Proximal Peaks
     final List<Range<Double>> mergedRanges = mergePeakRanges(finalPeakRanges, mergeProximityFactor,
@@ -436,7 +456,7 @@ public class WaveletPeakDetector extends AbstractResolver {
 
     for (DetectedPeak peak : peaks) {
 //      findAndSetLocalMinimaBoundary(y, peak);
-      findAndSetLocalMinimaBoundaryWithTolerance(y, peak, 0);
+      findAndSetLocalMinimaBoundaryWithTolerance(y, peak, peakScaleToDipTolerance(peak.scale()));
     }
   }
 

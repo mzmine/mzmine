@@ -30,11 +30,11 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
  * @param cwtValue  CWT coefficient value at this point/scale
  * @param originalY y-value in the original signal
  */
-record PotentialPeak(int index, double scale, double cwtValue, double originalY) {
+record PotentialPeak(int index, double scale, double cwtValue, double originalY) implements Peak {
 
   @Override
   public String toString() {
     return "PotentialPeak{index=" + index + ", scale=" + scale + ", cwtValue=" + String.format(
-        "%.2f", cwtValue) + ", y=" + String.format("%.2f", originalY) + "}";
+        "%.2f", cwtValue) + ", y=" + String.format("%.2f", originalY) +  ", y/cwt=" + String.format("%.2f", cwtValue() / Math.sqrt(scale())) + "}";
   }
 }

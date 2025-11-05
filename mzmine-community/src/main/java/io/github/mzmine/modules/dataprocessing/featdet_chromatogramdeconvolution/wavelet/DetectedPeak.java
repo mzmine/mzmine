@@ -26,7 +26,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 
 import com.google.common.collect.Range;
 import org.jetbrains.annotations.Nullable;
-class DetectedPeak {
+class DetectedPeak implements Peak {
 
   final int peakIndex;     // Index of the maximum in the original signal
   final double peakX;      // X value of the maximum
@@ -81,5 +81,20 @@ class DetectedPeak {
         + String.format("%.2f", contributingScale) + ", bounds=[" + leftBoundaryIndex + ","
         + rightBoundaryIndex + "]" // Added boundaries
         + "}";
+  }
+
+  @Override
+  public int index() {
+    return peakIndex;
+  }
+
+  @Override
+  public double scale() {
+    return contributingScale;
+  }
+
+  @Override
+  public double originalY() {
+    return peakY;
   }
 }

@@ -25,6 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -44,6 +45,7 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
   public static final int MIN_FITTING_SCALES = 2;
   public static final @NotNull String DEFAULT_SCALES = Stream.of(1d, 1.5d, 2d, 3d, 5d, 8d, 10d)
       .map(Object::toString).collect(Collectors.joining(", "));
+  public static final boolean DEFAULT_ROBUSTNESS_ITERATION = true;
 
   public static final OptionalParameter<StringParameter> scales = new OptionalParameter<>(
       new StringParameter("Scales", """
@@ -67,8 +69,11 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
           Minimum number of fitting wavelet scales for a peak to be retained.
           Default: %d""".formatted(MIN_FITTING_SCALES), MIN_FITTING_SCALES, 1, Integer.MAX_VALUE));
 
+  public static final BooleanParameter robustnessIteration = new BooleanParameter("Apply robustness iteration", "",
+      DEFAULT_ROBUSTNESS_ITERATION);
+
   public AdvancedWaveletParameters() {
-    super(scales, WAVELET_KERNEL_RADIUS_FACTOR, LOCAL_NOISE_WINDOW_FACTOR, requiredFits);
+    super(scales, WAVELET_KERNEL_RADIUS_FACTOR, LOCAL_NOISE_WINDOW_FACTOR, requiredFits, robustnessIteration);
   }
 
   @Override

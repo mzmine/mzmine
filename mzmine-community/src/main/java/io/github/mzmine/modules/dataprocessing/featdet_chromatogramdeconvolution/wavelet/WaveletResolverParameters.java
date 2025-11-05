@@ -92,10 +92,13 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
         .filter(s -> !StringUtils.isBlank(s)).mapToDouble(Double::valueOf).toArray();
     final int minFittingScales = advanced.getValueOrDefault(AdvancedWaveletParameters.requiredFits,
         AdvancedWaveletParameters.MIN_FITTING_SCALES);
+    final Boolean robustnessIteration = advanced.getValueOrDefault(
+        AdvancedWaveletParameters.robustnessIteration,
+        AdvancedWaveletParameters.DEFAULT_ROBUSTNESS_ITERATION);
 
     return new WaveletPeakDetector(scales, parameterSet.getValue(WaveletResolverParameters.snr),
         topToEdge, parameterSet.getValue(WaveletResolverParameters.minHeight), mergeProximity,
-        waveletKernel, noiseWindow, minFittingScales, flist, parameterSet);
+        waveletKernel, noiseWindow, minFittingScales, robustnessIteration, flist, parameterSet);
   }
 
   @Override
