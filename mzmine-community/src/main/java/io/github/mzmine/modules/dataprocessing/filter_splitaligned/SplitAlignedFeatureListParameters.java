@@ -45,7 +45,7 @@ public class SplitAlignedFeatureListParameters extends SimpleParameterSet {
           "If selected, files of the same metadata group will be split into the same feature list. Otherwise, each file will create an individual feature list."), false);
 
   public SplitAlignedFeatureListParameters() {
-    super(flists, grouping);
+    super("https://mzmine.github.io/mzmine_documentation/module_docs/filter_splitaligned/split_aligned_feature_list.html", flists, grouping);
   }
 
   @Override

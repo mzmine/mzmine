@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.projectload;
 
+import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.taskcontrol.Task;
@@ -35,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface RawDataFileOpenHandler extends Task {
 
-  public static RawDataFileOpenHandler forVersion(String versionString, @NotNull Instant moduleCallDate) {
+  public static RawDataFileOpenHandler forVersion(Semver versionString, @NotNull Instant moduleCallDate) {
     return new RawDataFileOpenHandler_3_0(moduleCallDate);
   }
 

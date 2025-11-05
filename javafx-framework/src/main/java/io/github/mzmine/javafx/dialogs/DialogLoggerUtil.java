@@ -33,19 +33,24 @@ import io.github.mzmine.javafx.util.FxTextUtils;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
 import javafx.geometry.Insets;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
@@ -284,7 +289,7 @@ public class DialogLoggerUtil {
   /**
    * Internal method to create an alert. use {@link #showDialog}
    */
-  private static @NotNull Alert createAlert(final AlertType type, final @Nullable Window owner,
+  public static @NotNull Alert createAlert(final AlertType type, final @Nullable Window owner,
       final String title, final Node content, @Nullable final ButtonType... buttons) {
     Alert alert = new Alert(type, "", buttons);
     if (owner == null) {
@@ -391,5 +396,50 @@ public class DialogLoggerUtil {
 
   public static void showPlainNotification(@NotNull String title, @NotNull String message) {
     showNotification(NotificationType.PLAIN, title, message);
+  }
+
+  public static ButtonType createAlertWithOptOutBlocking(String title, String headerText,
+      TextFlow message, String optOutMessage, Consumer<Boolean> optOutAction) {
+    // Credits: https://stackoverflow.com/questions/36949595/how-do-i-create-a-javafx-alert-with-a-check-box-for-do-not-ask-again
+
+    final AtomicReference<ButtonType> result = new AtomicReference<>(ButtonType.NO);
+    final CheckBox optOutCheckbox = new CheckBox();
+    FxThread.runOnFxThreadAndWait(() -> {
+      Alert alert = new Alert(AlertType.WARNING);
+      applyFocusedWindowStyle(alert);
+
+      // Need to force the alert to layout in order to grab the graphic,
+      // as we are replacing the dialog pane with a custom pane
+      alert.getDialogPane().applyCss();
+      Node graphic = alert.getDialogPane().getGraphic();
+      // Create a new dialog pane that has a checkbox instead of the hide/show details button
+      // Use the supplied callback for the action of the checkbox
+
+      alert.setDialogPane(new DialogPane() {
+        @Override
+        protected Node createDetailsButton() {
+          optOutCheckbox.setText(optOutMessage);
+          return optOutCheckbox;
+        }
+      });
+      alert.getDialogPane().getButtonTypes().addAll(ButtonType.YES, ButtonType.NO);
+
+      message.setPadding(new Insets(5));
+      alert.getDialogPane().setContent(message);
+      // Fool the dialog into thinking there is some expandable content
+      // a Group won't take up any space if it has no children
+      alert.getDialogPane().setExpandableContent(new Group());
+      alert.getDialogPane().setExpanded(true);
+      // Reset the dialog graphic using the default style
+      alert.getDialogPane().setGraphic(graphic);
+      alert.setTitle(title);
+      alert.setHeaderText(headerText);
+
+      alert.showAndWait();
+      result.set(alert.getResult());
+    });
+
+    optOutAction.accept(result.get() == ButtonType.YES && optOutCheckbox.isSelected());
+    return result.get();
   }
 }

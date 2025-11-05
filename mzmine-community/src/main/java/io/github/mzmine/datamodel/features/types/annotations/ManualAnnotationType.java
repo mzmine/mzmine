@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,12 +32,14 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -52,6 +54,12 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * We transition away from this annotation. Manual annotations are now {@link CompoundDBAnnotation}
+ * and comment is its own RowType. The deprecated {@link FeatureIdentity} is the only reason it is
+ * still here. Loading old projects will need the ManualAnnotationType for a longer time.
+ */
+@Deprecated(since = "4.8.0")
 public class ManualAnnotationType extends DataType<ManualAnnotation> implements SubColumnsFactory,
     AnnotationType {
 
@@ -113,6 +121,12 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
     final ManualAnnotation manual = new ManualAnnotation();
     for (DataType type : model.getTypes()) {
       manual.set(type, model.get(type));
+    }
+
+    final String comment = manual.getComment();
+    if (StringUtils.isBlank(row.getComment()) && StringUtils.hasValue(comment)) {
+      row.setComment(comment);
+      manual.setComment(null);
     }
     return manual;
   }

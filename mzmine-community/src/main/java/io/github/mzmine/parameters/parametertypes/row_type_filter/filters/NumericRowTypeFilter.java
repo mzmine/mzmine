@@ -63,8 +63,10 @@ final class NumericRowTypeFilter extends AbstractRowTypeFilter {
       case LESSER_EQUAL -> compare >= 0;
       case GREATER_EQUAL -> compare <= 0;
       case NOT_EQUAL -> compare != 0;
-      case CONTAINS -> throw new IllegalArgumentException(
+      case CONTAINS -> throw new UnsupportedOperationException(
           "CONTAINS matching mode is not applicable to numeric filters");
+      case ALL, ANY -> throw new UnsupportedOperationException(
+          "The selected matching mode is not implemented for this filter: " + matchingMode);
     };
   }
 

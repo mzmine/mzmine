@@ -170,7 +170,7 @@ public class ImportType<T> {
   }
 
   public T apply(Map<DataType<?>, @Nullable String> csvValues) {
-    final String s = csvValues.get(dataType);
+    final String s = csvValues.get(dataType.get());
     return apply(s);
   }
 

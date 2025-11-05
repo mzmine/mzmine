@@ -28,6 +28,7 @@ package io.github.mzmine.util;
 import static io.github.mzmine.util.annotations.CompoundAnnotationUtils.getTypeValue;
 
 import com.google.common.collect.Range;
+import com.google.common.collect.TreeRangeSet;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
@@ -66,11 +67,13 @@ import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
+import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -956,4 +959,20 @@ public class FeatureUtils {
     return f instanceof ModularFeature mf && mf.isMrm();
   }
 
+  public static String rowsToIdString(List<? extends FeatureListRow> rows) {
+    final List<IndexRange> ranges = IndexRange.findRanges(
+        rows.stream().map(FeatureListRow::getID).toList());
+    return IndexRange.asString(ranges);
+  }
+
+  public static List<FeatureListRow> idStringToRows(ModularFeatureList flist, String str) {
+    final TreeRangeSet<Integer> ids = TreeRangeSet.create();
+    final List<IndexRange> ranges = IndexRange.parseRanges(str);
+    for (IndexRange range : ranges) {
+      ids.add(Range.closed(range.min(), range.maxInclusive()));
+    }
+
+    return flist.stream().filter(row -> ids.contains(row.getID()))
+        .sorted(Comparator.comparingInt(FeatureListRow::getID)).toList();
+  }
 }
