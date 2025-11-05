@@ -26,8 +26,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 
 import com.google.common.collect.Range;
 import org.jetbrains.annotations.Nullable;
-// todo: package private again after optimisation
-public class DetectedPeak {
+class DetectedPeak {
 
   final int peakIndex;     // Index of the maximum in the original signal
   final double peakX;      // X value of the maximum

@@ -219,20 +219,20 @@ public class WaveletPeakDetector extends AbstractResolver {
   @Override
   public List<Range<Double>> resolve(double[] x, double[] y) {
     if (x == null || y == null || x.length != y.length || x.length < 5) {
-      System.err.println(
+      logger.warning(
           "Warning: Invalid input data (null, mismatched length, or too short). Returning empty list.");
       return Collections.emptyList();
     }
     final int n = y.length;
 
-    // 1. Compute CWT
+    // Compute CWT
     final double[][] cwtCoefficients = calculateCWT(y, scales);
 
-    // 2. Find Potential Peaks
+    // Find Potential Peaks
     final List<PotentialPeak> potentialPeaks = findPotentialPeaksFromCWT(cwtCoefficients, scales, x,
         y);
 
-    // 3. Initial Filtering - Height Only
+    // Initial Filtering - Height Only
     final List<DetectedPeak> heightFilteredPeaks = filterByHeight(potentialPeaks, y, x,
         minPeakHeight);
 
@@ -240,32 +240,25 @@ public class WaveletPeakDetector extends AbstractResolver {
       return Collections.emptyList();
     }
 
-    // 4. Determine & SET Index Ranges for Height-Filtered Peaks
-    //    *** Modified call ***
+    // determine & SET Index Ranges for Height-Filtered Peaks
     findAndSetLocalMinimaBoundaries(heightFilteredPeaks, y);
 
-    // 5. Local Noise/Baseline Estimation and SNR Filter
-    //    *** Modified call (no map passed) ***
+    // Local Noise/Baseline Estimation and SNR Filter
     final List<DetectedPeak> finalDetectedPeaks = estimateLocalNoiseBaselineAndFilterBySNR(
-        heightFilteredPeaks, x, y, minSnr); // Pass x here for baseline calculation
+        heightFilteredPeaks, x, y, minSnr);
     // todo: maybe filter peaks that have a lot of zero->non zero transitions in their proximity
-
 
     if (finalDetectedPeaks.isEmpty()) {
       return Collections.emptyList();
     }
 
-    // 6. Determine & SET Index Ranges for the FINAL Peaks
-//    findAndSetLocalMinimaBoundaries(finalDetectedPeaks, y);
-
-    // 7. Convert Final Peaks (with boundaries) to PeakRange objects
     final List<PeakRange> finalPeakRanges = convertPeaksToPeakRanges(finalDetectedPeaks, x);
 
-    // 8. Merge Overlapping / Proximal Peaks
+    // Merge Overlapping / Proximal Peaks
     final List<Range<Double>> mergedRanges = mergePeakRanges(finalPeakRanges, mergeProximityFactor,
         x, y);
 
-    // 9. Sort final ranges by start time
+    // Sort final ranges by start time
     mergedRanges.sort(Comparator.comparing(Range::lowerEndpoint));
 
     /*return finalPeakRanges.stream().map(p -> {
@@ -403,22 +396,6 @@ public class WaveletPeakDetector extends AbstractResolver {
         continue;
       }
 
-      /*final int initialIndex = pp.index();
-      final int searchRadius = Math.max(1, (int) (pp.scale() / 2.0));
-      int bestYIndex = initialIndex;
-      double maxY = (initialIndex >= 0 && initialIndex < y.length) ? y[initialIndex]
-          : Double.NEGATIVE_INFINITY;
-
-      int start = Math.max(0, initialIndex - searchRadius);
-      int end = Math.min(y.length - 1, initialIndex + searchRadius);
-
-      for (int k = start; k <= end; k++) {
-        if (y[k] > maxY) {
-          maxY = y[k];
-          bestYIndex = k;
-        }
-      }*/
-
       if (!addedIndices.contains(pp.index())) {
         refinedPotentials.add(
             new PotentialPeak(pp.index(), pp.scale(), pp.cwtValue(), y[pp.index()]));
@@ -432,20 +409,13 @@ public class WaveletPeakDetector extends AbstractResolver {
 
   private List<DetectedPeak> filterByHeight(List<PotentialPeak> potentials, double[] y, double[] x,
       double minPeakHeight) {
-    List<DetectedPeak> heightFiltered = new ArrayList<>();
+    final List<DetectedPeak> heightFiltered = new ArrayList<>();
 
-    for (PotentialPeak pp : potentials) {
-      double peakYValue = pp.originalY();
-
-      if (peakYValue >= minPeakHeight) {
-        double peakXValue = (pp.index() >= 0 && pp.index() < x.length) ? x[pp.index()] : Double.NaN;
-        if (Double.isNaN(peakXValue)) {
-          System.err.println(
-              "Warning: Could not get valid X coordinate for potential peak at index "
-                  + pp.index());
-        }
+    for (final PotentialPeak pp : potentials) {
+      final double peakYValue = pp.originalY();
+      if (peakYValue >= minPeakHeight && pp.index() >= 0 && pp.index() < x.length) {
         heightFiltered.add(
-            new DetectedPeak(pp.index(), peakXValue, peakYValue, Double.NaN, pp.scale()));
+            new DetectedPeak(pp.index(), x[pp.index()], peakYValue, Double.NaN, pp.scale()));
       }
     }
     return heightFiltered;
@@ -477,11 +447,11 @@ public class WaveletPeakDetector extends AbstractResolver {
   private List<DetectedPeak> estimateLocalNoiseBaselineAndFilterBySNR(List<DetectedPeak> peaks,
       final double[] x, final double[] y, final double minSnr) {
 
-    List<DetectedPeak> finalPeaks = new ArrayList<>();
+    final List<DetectedPeak> finalPeaks = new ArrayList<>();
     final int n = y.length;
 
     // *** Build combined exclusion zones from peak boundaries ***
-    RangeSet<Integer> allPeakExclusionZones = TreeRangeSet.create();
+    final RangeSet<Integer> allPeakExclusionZones = TreeRangeSet.create();
     for (DetectedPeak peak : peaks) {
       final Range<Integer> boundaries = peak.getBoundaryIndexRange(n);
       if (boundaries != null) {
@@ -489,7 +459,7 @@ public class WaveletPeakDetector extends AbstractResolver {
       }
     }
 
-    for (DetectedPeak peak : peaks) {
+    for (final DetectedPeak peak : peaks) {
       // --- Get Peak Boundaries directly from object ---
       if (!peak.hasValidBoundaries(n)) {
         logger.warning(
@@ -705,7 +675,6 @@ public class WaveletPeakDetector extends AbstractResolver {
         .map(PeakRange::range).collect(Collectors.toList());
   }
 
-  // Required override for AbstractResolver
   @Override
   public @NotNull Class<? extends MZmineModule> getModuleClass() {
     return WaveletResolverModule.class; // Placeholder
