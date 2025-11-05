@@ -249,7 +249,6 @@ public class WaveletPeakDetector extends AbstractResolver {
     // Initial Filtering - Height Only
     final List<DetectedPeak> heightFilteredPeaks = filterByHeight(potentialPeaks, y, x,
         minPeakHeight);
-
     if (heightFilteredPeaks.isEmpty()) {
       return Collections.emptyList();
     }
@@ -638,9 +637,10 @@ public class WaveletPeakDetector extends AbstractResolver {
 
         if (previous.range().isConnected(current.range())) {
           // more than 40 % range length overlap || Todo: or check if one peak enlcoses max of the other
-          if (RangeUtils.rangeLength(previous.range().intersection(current.range()))
-              > (RangeUtils.rangeLength(previous.range()) + RangeUtils.rangeLength(current.range()))
-              * 0.4) {
+          if ((previous.indexRange().encloses(current.indexRange()) || current.indexRange()
+              .encloses(previous.indexRange())) || (
+              previous.indexRange().contains(current.peakIndex()) || current.indexRange()
+                  .contains(previous.peakIndex()))) {
             shouldMerge = true;
           } else {
             final int minIndex = ArrayUtils.indexOfMin(y, current.indexRange().lowerEndpoint(),
@@ -650,9 +650,11 @@ public class WaveletPeakDetector extends AbstractResolver {
             merged.add(previous.withIndexRange(
                 Range.closed(previous.indexRange().lowerEndpoint(), minIndex), x));
 
-            // replace current peak with new start point
-            current = current.withIndexRange(
-                Range.closed(minIndex, current.indexRange().upperEndpoint()), x);
+            if (minIndex < current.peakIndex() && minIndex < current.indexRange().upperEndpoint()) {
+              // replace current peak with new start point
+              current = current.withIndexRange(
+                  Range.closed(minIndex, current.indexRange().upperEndpoint()), x);
+            }
           }
         } else if (proximityFactor > 0) {
           final double prevWidth =
