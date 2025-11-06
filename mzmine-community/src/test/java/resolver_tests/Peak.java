@@ -40,11 +40,10 @@ record Peak(float topRt, @Nullable Range<Float> rtRange, @Nullable String desc) 
       return false;
     }
 
-    if (rtRange != null && other.rtRange == null || rtRange == null && other.rtRange != null || (
-        rtRange != null && other.rtRange != null && !Precision.equalFloatSignificance(
-            rtRange.lowerEndpoint(), other.rtRange.lowerEndpoint())
-            && Precision.equalFloatSignificance(rtRange.upperEndpoint(),
-            other.rtRange.upperEndpoint()))) {
+    if ((rtRange != null && other.rtRange == null) || (rtRange == null && other.rtRange != null)
+        || (rtRange != null && other.rtRange != null && !Precision.equalFloatSignificance(
+        rtRange.lowerEndpoint(), other.rtRange.lowerEndpoint()) && Precision.equalFloatSignificance(
+        rtRange.upperEndpoint(), other.rtRange.upperEndpoint()))) {
       return false;
     }
     return true;

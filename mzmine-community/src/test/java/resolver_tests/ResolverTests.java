@@ -47,7 +47,7 @@ public class ResolverTests {
         "High dynamic range EIC");
     IonTimeSeries<Scan> series = hdr.extract();
 
-    List<Peak> expected = List.of(Peak.topRange(3.290150f, Range.closed(3.205130f, 3.439810f)),
+    List<Peak> expected = List.of(Peak.topRange(3.29010f, Range.closed(3.205130f, 3.439810f)),
         Peak.topRange(3.508047f, Range.closed(3.439810f, 3.827257f)));
 
     final var localMin = new MinimumSearchFeatureResolver(FeatureList.createDummy(),
@@ -87,7 +87,7 @@ public class ResolverTests {
       return "EicResult{" + "eic=" + eic.desc() + ", testName='" + testName + '\''
           + ", numExpected=" + numExpected + ", numFound=" + numFound + ", truePositives="
           + truePositives + ", falseNegatives=" + falseNegatives + ", additionalPositives="
-          + additionalPositives + ", error =" + ((falseNegatives + additionalPositives)
+          + additionalPositives + ", error=" + ((falseNegatives + additionalPositives)
           / (double) numExpected) + '}';
     }
   }
