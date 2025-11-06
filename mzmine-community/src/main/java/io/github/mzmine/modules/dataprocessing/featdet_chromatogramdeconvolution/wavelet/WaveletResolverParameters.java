@@ -46,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
 public class WaveletResolverParameters extends GeneralResolverParameters {
 
   public static final DoubleParameter snr = new DoubleParameter("Signal to noise threshold", "",
-      new DecimalFormat("#.#"), 3d, 1d, Double.MAX_VALUE);
+      new DecimalFormat("#.#"), 5d, 1d, Double.MAX_VALUE);
   public static final OptionalParameter<DoubleParameter> topToEdge = new OptionalParameter<>(
       new DoubleParameter("Top to edge (SNR override)", "", new DecimalFormat("#.#"), 3d, 1d,
           Double.MAX_VALUE), false);
