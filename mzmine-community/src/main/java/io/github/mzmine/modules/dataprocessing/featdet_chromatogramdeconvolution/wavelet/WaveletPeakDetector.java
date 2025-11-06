@@ -182,11 +182,12 @@ public class WaveletPeakDetector extends AbstractResolver {
       leftIdx--;
       if (leftIdx > 1 && y[leftIdx - 1] < y[leftIdx]) {
         // still decreasing
+        numIncreasing = 0;
         continue;
       }
       numIncreasing++;
       if (numIncreasing > numTol) {
-        leftIdx += (numIncreasing - 1);
+        leftIdx += (numIncreasing - 1); // reset to valley
         break;
       }
     }
@@ -203,7 +204,7 @@ public class WaveletPeakDetector extends AbstractResolver {
       }
       numIncreasing++;
       if (numIncreasing > numTol) {
-        rightIdx -= (numIncreasing - 1);
+        rightIdx -= (numIncreasing - 1); // reset to valley
         break;
       }
     }
@@ -221,10 +222,10 @@ public class WaveletPeakDetector extends AbstractResolver {
 
   private static int peakScaleToDipTolerance(double scale) {
 //    return 0;
-    if (scale < 2) {
+    if (scale <= 3) {
       return 0;
     }
-    if (scale >= 2 && scale <= 4) {
+    if (scale >= 3 && scale <= 5) {
       return 1;
     }
     return 2;
