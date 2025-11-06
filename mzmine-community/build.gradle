@@ -69,7 +69,8 @@ catalog {
 group = "io.github.mzmine"
 description = "mzmine"
 
-project.ext.appName = "mzmine"
+def APPNAME = "mzmine"
+project.ext.appName = APPNAME
 
 defaultTasks "test", "jpackage", "notarizeApp"
 
@@ -118,15 +119,17 @@ println "OS detected as " + project.ext.osSuffix
 //getLogger().info("build dir jpackpath " + layout.buildDirectory.dir("jpackage").get().asFile.path)
 
 repositories {
+    def localRepoPath = layout.projectDirectory.dir("../local-repo/")
+    getLogger().warn("local repo path is " + localRepoPath)
 
     mavenCentral()
     // mavenLocal()
     maven { url = "https://repo.maven.apache.org/maven2" }
     // local repo needs to be early before other repos otherwise the resolving of local libs failed
-    maven { url = uri(layout.projectDirectory.dir("../local-repo/")) }
+    maven { url = uri(localRepoPath) }
     // sirius sdk
     maven {
-        url 'https://gitlab.com/api/v4/projects/66031889/packages/maven'
+        url = "https://gitlab.com/api/v4/projects/66031889/packages/maven"
         name "BG GitLab Common Public"
     }
     // For jmzml, etc.
@@ -173,10 +176,7 @@ dependencies {
     implementation(project(":javafx-framework"))
     // mzmine version parsing
     implementation(libs.semver4j)
-//    implementation "org.graphstream:gs-core:2.0"
-    // use patched version via jitpack from https://github.com/robinschmid/gs-core/tree/patch-1
     implementation(libs.guava)
-//    implementation(libs.commons.math) // remove at some point?
     implementation(libs.commons.math3)
     implementation(libs.commons.cli)
     implementation(libs.commons.io)
@@ -184,9 +184,6 @@ dependencies {
     implementation(libs.commons.compress)
     implementation(libs.fastutil)
     implementation(libs.bundles.djl.pytorch)
-    implementation "edu.ucar:netcdf4:4.5.5"
-    implementation 'org.jetbrains:annotations:22.0.0'
-    implementation 'net.sourceforge.jmol:jmol:14.31.10'
 
     implementation(libs.bundles.jfreechart)
     // search icons here
@@ -199,6 +196,20 @@ dependencies {
     implementation(libs.bundles.msdk)
     implementation(libs.bundles.batik)
     implementation(libs.bundles.okhttp)
+
+    implementation(libs.opencsv)
+    // jackson for json parsing
+    implementation(libs.bundles.jackson)
+    // the defacto standard parser in jackson?
+    implementation(libs.woodstox.core)
+    implementation(libs.aalto.xml)
+
+    // sirius api
+    implementation(libs.sirius.api)
+
+    implementation "edu.ucar:netcdf4:4.5.5"
+    implementation 'org.jetbrains:annotations:22.0.0'
+    implementation 'net.sourceforge.jmol:jmol:14.31.10'
     implementation "org.postgresql:postgresql:9.3-1102-jdbc41"
     implementation "org.freehep:freehep-graphicsio-emf:2.4"
     implementation("eu.hansolo.fx:charts:21.0.7")
@@ -222,7 +233,6 @@ dependencies {
     implementation "com.github.oshi:oshi-core:4.5.2"
     // because the version that is pulled by SIRIUS crashes
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
-    implementation(libs.opencsv)
 
     implementation 'net.java.dev.jna:jna:$jnaVersion'
     //implementation 'com.github.robinschmid:jimzMLParser:mzmine_local_obo-SNAPSHOT'
@@ -230,21 +240,11 @@ dependencies {
     implementation group: 'com.alanmrace', name: 'jimzmlparser', version: '1.0.3'
     implementation "com.github.yannrichet:JMathPlot:1.0.1"
     implementation "de.jensd:fontawesomefx-fontawesome:4.7.0-9.1.2"
-
-    // jackson for json parsing
-    implementation(libs.bundles.jackson)
-    // the defacto standard parser in jackson?
-    implementation(libs.woodstox.core)
-    implementation(libs.aalto.xml)
-
-    // sirius api
-    implementation(libs.sirius.api)
 }
 
 configurations.configureEach {
     exclude group: "javax.annotation", module: "javax.annotation-api"
 }
-
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
@@ -279,7 +279,7 @@ tasks.withType(JavaExec).configureEach {
  */
 application {
     mainClass.set("io.github.mzmine.main.MZmineCore")
-    applicationName = "mzmine"
+    applicationName = APPNAME
     applicationDefaultJvmArgs = [
             // https://github.com/controlsfx/controlsfx/wiki/Using-ControlsFX-with-JDK-9-and-above
             "--add-exports=javafx.base/com.sun.javafx.event=org.controlsfx.controls",
@@ -299,9 +299,10 @@ application {
     ]
 }
 
+// add external libraries to the built product
 def EXTERNAL_TOOLS_DESTINATION =
-        !OperatingSystem.current().isMacOsX() ? getLayout().getBuildDirectory().dir("jpackage/mzmine/external_tools").get()
-                : getLayout().getBuildDirectory().dir("jpackage/mzmine.app/Contents/external_tools").get()
+        !OperatingSystem.current().isMacOsX() ? getLayout().getBuildDirectory().dir("jpackage/$APPNAME/external_tools").get()
+                : getLayout().getBuildDirectory().dir("jpackage/${APPNAME}.app/Contents/external_tools").get()
 def EXTERNAL_TOOLS_SRC = getLayout().getProjectDirectory().dir("../external_tools")
 tasks.jpackage.doFirst {
     copy {
@@ -359,15 +360,15 @@ runtime {
         if (OperatingSystem.current().isWindows()) {
             // The WiX toolset must be installed, see https://wixtoolset.org/releases/
             installerType = "msi"
-            installerName = "mzmine_Windows_installer"
+            installerName = APPNAME + "_Windows_installer"
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/mzmineIcon.ico",
-                            "--add-launcher", "mzmine_console=gradle/win_console_launcher.properties"
+                            "--add-launcher", APPNAME + "_console=gradle/win_console_launcher.properties"
             ]
             installerOptions = [
                     "--vendor", "mzio GmbH",
                     "--win-menu",
-                    "--win-menu-group", appName,
+                    "--win-menu-group", APPNAME,
                     "--win-shortcut",
                     "--win-dir-chooser",
                     "--win-upgrade-uuid", "$win_uuid",
@@ -390,7 +391,7 @@ runtime {
                 imageOptions = [
                         "--icon", "src/main/resources/mzmineIcon.icns",
                         "--mac-sign",
-                        "--mac-package-name", appName,
+                        "--mac-package-name", APPNAME,
                         "--mac-package-identifier", "io.github.mzmine.main",
                         "--mac-signing-key-user-name", developerID,
                         "--verbose"
@@ -401,7 +402,7 @@ runtime {
 "--mac-signing-key-user-name", developerID,
                 ]
             }
-            installerName = "mzmine_macOS_installer-academia"
+            installerName = APPNAME + "_macOS_installer-academia"
         }
         if (OperatingSystem.current().isLinux()) {
             // leave installer type empty to generate all that match
@@ -411,16 +412,16 @@ runtime {
             imageOptions = ["--icon", "src/main/resources/mzmineIcon.png"]
             installerOptions = [
                     "--vendor", "mzio GmbH",
-                    "--linux-package-name", appName,
+                    "--linux-package-name", APPNAME,
                     "--linux-shortcut",
-                    "--linux-menu-group", appName,
+                    "--linux-menu-group", APPNAME,
 //                  "--license-file", "LICENSE.txt", not required
                     "--linux-deb-maintainer", "plusik@gmail.com"
             ]
 
-            installerName = "mzmine_Linux_installer"
+            installerName = APPNAME + "_Linux_installer"
         }
-        imageName = appName
+        imageName = APPNAME
         jvmArgs = ["-showversion",
                    "-XX:MinHeapFreeRatio=50",
                    "-XX:MaxHeapFreeRatio=75",
@@ -590,7 +591,6 @@ def signApp = tasks.register("signApp") {
                 }
             }
 
-
             getLogger().lifecycle("Signing jars...")
 
             // Traverse over entire .app and sign each .jar
@@ -619,8 +619,8 @@ tasks.register('notarizeApp') {
         doLast {
             def execOps = project.services.get(ExecOperations)
             File jpackageDir = layout.buildDirectory.dir("jpackage").get().asFile
-            File dmgFile = new File(jpackageDir, "mzmine_macOS_installer_academia.dmg")
-            File appBundle = new File(jpackageDir, "mzmine.app")
+            File dmgFile = new File(jpackageDir, APPNAME + "_macOS_installer_academia.dmg")
+            File appBundle = new File(jpackageDir, APPNAME + ".app")
 
             // Install appdmg if not already installed
             getLogger().lifecycle("Installing appdmg...")
@@ -634,7 +634,7 @@ tasks.register('notarizeApp') {
             execOps.exec {
                 commandLine(['appdmg',
                              "${layout.projectDirectory.dir('gradle/appdmg.json').asFile.absolutePath}",
-                             'mzmine_macOS_installer_academia.dmg'])
+                             APPNAME + "_macOS_installer_academia.dmg"])
                 workingDir jpackageDir
             }
 
@@ -696,7 +696,7 @@ tasks.register('notarizeApp') {
             getLogger().lifecycle("Creating portable ZIP...")
             execOps.exec {
                 commandLine(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent',
-                             'mzmine.app', 'mzmine_macOS_portable_academia.zip'])
+                             APPNAME + '.app', APPNAME + '_macOS_portable_academia.zip'])
                 workingDir jpackageDir
             }
 
@@ -797,13 +797,14 @@ licenseReport {
     // Don't include artifacts of project's own group into the report
     excludeOwnGroup = true
 
-    excludes = ['com.fasterxml.jackson:jackson-bom', // apache 2.0 https://github.com/FasterXML/jackson-bom?tab=Apache-2.0-1-ov-file#readme
-                'com.alanmrace:jimzmlparser', // no license provided
-                'colt:colt', // https://dst.lbl.gov/ACSSoftware/colt/license.html (CERN license, permissive)
-                'com.github.yannrichet:JMathArray', 'com.github.yannrichet:JMathPlot', 'com.github.yannrichet:JMathIO', // BSD 2-Clause
-                'net.jcip:jcip-annotations', // Creative Commons Attribution License
-                'io.mzio(.*)',
-                'org.openjfx.(.*)',
+    excludes = [
+            'com.fasterxml.jackson:jackson-bom', // apache 2.0 https://github.com/FasterXML/jackson-bom?tab=Apache-2.0-1-ov-file#readme
+            'com.alanmrace:jimzmlparser', // no license provided
+            'colt:colt', // https://dst.lbl.gov/ACSSoftware/colt/license.html (CERN license, permissive)
+            'com.github.yannrichet:JMathArray', 'com.github.yannrichet:JMathPlot', 'com.github.yannrichet:JMathIO', // BSD 2-Clause
+            'net.jcip:jcip-annotations', // Creative Commons Attribution License
+            'io.mzio(.*)',
+            'org.openjfx.(.*)',
     ]
 
     // Don't exclude bom dependencies.
