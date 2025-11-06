@@ -31,10 +31,8 @@ import com.github.jk1.license.render.JsonReportRenderer
 import org.gradle.internal.os.OperatingSystem
 
 import java.nio.charset.StandardCharsets
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.StandardCopyOption
+import java.nio.file.*
+import java.util.function.BiPredicate
 import java.util.function.Consumer
 
 plugins {
@@ -243,17 +241,17 @@ dependencies {
     implementation(libs.sirius.api)
 }
 
-configurations.all {
+configurations.configureEach {
     exclude group: "javax.annotation", module: "javax.annotation-api"
 }
 
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
     options.compilerArgs += ['--enable-preview']
 }
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
     jvmArgs = [
             "--enable-preview",
             "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
@@ -272,7 +270,7 @@ tasks.withType(Test) {
 //    }
 }
 
-tasks.withType(JavaExec) {
+tasks.withType(JavaExec).configureEach {
     jvmArgs += '--enable-preview'
 }
 
@@ -312,7 +310,7 @@ tasks.jpackage.doFirst {
     }
 
     if (OperatingSystem.current().isMacOsX()) {
-        def execOps = project.services.get(org.gradle.process.ExecOperations)
+        def execOps = project.services.get(ExecOperations)
         // Ensure external tools are executable and not quarantined on macOS
         try {
             def externalToolsDir = EXTERNAL_TOOLS_DESTINATION.asFile
@@ -438,12 +436,16 @@ runtime {
     }
 }
 
-task signApp(dependsOn: jpackage) {
+def signApp = tasks.register("signApp") {
+    // see all the way at bottomn. Maybe this needs to run before or as finish jpackageImage
+    // that should be the task that does the .app
+    // then jpackage will be able to just create the dmg and notarize without the additional python dependency
+    dependsOn(tasks.jpackage)
 
     if (OperatingSystem.current().isMacOsX() && macSigning) {
 
         doLast {
-            def execOps = project.services.get(org.gradle.process.ExecOperations)
+            def execOps = project.services.get(ExecOperations)
             Path entitlementsPth = layout.projectDirectory.dir('gradle/macos.entitlements').asFile.toPath()
             getLogger().info("imageDir " + imageDir)
             getLogger().info("jarsDir " + jarsDir)
@@ -451,6 +453,7 @@ task signApp(dependsOn: jpackage) {
             getLogger().info("entitlementsPth " + entitlementsPth)
 
             // Define codesign commands
+//            TODO should remove deep option from all codesign as it is deprecated since macOS 13
             Consumer<Path> codesignWithEntitlements = { Path p ->
                 execOps.exec {
                     commandLine(["codesign", "--deep", "--force", "--timestamp", "-s", "${developerID}", "--options",
@@ -502,7 +505,7 @@ task signApp(dependsOn: jpackage) {
             Files.find(imageDir, 999, { p, bfa ->
                 bfa.isRegularFile() && p.getFileName().toString().matches(".*\\.dylib|.*\\.so|.*\\.dll|.*\\.a|.*\\.lib") &&
                         !p.toAbsolutePath().startsWith(runtimeDir.toAbsolutePath())
-            } as java.util.function.BiPredicate)
+            } as BiPredicate)
                     .forEach { Path nativeLib ->
                         getLogger().lifecycle("Signing native lib '${nativeLib}'")
                         codesignRuntimeOnly(nativeLib.toAbsolutePath())
@@ -541,8 +544,8 @@ task signApp(dependsOn: jpackage) {
             }
             if (Files.exists(trfpDirForExecs)) {
                 Files.find(trfpDirForExecs, 10, { p, bfa ->
-                    bfa.isRegularFile() && java.nio.file.Files.isExecutable(p)
-                } as java.util.function.BiPredicate).forEach { Path exe ->
+                    bfa.isRegularFile() && Files.isExecutable(p)
+                } as BiPredicate).forEach { Path exe ->
                     try {
                         // Skip ThermoRawFileParser - already signed explicitly above with verification
                         if (exe.fileName.toString() == 'ThermoRawFileParser') {
@@ -566,7 +569,7 @@ task signApp(dependsOn: jpackage) {
             // Find all JAR files in the app directory
             jarsDir.toFile().listFiles().findAll { it.name.endsWith('.jar') }.each { jarFile ->
                 getLogger().lifecycle("Processing jar for native libraries: ${jarFile.name}")
-                java.nio.file.FileSystem jarFs = null
+                FileSystem jarFs = null
                 try {
                     jarFs = FileSystems.newFileSystem(jarFile.toPath(), [:])
                     // Find all native libraries in this JAR
@@ -578,7 +581,7 @@ task signApp(dependsOn: jpackage) {
                             codesignRuntimeOnly(tmpPath.toAbsolutePath())
                             Files.copy(tmpPath, path, StandardCopyOption.REPLACE_EXISTING)
                         }
-                    } as java.util.function.Consumer)
+                    } as Consumer)
                 } finally {
                     try {
                         jarFs?.close()
@@ -593,7 +596,7 @@ task signApp(dependsOn: jpackage) {
             // Traverse over entire .app and sign each .jar
             Files.find(imageDir, 999, { p, bfa ->
                 bfa.isRegularFile() && p.getFileName().toString().matches(".*\\.jar")
-            } as java.util.function.BiPredicate)
+            } as BiPredicate)
                     .forEach { Path jar ->
                         getLogger().lifecycle("Signing jar '${jar}'")
                         codesignRuntimeOnly(jar.toAbsolutePath())
@@ -610,10 +613,11 @@ task signApp(dependsOn: jpackage) {
     }
 }
 
-task notarizeApp(dependsOn: signApp) {
+tasks.register('notarizeApp') {
+    dependsOn(signApp)
     if (OperatingSystem.current().isMacOsX() && macSigning) {
         doLast {
-            def execOps = project.services.get(org.gradle.process.ExecOperations)
+            def execOps = project.services.get(ExecOperations)
             File jpackageDir = layout.buildDirectory.dir("jpackage").get().asFile
             File dmgFile = new File(jpackageDir, "mzmine_macOS_installer_academia.dmg")
             File appBundle = new File(jpackageDir, "mzmine.app")
@@ -660,7 +664,7 @@ task notarizeApp(dependsOn: signApp) {
                 getLogger().lifecycle(notaryOut.trim())
             }
             if (execResult.getExitValue() != 0 ||
-                    !notaryOut.toLowerCase(java.util.Locale.US).contains("status: accepted")) {
+                    !notaryOut.toLowerCase(Locale.US).contains("status: accepted")) {
                 throw new GradleException("Notarization failed (exit ${execResult.getExitValue()}). Output:\n${notaryOut}\n${notaryErr}")
             }
 
@@ -761,15 +765,16 @@ test {
         events "passed", "skipped", "failed"
     }
     jvmArgs += [
+            // need to activate the mockito agent
             "-javaagent:${classpath.find { it.name.contains('mockito-core') || it.name.contains('mockito-inline') }}"
     ]
 }
 
-task copyTestResources(type: Copy) {
+var copyTestResources = tasks.register("copyTestResources", Copy) {
     from layout.projectDirectory.dir("src/test/resources")
     into layout.buildDirectory.dir("classes/test")
 }
-processTestResources.dependsOn copyTestResources
+processTestResources.dependsOn(copyTestResources)
 
 licenseReport {
     // By default this plugin will collect the union of all licenses from
@@ -838,6 +843,13 @@ tasks.compileJava.dependsOn(checkLicense, copyLicenseInformationToResources, cop
 tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
 tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
 
+// option for macOS signing that may work by signing before jpackageImage task
+// idea would be to copy all resources to the correct directories and sign them before jpackageimage
+// jpackageimage will then create the .app and jpackage will sign the installer etc
+//if (os.isMacOsX()) {
+//    jpackageImage.finalizedBy(finalizeMacOSResources)
+//    jpackageImage.dependsOn(prepareMacOSResources)
+//}
 
 // make sure the publish action is run after the semver plugin has been evaluated,
 // otherwise the version will always be 1.0.0
