@@ -180,7 +180,7 @@ public class WaveletPeakDetector extends AbstractResolver {
     int numIncreasing = 0;
     while (leftIdx > 0) {
       leftIdx--;
-      if (leftIdx > 1 && y[leftIdx - 1] < y[leftIdx]) {
+      if (leftIdx > 1 && y[leftIdx - 1] < y[leftIdx + numIncreasing]) {
         // still decreasing
         numIncreasing = 0;
         continue;
@@ -197,7 +197,7 @@ public class WaveletPeakDetector extends AbstractResolver {
     int rightIdx = peakIdx;
     while (rightIdx < numPoints - 2) {
       rightIdx++;
-      if (y[rightIdx + 1] < y[rightIdx]) {
+      if (y[rightIdx + 1] < y[rightIdx - numIncreasing]) {
         // still decreasing
         numIncreasing = 0;
         continue;
@@ -222,10 +222,10 @@ public class WaveletPeakDetector extends AbstractResolver {
 
   private static int peakScaleToDipTolerance(double scale) {
 //    return 0;
-    if (scale <= 3) {
+    if (scale < 2) {
       return 0;
     }
-    if (scale >= 3 && scale <= 5) {
+    if (scale >= 2 && scale <= 5) {
       return 1;
     }
     return 2;
@@ -589,6 +589,14 @@ public class WaveletPeakDetector extends AbstractResolver {
       }
     };
   }
+
+//  private int getJaggedness(double[] y, int startInclusive, int endExclusive) {
+//
+//    int
+//    for (int i = startInclusive; i < endExclusive; i++) {
+//
+//    }
+//  }
 
   /**
    * Converts final peaks (with boundaries set) to PeakRange objects. Reads boundary indices
