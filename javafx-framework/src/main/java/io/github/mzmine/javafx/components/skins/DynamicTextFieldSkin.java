@@ -25,8 +25,6 @@
 
 package io.github.mzmine.javafx.components.skins;
 
-import com.sun.javafx.tk.FontMetrics;
-import com.sun.javafx.tk.Toolkit;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -65,12 +63,22 @@ public class DynamicTextFieldSkin extends TextFieldSkin {
       measurer.applyCss();
     });
 
-    // even if font may change the min max width is just a good estimate may be ok to not recompute
-    final FontMetrics fontMetrics = Toolkit.getToolkit().getFontLoader()
-        .getFontMetrics(field.getFont());
-    final float maxCharWidth = fontMetrics.getCharWidth('W');
-    minWidth = minColumnCount == -1 ? 30 : minColumnCount * maxCharWidth;
-    maxWidth = maxColumnCount == -1 ? Double.MAX_VALUE : maxColumnCount * maxCharWidth;
+    // Estimate min/max width using public API by measuring a representative string
+    // (use 'W' as a wide character proxy)
+    if (minColumnCount == -1) {
+      minWidth = 30;
+    } else {
+      measurer.setText("W".repeat(Math.max(0, minColumnCount)));
+      measurer.applyCss();
+      minWidth = measurer.getLayoutBounds().getWidth();
+    }
+    if (maxColumnCount == -1) {
+      maxWidth = Double.MAX_VALUE;
+    } else {
+      measurer.setText("W".repeat(Math.max(0, maxColumnCount)));
+      measurer.applyCss();
+      maxWidth = Math.max(minWidth, measurer.getLayoutBounds().getWidth());
+    }
   }
 
   @Override
