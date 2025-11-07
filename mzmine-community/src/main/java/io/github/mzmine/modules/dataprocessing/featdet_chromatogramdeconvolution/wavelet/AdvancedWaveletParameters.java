@@ -26,6 +26,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -54,8 +55,8 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
   public static final OptionalParameter<DoubleParameter> WAVELET_KERNEL_RADIUS_FACTOR = new OptionalParameter<>(
       new DoubleParameter("Wavelet kernel radius", """
           A factor that defines the width of the wavelets. Smaller values allow detection of narrower signals.
-          Default: %.0f""".formatted(DEFAULT_WAVELET_KERNEL),
-          new DecimalFormat("#.###"), DEFAULT_WAVELET_KERNEL, 0d, Double.MAX_VALUE));
+          Default: %.0f""".formatted(DEFAULT_WAVELET_KERNEL), new DecimalFormat("#.###"),
+          DEFAULT_WAVELET_KERNEL, 0d, Double.MAX_VALUE));
 
   public static final OptionalParameter<DoubleParameter> LOCAL_NOISE_WINDOW_FACTOR = new OptionalParameter<>(
       new DoubleParameter("Noise window factor", """
@@ -69,11 +70,15 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
           Minimum number of fitting wavelet scales for a peak to be retained.
           Default: %d""".formatted(MIN_FITTING_SCALES), MIN_FITTING_SCALES, 1, Integer.MAX_VALUE));
 
-  public static final BooleanParameter robustnessIteration = new BooleanParameter("Apply robustness iteration", "",
-      DEFAULT_ROBUSTNESS_ITERATION);
+  public static final BooleanParameter robustnessIteration = new BooleanParameter(
+      "Apply robustness iteration", "", DEFAULT_ROBUSTNESS_ITERATION);
+
+  public static final OptionalParameter<ComboParameter<EdgeDetectors>> edgeDetector = new OptionalParameter<>(new ComboParameter<>(
+      "Edge detection", "", EdgeDetectors.values(), EdgeDetectors.ABS_MIN));
 
   public AdvancedWaveletParameters() {
-    super(scales, WAVELET_KERNEL_RADIUS_FACTOR, LOCAL_NOISE_WINDOW_FACTOR, requiredFits, robustnessIteration);
+    super(scales, WAVELET_KERNEL_RADIUS_FACTOR, LOCAL_NOISE_WINDOW_FACTOR, requiredFits,
+        robustnessIteration, edgeDetector);
   }
 
   @Override

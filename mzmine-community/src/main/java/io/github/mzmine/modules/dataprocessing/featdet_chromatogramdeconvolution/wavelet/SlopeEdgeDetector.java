@@ -22,7 +22,7 @@ public class SlopeEdgeDetector implements EdgeDetector {
   public int detectLeftMinimum(double[] y, int startIndex) {
     history.clear();
     regression.clear();
-    final double normFactor = y[startIndex];
+    final double normFactor = 1; //y[startIndex];
 
     if (startIndex - windowSize < 0) {
       return 0;
@@ -35,7 +35,7 @@ public class SlopeEdgeDetector implements EdgeDetector {
       history.add(data);
     }
 
-    if (regression.getSlope() > 0) {
+    if (regression.getSlope() < 0) {
       return startIndex - windowSize;
     }
 
@@ -52,7 +52,7 @@ public class SlopeEdgeDetector implements EdgeDetector {
 
       Data old = history.poll();
       regression.removeData(old.x(), old.y());
-      if (regression.getSlope() > 0) {
+      if (regression.getSlope() < 0) {
         return absMinIndex;
       }
     }
@@ -63,7 +63,7 @@ public class SlopeEdgeDetector implements EdgeDetector {
   public int detectRightMinimum(double[] y, int startIndex) {
     history.clear();
     regression.clear();
-    final double normFactor = y[startIndex];
+    final double normFactor = 1; //y[startIndex];
 
     if (startIndex - windowSize < 0) {
       return 0;
@@ -94,10 +94,10 @@ public class SlopeEdgeDetector implements EdgeDetector {
       Data old = history.poll();
       regression.removeData(old.x(), old.y());
       if (regression.getSlope() > 0) {
-        return i;
+        return absMinIndex;
       }
     }
-    return 0;
+    return absMinIndex;
   }
 
   record Data(int x, double y) {

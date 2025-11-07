@@ -76,7 +76,7 @@ public class WaveletPeakDetector extends AbstractResolver {
   private final Map<Integer, Map<Double, double[]>> waveletBuffer = new HashMap<>();
   private final int minFittingScales;
   private final boolean robustnessIteration;
-  List<Range<Double>> snrRanges = new ArrayList<>();
+  private final EdgeDetectors edgeDetector;
   private double[] yPadded = new double[0];
 
   // ... (constants, fields, constructor) ...
@@ -100,6 +100,9 @@ public class WaveletPeakDetector extends AbstractResolver {
     this.noiseMethod = parameterSet.getValue(WaveletResolverParameters.noiseCalculation);
     this.minDataPoints = parameterSet.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
     this.topToEdge = topToEdge;
+    edgeDetector = parameterSet.getParameter(
+            WaveletResolverParameters.advancedParameters)
+        .getValueOrDefault(AdvancedWaveletParameters.edgeDetector, EdgeDetectors.ABS_MIN);
   }
 
   private static int findClosestLocalMax(double[] y, int initialIndex, int start, int end) {
@@ -165,7 +168,7 @@ public class WaveletPeakDetector extends AbstractResolver {
     peak.setBoundaryIndices(leftIdx, rightIdx);
   }
 
-  private static void findAndSetLocalMinimaBoundaryWithTolerance(double[] y, DetectedPeak peak,
+  private void findAndSetLocalMinimaBoundaryWithTolerance(double[] y, DetectedPeak peak,
       final int numTol) {
     final int numPoints = y.length;
     final int peakIdx = peak.peakIndex;
@@ -176,7 +179,7 @@ public class WaveletPeakDetector extends AbstractResolver {
       return;
     }
 
-    final EdgeDetector edgeDetector = new SlopeEdgeDetector(2);
+    final EdgeDetector edgeDetector = this.edgeDetector.create(numTol);
     final int leftMin = edgeDetector.detectLeftMinimum(y, peakIdx);
     final int rightMin = edgeDetector.detectRightMinimum(y, peakIdx);
 
