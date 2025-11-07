@@ -109,6 +109,10 @@ public class ChromatogramFeatureShapeCell extends TreeTableCell<ModularFeatureLi
       plot.removeAllDatasets();
       return;
     }
+
+    // clear zoom history because it comes from old data
+    plot.getZoomHistory().clear();
+
     // debugging of updates
 //    logger.info(getIdentifier("updateItem"));
 
