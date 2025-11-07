@@ -16,7 +16,6 @@ jobs:
       - name: Setup java
         uses: actions/setup-java@v5
         with:
-#          distribution: 'temurin' # had issues for jdk25.0.0
           distribution: 'temurin'
           java-version: '25.0.1'
 #          cache: 'gradle'  # now done with gradle
