@@ -178,36 +178,42 @@ public class WaveletPeakDetector extends AbstractResolver {
     // --- Find Left Boundary Index ---
     int leftIdx = peakIdx;
     int numIncreasing = 0;
+    int absMinIndex = peakIdx;
     while (leftIdx > 0) {
       leftIdx--;
-      if (leftIdx > 1 && y[leftIdx - 1] < y[leftIdx + numIncreasing]) {
+      if (leftIdx > 1 && y[leftIdx - 1] < y[absMinIndex]) {
         // still decreasing
         numIncreasing = 0;
+        absMinIndex = leftIdx - 1;
         continue;
       }
       numIncreasing++;
       if (numIncreasing > numTol) {
-        leftIdx += (numIncreasing - 1); // reset to valley
+//        leftIdx += (numIncreasing - 1); // reset to valley
         break;
       }
     }
+    leftIdx = absMinIndex;
 
     // --- Find Right Boundary Index ---
     numIncreasing = 0;
     int rightIdx = peakIdx;
+    absMinIndex = peakIdx;
     while (rightIdx < numPoints - 2) {
       rightIdx++;
-      if (y[rightIdx + 1] < y[rightIdx - numIncreasing]) {
+      if (y[rightIdx + 1] < y[absMinIndex]) {
         // still decreasing
+        absMinIndex = rightIdx + 1;
         numIncreasing = 0;
         continue;
       }
       numIncreasing++;
       if (numIncreasing > numTol) {
-        rightIdx -= (numIncreasing - 1); // reset to valley
+//        rightIdx -= (numIncreasing - 1); // reset to valley
         break;
       }
     }
+    rightIdx = absMinIndex;
 
     // *** Set boundaries on the peak object ***
     peak.setBoundaryIndices(leftIdx, rightIdx);
