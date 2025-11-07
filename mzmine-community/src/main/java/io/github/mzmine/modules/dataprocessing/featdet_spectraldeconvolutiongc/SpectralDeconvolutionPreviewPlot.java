@@ -26,6 +26,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -35,7 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYAnnotation;
 import org.jfree.chart.annotations.XYShapeAnnotation;
@@ -61,7 +61,7 @@ public class SpectralDeconvolutionPreviewPlot extends EChartViewer {
   public SpectralDeconvolutionPreviewPlot(String title, String xAxisLabel, String yAxisLabel) {
     super(null);
     XYSeriesCollection dataset = new XYSeriesCollection();
-    JFreeChart chart = ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset,
+    JFreeChart chart = FxChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset,
         PlotOrientation.VERTICAL, false, true, false);
 
     plot = chart.getXYPlot();

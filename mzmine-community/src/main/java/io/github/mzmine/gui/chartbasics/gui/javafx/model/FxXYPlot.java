@@ -37,6 +37,7 @@ import java.awt.Paint;
 import java.awt.Stroke;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -48,10 +49,11 @@ import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.util.Subscription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartRenderingInfo;
-import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotRenderingInfo;
@@ -75,79 +77,155 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   private static final Logger logger = Logger.getLogger(FxXYPlot.class.getName());
 
   private final FxXYPlotModel plotModel;
+  private Subscription domainMarkerVisibleChangeSubscription;
+  private Subscription rangeMarkerVisibleChangeSubscription;
 
   public FxXYPlot() {
     this(null, null, null, null);
   }
 
-  public FxXYPlot(@Nullable XYDataset dataset, @Nullable NumberAxis xAxis,
-      @Nullable NumberAxis yAxis, @Nullable XYItemRenderer renderer) {
+  public FxXYPlot(@Nullable XYDataset dataset, @Nullable ValueAxis xAxis, @Nullable ValueAxis yAxis,
+      @Nullable XYItemRenderer renderer) {
     super(null, xAxis, yAxis, null);
+
+    plotModel = new FxXYPlotModel(this);
 
     // always turn off native crosshair as we use a different one within plotModel
     // getCursorConfigModel()
     super.setDomainCrosshairVisible(false);
     super.setRangeCrosshairVisible(false);
 
-    plotModel = new FxXYPlotModel(this);
     plotModel.setDataset(dataset);
     plotModel.setRenderer(renderer);
 
+    // add the cursor marker at all times - will be invisible if no value or visible false
+    addPermanentDomainMarker(0, getCursorConfigModel().getDomainCursorMarker(), Layer.FOREGROUND);
+    addPermanentRangeMarker(0, getCursorConfigModel().getRangeCursorMarker(), Layer.FOREGROUND);
+
+    // init listeners now and call manual update once
     initListeners();
+    updateAll();
   }
 
 
   private void initListeners() {
     applyNotifyLater(plotModel.datasetsProperty(), this::updateDatasets);
     applyNotifyLater(plotModel.renderersProperty(), this::updateRenderers);
-    applyNotifyLater(plotModel.domainMarkersProperty(), this::updateDomainMarkers);
-    applyNotifyLater(plotModel.rangeMarkersProperty(), this::updateRangeMarkers);
-
-    // only update on visible changes to the cursors
-    getCursorConfigModel().getDomainCursorMarker().lastVisibleChangeProperty()
-        .subscribe((_) -> updateDomainMarkers(plotModel.domainMarkersProperty().getValue()));
-    getCursorConfigModel().getRangeCursorMarker().lastVisibleChangeProperty()
-        .subscribe((_) -> updateRangeMarkers(plotModel.rangeMarkersProperty().getValue()));
+    applyNotifyLater(plotModel.domainMarkersProperty(), _ -> updateDomainMarkers());
+    applyNotifyLater(plotModel.rangeMarkersProperty(), _ -> updateRangeMarkers());
+    applyNotifyLater(plotModel.permanentDomainMarkersProperty(), _ -> updateDomainMarkers());
+    applyNotifyLater(plotModel.permanentRangeMarkersProperty(), _ -> updateRangeMarkers());
   }
 
   private void updateAll() {
     updateDatasets(plotModel.datasetsProperty());
     updateRenderers(plotModel.renderersProperty());
-    updateDomainMarkers(plotModel.domainMarkersProperty().getValue());
-    updateRangeMarkers(plotModel.rangeMarkersProperty().getValue());
+    updateDomainMarkers();
+    updateRangeMarkers();
   }
 
-  private void updateRangeMarkers(ObservableList<MarkerDefinition> nv) {
-    if (nv != null) {
-      // finally set changes to plot
-      super.clearRangeMarkers();
-      for (MarkerDefinition m : nv) {
+  private void updateRangeMarkers() {
+    final ObservableList<MarkerDefinition> markers = plotModel.getRangeMarkers();
+    final ObservableList<MarkerDefinition> permanent = plotModel.getPermanentRangeMarkers();
+
+    // finally set changes to plot
+    super.clearRangeMarkers();
+
+    // remove old subscription
+    if (rangeMarkerVisibleChangeSubscription != null) {
+      rangeMarkerVisibleChangeSubscription.unsubscribe();
+      rangeMarkerVisibleChangeSubscription = null;
+    }
+
+    //
+    List<Subscription> subscriptions = new ArrayList<>();
+
+    if (markers != null) {
+      for (MarkerDefinition m : markers) {
         // need to use the correct method so that super does not call this
         super.addRangeMarker(m.index(), m.marker(), m.layer(), false);
+
+        if (m.marker() instanceof FxMarker fxMarker) {
+          final Subscription subscription = fxMarker.lastVisibleChangeProperty()
+              .subscribe((_, _) -> fireChangeEvent());
+          subscriptions.add(subscription);
+        }
       }
     }
-//    logger.fine("UPDATE RANGE MARKERS %d for %s".formatted(nv == null ? 0 : nv.size(),
+//    logger.fine("UPDATE RANGE MARKERS %d for %s".formatted(markers == null ? 0 : markers.size(),
 //        JFreeChartUtils.createChartLogIdentifier(null, getChart(), this)));
 
-    // add the cursor marker at all times - will be invisible if no value or visible false
-    super.addRangeMarker(0, getCursorConfigModel().getRangeCursorMarker(), Layer.FOREGROUND, false);
+    // add markers like cursor positions that are allways attached to the chart
+    // this is different to the markers above that are frequently cleared and changed
+    // the permanent markers may still be invisible or may move if the value changes
+    // changes to the marker automatically trigger updates to the chart
+    if (permanent != null) {
+      for (MarkerDefinition m : permanent) {
+        // need to use the correct method so that super does not call this
+        super.addRangeMarker(m.index(), m.marker(), m.layer(), false);
+
+        if (m.marker() instanceof FxMarker fxMarker) {
+          final Subscription subscription = fxMarker.lastVisibleChangeProperty()
+              .subscribe((_, _) -> fireChangeEvent());
+          subscriptions.add(subscription);
+        }
+      }
+    }
+
+    // set subscription
+    rangeMarkerVisibleChangeSubscription = Subscription.combine(
+        subscriptions.toArray(new Subscription[0]));
   }
 
-  private void updateDomainMarkers(ObservableList<MarkerDefinition> nv) {
-    if (nv != null) {
-      // finally set changes to plot
-      super.clearDomainMarkers();
-      for (MarkerDefinition m : nv) {
+  private void updateDomainMarkers() {
+    final ObservableList<MarkerDefinition> markers = plotModel.getDomainMarkers();
+    final ObservableList<MarkerDefinition> permanent = plotModel.getPermanentDomainMarkers();
+    // finally set changes to plot
+    super.clearDomainMarkers();
+    // remove old subscription
+    if (domainMarkerVisibleChangeSubscription != null) {
+      domainMarkerVisibleChangeSubscription.unsubscribe();
+      domainMarkerVisibleChangeSubscription = null;
+    }
+
+    //
+    List<Subscription> subscriptions = new ArrayList<>();
+
+    if (markers != null) {
+      for (MarkerDefinition m : markers) {
         // need to use the correct method so that super does not call this
         super.addDomainMarker(m.index(), m.marker(), m.layer(), false);
+
+        if (m.marker() instanceof FxMarker fxMarker) {
+          final Subscription subscription = fxMarker.lastVisibleChangeProperty()
+              .subscribe((_, _) -> fireChangeEvent());
+          subscriptions.add(subscription);
+        }
       }
     }
-//    logger.fine("UPDATE DOMAIN MARKERS %d for %s".formatted(nv == null ? 0 : nv.size(),
+//    logger.fine("UPDATE DOMAIN MARKERS %d for %s".formatted(markers == null ? 0 : markers.size(),
 //        JFreeChartUtils.createChartLogIdentifier(null, getChart(), this)));
 
-    // add the cursor marker at all times - will be invisible if no value or visible false
-    super.addDomainMarker(0, getCursorConfigModel().getDomainCursorMarker(), Layer.FOREGROUND,
-        false);
+    // add markers like cursor positions that are allways attached to the chart
+    // this is different to the markers above that are frequently cleared and changed
+    // the permanent markers may still be invisible or may move if the value changes
+    // changes to the marker automatically trigger updates to the chart
+    if (permanent != null) {
+      for (MarkerDefinition m : permanent) {
+        // need to use the correct method so that super does not call this
+        super.addDomainMarker(m.index(), m.marker(), m.layer(), false);
+
+        if (m.marker() instanceof FxMarker fxMarker) {
+          final Subscription subscription = fxMarker.lastVisibleChangeProperty()
+              .subscribe((_, _) -> fireChangeEvent());
+          subscriptions.add(subscription);
+        }
+      }
+    }
+
+    // set subscription
+    domainMarkerVisibleChangeSubscription = Subscription.combine(
+        subscriptions.toArray(new Subscription[0]));
   }
 
   private void updateRenderers(ObservableMap<Integer, XYItemRenderer> map) {
@@ -588,6 +666,31 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   @Override
   public void clearDomainMarkers() {
     plotModel.clearDomainMarkers();
+  }
+
+
+  /**
+   * Separation between permanent markers that are always kept on the chart and those that are often
+   * cleared, removed, and new ones added ({@link #domainMarkersProperty()} and
+   * {@link #rangeMarkersProperty()}).
+   * <p>
+   * In any way, markers are now Observable when using {@link FxValueMarker} and can change its
+   * value, visible state, and style.
+   */
+  public void addPermanentDomainMarker(int index, Marker marker, Layer layer) {
+    plotModel.addPermanentDomainMarker(index, marker, layer);
+  }
+
+  /**
+   * Separation between permanent markers that are always kept on the chart and those that are often
+   * cleared, removed, and new ones added ({@link #domainMarkersProperty()} and
+   * {@link #rangeMarkersProperty()}).
+   * <p>
+   * In any way, markers are now Observable when using {@link FxValueMarker} and can change its
+   * value, visible state, and style.
+   */
+  public void addPermanentRangeMarker(int index, Marker marker, Layer layer) {
+    plotModel.addPermanentRangeMarker(index, marker, layer);
   }
 
   /**

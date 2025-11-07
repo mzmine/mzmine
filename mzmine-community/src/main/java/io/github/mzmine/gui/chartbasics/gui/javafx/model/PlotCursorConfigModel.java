@@ -56,6 +56,7 @@ public class PlotCursorConfigModel {
 
   public PlotCursorConfigModel(
       @NotNull Supplier<@NotNull List<? extends XYDataset>> allDatasetsSupplier) {
+    this();
     this.allDatasetsSupplier = allDatasetsSupplier;
   }
 

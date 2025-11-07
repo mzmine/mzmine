@@ -48,7 +48,7 @@ import org.jfree.chart.plot.ValueMarker;
  * null, or alpha 0. If the value or alpha is changed, there is an automatic update event triggered
  * in the plot.
  */
-public class FxValueMarker extends ValueMarker {
+public class FxValueMarker extends ValueMarker implements FxMarker {
 
   private final LastUpdateProperty lastVisibleChange;
   private final ObjectProperty<@Nullable Double> actualValue = new SimpleObjectProperty<>(null);
@@ -81,7 +81,13 @@ public class FxValueMarker extends ValueMarker {
       super.setValue(nv);
     });
 
-    lastVisibleChange = new LastUpdateProperty(actualValue, alpha);
+    lastVisibleChange = LastUpdateProperty.withEnabledProperty(visible, actualValue, alpha, stroke,
+        paint);
+  }
+
+  public FxValueMarker(Stroke stroke) {
+    this();
+    setStroke(stroke);
   }
 
   @Override
@@ -95,10 +101,11 @@ public class FxValueMarker extends ValueMarker {
   }
 
   /**
-   * Is used to listen for updates that should trigger a chart redraw
-   *
+   * Is used to listen for updates that should trigger a chart redraw. This last visible change is
+   * only triggered if the marker is visible.
    */
-  public LastUpdateProperty lastVisibleChangeProperty() {
+  @Override
+  public @NotNull LastUpdateProperty lastVisibleChangeProperty() {
     return lastVisibleChange;
   }
 

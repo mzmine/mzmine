@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.ColoredBubbleDatasetRenderer;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
@@ -40,7 +41,6 @@ import java.awt.Paint;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
@@ -52,8 +52,10 @@ public class VanKrevelenDiagramChart extends EChartViewer {
   private final String colorScaleLabel;
   private final Color legendBg = new Color(0, 0, 0, 0);
 
-  public VanKrevelenDiagramChart(String title, String xAxisLabel, String yAxisLabel, String colorScaleLabel, VanKrevelenDiagramXYZDataset dataset) {
-    super(ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset, PlotOrientation.VERTICAL, false, true, true));
+  public VanKrevelenDiagramChart(String title, String xAxisLabel, String yAxisLabel,
+      String colorScaleLabel, VanKrevelenDiagramXYZDataset dataset) {
+    super(FxChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset,
+        PlotOrientation.VERTICAL, false, true, true));
     this.colorScaleLabel = colorScaleLabel;
     setStickyZeroRangeAxis(false);
 
@@ -61,11 +63,14 @@ public class VanKrevelenDiagramChart extends EChartViewer {
     defaultChartTheme.apply(this);
     double[] colorScaleValues = dataset.getColorScaleValues();
     final double[] quantiles = MathUtils.calcQuantile(colorScaleValues, new double[]{0.00, 1.00});
-    PaintScale paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette().toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
-    getChart().getXYPlot().getRangeAxis().setRange(Arrays.stream(dataset.getyValues()).min().orElse(0.0),
-        Arrays.stream(dataset.getyValues()).max().orElse(0.0));
-    getChart().getXYPlot().getDomainAxis().setRange(Arrays.stream(dataset.getxValues()).min().orElse(0.0),
-        Arrays.stream(dataset.getxValues()).max().orElse(0.0));
+    PaintScale paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
+        .toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
+    getChart().getXYPlot().getRangeAxis()
+        .setRange(Arrays.stream(dataset.getyValues()).min().orElse(0.0),
+            Arrays.stream(dataset.getyValues()).max().orElse(0.0));
+    getChart().getXYPlot().getDomainAxis()
+        .setRange(Arrays.stream(dataset.getxValues()).min().orElse(0.0),
+            Arrays.stream(dataset.getxValues()).max().orElse(0.0));
     ColoredBubbleDatasetRenderer renderer = new ColoredBubbleDatasetRenderer();
     renderer.setPaintScale(paintScale);
     PaintScaleLegend legend = generateLegend(paintScale);
@@ -79,7 +84,8 @@ public class VanKrevelenDiagramChart extends EChartViewer {
     Font axisTickLabelFont = this.getChart().getXYPlot().getDomainAxis().getTickLabelFont();
 
     NumberAxis scaleAxis = new NumberAxis(null);
-    scaleAxis.setRange(scale.getLowerBound(), Math.max(scale.getUpperBound(), scale.getUpperBound()));
+    scaleAxis.setRange(scale.getLowerBound(),
+        Math.max(scale.getUpperBound(), scale.getUpperBound()));
     scaleAxis.setAxisLinePaint(axisPaint);
     scaleAxis.setTickMarkPaint(axisPaint);
     scaleAxis.setNumberFormatOverride(new DecimalFormat("0.#"));

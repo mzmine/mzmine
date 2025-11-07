@@ -49,6 +49,7 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,6 +71,25 @@ public class FxXYPlotModel implements FxPlotModel {
   private final ListProperty<MarkerDefinition> domainMarkers = new SimpleListProperty<>(
       FXCollections.observableArrayList());
   private final ListProperty<MarkerDefinition> rangeMarkers = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
+
+  /**
+   * Separation between permanent markers that are always kept on the chart and those that are often
+   * cleared, removed, and new ones added ({@link #domainMarkers} and {@link #rangeMarkers}).
+   * <p>
+   * In any way, markers are now Observable when using {@link FxValueMarker} and can change its
+   * value, visible state, and style.
+   */
+  private final ListProperty<MarkerDefinition> permanentDomainMarkers = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
+  /**
+   * Separation between permanent markers that are always kept on the chart and those that are often
+   * cleared, removed, and new ones added ({@link #domainMarkers} and {@link #rangeMarkers}).
+   * <p>
+   * In any way, markers are now Observable when using {@link FxValueMarker} and can change its
+   * value, visible state, and style.
+   */
+  private final ListProperty<MarkerDefinition> permanentRangeMarkers = new SimpleListProperty<>(
       FXCollections.observableArrayList());
 
   /**
@@ -206,12 +226,51 @@ public class FxXYPlotModel implements FxPlotModel {
     return cursorConfigModel;
   }
 
+
+  public ObservableList<MarkerDefinition> getDomainMarkers() {
+    return domainMarkers.get();
+  }
+
   public ListProperty<MarkerDefinition> domainMarkersProperty() {
     return domainMarkers;
   }
 
+  public ObservableList<MarkerDefinition> getRangeMarkers() {
+    return rangeMarkers.get();
+  }
+
   public ListProperty<MarkerDefinition> rangeMarkersProperty() {
     return rangeMarkers;
+  }
+
+  /**
+   * Separation between permanent markers that are always kept on the chart and those that are often
+   * cleared, removed, and new ones added ({@link #domainMarkers} and {@link #rangeMarkers}).
+   * <p>
+   * In any way, markers are now Observable when using {@link FxValueMarker} and can change its
+   * value, visible state, and style.
+   */
+  public ObservableList<MarkerDefinition> getPermanentDomainMarkers() {
+    return permanentDomainMarkers.get();
+  }
+
+  /**
+   * Separation between permanent markers that are always kept on the chart and those that are often
+   * cleared, removed, and new ones added ({@link #domainMarkers} and {@link #rangeMarkers}).
+   * <p>
+   * In any way, markers are now Observable when using {@link FxValueMarker} and can change its
+   * value, visible state, and style.
+   */
+  public ListProperty<MarkerDefinition> permanentDomainMarkersProperty() {
+    return permanentDomainMarkers;
+  }
+
+  public ObservableList<MarkerDefinition> getPermanentRangeMarkers() {
+    return permanentRangeMarkers.get();
+  }
+
+  public ListProperty<MarkerDefinition> permanentRangeMarkersProperty() {
+    return permanentRangeMarkers;
   }
 
   // DATASETS
@@ -420,6 +479,33 @@ public class FxXYPlotModel implements FxPlotModel {
     domainMarkers.clear();
   }
 
+
+  /**
+   * Separation between permanent markers that are always kept on the chart and those that are often
+   * cleared, removed, and new ones added ({@link #domainMarkersProperty()} and
+   * {@link #rangeMarkersProperty()}).
+   * <p>
+   * In any way, markers are now Observable when using {@link FxValueMarker} and can change its
+   * value, visible state, and style.
+   */
+  public void addPermanentDomainMarker(int index, Marker marker, Layer layer) {
+    // change will happen through property subscription
+    permanentDomainMarkers.add(new MarkerDefinition(index, marker, layer));
+  }
+
+  /**
+   * Separation between permanent markers that are always kept on the chart and those that are often
+   * cleared, removed, and new ones added ({@link #domainMarkersProperty()} and
+   * {@link #rangeMarkersProperty()}).
+   * <p>
+   * In any way, markers are now Observable when using {@link FxValueMarker} and can change its
+   * value, visible state, and style.
+   */
+  public void addPermanentRangeMarker(int index, Marker marker, Layer layer) {
+    // change will happen through property subscription
+    permanentRangeMarkers.add(new MarkerDefinition(index, marker, layer));
+  }
+
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
@@ -572,4 +658,5 @@ public class FxXYPlotModel implements FxPlotModel {
     return rangeMarkers.removeIf(
         m -> m.index() == index && m.marker().equals(marker) && m.layer() == layer);
   }
+
 }
