@@ -240,6 +240,9 @@ public class PlotCursorUtils {
   @Nullable
   private static PlotCursorPosition findItemInDatasetByDomain(@NotNull XYDataset dataset,
       double domain) {
+    if (dataset.getSeriesCount() == 0) {
+      return null;
+    }
     for (int i = 0; i < dataset.getItemCount(0); i++) {
       final double x = dataset.getXValue(0, i);
       final double y = dataset.getYValue(0, i);
@@ -253,6 +256,9 @@ public class PlotCursorUtils {
   @Nullable
   private static PlotCursorPosition findItemInDatasetByRange(@NotNull XYDataset dataset,
       double range) {
+    if (dataset.getSeriesCount() == 0) {
+      return null;
+    }
     for (int i = 0; i < dataset.getItemCount(0); i++) {
       final double x = dataset.getXValue(0, i);
       final double y = dataset.getYValue(0, i);

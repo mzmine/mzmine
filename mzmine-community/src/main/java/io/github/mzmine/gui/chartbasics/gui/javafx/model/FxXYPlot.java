@@ -373,6 +373,7 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   @Override
   public void setDomainCrosshairLockedOnData(boolean flag) {
     getCursorConfigModel().setDomainCursorLockedOnData(flag);
+    super.setDomainCrosshairLockedOnData(flag);
   }
 
   @Override
@@ -444,6 +445,7 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   @Override
   public void setRangeCrosshairLockedOnData(boolean flag) {
     getCursorConfigModel().setRangeCursorLockedOnData(flag);
+    super.setRangeCrosshairLockedOnData(flag);
   }
 
   @Override
@@ -833,5 +835,9 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
 
   public void setCursorCrosshairPaint(Paint color) {
     getCursorConfigModel().setCursorCrosshairPaint(color);
+  }
+
+  public void clearDatasetsAndRenderers() {
+    setDatasets(List.of(), List.of());
   }
 }

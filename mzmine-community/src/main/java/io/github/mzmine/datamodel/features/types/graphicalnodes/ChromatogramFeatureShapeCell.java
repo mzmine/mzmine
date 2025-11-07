@@ -147,8 +147,6 @@ public class ChromatogramFeatureShapeCell extends TreeTableCell<ModularFeatureLi
       return;
     }
 
-    datasets.trimToSize();
-
     featureRTRange = RangeUtils.multiplyGrow(featureRTRange, 1.25f);
     featureRTRange = RangeUtils.withinBounds(featureRTRange, 0f, null);
     final Range rtRange = RangeUtils.guavaToJFree(featureRTRange);

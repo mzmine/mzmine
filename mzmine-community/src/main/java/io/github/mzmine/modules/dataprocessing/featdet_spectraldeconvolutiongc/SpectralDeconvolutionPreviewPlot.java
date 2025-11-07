@@ -28,22 +28,27 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxJFreeChart;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorUtils;
+import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import org.jfree.chart.JFreeChart;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.annotations.XYAnnotation;
 import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.IntervalMarker;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.ui.Layer;
 import org.jfree.chart.ui.TextAnchor;
@@ -52,20 +57,21 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 public class SpectralDeconvolutionPreviewPlot extends EChartViewer {
 
-  private final XYPlot plot;
-  private int datasetIndex;
-  private final XYLineAndShapeRenderer renderer;
+  private final FxXYPlot plot;
   private final BooleanProperty showRtWidths = new SimpleBooleanProperty(false);
+  private final ObjectProperty<@Nullable PlotCursorPosition> cursorPositionProperty;
   private List<XYAnnotation> widthAnnotations = new ArrayList<>();
 
   public SpectralDeconvolutionPreviewPlot(String title, String xAxisLabel, String yAxisLabel) {
-    super(null);
-    XYSeriesCollection dataset = new XYSeriesCollection();
-    JFreeChart chart = FxChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset,
+    FxJFreeChart chart = FxChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, null,
         PlotOrientation.VERTICAL, false, true, false);
 
-    plot = chart.getXYPlot();
+    super(chart, true, true, true, true, true);
+
+    plot = (FxXYPlot) chart.getXYPlot();
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
+
+    plot.setShowCursorCrosshair(true, false);
 
     setMinHeight(250);
 
@@ -75,12 +81,13 @@ public class SpectralDeconvolutionPreviewPlot extends EChartViewer {
     NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
     yAxis.setAutoRangeIncludesZero(false);
 
-    setChart(chart);
-    datasetIndex = 0;
-    renderer = new XYLineAndShapeRenderer(false, true);
-    plot.setRenderer(renderer);
-
     showRtWidths.subscribe((_, show) -> handleShowRtWidthsChange(show));
+    cursorPositionProperty = plot.cursorPositionProperty();
+    PlotCursorUtils.addMouseListener(this, plot, cursorPositionProperty);
+  }
+
+  public ObjectProperty<@Nullable PlotCursorPosition> cursorPositionPropertyProperty() {
+    return cursorPositionProperty;
   }
 
   private void handleShowRtWidthsChange(boolean show) {
@@ -103,53 +110,50 @@ public class SpectralDeconvolutionPreviewPlot extends EChartViewer {
     }
   }
 
-  public void addDataset(List<ModularFeature> features, XYSeries series, Color color) {
+  public void addDataset(List<ModularFeature> features, XYSeries series, Color color, Shape shape) {
     XYSeriesCollection dataset = new XYSeriesCollection();
     dataset.addSeries(series);
-    plot.setDataset(datasetIndex, dataset);
 
     var renderer = new XYLineAndShapeRenderer(false, true);
     renderer.setSeriesPaint(0, color);
-    renderer.setSeriesShape(datasetIndex, new Rectangle(0, 0, 2, 2));
-    plot.setRenderer(datasetIndex, renderer);
+    renderer.setSeriesShape(0, shape);
+    plot.addDataset(dataset, renderer);
 
     // way to slow to add both the dataset and also the XYAnnotations.
     // TODO translate this into the renderer and make it a XYZDataset using Z for RT width
     for (ModularFeature feature : features) {
 
       // Calculate the RT range (width of the box) based on the feature's RT
-      double rtStart = feature.getRawDataPointsRTRange().lowerEndpoint();
-      double rtEnd = feature.getRawDataPointsRTRange().upperEndpoint();
-      double mz = feature.getMZ();
-
-      // Calculate box width and height
-      double boxWidth = rtEnd - rtStart;  // Width based on RT range
-      double boxHeight = 0.5;  // Fixed height; adjust as needed
-
-      // Create the rectangle centered at the feature's RT and m/z values
-      Rectangle2D box = new Rectangle2D.Double(rtStart, mz - boxHeight / 2, boxWidth, boxHeight);
-
-      // Create the annotation with the rectangle shape and color
-      XYShapeAnnotation annotation = new XYShapeAnnotation(box, new BasicStroke(1.0f), color,
-          color);
-
+      final XYShapeAnnotation annotation = createRtWidthBoxAnnotation(color, feature);
       widthAnnotations.add(annotation);
       // Add the annotation to the plot
       if (showRtWidths.get()) {
         plot.addAnnotation(annotation, false);
       }
     }
+  }
 
-    datasetIndex++;
+  private static @NotNull XYShapeAnnotation createRtWidthBoxAnnotation(Color color,
+      ModularFeature feature) {
+    double rtStart = feature.getRawDataPointsRTRange().lowerEndpoint();
+    double rtEnd = feature.getRawDataPointsRTRange().upperEndpoint();
+    double mz = feature.getMZ();
+
+    // Calculate box width and height
+    double boxWidth = rtEnd - rtStart;  // Width based on RT range
+    double boxHeight = 0.5;  // Fixed height; adjust as needed
+
+    // Create the rectangle centered at the feature's RT and m/z values
+    Rectangle2D box = new Rectangle2D.Double(rtStart, mz - boxHeight / 2, boxWidth, boxHeight);
+
+    // Create the annotation with the rectangle shape and color
+    XYShapeAnnotation annotation = new XYShapeAnnotation(box, new BasicStroke(1.0f), color, color);
+    return annotation;
   }
 
 
   public void clearDatasets() {
-    for (int i = 0; i < datasetIndex; i++) {
-      plot.setDataset(i, null);
-      plot.setRenderer(i, null);
-    }
-    datasetIndex = 0;
+    plot.clearDatasetsAndRenderers();
     plot.clearAnnotations();
     widthAnnotations.clear();
   }

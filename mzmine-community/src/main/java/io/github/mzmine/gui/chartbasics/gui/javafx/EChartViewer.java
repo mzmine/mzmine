@@ -248,7 +248,14 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
   @Override
   public void setChart(JFreeChart chart) {
+
     final JFreeChart oldChart = getChart();
+    if (oldChart == chart) {
+      // setting the same chart again makes no sense and will lead to issues with the DelayedChartDrawAdapter
+      // because the model chart property will call no update as its the same instance
+      return;
+    }
+
     if (oldChart != null) {
       // may need to remove some listeners here
     }
