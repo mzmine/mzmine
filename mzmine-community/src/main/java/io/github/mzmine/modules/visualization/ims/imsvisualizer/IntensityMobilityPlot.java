@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,7 +57,7 @@ public class IntensityMobilityPlot extends EChartViewer {
   private final RawDataFile[] dataFiles;
 
   public IntensityMobilityPlot(XYDataset dataset, ImsVisualizerTask imsTask) {
-    super(ChartFactory.createXYLineChart("", "intensity", "", dataset, PlotOrientation.VERTICAL,
+    super(FxChartFactory.createXYLineChart("", "intensity", "", dataset, PlotOrientation.VERTICAL,
         false, true, false));
     JFreeChart chart = getChart();
     XYPlot plot = chart.getXYPlot();

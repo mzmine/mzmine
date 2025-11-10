@@ -119,8 +119,8 @@ public class ScanBPCProvider implements PlotXYDataProvider, MassSpectrumProvider
 
   @Override
   public double getRangeValue(int index) {
-    return Objects.requireNonNullElse(scans.get(index).getBasePeakIntensity(), 0d)
-        * normalizationFactor;
+    final double value = Objects.requireNonNullElse(scans.get(index).getBasePeakIntensity(), 0d);
+    return normalizeToOne ? value * normalizationFactor : value;
   }
 
   @Override
