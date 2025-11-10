@@ -31,6 +31,7 @@ import io.github.mzmine.javafx.properties.PropertyUtils;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleStringProperty;
@@ -226,7 +227,7 @@ public class FxTextFields {
   private static <T> void autoShowAutoComplete(TextField textField, AutoCompletionBinding<T> acb) {
     acb.setVisibleRowCount(25);
     // Avoid redundant re-trigger while focused
-    final javafx.beans.property.BooleanProperty triggeredOnFocus = new javafx.beans.property.SimpleBooleanProperty(false);
+    final BooleanProperty triggeredOnFocus = new javafx.beans.property.SimpleBooleanProperty(false);
     // Show all suggestions when the user clicks or when field gains focus
     textField.setOnMouseClicked(_ -> {
       // auto show completion
