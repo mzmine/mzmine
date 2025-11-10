@@ -94,7 +94,7 @@ or
 The final mzmine distribution will be placed in build/jpackage
 
 If you encounter any problems, please contact the developers by posting an issue:
-https://github.com/mzmine/mzmine3/issues
+https://github.com/mzmine/mzmine/issues
 
 ### Contribute code (or documentation)
 
