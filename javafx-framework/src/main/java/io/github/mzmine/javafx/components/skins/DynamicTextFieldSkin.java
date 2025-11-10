@@ -81,12 +81,10 @@ public class DynamicTextFieldSkin extends TextFieldSkin {
       // Only recalculate if we actually measured based on column counts (not fixed defaults)
       if (minColumnCount != -1) {
         measurer.setText("W".repeat(Math.max(0, minColumnCount)));
-        measurer.applyCss();
         minWidth = measurer.getLayoutBounds().getWidth();
       }
       if (maxColumnCount != -1) {
         measurer.setText("W".repeat(Math.max(0, maxColumnCount)));
-        measurer.applyCss();
         maxWidth = Math.max(minWidth, measurer.getLayoutBounds().getWidth());
       }
     });
