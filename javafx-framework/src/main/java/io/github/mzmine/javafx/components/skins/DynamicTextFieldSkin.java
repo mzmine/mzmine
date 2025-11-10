@@ -25,8 +25,6 @@
 
 package io.github.mzmine.javafx.components.skins;
 
-import com.sun.javafx.tk.FontMetrics;
-import com.sun.javafx.tk.Toolkit;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -40,8 +38,8 @@ import javafx.scene.text.Text;
 public class DynamicTextFieldSkin extends TextFieldSkin {
 
   private final Text measurer = new Text();
-  private final double minWidth;
-  private final double maxWidth;
+  private double minWidth;
+  private double maxWidth;
 
   /**
    * @param minColumnCount -1 to deactivate
@@ -55,6 +53,21 @@ public class DynamicTextFieldSkin extends TextFieldSkin {
     measurer.fontProperty().bind(field.fontProperty());
     measurer.applyCss();
 
+    // Set reasonable defaults (will be recalculated when scene/stylesheets are available)
+    // These defaults ensure computePrefWidth() works correctly before scene is set
+    if (minColumnCount == -1) {
+      minWidth = 30; // Fixed default, no recalculation needed
+    } else {
+      // Rough estimate: ~8 pixels per character (will be recalculated with CSS)
+      minWidth = minColumnCount * 8.0;
+    }
+    if (maxColumnCount == -1) {
+      maxWidth = Double.MAX_VALUE; // Fixed default, no recalculation needed
+    } else {
+      // Rough estimate: ~8 pixels per character (will be recalculated with CSS)
+      maxWidth = Math.max(minWidth, maxColumnCount * 8.0);
+    }
+
     // needs dummy scene to apply css
     final Scene scene = new Scene(new Group(measurer));
     field.sceneProperty().subscribe((_, ns) -> {
@@ -63,14 +76,18 @@ public class DynamicTextFieldSkin extends TextFieldSkin {
       }
       scene.getStylesheets().setAll(ns.getStylesheets());
       measurer.applyCss();
-    });
 
-    // even if font may change the min max width is just a good estimate may be ok to not recompute
-    final FontMetrics fontMetrics = Toolkit.getToolkit().getFontLoader()
-        .getFontMetrics(field.getFont());
-    final float maxCharWidth = fontMetrics.getCharWidth('W');
-    minWidth = minColumnCount == -1 ? 30 : minColumnCount * maxCharWidth;
-    maxWidth = maxColumnCount == -1 ? Double.MAX_VALUE : maxColumnCount * maxCharWidth;
+      // Recalculate min/max width with actual stylesheets applied
+      // Only recalculate if we actually measured based on column counts (not fixed defaults)
+      if (minColumnCount != -1) {
+        measurer.setText("W".repeat(Math.max(0, minColumnCount)));
+        minWidth = measurer.getLayoutBounds().getWidth();
+      }
+      if (maxColumnCount != -1) {
+        measurer.setText("W".repeat(Math.max(0, maxColumnCount)));
+        maxWidth = Math.max(minWidth, measurer.getLayoutBounds().getWidth());
+      }
+    });
   }
 
   @Override
