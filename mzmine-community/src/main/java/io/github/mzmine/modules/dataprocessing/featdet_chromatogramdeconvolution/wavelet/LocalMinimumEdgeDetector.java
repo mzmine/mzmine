@@ -14,14 +14,14 @@ public class LocalMinimumEdgeDetector implements EdgeDetector {
 
     while (index > 0 && index < y.length - 2) {
       index += directionStep;
-      if (index > 1 && y[index + directionStep] < y[index + numIncreasing]) {
+      if (index > 1 && y[index + directionStep] < y[index]) {
         // still decreasing
         numIncreasing = 0;
         continue;
       }
       numIncreasing++;
       if (numIncreasing > allowedIncreasing) {
-        index += (numIncreasing - 1) * directionStep; // reset to valley
+        index -= (numIncreasing - 1) * directionStep; // reset to valley
         break;
       }
     }
