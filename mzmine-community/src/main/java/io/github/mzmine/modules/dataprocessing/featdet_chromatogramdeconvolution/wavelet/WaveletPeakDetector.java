@@ -56,7 +56,7 @@ import org.apache.commons.math3.transform.DftNormalization;
 import org.apache.commons.math3.transform.FastFourierTransformer;
 import org.apache.commons.math3.transform.TransformType;
 import org.jetbrains.annotations.NotNull;
-import org.jmol.util.Edge;
+import org.jetbrains.annotations.Nullable;
 
 @NotThreadSafe
 public class WaveletPeakDetector extends AbstractResolver {
@@ -100,32 +100,39 @@ public class WaveletPeakDetector extends AbstractResolver {
     this.noiseMethod = parameterSet.getValue(WaveletResolverParameters.noiseCalculation);
     this.minDataPoints = parameterSet.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
     this.topToEdge = topToEdge;
-    edgeDetector = parameterSet.getParameter(
-            WaveletResolverParameters.advancedParameters)
+    edgeDetector = parameterSet.getParameter(WaveletResolverParameters.advancedParameters)
         .getValueOrDefault(AdvancedWaveletParameters.edgeDetector, EdgeDetectors.ABS_MIN);
   }
 
   private static int findClosestLocalMax(double[] y, int initialIndex, int start, int end) {
-    double maxY = y[initialIndex];
     int bestYIndex = initialIndex;
-    for (int k = initialIndex + 1; k <= end; k++) {
-      if (y[k] > maxY) {
-        maxY = y[k];
-        bestYIndex = k;
-      } else {
-        break;
-      }
+
+    // determine which direction to search for the maximum
+    final int direction;
+    if (end > initialIndex) {
+      // this point > next point? -> currently decreasing, go left
+      direction = y[initialIndex] > y[initialIndex + 1] ? -1 : 1;
+    } else if (start < initialIndex) {
+      // this point < previous point? -> currently decreasing, go left
+      direction = y[initialIndex] < y[initialIndex - 1] ? -1 : 1;
+    } else {
+      throw new IllegalArgumentException("Invalid search range for initial index");
     }
-    // find the closest local maximum to the initial index
-    for (int k = initialIndex - 1; k >= start; k--) {
-      if (y[k] > maxY) {
-        maxY = y[k];
-        bestYIndex = k;
-      } else {
-        break;
-      }
+
+    double maxY = y[initialIndex];
+    int index = initialIndex;
+    while (index > 1 && index < y.length - 1 && y[index + direction] > maxY) {
+      index += direction;
     }
     return bestYIndex;
+    /*for (int k = initialIndex + direction; k <= end && k >= start; k += direction) {
+      if (y[k] > maxY) {
+        maxY = y[k];
+        bestYIndex = k;
+      } else {
+        break;
+      }
+    }*/
   }
 
   private static void findAndSetLocalMinimaBoundary(double[] y, DetectedPeak peak) {
@@ -168,7 +175,8 @@ public class WaveletPeakDetector extends AbstractResolver {
     peak.setBoundaryIndices(leftIdx, rightIdx);
   }
 
-  private void findAndSetLocalMinimaBoundaryWithTolerance(double[] y, DetectedPeak peak,
+  @Nullable
+  private DetectedPeak findAndSetBoundaryWithTolerance(double[] y, DetectedPeak peak,
       final int numTol) {
     final int numPoints = y.length;
     final int peakIdx = peak.peakIndex;
@@ -176,15 +184,20 @@ public class WaveletPeakDetector extends AbstractResolver {
     if (peakIdx < 0 || peakIdx >= numPoints) {
       logger.warning("Invalid peak index " + peakIdx + " encountered during boundary finding.");
       peak.setBoundaryIndices(-1, -1); // Mark as invalid
-      return;
+      return null;
     }
 
     final EdgeDetector edgeDetector = this.edgeDetector.create(numTol);
     final int leftMin = edgeDetector.detectLeftMinimum(y, peakIdx);
     final int rightMin = edgeDetector.detectRightMinimum(y, peakIdx);
 
+    if (rightMin - leftMin < minDataPoints) {
+      return null;
+    }
+
     // *** Set boundaries on the peak object ***
     peak.setBoundaryIndices(leftMin, rightMin);
+    return peak;
   }
 
   /**
@@ -229,11 +242,14 @@ public class WaveletPeakDetector extends AbstractResolver {
     }
 
     // determine & SET Index Ranges for Height-Filtered Peaks
-    findAndSetLocalMinimaBoundaries(heightFilteredPeaks, y);
+    final List<DetectedPeak> peaksWithBounds = findAndSetBoundaries(heightFilteredPeaks, y);
+    if (peaksWithBounds.isEmpty()) {
+      return Collections.emptyList();
+    }
 
     // Local Noise/Baseline Estimation and SNR Filter
     final List<DetectedPeak> finalDetectedPeaks = estimateLocalNoiseBaselineAndFilterBySNR(
-        heightFilteredPeaks, x, y, minSnr);
+        peaksWithBounds, x, y, minSnr);
     // todo: maybe filter peaks that have a lot of zero->non zero transitions in their proximity
     if (finalDetectedPeaks.isEmpty()) {
       return Collections.emptyList();
@@ -423,15 +439,20 @@ public class WaveletPeakDetector extends AbstractResolver {
    * @param peaks The list of peaks to find and set boundaries for.
    * @param y     The signal intensity array.
    */
-  private void findAndSetLocalMinimaBoundaries(List<DetectedPeak> peaks, double[] y) {
+  private List<DetectedPeak> findAndSetBoundaries(List<DetectedPeak> peaks, double[] y) {
     if (peaks == null || peaks.isEmpty() || y == null || y.length == 0) {
-      return;
+      return Collections.emptyList();
     }
 
+    List<DetectedPeak> peaksWithBounds = new ArrayList<>(peaks.size() / 2);
     for (DetectedPeak peak : peaks) {
-//      findAndSetLocalMinimaBoundary(y, peak);
-      findAndSetLocalMinimaBoundaryWithTolerance(y, peak, peakScaleToDipTolerance(peak.scale()));
+      final var peakWithBounds = findAndSetBoundaryWithTolerance(y, peak,
+          peakScaleToDipTolerance(peak.scale()));
+      if (peakWithBounds != null) {
+        peaksWithBounds.add(peakWithBounds);
+      }
     }
+    return peaksWithBounds;
   }
 
   /**
