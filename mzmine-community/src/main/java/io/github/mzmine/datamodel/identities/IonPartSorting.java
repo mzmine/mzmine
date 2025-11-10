@@ -23,9 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.fx.sub;
+package io.github.mzmine.datamodel.identities;
 
-import io.github.mzmine.datamodel.identities.IonPart;
 import java.util.Comparator;
 import java.util.List;
 

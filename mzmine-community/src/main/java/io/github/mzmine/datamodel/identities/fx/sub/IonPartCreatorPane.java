@@ -45,6 +45,7 @@ import static io.github.mzmine.util.components.FormulaTextField.newFormulaTextFi
 import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.IonPart.Type;
+import io.github.mzmine.datamodel.identities.IonPartSorting;
 import io.github.mzmine.javafx.components.FilterableListView;
 import io.github.mzmine.javafx.components.FilterableListView.MenuControls;
 import io.github.mzmine.javafx.components.factories.FxComboBox;

@@ -28,8 +28,6 @@ package io.github.mzmine.datamodel.identities;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
-import io.github.mzmine.datamodel.identities.fx.sub.IonPartSorting;
-import io.github.mzmine.datamodel.identities.fx.sub.IonTypeSorting;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.maths.Precision;
 import java.io.File;
