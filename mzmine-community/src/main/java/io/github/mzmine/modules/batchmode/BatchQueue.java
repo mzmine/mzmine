@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,8 +33,6 @@ import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
-import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
-import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
@@ -46,6 +44,7 @@ import io.github.mzmine.util.javafx.ArrayObservableList;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -122,6 +121,8 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
     // prior to versioning of batch steps
     boolean noModuleVersion = false;
 
+    final Map<String, String> oldModuleNamesMap = ModuleMappingUtils.getOldModuleNamesMap();
+
     // Process the batch step elements.
     final NodeList nodes = xmlElement.getElementsByTagName(BATCH_STEP_ELEMENT);
     final int nodesLength = nodes.getLength();
@@ -143,8 +144,9 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
       if (moduleFound == null) {
         try {
+          final String moduleClassName = oldModuleNamesMap.getOrDefault(methodName, methodName);
           moduleFound = MZmineCore.getModuleInstance(
-              (Class<MZmineModule>) Class.forName(methodName));
+              (Class<MZmineModule>) Class.forName(moduleClassName));
         } catch (ClassNotFoundException e) {
           String batchVersionStr =
               batchMzmineVersion == null ? "of unspecified version" : batchMzmineVersion.toString();

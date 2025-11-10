@@ -97,7 +97,7 @@ public class DiaMs2CorrParameters extends SimpleParameterSet {
   public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
     super.handleLoadedParameters(loadedParams, loadedVersion);
 
-    if(!loadedParams.containsKey(advanced.getName())) {
+    if (!loadedParams.containsKey(advanced.getName())) {
       setParameter(advanced, false);
     }
   }

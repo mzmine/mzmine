@@ -87,10 +87,10 @@ public class FxComboBox {
     combo.setItems(makeObservable(values));
     if (values instanceof ObservableList<T> ov) {
       combo.setItems(ov);
-    } else if (values instanceof List<T> list) {
-      combo.setItems(FXCollections.observableList(list));
     } else if (values != null) {
-      combo.setItems(FXCollections.observableList(List.copyOf(values)));
+      // needs to be modifiable just in case because StringConverter may return null that is not allowed
+      // null throws many cryptic exceptions otherwise
+      combo.setItems(FXCollections.observableArrayList(values));
     }
     if (selectedItem != null) {
       combo.valueProperty().bindBidirectional(selectedItem);

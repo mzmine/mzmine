@@ -385,6 +385,7 @@ public class DiaMs2CorrTask extends AbstractTask {
     for (IonTimeSeries<?> ms2Eic : eligibleEics) {
       final IonTimeSeries<?> subSeries = ms2Eic.subSeries(getMemoryMapStorage(),
           correlationRange.lowerEndpoint(), correlationRange.upperEndpoint());
+
       if (subSeries.getNumberOfValues() < minCorrPoints) {
         continue;
       }

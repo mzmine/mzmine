@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -177,7 +177,8 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
     return switch (tag) {
       case ORIGINAL -> requireNonNullElse(entry.getDataPoints(), new DataPoint[0]);
       case FILTERED -> requireNonNullElse(similarity.getLibrary(), new DataPoint[0]);
-      case ALIGNED -> requireNonNullElse(similarity.getAlignedDataPoints()[0], new DataPoint[0]);
+      case ALIGNED -> requireNonNullElse(similarity.getAlignedDataPoints(),
+          new DataPoint[][]{new DataPoint[0], new DataPoint[0]})[0];
       case MERGED, ALIGNED_MODIFIED -> new DataPoint[0];
       case UNALIGNED -> {
         var input = getLibraryDataPoints(DataPointsTag.FILTERED);
@@ -199,7 +200,8 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
         yield dp;
       }
       case FILTERED -> requireNonNullElse(similarity.getQuery(), new DataPoint[0]);
-      case ALIGNED -> requireNonNullElse(similarity.getAlignedDataPoints()[1], new DataPoint[0]);
+      case ALIGNED -> requireNonNullElse(similarity.getAlignedDataPoints(),
+          new DataPoint[][]{new DataPoint[0], new DataPoint[0]})[1];
       case MERGED, ALIGNED_MODIFIED -> new DataPoint[0];
       case UNALIGNED -> {
         var input = getQueryDataPoints(DataPointsTag.FILTERED);
@@ -349,7 +351,7 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
     return Objects.equals(getEntry(), that.getEntry()) && Objects.equals(getSimilarity(),
         that.getSimilarity()) && Objects.equals(ccsError, that.ccsError) && Objects.equals(
         getQueryScan().getScanNumber(), that.getQueryScan().getScanNumber())
-           && getQueryScan().getDataFile().equals(that.getQueryScan().getDataFile());
+        && getQueryScan().getDataFile().equals(that.getQueryScan().getDataFile());
   }
 
   @Override
@@ -368,6 +370,11 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
   }
 
   @Override
+  public @Nullable String getComment() {
+    return entry.getOrElse(DBEntryField.COMMENT, null);
+  }
+
+  @Override
   public int compareTo(@NotNull final SpectralDBAnnotation o) {
     if (o.getScore() == null && getScore() == null) {
       return 0;
@@ -380,5 +387,14 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
     }
 
     return Float.compare(this.getScore(), o.getScore());
+  }
+
+
+  /**
+   * An additional json string that may contain additional fields that are otherwise not captured.
+   *
+   */
+  public @Nullable String getAdditionalJson() {
+    return entry.getOrElse(DBEntryField.JSON_STRING, null);
   }
 }

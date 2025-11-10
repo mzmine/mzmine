@@ -361,6 +361,17 @@ public class FxLayout {
     }
   }
 
+  /**
+   * Bind managed to visible. Managed usually needs to be false if visible is false so that it does
+   * not take the space in the layout. But default is not bound. Sometimes this is not wanted.
+   *
+   * @return the input node
+   */
+  public static <T extends Node> T bindManagedToVisible(T node) {
+    node.managedProperty().bind(node.visibleProperty());
+    return node;
+  }
+
   public enum GridColumnGrow {
     LEFT, RIGHT, BOTH, NONE
   }

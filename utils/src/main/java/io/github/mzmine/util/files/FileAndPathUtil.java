@@ -776,4 +776,32 @@ public class FileAndPathUtil {
         .max(Entry.comparingByValue(Comparator.reverseOrder())).map(Entry::getKey).orElse(null);
   }
 
+  /**
+   * External tools live in the installation main directory /external_tools/
+   */
+  public static @NotNull File resolveInExternalToolsDir(String path) {
+    return new File(getExternalToolsDir(), path);
+  }
+
+  /**
+   * External tools live in the installation main directory /external_tools/
+   *
+   */
+  private static @NotNull File getExternalToolsDir() {
+    final File mainDir = FileAndPathUtil.getSoftwareMainDirectory();
+    if (mainDir != null) {
+      File extAtAppRoot = new File(mainDir, "external_tools/");
+      if (extAtAppRoot.exists()) {
+        return extAtAppRoot;
+      }
+    }
+    // Dev-run from module dir: parent project root
+    File extParent = new File("../external_tools/");
+    if (extParent.exists()) {
+      return extParent;
+    }
+    // when running from project root
+    // Also the fallback to current directory even if it doesn't exist (for error messages)
+    return new File("external_tools/");
+  }
 }

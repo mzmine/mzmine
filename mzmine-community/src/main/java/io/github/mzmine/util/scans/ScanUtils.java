@@ -1311,25 +1311,26 @@ public class ScanUtils {
   }
 
   /**
-   * threshold: keep data points >= noiseLevel
+   * threshold: keep data points > noiseLevel. Needs to be greater so that a fixed noise level like
+   * 0 excludes this number as well.
    *
    * @param data
    * @param noiseLevel
    * @return
    */
   public static DataPoint[] getFiltered(DataPoint[] data, double noiseLevel) {
-    return Stream.of(data).filter(dp -> dp.getIntensity() >= noiseLevel).toArray(DataPoint[]::new);
+    return Stream.of(data).filter(dp -> dp.getIntensity() > noiseLevel).toArray(DataPoint[]::new);
   }
 
   /**
-   * below threshold: keep data points < noiseLevel
+   * The filtered noise which is <= noise level. {@link #getFiltered(DataPoint[], double)}
    *
    * @param data
    * @param noiseLevel
    * @return
    */
-  public static DataPoint[] getBelowThreshold(DataPoint[] data, double noiseLevel) {
-    return Stream.of(data).filter(dp -> dp.getIntensity() < noiseLevel).toArray(DataPoint[]::new);
+  public static DataPoint[] getFilteredNoise(DataPoint[] data, double noiseLevel) {
+    return Stream.of(data).filter(dp -> dp.getIntensity() <= noiseLevel).toArray(DataPoint[]::new);
   }
 
   /**
@@ -2485,8 +2486,7 @@ public class ScanUtils {
     var scanRanges = IndexRange.findRanges(
         allScans.stream().filter(s -> !(s instanceof MobilityScan)).map(Scan::getScanNumber)
             .toList());
-    final String scanString = scanRanges.stream().map(IndexRange::toString)
-        .collect(Collectors.joining(","));
+    final String scanString = IndexRange.asString(scanRanges);
     return scanString;
   }
 
@@ -2521,8 +2521,7 @@ public class ScanUtils {
     }
     final List<IndexRange> ranges = IndexRange.findRanges(
         mobilityScans.stream().map(MobilityScan::getMobilityScanNumber).toList());
-    return "%d[%s]".formatted(frame.getScanNumber(),
-        ranges.stream().map(IndexRange::toString).collect(Collectors.joining(",")));
+    return "%d[%s]".formatted(frame.getScanNumber(), IndexRange.asString(ranges));
   }
 
 

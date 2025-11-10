@@ -107,6 +107,7 @@ class BioTransformerTest {
     expected.put(NeutralMassType.class, 391.23721054799995);
     expected.put(PrecursorMZType.class, 392.24448654799994);
     expected.put(DatabaseNameType.class, "transformation.csv");
+    expected.enrichMetadata();
 
     Assertions.assertEquals(9, compoundDBAnnotations.size());
     var actual = compoundDBAnnotations.get(0);

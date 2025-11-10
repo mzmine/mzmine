@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,7 +63,7 @@ public enum PolarityType implements UniqueIdSupplier {
     }
 
     return switch (str.toLowerCase()) {
-      case "+", "positive", "pos", "+1", "1+", "1" -> PolarityType.POSITIVE;
+      case "+", "positive", "pos", "p", "+1", "1+", "1" -> PolarityType.POSITIVE;
       case "-", "negative", "neg", "-1", "1-" -> PolarityType.NEGATIVE;
       case "any polarity", "any" -> PolarityType.ANY; // sometimes used as filter option
       case "neutral", "n" -> PolarityType.NEUTRAL;

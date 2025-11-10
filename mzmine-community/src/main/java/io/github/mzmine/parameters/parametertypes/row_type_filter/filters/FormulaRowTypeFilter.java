@@ -93,6 +93,8 @@ class FormulaRowTypeFilter extends AbstractRowTypeFilter {
         yield true;
       }
       case NOT_EQUAL -> !queryFormula.equals(formula);
+      case ALL, ANY -> throw new UnsupportedOperationException(
+          "The selected matching mode is not implemented for this filter: " + matchingMode);
     };
   }
 

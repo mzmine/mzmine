@@ -45,6 +45,9 @@ public interface IonMobilityMsMsInfo extends MsMsInfo {
       return null;
     }
     final Range<Integer> spectrumNumberRange = getSpectrumNumberRange();
+    if (spectrumNumberRange == null) {
+      return null;
+    }
     final double lower = msMsFrame.getMobilityForMobilityScanNumber(
         spectrumNumberRange.lowerEndpoint());
     final double upper = msMsFrame.getMobilityForMobilityScanNumber(
@@ -53,4 +56,7 @@ public interface IonMobilityMsMsInfo extends MsMsInfo {
   }
 
   Frame getMsMsFrame();
+
+  @Override
+  IonMobilityMsMsInfo createCopy();
 }
