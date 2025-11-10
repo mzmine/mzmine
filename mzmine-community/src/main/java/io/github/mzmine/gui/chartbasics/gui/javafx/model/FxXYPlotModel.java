@@ -26,7 +26,6 @@
 package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.MarkerDefinition;
-import io.github.mzmine.gui.chartbasics.listener.AllDatasetsUpdatedListener;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
 import io.github.mzmine.taskcontrol.Task;
@@ -112,7 +111,6 @@ public class FxXYPlotModel implements FxPlotModel {
    */
   private final ObjectProperty<ChartRenderingInfo> renderingInfo = new SimpleObjectProperty<>();
 
-  private final List<AllDatasetsUpdatedListener> allDatasetsUpdatedListeners = new ArrayList<>();
   private final List<DatasetChangeListener> datasetChangeListeners = new ArrayList<>();
 
 
@@ -151,14 +149,6 @@ public class FxXYPlotModel implements FxPlotModel {
   @NotNull
   public MapProperty<Integer, @NotNull XYDataset> datasetsProperty() {
     return datasets;
-  }
-
-  public List<AllDatasetsUpdatedListener> getAllDatasetsUpdatedListeners() {
-    return allDatasetsUpdatedListeners;
-  }
-
-  public void addAllDatasetsUpdatedListener(AllDatasetsUpdatedListener listener) {
-    allDatasetsUpdatedListeners.add(listener);
   }
 
   public List<DatasetChangeListener> getDatasetChangeListeners() {

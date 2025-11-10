@@ -27,7 +27,6 @@ package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
 import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.MarkerDefinition;
-import io.github.mzmine.gui.chartbasics.listener.AllDatasetsUpdatedListener;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
@@ -47,6 +46,7 @@ import java.util.logging.Logger;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.util.Subscription;
@@ -109,8 +109,30 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
 
 
   private void initListeners() {
-    applyNotifyLater(plotModel.datasetsProperty(), this::updateDatasets);
-    applyNotifyLater(plotModel.renderersProperty(), this::updateRenderers);
+
+    plotModel.datasetsProperty().addListener((MapChangeListener<Integer, XYDataset>) change -> {
+      final Integer key = change.getKey();
+      if (change.wasRemoved()) {
+        super.setDataset(key, null);
+      }
+      if (change.wasAdded()) {
+        final XYDataset valueAdded = change.getValueAdded();
+        super.setDataset(key, valueAdded);
+      }
+    });
+
+    plotModel.renderersProperty()
+        .addListener((MapChangeListener<Integer, XYItemRenderer>) change -> {
+          final Integer key = change.getKey();
+          if (change.wasRemoved()) {
+            super.setRenderer(key, null, false);
+          }
+          if (change.wasAdded()) {
+            final XYItemRenderer valueAdded = change.getValueAdded();
+            super.setRenderer(key, valueAdded, false);
+          }
+        });
+
     applyNotifyLater(plotModel.domainMarkersProperty(), _ -> updateDomainMarkers());
     applyNotifyLater(plotModel.rangeMarkersProperty(), _ -> updateRangeMarkers());
     applyNotifyLater(plotModel.permanentDomainMarkersProperty(), _ -> updateDomainMarkers());
@@ -262,12 +284,6 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     for (int i = nv.size(); i < super.getDatasetCount(); i++) {
       super.setDataset(i, null);
     }
-
-    // fire a single event once the datasets are really set to the plot
-    // this is required to ensure that the plot actually knows about the datasets
-    for (AllDatasetsUpdatedListener listener : plotModel.getAllDatasetsUpdatedListeners()) {
-      listener.onAllDatasetsUpdated();
-    }
   }
 
   @Override
@@ -295,14 +311,6 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     plotModel.clearDatasetChangeListeners();
   }
 
-
-  /**
-   * Those events are triggered once after all datasets are updated and set to the internal chart
-   * every time {@link #updateDatasets(ObservableMap)} is called.
-   */
-  public void addAllDatasetsUpdatedListener(AllDatasetsUpdatedListener listener) {
-    plotModel.addAllDatasetsUpdatedListener(listener);
-  }
 
   // properties
   public @NotNull ObservableMap<Integer, @NotNull XYDataset> getDatasets() {
