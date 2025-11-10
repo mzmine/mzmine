@@ -38,8 +38,8 @@ import javafx.scene.text.Text;
 public class DynamicTextFieldSkin extends TextFieldSkin {
 
   private final Text measurer = new Text();
-  private final double minWidth;
-  private final double maxWidth;
+  private double minWidth;
+  private double maxWidth;
 
   /**
    * @param minColumnCount -1 to deactivate
@@ -53,6 +53,21 @@ public class DynamicTextFieldSkin extends TextFieldSkin {
     measurer.fontProperty().bind(field.fontProperty());
     measurer.applyCss();
 
+    // Set reasonable defaults (will be recalculated when scene/stylesheets are available)
+    // These defaults ensure computePrefWidth() works correctly before scene is set
+    if (minColumnCount == -1) {
+      minWidth = 30; // Fixed default, no recalculation needed
+    } else {
+      // Rough estimate: ~8 pixels per character (will be recalculated with CSS)
+      minWidth = minColumnCount * 8.0;
+    }
+    if (maxColumnCount == -1) {
+      maxWidth = Double.MAX_VALUE; // Fixed default, no recalculation needed
+    } else {
+      // Rough estimate: ~8 pixels per character (will be recalculated with CSS)
+      maxWidth = Math.max(minWidth, maxColumnCount * 8.0);
+    }
+
     // needs dummy scene to apply css
     final Scene scene = new Scene(new Group(measurer));
     field.sceneProperty().subscribe((_, ns) -> {
@@ -61,24 +76,20 @@ public class DynamicTextFieldSkin extends TextFieldSkin {
       }
       scene.getStylesheets().setAll(ns.getStylesheets());
       measurer.applyCss();
-    });
 
-    // Estimate min/max width using public API by measuring a representative string
-    // (use 'W' as a wide character proxy)
-    if (minColumnCount == -1) {
-      minWidth = 30;
-    } else {
-      measurer.setText("W".repeat(Math.max(0, minColumnCount)));
-      measurer.applyCss();
-      minWidth = measurer.getLayoutBounds().getWidth();
-    }
-    if (maxColumnCount == -1) {
-      maxWidth = Double.MAX_VALUE;
-    } else {
-      measurer.setText("W".repeat(Math.max(0, maxColumnCount)));
-      measurer.applyCss();
-      maxWidth = Math.max(minWidth, measurer.getLayoutBounds().getWidth());
-    }
+      // Recalculate min/max width with actual stylesheets applied
+      // Only recalculate if we actually measured based on column counts (not fixed defaults)
+      if (minColumnCount != -1) {
+        measurer.setText("W".repeat(Math.max(0, minColumnCount)));
+        measurer.applyCss();
+        minWidth = measurer.getLayoutBounds().getWidth();
+      }
+      if (maxColumnCount != -1) {
+        measurer.setText("W".repeat(Math.max(0, maxColumnCount)));
+        measurer.applyCss();
+        maxWidth = Math.max(minWidth, measurer.getLayoutBounds().getWidth());
+      }
+    });
   }
 
   @Override
