@@ -53,7 +53,7 @@ The final command should list your `Developer ID Application` identity. If you r
 
 ```bash
 export MACOS_APP_IDENTITY_ID="Developer ID Application: <Org Name> (<TEAMID>)"
-export MACOS_APPLE_ID_PWD="<app-specific-password>"
+export MACOS_APP_SPECIFIC_PWD="<app-specific-password>"
 export MACOS_APP_IDENTITY_TEAM_ID="<TEAMID>"
 # change only if build.gradle's appleID changes:
 # export MACOS_APPLE_ID="<apple-id-email>"
@@ -97,7 +97,7 @@ Build artifacts land in `mzmine-community/build/jpackage/`.
 If notarization fails, run:
 ```bash
 xcrun notarytool history --apple-id "<apple-id>" \
-  --password "$MACOS_APPLE_ID_PWD" \
+  --password "$MACOS_APP_SPECIFIC_PWD" \
   --team-id "$MACOS_APP_IDENTITY_TEAM_ID"
 ```
 and review rejection details.
@@ -107,5 +107,5 @@ and review rejection details.
 ## 7. Cleanup (Optional)
 ```bash
 security delete-keychain mzmine-signing.keychain-db
-unset MACOS_APP_IDENTITY_ID MACOS_APPLE_ID_PWD MACOS_APP_IDENTITY_TEAM_ID
+unset MACOS_APP_IDENTITY_ID MACOS_APP_SPECIFIC_PWD MACOS_APP_IDENTITY_TEAM_ID
 ```
