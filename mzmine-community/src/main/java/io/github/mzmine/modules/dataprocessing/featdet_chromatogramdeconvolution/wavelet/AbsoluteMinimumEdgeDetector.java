@@ -15,10 +15,10 @@ public class AbsoluteMinimumEdgeDetector implements EdgeDetector {
 
     while (index > 0 && index < y.length - 2) {
       index += directionStep;
-      if (index > 1 && y[index + directionStep] < y[absMinIndex]) {
+      if (index > 1 && y[index] < y[absMinIndex]) {
         // still decreasing
         numIncreasing = 0;
-        absMinIndex = index + directionStep;
+        absMinIndex = index;
         continue;
       }
       numIncreasing++;

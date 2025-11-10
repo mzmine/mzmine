@@ -53,7 +53,8 @@ public class SlopeEdgeDetector implements EdgeDetector {
       Data old = history.poll();
       regression.removeData(old.x(), old.y());
       if (regression.getSlope() < 0) {
-        return absMinIndex;
+        return i + windowSize / 2;
+//        return absMinIndex;
       }
     }
     return absMinIndex;
@@ -94,7 +95,8 @@ public class SlopeEdgeDetector implements EdgeDetector {
       Data old = history.poll();
       regression.removeData(old.x(), old.y());
       if (regression.getSlope() > 0) {
-        return absMinIndex;
+        return i - windowSize / 2;
+//        return absMinIndex;
       }
     }
     return absMinIndex;
