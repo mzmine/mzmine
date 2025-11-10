@@ -24,8 +24,9 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.SimpleRange;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @param peakIndex         Index of the maximum in the original signal
@@ -35,19 +36,19 @@ import org.jetbrains.annotations.Nullable;
  * @param contributingScale A representative scale
  * @param leftBoundaryIndex Boundary indices - mutable, initialized to invalid
  */
-record DetectedPeak(int peakIndex, double peakX, double peakY, double snr, double contributingScale,
-                    int leftBoundaryIndex, int rightBoundaryIndex) implements Peak {
+record DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale, double snr,
+                    int leftBoundaryIndex, int rightBoundaryIndex) {
 
-  public DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale) {
+  DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale) {
     this(peakIndex, peakX, peakY, contributingScale, Double.NaN);
   }
 
-  public DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale,
-      double snr) {
+  DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale, double snr) {
     this(peakIndex, peakX, peakY, snr, contributingScale, -1, -1);
   }
 
-  DetectedPeak(int peakIndex, double peakX, double peakY, double snr, double contributingScale, int leftBoundaryIndex, int rightBoundaryIndex) {
+  DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale, double snr,
+      int leftBoundaryIndex, int rightBoundaryIndex) {
     this.peakIndex = peakIndex;
     this.peakX = peakX;
     this.peakY = peakY;
@@ -63,33 +64,35 @@ record DetectedPeak(int peakIndex, double peakX, double peakY, double snr, doubl
     }
   }
 
-  public DetectedPeak withBoundaries(int left, int right) {
+  DetectedPeak withBoundaries(int left, int right) {
     if (left < 0 || right < 0 || left >= right) {
       throw new IllegalArgumentException("Invalid boundary indices: " + left + ", " + right);
     }
     return new DetectedPeak(peakIndex, peakX, peakY, snr, contributingScale, left, right);
   }
 
-  public DetectedPeak withSNR(double snr) {
-    return new DetectedPeak(peakIndex, peakX, peakY, snr, contributingScale, leftBoundaryIndex,
+  DetectedPeak withSNR(double snr) {
+    return new DetectedPeak(peakIndex, peakX, peakY, contributingScale, snr, leftBoundaryIndex,
         rightBoundaryIndex);
   }
 
-  // Getter for boundary range (optional, for convenience)
-  @Nullable
-  public SimpleRange.SimpleIntegerRange getBoundaryIndexRange(int maxSize) {
-    if (hasValidBoundaries(maxSize)) {
-      return SimpleRange.ofInteger(leftBoundaryIndex, rightBoundaryIndex);
+  @NotNull SimpleRange.SimpleIntegerRange indexRange() {
+    if(rightBoundaryIndex < 0 || leftBoundaryIndex < 0) {
+      throw new IllegalArgumentException("Boundaries not set yet. " + this);
     }
-    return null; // Indicate invalid/not set
+    return SimpleRange.ofInteger(leftBoundaryIndex, rightBoundaryIndex);
   }
 
   // Check if boundaries are validly set
-  public boolean hasValidBoundaries(int maxSize) {
+  boolean hasValidBoundaries(int maxSize) {
     return leftBoundaryIndex >= 0 && rightBoundaryIndex >= 0
         && leftBoundaryIndex <= rightBoundaryIndex && rightBoundaryIndex < maxSize;
   }
 
+  @NotNull
+  public Range<Double> asRtRange(double[] x) {
+    return Range.closed(x[leftBoundaryIndex], x[rightBoundaryIndex]);
+  }
 
   @Override
   public String toString() {
@@ -98,20 +101,5 @@ record DetectedPeak(int peakIndex, double peakX, double peakY, double snr, doubl
         + String.format("%.2f", contributingScale) + ", bounds=[" + leftBoundaryIndex + ","
         + rightBoundaryIndex + "]" // Added boundaries
         + "}";
-  }
-
-  @Override
-  public int index() {
-    return peakIndex;
-  }
-
-  @Override
-  public double scale() {
-    return contributingScale;
-  }
-
-  @Override
-  public double originalY() {
-    return peakY;
   }
 }

@@ -13,9 +13,9 @@ public class AbsoluteMinimumEdgeDetector implements EdgeDetector {
     int numIncreasing = 0;
     int absMinIndex = startIndex;
 
-    while (index > 0 && index < y.length - 2) {
+    while (index > 0 && index < y.length - 1) {
       index += directionStep;
-      if (index > 1 && y[index] < y[absMinIndex]) {
+      if (y[index] < y[absMinIndex]) {
         // still decreasing
         numIncreasing = 0;
         absMinIndex = index;

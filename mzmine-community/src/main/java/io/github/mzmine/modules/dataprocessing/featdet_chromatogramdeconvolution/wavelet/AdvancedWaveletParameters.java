@@ -76,9 +76,11 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
   public static final OptionalParameter<ComboParameter<EdgeDetectors>> edgeDetector = new OptionalParameter<>(new ComboParameter<>(
       "Edge detection", "", EdgeDetectors.values(), EdgeDetectors.ABS_MIN));
 
+  public static final BooleanParameter dipFilter = new BooleanParameter("Dip filter", "", true);
+
   public AdvancedWaveletParameters() {
     super(scales, WAVELET_KERNEL_RADIUS_FACTOR, LOCAL_NOISE_WINDOW_FACTOR, requiredFits,
-        robustnessIteration, edgeDetector);
+        robustnessIteration, edgeDetector, dipFilter);
   }
 
   @Override

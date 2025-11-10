@@ -36,7 +36,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.MathUtils;
-import io.github.mzmine.util.RangeUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,6 +77,7 @@ public class WaveletPeakDetector extends AbstractResolver {
   private final int minFittingScales;
   private final boolean robustnessIteration;
   private final EdgeDetectors edgeDetector;
+  private final boolean dipFilter;
   private double[] yPadded = new double[0];
 
   // ... (constants, fields, constructor) ...
@@ -103,6 +103,8 @@ public class WaveletPeakDetector extends AbstractResolver {
     this.topToEdge = topToEdge;
     edgeDetector = parameterSet.getParameter(WaveletResolverParameters.advancedParameters)
         .getValueOrDefault(AdvancedWaveletParameters.edgeDetector, EdgeDetectors.ABS_MIN);
+    dipFilter = parameterSet.getParameter(WaveletResolverParameters.advancedParameters)
+        .getValueOrDefault(AdvancedWaveletParameters.dipFilter, true);
   }
 
   private static int findClosestLocalMax(double[] y, int initialIndex, int start, int end) {
@@ -151,7 +153,7 @@ public class WaveletPeakDetector extends AbstractResolver {
     final int leftMin = edgeDetector.detectLeftMinimum(y, peakIdx);
     final int rightMin = edgeDetector.detectRightMinimum(y, peakIdx);
 
-    if (rightMin - leftMin < minDataPoints) {
+    if (leftMin >= rightMin || rightMin - leftMin < minDataPoints) {
       return null;
     }
 
@@ -214,20 +216,58 @@ public class WaveletPeakDetector extends AbstractResolver {
     logger.finest("Second noise pass removed %d signals".formatted(
         finalDetectedPeaks.size() - secondPassPeaks.size()));
 
-    final List<PeakRange> finalPeakRanges = convertPeaksToPeakRanges(secondPassPeaks, x);
-
     // Merge Overlapping / Proximal Peaks
-    final List<Range<Double>> mergedRanges = mergePeakRanges(finalPeakRanges, mergeProximityFactor,
-        x, y);
+    final List<DetectedPeak> mergedPeaks = mergePeakRanges(secondPassPeaks, mergeProximityFactor, x,
+        y);
 
-    // Sort final ranges by start time
-    mergedRanges.sort(Comparator.comparing(Range::lowerEndpoint));
+    List<DetectedPeak> dipFilteredPeaks = dipFilter ? dipFilter(mergedPeaks, y) : mergedPeaks;
 
-    /*return finalPeakRanges.stream().map(p -> {
-      final Range<Integer> range = p.indexRange();
-      return Range.closed(x[range.lowerEndpoint()], x[range.upperEndpoint()]);
-    }).toList();*/
-    return mergedRanges;
+    return dipFilteredPeaks.stream().map(p -> p.asRtRange(x))
+        .sorted(Comparator.comparing(Range::lowerEndpoint)).toList();
+  }
+
+  /**
+   * Ion suppression or spray instability may lead to dips in the baseline, which may be detected as
+   * two peaks (one on the left, one on the right)
+   *
+   * @param peaks
+   * @param y
+   * @return
+   */
+  private List<DetectedPeak> dipFilter(List<DetectedPeak> peaks, double[] y) {
+    final List<DetectedPeak> dipFiltered = new ArrayList<>(peaks.size());
+
+    boolean lastPeakRemoved = false;
+    for (int i = 0; i < peaks.size() - 1; i++) {
+      final DetectedPeak current = peaks.get(i);
+      final DetectedPeak next = peaks.get(i + 1);
+
+      if (current.rightBoundaryIndex() != next.leftBoundaryIndex()) {
+        // not connect, keep
+        dipFiltered.add(current);
+        continue;
+      }
+
+      final double[] edgeAndTop = new double[]{y[current.leftBoundaryIndex()],
+          y[current.peakIndex()], y[next.peakIndex()], y[next.rightBoundaryIndex()]};
+      final double avg = MathUtils.calcAvg(edgeAndTop);
+
+      if (Arrays.stream(edgeAndTop).allMatch(value -> avg * 0.7 < value && avg * 1.3 > value)) {
+//        logger.finest("Dip detected at " + prev.toString() + " and " + current.toString());
+        i++; // avoid both peaks.
+        if (i == peaks.size() - 1) {
+          lastPeakRemoved = true;
+        }
+        continue;
+      }
+      dipFiltered.add(current);
+    }
+
+    if (!lastPeakRemoved) {
+      dipFiltered.add(peaks.getLast());
+    }
+
+    return dipFiltered;
   }
 
   private double[][] calculateCWT(double[] y, double[] scales) {
@@ -399,11 +439,12 @@ public class WaveletPeakDetector extends AbstractResolver {
     List<DetectedPeak> peaksWithBounds = new ArrayList<>(peaks.size() / 2);
     for (DetectedPeak peak : peaks) {
       final var peakWithBounds = findAndSetBoundaryWithTolerance(y, peak,
-          peakScaleToDipTolerance(peak.scale()));
+          peakScaleToDipTolerance(peak.contributingScale()));
       if (peakWithBounds != null) {
         peaksWithBounds.add(peakWithBounds);
       }
     }
+    peaksWithBounds.sort(Comparator.comparingInt(DetectedPeak::leftBoundaryIndex));
     return peaksWithBounds;
   }
 
@@ -420,10 +461,8 @@ public class WaveletPeakDetector extends AbstractResolver {
     // *** Build combined exclusion zones from peak boundaries ***
     final RangeSet<Integer> allPeakExclusionZones = TreeRangeSet.create();
     for (DetectedPeak peak : peaks) {
-      final SimpleIntegerRange boundaries = peak.getBoundaryIndexRange(n);
-      if (boundaries != null) {
-        allPeakExclusionZones.add(boundaries.guava());
-      }
+      final SimpleIntegerRange boundaries = peak.indexRange();
+      allPeakExclusionZones.add(boundaries.guava());
     }
 
     for (final DetectedPeak peak : peaks) {
@@ -543,78 +582,43 @@ public class WaveletPeakDetector extends AbstractResolver {
 //    }
 //  }
 
-  /**
-   * Converts final peaks (with boundaries set) to PeakRange objects. Reads boundary indices
-   * directly from the peak objects.
-   *
-   * @param peaks The final list of detected peaks with boundaries set.
-   * @param x     The X-coordinate array.
-   * @return A list of PeakRange objects ready for merging.
-   */
-  private List<PeakRange> convertPeaksToPeakRanges(List<DetectedPeak> peaks, double[] x) {
-    List<PeakRange> peakRanges = new ArrayList<>();
-    if (peaks == null || x == null) {
+  private List<DetectedPeak> mergePeakRanges(@NotNull List<DetectedPeak> peakRanges,
+      double proximityFactor, double[] x, double[] y) {
+    if (peakRanges.size() <= 1) {
       return peakRanges;
     }
 
-    for (DetectedPeak peak : peaks) {
-      // *** Get boundaries directly from the peak object ***
-      if (peak.hasValidBoundaries(x.length)) {
-        final int leftIdx = peak.leftBoundaryIndex();
-        final int rightIdx = peak.rightBoundaryIndex();
+    peakRanges.sort(Comparator.comparingDouble(pr -> pr.leftBoundaryIndex()));
+    LinkedList<DetectedPeak> merged = new LinkedList<>();
 
-        // Check indices are valid for x array access
-        peakRanges.add(
-            new PeakRange(Range.closed(x[leftIdx], x[rightIdx]), Range.closed(leftIdx, rightIdx),
-                peak.peakIndex(), peak.peakX(), peak.peakY()));
-      }
-    }
-
-    return peakRanges;
-  }
-
-  private List<Range<Double>> mergePeakRanges(List<PeakRange> peakRanges, double proximityFactor,
-      double[] x, double[] y) {
-    if (peakRanges == null || peakRanges.size() <= 1) {
-      return peakRanges.stream().map(PeakRange::range).collect(Collectors.toList());
-    }
-
-    peakRanges.sort(Comparator.comparingDouble(pr -> pr.range().lowerEndpoint()));
-    LinkedList<PeakRange> merged = new LinkedList<>();
-
-    for (PeakRange current : peakRanges) {
+    for (DetectedPeak current : peakRanges) {
       if (merged.isEmpty()) {
         merged.add(current);
       } else {
-        PeakRange previous = merged.getLast();
+        final DetectedPeak previous = merged.getLast();
         boolean shouldMerge = false;
 
-        if (previous.range().isConnected(current.range())) {
-          // more than 40 % range length overlap || Todo: or check if one peak enlcoses max of the other
-          if ((previous.indexRange().encloses(current.indexRange()) || current.indexRange()
-              .encloses(previous.indexRange())) || (
-              previous.indexRange().contains(current.peakIndex()) || current.indexRange()
-                  .contains(previous.peakIndex()))) {
+        if (previous.indexRange().isConnected(current.indexRange())) {
+          // check if one peak enlcoses max of the other
+          if (previous.indexRange().contains(current.peakIndex()) || current.indexRange()
+              .contains(previous.peakIndex())) {
             shouldMerge = true;
           } else {
-            final int minIndex = ArrayUtils.indexOfMin(y, current.indexRange().lowerEndpoint(),
-                previous.indexRange().upperEndpoint() + 1);
+            final int minIndex = ArrayUtils.indexOfMin(y, current.indexRange().lower(),
+                previous.indexRange().upper() + 1);
             merged.removeLast();
             // replace previous peak with end in local minimum
-            merged.add(previous.withIndexRange(
-                Range.closed(previous.indexRange().lowerEndpoint(), minIndex), x));
+            merged.add(previous.withBoundaries(previous.indexRange().lower(), minIndex));
 
-            if (minIndex < current.peakIndex() && minIndex < current.indexRange().upperEndpoint()) {
+            if (minIndex < current.peakIndex() && minIndex < current.indexRange().upper()) {
               // replace current peak with new start point
-              current = current.withIndexRange(
-                  Range.closed(minIndex, current.indexRange().upperEndpoint()), x);
+              current = current.withBoundaries(minIndex, current.indexRange().upper());
             }
           }
         } else if (proximityFactor > 0) {
           final double prevWidth =
-              previous.range().upperEndpoint() - previous.range().lowerEndpoint();
-          final double currWidth =
-              current.range().upperEndpoint() - current.range().lowerEndpoint();
+              x[previous.rightBoundaryIndex()] - x[previous.leftBoundaryIndex()];
+          final double currWidth = x[current.rightBoundaryIndex()] - x[current.leftBoundaryIndex()];
           double avgWidth = (prevWidth + currWidth) / 2.0;
           if (avgWidth <= 0) {
             avgWidth = Math.max(Math.abs(previous.peakX() - current.peakX()) / 4.0, 1e-6);
@@ -626,18 +630,17 @@ public class WaveletPeakDetector extends AbstractResolver {
         }
 
         if (shouldMerge) {
-          Range<Double> mergedRange = Range.closed(previous.range().lowerEndpoint(),
-              Math.max(previous.range().upperEndpoint(), current.range().upperEndpoint()));
-          Range<Integer> mergedIndexRange = Range.closed(previous.indexRange().lowerEndpoint(),
-              Math.max(previous.indexRange().upperEndpoint(),
-                  current.indexRange().upperEndpoint()));
-          PeakRange mergedPeakRange;
+          Range<Integer> mergedRange = Range.closed(previous.leftBoundaryIndex(),
+              Math.max(previous.rightBoundaryIndex(), current.rightBoundaryIndex()));
+          final DetectedPeak mergedPeakRange;
           if (current.peakY() >= previous.peakY()) {
-            mergedPeakRange = new PeakRange(mergedRange, mergedIndexRange, current.peakIndex(),
-                current.peakX(), current.peakY());
+            mergedPeakRange = new DetectedPeak(current.peakIndex(), current.peakX(),
+                current.peakY(), current.contributingScale(), current.snr(),
+                mergedRange.lowerEndpoint(), mergedRange.upperEndpoint());
           } else {
-            mergedPeakRange = new PeakRange(mergedRange, mergedIndexRange, previous.peakIndex(),
-                previous.peakX(), previous.peakY());
+            mergedPeakRange = new DetectedPeak(previous.peakIndex(), previous.peakX(),
+                previous.peakY(), previous.contributingScale(), previous.snr(),
+                mergedRange.lowerEndpoint(), mergedRange.upperEndpoint());
           }
           merged.removeLast();
           merged.add(mergedPeakRange);
@@ -647,8 +650,7 @@ public class WaveletPeakDetector extends AbstractResolver {
       }
     }
 
-    return merged.stream().filter(r -> RangeUtils.rangeLength(r.indexRange()) >= minDataPoints)
-        .map(PeakRange::range).collect(Collectors.toList());
+    return merged;
   }
 
   @Override
