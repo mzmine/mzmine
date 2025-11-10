@@ -189,7 +189,7 @@ public class IonTypeCreatorPane extends BorderPane {
   private void ionParsingValidation(TextField inputText) {
     StringBinding errorBinding = Bindings.createStringBinding(() -> {
       IonType value = parsedIonType.getValue();
-      if (value == null && !inputText.getText().isBlank()) {
+      if (value == null && StringUtils.hasValue(inputText.getText())) {
         return "Cannot parse ion type for %s. Input correct format, e.g., [2M-H2O+2H]+2 or M+ACN+H".formatted(
             parsedIonTypeString.getValue());
       }
