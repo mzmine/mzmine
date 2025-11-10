@@ -24,45 +24,62 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet;
 
-import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange;
 import org.jetbrains.annotations.Nullable;
-class DetectedPeak implements Peak {
 
-  final int peakIndex;     // Index of the maximum in the original signal
-  final double peakX;      // X value of the maximum
-  final double peakY;      // Y value of the maximum
-  double snr;         // Calculated SNR  - mutable
-  final double contributingScale; // A representative scale
+/**
+ * @param peakIndex         Index of the maximum in the original signal
+ * @param peakX             X value of the maximum
+ * @param peakY             Y value of the maximum
+ * @param snr               Calculated SNR  - mutable
+ * @param contributingScale A representative scale
+ * @param leftBoundaryIndex Boundary indices - mutable, initialized to invalid
+ */
+record DetectedPeak(int peakIndex, double peakX, double peakY, double snr, double contributingScale,
+                    int leftBoundaryIndex, int rightBoundaryIndex) implements Peak {
 
-  // Boundary indices - mutable, initialized to invalid
-  int leftBoundaryIndex = -1;
-  int rightBoundaryIndex = -1;
+  public DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale) {
+    this(peakIndex, peakX, peakY, contributingScale, Double.NaN);
+  }
 
-  public DetectedPeak(int peakIndex, double peakX, double peakY, double snr, double contributingScale) {
+  public DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale,
+      double snr) {
+    this(peakIndex, peakX, peakY, snr, contributingScale, -1, -1);
+  }
+
+  DetectedPeak(int peakIndex, double peakX, double peakY, double snr, double contributingScale, int leftBoundaryIndex, int rightBoundaryIndex) {
     this.peakIndex = peakIndex;
     this.peakX = peakX;
     this.peakY = peakY;
     this.snr = snr; // Allow updating SNR later
     this.contributingScale = contributingScale;
+    this.leftBoundaryIndex = leftBoundaryIndex;
+    this.rightBoundaryIndex = rightBoundaryIndex;
+
+    if (leftBoundaryIndex < -1 || rightBoundaryIndex < -1
+        || leftBoundaryIndex > rightBoundaryIndex) {
+      throw new IllegalArgumentException(
+          "Invalid boundary indices: " + leftBoundaryIndex + ", " + rightBoundaryIndex);
+    }
   }
 
-  // Setter for boundary indices
-  public void setBoundaryIndices(int left, int right) {
-    // Add basic validation if desired
-    if (left <= right && left >= 0) { // Basic check
-      this.leftBoundaryIndex = left;
-      this.rightBoundaryIndex = right;
-    } else {
-      this.leftBoundaryIndex = -1; // Mark as invalid
-      this.rightBoundaryIndex = -1;
+  public DetectedPeak withBoundaries(int left, int right) {
+    if (left < 0 || right < 0 || left >= right) {
+      throw new IllegalArgumentException("Invalid boundary indices: " + left + ", " + right);
     }
+    return new DetectedPeak(peakIndex, peakX, peakY, snr, contributingScale, left, right);
+  }
+
+  public DetectedPeak withSNR(double snr) {
+    return new DetectedPeak(peakIndex, peakX, peakY, snr, contributingScale, leftBoundaryIndex,
+        rightBoundaryIndex);
   }
 
   // Getter for boundary range (optional, for convenience)
   @Nullable
-  public Range<Integer> getBoundaryIndexRange(int maxSize) {
+  public SimpleRange.SimpleIntegerRange getBoundaryIndexRange(int maxSize) {
     if (hasValidBoundaries(maxSize)) {
-      return Range.closed(leftBoundaryIndex, rightBoundaryIndex);
+      return SimpleRange.ofInteger(leftBoundaryIndex, rightBoundaryIndex);
     }
     return null; // Indicate invalid/not set
   }

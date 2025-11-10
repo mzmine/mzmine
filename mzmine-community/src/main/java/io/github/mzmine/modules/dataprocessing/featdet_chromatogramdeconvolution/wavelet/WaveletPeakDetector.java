@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
+import io.github.mzmine.datamodel.SimpleRange.SimpleIntegerRange;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
@@ -135,55 +136,14 @@ public class WaveletPeakDetector extends AbstractResolver {
     }*/
   }
 
-  private static void findAndSetLocalMinimaBoundary(double[] y, DetectedPeak peak) {
-    final int numPoints = y.length;
-    final int peakIdx = peak.peakIndex;
-
-    if (peakIdx < 0 || peakIdx >= numPoints) {
-      logger.warning("Invalid peak index " + peakIdx + " encountered during boundary finding.");
-      peak.setBoundaryIndices(-1, -1); // Mark as invalid
-      return;
-    }
-
-    // --- Find Left Boundary Index ---
-    int leftIdx = peakIdx;
-    while (leftIdx > 0) {
-      if (y[leftIdx - 1] > y[leftIdx]) { // Valley minimum found
-        break;
-      }
-      if (leftIdx >= 2 && isNearZero(y[leftIdx - 1]) && isNearZero(y[leftIdx - 2])) {
-        leftIdx--; // Include the first zero
-        break;
-      }
-      leftIdx--;
-    }
-
-    // --- Find Right Boundary Index ---
-    int rightIdx = peakIdx;
-    while (rightIdx < numPoints - 1) {
-      if (y[rightIdx + 1] > y[rightIdx]) { // Valley minimum found
-        break;
-      }
-      if (rightIdx <= numPoints - 3 && isNearZero(y[rightIdx + 1]) && isNearZero(y[rightIdx + 2])) {
-        rightIdx++; // Include the first zero
-        break;
-      }
-      rightIdx++;
-    }
-
-    // *** Set boundaries on the peak object ***
-    peak.setBoundaryIndices(leftIdx, rightIdx);
-  }
-
   @Nullable
   private DetectedPeak findAndSetBoundaryWithTolerance(double[] y, DetectedPeak peak,
       final int numTol) {
     final int numPoints = y.length;
-    final int peakIdx = peak.peakIndex;
+    final int peakIdx = peak.peakIndex();
 
     if (peakIdx < 0 || peakIdx >= numPoints) {
       logger.warning("Invalid peak index " + peakIdx + " encountered during boundary finding.");
-      peak.setBoundaryIndices(-1, -1); // Mark as invalid
       return null;
     }
 
@@ -196,15 +156,7 @@ public class WaveletPeakDetector extends AbstractResolver {
     }
 
     // *** Set boundaries on the peak object ***
-    peak.setBoundaryIndices(leftMin, rightMin);
-    return peak;
-  }
-
-  /**
-   * Helper to check if a value is close to zero
-   */
-  private static boolean isNearZero(double value) {
-    return Math.abs(value) < ZERO_THRESHOLD;
+    return peak.withBoundaries(leftMin, rightMin);
   }
 
   private static int peakScaleToDipTolerance(double scale) {
@@ -468,9 +420,9 @@ public class WaveletPeakDetector extends AbstractResolver {
     // *** Build combined exclusion zones from peak boundaries ***
     final RangeSet<Integer> allPeakExclusionZones = TreeRangeSet.create();
     for (DetectedPeak peak : peaks) {
-      final Range<Integer> boundaries = peak.getBoundaryIndexRange(n);
+      final SimpleIntegerRange boundaries = peak.getBoundaryIndexRange(n);
       if (boundaries != null) {
-        allPeakExclusionZones.add(boundaries);
+        allPeakExclusionZones.add(boundaries.guava());
       }
     }
 
@@ -481,9 +433,9 @@ public class WaveletPeakDetector extends AbstractResolver {
             "Skipping SNR calculation for peak " + peak.toString() + " due to invalid boundaries.");
         continue; // Skip if boundaries are not valid
       }
-      final int leftEdgeIdx = peak.leftBoundaryIndex;
-      final int rightEdgeIdx = peak.rightBoundaryIndex;
-      final double scale = peak.contributingScale;
+      final int leftEdgeIdx = peak.leftBoundaryIndex();
+      final int rightEdgeIdx = peak.rightBoundaryIndex();
+      final double scale = peak.contributingScale();
       if (rightEdgeIdx - leftEdgeIdx < minDataPoints) {
         continue;
       }
@@ -533,10 +485,9 @@ public class WaveletPeakDetector extends AbstractResolver {
         if (localBaseline == 0) {
           continue;
         }
-        final double fallbackSnr = peak.peakY / localBaseline;
+        final double fallbackSnr = peak.peakY() / localBaseline;
         if (fallbackSnr > minSnr) {
-          peak.snr = fallbackSnr;
-          finalPeaks.add(peak);
+          finalPeaks.add(peak.withSNR(fallbackSnr));
         }
         continue;
       }
@@ -546,7 +497,7 @@ public class WaveletPeakDetector extends AbstractResolver {
           localBaseline);
 
       // --- Calculate SNR ---
-      final double signalHeight = peak.peakY - localBaseline;
+      final double signalHeight = peak.peakY() - localBaseline;
       if (signalHeight <= 0) {
         continue;
       }
@@ -555,10 +506,9 @@ public class WaveletPeakDetector extends AbstractResolver {
 
       // --- Filter based on local SNR ---
       if (localSnr >= minSnr || (topToEdge != null && localBaseline > 0.0
-          && peak.peakY / localBaseline >= topToEdge)) {
+          && peak.peakY() / localBaseline >= topToEdge)) {
         // Update the SNR on the existing peak object before adding
-        peak.snr = localSnr;
-        finalPeaks.add(peak); // Add the peak that passed
+        finalPeaks.add(peak.withSNR(localSnr)); // Add the peak that passed
       }
     }
     return finalPeaks;
@@ -577,7 +527,7 @@ public class WaveletPeakDetector extends AbstractResolver {
           yield 1.4826 * localMad;
         } catch (IllegalArgumentException madEx) {
           logger.warning(
-              "Warning: Could not calculate local MAD for peak at index " + peak.peakIndex + ": "
+              "Warning: Could not calculate local MAD for peak at index " + peak.peakIndex() + ": "
                   + madEx.getMessage() + ". Assuming zero noise.");
           yield 0.0; // Assume zero if MAD fails
         }
@@ -601,8 +551,7 @@ public class WaveletPeakDetector extends AbstractResolver {
    * @param x     The X-coordinate array.
    * @return A list of PeakRange objects ready for merging.
    */
-  private List<PeakRange> convertPeaksToPeakRanges(List<DetectedPeak> peaks,
-      double[] x) { // Removed map parameter
+  private List<PeakRange> convertPeaksToPeakRanges(List<DetectedPeak> peaks, double[] x) {
     List<PeakRange> peakRanges = new ArrayList<>();
     if (peaks == null || x == null) {
       return peakRanges;
@@ -611,15 +560,16 @@ public class WaveletPeakDetector extends AbstractResolver {
     for (DetectedPeak peak : peaks) {
       // *** Get boundaries directly from the peak object ***
       if (peak.hasValidBoundaries(x.length)) {
-        final int leftIdx = peak.leftBoundaryIndex;
-        final int rightIdx = peak.rightBoundaryIndex;
+        final int leftIdx = peak.leftBoundaryIndex();
+        final int rightIdx = peak.rightBoundaryIndex();
 
         // Check indices are valid for x array access
         peakRanges.add(
             new PeakRange(Range.closed(x[leftIdx], x[rightIdx]), Range.closed(leftIdx, rightIdx),
-                peak.peakIndex, peak.peakX, peak.peakY));
+                peak.peakIndex(), peak.peakX(), peak.peakY()));
       }
     }
+
     return peakRanges;
   }
 
