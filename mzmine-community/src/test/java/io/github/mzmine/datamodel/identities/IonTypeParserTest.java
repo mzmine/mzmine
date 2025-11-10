@@ -66,7 +66,7 @@ class IonTypeParserTest {
   @Test
   void testIonTypeParsingMultiple() {
     final String[] string = new String[]{"[M +NH4]+", "[M-H2O+H]+", "[M -2H2O +H] +",
-        "[M-H2O -H+2Na]+"};
+        "[M -H2O -H +2Na]+"};
 
     for (String s : string) {
       IonType ionType = IonTypeParser.parse(s);
@@ -99,8 +99,8 @@ class IonTypeParserTest {
     testIonParser("M+H+", "[M+H]+", 1, 1, 0);
     testIonParser("[M+CH3]+", "[M+CH3]+", 1, 1, 1);
     testIonParser("[M-H+CH3]+", "[M+CH3-H]+", 1, 1, 1);
-    testIonParser("[M-H+Fe]2+", "[M+Fe-H]2+", 1, 2, 0);
-    testIonParser("[M-H+Fe]+2", "[M+Fe-H]2+", 1, 2, 0);
+    testIonParser("[M-H+Fe]2+", "[M-H+Fe]2+", 1, 2, 0);
+    testIonParser("[M-H+Fe]+2", "[M-H+Fe]2+", 1, 2, 0);
     testIonParser("M+e", "[M+e]-", 1, -1, 0);
     testIonParser("M+2e", "[M+2e]2-", 1, -2, 0);
     testIonParser("M-e", "[M-e]+", 1, 1, 0);

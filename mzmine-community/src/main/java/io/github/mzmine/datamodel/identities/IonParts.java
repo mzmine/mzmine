@@ -36,6 +36,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class IonParts {
@@ -158,28 +159,36 @@ public class IonParts {
 
 
   /**
-   * merges duplicate parts (all matching properties excluding the count)
+   * merges duplicate parts (all matching properties excluding the count). If after merging a part
+   * has count==0 it is removed from the list. Like when adding and removing a 'Na'.
    *
    * @param parts may contain duplicates
    * @return unmodifiable list of ion parts
    */
-  public static List<IonPart> mergeDuplicates(IonPart... parts) {
+  public static List<IonPart> mergeDuplicates(@NotNull IonPart... parts) {
     return mergeDuplicates(List.of(parts));
   }
 
   /**
-   * merges duplicate parts (all matching properties excluding the count)
+   * merges duplicate parts (all matching properties excluding the count). If after merging a part
+   * has count==0 it is removed from the list. Like when adding and removing a 'Na'.
    *
    * @param parts may contain duplicates
    * @return unmodifiable list of ion parts
    */
-  public static List<IonPart> mergeDuplicates(Collection<IonPart> parts) {
+  @NotNull
+  public static List<IonPart> mergeDuplicates(@Nullable Collection<IonPart> parts) {
+    if (parts == null) {
+      return List.of();
+    }
     // use trick to create a copy with count 1 to group all parts based on the other properties but not count
     final Collection<List<IonPart>> groupedDuplicates = parts.stream().filter(Objects::nonNull)
         .collect(Collectors.groupingBy(type -> type.withCount(1))).values();
     // merge duplicates into one and return new list
     //noinspection DataFlowIssue,OptionalGetWithoutIsPresent
     return groupedDuplicates.stream()
-        .map(duplicates -> duplicates.stream().reduce(IonPart::merge).get()).toList();
+        .map(duplicates -> duplicates.stream().reduce(IonPart::merge).get())
+        // require count !=0 to only keep parts that matter
+        .filter(part -> part.count() != 0).toList();
   }
 }

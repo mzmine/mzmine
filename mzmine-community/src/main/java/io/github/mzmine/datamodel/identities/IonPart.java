@@ -201,7 +201,7 @@ public record IonPart(@NotNull String name,
 
   /**
    * @return A merged IonPart if both ions match completely, excluding their count field. Otherwise,
-   * null or null if both a and b are null.
+   * null or null if both a and b are null. The result may have a count of 0.
    */
   @Nullable
   public static IonPart merge(@Nullable IonPart a, @Nullable IonPart b) {
@@ -214,12 +214,14 @@ public record IonPart(@NotNull String name,
     if (b == null) {
       return a;
     }
-    if (!a.equals(b)) {
+    // disregard count for matching to only rely on mass etc
+    if (!a.equalsWithoutCount(b)) {
       throw new IllegalArgumentException(
           "A and B define IonParts with different properties and cannot be merged %s and %s".formatted(
               a, b));
     }
-    return a.withCount(a.count + b.count);
+    final int total = a.count + b.count;
+    return a.withCount(total);
   }
 
   /**

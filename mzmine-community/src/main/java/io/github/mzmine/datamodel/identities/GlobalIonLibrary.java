@@ -28,7 +28,8 @@ package io.github.mzmine.datamodel.identities;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
-import io.github.mzmine.datamodel.identities.fx.sub.IonSorting;
+import io.github.mzmine.datamodel.identities.fx.sub.IonPartSorting;
+import io.github.mzmine.datamodel.identities.fx.sub.IonTypeSorting;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.maths.Precision;
 import java.io.File;
@@ -137,7 +138,7 @@ public final class GlobalIonLibrary {
   public static @NotNull GlobalIonLibrary getGlobalLibrary() {
     File file = getGlobalFile();
     if (globalLibrary == null || (file.exists()
-                                  && file.lastModified() != globalFileLastModified.get())) {
+        && file.lastModified() != globalFileLastModified.get())) {
       globalLibrary = loadGlobalIonLibrary();
     }
 
@@ -203,7 +204,7 @@ public final class GlobalIonLibrary {
       } catch (IOException e) {
         logger.log(Level.WARNING,
             "Cannot initialize ion libraries file in: " + file.getAbsolutePath()
-            + ". Will continue with default list of ions.", e);
+                + ". Will continue with default list of ions.", e);
       }
     }
 
@@ -282,7 +283,7 @@ public final class GlobalIonLibrary {
     }
 
     // sort
-    merged.sort(IonSorting.getIonPartDefault().createIonPartComparator());
+    merged.sort(IonPartSorting.DEFAULT_NEUTRAL_THEN_LOSSES_THEN_ADDED.getComparator());
     merged.trimToSize();
     return merged;
   }
@@ -326,7 +327,7 @@ public final class GlobalIonLibrary {
     }
 
     // sort by mz etc
-    merged.sort(IonSorting.getIonTypeDefault().createIonTypeComparator());
+    merged.sort(IonTypeSorting.getIonTypeDefault().getComparator());
 
     // trim
     merged.trimToSize();
@@ -383,7 +384,7 @@ public final class GlobalIonLibrary {
   @Override
   public String toString() {
     return "GlobalIonLibrary[" + "partDefinitions=" + partDefinitions + ", " + "singletonParts="
-           + singletonParts + ", " + "ionTypes=" + ionTypes + ']';
+        + singletonParts + ", " + "ionTypes=" + ionTypes + ']';
   }
 
 

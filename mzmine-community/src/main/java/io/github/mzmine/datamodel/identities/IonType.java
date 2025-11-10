@@ -31,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
-import io.github.mzmine.datamodel.identities.fx.sub.IonSorting;
+import io.github.mzmine.datamodel.identities.fx.sub.IonPartSorting;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.FormulaUtils;
@@ -59,34 +59,21 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * all the remaining charge. If there are two undefined parts the charge will be distributed
  * randomly. Try adding common names to {@link CompoundsByNames}.
  *
- * @param name        parsed name from all parts
- * @param parts       unmodifiable list of ion parts
- * @param totalMass   total singed mass difference from ion parts
- * @param totalCharge total charge from all ion parts
- * @param molecules   number of M molecules in cluster, e.g., M or 2M
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> parts, double totalMass,
-                      int totalCharge, int molecules) {
+public final class IonType {
 
-  public static final String XML_ELEMENT = "iontype";
-
-  public static final Comparator<IonType> DEFAULT_ION_ADDUCT_SORTER = Comparator.comparingDouble(
-      IonType::totalCharge).thenComparingDouble(IonType::totalMass);
-
-  public IonType withMolecules(final int molecules) {
-    return IonType.create(parts, molecules);
-  }
-
-  public static IonType create(@NotNull IonPart... parts) {
-    return create(List.of(parts), 1);
-  }
-
-  public static IonType create(@NotNull List<@NotNull IonPart> parts, int molecules) {
+  /**
+   * handles the sorting and everything for the parts
+   *
+   * @param parts
+   * @param molecules
+   */
+  IonType(@NotNull List<@NotNull IonPart> parts, int molecules) {
     // requires to merge all the same IonParts into single objects by adding up their count multiplier
     // sort so that name will be correct
     parts = IonParts.mergeDuplicates(parts).stream()
-        .sorted(IonSorting.getIonPartDefault().createIonPartComparator()).toList();
+        .sorted(IonPartSorting.DEFAULT_NEUTRAL_THEN_LOSSES_THEN_ADDED.getComparator()).toList();
 
     double totalMass = 0;
     int totalCharge = 0;
@@ -100,7 +87,35 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
         .collect(Collectors.joining());
     String M = molecules > 1 ? molecules + "M" : "M";
     String name = "[" + M + ionParts + "]" + IonUtils.getChargeString(totalCharge);
-    return new IonType(name, parts, totalMass, totalCharge, molecules);
+
+    this.name = name;
+    this.parts = parts;
+    this.totalMass = totalMass;
+    this.totalCharge = totalCharge;
+    this.molecules = molecules;
+  }
+
+  public static final String XML_ELEMENT = "iontype";
+
+  public static final Comparator<IonType> DEFAULT_ION_ADDUCT_SORTER = Comparator.comparingDouble(
+      IonType::totalCharge).thenComparingDouble(IonType::totalMass);
+  private final @NotNull String name;
+  private final @NotNull List<@NotNull IonPart> parts;
+  private final double totalMass;
+  private final int totalCharge;
+  private final int molecules;
+
+
+  public IonType withMolecules(final int molecules) {
+    return IonType.create(parts, molecules);
+  }
+
+  public static IonType create(@NotNull IonPart... parts) {
+    return create(List.of(parts), 1);
+  }
+
+  public static IonType create(@NotNull List<@NotNull IonPart> parts, int molecules) {
+    return new IonType(parts, molecules);
   }
 
   /**
@@ -259,7 +274,7 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
    */
   public boolean sameMathDifference(IonType adduct) {
     return sameMassDifference(adduct) && totalCharge == adduct.totalCharge
-           && molecules == adduct.molecules;
+        && molecules == adduct.molecules;
   }
 
   /**
@@ -329,8 +344,8 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
     }
 
     return molecules == ionType.molecules && totalCharge == ionType.totalCharge
-           && Double.compare(totalMass, ionType.totalMass) == 0 && name.equals(ionType.name)
-           && parts.equals(ionType.parts);
+        && Double.compare(totalMass, ionType.totalMass) == 0 && name.equals(ionType.name)
+        && parts.equals(ionType.parts);
   }
 
   @Override
@@ -342,6 +357,27 @@ public record IonType(@NotNull String name, @NotNull List<@NotNull IonPart> part
     result = 31 * result + molecules;
     return result;
   }
+
+  public @NotNull String name() {
+    return name;
+  }
+
+  public @NotNull List<@NotNull IonPart> parts() {
+    return parts;
+  }
+
+  public double totalMass() {
+    return totalMass;
+  }
+
+  public int totalCharge() {
+    return totalCharge;
+  }
+
+  public int molecules() {
+    return molecules;
+  }
+
 
   public enum IonTypeStringFlavor {
     /**

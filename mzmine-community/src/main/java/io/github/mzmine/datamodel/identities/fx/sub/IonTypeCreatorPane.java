@@ -87,8 +87,8 @@ public class IonTypeCreatorPane extends BorderPane {
 
 
   // additional properties for the list view
-  private final ObjectProperty<IonSorting> listSorting = new SimpleObjectProperty<>(
-      IonSorting.getIonTypeDefault());
+  private final ObjectProperty<IonTypeSorting> listSorting = new SimpleObjectProperty<>(
+      IonTypeSorting.getIonTypeDefault());
 
   public IonTypeCreatorPane(ObservableList<IonType> types) {
     setPadding(DEFAULT_PADDING_INSETS);
@@ -126,7 +126,7 @@ public class IonTypeCreatorPane extends BorderPane {
     // create a list view with addtional controls for sorting and filtering
     // sorting:
     final HBox sortingCombo = FxComboBox.createLabeledComboBox("Sort by:",
-        FXCollections.observableList(List.of(IonSorting.values())), listSorting);
+        FXCollections.observableList(List.of(IonTypeSorting.values())), listSorting);
 
     final List<Node> additionalNodes = List.of(sortingCombo);
     final List<MenuControls> stdButtons = List.of(MenuControls.CLEAR_BTN, MenuControls.REMOVE_BTN);
@@ -139,8 +139,7 @@ public class IonTypeCreatorPane extends BorderPane {
         param -> new MappingListCell<>(ion -> ion.toString(IonTypeStringFlavor.FULL_WITH_MASS)));
 
     // set comparator and filter
-    listSorting.subscribe(
-        nv -> typeListView.sortingComparatorProperty().set(nv.createIonTypeComparator()));
+    listSorting.subscribe(nv -> typeListView.sortingComparatorProperty().set(nv.getComparator()));
 
     // apply filter now:
     return typeListView;

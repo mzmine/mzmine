@@ -101,8 +101,8 @@ public class IonPartCreatorPane extends BorderPane {
   private final ReadOnlyObjectWrapper<IonPart> part = new ReadOnlyObjectWrapper<>();
 
   // additional properties for the list view
-  private final ObjectProperty<IonSorting> listSorting = new SimpleObjectProperty<>(
-      IonSorting.getIonPartDefault());
+  private final ObjectProperty<IonPartSorting> listSorting = new SimpleObjectProperty<>(
+      IonPartSorting.DEFAULT_NEUTRAL_THEN_LOSSES_THEN_ADDED);
   private final ValidationSupport validator = FxValidation.newValidationSupport();
 
 
@@ -121,7 +121,7 @@ public class IonPartCreatorPane extends BorderPane {
     // create a list view with addtional controls for sorting and filtering
     // sorting:
     final HBox sortingCombo = FxComboBox.createLabeledComboBox("Sort by:",
-        FXCollections.observableList(IonSorting.valuesForIonTypes()), listSorting);
+        FXCollections.observableList(List.of(IonPartSorting.values())), listSorting);
 
     final CheckComboBox<Type> filterTypeCombo = FxComboBox.createCheckComboBox(
         "Show only elements that match the selected types.", List.of(Type.values()));
@@ -134,8 +134,7 @@ public class IonPartCreatorPane extends BorderPane {
         SelectionMode.MULTIPLE, Position.TOP, Pos.CENTER_LEFT, stdButtons, additionalNodes);
 
     // set comparator and filter
-    listSorting.subscribe(
-        nv -> partListView.sortingComparatorProperty().set(nv.createIonPartComparator()));
+    listSorting.subscribe(nv -> partListView.sortingComparatorProperty().set(nv.getComparator()));
 
     // apply filter now:
     filterTypeCombo.getCheckModel().getCheckedItems().addListener(
