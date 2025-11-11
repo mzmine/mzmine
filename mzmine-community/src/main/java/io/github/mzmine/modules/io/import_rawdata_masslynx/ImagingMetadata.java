@@ -47,8 +47,6 @@ class ImagingMetadata {
 
   private static final Logger logger = Logger.getLogger(ImagingMetadata.class.getName());
 
-  @NotNull
-  private final TreeMap<Float, TreeSet<Position>> coordinateMap = new TreeMap<>(Float::compare);
   private final ImagingParameters imagingParameters;
   @NotNull
   private final Map<Float, Integer> xIndexMap = new HashMap<>();
@@ -61,6 +59,10 @@ class ImagingMetadata {
     ScanDirection scanDirection = null;
     Position previousPosition = null;
 
+    final TreeMap<Float, TreeSet<Position>> coordinateMap = new TreeMap<>(Float::compare);
+
+    // loop through all scans in all functions and get the laster coodrinates. Waters does not provide
+    // an option to get the size/dimensions of the image, so we have to calculate that ourselves.
     for (int f = 0; f < ml.getNumberOfFunctions(); f++) {
       for (int s = 0; s < ml.getNumberOfScansInFunction(f); s++) {
 
@@ -76,7 +78,7 @@ class ImagingMetadata {
             || scanDirection == null)) {
           final Position thisPosition = new Position(scanInfo.laserXPos(), scanInfo.laserYPos());
 
-          // its possible that the first pixel is a single one on top of the image, then we cannot
+          // it's possible that the first pixel is a single one on top of the image, then we cannot
           // derive the correct start positions and directions
           if (thisPosition.differentCoordiniates(previousPosition) == 2) {
             previousPosition = thisPosition;
@@ -113,12 +115,6 @@ class ImagingMetadata {
       }
     }
 
-    final DoubleSummaryStatistics summaryY = coordinateMap.values().stream().flatMap(Set::stream)
-        .mapToDouble(Position::y).distinct().summaryStatistics();
-    final int pixelInY = (int) summaryY.getCount();
-    final float minY = (float) summaryY.getMin();
-    final float maxY = (float) summaryY.getMax();
-
     final List<Float> yValues = coordinateMap.values().stream().flatMap(Set::stream)
         .map(Position::y).distinct().sorted().toList();
     for (int i = 0; i < yValues.size(); i++) {
@@ -126,11 +122,12 @@ class ImagingMetadata {
       yIndexMap.put(yValue, i);
     }
 
-    final DoubleSummaryStatistics summaryX = coordinateMap.values().stream().flatMap(Set::stream)
-        .mapToDouble(Position::x).distinct().summaryStatistics();
-    final int pixelInX = (int) summaryX.getCount();
-    final float minX = (float) summaryX.getMin();
-    final float maxX = (float) summaryX.getMax();
+    final DoubleSummaryStatistics summaryY = yValues.stream().mapToDouble(Float::doubleValue)
+        .summaryStatistics();
+    final int pixelInY = (int) summaryY.getCount();
+    final float minY = (float) summaryY.getMin();
+    final float maxY = (float) summaryY.getMax();
+
 
     final List<Float> xValues = coordinateMap.values().stream().flatMap(Set::stream)
         .map(Position::x).distinct().sorted().toList();
@@ -138,6 +135,12 @@ class ImagingMetadata {
       final Float xValue = xValues.get(i);
       xIndexMap.put(xValue, i);
     }
+
+    final DoubleSummaryStatistics summaryX = xValues.stream().mapToDouble(Float::doubleValue)
+        .summaryStatistics();
+    final int pixelInX = (int) summaryX.getCount();
+    final float minX = (float) summaryX.getMin();
+    final float maxX = (float) summaryX.getMax();
 
     final float lateralWidth = maxX - minX;
     final float lateralHeight = maxY - minY;
@@ -179,21 +182,21 @@ class ImagingMetadata {
       this.y = y * 1000;
     }
 
-      @Override
-      public int compareTo(@NotNull ImagingMetadata.Position o) {
-        final int xCompare = Float.compare(x, o.x);
-        if (xCompare != 0) {
-          return xCompare;
-        }
-        return Float.compare(y, o.y);
+    @Override
+    public int compareTo(@NotNull ImagingMetadata.Position o) {
+      final int xCompare = Float.compare(x, o.x);
+      if (xCompare != 0) {
+        return xCompare;
       }
+      return Float.compare(y, o.y);
+    }
 
-      public int differentCoordiniates(@NotNull Position o) {
-        int different = 0;
-        different += Float.compare(x, o.x) != 0 ? 1 : 0;
-        different += Float.compare(y, o.y) != 0 ? 1 : 0;
-        return different;
-      }
+    public int differentCoordiniates(@NotNull Position o) {
+      int different = 0;
+      different += Float.compare(x, o.x) != 0 ? 1 : 0;
+      different += Float.compare(y, o.y) != 0 ? 1 : 0;
+      return different;
+    }
 
     public float x() {
       return x;
@@ -226,7 +229,7 @@ class ImagingMetadata {
       return "Position[" + "x=" + x + ", " + "y=" + y + ']';
     }
 
-    }
+  }
 
   @Nullable
   public ImagingParameters getImagingParameters() {

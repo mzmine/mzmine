@@ -24,7 +24,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_masslynx;
 
-public class MassLynxConstants {
+class MassLynxConstants {
 
   public static final float DEFAULT_FLOAT = -1.0f;
   public static final int DEFAULT_INT = -1;

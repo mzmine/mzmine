@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.collections.BinarySearch;
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout.OfDouble;
 import java.nio.DoubleBuffer;

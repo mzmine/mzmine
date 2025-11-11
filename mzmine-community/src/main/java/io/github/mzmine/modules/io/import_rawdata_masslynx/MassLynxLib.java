@@ -64,7 +64,7 @@ import static java.lang.foreign.ValueLayout.*;
  *   }
  * </pre>
  */
-public class MassLynxLib {
+class MassLynxLib {
 
   public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
   public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;

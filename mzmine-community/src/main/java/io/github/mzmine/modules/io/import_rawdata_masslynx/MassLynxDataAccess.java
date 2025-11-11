@@ -289,8 +289,8 @@ public class MassLynxDataAccess implements AutoCloseable {
     return MassLynxLib.getNumberOfScans(handle);
   }
 
-  public FunctionType getFunctionType(int i) {
-    return functionTypes[i];
+  FunctionType getFunctionType(int function) {
+    return functionTypes[function];
   }
 
   public int getLockMassFunction() {

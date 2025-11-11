@@ -49,7 +49,7 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
  * }
  *}
  */
-public class ScanInfo {
+class ScanInfo {
 
   private static final GroupLayout $LAYOUT = MemoryLayout.structLayout(
           MassLynxLib.C_INT.withName("msLevel"), MassLynxLib.C_INT.withName("polarity"),

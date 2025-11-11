@@ -83,6 +83,9 @@ public class MassDetectionParameters extends SimpleParameterSet {
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection.html");
   }
 
+  /**
+   * Check how many scans and frames there are with profile and centroided data.
+   */
   private static @NotNull ScanCheckResult getScanCheckResult(RawDataFile[] selectedFiles,
       ScanSelection scanSel, SelectedScanTypes scanTypes) {
     long numCentroided = 0;
@@ -182,7 +185,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
           
           Frames (%s) and mobility scans (%s) are of different scan types and thus require different mass detectors or the %s mass detector.
           It is recommended to run the Mass Detection twice with different noise levels for frames and mobility scans.
-          Running as-is will like produce wrong results.""".formatted(result.frameType,
+          Running as-is will likely produce wrong results.""".formatted(result.frameType,
           result.mobScanType, MassDetectors.AUTO.toString()));
     }
     if(!msg.isEmpty()) {
