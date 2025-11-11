@@ -249,11 +249,10 @@ public class MZminePreferences extends SimpleParameterSet {
       new FileNameWithDownloadParameter("Thermo raw file parser location",
           "This is the optional external location to overwrite the internal thermo raw file parsing default. Disable to use the internal parser. macOS currently requires mono installed and the external raw file parser (see download button on the right).",
           List.of(new ExtensionFilter("Executable or zip", "ThermoRawFileParser.exe",
-                  "ThermoRawFileParserLinux", "ThermoRawFileParserMac", "ThermoRawFileParser.zip"),
+                  "ThermoRawFileParser", "ThermoRawFileParser.zip"),
               new ExtensionFilter("zip", "ThermoRawFileParser.zip"),
               new ExtensionFilter("Windows executable", "ThermoRawFileParser.exe"),
-              new ExtensionFilter("Linux executable", "ThermoRawFileParserLinux"),
-              new ExtensionFilter("Mac executable", "ThermoRawFileParserMac")),
+              new ExtensionFilter("Linux / macOS executable", "ThermoRawFileParser")),
           AssetGroup.ThermoRawFileParser));
 
   public static final ComboParameter<MassLynxImportOptions> watersImportChoice = new ComboParameter<>(

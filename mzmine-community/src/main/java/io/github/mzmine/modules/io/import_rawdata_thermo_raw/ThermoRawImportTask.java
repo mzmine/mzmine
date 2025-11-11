@@ -174,11 +174,10 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
     if (Platform.isWindows() && !thermoRawFileParserCommand.endsWith("ThermoRawFileParser.exe")) {
       error("Invalid raw file parser setting for windows. Please select the windows parser.");
       return null;
-    } else if (Platform.isLinux() && !thermoRawFileParserCommand.endsWith(
-        "ThermoRawFileParserLinux")) {
+    } else if (Platform.isLinux() && !thermoRawFileParserCommand.endsWith("ThermoRawFileParser")) {
       error("Invalid raw file parser setting for linux. Please select the linux parser.");
       return null;
-    } else if (Platform.isMac() && !thermoRawFileParserCommand.endsWith("ThermoRawFileParserMac")) {
+    } else if (Platform.isMac() && !thermoRawFileParserCommand.endsWith("ThermoRawFileParser")) {
       error("Invalid raw file parser setting for mac. Please select the mac parser.");
       return null;
     } else if (!Platform.isWindows() && !Platform.isLinux() && !Platform.isMac()) {
@@ -233,18 +232,20 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
       return prefPath.get();
     }
 
+    File parserDirectory = FileAndPathUtil.resolveInExternalToolsDir("thermo_raw_file_parser/");
+    if (!parserDirectory.exists()) {
+      throw new IllegalStateException(
+          "ThermoRawFileParser directory not found. When running from the IDE run gradle build or gradle test before to download the thermo raw file parser to the external_tools directory."
+              + "Expected one of: '<app>/external_tools/thermo_raw_file_parser/', 'external_tools/thermo_raw_file_parser/', '../external_tools/thermo_raw_file_parser/'.");
+    }
+
     if (Platform.isWindows()) {
-      return FileAndPathUtil.resolveInExternalToolsDir(
-          "thermo_raw_file_parser/ThermoRawFileParser.exe");
+      return new File(parserDirectory, "ThermoRawFileParser.exe");
     }
-    if (Platform.isLinux()) {
-      return FileAndPathUtil.resolveInExternalToolsDir(
-          "thermo_raw_file_parser/ThermoRawFileParserLinux");
-    }
-    if (Platform.isMac()) {
-      return FileAndPathUtil.resolveInExternalToolsDir(
-          "thermo_raw_file_parser/ThermoRawFileParserMac");
-//          new File("external_tools/thermo_raw_file_parser/ThermoRawFileParserMac");
+    if (Platform.isLinux() || Platform.isMac()) {
+      // both platforms have different runners but the same file name
+      // mzmine >4.8.0 download only the matching dependency now
+      return new File(parserDirectory, "ThermoRawFileParser");
     }
     throw new IllegalStateException(
         "Invalid operating system for parsing thermo files via the ThermoRawFileParser.");

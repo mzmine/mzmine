@@ -24,4 +24,14 @@ not-bio
 /src/test/java/import_data/local
 /src/test/resources/rawdatafiles/local
 /src/test/java/import_data/speed/local/tims32subs/
+
+# External tools fetched locally (do not commit downloaded parser binaries)
+/external_tools/thermo_raw_file_parser/
+external_tools/sciex_wiff2/*
 mlreader.txt
+
+# VS Code settings
+.vscode/
+
+dev-run.sh
+.sdkmanrc
