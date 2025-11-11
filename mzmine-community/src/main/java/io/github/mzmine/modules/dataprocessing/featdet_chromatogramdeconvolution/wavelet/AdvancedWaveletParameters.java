@@ -44,9 +44,11 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
   public static final double DEFAULT_WAVELET_KERNEL = 5d;
   public static final double DEFAULT_NOISE_WINDOW = 3;
   public static final int MIN_FITTING_SCALES = 2;
+  public static final boolean DEFAULT_ROBUSTNESS_ITERATION = true;
+  public static final boolean DEFAULT_DIP_FILTER = true;
+  public static final int DEFAULT_SIGN_CHANGE_POINTS = 8;
   public static final @NotNull String DEFAULT_SCALES = Stream.of(1d, 1.5d, 2d, 3d, 5d, 8d, 10d)
       .map(Object::toString).collect(Collectors.joining(", "));
-  public static final boolean DEFAULT_ROBUSTNESS_ITERATION = true;
 
   public static final OptionalParameter<StringParameter> scales = new OptionalParameter<>(
       new StringParameter("Scales", """
@@ -73,14 +75,19 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
   public static final BooleanParameter robustnessIteration = new BooleanParameter(
       "Apply robustness iteration", "", DEFAULT_ROBUSTNESS_ITERATION);
 
-  public static final OptionalParameter<ComboParameter<EdgeDetectors>> edgeDetector = new OptionalParameter<>(new ComboParameter<>(
-      "Edge detection", "", EdgeDetectors.values(), EdgeDetectors.ABS_MIN));
+  public static final OptionalParameter<ComboParameter<EdgeDetectors>> edgeDetector = new OptionalParameter<>(
+      new ComboParameter<>("Edge detection", "", EdgeDetectors.values(), EdgeDetectors.ABS_MIN));
 
-  public static final BooleanParameter dipFilter = new BooleanParameter("Dip filter", "", true);
+  public static final BooleanParameter dipFilter = new BooleanParameter("Dip filter", "",
+      DEFAULT_DIP_FILTER);
+
+  public static final OptionalParameter<IntegerParameter> signChanges = new OptionalParameter<>(
+      new IntegerParameter("Allow sign changes every N points", "", DEFAULT_SIGN_CHANGE_POINTS, 1,
+          Integer.MAX_VALUE));
 
   public AdvancedWaveletParameters() {
     super(scales, WAVELET_KERNEL_RADIUS_FACTOR, LOCAL_NOISE_WINDOW_FACTOR, requiredFits,
-        robustnessIteration, edgeDetector, dipFilter);
+        robustnessIteration, edgeDetector, dipFilter, signChanges);
   }
 
   @Override

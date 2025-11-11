@@ -10,11 +10,13 @@ record Jaggedness(DetectedPeak peak, int changes) {
       if (y[i] < y[i + 1] && lastSign < 0) {
         changes++;
         lastSign = 1;
-      } else if(y[i] > y[i + 1] && lastSign > 0) {
+      } else if (y[i] > y[i + 1] && lastSign > 0) {
         changes++;
         lastSign = -1;
       }
     }
+
+    changes -= 1;
 
     this(peak, changes);
   }
@@ -23,7 +25,12 @@ record Jaggedness(DetectedPeak peak, int changes) {
    *
    * @return sign changes per 5 data points
    */
-  public double jaggedness() {
-    return (double) changes / ((peak.rightBoundaryIndex() - peak.leftBoundaryIndex()) / 5d);
+  public double signChangesPerNPoints(int nPoints) {
+    return (double) changes / ((peak.rightBoundaryIndex() - peak.leftBoundaryIndex())
+        / (double) nPoints);
+  }
+
+  public static double signChangesPerNPoints(DetectedPeak peak, double[] y, int nPoints) {
+    return new Jaggedness(peak, y).signChangesPerNPoints(nPoints);
   }
 }

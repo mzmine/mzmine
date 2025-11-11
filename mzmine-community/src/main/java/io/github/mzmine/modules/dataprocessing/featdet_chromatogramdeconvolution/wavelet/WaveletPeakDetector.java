@@ -78,9 +78,9 @@ public class WaveletPeakDetector extends AbstractResolver {
   private final boolean robustnessIteration;
   private final EdgeDetectors edgeDetector;
   private final boolean dipFilter;
+  private final Integer signChangesEveryNPoints;
   private double[] yPadded = new double[0];
 
-  // ... (constants, fields, constructor) ...
   public WaveletPeakDetector(double[] scales, double minSnr, Double topToEdge, double minPeakHeight,
       double mergeProximityFactor, double waveletKernelRadiusFactor, double localNoiseWindowFactor,
       int minFittingScales, boolean robustnessIteration, ModularFeatureList flist,
@@ -105,6 +105,9 @@ public class WaveletPeakDetector extends AbstractResolver {
         .getValueOrDefault(AdvancedWaveletParameters.edgeDetector, EdgeDetectors.ABS_MIN);
     dipFilter = parameterSet.getParameter(WaveletResolverParameters.advancedParameters)
         .getValueOrDefault(AdvancedWaveletParameters.dipFilter, true);
+    signChangesEveryNPoints = parameterSet.getParameter(
+            WaveletResolverParameters.advancedParameters)
+        .getValueOrDefault(AdvancedWaveletParameters.signChanges, null);
   }
 
   private static int findClosestLocalMax(double[] y, int initialIndex, int start, int end) {
@@ -157,8 +160,17 @@ public class WaveletPeakDetector extends AbstractResolver {
       return null;
     }
 
+    final DetectedPeak peakWithBounds = peak.withBoundaries(leftMin, rightMin);
+    if (signChangesEveryNPoints != null) {
+      double jaggedness = Jaggedness.signChangesPerNPoints(peakWithBounds, y,
+          signChangesEveryNPoints);
+      if (jaggedness > 1) {
+        return null;
+      }
+    }
+
     // *** Set boundaries on the peak object ***
-    return peak.withBoundaries(leftMin, rightMin);
+    return peakWithBounds;
   }
 
   private static int peakScaleToDipTolerance(double scale) {
@@ -417,7 +429,7 @@ public class WaveletPeakDetector extends AbstractResolver {
       final double peakYValue = pp.originalY();
       if (peakYValue >= minPeakHeight && pp.index() >= 0 && pp.index() < x.length) {
         heightFiltered.add(
-            new DetectedPeak(pp.index(), x[pp.index()], peakYValue, Double.NaN, pp.scale()));
+            new DetectedPeak(pp.index(), x[pp.index()], peakYValue, pp.scale(), Double.NaN));
       }
     }
     return heightFiltered;
