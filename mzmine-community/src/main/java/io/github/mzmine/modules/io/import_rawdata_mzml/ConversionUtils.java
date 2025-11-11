@@ -34,12 +34,8 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.types.MsMsInfoType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
+import io.github.mzmine.datamodel.featuredata.OtherFeatureUtils;
 import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
-import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
@@ -83,7 +79,6 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class ConversionUtils {
 
@@ -442,11 +437,10 @@ public class ConversionUtils {
           timeSeriesData.setTimeSeriesRangeUnit(unit.getSign());
           timeSeriesData.setTimeSeriesRangeLabel(unit.getLabel());
 
-          final OtherFeature otherFeature = extractAndSetMsMsInfoToChromatogram(chrom, chromType, timeSeries);
-          if(otherFeature == null) {
-            continue;
-          }
+          final OtherFeatureImpl otherFeature = new OtherFeatureImpl(timeSeries);
           timeSeriesData.addRawTrace(otherFeature);
+
+          extractAndSetMsMsInfoToOtherFeature(chrom, chromType, otherFeature);
 
           if (chromType.isMsType()) {
             final PolarityType polarity = chrom.getPolarity();
@@ -489,18 +483,17 @@ public class ConversionUtils {
   /**
    * Sets the MS2 info for the otherFeature if it is set in the chromatogram
    */
-  private static OtherFeature extractAndSetMsMsInfoToChromatogram(MzMLChromatogram chrom,
-      ChromatogramType chromType, @NotNull SimpleOtherTimeSeries series) {
+  private static void extractAndSetMsMsInfoToOtherFeature(@NotNull MzMLChromatogram chrom,
+      ChromatogramType chromType, @NotNull OtherFeature feature) {
     if (chromType == ChromatogramType.MRM_SRM) {
       final List<IsolationInfo> isolations = chrom.getIsolations();
       if (isolations.size() != 2) {
-        return null;
+        return;
       }
-
-      final Double q3Mass = isolations.getLast().getPrecursorMz();
 
       final IsolationInfo q1Isolation = isolations.getFirst();
       final Double q1Mass = q1Isolation.getPrecursorMz();
+      final Double q3Mass = isolations.getLast().getPrecursorMz();
 
       final ActivationInfo activationInfo = q1Isolation.getActivationInfo();
       final Float energy =
@@ -509,11 +502,10 @@ public class ConversionUtils {
       final ActivationMethod method = ActivationMethod.fromActivationType(
           activationInfo != null ? activationInfo.getActivationType() : null);
 
-      if (q1Mass != null) {
-        newRawMrmFeature(q1Mass, q3Mass, method, energy, series);
+      if (q1Mass != null && q3Mass != null) {
+        OtherFeatureUtils.applyMrmInfo(q1Mass, q3Mass, method, energy, feature);
       }
     }
-    return null;
   }
 
   public static <T, K> Map<K, List<T>> groupByUnit(List<T> values, Function<T, K> getUnit) {
@@ -535,19 +527,6 @@ public class ConversionUtils {
               chromatogramType;
           case ELECTROMAGNETIC_RADIATION -> ChromatogramType.ELECTROMAGNETIC_RADIATION;
         }).orElse(ChromatogramType.UNKNOWN);
-  }
-
-  public static OtherFeature newRawMrmFeature(double q1, double q3,
-      @Nullable ActivationMethod method, @Nullable Float energy,
-      @NotNull SimpleOtherTimeSeries series) {
-    final OtherFeatureImpl feature = new OtherFeatureImpl(series);
-    feature.set(ChromatogramTypeType.class, ChromatogramType.MRM_SRM);
-    feature.set(MZType.class, q3);
-
-    final DDAMsMsInfoImpl msmsInfo = new DDAMsMsInfoImpl(q1, null, energy, null, null, 2, method,
-        null);
-    feature.set(MsMsInfoType.class, List.of(msmsInfo));
-    return feature;
   }
 
   /*

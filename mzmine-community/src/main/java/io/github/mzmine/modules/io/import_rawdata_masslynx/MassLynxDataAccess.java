@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.MetadataOnlyScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.OtherFeatureUtils;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
@@ -62,7 +63,6 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -567,8 +567,10 @@ public class MassLynxDataAccess implements AutoCloseable {
     final SimpleOtherTimeSeries series = new SimpleOtherTimeSeries(storage, rts, intensities,
         "func=%d id=%d %s -> %s".formatted(function, index, formats.mz(q1), formats.mz(q3)),
         timeSeriesData);
+    final OtherFeature feature = new OtherFeatureImpl(series);
 
-    return ConversionUtils.newRawMrmFeature(q1, q3, ActivationMethod.CID, null, series);
+    OtherFeatureUtils.applyMrmInfo(q1, q3, ActivationMethod.CID, null, feature);
+    return feature;
   }
 
   public int getNumberOfFunctions() {
