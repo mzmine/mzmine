@@ -90,9 +90,11 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
       new DoubleParameter("Maximum ratio of similar height signals in background", "",
           new DecimalFormat("#.##"), DEFAULT_SIM_HEIGHT_RATIO, 0d, 1d));
 
+  public static final BooleanParameter saturationFilter = new BooleanParameter("Saturation filter", "", true);
+
   public AdvancedWaveletParameters() {
     super(scales, WAVELET_KERNEL_RADIUS_FACTOR, LOCAL_NOISE_WINDOW_FACTOR, requiredFits,
-        robustnessIteration, edgeDetector, dipFilter, signChanges, maxSimilarHeightRatio);
+        robustnessIteration, edgeDetector, dipFilter, signChanges, maxSimilarHeightRatio, saturationFilter);
   }
 
   @Override
