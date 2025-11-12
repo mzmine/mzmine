@@ -42,11 +42,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -79,6 +77,7 @@ public class WaveletPeakDetector extends AbstractResolver {
   private final EdgeDetectors edgeDetector;
   private final boolean dipFilter;
   private final Integer signChangesEveryNPoints;
+  private final double maxSimilarHeightRatio;
   private double[] yPadded = new double[0];
 
   public WaveletPeakDetector(double[] scales, double minSnr, Double topToEdge, double minPeakHeight,
@@ -108,6 +107,9 @@ public class WaveletPeakDetector extends AbstractResolver {
     signChangesEveryNPoints = parameterSet.getParameter(
             WaveletResolverParameters.advancedParameters)
         .getValueOrDefault(AdvancedWaveletParameters.signChanges, null);
+    maxSimilarHeightRatio = parameterSet.getParameter(WaveletResolverParameters.advancedParameters)
+        .getValueOrDefault(AdvancedWaveletParameters.maxSimilarHeightRatio,
+            AdvancedWaveletParameters.DEFAULT_SIM_HEIGHT_RATIO);
   }
 
   private static int findClosestLocalMax(double[] y, int initialIndex, int start, int end) {
@@ -129,6 +131,8 @@ public class WaveletPeakDetector extends AbstractResolver {
     int index = initialIndex;
     while (index > 1 && index < y.length - 1 && y[index + direction] > maxY) {
       index += direction;
+      maxY = y[index];
+      bestYIndex = index;
     }
     return bestYIndex;
     /*for (int k = initialIndex + direction; k <= end && k >= start; k += direction) {
@@ -138,7 +142,20 @@ public class WaveletPeakDetector extends AbstractResolver {
       } else {
         break;
       }
-    }*/
+    }
+    return bestYIndex;*/
+  }
+
+  private static int peakScaleToDipTolerance(double scale) {
+    if(scale < 2) {
+      return 0;
+    }
+
+    if(scale < 5) {
+      return 1;
+    }
+
+    return (int) Math.round(scale * 0.38);
   }
 
   @Nullable
@@ -171,17 +188,6 @@ public class WaveletPeakDetector extends AbstractResolver {
 
     // *** Set boundaries on the peak object ***
     return peakWithBounds;
-  }
-
-  private static int peakScaleToDipTolerance(double scale) {
-//    return 0;
-    if (scale < 2) {
-      return 0;
-    }
-    if (scale >= 2 && scale <= 5) {
-      return 1;
-    }
-    return 2;
   }
 
   @Override
@@ -225,8 +231,8 @@ public class WaveletPeakDetector extends AbstractResolver {
     final List<DetectedPeak> secondPassPeaks =
         robustnessIteration ? estimateLocalNoiseBaselineAndFilterBySNR(finalDetectedPeaks, x, y,
             minSnr) : finalDetectedPeaks;
-    logger.finest("Second noise pass removed %d signals".formatted(
-        finalDetectedPeaks.size() - secondPassPeaks.size()));
+//    logger.finest("Second noise pass removed %d signals".formatted(
+//        finalDetectedPeaks.size() - secondPassPeaks.size()));
 
     // Merge Overlapping / Proximal Peaks
     final List<DetectedPeak> mergedPeaks = mergePeakRanges(secondPassPeaks, mergeProximityFactor, x,
@@ -275,7 +281,7 @@ public class WaveletPeakDetector extends AbstractResolver {
       dipFiltered.add(current);
     }
 
-    if (!lastPeakRemoved) {
+    if (!lastPeakRemoved && !peaks.isEmpty()) {
       dipFiltered.add(peaks.getLast());
     }
 
@@ -382,6 +388,9 @@ public class WaveletPeakDetector extends AbstractResolver {
           final int start = Math.max(0, j - searchRadius);
           final int end = Math.min(y.length - 1, j + searchRadius);
           final int bestYIndex = findClosestLocalMax(y, j, start, end);
+          if(y[bestYIndex] < minPeakHeight) {
+            continue;
+          }
           // set the actual cwtAtScale, but the index and y value at the actual data maximum (not cwt maximum)
           allMaxima.add(new PotentialPeak(bestYIndex, scales[i], cwtAtScale[j], y[bestYIndex]));
         }
@@ -396,25 +405,20 @@ public class WaveletPeakDetector extends AbstractResolver {
       List<PotentialPeak> peaksAtIndex = entry.getValue();
       if (peaksAtIndex.size() >= minFittingScales) {
         peaksAtIndex.stream()
-            .max(Comparator.comparingDouble(p -> p.cwtValue() / Math.sqrt(p.scale())))
+            .max(Comparator.comparingDouble(p -> p.cwtValue() /*/ Math.sqrt(p.scale())*/))
             .ifPresent(bestPotentials::add);
       }
     }
     bestPotentials.sort(Comparator.comparingInt(PotentialPeak::index));
 
     List<PotentialPeak> refinedPotentials = new ArrayList<>();
-    Set<Integer> addedIndices = new HashSet<>();
     for (PotentialPeak pp : bestPotentials) {
-
       if (Double.isInfinite(y[pp.index()])) {
         continue;
       }
 
-      if (!addedIndices.contains(pp.index())) {
-        refinedPotentials.add(
-            new PotentialPeak(pp.index(), pp.scale(), pp.cwtValue(), y[pp.index()]));
-        addedIndices.add(pp.index());
-      }
+      refinedPotentials.add(
+          new PotentialPeak(pp.index(), pp.scale(), pp.cwtValue(), y[pp.index()]));
     }
 
     refinedPotentials.sort(Comparator.comparingInt(PotentialPeak::index));
@@ -554,6 +558,19 @@ public class WaveletPeakDetector extends AbstractResolver {
       }
       final double localSnr =
           (localNoiseStdDev > 0) ? (signalHeight / localNoiseStdDev) : Double.POSITIVE_INFINITY;
+
+      if (localSnr < 2 * minSnr) {
+        // for peaks that are only slightly above the SNR, check if there are a lot of signals that
+        // are similar to the height of the actual peak. If that is the case, it might just be a
+        // hump on the baseline
+        final long signalsOfSimilarHeight = localBackgroundSamples.doubleStream()
+            .filter(signal -> peak.peakY() * 0.8 < signal).count();
+        final double similarHeightProportion =
+            (double) signalsOfSimilarHeight / localBackgroundSamples.size();
+        if (similarHeightProportion > maxSimilarHeightRatio) {
+          continue;
+        }
+      }
 
       // --- Filter based on local SNR ---
       if (localSnr >= minSnr || (topToEdge != null && localBaseline > 0.0

@@ -5,8 +5,13 @@ record Jaggedness(DetectedPeak peak, int changes) {
   Jaggedness(final DetectedPeak peak, double[] y) {
     int lastSign = 1;
     int changes = 0;
+    final double height = peak.peakY();
+    final double tenPercentHeight = 0.1 * height;
 
     for (int i = peak.leftBoundaryIndex(); i < peak.rightBoundaryIndex(); i++) {
+//      if(y[i] < tenPercentHeight) {
+//        continue;
+//      }
       if (y[i] < y[i + 1] && lastSign < 0) {
         changes++;
         lastSign = 1;

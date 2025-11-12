@@ -49,6 +49,7 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
   public static final int DEFAULT_SIGN_CHANGE_POINTS = 8;
   public static final @NotNull String DEFAULT_SCALES = Stream.of(1d, 1.5d, 2d, 3d, 5d, 8d, 10d)
       .map(Object::toString).collect(Collectors.joining(", "));
+  public static final double DEFAULT_SIM_HEIGHT_RATIO = 1d;
 
   public static final OptionalParameter<StringParameter> scales = new OptionalParameter<>(
       new StringParameter("Scales", """
@@ -85,9 +86,13 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
       new IntegerParameter("Allow sign changes every N points", "", DEFAULT_SIGN_CHANGE_POINTS, 1,
           Integer.MAX_VALUE));
 
+  public static final OptionalParameter<DoubleParameter> maxSimilarHeightRatio = new OptionalParameter<>(
+      new DoubleParameter("Maximum ratio of similar height signals in background", "",
+          new DecimalFormat("#.##"), DEFAULT_SIM_HEIGHT_RATIO, 0d, 1d));
+
   public AdvancedWaveletParameters() {
     super(scales, WAVELET_KERNEL_RADIUS_FACTOR, LOCAL_NOISE_WINDOW_FACTOR, requiredFits,
-        robustnessIteration, edgeDetector, dipFilter, signChanges);
+        robustnessIteration, edgeDetector, dipFilter, signChanges, maxSimilarHeightRatio);
   }
 
   @Override
