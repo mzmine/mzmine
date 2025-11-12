@@ -323,7 +323,7 @@ public class WaveletPeakDetector extends AbstractResolver {
     return cwt;
   }
 
-  private double[] generateMexicanHat(int length, double scale) {
+  double[] generateMexicanHat(int length, double scale) {
 
     final Map<Double, double[]> scaleToWaveletMap = waveletBuffer.computeIfAbsent(length,
         i -> new HashMap<>());
