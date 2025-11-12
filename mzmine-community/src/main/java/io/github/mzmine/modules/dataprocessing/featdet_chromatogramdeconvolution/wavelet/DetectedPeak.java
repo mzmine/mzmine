@@ -44,7 +44,7 @@ record DetectedPeak(int peakIndex, double peakX, double peakY, double contributi
   }
 
   DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale, double snr) {
-    this(peakIndex, peakX, peakY, snr, contributingScale, -1, -1);
+    this(peakIndex, peakX, peakY, contributingScale, snr,  -1, -1);
   }
 
   DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale, double snr,
@@ -68,7 +68,7 @@ record DetectedPeak(int peakIndex, double peakX, double peakY, double contributi
     if (left < 0 || right < 0 || left >= right) {
       throw new IllegalArgumentException("Invalid boundary indices: " + left + ", " + right);
     }
-    return new DetectedPeak(peakIndex, peakX, peakY, snr, contributingScale, left, right);
+    return new DetectedPeak(peakIndex, peakX, peakY, contributingScale, snr, left, right);
   }
 
   DetectedPeak withSNR(double snr) {
