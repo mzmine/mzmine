@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
+import com.google.common.primitives.Booleans;
 import io.github.mzmine.datamodel.SimpleRange.SimpleIntegerRange;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModule;
@@ -303,15 +304,43 @@ public class WaveletPeakDetector extends AbstractResolver {
       final double[] edgeAndTop = new double[]{y[current.leftBoundaryIndex()],
           y[current.peakIndex()], y[next.peakIndex()], y[next.rightBoundaryIndex()]};
       final double avg = MathUtils.calcAvg(edgeAndTop);
+      final double std = MathUtils.calcStd(edgeAndTop);
+      final double rsd = std / avg;
 
-      if (Arrays.stream(edgeAndTop).allMatch(value -> avg * 0.7 < value && avg * 1.3 > value)) {
-//        logger.finest("Dip detected at " + prev.toString() + " and " + current.toString());
+      final double currentTopToRightEdge =
+          current.peakY() / Math.max(y[current.rightBoundaryIndex()], 1);
+      final double currentTopToLeftEdge =
+          current.peakY() / Math.max(y[current.leftBoundaryIndex()], 1);
+      final double nextTopToLeftEdge = next.peakY() / Math.max(y[next.leftBoundaryIndex()], 1d);
+      final double nextTopToRightEdge = next.peakY() / Math.max(y[next.rightBoundaryIndex()], 1);
+
+      final boolean edgeCriterion = (currentTopToLeftEdge < 2 * currentTopToRightEdge
+          && nextTopToLeftEdge > 2 * nextTopToRightEdge && (currentTopToLeftEdge < 1.5
+          && nextTopToRightEdge < 1.5));
+
+      final boolean averageValuesCheck = Arrays.stream(edgeAndTop)
+          .allMatch(value -> avg * 0.7 < value && avg * 1.3 > value);
+
+      if (averageValuesCheck || rsd < 0.3 || edgeCriterion) {
+        /*logger.finest(
+            "Dip detected (edge=%s, rsd: %s, avg: %s) at %s and %s".formatted(edgeCriterion,
+                String.format("%.2f", rsd), averageValuesCheck, current.toString(),
+                next.toString()));*/
+      }
+
+      if (Booleans.countTrue(averageValuesCheck, rsd < 0.3, edgeCriterion) >= 2) {
+        logger.finest(
+            "Dip detected (edge=%s, rsd: %s, avg: %s) at %s and %s".formatted(edgeCriterion,
+                String.format("%.2f", rsd), averageValuesCheck, current.toString(),
+                next.toString()));
+
         i++; // avoid both peaks.
         if (i == peaks.size() - 1) {
           lastPeakRemoved = true;
         }
         continue;
       }
+
       dipFiltered.add(current);
     }
 
@@ -357,12 +386,12 @@ public class WaveletPeakDetector extends AbstractResolver {
       } else if (previousTopEdge < 1.2 && currentTopEdge < 1.2) {
         boolean allPointsAboveSaturation = true;
         for (int j = previous.rightBoundaryIndex(); j < current.leftBoundaryIndex(); j++) {
-          if(y[j] < saturationThreshold) {
+          if (y[j] < saturationThreshold) {
             allPointsAboveSaturation = false;
             break;
           }
         }
-        if(allPointsAboveSaturation) {
+        if (allPointsAboveSaturation) {
           saturationFiltered.removeLast();
           saturationFiltered.add(mergeTwoPeaks(current, previous));
         }
