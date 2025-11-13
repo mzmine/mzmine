@@ -25,10 +25,15 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
+import com.google.common.primitives.Booleans;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GroupMS2SubParameters extends SimpleParameterSet {
 
@@ -52,5 +57,38 @@ public class GroupMS2SubParameters extends SimpleParameterSet {
   @Override
   public int getVersion() {
     return 2;
+  }
+
+  public static GroupMS2SubParameters create(@NotNull MZTolerance mzTol,
+      @NotNull RtLimitsFilter rtLimits, @Nullable Double minRelHeight,
+      @Nullable Integer minSignalsInMs2, boolean limitByIms, boolean combineTims,
+      int imsMinOccurrence, boolean advanced, @Nullable Double timsOutputNoiseLevel,
+      @Nullable Double timsOutputNoiseRelative, @Nullable String iterativeMs2ColName) {
+    final GroupMS2SubParameters param = (GroupMS2SubParameters) new GroupMS2SubParameters().cloneParameterSet();
+    param.setParameter(GroupMS2Parameters.mzTol, mzTol);
+    param.setParameter(GroupMS2Parameters.rtFilter, rtLimits);
+    param.setParameter(GroupMS2Parameters.minimumRelativeFeatureHeight, minRelHeight != null,
+        Objects.requireNonNullElse(minRelHeight, 0.25));
+    param.setParameter(GroupMS2Parameters.minRequiredSignals, minSignalsInMs2 != null,
+        Objects.requireNonNullElse(minSignalsInMs2, 1));
+    param.setParameter(GroupMS2Parameters.limitMobilityByFeature, limitByIms);
+    param.setParameter(GroupMS2Parameters.combineTimsMsMs, combineTims);
+    param.setParameter(GroupMS2Parameters.minImsRawSignals, imsMinOccurrence);
+
+    final GroupMs2AdvancedParameters advancedParam = GroupMs2AdvancedParameters.create(
+        timsOutputNoiseLevel, timsOutputNoiseRelative, iterativeMs2ColName);
+    param.setParameter(GroupMS2Parameters.advancedParameters, advanced &&
+        Booleans.countTrue(timsOutputNoiseLevel != null, timsOutputNoiseRelative != null,
+            iterativeMs2ColName != null) > 0);
+    param.getParameter(GroupMS2Parameters.advancedParameters).setEmbeddedParameters(advancedParam);
+
+    return param;
+  }
+
+  public static GroupMS2SubParameters createDefault() {
+    return create(new MZTolerance(0.01, 10), GroupMS2Parameters.DEFAULT_RT_FILTER,
+        GroupMS2Parameters.DEFAULT_MIN_REL_HEIGHT, GroupMS2Parameters.DEFAULT_MIN_SIGNALS,
+        GroupMS2Parameters.DEFAULT_LIMIT_IMS, GroupMS2Parameters.DEFAULT_COMBINE_TIMS,
+        GroupMS2Parameters.DEFAULT_IMS_MIN_SIGNALS, false, null, null, null);
   }
 }
