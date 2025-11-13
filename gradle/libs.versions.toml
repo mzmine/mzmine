@@ -25,6 +25,7 @@ ikonli = "12.3.1"
 graphstream = "2.0"
 djl = "0.26.0"
 mzio = "1.0.0"
+jasper = "7.0.3"
 
 [libraries]
 # mzio
@@ -106,6 +107,10 @@ djl-pytorch-engine = { module = "ai.djl.pytorch:pytorch-engine", version.ref = "
 djl-api = { module = "ai.djl:api", version.ref = "djl" }
 opencsv = { group = "com.opencsv", name = "opencsv", version = "5.8" }
 
+# reporting
+jasper-main = { group = "net.sf.jasperreports", name = "jasperreports", version.ref = "jasper" }
+jasper-pdf = { group = "net.sf.jasperreports", name = "jasperreports-pdf", version.ref = "jasper" }
+
 # testing
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 junit-platform = { module = "org.junit.platform:junit-platform-launcher" }
@@ -133,6 +138,7 @@ okhttp = ["okhttp", "okhttp-logging-interceptor"]
 junit-mockito = ["junit-jupiter", "junit-platform", "mockito"]
 jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv", "jackson-datetime", "jackson-datatype"]
 batik = ["batik-all"]#, "batik-xml-commons-ext"] #, "batik-xml-commons"]
+jasper = ["jasper-main", "jasper-pdf"]
 
 [plugins]
 semver = { id = "net.thauvin.erik.gradle.semver", version.ref = "semver" }
