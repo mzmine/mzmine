@@ -559,6 +559,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
    * @param ident       library entry
    * @return spectral similarity or null if no match
    */
+  @Nullable
   private SpectralSimilarity matchSpectrum(Float rowRT, Float rowRI, double rowMZ, Float rowCCS,
       DataPoint[] rowMassList, SpectralLibraryEntry ident) {
     // prefilters

@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.tolerances;
 import com.google.common.collect.Range;
 import io.github.mzmine.util.RIColumn;
 import io.github.mzmine.util.RIRecord;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * RITolerance allows specifying retention index tolerance for comparing two compounds It is an
@@ -57,6 +58,14 @@ public class RITolerance {
     //   Also, averaged RI is zero when riValues do not exist
     return riValue != null && riValue != 0 ? Range.closed(riValue - tolerance, riValue + tolerance)
         : Range.all();
+  }
+
+  @Nullable
+  public Float getRiDifference(@Nullable Float ri, @Nullable RIRecord libRi) {
+    if (ri == null || (libRi == null || libRi.getRI(column) == null)) {
+      return null;
+    }
+    return ri - libRi.getRI(column);
   }
 
   public boolean checkWithinTolerance(Float ri, RIRecord libRI) {

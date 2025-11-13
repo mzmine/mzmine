@@ -32,6 +32,7 @@ import java.util.Map;
 import static java.util.Map.entry;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This holds information from the RI field in spectral libraries for gas chromatography The RI
@@ -118,6 +119,7 @@ public class RIRecord {
     return records.stream().map(RIRecordPart::toString).collect(Collectors.joining(" "));
   }
 
+  @Nullable
   public Float getRI(RIColumn type) {
     int defaultIndex = -1;
     for (int i = 0; i < records.size(); i++) {
