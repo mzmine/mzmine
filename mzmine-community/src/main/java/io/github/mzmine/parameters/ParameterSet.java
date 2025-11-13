@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters;
 
+import io.github.mzmine.modules.presets.ModulePreset;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
@@ -35,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
 import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -297,7 +299,15 @@ public interface ParameterSet extends ParameterContainer {
         .map(parameterClass::cast);
   }
 
+  /**
+   *
+   * @return A message that is displayed in an accordion at the top of a parameter dialog.
+   */
   default @Nullable Region getMessage() {
     return null;
+  }
+
+  default @NotNull List<ModulePreset> createDefaultPresets() {
+    return List.of();
   }
 }

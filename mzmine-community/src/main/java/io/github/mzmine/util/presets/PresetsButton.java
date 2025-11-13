@@ -35,6 +35,7 @@ import io.github.mzmine.util.presets.manage.ManagePresetTab;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
@@ -99,6 +100,10 @@ public class PresetsButton<T extends Preset> extends StackPane {
     final ButtonBase presetButton;
     if (showText) {
       presetButton = FxButtons.createButton("Presets", fxIcons, "Manage presets", this::showMenu);
+      presetButton.textProperty().bind(Bindings.createStringBinding(
+          () -> presetStore.getCurrentPresets().isEmpty() ? "Presets"
+              : "Presets (%d)".formatted(presetStore.getCurrentPresets().size()),
+          presetStore.getCurrentPresets()));
     } else {
       presetButton = FxIconUtil.newIconButton(fxIcons, "Manage presets", this::showMenu);
     }
