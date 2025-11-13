@@ -59,15 +59,23 @@ public class Test extends Application {
         AdvancedWaveletParameters.MIN_FITTING_SCALES, true, FeatureList.createDummy(),
         new WaveletResolverParameters());
 
+    final WaveletPeakDetector kernel2 = new WaveletPeakDetector(
+        new double[]{1d, 1.5d, 2d, 3d, 5d, 8d, 10d}, 5, null, 1E3, 0.1, 2,
+        AdvancedWaveletParameters.DEFAULT_NOISE_WINDOW,
+        AdvancedWaveletParameters.MIN_FITTING_SCALES, true, FeatureList.createDummy(),
+        new WaveletResolverParameters());
+
     final SimpleXYChart<AnyXYProvider> chart = new SimpleXYChart<>("Wavelets");
     chart.setStickyZeroRangeAxis(false);
 
 //    chart.addDataset(generateProvider(kernel5.generateMexicanHat(1024, 1), "kernel 5 scale 1"));
 //    chart.addDataset(generateProvider(kernel5.generateMexicanHat(1024, 3), "kernel 5 scale 3"));
-    chart.addDataset(generateProvider(kernel5.generateMexicanHat(1024, 10), "kernel 5 scale 10"));
-    chart.addDataset(generateProvider(kernel5.generateMexicanHat(1024, 24), "kernel 5 scale 24"));
-    chart.addDataset(generateProvider(kernel3.generateMexicanHat(1024, 24), "kernel 3 scale 24"));
-    chart.addDataset(generateProvider(kernel3.generateMexicanHat(1024, 10), "kernel 3 scale 10"));
+//    chart.addDataset(generateProvider(kernel5.generateMexicanHat(256, 10), "kernel 5 scale 10"));
+    chart.addDataset(generateProvider(kernel5.generateMexicanHat(256, 24), "kernel 5 scale 24"));
+    chart.addDataset(generateProvider(kernel3.generateMexicanHat(256, 24), "kernel 3 scale 24"));
+//    chart.addDataset(generateProvider(kernel3.generateMexicanHat(256, 10), "kernel 3 scale 10"));
+//    chart.addDataset(generateProvider(kernel2.generateMexicanHat(256, 10), "kernel 2 scale 10"));
+    chart.addDataset(generateProvider(kernel2.generateMexicanHat(256, 24), "kernel 2 scale 24"));
 //    chart.addDataset(generateProvider(kernel1.generateMexicanHat(1024, 3), "kernel 1 scale 3"));
     return chart;
   }
