@@ -106,6 +106,9 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
       // there may be noise
       final DataPoint actualPrecursor = ScanUtils.findBasePeak(precursorScan,
           RangeUtils.rangeAround(isolationMz, 3d));
+      if(actualPrecursor == null) {
+        return;
+      }
 
       final DDAMsMsInfoImpl correctedMsMsInfo = new DDAMsMsInfoImpl(actualPrecursor.getMZ(),
           dda.getPrecursorCharge(), dda.getActivationEnergy(), dda.getMsMsScan(),

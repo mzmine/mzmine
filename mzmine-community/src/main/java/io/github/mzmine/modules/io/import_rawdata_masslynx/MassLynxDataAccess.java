@@ -373,16 +373,19 @@ public class MassLynxDataAccess implements AutoCloseable {
 
     final String scanDefinition = "func=%d, scan=%d".formatted(function, scan);
 
+    final Range<Double> acqMassRange = Objects.requireNonNullElse(getAcquisitionMassRange(function),
+        Range.closed(mzs[0], mzs[mzs.length - 1]));
+
     if (isImagingFile && metadata != null) {
       final Coordinates coordinates = metadata.getCoordinates(scanInfo);
       return new SimpleImagingScan(file, scan, scanInfo.msLevel(), scanInfo.rt(), 0, 0,
           dataPoints.mzs(), dataPoints.intensities(), spectrumType, scanInfo.polarityType(),
-          scanDefinition, getAcquisitionMassRange(function), coordinates);
+          scanDefinition, acqMassRange, coordinates);
     } else {
       return new SimpleScan(file, scan, scanInfo.msLevel(), scanInfo.rt(),
           scanInfo.msLevel() > 1 ? scanInfo.msMsInfo(isDdaFile, isImsFile) : null, dataPoints.mzs(),
           dataPoints.intensities(), spectrumType, scanInfo.polarityType(), scanDefinition,
-          getAcquisitionMassRange(function));
+          acqMassRange);
     }
   }
 
@@ -442,20 +445,22 @@ public class MassLynxDataAccess implements AutoCloseable {
     final String scanDefinition = "func=%d, scan=%d".formatted(function, scan);
     final SimpleFrame frame;
 
+    final Range<Double> acqMassRange = Objects.requireNonNullElse(getAcquisitionMassRange(function),
+        Range.closed(mzs[0], mzs[mzs.length - 1]));
+
     if (isImagingFile && metadata != null) {
       final Coordinates coordinates = metadata.getCoordinates(scanInfo);
       frame = new SimpleImagingFrame(file, scan, scanInfo.msLevel(), scanInfo.rt(),
           dataPoints.mzs(), dataPoints.intensities(), spectrumType, scanInfo.polarityType(),
-          scanDefinition, getAcquisitionMassRange(function), MobilityType.TRAVELING_WAVE,
+          scanDefinition, acqMassRange, MobilityType.TRAVELING_WAVE,
           scanInfo.msLevel() > 1 ? Set.of(
               (IonMobilityMsMsInfo) scanInfo.msMsInfo(isDdaFile, isImsFile)) : null, null);
       ((SimpleImagingFrame) frame).setCoordinates(coordinates);
     } else {
       frame = new SimpleFrame(file, scan, scanInfo.msLevel(), scanInfo.rt(), dataPoints.mzs(),
           dataPoints.intensities(), spectrumType, scanInfo.polarityType(), scanDefinition,
-          getAcquisitionMassRange(function), MobilityType.TRAVELING_WAVE,
-          scanInfo.msLevel() > 1 ? Set.of(
-              (IonMobilityMsMsInfo) scanInfo.msMsInfo(isDdaFile, isImsFile)) : null, null);
+          acqMassRange, MobilityType.TRAVELING_WAVE, scanInfo.msLevel() > 1 ? Set.of(
+          (IonMobilityMsMsInfo) scanInfo.msMsInfo(isDdaFile, isImsFile)) : null, null);
     }
 
     final List<BuildingMobilityScan> mobScans = readMobilityScansForFrame(function, scan,

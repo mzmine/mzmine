@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_masslynx;
+package io.github.mzmine.util;
 
 import java.io.IOException;
 import java.nio.file.Files;
