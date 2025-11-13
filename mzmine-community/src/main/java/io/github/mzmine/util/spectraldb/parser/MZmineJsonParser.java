@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,22 +47,26 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MZmineJsonParser extends SpectralDBTextParser {
 
   private final static Logger logger = Logger.getLogger(MZmineJsonParser.class.getName());
 
-  public MZmineJsonParser(int bufferEntries, LibraryEntryProcessor processor) {
-    super(bufferEntries, processor);
+  public MZmineJsonParser(int bufferEntries, LibraryEntryProcessor processor,
+      boolean extensiveErrorLogging) {
+    super(bufferEntries, processor, extensiveErrorLogging);
   }
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
-      throws IOException {
+  public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
+      @NotNull SpectralLibrary library) throws IOException {
     super.parse(mainTask, dataBaseFile, library);
 
     logger.info("Parsing MZmine spectral library " + dataBaseFile.getAbsolutePath());
+
+    final LibraryParsingErrors errors = new LibraryParsingErrors(library.getName());
 
     int correct = 0;
     int error = 0;
@@ -74,29 +78,29 @@ public class MZmineJsonParser extends SpectralDBTextParser {
           return false;
         }
 
-        JsonReader reader = null;
-        try {
-          reader = Json.createReader(new StringReader(l));
+        try (JsonReader reader = Json.createReader(new StringReader(l))) {
           JsonObject json = reader.readObject();
-          SpectralLibraryEntry entry = getDBEntry(library, json);
+          SpectralLibraryEntry entry = getDBEntry(errors, library, json);
           if (entry != null) {
             correct++;
             // add entry and process
-            addLibraryEntry(entry);
+            addLibraryEntry(library.getStorage(), errors, entry);
           } else {
             error++;
           }
         } catch (Exception ex) {
-          error++;
-          logger.log(Level.WARNING, "Error for entry", ex);
-        } finally {
-          if (reader != null) {
-            reader.close();
+          errors.addUnknownException(ex.getMessage());
+          // add this to count unknown errors and log first 5 only
+          int unknowns = errors.addUnknownException("unknown error");
+          if (unknowns <= 5 && isExtensiveErrorLogging()) {
+            logger.log(Level.WARNING, "Error for entry: " + ex.getMessage(), ex);
           }
+
+          error++;
         }
         // to many errors? wrong data format?
         if (error > 5 && correct < 5) {
-          logger.log(Level.WARNING, "This file was no MZmine spectral json library");
+          logger.log(Level.WARNING, "This file was no mzmine spectral json library");
           return false;
         }
         processedLines.incrementAndGet();
@@ -104,6 +108,9 @@ public class MZmineJsonParser extends SpectralDBTextParser {
     }
     // finish and process last entries
     finish();
+
+    // log errors
+    logger.info(isExtensiveErrorLogging() ? errors.toString() : errors.toStringShort());
 
     return true;
   }
@@ -149,10 +156,12 @@ public class MZmineJsonParser extends SpectralDBTextParser {
     return main.getJsonNumber(id);
   }
 
-  public SpectralLibraryEntry getDBEntry(SpectralLibrary library, JsonObject main) {
+  private SpectralLibraryEntry getDBEntry(LibraryParsingErrors errors, SpectralLibrary library,
+      JsonObject main) {
     // extract dps
     DataPoint[] dps = getDataPoints(main);
     if (dps == null) {
+      errors.addUnknownException("Error parsing data points");
       return null;
     }
 
@@ -162,16 +171,16 @@ public class MZmineJsonParser extends SpectralDBTextParser {
       String id = f.getMZmineJsonID();
       if (id != null && !id.isEmpty() && main.containsKey(id)) {
 
+        Object o = null;
         try {
-          Object o = getValue(main, f, id);
+          o = getValue(main, f, id);
           // add value
           if (o != null) {
             map.put(f, o);
           }
         } catch (Exception e) {
-          logger.log(Level.WARNING,
-              String.format("Cannot convert value %s to its type %s", f.getMZmineJsonID(),
-                  f.getObjectClass().toString()));
+          errors.addValueParsingError(f, id, o == null ? "null value" : o.toString());
+          // pushed logging to later in the errors object to not overflow log
         }
       }
     }
@@ -205,7 +214,7 @@ public class MZmineJsonParser extends SpectralDBTextParser {
    * @param main
    * @return
    */
-  public DataPoint[] getDataPoints(JsonObject main) {
+  private DataPoint[] getDataPoints(JsonObject main) {
     JsonArray data = main.getJsonArray("peaks");
     return getDataPointsFromJsonArray(data);
   }

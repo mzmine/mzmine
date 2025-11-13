@@ -25,14 +25,16 @@
 
 package io.github.mzmine.javafx.components.factories;
 
-import impl.org.controlsfx.skin.AutoCompletePopup;
 import io.github.mzmine.javafx.components.skins.DynamicTextFieldSkin;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
@@ -43,12 +45,19 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import javafx.util.StringConverter;
+import javafx.util.converter.IntegerStringConverter;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FxTextFields {
+
+  public static TextField newTextField(@Nullable StringProperty textProperty,
+      @Nullable String tooltip) {
+    return newTextField(null, textProperty, (StringProperty) null, tooltip);
+  }
 
   public static TextField newTextField(@Nullable Integer columnCount,
       @Nullable StringProperty textProperty, @Nullable String tooltip) {
@@ -218,6 +227,8 @@ public class FxTextFields {
 
   private static <T> void autoShowAutoComplete(TextField textField, AutoCompletionBinding<T> acb) {
     acb.setVisibleRowCount(25);
+    // Avoid redundant re-trigger while focused
+    final BooleanProperty triggeredOnFocus = new SimpleBooleanProperty(false);
     // Show all suggestions when the user clicks or when field gains focus
     textField.setOnMouseClicked(_ -> {
       // auto show completion
@@ -225,13 +236,17 @@ public class FxTextFields {
 //      acb.setUserInput(text == null || text.isBlank() ? "*" : text);
       // use this to always show full selection on first click
       acb.setUserInput("*");
+      // clicking should show suggestions regardless of previous focus trigger
+      triggeredOnFocus.set(true);
     });
     textField.focusedProperty().subscribe((_, isNowFocused) -> {
-      final AutoCompletePopup<T> pop = acb.getAutoCompletionPopup();
-      if (isNowFocused && !pop.isShowing()) {
+      if (isNowFocused && !triggeredOnFocus.get()) {
         // use this to always show full selection on first click
         acb.setUserInput("*");
-//        pop.show(textField);
+        triggeredOnFocus.set(true);
+      }
+      if (!isNowFocused) {
+        triggeredOnFocus.set(false);
       }
     });
   }
@@ -305,5 +320,36 @@ public class FxTextFields {
       final int maxColumnCount) {
     return autoGrowFitText(newTextField(null, valueProperty, promptProperty, tooltip),
         minColumnCount, maxColumnCount);
+  }
+
+  public static TextField newIntegerField(@NotNull ObjectProperty<Integer> value,
+      @Nullable String tooltip) {
+    return newIntegerField(null, value, tooltip);
+  }
+
+  public static TextField newIntegerField(@Nullable Integer columnCount,
+      @NotNull ObjectProperty<Integer> value, @Nullable String tooltip) {
+    final TextField field = newTextField(columnCount, null, tooltip);
+    return attachConverter(field, value, new IntegerStringConverter());
+  }
+
+  /**
+   *
+   * @param converter a string converter to convert from/to the value to/from a string. Use
+   *                  {@link #attachFormatter(TextField, Property, TextFormatter)} for more control
+   *                  and
+   * @param <T>       the value type
+   * @return the input text field
+   */
+  public static <T> TextField attachConverter(TextField field, Property<T> value,
+      StringConverter<T> converter) {
+    return attachFormatter(field, value, new TextFormatter<>(converter));
+  }
+
+  private static <T> TextField attachFormatter(TextField field, Property<T> value,
+      TextFormatter<T> formatter) {
+    field.setTextFormatter(formatter);
+    formatter.valueProperty().bindBidirectional(value);
+    return field;
   }
 }

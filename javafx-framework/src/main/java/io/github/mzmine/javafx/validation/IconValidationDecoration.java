@@ -35,23 +35,15 @@ import javafx.scene.Node;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import org.controlsfx.control.decoration.Decoration;
-import org.controlsfx.control.decoration.GraphicDecoration;
 import org.controlsfx.validation.Severity;
 import org.controlsfx.validation.ValidationMessage;
-import org.controlsfx.validation.decoration.AbstractValidationDecoration;
+import org.controlsfx.validation.decoration.GraphicValidationDecoration;
 import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
 
-public class IconValidationDecoration extends AbstractValidationDecoration {
-
-  private static final Image REQUIRED_IMAGE = new Image(
-      org.controlsfx.validation.decoration.GraphicValidationDecoration.class.getResource(
-              "/impl/org/controlsfx/control/validation/required-indicator.png")
-          .toExternalForm()); //$NON-NLS-1$
+public class IconValidationDecoration extends GraphicValidationDecoration {
 
   public IconValidationDecoration() {
 
@@ -103,8 +95,8 @@ public class IconValidationDecoration extends AbstractValidationDecoration {
 
   @Override
   protected Collection<Decoration> createRequiredDecorations(Control target) {
-    return List.of(new GraphicDecoration(new ImageView(REQUIRED_IMAGE), Pos.TOP_LEFT,
-        REQUIRED_IMAGE.getWidth() / 2, REQUIRED_IMAGE.getHeight() / 2));
+    // Use ControlsFX's default required-indicator visuals
+    return super.createRequiredDecorations(target);
   }
 
 }
