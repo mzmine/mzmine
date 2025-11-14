@@ -33,7 +33,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Retention index difference from calculated to measured type
+ * Retention index difference between the minimum and the maximum in a row.
  */
 public class RIDiffType extends RIType {
 
@@ -53,7 +53,7 @@ public class RIDiffType extends RIType {
   @Override
   public List<RowBinding> createDefaultRowBindings() {
     // calculates the difference between the min and max value in all features
-    return List.of(new SimpleRowBinding(this, get(RIType.class), DIFFERENCE));
+//    return List.of(new SimpleRowBinding(this, get(RIType.class), DIFFERENCE));
+    return List.of();
   }
-
 }

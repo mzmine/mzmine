@@ -55,6 +55,8 @@ import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
+import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.ExplainedIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
@@ -106,7 +108,8 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       new EntryIdType(), //
       new CASType(),  //
       new InternalIdType(), //
-      new JsonStringType()
+      new JsonStringType(), //
+      new RIDiffType()
       );
 
   @NotNull
@@ -162,6 +165,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       case CASType _ -> entry.getOrElse(DBEntryField.CAS, null);
       case InternalIdType _ -> entry.getOrElse(DBEntryField.INTERNAL_ID, null);
       case JsonStringType _ -> entry.getOrElse(DBEntryField.JSON_STRING, null);
+      case RIDiffType _ -> match.getRiDiff();
       default -> throw new UnsupportedOperationException(
           "DataType %s is not covered in map".formatted(subType.toString()));
     };
