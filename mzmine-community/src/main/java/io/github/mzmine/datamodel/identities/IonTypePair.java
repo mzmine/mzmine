@@ -25,22 +25,11 @@
 
 package io.github.mzmine.datamodel.identities;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.jetbrains.annotations.NotNull;
 
-import org.junit.jupiter.api.Test;
+/**
+ * Used in matching
+ */
+public record IonTypePair(@NotNull IonType a, @NotNull IonType b) {
 
-class IonUtilsTest {
-
-  @Test
-  void getChargeString() {
-    assertEquals("+", IonUtils.getChargeString(1));
-    assertEquals("2-", IonUtils.getChargeString(-2));
-    assertEquals("", IonUtils.getChargeString(0));
-  }
-
-  @Test
-  void correctByElectronMass() {
-    assertEquals(11.99780568036292, IonUtils.correctByElectronMass(12d, 4), 0.00001);
-    assertEquals(12.00109715981854, IonUtils.correctByElectronMass(12d, -2), 0.00001);
-  }
 }

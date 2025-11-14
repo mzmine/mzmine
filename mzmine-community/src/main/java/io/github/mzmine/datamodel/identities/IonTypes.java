@@ -31,12 +31,11 @@ import java.util.stream.Stream;
 public enum IonTypes {
   // positive,
   M_PLUS(IonParts.M_PLUS), //
-  M_2PLUS(IonParts.M_PLUS, IonParts.M_PLUS), //
+  M_2PLUS(IonParts.M_PLUS.withCount(-2)), // subtracting 2 electrons --> 2+
   M_PLUS_H2O(IonParts.M_PLUS, IonParts.H2O), //
   H(IonParts.H), //
-  H2(IonParts.H2_PLUS), //
-  H3(IonParts.H3_PLUS), //
   NA(IonParts.NA), //
+  NA2(IonParts.NA2_PLUS), //
   NH4(IonParts.NH4), //
   NA2_MINUS_H(IonParts.H_MINUS, IonParts.NA2_PLUS), //
   K(IonParts.K), //
@@ -53,17 +52,22 @@ public enum IonTypes {
   M_MINUS(IonParts.M_MINUS), //
   M_2MINUS(IonParts.M_MINUS, IonParts.M_MINUS), //
   H_MINUS(IonParts.H_MINUS), //
+  H2_MINUS(IonParts.H_MINUS.withCount(-2)), //
   F(IonParts.F), //
   CL(IonParts.CL), //
   BR(IonParts.BR), //
   I(IonParts.I), //
   FORMATE_FA(IonParts.FORMATE_FA), //
   ACETATE_AC(IonParts.ACETATE_AC), //
+
   // in source fragments
   H_H2O(IonParts.H2O, IonParts.H), //
   H_2H2O(IonParts.H2O_2, IonParts.H), //
   H_3H2O(IonParts.H2O_3, IonParts.H), //
   H_4H2O(IonParts.H2O_4, IonParts.H), //
+
+  NA_H2O(IonParts.H2O, IonParts.NA), //
+
   // multi charge
   H2_PLUS(IonParts.H2_PLUS), //
   H3_PLUS(IonParts.H3_PLUS), //
@@ -73,6 +77,9 @@ public enum IonTypes {
 
   // 2M only the major adducts
   M2_H(H.ion.withMolecules(2)), //
+  M3_H(H.ion.withMolecules(3)), //
+  M4_H(H.ion.withMolecules(4)), //
+  M5_H(H.ion.withMolecules(5)), //
   M2_H_H2O(H_H2O.ion.withMolecules(2)), //
   M2_NA(NA.ion.withMolecules(2)), //
   M2_NH4(NH4.ion.withMolecules(2)), //
@@ -80,10 +87,11 @@ public enum IonTypes {
   M2_CL(CL.ion.withMolecules(2)), //
 
   M2_2H_PLUS(H2_PLUS.ion.withMolecules(2)), //
+  M2_NA2(NA2.ion.withMolecules(2)), //
+  M2_NA_H(NA_H.ion.withMolecules(2)), //
   M2_NA2_MINUS_H(NA2_MINUS_H.ion.withMolecules(2)), //
 
   // 3M
-  M3_H(H.ion.withMolecules(3)), //
   M3_H_H2O(H_H2O.ion.withMolecules(3)), //
   M3_NA(NA.ion.withMolecules(3)), //
   M3_NH4(NH4.ion.withMolecules(3)), //
@@ -111,12 +119,13 @@ public enum IonTypes {
 
   // default values
   public static final List<IonType> DEFAULT_VALUES_POSITIVE = Stream.of(M_PLUS, M_PLUS_H2O, H,
-          H_H2O, H_2H2O, H_3H2O, H_4H2O, NA, K, NH4, M_2PLUS, H2_PLUS, CA, CA_H_MINUS, MG, MG_H_MINUS,
-          FEII, FEIII, FEII_MINUS_H, FEIII_H_MINUS, FEIII_2H_MINUS, NA_H, NH4_H, K_H, NA2_MINUS_H)
-      .map(IonTypes::asIonType).sorted(IonType.DEFAULT_ION_ADDUCT_SORTER).toList();
+          H_H2O, H_2H2O, H_3H2O, H_4H2O, NA, NA_H2O, K, NH4, M_2PLUS, H2_PLUS, H3_PLUS, CA, CA_H_MINUS,
+          FEII, FEII_MINUS_H, FEIII_H_MINUS, FEIII_2H_MINUS, NA_H, NH4_H, K_H, NA2_MINUS_H, M2_H, M2_NA,
+          M2_NH4, M2_H_H2O, M3_H, M3_NA).map(IonTypes::asIonType)
+      .sorted(IonTypeSorting.getIonTypeDefault().getComparator()).toList();
 
-  public static final List<IonType> DEFAULT_VALUES_NEGATIVE = Stream.of(M_MINUS, H_MINUS,
-          NA2_MINUS_H, CL, BR, FORMATE_FA, ACETATE_AC, NA).map(IonTypes::asIonType)
-      .sorted(IonType.DEFAULT_ION_ADDUCT_SORTER).toList();
+  public static final List<IonType> DEFAULT_VALUES_NEGATIVE = Stream.of(M_MINUS, H_MINUS, CL, BR,
+          FORMATE_FA, ACETATE_AC, H2_MINUS, M2_H_MINUS, M2_CL).map(IonTypes::asIonType)
+      .sorted(IonTypeSorting.getIonTypeDefault().getComparator()).toList();
 
 }

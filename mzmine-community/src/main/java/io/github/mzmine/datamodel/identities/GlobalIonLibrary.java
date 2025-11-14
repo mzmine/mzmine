@@ -47,7 +47,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- *
+ * The library that is used to create new ion identities when the user types in H2O as a part this
+ * part is searched in the global library first.
  */
 public final class GlobalIonLibrary {
 

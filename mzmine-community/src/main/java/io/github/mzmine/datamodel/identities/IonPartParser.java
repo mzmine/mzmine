@@ -50,7 +50,8 @@ public class IonPartParser {
       (?:                       # do not capture the OR| group
       (?![(])                   # negative lookahead NO (
       (?<formula>[a-zA-Z][A-Za-z0-9]*[a-zA-Z0-9]|[a-zA-Z])  # first case without parentheses just +H2O (no charge)
-      (?<charge>[+-]\\d*)?      # optional charge state
+      # charge should be entered with () but can also without
+      ((?<charge>[+-]\\d*)(?=[+-]|$))?      # optional charge state when without () then require additional +- after 
       | [(]                     # alternative case for charged requires () to enclose charge like +(Fe+3)
       (?<parenthesisFormula>
       (?:[a-zA-Z][-A-Za-z0-9=\\#$:%*@.]*)? # formula has to start with letter, maybe followed by smiles or rest of formula

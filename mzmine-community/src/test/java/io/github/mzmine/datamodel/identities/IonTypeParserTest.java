@@ -114,6 +114,12 @@ class IonTypeParserTest {
   }
 
   @Test
+  void testWithCharge() {
+    testIonParser("[M-2H2O+(H+)+(Fe+3)-2(Na+)+H2O]+2", "[M-H2O-2Na+Fe+H]2+", 1, 2, 1);
+    testIonParser("[M  -(H+)\t+ (Fe+3)-2(Na+)+H2O]+", "[M+H2O-H-2Na+Fe]+", 1, 1, 1);
+  }
+
+  @Test
   void test() {
 //    IonType ionType = IonTypes.H.asIonType();
 //    CompoundDBAnnotation annotation = new SimpleCompoundDBAnnotation();

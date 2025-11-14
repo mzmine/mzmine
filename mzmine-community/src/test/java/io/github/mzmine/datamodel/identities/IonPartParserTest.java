@@ -48,6 +48,7 @@ class IonPartParserTest {
   @Test
   public void testParse() {
     List<Case> cases = List.of( //
+        new Case("+Na-", -1, 1, "Na"),//
         new Case("+(C-OH)", 0, 1, "CH4O"),//
         new Case("+2(C-OH+)", 1, 2, "CH4O"),//
         new Case("+2(C-OH+1)", 1, 2, "CH4O"),//
@@ -60,7 +61,6 @@ class IonPartParserTest {
 // will be charge 1 because this is the predefined charge state of Na
         new Case("+Na", 1, 1, "Na"), new Case("+Na+", 1, 1, "Na"),//
         new Case("+Na+1", 1, 1, "Na"),//
-        new Case("+Na-", -1, 1, "Na"),//
         new Case("+Na-2", -2, 1, "Na"),//
         new Case("+Na-2", -2, 1, "Na"),//
         new Case("+(Na)", 1, 1, "Na"),//
@@ -74,7 +74,7 @@ class IonPartParserTest {
       assertNotNull(part, message);
       assertEquals(c.charge, part.singleCharge(), message);
       assertEquals(c.count, part.count(), message);
-      assertEquals(c.formula, part.singleFormulaUnchargedString(), message);
+      assertEquals(c.formula, part.singleFormula(), message);
       assertTrue(part.absSingleMass() > 0, message);
     }
   }
@@ -88,7 +88,7 @@ class IonPartParserTest {
     for (int i = 0; i < parts.size(); i++) {
       final IonPart part = parts.get(i);
       assertEquals(charges.get(i), part.singleCharge());
-      assertEquals("CH3-OH", part.name());
+      assertEquals("CH4O", part.name());
       assertEquals(2, part.count());
     }
   }
@@ -120,10 +120,12 @@ class IonPartParserTest {
 
   @Test
   public void testIonPartRegex() {
-
     Pattern pattern = IonPartParser.PART_PATTERN;
 
     List<String> inputs = List.of( //
+        // this input without braces () is not preferred. With charge prefer braces
+        "-2H2O + H + +Fe +3  -2Na + + H2O", //
+        "-2H2O+H++Fe+3-2Na++H2O", //
         "-2H2O+(H+)+(Fe+3)-2(Na+)+H2O", //
         "\t-2 H2O+( H+)+(Fe+3)-2 (Na+)+H2O", //
         "   - 2H2O+(H+)+(Fe+3)-2(Na+)+H2O", //

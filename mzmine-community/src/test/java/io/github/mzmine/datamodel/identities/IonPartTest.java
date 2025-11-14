@@ -26,21 +26,20 @@
 package io.github.mzmine.datamodel.identities;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-class IonUtilsTest {
+class IonPartTest {
 
   @Test
-  void getChargeString() {
-    assertEquals("+", IonUtils.getChargeString(1));
-    assertEquals("2-", IonUtils.getChargeString(-2));
-    assertEquals("", IonUtils.getChargeString(0));
+  void equalsWithoutCount() {
+    assertTrue(IonParts.H.equalsWithoutCount(new IonPart("H", 1, 2)));
   }
 
   @Test
-  void correctByElectronMass() {
-    assertEquals(11.99780568036292, IonUtils.correctByElectronMass(12d, 4), 0.00001);
-    assertEquals(12.00109715981854, IonUtils.correctByElectronMass(12d, -2), 0.00001);
+  void testEquals() {
+    assertEquals(IonParts.H, new IonPart("H", 1));
+    assertEquals(IonParts.H2_PLUS, new IonPart("H", 1, 2));
   }
 }

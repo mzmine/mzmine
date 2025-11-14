@@ -30,11 +30,7 @@ import static java.util.Objects.requireNonNullElse;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.identities.io.IMolecularFormulaDeserializer;
-import io.github.mzmine.datamodel.identities.io.IMolecularFormulaSerializer;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
@@ -50,37 +46,103 @@ import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
- * A single part in an IonType: like 2Na or -H
- *
- * @param name          clear name - often derived from formula or from alternative names. Empty
- *                      name is only supported for {@link IonParts#SILENT_CHARGE}
- * @param singleFormula uncharged formula without multiplier formula may be null if unknown. Formula
- *                      of a single item - so the count multiplier is not added
- * @param absSingleMass absolute (positive) mass of a single item of this type which is multiplied
- *                      by count to get total mass.
- * @param singleCharge  signed charge of a single item which is multiplied by count to get total
- *                      charge. Both H+ and 2H+ would be single charge +1. See count.
- * @param count         the singed multiplier of this single item, non-zero. e.g., 2 for +2Na and -1
- *                      for -H
+ * A single part in an IonType: like 2Na or -H.
+ * <p>
+ * Is class no record to remain in control of construction
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record IonPart(@NotNull String name,
-                      @JsonSerialize(using = IMolecularFormulaSerializer.class) //
-                      @JsonDeserialize(using = IMolecularFormulaDeserializer.class) //
-                      @Nullable IMolecularFormula singleFormula, double absSingleMass,
-                      int singleCharge, int count) {
+public final class IonPart {
 
   private static final Logger logger = Logger.getLogger(IonPart.class.getName());
   public static final String XML_ELEMENT = "ionpart";
 
+  private final @NotNull String name;
+  private final @Nullable String singleFormula;
+  private final double absSingleMass;
+  private final int singleCharge;
+  private final int count;
 
+  /**
+   * @param singleFormula uncharged formula without multiplier formula may be null if unknown.
+   *                      Formula of a single item - so the count multiplier is not added. Using a
+   *                      String here instead of CDK formula as CDK formula does not implement
+   *                      equals.
+   * @param singleCharge  signed charge of a single item which is multiplied by count to get total
+   *                      charge. Both H+ and 2H+ would be single charge +1. See count.
+   */
+  public IonPart(@NotNull String singleFormula, @Nullable Integer singleCharge) {
+    this(null, singleFormula, null, singleCharge, 1);
+  }
+
+
+  /**
+   * @param singleFormula uncharged formula without multiplier formula may be null if unknown.
+   *                      Formula of a single item - so the count multiplier is not added. Using a
+   *                      String here instead of CDK formula as CDK formula does not implement
+   *                      equals.
+   * @param singleCharge  signed charge of a single item which is multiplied by count to get total
+   *                      charge. Both H+ and 2H+ would be single charge +1. See count.
+   * @param count         the singed multiplier of this single item, non-zero. e.g., 2 for +2Na and
+   *                      -1 for -H
+   */
+  public IonPart(@Nullable String singleFormula, @Nullable Integer singleCharge, final int count) {
+    this(null, singleFormula, null, singleCharge, count);
+  }
+
+  /**
+   * @param name          clear name - often derived from formula or from alternative names. Empty
+   *                      name is only supported for {@link IonParts#SILENT_CHARGE}
+   * @param singleFormula uncharged formula without multiplier formula may be null if unknown.
+   *                      Formula of a single item - so the count multiplier is not added. Using a
+   *                      String here instead of CDK formula as CDK formula does not implement
+   *                      equals.
+   * @param absSingleMass absolute (positive) mass of a single item of this type which is multiplied
+   *                      by count to get total mass.
+   * @param singleCharge  signed charge of a single item which is multiplied by count to get total
+   *                      charge. Both H+ and 2H+ would be single charge +1. See count.
+   * @param count         the singed multiplier of this single item, non-zero. e.g., 2 for +2Na and
+   *                      -1 for -H
+   */
   @JsonCreator
-  public IonPart(@NotNull final String name, @Nullable final IMolecularFormula singleFormula,
-      final double absSingleMass, final int singleCharge, final int count) {
-    this.name = name;
+  public IonPart(@Nullable String name, @Nullable String singleFormula,
+      @Nullable Double absSingleMass, @Nullable Integer singleCharge, final int count) {
+
+    if (singleFormula != null) {
+      final IMolecularFormula parsedFormula =
+          singleCharge == null ? FormulaUtils.createMajorIsotopeMolFormulaWithCharge(singleFormula)
+              : FormulaUtils.createMajorIsotopeMolFormulaWithCharge(singleFormula, singleCharge);
+
+      if (parsedFormula == null) {
+        if (name == null) {
+          name = singleFormula;
+        }
+        singleFormula = null; // formula was not parsed correctly
+      } else {
+        // parsing successful
+        if (singleCharge == null) {
+          singleCharge = requireNonNullElse(parsedFormula.getCharge(), 0);
+        }
+        singleFormula = FormulaUtils.getFormulaString(parsedFormula, false);
+
+        if (absSingleMass == null) {
+          absSingleMass = FormulaUtils.getMonoisotopicMass(parsedFormula, singleCharge);
+        }
+      }
+    }
+
+    if (absSingleMass == null) {
+      absSingleMass = 0d;
+    }
+
+    if (name == null && singleFormula == null) {
+      throw new IllegalArgumentException("name or singleFormula must be defined");
+    }
+
+    this.name = requireNonNullElse(name, singleFormula);
     this.singleFormula = singleFormula;
-    this.absSingleMass = Math.abs(absSingleMass); // allways positive and then multiplied with count
-    this.singleCharge = singleCharge;
+    // always positive and then multiplied with count
+    this.absSingleMass = Math.abs(absSingleMass);
+    this.singleCharge = requireNonNullElse(singleCharge, 0);
     this.count = count;
   }
 
@@ -89,8 +151,17 @@ public record IonPart(@NotNull String name,
    *
    * @param formula used to calculate other fields
    */
-  public IonPart(@NotNull final String formula, final int singleCharge) {
-    this(formula, singleCharge, 1);
+  public static IonPart ofFormula(@NotNull final String formula, final int singleCharge) {
+    return ofFormula(formula, singleCharge, 1);
+  }
+
+
+  /**
+   * Name overwriting formula name
+   */
+  public static IonPart ofFormula(@Nullable String name, @NotNull String formula,
+      final int singleCharge) {
+    return ofFormula(name, formula, singleCharge, 1);
   }
 
   /**
@@ -98,51 +169,32 @@ public record IonPart(@NotNull String name,
    *
    * @param formula used to calculate other fields
    */
-  public IonPart(@NotNull final String formula, final int singleCharge, final int count) {
-    this(Objects.requireNonNull(
-        FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula, singleCharge)), count);
-  }
-
-  public IonPart(@NotNull final IMolecularFormula formula, final int count) {
-    this(FormulaUtils.getFormulaString(formula, false), formula,
-        requireNonNullElse(formula.getCharge(), 0), count);
-  }
-
-  public IonPart(@NotNull final IMolecularFormula formula, final int singleCharge,
+  public static IonPart ofFormula(@NotNull String formula, @Nullable Integer singleCharge,
       final int count) {
-    this(FormulaUtils.getFormulaString(formula, false), formula, singleCharge, count);
+    return ofFormula(null, formula, singleCharge, count);
+  }
+
+  public static IonPart ofFormula(@Nullable String name, @NotNull String formula,
+      @Nullable Integer singleCharge, final int count) {
+
+    // formula as name
+    return new IonPart(name, formula, null, singleCharge, count);
   }
 
   /**
    * No formula constructor
    */
-  public IonPart(@NotNull String name, final double singleMass, final int singleCharge) {
-    this(name, singleMass, singleCharge, 1);
+  public static IonPart ofNamed(@NotNull String name, final double singleMass,
+      final int singleCharge) {
+    return ofNamed(name, singleMass, singleCharge, 1);
   }
 
   /**
    * No formula constructor
    */
-  public IonPart(@NotNull String name, final double singleMass, final int singleCharge,
-      final int count) {
-    this(name, null, singleMass, singleCharge, count);
-  }
-
-  public IonPart(@NotNull String name, @NotNull String formula, final int singleCharge) {
-    this(name, formula, singleCharge, 1);
-  }
-
-  public IonPart(@NotNull String name, @NotNull String formula, final int singleCharge,
-      final int count) {
-    this(name, Objects.requireNonNull(
-            FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula, singleCharge)), singleCharge,
-        count);
-  }
-
-  public IonPart(@NotNull String name, @NotNull IMolecularFormula formula, final int singleCharge,
-      final int count) {
-    this(name, formula, FormulaUtils.getMonoisotopicMass(formula, singleCharge), singleCharge,
-        count);
+  public static IonPart ofNamed(@NotNull String name, final double singleMass,
+      final int singleCharge, final int count) {
+    return new IonPart(name, null, singleMass, singleCharge, count);
   }
 
   public static List<IonPart> parseMultiple(final String input) {
@@ -300,12 +352,6 @@ public record IonPart(@NotNull String name,
   }
 
   @JsonIgnore
-  @Nullable
-  public String singleFormulaUnchargedString() {
-    return singleFormula == null ? null : FormulaUtils.getFormulaString(singleFormula, false);
-  }
-
-  @JsonIgnore
   public boolean isNeutralModification() {
     return !isCharged();
   }
@@ -376,7 +422,7 @@ public record IonPart(@NotNull String name,
     writer.writeAttribute("charge", String.valueOf(singleCharge));
     writer.writeAttribute("count", String.valueOf(count));
     if (singleFormula != null) {
-      writer.writeAttribute("formula", FormulaUtils.getFormulaString(singleFormula, false));
+      writer.writeAttribute("formula", singleFormula);
     }
     writer.writeEndElement();
   }
@@ -396,10 +442,8 @@ public record IonPart(@NotNull String name,
     Objects.requireNonNull(name);
     // may be null
     final String formula = reader.getAttributeValue(null, "formula");
-    final IMolecularFormula parsedFormula =
-        formula == null ? null : FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula);
 
-    return new IonPart(name, parsedFormula, mass, charge, count);
+    return new IonPart(name, formula, mass, charge, count);
   }
 
   /**
@@ -414,14 +458,45 @@ public record IonPart(@NotNull String name,
     if (singleFormula == null) {
       return;
     }
-    for (int i = 0; i < Math.abs(count); i++) {
-      if (isLoss()) {
-        FormulaUtils.subtractFormula(formula, singleFormula);
-      } else {
-        FormulaUtils.addFormula(formula, singleFormula);
-      }
+
+    final IMolecularFormula chargedSingleFormula = chargedSingleCDKFormula();
+    if (chargedSingleFormula == null) {
+      return; // cannot subtract if formula unknown or failed to parse formula
+    }
+    final int absCount = Math.abs(count);
+    if (isLoss()) {
+      FormulaUtils.subtractFormula(formula, chargedSingleFormula, absCount);
+    } else {
+      FormulaUtils.addFormula(formula, chargedSingleFormula, absCount);
     }
   }
+
+  /**
+   * @return the charged formula object of a single count
+   */
+  @JsonIgnore
+  @Nullable
+  public IMolecularFormula chargedSingleCDKFormula() {
+    if (singleFormula == null) {
+      return null;
+    }
+    // could also introduce this as a variable but then it musst not go into the equals and hashcode
+    return FormulaUtils.createMajorIsotopeMolFormulaWithCharge(singleFormula, singleCharge);
+  }
+
+  /**
+   * @return the charged formula object of a single count
+   */
+  @JsonIgnore
+  @Nullable
+  public IMolecularFormula unchargedSingleCDKFormula() {
+    if (singleFormula == null) {
+      return null;
+    }
+    // could also introduce this as a variable but then it musst not go into the equals and hashcode
+    return FormulaUtils.createMajorIsotopeMolFormulaWithCharge(singleFormula, 0);
+  }
+
 
   /**
    * @return silent charge is the only blank name
@@ -430,6 +505,30 @@ public record IonPart(@NotNull String name,
   public boolean isSilentCharge() {
     return name.isBlank() && singleFormula == null && absSingleMass == 0d;
   }
+
+  public @NotNull String name() {
+    return name;
+  }
+
+  /**
+   * @return The uncharged single formula (count not applied)
+   */
+  public @Nullable String singleFormula() {
+    return singleFormula;
+  }
+
+  public double absSingleMass() {
+    return absSingleMass;
+  }
+
+  public int singleCharge() {
+    return singleCharge;
+  }
+
+  public int count() {
+    return count;
+  }
+
 
   public enum Type {
     /**

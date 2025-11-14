@@ -387,8 +387,8 @@ public class FormulaUtils {
    * @see FormulaParser#parseFormulaOrSMILES(String)
    */
   @Nullable
-  public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(@Nullable String formulaOrSmiles,
-      int overwriteCharge) {
+  public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(
+      @Nullable String formulaOrSmiles, int overwriteCharge) {
     var f = createMajorIsotopeMolFormulaWithCharge(formulaOrSmiles);
     if (f != null) {
       f.setCharge(overwriteCharge);
@@ -400,8 +400,9 @@ public class FormulaUtils {
    * @see FormulaParser#parseFormulaOrSMILES(String)
    */
   @Nullable
-  public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(@Nullable String formulaOrSmiles) {
-    if(formulaOrSmiles == null) {
+  public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(
+      @Nullable String formulaOrSmiles) {
+    if (formulaOrSmiles == null) {
       return null;
     }
     return FormulaParser.parseFormulaOrSMILES(formulaOrSmiles);
@@ -667,8 +668,19 @@ public class FormulaUtils {
    * @param result is going to be changed. is also the returned value
    */
   public static IMolecularFormula subtractFormula(IMolecularFormula result, IMolecularFormula sub) {
+    return subtractFormula(result, sub, 1);
+  }
+
+  /**
+   *
+   * @param result        is going to be changed. is also the returned value
+   * @param sub           subtract this formula * multiplier
+   * @param subMultiplier multiply each isotope in sub by this number
+   */
+  public static IMolecularFormula subtractFormula(IMolecularFormula result, IMolecularFormula sub,
+      int subMultiplier) {
     for (IIsotope isotope : sub.isotopes()) {
-      int count = sub.getIsotopeCount(isotope);
+      int count = sub.getIsotopeCount(isotope) * subMultiplier;
       boolean found = false;
       do {
         found = false;
@@ -689,7 +701,7 @@ public class FormulaUtils {
       } while (count > 0 && found);
     }
     final Integer resultCharge = Objects.requireNonNullElse(result.getCharge(), 0);
-    final Integer subtractCharge = Objects.requireNonNullElse(sub.getCharge(), 0);
+    final Integer subtractCharge = Objects.requireNonNullElse(sub.getCharge(), 0) * subMultiplier;
     result.setCharge(resultCharge - subtractCharge);
     return result;
   }
@@ -698,9 +710,22 @@ public class FormulaUtils {
    * @param result is going to be changed. is also the returned value
    */
   public static IMolecularFormula addFormula(IMolecularFormula result, IMolecularFormula add) {
-    result.add(add);
+    return addFormula(result, add, 1);
+  }
+
+  /**
+   *
+   * @param result        is going to be changed. is also the returned value
+   * @param add           to be added * times
+   * @param addMultiplier multiply each isotope in add by this number
+   */
+  public static IMolecularFormula addFormula(IMolecularFormula result, IMolecularFormula add,
+      int addMultiplier) {
+    for (int i = 0; i < addMultiplier; i++) {
+      result.add(add);
+    }
     final Integer resultCharge = requireNonNullElse(result.getCharge(), 0);
-    final Integer subtractCharge = requireNonNullElse(add.getCharge(), 0);
+    final Integer subtractCharge = requireNonNullElse(add.getCharge(), 0) * addMultiplier;
     result.setCharge(resultCharge + subtractCharge);
     return result;
   }
@@ -817,7 +842,7 @@ public class FormulaUtils {
 
         logger.finest(
             () -> "Compound " + string + " is not neutral as determined by molFormula. charge = "
-                  + charge + ". Adjusting protonation.");
+                + charge + ". Adjusting protonation.");
 
         final boolean adjusted = MolecularFormulaManipulator.adjustProtonation(molecularFormula,
             -charge);

@@ -262,7 +262,8 @@ public class IonPartCreatorPane extends BorderPane {
       }
       IMolecularFormula formula = this.formula.get();
       // if name is blank - fill in formula as name
-      var name = requireValueOrElse(this.name.get(), getFormulaString(formula, false));
+      final String formulaString = formula == null ? null : getFormulaString(formula, false);
+      var name = requireValueOrElse(this.name.get(), formulaString);
       Number mass = this.mass.get();
       int charge = this.charge.get();
       int count = this.count.get();
@@ -275,7 +276,7 @@ public class IonPartCreatorPane extends BorderPane {
         part = new IonPart(name, null, mass.doubleValue(), charge, count);
       } else {
         // has formula so parse formula and calc mass from there
-        part = new IonPart(name, formula, charge, count);
+        part = IonPart.ofFormula(name, formulaString, charge, count);
         this.mass.set(part.absSingleMass());
       }
       this.part.set(part);
@@ -333,7 +334,7 @@ public class IonPartCreatorPane extends BorderPane {
       charge.set(part.singleCharge());
       count.set(part.count());
       mass.set(part.absSingleMass());
-      formula.set(part.singleFormula());
+      formula.set(part.chargedSingleCDKFormula());
       return true;
     } catch (Exception ex) {
       return false;

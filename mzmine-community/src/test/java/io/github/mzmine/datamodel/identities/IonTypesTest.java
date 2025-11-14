@@ -25,22 +25,35 @@
 
 package io.github.mzmine.datamodel.identities;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class IonUtilsTest {
+class IonTypesTest {
+
 
   @Test
-  void getChargeString() {
-    assertEquals("+", IonUtils.getChargeString(1));
-    assertEquals("2-", IonUtils.getChargeString(-2));
-    assertEquals("", IonUtils.getChargeString(0));
+  void testIonTypesDuplicates() {
+    final Map<String, List<IonTypes>> duplicates = Arrays.stream(IonTypes.values()).collect(
+        Collectors.groupingBy(ion -> ion.asIonType().toString(IonTypeStringFlavor.SIMPLE_DEFAULT)));
+
+    StringBuilder errors = new StringBuilder();
+
+    for (Entry<String, List<IonTypes>> entry : duplicates.entrySet()) {
+      final List<IonTypes> group = entry.getValue();
+      if (group.size() > 1) {
+        errors.append("Duplicate IonTypes named '").append(entry.getKey()).append("': ")
+            .append(group.stream().map(i -> i.name()).collect(Collectors.joining(", ")))
+            .append("\n");
+      }
+    }
+
+    Assertions.assertTrue(errors.isEmpty(), errors.toString());
   }
 
-  @Test
-  void correctByElectronMass() {
-    assertEquals(11.99780568036292, IonUtils.correctByElectronMass(12d, 4), 0.00001);
-    assertEquals(12.00109715981854, IonUtils.correctByElectronMass(12d, -2), 0.00001);
-  }
 }

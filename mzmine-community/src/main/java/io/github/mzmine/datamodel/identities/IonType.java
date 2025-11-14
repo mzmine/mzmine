@@ -225,17 +225,56 @@ public final class IonType {
     return IonType.create(parts, molecules);
   }
 
+  /**
+   *
+   * @return true if there are parts overlaps
+   */
   public boolean hasPartsOverlap(@Nullable IonType a) {
-    // usually very low number of parts so can just use list operations
-    return streamPartsOverlap(a).findAny().isPresent();
+    return hasPartsOverlap(a, false);
   }
 
-  public Stream<IonPart> streamPartsOverlap(@Nullable IonType a) {
+  /**
+   * @param ignoreLossAdditionPairs if true then losses and addition (-H and +H) pairs are ignored
+   *                                while parts with the same sign are filtered out.
+   * @return true if there are parts overlaps
+   */
+  public boolean hasPartsOverlap(@Nullable IonType a, boolean ignoreLossAdditionPairs) {
+    // usually very low number of parts so can just use list operations
+    return streamPartsOverlap(a, ignoreLossAdditionPairs).findAny().isPresent();
+  }
+
+  /**
+   * @return a stream of part pairs [this, a]
+   */
+  public Stream<IonPart[]> streamPartsOverlap(@Nullable IonType a) {
+    return streamPartsOverlap(a, false);
+  }
+
+  /**
+   * @param ignoreLossAdditionPairs if true then losses and addition (-H and +H) pairs are ignored
+   *                                while parts with the same sign are filtered out.
+   * @return a stream of part pairs [this, a]
+   */
+  public Stream<IonPart[]> streamPartsOverlap(@Nullable IonType a,
+      boolean ignoreLossAdditionPairs) {
     if (a == null) {
       return Stream.empty();
     }
+
     // usually very low number of parts so can just use list operations
-    return a.parts.stream().filter(this.parts::contains);
+    return a.parts.stream().map(part -> {
+      for (IonPart thisPart : this.parts) {
+        if (ignoreLossAdditionPairs && thisPart.count() * part.count() < 0) {
+          // both are different then multiplied is negative
+          continue; // skip
+        }
+
+        if (thisPart.equalsWithoutCount(part)) {
+          return new IonPart[]{thisPart, part};
+        }
+      }
+      return null;
+    }).filter(Objects::nonNull);
   }
 
   /**
@@ -286,13 +325,7 @@ public final class IonType {
 
   @JsonIgnore
   public PolarityType getPolarity() {
-    if (totalCharge() == 0) {
-      return PolarityType.NEUTRAL;
-    }
-    if (totalCharge() < 0) {
-      return PolarityType.NEGATIVE;
-    }
-    return PolarityType.POSITIVE;
+    return PolarityType.fromInt(totalCharge, PolarityType.NEUTRAL);
   }
 
   /**

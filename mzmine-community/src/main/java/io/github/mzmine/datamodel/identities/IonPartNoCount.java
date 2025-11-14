@@ -25,19 +25,12 @@
 
 package io.github.mzmine.datamodel.identities;
 
-import static java.util.Objects.requireNonNullElse;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
-import io.github.mzmine.datamodel.identities.io.IMolecularFormulaDeserializer;
-import io.github.mzmine.datamodel.identities.io.IMolecularFormulaSerializer;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.util.Objects;
@@ -47,7 +40,6 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * A single part definition in an IonType - but without the count. So +H and -H are both just H+ and
@@ -62,59 +54,20 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * @param charge  signed charge of a single item. Both H+ and H+1 would be single charge +1.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record IonPartNoCount(@NotNull String name,
-                             @JsonSerialize(using = IMolecularFormulaSerializer.class) //
-                             @JsonDeserialize(using = IMolecularFormulaDeserializer.class) //
-                             @Nullable IMolecularFormula formula, double absMass, int charge) {
+public record IonPartNoCount(@NotNull String name, @Nullable String formula, double absMass,
+                             int charge) {
 
   private static final Logger logger = Logger.getLogger(IonPartNoCount.class.getName());
   public static final String XML_ELEMENT = "ionpart_definition";
 
   @JsonCreator
-  public IonPartNoCount(@NotNull final String name, @Nullable final IMolecularFormula formula,
+  public IonPartNoCount(@NotNull final String name, @Nullable final String formula,
       final double absMass, final int charge) {
     this.name = name;
     this.formula = formula;
     this.absMass = Math.abs(absMass); // allways positive and then multiplied with count
     this.charge = charge;
   }
-
-  /**
-   * Formula constructor
-   *
-   * @param formula used to calculate other fields
-   */
-  public IonPartNoCount(@NotNull final String formula, final int charge) {
-    this(Objects.requireNonNull(
-        FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula, charge)));
-  }
-
-  public IonPartNoCount(@NotNull final IMolecularFormula formula) {
-    this(FormulaUtils.getFormulaString(formula, false), formula,
-        requireNonNullElse(formula.getCharge(), 0));
-  }
-
-  public IonPartNoCount(@NotNull final IMolecularFormula formula, final int charge) {
-    this(FormulaUtils.getFormulaString(formula, false), formula, charge);
-  }
-
-  /**
-   * No formula constructor
-   */
-  public IonPartNoCount(@NotNull String name, final double mass, final int charge) {
-    this(name, null, mass, charge);
-  }
-
-  public IonPartNoCount(@NotNull String name, @NotNull String formula, final int charge) {
-    this(name, Objects.requireNonNull(
-        FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula, charge)), charge);
-  }
-
-  public IonPartNoCount(@NotNull String name, @NotNull IMolecularFormula formula,
-      final int charge) {
-    this(name, formula, FormulaUtils.getMonoisotopicMass(formula, charge), charge);
-  }
-
 
   public static IonPartNoCount unknown(final String name) {
     return new IonPartNoCount(name, null, 0d, 0);
@@ -175,12 +128,6 @@ public record IonPartNoCount(@NotNull String name,
   }
 
   @JsonIgnore
-  @Nullable
-  public String singleFormulaUnchargedString() {
-    return formula == null ? null : FormulaUtils.getFormulaString(formula, false);
-  }
-
-  @JsonIgnore
   public boolean isNeutralModification() {
     return !isCharged();
   }
@@ -200,7 +147,7 @@ public record IonPartNoCount(@NotNull String name,
     }
 
     return charge == ionPart.charge && Precision.equals(absMass, ionPart.absMass, 0.0000001)
-           && name.equals(ionPart.name) && Objects.equals(formula, ionPart.formula);
+        && name.equals(ionPart.name) && Objects.equals(formula, ionPart.formula);
   }
 
   @Override
@@ -213,7 +160,7 @@ public record IonPartNoCount(@NotNull String name,
     }
 
     return charge == ionPart.charge && Precision.equals(absMass, ionPart.absMass, 0.0000001)
-           && name.equals(ionPart.name) && Objects.equals(formula, ionPart.formula);
+        && name.equals(ionPart.name) && Objects.equals(formula, ionPart.formula);
   }
 
   /**
@@ -237,7 +184,7 @@ public record IonPartNoCount(@NotNull String name,
     writer.writeAttribute("mass", String.valueOf(absMass));
     writer.writeAttribute("charge", String.valueOf(charge));
     if (formula != null) {
-      writer.writeAttribute("formula", FormulaUtils.getFormulaString(formula, false));
+      writer.writeAttribute("formula", formula);
     }
     writer.writeEndElement();
   }
@@ -255,10 +202,8 @@ public record IonPartNoCount(@NotNull String name,
     Objects.requireNonNull(name);
     // may be null
     final String formula = reader.getAttributeValue(null, "formula");
-    final IMolecularFormula parsedFormula =
-        formula == null ? null : FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula);
 
-    return new IonPartNoCount(name, parsedFormula, mass, charge);
+    return new IonPartNoCount(name, formula, mass, charge);
   }
 
   /**
