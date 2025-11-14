@@ -56,17 +56,11 @@ public class BuildingMobilityScanStorage {
 
   private final MemorySegment mzValues;
   private final MemorySegment intensityValues;
-  /**
-   * Per scan
-   */
-  private int[] storageOffsets;
   private final List<BuildingMzMLMobilityScan> mobilityScans;
   /**
    * Per scan
    */
   private final int[] basePeakIndices;
-  private int maxNumPoints;
-
   // frame information
   private final int msLevel;
   private final float retentionTime;
@@ -74,6 +68,11 @@ public class BuildingMobilityScanStorage {
   private final @NotNull PolarityType polarity;
   private final String scanDefinition;
   private final @Nullable Range<Double> scanningMZRange;
+  /**
+   * Per scan
+   */
+  private int[] storageOffsets;
+  private int maxNumPoints;
 
 
   /**
@@ -114,7 +113,8 @@ public class BuildingMobilityScanStorage {
    * @param storage from these instances
    */
   public BuildingMobilityScanStorage(@Nullable MemoryMapStorage storage,
-      @NotNull BuildingMzMLMsScan mergedScan, List<MobilitySpectralArrays> mobilityScanData) {
+      @NotNull BuildingMzMLMsScan mergedScan, List<MobilitySpectralArrays> mobilityScanData,
+      @NotNull MassSpectrumType spectrumType) {
     storageOffsets = new int[mobilityScanData.size()];
     final int numDp = fillDataOffsetsGetTotalDataPoints(mobilityScanData,
         msd -> msd.spectrum().getNumberOfDataPoints());
@@ -128,7 +128,7 @@ public class BuildingMobilityScanStorage {
     msLevel = mergedScan.getMSLevel();
     retentionTime = mergedScan.getRetentionTime();
     // maybe always centroid? the frame will always be calculated
-    spectrumType = mergedScan.getSpectrumType();
+    this.spectrumType = spectrumType;
     polarity = mergedScan.getPolarity();
     scanDefinition = mergedScan.getScanDefinition();
     scanningMZRange = mergedScan.getScanningMZRange();
@@ -141,7 +141,7 @@ public class BuildingMobilityScanStorage {
     }
     for (int i = 0; i < storageOffsets.length; i++) {
       mobilityScans.add(new BuildingMzMLMobilityScan("", mobilityScanData.get(i).mobility(),
-          mobility.mobilityType(), mergedScan.getPrecursorList()));
+          mobility.mobilityType(), mergedScan.getPrecursorList(), spectrumType));
     }
 
     mergedScan.clearUnusedData();

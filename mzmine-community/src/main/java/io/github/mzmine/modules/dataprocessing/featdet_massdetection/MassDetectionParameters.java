@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -46,6 +47,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MassDetectionParameters extends SimpleParameterSet {
 
@@ -79,6 +81,43 @@ public class MassDetectionParameters extends SimpleParameterSet {
   public MassDetectionParameters() {
     super(new Parameter[]{dataFiles, scanSelection, scanTypes, denormalizeMSnScans, massDetector},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection.html");
+  }
+
+  /**
+   * Check how many scans and frames there are with profile and centroided data.
+   */
+  private static @NotNull ScanCheckResult getScanCheckResult(RawDataFile[] selectedFiles,
+      ScanSelection scanSel, SelectedScanTypes scanTypes) {
+    long numCentroided = 0;
+    long numProfile = 0;
+    long numMobCentroided = 0;
+    long numMobProfile = 0;
+
+    for (RawDataFile file : selectedFiles) {
+      Scan[] scans = scanSel.getMatchingScans(file);
+      for (Scan s : scans) {
+        if (scanTypes.applyTo(s)) {
+          if (s.getSpectrumType() == MassSpectrumType.CENTROIDED) {
+            numCentroided++;
+          } else {
+            numProfile++;
+          }
+        }
+        if (s instanceof Frame f && (scanTypes == SelectedScanTypes.MOBLITY_SCANS
+            || scanTypes == SelectedScanTypes.SCANS)) {
+          final MassSpectrumType spectrumType = f.getMobilityScanStorage().getSpectrumType();
+          if (spectrumType.isCentroided()) {
+            numMobCentroided++;
+          } else {
+            numMobProfile++;
+          }
+        }
+      }
+    }
+
+    ScanCheckResult result = new ScanCheckResult(numCentroided, numProfile, numMobCentroided,
+        numMobProfile);
+    return result;
   }
 
   @Override
@@ -115,48 +154,49 @@ public class MassDetectionParameters extends SimpleParameterSet {
     // Do an additional check for centroid/continuous data and show a
     // warning if there is a potential problem
     long numCentroided = 0, numProfile = 0;
-    ScanSelection scanSel = getParameter(scanSelection).getValue();
-
-    for (RawDataFile file : selectedFiles) {
-      Scan[] scans = scanSel.getMatchingScans(file);
-      for (Scan s : scans) {
-        if (s.getSpectrumType() == MassSpectrumType.CENTROIDED) {
-          numCentroided++;
-        } else {
-          numProfile++;
-        }
-      }
-    }
+    final ScanSelection scanSel = getParameter(scanSelection).getValue();
+    final SelectedScanTypes scanTypes = getValue(MassDetectionParameters.scanTypes);
+    final ScanCheckResult result = getScanCheckResult(selectedFiles, scanSel, scanTypes);
 
     // If no scans found, let's just stop here
-    if (numCentroided + numProfile == 0) {
+    if (result.frameCentroided + result.frameProfile + result.mobScanCentroided
+        + result.mobScanProfile == 0) {
       return superCheck;
     }
 
-    // Do we have mostly centroided scans?
-    final double proportionCentroided = (double) numCentroided / (numCentroided + numProfile);
-    final boolean mostlyCentroided = proportionCentroided > 0.5;
-    logger.finest("Proportion of scans estimated to be centroided: " + proportionCentroided);
-
     // Check the selected mass detector
-    String msg = null;
-    if (mostlyCentroided && !detector.usesCentroidData()) {
-      msg = """
+    StringBuilder msg = new StringBuilder();
+    if ((result.frameType == MassSpectrumType.CENTROIDED
+        || result.mobScanType == MassSpectrumType.CENTROIDED) && !detector.usesCentroidData()) {
+      msg.append("""
           mzmine thinks you are running the profile mode mass detector on (mostly) centroided scans.
-          This will likely produce wrong results. Try the Centroid mass detector or Factor of lowest signal mass detector instead.
-          Continue anyway?""";
-    } else if (!mostlyCentroided && !detector.usesProfileData()) {
-      msg = """
+          This will likely produce wrong results. Try the Centroid mass detector or Factor of lowest signal mass detector instead.""");
+    } else if ((result.frameType == MassSpectrumType.PROFILE
+        || result.mobScanType == MassSpectrumType.PROFILE) && !detector.usesProfileData()) {
+      msg.append("""
           mzmine thinks you are running the centroid on (mostly) profile scans.
-          This will likely produce wrong results.
-          Continue anyway?""";
+          This will likely produce wrong results.""");
+    }
+
+    if (result.frameType != null && result.mobScanType != null
+        && result.frameType != result.mobScanType && scanTypes == SelectedScanTypes.SCANS
+        && detector != MassDetectors.AUTO) {
+      msg.append("""
+          
+          Frames (%s) and mobility scans (%s) are of different scan types and thus require different mass detectors or the %s mass detector.
+          It is recommended to run the Mass Detection twice with different noise levels for frames and mobility scans.
+          Running as-is will likely produce wrong results.""".formatted(result.frameType,
+          result.mobScanType, MassDetectors.AUTO.toString()));
+    }
+    if(!msg.isEmpty()) {
+      msg.append("\nDo you want to continue any way?");
     }
     // open dialog on error
-    if (msg != null && !DialogLoggerUtil.showDialogYesNo("Confirmation", msg)) {
+    if (!msg.isEmpty() && !DialogLoggerUtil.showDialogYesNo("Confirmation", msg.toString())) {
       return false;
     }
 
-    final SelectedScanTypes types = getValue(scanTypes);
+    final SelectedScanTypes types = getValue(MassDetectionParameters.scanTypes);
     if (types != SelectedScanTypes.SCANS && Arrays.stream(selectedFiles)
         .anyMatch(file -> !(file instanceof IMSRawDataFile))) {
       if (!DialogLoggerUtil.showDialogYesNo("Confirmation", """
@@ -192,5 +232,33 @@ public class MassDetectionParameters extends SimpleParameterSet {
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  private record ScanCheckResult(long frameCentroided, long frameProfile, long mobScanCentroided,
+                                 long mobScanProfile, @Nullable MassSpectrumType frameType,
+                                 @Nullable MassSpectrumType mobScanType) {
+
+    public ScanCheckResult(long frameCentroided, long frameProfile, long mobScanCentroided,
+        long mobScanProfile) {
+      final MassSpectrumType frameType;
+      if (frameProfile + frameCentroided > 0) {
+        frameType =
+            (double) frameCentroided / (frameProfile + frameCentroided) < 0.5 ? MassSpectrumType.PROFILE
+                : MassSpectrumType.CENTROIDED;
+      } else {
+        frameType = null;
+      }
+
+      final MassSpectrumType mobType;
+      if (mobScanProfile + mobScanCentroided > 0) {
+        mobType = (double) mobScanCentroided / (mobScanProfile + mobScanCentroided) < 0.5
+            ? MassSpectrumType.PROFILE : MassSpectrumType.CENTROIDED;
+      } else {
+        mobType = null;
+      }
+
+      this(frameCentroided, frameProfile, mobScanCentroided, mobScanProfile, frameType, mobType);
+    }
+
   }
 }

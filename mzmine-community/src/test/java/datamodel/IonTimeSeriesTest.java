@@ -315,8 +315,8 @@ public class IonTimeSeriesTest {
     frame.setMobilities(new double[]{1d, 2d});
 
     List<BuildingMobilityScan> mobilityScans = new ArrayList<>();
-    mobilityScans.add(new BuildingMobilityScan(0, new double[]{1d, 1d}, new double[]{2d, 2d}));
-    mobilityScans.add(new BuildingMobilityScan(1, new double[]{2d, 2d}, new double[]{4d, 4d}));
+    mobilityScans.add(new BuildingMobilityScan(0, new double[]{1d, 1d}, new double[]{2d, 2d}, MassSpectrumType.CENTROIDED));
+    mobilityScans.add(new BuildingMobilityScan(1, new double[]{2d, 2d}, new double[]{4d, 4d}, MassSpectrumType.CENTROIDED));
 
     frame.setMobilityScans(mobilityScans, false);
 

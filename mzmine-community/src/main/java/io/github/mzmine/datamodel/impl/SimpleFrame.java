@@ -118,6 +118,10 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return mobilityScanStorage;
   }
 
+  public void setMobilityScanStorage(final MobilityScanStorage mobilityScanStorage) {
+    this.mobilityScanStorage = mobilityScanStorage;
+  }
+
   @NotNull
   @Override
   public MobilityScan getMobilityScan(int num) {
@@ -151,10 +155,6 @@ public class SimpleFrame extends SimpleScan implements Frame {
             useAsMassList));
   }
 
-  public void setMobilityScanStorage(final MobilityScanStorage mobilityScanStorage) {
-    this.mobilityScanStorage = mobilityScanStorage;
-  }
-
   @Override
   public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
     return ((IMSRawDataFile) (getDataFile())).getSegmentMobilities(mobilitySegment)
@@ -178,11 +178,12 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @Nullable
   @Override
   public IonMobilityMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
-    if (precursorInfos == null) {
+    if (precursorInfos == null || precursorInfos.isEmpty()) {
       return null;
     }
-    Optional<IonMobilityMsMsInfo> pcInfo = precursorInfos.stream()
-        .filter(info -> info.getSpectrumNumberRange().contains(mobilityScanNumber)).findFirst();
+    Optional<IonMobilityMsMsInfo> pcInfo = precursorInfos.stream().filter(
+        info -> info.getSpectrumNumberRange() == null || info.getSpectrumNumberRange()
+            .contains(mobilityScanNumber)).findFirst();
     return pcInfo.orElse(null);
   }
 
