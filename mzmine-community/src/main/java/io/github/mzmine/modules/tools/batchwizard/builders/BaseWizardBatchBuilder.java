@@ -31,6 +31,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
@@ -94,6 +95,11 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.Spectra
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_no_precursor.NoPrecursorCosineSpectralNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingParameters;
+import io.github.mzmine.modules.dataprocessing.id_formula_sort.FormulaSortParameters;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionParameters;
+import io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule;
+import io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary.CheckMode;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
@@ -157,6 +163,9 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizar
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
+import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.FragmentUtils;
+import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
+import io.github.mzmine.modules.tools.msmsscore.MSMSScoreParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters.MetadataFileFormat;
@@ -253,6 +262,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   private final boolean checkLocalCsvDatabase;
   // lipid annotation
   private final boolean annotateLipids;
+  protected final boolean predictFormulas;
   protected File csvLibraryFile;
   private @NotNull String csvFilterSamplesColumn = "";
   private MassOptions csvMassOptions;
@@ -282,6 +292,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     }
 
     annotateLipids = getValue(params, AnnotationWizardParameters.lipidAnnotation);
+    predictFormulas = getValue(params, AnnotationWizardParameters.formulaPrediction);
 
     // filter
     params = steps.get(WizardPart.FILTER);
@@ -1438,6 +1449,33 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(LipidAnnotationModule.class), param);
     q.add(step);
+  }
+
+  protected void makeAndAddFormulaPredictionStep(final BatchQueue q) {
+    if (!predictFormulas) {
+      return;
+    }
+
+    final FormulaPredictionFeatureListParameters param = FormulaPredictionFeatureListParameters.create(
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+        //
+        true, FormulaSortParameters.createSub(10, 1, 1),
+        polarity.toScanPolaritySelection() == PolarityType.NEGATIVE
+            ? IonizationType.NEGATIVE_HYDROGEN : IonizationType.POSITIVE_HYDROGEN, mzTolInterSample,
+        10,
+        //
+        FragmentUtils.setupFormulaRange(List.of()),
+        //
+        true, ElementalHeuristicParameters.create(true, true, true),
+        //
+        true, RDBERestrictionParameters.create(null, true),
+        //
+        true, IsotopePatternScoreParameters.create(mzTolFeaturesIntraSample, 0.01, 0.5),
+        //
+        true, MSMSScoreParameters.create(mzTolScans, 0.5, 20));
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(FormulaPredictionFeatureListModule.class), param));
   }
 
   protected void makeAndAddBatchExportStep(final BatchQueue q, boolean exportEnabled,
