@@ -374,7 +374,7 @@ public class MassLynxDataAccess implements AutoCloseable {
     final String scanDefinition = "func=%d, scan=%d".formatted(function, scan);
 
     final Range<Double> acqMassRange = Objects.requireNonNullElse(getAcquisitionMassRange(function),
-        Range.closed(mzs[0], mzs[mzs.length - 1]));
+        mzs.length > 0 ? Range.closed(mzs[0], mzs[mzs.length - 1]) : Range.closed(0d, 0d));
 
     if (isImagingFile && metadata != null) {
       final Coordinates coordinates = metadata.getCoordinates(scanInfo);
