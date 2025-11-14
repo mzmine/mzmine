@@ -28,7 +28,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.AnyXYProvider;
 import io.github.mzmine.javafx.util.color.Vision;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -47,22 +46,22 @@ public class Test extends Application {
 
   SimpleXYChart getChart() {
 
-    final WaveletPeakDetector kernel5 = new WaveletPeakDetector(
+    final WaveletResolver kernel5 = new WaveletResolver(
         new double[]{1d, 1.5d, 2d, 3d, 5d, 8d, 10d}, 5, null, 1E3, 0.1, 5,
         AdvancedWaveletParameters.DEFAULT_NOISE_WINDOW,
-        AdvancedWaveletParameters.MIN_FITTING_SCALES, true, FeatureList.createDummy(),
+        AdvancedWaveletParameters.DEFAULT_MIN_FITTING_SCALES, true, FeatureList.createDummy(),
         new WaveletResolverParameters());
 
-    final WaveletPeakDetector kernel3 = new WaveletPeakDetector(
+    final WaveletResolver kernel3 = new WaveletResolver(
         new double[]{1d, 1.5d, 2d, 3d, 5d, 8d, 10d}, 5, null, 1E3, 0.1, 3,
         AdvancedWaveletParameters.DEFAULT_NOISE_WINDOW,
-        AdvancedWaveletParameters.MIN_FITTING_SCALES, true, FeatureList.createDummy(),
+        AdvancedWaveletParameters.DEFAULT_MIN_FITTING_SCALES, true, FeatureList.createDummy(),
         new WaveletResolverParameters());
 
-    final WaveletPeakDetector kernel2 = new WaveletPeakDetector(
+    final WaveletResolver kernel2 = new WaveletResolver(
         new double[]{1d, 1.5d, 2d, 3d, 5d, 8d, 10d}, 5, null, 1E3, 0.1, 2,
         AdvancedWaveletParameters.DEFAULT_NOISE_WINDOW,
-        AdvancedWaveletParameters.MIN_FITTING_SCALES, true, FeatureList.createDummy(),
+        AdvancedWaveletParameters.DEFAULT_MIN_FITTING_SCALES, true, FeatureList.createDummy(),
         new WaveletResolverParameters());
 
     final SimpleXYChart<AnyXYProvider> chart = new SimpleXYChart<>("Wavelets");

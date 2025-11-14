@@ -35,8 +35,11 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.WaveletResolverParameters.NoiseCalculation;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.StringUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,7 +50,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.OptionalDouble;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -60,21 +62,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @NotThreadSafe
-public class WaveletPeakDetector extends AbstractResolver {
+public class WaveletResolver extends AbstractResolver {
 
-  private static final Logger logger = Logger.getLogger(WaveletPeakDetector.class.getName());
-  private static final double ZERO_THRESHOLD = 1e-9;
+  private static final Logger logger = Logger.getLogger(WaveletResolver.class.getName());
+  private final Map<Integer, Map<Double, double[]>> waveletBuffer = new HashMap<>();
+  private double[] yPadded = new double[0];
+
   private final double[] scales;
   private final double minSnr;
   private final double minPeakHeight;
-  private final double mergeProximityFactor;
   private final double WAVELET_KERNEL_RADIUS_FACTOR;
   private final double LOCAL_NOISE_WINDOW_FACTOR; // Scales how many points to *try* collecting past edges
   private final int MIN_WINDOW_TARGET_POINTS_PER_SIDE = 3; // Minimum target background points per side
   private final NoiseCalculation noiseMethod;
   private final int minDataPoints;
   private final Double topToEdge;
-  private final Map<Integer, Map<Double, double[]>> waveletBuffer = new HashMap<>();
   private final int minFittingScales;
   private final boolean robustnessIteration;
   private final EdgeDetectors edgeDetector;
@@ -82,29 +84,39 @@ public class WaveletPeakDetector extends AbstractResolver {
   private final Integer signChangesEveryNPoints;
   private final double maxSimilarHeightRatio;
   private final boolean saturationFilter;
-  private final double dataMaxBpc;
-  private double[] yPadded = new double[0];
+  private final double saturationThreshold;
 
-  public WaveletPeakDetector(double[] scales, double minSnr, Double topToEdge, double minPeakHeight,
-      double mergeProximityFactor, double waveletKernelRadiusFactor, double localNoiseWindowFactor,
-      int minFittingScales, boolean robustnessIteration, ModularFeatureList flist,
-      ParameterSet parameterSet) {
+  public WaveletResolver(@NotNull final ModularFeatureList flist,
+      @NotNull final ParameterSet parameterSet) {
     super(parameterSet, flist);
-    this.minFittingScales = minFittingScales;
-    this.robustnessIteration = robustnessIteration;
-    if (scales == null || scales.length == 0) {
-      throw new IllegalArgumentException("Scales array cannot be null or empty.");
-    }
-    Arrays.sort(scales);
-    this.scales = scales;
-    this.minSnr = minSnr;
-    this.minPeakHeight = minPeakHeight;
-    this.mergeProximityFactor = mergeProximityFactor;
-    this.WAVELET_KERNEL_RADIUS_FACTOR = waveletKernelRadiusFactor;
-    this.LOCAL_NOISE_WINDOW_FACTOR = Math.max(1, localNoiseWindowFactor);
-    this.noiseMethod = parameterSet.getValue(WaveletResolverParameters.noiseCalculation);
-    this.minDataPoints = parameterSet.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
-    this.topToEdge = topToEdge;
+
+    // standard param
+    minSnr = parameterSet.getValue(WaveletResolverParameters.snr);
+    topToEdge = parameterSet.getEmbeddedParameterValueIfSelectedOrElse(
+        WaveletResolverParameters.topToEdge, null);
+    ;
+    minPeakHeight = parameterSet.getValue(WaveletResolverParameters.minHeight);
+    noiseMethod = parameterSet.getValue(WaveletResolverParameters.noiseCalculation);
+    minDataPoints = parameterSet.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
+
+    // advanced param
+    final AdvancedParametersParameter<AdvancedWaveletParameters> advanced = parameterSet.getParameter(
+        WaveletResolverParameters.advancedParameters);
+
+    this.scales = Arrays.stream(advanced.getValueOrDefault(AdvancedWaveletParameters.scales,
+            AdvancedWaveletParameters.DEFAULT_SCALES).split(",")).map(String::trim)
+        .filter(s -> !StringUtils.isBlank(s)).map(ParsingUtils::stringToDouble)
+        .filter(Objects::nonNull).mapToDouble(Double::doubleValue).sorted().toArray();
+    minFittingScales = advanced.getValueOrDefault(AdvancedWaveletParameters.requiredFits,
+        AdvancedWaveletParameters.DEFAULT_MIN_FITTING_SCALES);
+    robustnessIteration = advanced.getValueOrDefault(AdvancedWaveletParameters.robustnessIteration,
+        AdvancedWaveletParameters.DEFAULT_ROBUSTNESS_ITERATION);
+    WAVELET_KERNEL_RADIUS_FACTOR = advanced.getValueOrDefault(
+        AdvancedWaveletParameters.WAVELET_KERNEL_RADIUS_FACTOR,
+        AdvancedWaveletParameters.DEFAULT_WAVELET_KERNEL);
+    LOCAL_NOISE_WINDOW_FACTOR = Math.max(1,
+        advanced.getValueOrDefault(AdvancedWaveletParameters.LOCAL_NOISE_WINDOW_FACTOR,
+            AdvancedWaveletParameters.DEFAULT_NOISE_WINDOW).intValue());
     edgeDetector = parameterSet.getParameter(WaveletResolverParameters.advancedParameters)
         .getValueOrDefault(AdvancedWaveletParameters.edgeDetector, EdgeDetectors.ABS_MIN);
     dipFilter = parameterSet.getParameter(WaveletResolverParameters.advancedParameters)
@@ -116,14 +128,18 @@ public class WaveletPeakDetector extends AbstractResolver {
         .getValueOrDefault(AdvancedWaveletParameters.maxSimilarHeightRatio,
             AdvancedWaveletParameters.DEFAULT_SIM_HEIGHT_RATIO);
 
-    final OptionalDouble dataMaxIntensity = getRawDataFile().getScans().stream()
-        .mapToDouble(s -> Objects.requireNonNullElse(s.getBasePeakIntensity(), 0d)).max();
-    dataMaxBpc = dataMaxIntensity.orElse(Double.MAX_VALUE);
+    final double dataMaxIntensity = getRawDataFile().getScans().stream()
+        .mapToDouble(s -> Objects.requireNonNullElse(s.getBasePeakIntensity(), 0d)).max()
+        .orElse(Double.MAX_VALUE);
+    saturationThreshold = dataMaxIntensity * 0.9;
+    saturationFilter = parameterSet.getParameter(WaveletResolverParameters.advancedParameters)
+        .getValueOrDefault(AdvancedWaveletParameters.saturationFilter, true);
 
-    saturationFilter = dataMaxIntensity.isPresent() ? parameterSet.getParameter(
-            WaveletResolverParameters.advancedParameters)
-        .getValueOrDefault(AdvancedWaveletParameters.saturationFilter, true) : false;
-
+    // validation
+    if (scales == null || scales.length == 0) {
+      throw new IllegalArgumentException(
+          "No valid scales set in %s".formatted(getModuleClass().getName()));
+    }
   }
 
   private static int findClosestLocalMax(double[] y, int initialIndex, int start, int end) {
@@ -250,7 +266,7 @@ public class WaveletPeakDetector extends AbstractResolver {
       return Collections.emptyList();
     }
 
-    peaksWithBounds = mergePeakRanges(peaksWithBounds, mergeProximityFactor, x, y);
+    peaksWithBounds = mergePeakRanges(peaksWithBounds, x, y);
     peaksWithBounds = dipFilter ? dipFilter(peaksWithBounds, y) : peaksWithBounds;
     peaksWithBounds = saturationFilter ? saturationFilter(peaksWithBounds, y) : peaksWithBounds;
 
@@ -356,7 +372,6 @@ public class WaveletPeakDetector extends AbstractResolver {
       return peaks;
     }
 
-    final double saturationThreshold = dataMaxBpc * 0.9;
     final List<DetectedPeak> saturationFiltered = new ArrayList<>(peaks.size());
 
     saturationFiltered.add(peaks.getFirst());
@@ -726,8 +741,7 @@ public class WaveletPeakDetector extends AbstractResolver {
     };
   }
 
-  private List<DetectedPeak> mergePeakRanges(@NotNull List<DetectedPeak> peakRanges,
-      double proximityFactor, double[] x, double[] y) {
+  private List<DetectedPeak> mergePeakRanges(@NotNull List<DetectedPeak> peakRanges, double[] x, double[] y) {
     if (peakRanges.size() <= 1) {
       return peakRanges;
     }

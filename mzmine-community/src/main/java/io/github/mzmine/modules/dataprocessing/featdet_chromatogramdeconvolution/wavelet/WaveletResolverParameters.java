@@ -30,16 +30,18 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
+import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.StringUtils;
 import java.text.DecimalFormat;
-import java.util.Arrays;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +59,6 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
       NoiseCalculation.values(), NoiseCalculation.STANDARD_DEVIATION);
   public static final AdvancedParametersParameter<AdvancedWaveletParameters> advancedParameters = new AdvancedParametersParameter<>(
       new AdvancedWaveletParameters());
-  private static final double mergeProximity = 0.1;
 
   public WaveletResolverParameters() {
     super(GeneralResolverParameters.PEAK_LISTS, GeneralResolverParameters.dimension,
@@ -71,34 +72,7 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
 
   @Override
   public @Nullable Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist) {
-
-//    final var scales = Arrays.stream(
-//            parameterSet.getValue(WaveletResolverParameters.scales).split(",")).map(String::trim)
-//        .mapToDouble(Double::valueOf).toArray();
-
-    final AdvancedParametersParameter<AdvancedWaveletParameters> advanced = parameterSet.getParameter(
-        advancedParameters);
-    final Double topToEdge = getEmbeddedParameterValueIfSelectedOrElse(
-        WaveletResolverParameters.topToEdge, null);
-
-    final double waveletKernel = advanced.getValueOrDefault(
-        AdvancedWaveletParameters.WAVELET_KERNEL_RADIUS_FACTOR,
-        AdvancedWaveletParameters.DEFAULT_WAVELET_KERNEL);
-    final int noiseWindow = advanced.getValueOrDefault(
-        AdvancedWaveletParameters.LOCAL_NOISE_WINDOW_FACTOR,
-        AdvancedWaveletParameters.DEFAULT_NOISE_WINDOW).intValue();
-    final var scales = Arrays.stream(advanced.getValueOrDefault(AdvancedWaveletParameters.scales,
-            AdvancedWaveletParameters.DEFAULT_SCALES).split(",")).map(String::trim)
-        .filter(s -> !StringUtils.isBlank(s)).mapToDouble(Double::valueOf).toArray();
-    final int minFittingScales = advanced.getValueOrDefault(AdvancedWaveletParameters.requiredFits,
-        AdvancedWaveletParameters.MIN_FITTING_SCALES);
-    final Boolean robustnessIteration = advanced.getValueOrDefault(
-        AdvancedWaveletParameters.robustnessIteration,
-        AdvancedWaveletParameters.DEFAULT_ROBUSTNESS_ITERATION);
-
-    return new WaveletPeakDetector(scales, parameterSet.getValue(WaveletResolverParameters.snr),
-        topToEdge, parameterSet.getValue(WaveletResolverParameters.minHeight), mergeProximity,
-        waveletKernel, noiseWindow, minFittingScales, robustnessIteration, flist, parameterSet);
+    return new WaveletResolver(flist, parameterSet);
   }
 
   @Override
@@ -107,6 +81,33 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
         this, null);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  public static WaveletResolverParameters create(FeatureListsSelection flists,
+      @NotNull ResolvingDimension dimension, boolean enableMs2, @NotNull GroupMS2SubParameters groupMs2, int minDp,
+      @Nullable String suffix, @NotNull OriginalFeatureListOption handleOriginal, double snr,
+      @Nullable Double topToEdge, double minHeight, @NotNull NoiseCalculation noiseCalculation,
+      boolean advancedEnabled, @NotNull AdvancedWaveletParameters advancedParam) {
+
+    final ParameterSet param = new WaveletResolverParameters().cloneParameterSet();
+
+    param.setParameter(WaveletResolverParameters.PEAK_LISTS, flists);
+    param.setParameter(WaveletResolverParameters.dimension, dimension);
+    param.setParameter(WaveletResolverParameters.groupMS2Parameters, enableMs2);
+    param.getParameter(WaveletResolverParameters.groupMS2Parameters).setEmbeddedParameters(groupMs2);
+    param.setParameter(WaveletResolverParameters.MIN_NUMBER_OF_DATAPOINTS, minDp);
+    param.setParameter(WaveletResolverParameters.SUFFIX, Objects.requireNonNullElse(suffix, "r"));
+    param.setParameter(WaveletResolverParameters.handleOriginal, handleOriginal);
+    param.setParameter(WaveletResolverParameters.snr, snr);
+    param.setParameter(WaveletResolverParameters.topToEdge, topToEdge != null,
+        Objects.requireNonNullElse(topToEdge, 3d));
+    param.setParameter(WaveletResolverParameters.minHeight, minHeight);
+    param.setParameter(WaveletResolverParameters.noiseCalculation, noiseCalculation);
+    param.setParameter(WaveletResolverParameters.advancedParameters, advancedEnabled);
+    param.getParameter(WaveletResolverParameters.advancedParameters)
+        .setEmbeddedParameters(advancedParam);
+
+    return (WaveletResolverParameters) param;
   }
 
   public enum NoiseCalculation implements UniqueIdSupplier {
