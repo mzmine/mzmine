@@ -525,7 +525,7 @@ public class ParsingUtils {
     }
 
     try {
-      return Double.valueOf(str);
+      return Double.valueOf(str.trim());
     } catch (NumberFormatException e) {
       return null;
     }
@@ -545,7 +545,7 @@ public class ParsingUtils {
     }
 
     try {
-      return Float.valueOf(str);
+      return Float.valueOf(str.trim());
     } catch (NumberFormatException e) {
       return null;
     }
