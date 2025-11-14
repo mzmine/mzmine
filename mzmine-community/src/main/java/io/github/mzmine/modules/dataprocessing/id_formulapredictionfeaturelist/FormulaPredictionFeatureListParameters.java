@@ -134,7 +134,7 @@ public class FormulaPredictionFeatureListParameters extends SimpleParameterSet {
       @NotNull ElementalHeuristicParameters ratioCheckParam, boolean rdbeCheck,
       @NotNull RDBERestrictionParameters rdbeParam, boolean isotopeCheck,
       @NotNull IsotopePatternScoreParameters isotopeParam, boolean msmsCheck,
-      @NotNull MSMSScoreParameters msmsParam) {
+      @NotNull MSMSScoreParameters msmsParam, double predictionMassLimit) {
     final ParameterSet param = new FormulaPredictionFeatureListParameters().cloneParameterSet();
 
     param.setParameter(FEATURE_LISTS, flists);
@@ -152,6 +152,7 @@ public class FormulaPredictionFeatureListParameters extends SimpleParameterSet {
     param.getParameter(isotopeFilter).setEmbeddedParameters(isotopeParam);
     param.setParameter(msmsFilter, msmsCheck);
     param.getParameter(msmsFilter).setEmbeddedParameters(msmsParam);
+    param.setParameter(highMassLimit, predictionMassLimit);
 
     return (FormulaPredictionFeatureListParameters) param;
   }

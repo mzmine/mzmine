@@ -1456,6 +1456,10 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
       return;
     }
 
+    final double highMassFilter = steps.get(WizardPart.ANNOTATION).map(
+        param -> param.getEmbeddedParameterValueIfSelectedOrElse(
+            AnnotationWizardParameters.formulaPrediction, 600d)).orElse(600d);
+
     final FormulaPredictionFeatureListParameters param = FormulaPredictionFeatureListParameters.create(
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
         //
@@ -1472,7 +1476,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         //
         true, IsotopePatternScoreParameters.create(mzTolFeaturesIntraSample, 0.01, 0.5),
         //
-        true, MSMSScoreParameters.create(mzTolScans, 0.5, 20));
+        true, MSMSScoreParameters.create(mzTolScans, 0.5, 20),
+        //
+        highMassFilter);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(FormulaPredictionFeatureListModule.class), param));
