@@ -46,18 +46,22 @@ public class LipidChainFactory {
 
   }
 
-  public IMolecularFormula buildLipidChainFormula(LipidChainType chainType, int chainLength, int numberOfDBE) {
+  public IMolecularFormula buildLipidChainFormula(LipidChainType chainType, int chainLength,
+      int numberOfDBE) {
     if (chainLength / 2 < numberOfDBE) {
       return null;
     }
     return switch (chainType) {
-      case ACYL_CHAIN, TWO_ACYL_CHAINS_COMBINED -> calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
+      case ACYL_CHAIN, TWO_ACYL_CHAINS_COMBINED ->
+          calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
       case ACYL_MONO_HYDROXY_CHAIN ->
-          calculateMolecularFormulaAcylMonoHydroxyChain(chainLength, numberOfDBE, chainType.getFixNumberOfOxygens());
+          calculateMolecularFormulaAcylMonoHydroxyChain(chainLength, numberOfDBE,
+              chainType.getFixNumberOfOxygens());
       case ALKYL_CHAIN -> calculateMolecularFormulaAlkylChain(chainLength, numberOfDBE);
       case AMID_CHAIN -> calculateMolecularFormulaAmidChain(chainLength, numberOfDBE);
       case AMID_MONO_HYDROXY_CHAIN ->
-          calculateMolecularFormulaAmidMonoHydroxyChain(chainLength, numberOfDBE, chainType.getFixNumberOfOxygens());
+          calculateMolecularFormulaAmidMonoHydroxyChain(chainLength, numberOfDBE,
+              chainType.getFixNumberOfOxygens());
       case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN ->
           calculateMolecularFormulaSphingolipidBackboneChain(chainLength, numberOfDBE, chainType);
       case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN ->
@@ -68,7 +72,8 @@ public class LipidChainFactory {
   }
 
 
-  public List<ILipidChain> buildLipidChainsInRange(LipidChainType chainType, int minChainLength, int maxChainLength, int minDBEs, int maxDBEs, boolean onlySearchForEvenChainLengths) {
+  public List<ILipidChain> buildLipidChainsInRange(LipidChainType chainType, int minChainLength,
+      int maxChainLength, int minDBEs, int maxDBEs, boolean onlySearchForEvenChainLengths) {
     List<ILipidChain> lipidChains = new ArrayList<>();
     for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
       if (onlySearchForEvenChainLengths && chainLength % 2 != 0) {
@@ -87,50 +92,58 @@ public class LipidChainFactory {
   }
 
 
-  private IMolecularFormula calculateMolecularFormulaAcylChain(int chainLength, int numberOfDoubleBonds) {
+  private IMolecularFormula calculateMolecularFormulaAcylChain(int chainLength,
+      int numberOfDoubleBonds) {
     int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2;
     int numberOfOAtoms = 2;
-    return FormulaUtils.createMajorIsotopeMolFormula(
+    return FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
         "C" + chainLength + "H" + numberOfHAtoms + "O" + numberOfOAtoms);
   }
 
-  private IMolecularFormula calculateMolecularFormulaAcylMonoHydroxyChain(int chainLength, int numberOfDoubleBonds, int fixNumberOfOxygens) {
+  private IMolecularFormula calculateMolecularFormulaAcylMonoHydroxyChain(int chainLength,
+      int numberOfDoubleBonds, int fixNumberOfOxygens) {
     int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2;
     int numberOfOAtoms = 2 + fixNumberOfOxygens;
-    return FormulaUtils.createMajorIsotopeMolFormula(
+    return FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
         "C" + chainLength + "H" + numberOfHAtoms + "O" + numberOfOAtoms);
   }
 
-  private IMolecularFormula calculateMolecularFormulaAlkylChain(int chainLength, int numberOfDoubleBonds) {
+  private IMolecularFormula calculateMolecularFormulaAlkylChain(int chainLength,
+      int numberOfDoubleBonds) {
     int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2 + 2;
-    return FormulaUtils.createMajorIsotopeMolFormula("C" + chainLength + "H" + numberOfHAtoms);
+    return FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+        "C" + chainLength + "H" + numberOfHAtoms);
   }
 
-  private IMolecularFormula calculateMolecularFormulaAmidChain(int chainLength, int numberOfDoubleBonds) {
+  private IMolecularFormula calculateMolecularFormulaAmidChain(int chainLength,
+      int numberOfDoubleBonds) {
     int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2 + 1;
     int numberOfOAtoms = 1;
     int numberOfNAtoms = 1;
-    return FormulaUtils.createMajorIsotopeMolFormula(
+    return FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
         "C" + chainLength + "H" + numberOfHAtoms + "O" + numberOfOAtoms + "N" + numberOfNAtoms);
   }
 
-  private IMolecularFormula calculateMolecularFormulaAmidMonoHydroxyChain(int chainLength, int numberOfDoubleBonds, int fixNumberOfOxygens) {
+  private IMolecularFormula calculateMolecularFormulaAmidMonoHydroxyChain(int chainLength,
+      int numberOfDoubleBonds, int fixNumberOfOxygens) {
     int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2 + 1;
     int numberOfOAtoms = 1 + fixNumberOfOxygens;
     int numberOfNAtoms = 1;
-    return FormulaUtils.createMajorIsotopeMolFormula(
+    return FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
         "C" + chainLength + "H" + numberOfHAtoms + "O" + numberOfOAtoms + "N" + numberOfNAtoms);
   }
 
-  private IMolecularFormula calculateMolecularFormulaSphingolipidBackboneChain(int chainLength, int numberOfDoubleBonds, LipidChainType chainType) {
+  private IMolecularFormula calculateMolecularFormulaSphingolipidBackboneChain(int chainLength,
+      int numberOfDoubleBonds, LipidChainType chainType) {
     int numberOfOAtoms = chainType.getFixNumberOfOxygens();
     int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2 + 3;
     int numberOfNAtoms = 1;
-    return FormulaUtils.createMajorIsotopeMolFormula(
+    return FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
         "C" + chainLength + "H" + numberOfHAtoms + "N" + numberOfNAtoms + "O" + numberOfOAtoms);
   }
 
-  private String buildLipidChainAnnotation(LipidChainType chainType, int chainLength, int numberOfDBE) {
+  private String buildLipidChainAnnotation(LipidChainType chainType, int chainLength,
+      int numberOfDBE) {
     return switch (chainType) {
       case ACYL_CHAIN -> chainLength + ":" + numberOfDBE;
       case ACYL_MONO_HYDROXY_CHAIN -> chainLength + ":" + numberOfDBE + ";O";
@@ -146,8 +159,10 @@ public class LipidChainFactory {
 
   public String connectLipidChainAnnotations(List<ILipidChain> chains) {
     StringBuilder sb = new StringBuilder();
-    Comparator<ILipidChain> chainComparator = Comparator.comparing((ILipidChain chain) -> chain.getLipidChainType().getPriorityForSorting())
-        .thenComparing(ILipidChain::getNumberOfCarbons).thenComparing(ILipidChain::getNumberOfDBEs).thenComparing(ILipidChain::getNumberOfOxygens);
+    Comparator<ILipidChain> chainComparator = Comparator.comparing(
+            (ILipidChain chain) -> chain.getLipidChainType().getPriorityForSorting())
+        .thenComparing(ILipidChain::getNumberOfCarbons).thenComparing(ILipidChain::getNumberOfDBEs)
+        .thenComparing(ILipidChain::getNumberOfOxygens);
     chains.sort(chainComparator);
     boolean allChainsAreSame = allChainsAreSame(chains);
     for (int i = 0; i < chains.size(); i++) {
@@ -192,12 +207,14 @@ public class LipidChainFactory {
         sameChainTypes = allChainTypesAreSame(
             chains.stream().map(ILipidChain::getLipidChainType).toArray(LipidChainType[]::new));
       }
-      if (sameNumberOfCarbons && sameNumberOfDoubleBondEquivalents && sameNumberOfOxygens && sameChainTypes) {
+      if (sameNumberOfCarbons && sameNumberOfDoubleBondEquivalents && sameNumberOfOxygens
+          && sameChainTypes) {
         chainsAreEqual = true;
       }
       // in case of Sphingolipids evaluate always true
       if (!chainsAreEqual) {
-        boolean isSphingolipid = chains.stream().anyMatch(chain -> chain.getLipidChainType() == LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN
+        boolean isSphingolipid = chains.stream().anyMatch(chain ->
+            chain.getLipidChainType() == LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN
             || chain.getLipidChainType() == LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN
             || chain.getLipidChainType() == LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN);
         if (isSphingolipid) {
@@ -228,18 +245,21 @@ public class LipidChainFactory {
     return true;
   }
 
-  public static ILipidChain createLipidChain(String chainAnnotation, IMolecularFormula molecularFormula, int numberOfCarbons, int numberOfDBEs,
+  public static ILipidChain createLipidChain(String chainAnnotation,
+      IMolecularFormula molecularFormula, int numberOfCarbons, int numberOfDBEs,
       LipidChainType type) {
     return new LipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs, type);
   }
 
-  public static ILipidChain createLipidChain(String chainAnnotation, IMolecularFormula molecularFormula, int numberOfCarbons, int numberOfDBEs,
+  public static ILipidChain createLipidChain(String chainAnnotation,
+      IMolecularFormula molecularFormula, int numberOfCarbons, int numberOfDBEs,
       LipidChainType type, int additionalNumberOfOxygens) {
     return new LipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs, type,
         additionalNumberOfOxygens);
   }
 
-  public static ILipidChain loadLipidChainFromXML(XMLStreamReader reader) throws XMLStreamException {
+  public static ILipidChain loadLipidChainFromXML(XMLStreamReader reader)
+      throws XMLStreamException {
     return LipidChain.loadFromXML(reader);
   }
 }

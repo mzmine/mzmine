@@ -26,15 +26,18 @@
 package io.github.mzmine.javafx.components.factories;
 
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.components.util.FxControls;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.util.IconCodeSupplier;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Control;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import org.jetbrains.annotations.NotNull;
@@ -49,6 +52,17 @@ public class FxButtons {
   public static Button createButton(String label, @Nullable String tooltip, Runnable onAction) {
     return createButton(label, tooltip, null, onAction);
   }
+
+  public static Button createDisabledButton(String label, @Nullable String tooltip,
+      @Nullable ObservableBooleanValue disableBinding, Runnable onAction) {
+    return disableIf(createButton(label, tooltip, null, onAction), disableBinding);
+  }
+
+  public static Button createDisabledButton(Node icon, @Nullable String tooltip,
+      @Nullable ObservableBooleanValue disableBinding, Runnable onAction) {
+    return disableIf(createButton(null, tooltip, icon, onAction), disableBinding);
+  }
+
 
   public static Button createButton(Node icon, Runnable onAction) {
     return createButton(icon, null, onAction);
@@ -128,6 +142,15 @@ public class FxButtons {
   public static Button createCancelButton(String text, Runnable runnable) {
     return createButton(text, null, FxIconUtil.getFontIcon(FxIcons.CANCEL), runnable);
   }
+
+  /**
+   * Add disableProperty binding
+   */
+  public static <T extends Control> T disableIf(T control,
+      ObservableBooleanValue disableCondition) {
+    return FxControls.disableIf(control, disableCondition);
+  }
+
 
   public static Button createHelpButton(String url) {
     return FxButtons.createButton("Help", "Open the documentation",

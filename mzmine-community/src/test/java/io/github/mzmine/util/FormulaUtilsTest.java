@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,23 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package util;
+package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.FormulaWithExactMz;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class FormulaUtilsTest {
+class FormulaUtilsTest {
 
   private static final Logger logger = Logger.getLogger(FormulaUtilsTest.class.getName());
 
@@ -107,35 +109,35 @@ public class FormulaUtilsTest {
 
   @Test
   void testGetAllSubformulas() {
-    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C6H6O2N+");
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge("C6H6O2N+");
     FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula);
     assert all.length == 293;
   }
 
   @Test
   void testGetAllSubformulasGreater50() {
-    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C6H6O2N+");
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge("C6H6O2N+");
     FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 50);
     assert all.length == 191;
   }
 
   @Test
   void testGetAllSubformulasDoubleCharge() {
-    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C6H6O2N+2");
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge("C6H6O2N+2");
     FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 1, 10);
     assert all.length == 287;
   }
 
   @Test
   void testGetAllSubformulasGreater200() {
-    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C3H3O+");
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge("C3H3O+");
     FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 200);
     assert all.length == 0;
   }
 
   @Test
   void testFindMzInFormula() {
-    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula("C3H4O2N+");
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge("C3H4O2N+");
     FormulaWithExactMz[] all = FormulaUtils.getAllFormulas(formula, 40);
     assert FormulaUtils.getClosestIndexOfFormula(25, all) == 0;
     assert FormulaUtils.getClosestIndexOfFormula(55, all) == 32;
@@ -152,5 +154,65 @@ public class FormulaUtilsTest {
     var ion2 = annotationPlus.ionize(adduct);
 
     Assertions.assertEquals(ion1.getPrecursorMZ(), ion2.getPrecursorMZ());
+  }
+
+  @Test
+  void getMonoisotopicMass() {
+    assertEquals(4.028203556, FormulaUtils.getMonoisotopicMass(formula("[2]H2")), 0.000001);
+    assertEquals(4.028203556, FormulaUtils.getMonoisotopicMass(formula("[2H]2")), 0.000001);
+    assertEquals(86.00670968, FormulaUtils.getMonoisotopicMass(formula("C5[13]C2")), 0.000001);
+    assertEquals(86.00561252018146, FormulaUtils.getMonoisotopicMass(formula("[C5[13C]2]+2")),
+        0.000001);
+    assertEquals(13.00335484, FormulaUtils.getMonoisotopicMass(formula("[13]C")), 0.000001);
+    assertEquals(13.00335484 * 2, FormulaUtils.getMonoisotopicMass(formula("[13]C2")), 0.000001);
+    assertEquals(11.99945142009073, FormulaUtils.getMonoisotopicMass(formula("C+")), 0.000001);
+    assertEquals(12, FormulaUtils.getMonoisotopicMass(formula("C")), 0.000001);
+    assertEquals(93.99077174390926, FormulaUtils.getMonoisotopicMass(formula("CH2O5-")), 0.000001);
+  }
+
+  private static @Nullable IMolecularFormula formula(final String formula) {
+    return FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula);
+  }
+
+  @Test
+  void getFormulaString() {
+    // without charge
+    assertEquals("C", FormulaUtils.getFormulaString(formula("C"), false));
+    assertEquals("CHO2", FormulaUtils.getFormulaString(formula("HCO2+"), false));
+    assertEquals("C", FormulaUtils.getFormulaString(formula("C-2"), false));
+    // with charge
+    assertEquals("C", FormulaUtils.getFormulaString(formula("C"), true));
+    assertEquals("[CHO2]+", FormulaUtils.getFormulaString(formula("HCO2+"), true));
+    assertEquals("[C]2-", FormulaUtils.getFormulaString(formula("C-2"), true));
+    assertEquals("[C]2-", FormulaUtils.getFormulaString(formula("[C]-2"), true));
+    assertEquals("[C]2-", FormulaUtils.getFormulaString(formula("[C]2-"), true));
+
+    // with isotopes
+    assertEquals("[[13]C]2-", FormulaUtils.getFormulaString(formula("[[13C]]2-"), true));
+    assertEquals("[13]C", FormulaUtils.getFormulaString(formula("[[13C]]2-"), false));
+    assertEquals("C2[13]C[79]BrCl[158]Gd",
+        FormulaUtils.getFormulaString(formula("[[13]CC2BrClGd]2-"), false));
+    assertEquals("[C2[13]C[79]BrCl[158]Gd]2-",
+        FormulaUtils.getFormulaString(formula("[[13]CC2BrClGd]2-"), true));
+  }
+
+  @Test
+  void parseFormulaString() {
+    parseFormula("D2O", true);
+    parseFormula("TEST", true); //
+    parseFormula("GGG", true); //
+    parseFormula("H2o", true);
+    parseFormula("H2O", false);
+  }
+
+  private static IMolecularFormula parseFormula(final String formula, boolean resultNull) {
+    var f = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula);
+    if (resultNull) {
+      assertNull(f, () -> "Parsed formula for %s is %s".formatted(formula,
+          FormulaUtils.getFormulaString(f, false)));
+    } else {
+      assertNotNull(f, "Formula for %s is null".formatted(formula));
+    }
+    return f;
   }
 }
