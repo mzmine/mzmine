@@ -29,6 +29,9 @@ import io.github.mzmine.datamodel.SimpleRange;
 import org.jetbrains.annotations.NotNull;
 
 /**
+ * Intermediate object during wavelet peak detection. {@link #leftBoundaryIndex()}
+ * {@link #rightBoundaryIndex()}, {@link #snr()} may not be set initially.
+ *
  * @param peakIndex         Index of the maximum in the original signal
  * @param peakX             X value of the maximum
  * @param peakY             Y value of the maximum
@@ -44,7 +47,7 @@ record DetectedPeak(int peakIndex, double peakX, double peakY, double contributi
   }
 
   DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale, double snr) {
-    this(peakIndex, peakX, peakY, contributingScale, snr,  -1, -1);
+    this(peakIndex, peakX, peakY, contributingScale, snr, -1, -1);
   }
 
   DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale, double snr,
@@ -77,7 +80,7 @@ record DetectedPeak(int peakIndex, double peakX, double peakY, double contributi
   }
 
   @NotNull SimpleRange.SimpleIntegerRange indexRange() {
-    if(rightBoundaryIndex < 0 || leftBoundaryIndex < 0) {
+    if (rightBoundaryIndex < 0 || leftBoundaryIndex < 0) {
       throw new IllegalArgumentException("Boundaries not set yet. " + this);
     }
     return SimpleRange.ofInteger(leftBoundaryIndex, rightBoundaryIndex);

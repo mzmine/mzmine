@@ -34,6 +34,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -47,22 +48,37 @@ import org.jetbrains.annotations.Nullable;
 
 public class WaveletResolverParameters extends GeneralResolverParameters {
 
-  public static final DoubleParameter snr = new DoubleParameter("Signal to noise threshold", "",
-      new DecimalFormat("#.#"), 5d, 1d, Double.MAX_VALUE);
+  public static final boolean DEFAULT_DIP_FILTER = true;
+
+  public static final DoubleParameter snr = new DoubleParameter("Signal to noise threshold",
+      "Minimum required signal to noise ratio of a peak. ", new DecimalFormat("#.#"), 5d, 1d,
+      Double.MAX_VALUE);
+
   public static final OptionalParameter<DoubleParameter> topToEdge = new OptionalParameter<>(
-      new DoubleParameter("Top to edge (SNR override)", "", new DecimalFormat("#.#"), 3d, 1d,
-          Double.MAX_VALUE), false);
-  public static final DoubleParameter minHeight = new DoubleParameter("Minimum height", "",
+      new DoubleParameter("Top to edge (SNR override)",
+          "If a potential feature does not match the SNR threshold, check if the top/edge ratio is above this threshold.",
+          new DecimalFormat("#.#"), 3d, 1d, Double.MAX_VALUE), false);
+
+  public static final DoubleParameter minHeight = new DoubleParameter("Minimum height",
+      "Minimum absolute required of a signal to be retained as a feature.",
       ConfigService.getGuiFormats().intensityFormat(), 1E3, 0d, Double.MAX_VALUE);
+
   public static final ComboParameter<NoiseCalculation> noiseCalculation = new ComboParameter<>(
-      "Noise calculation", "Choose a method to calculate the noise around a potential signal.",
-      NoiseCalculation.values(), NoiseCalculation.STANDARD_DEVIATION);
+      "Noise calculation",
+      "Choose a method to calculate the noise around a potential signal. Default: %s".formatted(
+          NoiseCalculation.STANDARD_DEVIATION.toString()), NoiseCalculation.values(),
+      NoiseCalculation.STANDARD_DEVIATION);
+
+  public static final BooleanParameter dipFilter = new BooleanParameter("Dip filter", """
+      Filters V-shaped dips in the baseline (--v--) that are caused by instable sprays and may behave like an unresolved double peak.
+      Default: enable for LC-MS, disable for GC-EI-MS""", DEFAULT_DIP_FILTER);
+
   public static final AdvancedParametersParameter<AdvancedWaveletParameters> advancedParameters = new AdvancedParametersParameter<>(
       new AdvancedWaveletParameters());
 
   public WaveletResolverParameters() {
-    super(GeneralResolverParameters.PEAK_LISTS, GeneralResolverParameters.dimension,
-        GeneralResolverParameters.groupMS2Parameters, snr, topToEdge, minHeight, noiseCalculation,
+    super("https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_wavelet/wavelet_resolver.html", GeneralResolverParameters.PEAK_LISTS, GeneralResolverParameters.dimension,
+        GeneralResolverParameters.groupMS2Parameters, snr, topToEdge, minHeight, noiseCalculation, dipFilter,
 
         GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS, GeneralResolverParameters.SUFFIX,
         GeneralResolverParameters.handleOriginal,
@@ -84,9 +100,10 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
   }
 
   public static WaveletResolverParameters create(FeatureListsSelection flists,
-      @NotNull ResolvingDimension dimension, boolean enableMs2, @NotNull GroupMS2SubParameters groupMs2, int minDp,
-      @Nullable String suffix, @NotNull OriginalFeatureListOption handleOriginal, double snr,
-      @Nullable Double topToEdge, double minHeight, @NotNull NoiseCalculation noiseCalculation,
+      @NotNull ResolvingDimension dimension, boolean enableMs2,
+      @NotNull GroupMS2SubParameters groupMs2, int minDp, @Nullable String suffix,
+      @NotNull OriginalFeatureListOption handleOriginal, double snr, @Nullable Double topToEdge,
+      double minHeight, @NotNull NoiseCalculation noiseCalculation, @Nullable Boolean dipFilter,
       boolean advancedEnabled, @NotNull AdvancedWaveletParameters advancedParam) {
 
     final ParameterSet param = new WaveletResolverParameters().cloneParameterSet();
@@ -94,7 +111,8 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
     param.setParameter(WaveletResolverParameters.PEAK_LISTS, flists);
     param.setParameter(WaveletResolverParameters.dimension, dimension);
     param.setParameter(WaveletResolverParameters.groupMS2Parameters, enableMs2);
-    param.getParameter(WaveletResolverParameters.groupMS2Parameters).setEmbeddedParameters(groupMs2);
+    param.getParameter(WaveletResolverParameters.groupMS2Parameters)
+        .setEmbeddedParameters(groupMs2);
     param.setParameter(WaveletResolverParameters.MIN_NUMBER_OF_DATAPOINTS, minDp);
     param.setParameter(WaveletResolverParameters.SUFFIX, Objects.requireNonNullElse(suffix, "r"));
     param.setParameter(WaveletResolverParameters.handleOriginal, handleOriginal);
@@ -103,6 +121,8 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
         Objects.requireNonNullElse(topToEdge, 3d));
     param.setParameter(WaveletResolverParameters.minHeight, minHeight);
     param.setParameter(WaveletResolverParameters.noiseCalculation, noiseCalculation);
+    param.setParameter(WaveletResolverParameters.dipFilter,
+        Objects.requireNonNullElse(dipFilter, DEFAULT_DIP_FILTER));
     param.setParameter(WaveletResolverParameters.advancedParameters, advancedEnabled);
     param.getParameter(WaveletResolverParameters.advancedParameters)
         .setEmbeddedParameters(advancedParam);
@@ -112,7 +132,6 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
 
   public enum NoiseCalculation implements UniqueIdSupplier {
     STANDARD_DEVIATION, MEDIAN_ABSOLUTE_DEVIATION;
-
 
     @Override
     public @NotNull String getUniqueID() {

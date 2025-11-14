@@ -71,7 +71,7 @@ public class WaveletResolver extends AbstractResolver {
   private final double[] scales;
   private final double minSnr;
   private final double minPeakHeight;
-  private final double WAVELET_KERNEL_RADIUS_FACTOR;
+  private final double WAVELET_KERNEL_RADIUS_FACTOR = AdvancedWaveletParameters.DEFAULT_WAVELET_KERNEL;
   private final double LOCAL_NOISE_WINDOW_FACTOR; // Scales how many points to *try* collecting past edges
   private final int MIN_WINDOW_TARGET_POINTS_PER_SIDE = 3; // Minimum target background points per side
   private final NoiseCalculation noiseMethod;
@@ -94,10 +94,10 @@ public class WaveletResolver extends AbstractResolver {
     minSnr = parameterSet.getValue(WaveletResolverParameters.snr);
     topToEdge = parameterSet.getEmbeddedParameterValueIfSelectedOrElse(
         WaveletResolverParameters.topToEdge, null);
-    ;
     minPeakHeight = parameterSet.getValue(WaveletResolverParameters.minHeight);
     noiseMethod = parameterSet.getValue(WaveletResolverParameters.noiseCalculation);
     minDataPoints = parameterSet.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
+    dipFilter = parameterSet.getValue(WaveletResolverParameters.dipFilter);
 
     // advanced param
     final AdvancedParametersParameter<AdvancedWaveletParameters> advanced = parameterSet.getParameter(
@@ -111,29 +111,21 @@ public class WaveletResolver extends AbstractResolver {
         AdvancedWaveletParameters.DEFAULT_MIN_FITTING_SCALES);
     robustnessIteration = advanced.getValueOrDefault(AdvancedWaveletParameters.robustnessIteration,
         AdvancedWaveletParameters.DEFAULT_ROBUSTNESS_ITERATION);
-    WAVELET_KERNEL_RADIUS_FACTOR = advanced.getValueOrDefault(
-        AdvancedWaveletParameters.WAVELET_KERNEL_RADIUS_FACTOR,
-        AdvancedWaveletParameters.DEFAULT_WAVELET_KERNEL);
     LOCAL_NOISE_WINDOW_FACTOR = Math.max(1,
         advanced.getValueOrDefault(AdvancedWaveletParameters.LOCAL_NOISE_WINDOW_FACTOR,
             AdvancedWaveletParameters.DEFAULT_NOISE_WINDOW).intValue());
-    edgeDetector = parameterSet.getParameter(WaveletResolverParameters.advancedParameters)
-        .getValueOrDefault(AdvancedWaveletParameters.edgeDetector, EdgeDetectors.ABS_MIN);
-    dipFilter = parameterSet.getParameter(WaveletResolverParameters.advancedParameters)
-        .getValueOrDefault(AdvancedWaveletParameters.dipFilter, true);
-    signChangesEveryNPoints = parameterSet.getParameter(
-            WaveletResolverParameters.advancedParameters)
-        .getValueOrDefault(AdvancedWaveletParameters.signChanges, null);
-    maxSimilarHeightRatio = parameterSet.getParameter(WaveletResolverParameters.advancedParameters)
-        .getValueOrDefault(AdvancedWaveletParameters.maxSimilarHeightRatio,
-            AdvancedWaveletParameters.DEFAULT_SIM_HEIGHT_RATIO);
+    edgeDetector = advanced.getValueOrDefault(AdvancedWaveletParameters.edgeDetector,
+        EdgeDetectors.ABS_MIN);
+    signChangesEveryNPoints = advanced.getValueOrDefault(AdvancedWaveletParameters.signChanges,
+        null);
+    maxSimilarHeightRatio = advanced.getValueOrDefault(
+        AdvancedWaveletParameters.maxSimilarHeightRatio, 1d); // ratio of 1 disables this filter
 
     final double dataMaxIntensity = getRawDataFile().getScans().stream()
         .mapToDouble(s -> Objects.requireNonNullElse(s.getBasePeakIntensity(), 0d)).max()
         .orElse(Double.MAX_VALUE);
     saturationThreshold = dataMaxIntensity * 0.9;
-    saturationFilter = parameterSet.getParameter(WaveletResolverParameters.advancedParameters)
-        .getValueOrDefault(AdvancedWaveletParameters.saturationFilter, true);
+    saturationFilter = advanced.getValueOrDefault(AdvancedWaveletParameters.saturationFilter, true);
 
     // validation
     if (scales == null || scales.length == 0) {
@@ -226,7 +218,7 @@ public class WaveletResolver extends AbstractResolver {
 
     final DetectedPeak peakWithBounds = peak.withBoundaries(leftMin, rightMin);
     if (signChangesEveryNPoints != null) {
-      double jaggedness = Jaggedness.signChangesPerNPoints(peakWithBounds, y,
+      final double jaggedness = Jaggedness.signChangesPerNPoints(peakWithBounds, y,
           signChangesEveryNPoints);
       if (jaggedness > 1) {
         return null;
@@ -250,12 +242,9 @@ public class WaveletResolver extends AbstractResolver {
     final double[][] cwtCoefficients = calculateCWT(y, scales);
 
     // Find Potential Peaks
-    final List<PotentialPeak> potentialPeaks = findPotentialPeaksFromCWT(cwtCoefficients, scales, x,
+    final List<DetectedPeak> heightFilteredPeaks = findPotentialPeaksFromCWT(cwtCoefficients, scales, x,
         y);
 
-    // Initial Filtering - Height Only
-    final List<DetectedPeak> heightFilteredPeaks = filterByHeight(potentialPeaks, y, x,
-        minPeakHeight);
     if (heightFilteredPeaks.isEmpty()) {
       return Collections.emptyList();
     }
@@ -282,16 +271,8 @@ public class WaveletResolver extends AbstractResolver {
     final List<DetectedPeak> secondPassPeaks =
         robustnessIteration ? estimateLocalNoiseBaselineAndFilterBySNR(finalDetectedPeaks, x, y,
             minSnr) : finalDetectedPeaks;
-//    logger.finest("Second noise pass removed %d signals".formatted(
-//        finalDetectedPeaks.size() - secondPassPeaks.size()));
 
-    // Merge Overlapping / Proximal Peaks
-    List<DetectedPeak> finalPeaks = secondPassPeaks;
-//    List<DetectedPeak> finalPeaks = mergePeakRanges(secondPassPeaks, mergeProximityFactor, x,
-//        y);
-//    finalPeaks = dipFilter ? dipFilter(finalPeaks, y) : finalPeaks;
-
-    return finalPeaks.stream().map(p -> p.asRtRange(x))
+    return secondPassPeaks.stream().map(p -> p.asRtRange(x))
         .sorted(Comparator.comparing(Range::lowerEndpoint)).toList();
   }
 
@@ -491,7 +472,7 @@ public class WaveletResolver extends AbstractResolver {
     });
   }
 
-  private List<PotentialPeak> findPotentialPeaksFromCWT(double[][] cwt, final double[] scales,
+  private List<DetectedPeak> findPotentialPeaksFromCWT(double[][] cwt, final double[] scales,
       final double[] x, final double[] y) {
     int nScales = cwt.length;
     int nPoints = cwt[0].length;
@@ -518,6 +499,8 @@ public class WaveletResolver extends AbstractResolver {
           final int start = Math.max(0, j - searchRadius);
           final int end = Math.min(y.length - 1, j + searchRadius);
           final int bestYIndex = findClosestLocalMax(y, j, start, end);
+
+          // height filtering
           if (y[bestYIndex] < minPeakHeight) {
             continue;
           }
@@ -541,32 +524,18 @@ public class WaveletResolver extends AbstractResolver {
     }
     bestPotentials.sort(Comparator.comparingInt(PotentialPeak::index));
 
-    List<PotentialPeak> refinedPotentials = new ArrayList<>();
+    List<DetectedPeak> refinedPotentials = new ArrayList<>();
     for (PotentialPeak pp : bestPotentials) {
       if (Double.isInfinite(y[pp.index()])) {
         continue;
       }
 
       refinedPotentials.add(
-          new PotentialPeak(pp.index(), pp.scale(), pp.cwtValue(), y[pp.index()]));
+          new DetectedPeak(pp.index(), x[pp.index()], y[pp.index()], pp.scale()));
     }
 
-    refinedPotentials.sort(Comparator.comparingInt(PotentialPeak::index));
+    refinedPotentials.sort(Comparator.comparingInt(DetectedPeak::peakIndex));
     return refinedPotentials;
-  }
-
-  private List<DetectedPeak> filterByHeight(List<PotentialPeak> potentials, double[] y, double[] x,
-      double minPeakHeight) {
-    final List<DetectedPeak> heightFiltered = new ArrayList<>();
-
-    for (final PotentialPeak pp : potentials) {
-      final double peakYValue = pp.originalY();
-      if (peakYValue >= minPeakHeight && pp.index() >= 0 && pp.index() < x.length) {
-        heightFiltered.add(
-            new DetectedPeak(pp.index(), x[pp.index()], peakYValue, pp.scale(), Double.NaN));
-      }
-    }
-    return heightFiltered;
   }
 
   /**
@@ -694,7 +663,7 @@ public class WaveletResolver extends AbstractResolver {
         // are similar to the height of the actual peak. If that is the case, it might just be a
         // hump on the baseline
         final long signalsOfSimilarHeight = localBackgroundSamples.doubleStream()
-            .filter(signal -> peak.peakY() * 0.8 < signal).count();
+            .filter(signal -> signal > peak.peakY() * 0.8).count();
         final double similarHeightProportion =
             (double) signalsOfSimilarHeight / localBackgroundSamples.size();
         if (similarHeightProportion > maxSimilarHeightRatio) {
@@ -741,7 +710,8 @@ public class WaveletResolver extends AbstractResolver {
     };
   }
 
-  private List<DetectedPeak> mergePeakRanges(@NotNull List<DetectedPeak> peakRanges, double[] x, double[] y) {
+  private List<DetectedPeak> mergePeakRanges(@NotNull List<DetectedPeak> peakRanges, double[] x,
+      double[] y) {
     if (peakRanges.size() <= 1) {
       return peakRanges;
     }

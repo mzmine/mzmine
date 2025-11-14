@@ -62,8 +62,8 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
   public static final IntegerParameter MIN_NUMBER_OF_DATAPOINTS = new IntegerParameter(
       "Minimum scans (data points)", "Minimum number of data points on a feature", 3, true);
 
-  public GeneralResolverParameters(Parameter... parameters) {
-    this(parameters, null);
+  public GeneralResolverParameters(String url, Parameter... parameters) {
+    this(parameters, url);
   }
 
   public GeneralResolverParameters(Parameter[] parameters, String url) {

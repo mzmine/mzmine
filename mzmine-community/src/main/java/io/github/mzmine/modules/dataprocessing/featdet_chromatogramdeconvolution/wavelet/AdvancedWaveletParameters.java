@@ -48,9 +48,8 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
   public static final double DEFAULT_NOISE_WINDOW = 3;
   public static final int DEFAULT_MIN_FITTING_SCALES = 2;
   public static final boolean DEFAULT_ROBUSTNESS_ITERATION = true;
-  public static final boolean DEFAULT_DIP_FILTER = true;
   public static final int DEFAULT_SIGN_CHANGE_POINTS = 2;
-  public static final @NotNull String DEFAULT_SCALES = Stream.of(1d, 1.5d, 2d, 3d, 5d, 8d, 10d)
+  public static final @NotNull String DEFAULT_SCALES = Stream.of(0.5d, 1d, 1.5d, 2d, 3d, 5d, 8d, 10d)
       .map(Object::toString).collect(Collectors.joining(", "));
   public static final double DEFAULT_SIM_HEIGHT_RATIO = 0.1d;
   public static final EdgeDetectors DEFAULT_EDGE_DETECTOR = EdgeDetectors.ABS_MIN;
@@ -59,51 +58,67 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
   public static final OptionalParameter<StringParameter> scales = new OptionalParameter<>(
       new StringParameter("Scales", """
           Scales (widths) of the wavelets. Multiple wavelets allow detection of signals of varying widths.
-          Default: %s""".formatted(DEFAULT_SCALES).formatted(), DEFAULT_SCALES));
-
-  public static final OptionalParameter<DoubleParameter> WAVELET_KERNEL_RADIUS_FACTOR = new OptionalParameter<>(
-      new DoubleParameter("Wavelet kernel radius", """
-          A factor that defines the width of the wavelets. Smaller values allow detection of narrower signals.
-          Default: %.0f""".formatted(DEFAULT_WAVELET_KERNEL), new DecimalFormat("#.###"),
-          DEFAULT_WAVELET_KERNEL, 0d, Double.MAX_VALUE));
+          
+          If disabled/default: %s""".formatted(DEFAULT_SCALES).formatted(), DEFAULT_SCALES));
 
   public static final OptionalParameter<DoubleParameter> LOCAL_NOISE_WINDOW_FACTOR = new OptionalParameter<>(
       new DoubleParameter("Noise window factor", """
           The window around a potential signal to calculate the signal to noise ratio in.
           The window is defined by this factor multiplied by the peak width.
-          Default: %.0f""".formatted(DEFAULT_NOISE_WINDOW), new DecimalFormat("#.###"),
-          DEFAULT_NOISE_WINDOW));
+          
+          If disabled/default: %.0f is used""".formatted(DEFAULT_NOISE_WINDOW),
+          new DecimalFormat("#.###"), DEFAULT_NOISE_WINDOW));
 
   public static final OptionalParameter<IntegerParameter> requiredFits = new OptionalParameter<>(
       new IntegerParameter("Required fitting scales", """
           Minimum number of fitting wavelet scales for a peak to be retained.
-          Default: %d""".formatted(DEFAULT_MIN_FITTING_SCALES), DEFAULT_MIN_FITTING_SCALES, 1,
-          Integer.MAX_VALUE));
+          
+          If disabled/default: %d
+          Note: Enable and set to 1 to disable this filter""".formatted(DEFAULT_MIN_FITTING_SCALES),
+          DEFAULT_MIN_FITTING_SCALES, 1, Integer.MAX_VALUE));
 
   public static final BooleanParameter robustnessIteration = new BooleanParameter(
-      "Apply robustness iteration", "", DEFAULT_ROBUSTNESS_ITERATION);
+      "Apply robustness iteration", """
+      Regions of potential peaks are not used for noise calculation. This may cause too many regions being excluded.
+      Applying a second iteration allows more robust noise calculation for signals in crowded regions of the chromatogram.
+      
+      Default: %s""".formatted(DEFAULT_ROBUSTNESS_ITERATION), DEFAULT_ROBUSTNESS_ITERATION);
 
   public static final OptionalParameter<ComboParameter<EdgeDetectors>> edgeDetector = new OptionalParameter<>(
-      new ComboParameter<>("Edge detection", "", EdgeDetectors.values(), DEFAULT_EDGE_DETECTOR));
-
-  public static final BooleanParameter dipFilter = new BooleanParameter("Dip filter", "",
-      DEFAULT_DIP_FILTER);
+      new ComboParameter<>("Edge detection", """
+          Define an algorithm to detect the edges of a peak.
+          %s
+          
+          If disabled/default: %s is used""".formatted(EdgeDetectors.getDescriptions(),
+          DEFAULT_EDGE_DETECTOR), EdgeDetectors.values(), DEFAULT_EDGE_DETECTOR));
 
   public static final OptionalParameter<IntegerParameter> signChanges = new OptionalParameter<>(
-      new IntegerParameter("Allow sign changes every N points", "", DEFAULT_SIGN_CHANGE_POINTS, 1,
-          Integer.MAX_VALUE));
+      new IntegerParameter("Allow sign changes every N points", """
+          Removes noisy signals with lots of up/down movement.
+          
+          If disabled: %d is used.
+          To not use this filter enable and set to 1.""".formatted(DEFAULT_SIGN_CHANGE_POINTS),
+          DEFAULT_SIGN_CHANGE_POINTS, 1, Integer.MAX_VALUE), true);
 
   public static final OptionalParameter<DoubleParameter> maxSimilarHeightRatio = new OptionalParameter<>(
-      new DoubleParameter("Maximum ratio of similar height signals in background", "",
-          new DecimalFormat("#.##"), DEFAULT_SIM_HEIGHT_RATIO, 0d, 1d));
+      new DoubleParameter("Maximum ratio of similar height signals in background", """
+          Noisy baselines may pass the SNR filter due to low standard deviation if the baseline is relatively stable.
+          This filter checks if there are a lot of signals with a similar absolute height (80%%) as a potential peak.
+          If that is the case, the peak is removed.
+          
+          If disabled: (%.2f) will be used as default.
+          Note: A value of 1 disables this filter.
+          """.formatted(DEFAULT_SIM_HEIGHT_RATIO), new DecimalFormat("#.##"),
+          DEFAULT_SIM_HEIGHT_RATIO, 0d, 1d), true);
 
   public static final BooleanParameter saturationFilter = new BooleanParameter("Saturation filter",
-      "", DEFAULT_SAT_FILTER);
+      """
+          Detects if a peak has a flat top signal due to saturation of the MS detector.
+          Default: %s""".formatted(DEFAULT_SAT_FILTER), DEFAULT_SAT_FILTER);
 
   public AdvancedWaveletParameters() {
-    super(scales, WAVELET_KERNEL_RADIUS_FACTOR, LOCAL_NOISE_WINDOW_FACTOR, requiredFits,
-        robustnessIteration, edgeDetector, dipFilter, signChanges, maxSimilarHeightRatio,
-        saturationFilter);
+    super(scales, LOCAL_NOISE_WINDOW_FACTOR, requiredFits, robustnessIteration, edgeDetector,
+        signChanges, maxSimilarHeightRatio, saturationFilter);
   }
 
   @Override
@@ -130,9 +145,8 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
   }
 
   public static AdvancedWaveletParameters create(@Nullable String scales,
-      @Nullable Double kernelRadiusFactor, @Nullable Double noiseWindowFactor,
-      @Nullable Integer requiredFits, @Nullable Boolean robustnessIteration,
-      @Nullable EdgeDetectors edgeDetection, @Nullable Boolean dipFilter,
+      @Nullable Double noiseWindowFactor, @Nullable Integer requiredFits,
+      @Nullable Boolean robustnessIteration, @Nullable EdgeDetectors edgeDetection,
       @Nullable Integer signChangesEveryNPoints, @Nullable Double maxSimilarHeightRatio,
       @Nullable Boolean saturationFilter) {
 
@@ -140,9 +154,6 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
 
     param.setParameter(AdvancedWaveletParameters.scales, scales != null,
         Objects.requireNonNullElse(scales, DEFAULT_SCALES));
-    param.setParameter(AdvancedWaveletParameters.WAVELET_KERNEL_RADIUS_FACTOR,
-        kernelRadiusFactor != null,
-        Objects.requireNonNullElse(kernelRadiusFactor, DEFAULT_WAVELET_KERNEL));
     param.setParameter(AdvancedWaveletParameters.LOCAL_NOISE_WINDOW_FACTOR,
         noiseWindowFactor != null,
         Objects.requireNonNullElse(noiseWindowFactor, DEFAULT_NOISE_WINDOW));
@@ -152,8 +163,6 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
         Objects.requireNonNullElse(robustnessIteration, DEFAULT_ROBUSTNESS_ITERATION));
     param.setParameter(AdvancedWaveletParameters.edgeDetector, edgeDetection != null,
         Objects.requireNonNullElse(edgeDetection, DEFAULT_EDGE_DETECTOR));
-    param.setParameter(AdvancedWaveletParameters.dipFilter,
-        Objects.requireNonNullElse(dipFilter, DEFAULT_DIP_FILTER));
     param.setParameter(AdvancedWaveletParameters.signChanges, signChangesEveryNPoints != null,
         Objects.requireNonNullElse(signChangesEveryNPoints, DEFAULT_SIGN_CHANGE_POINTS));
     param.setParameter(AdvancedWaveletParameters.maxSimilarHeightRatio,
@@ -166,14 +175,14 @@ public class AdvancedWaveletParameters extends SimpleParameterSet {
   }
 
   public static AdvancedWaveletParameters createLcDefault() {
-    return create(DEFAULT_SCALES, DEFAULT_WAVELET_KERNEL, DEFAULT_NOISE_WINDOW,
-        DEFAULT_MIN_FITTING_SCALES, DEFAULT_ROBUSTNESS_ITERATION, DEFAULT_EDGE_DETECTOR,
-        DEFAULT_DIP_FILTER, DEFAULT_SIGN_CHANGE_POINTS, DEFAULT_SIM_HEIGHT_RATIO, DEFAULT_SAT_FILTER);
+    return create(DEFAULT_SCALES, DEFAULT_NOISE_WINDOW, DEFAULT_MIN_FITTING_SCALES,
+        DEFAULT_ROBUSTNESS_ITERATION, DEFAULT_EDGE_DETECTOR, DEFAULT_SIGN_CHANGE_POINTS,
+        DEFAULT_SIM_HEIGHT_RATIO, DEFAULT_SAT_FILTER);
   }
 
   public static AdvancedWaveletParameters createGcDefault() {
-    return create(DEFAULT_SCALES, DEFAULT_WAVELET_KERNEL, DEFAULT_NOISE_WINDOW,
-        DEFAULT_MIN_FITTING_SCALES, DEFAULT_ROBUSTNESS_ITERATION, DEFAULT_EDGE_DETECTOR,
-        false, DEFAULT_SIGN_CHANGE_POINTS, DEFAULT_SIM_HEIGHT_RATIO, DEFAULT_SAT_FILTER);
+    return create(DEFAULT_SCALES, DEFAULT_NOISE_WINDOW, DEFAULT_MIN_FITTING_SCALES,
+        DEFAULT_ROBUSTNESS_ITERATION, DEFAULT_EDGE_DETECTOR, DEFAULT_SIGN_CHANGE_POINTS,
+        DEFAULT_SIM_HEIGHT_RATIO, DEFAULT_SAT_FILTER);
   }
 }
