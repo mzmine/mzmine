@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import static io.github.mzmine.util.StringUtils.inQuotes;
 
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundNameIdentifier;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
@@ -67,7 +66,7 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithString
 import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithStringInputValue;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -77,7 +76,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.files.ExtensionFilters;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -119,10 +117,10 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new PercentParameter("CCS tolerance (%)",
           "Maximum allowed difference (in per cent) for two ccs values.", 0.05), false);
 
-  public static final OptionalModuleParameter<IonLibraryParameterSet> ionLibrary = new OptionalModuleParameter<>(
+  public static final OptionalModuleParameter<LegacyIonLibraryParameterSet> ionLibrary = new OptionalModuleParameter<>(
       "Use adducts",
       "If enabled, m/z values for multiple adducts will be calculated and matched against the feature list.",
-      EmbeddedComponentOptions.VIEW_IN_WINDOW, new IonLibraryParameterSet());
+      EmbeddedComponentOptions.VIEW_IN_WINDOW, new LegacyIonLibraryParameterSet());
 
   public static final OptionalModuleParameter<IsotopePatternMatcherParameters> isotopePatternMatcher = new OptionalModuleParameter<>(
       "Use isotope matcher",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.ionidentity;
+package io.github.mzmine.parameters.parametertypes.ionidentity.legacy;
 
 
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A component for selecting adducts.
  */
-public class IonModificationComponent extends HBox {
+public class LegacyIonModificationComponent extends HBox {
 
   protected MultiChoiceComponent<IonModification> adducts;
   protected MultiChoiceComponent<IonModification> mods;
@@ -52,7 +52,7 @@ public class IonModificationComponent extends HBox {
    *
    * @param choicesAdducts the adduct choices.
    */
-  public IonModificationComponent(List<IonModification> choicesAdducts,
+  public LegacyIonModificationComponent(List<IonModification> choicesAdducts,
       List<IonModification> choicesMods) {
     setFillHeight(true);
     setSpacing(5);

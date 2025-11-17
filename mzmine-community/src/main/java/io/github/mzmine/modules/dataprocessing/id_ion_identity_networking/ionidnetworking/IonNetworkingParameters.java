@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,7 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
@@ -62,7 +62,7 @@ public class IonNetworkingParameters extends SimpleParameterSet {
 
   public static final ComboParameter<CheckMode> CHECK_MODE = new ComboParameter<CheckMode>("Check",
       "The modes to check for adduct identities. Average compares only the average m/z values (without min. height).\n "
-      + "ALL features and SINGLE feature compares the m/z values of features with height>minHeight in raw data files",
+          + "ALL features and SINGLE feature compares the m/z values of features with height>minHeight in raw data files",
       CheckMode.values(), CheckMode.ONE_FEATURE);
 
   public static final DoubleParameter MIN_HEIGHT = new DoubleParameter("Min height",
@@ -72,9 +72,9 @@ public class IonNetworkingParameters extends SimpleParameterSet {
 
   // adduct finder parameter - taken from the adduct finder
   // search for adducts? Bonus for correlation?
-  public static final SubModuleParameter<IonLibraryParameterSet> LIBRARY = new SubModuleParameter<>(
+  public static final SubModuleParameter<LegacyIonLibraryParameterSet> LIBRARY = new SubModuleParameter<>(
       "Ion identity library", "Adducts, in-source fragments and multimers",
-      new IonLibraryParameterSet());
+      new LegacyIonLibraryParameterSet());
 
   // MS MS
   // check for truth MS/MS

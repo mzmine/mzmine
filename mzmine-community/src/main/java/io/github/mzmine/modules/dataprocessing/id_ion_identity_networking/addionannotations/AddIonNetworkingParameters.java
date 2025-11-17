@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
@@ -61,9 +61,9 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
       "Minimum height of feature shape (not used for average mode)",
       MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final SubModuleParameter<IonLibraryParameterSet> LIBRARY =
-      new SubModuleParameter<>("Ion identity library", "Adducts, in-source fragments and multimers",
-          new IonLibraryParameterSet());
+  public static final SubModuleParameter<LegacyIonLibraryParameterSet> LIBRARY = new SubModuleParameter<>(
+      "Ion identity library", "Adducts, in-source fragments and multimers",
+      new LegacyIonLibraryParameterSet());
 
   // MS MS
   // check for truth MS/MS
@@ -71,9 +71,8 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
   // new OptionalModuleParameter<IonNetworkMSMSCheckParameters>("Check MS/MS",
   // "Check MS/MS for truth of multimers", new IonNetworkMSMSCheckParameters(true));
 
-  public static final OptionalModuleParameter<IonNetworkRefinementParameters> ANNOTATION_REFINEMENTS =
-      new OptionalModuleParameter<IonNetworkRefinementParameters>("Annotation refinement", "",
-          new IonNetworkRefinementParameters(true), true);
+  public static final OptionalModuleParameter<IonNetworkRefinementParameters> ANNOTATION_REFINEMENTS = new OptionalModuleParameter<IonNetworkRefinementParameters>(
+      "Annotation refinement", "", new IonNetworkRefinementParameters(true), true);
 
   // setup
   private final Setup setup;

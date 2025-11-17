@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,7 +36,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonModificationType;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,21 +69,21 @@ public class IonNetworkLibrary {
   /**
    * Set mztolerance later
    */
-  public IonNetworkLibrary(IonLibraryParameterSet parameterSet) {
+  public IonNetworkLibrary(LegacyIonLibraryParameterSet parameterSet) {
     this(parameterSet, null);
   }
 
 
-  public IonNetworkLibrary(IonLibraryParameterSet parameterSet, MZTolerance mzTolerance) {
+  public IonNetworkLibrary(LegacyIonLibraryParameterSet parameterSet, MZTolerance mzTolerance) {
     this(parameterSet, PolarityType.ANY, mzTolerance);
   }
 
-  public IonNetworkLibrary(IonLibraryParameterSet parameterSet, PolarityType polarity,
+  public IonNetworkLibrary(LegacyIonLibraryParameterSet parameterSet, PolarityType polarity,
       MZTolerance mzTolerance) {
-    this(mzTolerance, parameterSet.getValue(IonLibraryParameterSet.MAX_CHARGE), polarity,
-        parameterSet.getValue(IonLibraryParameterSet.MAX_MOLECULES),
-        parameterSet.getValue(IonLibraryParameterSet.ADDUCTS)[0],
-        parameterSet.getValue(IonLibraryParameterSet.ADDUCTS)[1]);
+    this(mzTolerance, parameterSet.getValue(LegacyIonLibraryParameterSet.MAX_CHARGE), polarity,
+        parameterSet.getValue(LegacyIonLibraryParameterSet.MAX_MOLECULES),
+        parameterSet.getValue(LegacyIonLibraryParameterSet.ADDUCTS)[0],
+        parameterSet.getValue(LegacyIonLibraryParameterSet.ADDUCTS)[1]);
   }
 
   /**
@@ -250,8 +250,8 @@ public class IonNetworkLibrary {
     return (!a.hasAdductOverlap(b) && !a.getAdduct().getType()
         .equals(IonModificationType.UNDEFINED_ADDUCT) && !b.getAdduct().getType()
         .equals(IonModificationType.UNDEFINED_ADDUCT))
-           // all beeing M+?
-           || (a.getAdduct().getType().equals(IonModificationType.UNDEFINED_ADDUCT) && b.getAdduct()
+        // all beeing M+?
+        || (a.getAdduct().getType().equals(IonModificationType.UNDEFINED_ADDUCT) && b.getAdduct()
         .getType().equals(IonModificationType.UNDEFINED_ADDUCT));
   }
 
