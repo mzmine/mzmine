@@ -25,6 +25,8 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet;
 
 /**
+ * Intermediate object to store maxima in the CWT.
+ *
  * @param index     Index in the original signal
  * @param scale     Scale at which it was prominent
  * @param cwtValue  CWT coefficient value at this point/scale

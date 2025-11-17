@@ -34,6 +34,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.WaveletResolverParameters.NoiseCalculation;
+import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.util.ArrayUtils;
@@ -218,14 +219,15 @@ public class WaveletResolver extends AbstractResolver {
 
     final DetectedPeak peakWithBounds = peak.withBoundaries(leftMin, rightMin);
     if (signChangesEveryNPoints != null) {
-      final double jaggedness = Jaggedness.signChangesPerNPoints(peakWithBounds, y,
+      // todo: pull this check to a higher level
+      final double jaggedness = QualityParameters.signChangesPerNPoints(
+          peakWithBounds.leftBoundaryIndex(), peakWithBounds.rightBoundaryIndex() + 1, y,
           signChangesEveryNPoints);
       if (jaggedness > 1) {
         return null;
       }
     }
 
-    // *** Set boundaries on the peak object ***
     return peakWithBounds;
   }
 
@@ -242,19 +244,19 @@ public class WaveletResolver extends AbstractResolver {
     final double[][] cwtCoefficients = calculateCWT(y, scales);
 
     // Find Potential Peaks
-    final List<DetectedPeak> heightFilteredPeaks = findPotentialPeaksFromCWT(cwtCoefficients, scales, x,
-        y);
+    final List<DetectedPeak> heightFilteredPeaks = findPotentialPeaksFromCWT(cwtCoefficients,
+        scales, x, y);
 
     if (heightFilteredPeaks.isEmpty()) {
       return Collections.emptyList();
     }
 
-    // determine & SET Index Ranges for Height-Filtered Peaks
     List<DetectedPeak> peaksWithBounds = findAndSetBoundaries(heightFilteredPeaks, y);
     if (peaksWithBounds.isEmpty()) {
       return Collections.emptyList();
     }
 
+    // these filters are fast compared to the noise estimation, so apply them first.
     peaksWithBounds = mergePeakRanges(peaksWithBounds, x, y);
     peaksWithBounds = dipFilter ? dipFilter(peaksWithBounds, y) : peaksWithBounds;
     peaksWithBounds = saturationFilter ? saturationFilter(peaksWithBounds, y) : peaksWithBounds;
@@ -304,6 +306,7 @@ public class WaveletResolver extends AbstractResolver {
       final double std = MathUtils.calcStd(edgeAndTop);
       final double rsd = std / avg;
 
+      // dips should have a ^^^^^v^^^^ shape, hence similar top/edge ratios
       final double currentTopToRightEdge =
           current.peakY() / Math.max(y[current.rightBoundaryIndex()], 1);
       final double currentTopToLeftEdge =
@@ -318,15 +321,14 @@ public class WaveletResolver extends AbstractResolver {
       final boolean averageValuesCheck = Arrays.stream(edgeAndTop)
           .allMatch(value -> avg * 0.7 < value && avg * 1.3 > value);
 
-      if (averageValuesCheck || rsd < 0.3 || edgeCriterion) {
-        /*logger.finest(
+      /*if (averageValuesCheck || rsd < 0.3 || edgeCriterion) {
+        logger.finest(
             "Dip detected (edge=%s, rsd: %s, avg: %s) at %s and %s".formatted(edgeCriterion,
                 String.format("%.2f", rsd), averageValuesCheck, current.toString(),
-                next.toString()));*/
-      }
+                next.toString()));
+      }*/
 
       if (Booleans.countTrue(averageValuesCheck, rsd < 0.3, edgeCriterion) >= 2) {
-
         i++; // avoid both peaks.
         if (i == peaks.size() - 1) {
           lastPeakRemoved = true;
@@ -344,6 +346,10 @@ public class WaveletResolver extends AbstractResolver {
     return dipFiltered;
   }
 
+  /**
+   * If a peak reaches the detector limit, it will have a flat top. Accounts for that and merges
+   * peaks if they were detected individually.
+   */
   private List<DetectedPeak> saturationFilter(List<DetectedPeak> peaks, double[] y) {
     if (peaks.isEmpty()) {
       return peaks;
@@ -357,14 +363,15 @@ public class WaveletResolver extends AbstractResolver {
       final DetectedPeak previous = saturationFiltered.getLast();
       final DetectedPeak current = peaks.get(i);
 
-      // check if the two peaks are connected by a plateau
-      // first check the ratios of previous.top / previous.right_edge and current.top / current.left_edge
-
       if (previous.peakY() < saturationThreshold && current.peakY() < saturationThreshold) {
+        // not intense enough
         saturationFiltered.add(current);
         continue;
       }
 
+      // check if the two peaks are connected by a plateau
+      // first check the ratios of previous.top / previous.right_edge and current.top / current.left_edge
+      // both these ratios should be pretty close to 1.
       final double previousTopEdge = previous.peakY() / y[previous.rightBoundaryIndex()];
       final double currentTopEdge = current.peakY() / y[current.leftBoundaryIndex()];
       final int saturationTolerance = Math.max(peakScaleToDipTolerance(current.contributingScale()),
@@ -373,9 +380,11 @@ public class WaveletResolver extends AbstractResolver {
           previous.rightBoundaryIndex() - current.leftBoundaryIndex());
 
       if (previousTopEdge < 1.2 && currentTopEdge < 1.2 && (edgeDistance < saturationTolerance)) {
+        // low top/edge and close together
         saturationFiltered.removeLast();
         saturationFiltered.add(mergeTwoPeaks(current, previous));
       } else if (previousTopEdge < 1.2 && currentTopEdge < 1.2) {
+        // low top/edge and never dips below saturation threshold?
         boolean allPointsAboveSaturation = true;
         for (int j = previous.rightBoundaryIndex(); j < current.leftBoundaryIndex(); j++) {
           if (y[j] < saturationThreshold) {
@@ -506,12 +515,15 @@ public class WaveletResolver extends AbstractResolver {
       }
     }
 
+    // group by maximum index in the original y data so we don't assess some peaks multiple times
     final Map<Integer, List<PotentialPeak>> groupedByIndex = allMaxima.stream()
         .collect(Collectors.groupingBy(p -> p.index()));
 
-    List<PotentialPeak> bestPotentials = new ArrayList<>();
+    // take only the best fitting scale into account per peak.
+    final List<PotentialPeak> bestPotentials = new ArrayList<>();
     for (Map.Entry<Integer, List<PotentialPeak>> entry : groupedByIndex.entrySet()) {
       List<PotentialPeak> peaksAtIndex = entry.getValue();
+      // detected by more than one wavelet?
       if (peaksAtIndex.size() >= minFittingScales) {
         peaksAtIndex.stream()
             .max(Comparator.comparingDouble(p -> p.cwtValue() /*/ Math.sqrt(p.scale())*/))
@@ -526,8 +538,7 @@ public class WaveletResolver extends AbstractResolver {
         continue;
       }
 
-      refinedPotentials.add(
-          new DetectedPeak(pp.index(), x[pp.index()], y[pp.index()], pp.scale()));
+      refinedPotentials.add(new DetectedPeak(pp.index(), x[pp.index()], y[pp.index()], pp.scale()));
     }
 
     refinedPotentials.sort(Comparator.comparingInt(DetectedPeak::peakIndex));
@@ -547,7 +558,7 @@ public class WaveletResolver extends AbstractResolver {
       return Collections.emptyList();
     }
 
-    List<DetectedPeak> peaksWithBounds = new ArrayList<>(peaks.size() / 2);
+    final List<DetectedPeak> peaksWithBounds = new ArrayList<>(peaks.size() / 2);
     for (DetectedPeak peak : peaks) {
       final var peakWithBounds = findAndSetBoundaryWithTolerance(y, peak,
           peakScaleToDipTolerance(peak.contributingScale()));
