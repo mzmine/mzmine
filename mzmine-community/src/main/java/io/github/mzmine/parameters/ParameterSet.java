@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters;
 
 import io.github.mzmine.modules.presets.ModulePreset;
+import io.github.mzmine.modules.presets.ModulePresetStore;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
@@ -307,6 +308,13 @@ public interface ParameterSet extends ParameterContainer {
     return null;
   }
 
+  /**
+   * Presets that are shown in the {@link io.github.mzmine.modules.presets.ModulePresetStore} unless
+   * no user presets are available.
+   *
+   * @see ModulePresetStore#createDefaults()
+   * @return List of presets.
+   */
   default @NotNull List<ModulePreset> createDefaultPresets() {
     return List.of();
   }

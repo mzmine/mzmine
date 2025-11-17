@@ -25,12 +25,12 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
-import com.google.common.primitives.Booleans;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.objects.ObjectUtils;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,9 +68,9 @@ public class GroupMS2SubParameters extends SimpleParameterSet {
     param.setParameter(GroupMS2Parameters.mzTol, mzTol);
     param.setParameter(GroupMS2Parameters.rtFilter, rtLimits);
     param.setParameter(GroupMS2Parameters.minimumRelativeFeatureHeight, minRelHeight != null,
-        Objects.requireNonNullElse(minRelHeight, 0.25));
+        Objects.requireNonNullElse(minRelHeight, GroupMS2Parameters.DEFAULT_MIN_REL_HEIGHT));
     param.setParameter(GroupMS2Parameters.minRequiredSignals, minSignalsInMs2 != null,
-        Objects.requireNonNullElse(minSignalsInMs2, 1));
+        Objects.requireNonNullElse(minSignalsInMs2, GroupMS2Parameters.DEFAULT_MIN_SIGNALS));
     param.setParameter(GroupMS2Parameters.limitMobilityByFeature, limitByIms);
     param.setParameter(GroupMS2Parameters.combineTimsMsMs, combineTims);
     param.setParameter(GroupMS2Parameters.minImsRawSignals, imsMinOccurrence);
@@ -78,8 +78,8 @@ public class GroupMS2SubParameters extends SimpleParameterSet {
     final GroupMs2AdvancedParameters advancedParam = GroupMs2AdvancedParameters.create(
         timsOutputNoiseLevel, timsOutputNoiseRelative, iterativeMs2ColName);
     param.setParameter(GroupMS2Parameters.advancedParameters, advanced &&
-        Booleans.countTrue(timsOutputNoiseLevel != null, timsOutputNoiseRelative != null,
-            iterativeMs2ColName != null) > 0);
+        ObjectUtils.countNonNull(timsOutputNoiseLevel, timsOutputNoiseRelative, iterativeMs2ColName)
+            > 0);
     param.getParameter(GroupMS2Parameters.advancedParameters).setEmbeddedParameters(advancedParam);
 
     return param;
