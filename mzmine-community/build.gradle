@@ -90,9 +90,9 @@ if (OperatingSystem.current().isMacOsX()) {
         getLogger().warn('System variable MACOS_APP_IDENTITY_ID is not set for signing.')
         project.ext.macSigning = false
     }
-    project.ext.appleIDPassword = System.getenv("MACOS_APPLE_ID_PWD")
+    project.ext.appleIDPassword = System.getenv("MACOS_APP_SPECIFIC_PWD")
     if (appleIDPassword == null || appleIDPassword.isBlank()) {
-        getLogger().warn('System variable MACOS_APPLE_ID_PWD is not set for signing.')
+        getLogger().warn('System variable MACOS_APP_SPECIFIC_PWD is not set for signing.')
         project.ext.macSigning = false
     }
     project.ext.appleTeamID = System.getenv("MACOS_APP_IDENTITY_TEAM_ID")

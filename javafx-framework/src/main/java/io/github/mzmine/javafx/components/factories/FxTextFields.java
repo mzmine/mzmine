@@ -25,15 +25,16 @@
 
 package io.github.mzmine.javafx.components.factories;
 
-import impl.org.controlsfx.skin.AutoCompletePopup;
 import io.github.mzmine.javafx.components.skins.DynamicTextFieldSkin;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
@@ -226,6 +227,8 @@ public class FxTextFields {
 
   private static <T> void autoShowAutoComplete(TextField textField, AutoCompletionBinding<T> acb) {
     acb.setVisibleRowCount(25);
+    // Avoid redundant re-trigger while focused
+    final BooleanProperty triggeredOnFocus = new SimpleBooleanProperty(false);
     // Show all suggestions when the user clicks or when field gains focus
     textField.setOnMouseClicked(_ -> {
       // auto show completion
@@ -233,13 +236,17 @@ public class FxTextFields {
 //      acb.setUserInput(text == null || text.isBlank() ? "*" : text);
       // use this to always show full selection on first click
       acb.setUserInput("*");
+      // clicking should show suggestions regardless of previous focus trigger
+      triggeredOnFocus.set(true);
     });
     textField.focusedProperty().subscribe((_, isNowFocused) -> {
-      final AutoCompletePopup<T> pop = acb.getAutoCompletionPopup();
-      if (isNowFocused && !pop.isShowing()) {
+      if (isNowFocused && !triggeredOnFocus.get()) {
         // use this to always show full selection on first click
         acb.setUserInput("*");
-//        pop.show(textField);
+        triggeredOnFocus.set(true);
+      }
+      if (!isNowFocused) {
+        triggeredOnFocus.set(false);
       }
     });
   }
