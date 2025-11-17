@@ -71,14 +71,6 @@ public class WaveletResolver extends AbstractResolver {
    * <br>
    * Double: the scale of the wavelet
    * <br>
-   * Complex[]: mexican hat wavelet (pre-computed)
-   */
-  private final Map<Integer, Map<Double, double[]>> waveletBuffer = new HashMap<>();
-  /**
-   * Integer: The legnth of the array
-   * <br>
-   * Double: the scale of the wavelet
-   * <br>
    * Complex[]: The fft'ed wavelet conjugate (pre-computed)
    */
   private final Map<Integer, Map<Double, Complex[]>> fftWaveletConjugate = new HashMap<>();
@@ -459,6 +451,7 @@ public class WaveletResolver extends AbstractResolver {
 
   /**
    * Prepares the Wavelet. Generates the Mexican hat wavelet, fft's the wavelet, conjugates it.
+   *
    * @param dataWidth The size of the array to later apply fft to. Must be a power of 2.
    * @return The wavelet conjugate.
    */
@@ -471,7 +464,7 @@ public class WaveletResolver extends AbstractResolver {
     return conjugateBuffer.computeIfAbsent(scale, s -> {
       final double[] waveletKernel = generateMexicanHat(dataWidth, scale);
       final Complex[] waveletFFT = fft.transform(waveletKernel, TransformType.FORWARD);
-      Complex[] waveletFFTConj = Arrays.stream(waveletFFT).map(Complex::conjugate)
+      final Complex[] waveletFFTConj = Arrays.stream(waveletFFT).map(Complex::conjugate)
           .toArray(Complex[]::new);
       return waveletFFTConj;
     });
@@ -479,34 +472,29 @@ public class WaveletResolver extends AbstractResolver {
 
   private double[] generateMexicanHat(int length, double scale) {
 
-    final Map<Double, double[]> scaleToWaveletMap = waveletBuffer.computeIfAbsent(length,
-        i -> new HashMap<>());
+    final double[] wavelet = new double[length];
+    final double scaleSq = scale * scale;
+    final int support = (int) Math.min(length / 2.0, WAVELET_KERNEL_RADIUS_FACTOR * scale);
+    final double normFactor = 1.0;
 
-    return scaleToWaveletMap.computeIfAbsent(scale, _ -> {
-      final double[] wavelet = new double[length];
-      final double scaleSq = scale * scale;
-      final int support = (int) Math.min(length / 2.0, WAVELET_KERNEL_RADIUS_FACTOR * scale);
-      final double normFactor = 1.0;
+    for (int i = -support; i <= support; i++) {
+      double t = (double) i;
+      double tSq = t * t;
+      double term1 = (1.0 - tSq / scaleSq);
+      double term2 = Math.exp(-tSq / (2.0 * scaleSq));
+      double value = normFactor * term1 * term2;
+      int index = (i + length) % length;
+      wavelet[index] = value;
+    }
 
-      for (int i = -support; i <= support; i++) {
-        double t = (double) i;
-        double tSq = t * t;
-        double term1 = (1.0 - tSq / scaleSq);
-        double term2 = Math.exp(-tSq / (2.0 * scaleSq));
-        double value = normFactor * term1 * term2;
-        int index = (i + length) % length;
-        wavelet[index] = value;
+    final double sum = Arrays.stream(wavelet).sum();
+    if (Math.abs(sum) > 1e-9) {
+      double mean = sum / length;
+      for (int i = 0; i < length; i++) {
+        wavelet[i] -= mean;
       }
-
-      final double sum = Arrays.stream(wavelet).sum();
-      if (Math.abs(sum) > 1e-9) {
-        double mean = sum / length;
-        for (int i = 0; i < length; i++) {
-          wavelet[i] -= mean;
-        }
-      }
-      return wavelet;
-    });
+    }
+    return wavelet;
   }
 
   private List<DetectedPeak> findPotentialPeaksFromCWT(double[][] cwt, final double[] scales,
