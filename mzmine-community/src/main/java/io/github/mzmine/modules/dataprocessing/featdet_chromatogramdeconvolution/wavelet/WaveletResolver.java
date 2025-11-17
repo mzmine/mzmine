@@ -66,7 +66,22 @@ import org.jetbrains.annotations.Nullable;
 public class WaveletResolver extends AbstractResolver {
 
   private static final Logger logger = Logger.getLogger(WaveletResolver.class.getName());
+  /**
+   * Integer: The legnth of the array
+   * <br>
+   * Double: the scale of the wavelet
+   * <br>
+   * Complex[]: mexican hat wavelet (pre-computed)
+   */
   private final Map<Integer, Map<Double, double[]>> waveletBuffer = new HashMap<>();
+  /**
+   * Integer: The legnth of the array
+   * <br>
+   * Double: the scale of the wavelet
+   * <br>
+   * Complex[]: The fft'ed wavelet conjugate (pre-computed)
+   */
+  private final Map<Integer, Map<Double, Complex[]>> fftWaveletConjugate = new HashMap<>();
   private double[] yPadded = new double[0];
 
   private final double[] scales;
@@ -86,6 +101,7 @@ public class WaveletResolver extends AbstractResolver {
   private final double maxSimilarHeightRatio;
   private final boolean saturationFilter;
   private final double saturationThreshold;
+  private FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.STANDARD);
 
   public WaveletResolver(@NotNull final ModularFeatureList flist,
       @NotNull final ParameterSet parameterSet) {
@@ -420,16 +436,12 @@ public class WaveletResolver extends AbstractResolver {
       Arrays.fill(yPadded, y.length, N_padded, 0d);
     }
 
-    FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.STANDARD);
     Complex[] yFFT = fft.transform(yPadded, TransformType.FORWARD);
     double[][] cwt = new double[scales.length][n];
 
     for (int i = 0; i < scales.length; i++) {
       final double scale = scales[i];
-      final double[] waveletKernel = generateMexicanHat(N_padded, scale);
-      Complex[] waveletFFT = fft.transform(waveletKernel, TransformType.FORWARD);
-      Complex[] waveletFFTConj = Arrays.stream(waveletFFT).map(Complex::conjugate)
-          .toArray(Complex[]::new);
+      final Complex[] waveletFFTConj = generateWaveletFFTConjugate(N_padded, scale, fft);
 
       Complex[] productFFT = new Complex[N_padded];
       for (int k = 0; k < N_padded; k++) {
@@ -445,7 +457,27 @@ public class WaveletResolver extends AbstractResolver {
     return cwt;
   }
 
-  double[] generateMexicanHat(int length, double scale) {
+  /**
+   * Prepares the Wavelet. Generates the Mexican hat wavelet, fft's the wavelet, conjugates it.
+   * @param dataWidth The size of the array to later apply fft to. Must be a power of 2.
+   * @return The wavelet conjugate.
+   */
+  private Complex @NotNull [] generateWaveletFFTConjugate(int dataWidth, double scale,
+      FastFourierTransformer fft) {
+
+    final Map<Double, Complex[]> conjugateBuffer = fftWaveletConjugate.computeIfAbsent(dataWidth,
+        _ -> new HashMap<>());
+
+    return conjugateBuffer.computeIfAbsent(scale, s -> {
+      final double[] waveletKernel = generateMexicanHat(dataWidth, scale);
+      final Complex[] waveletFFT = fft.transform(waveletKernel, TransformType.FORWARD);
+      Complex[] waveletFFTConj = Arrays.stream(waveletFFT).map(Complex::conjugate)
+          .toArray(Complex[]::new);
+      return waveletFFTConj;
+    });
+  }
+
+  private double[] generateMexicanHat(int length, double scale) {
 
     final Map<Double, double[]> scaleToWaveletMap = waveletBuffer.computeIfAbsent(length,
         i -> new HashMap<>());
