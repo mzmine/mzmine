@@ -132,7 +132,7 @@ public class Precision {
    */
   public static BigDecimal round(double value, int sig, RoundingMode mode) {
     MathContext mc = new MathContext(sig, mode);
-    BigDecimal bigDecimal = new BigDecimal(value, mc);
+    BigDecimal bigDecimal = BigDecimal.valueOf(value).round(mc);
     return bigDecimal;
   }
 
@@ -207,18 +207,24 @@ public class Precision {
     if (a == b) {
       return true;
     }
-    final BigDecimal aRound = round(a, sigDigits);
-    final BigDecimal bRound = round(b, sigDigits);
-    return aRound.equals(bRound);
-    // below is an alternative but this may overflow the double/float so maybe a bad idea
-//    double diff = Math.abs(a - b);
-//    double larger = Math.max(Math.abs(a), Math.abs(b));
-//    return diff <= larger / sigDigits;
+    final BigDecimal aDecimal = new BigDecimal(a);
+    final BigDecimal bDecimal = new BigDecimal(b);
+    final BigDecimal diff = aDecimal.subtract(bDecimal).abs();
+
+    // calculate the allowed difference in significant digits: e.g. 5 sig digits:
+    // 1*10^-5 = 0.00001
+    // then scale to the max of those two values:
+    // 0.00001 * 1234567 = 12.34567
+    // then find the lower power of 10: 12.23467 -> 10
+    // use that as the allowed delta.
+    final BigDecimal scaledSignificance = new BigDecimal("1E-%d".formatted(sigDigits)).multiply(aDecimal.max(bDecimal));
+    final BigDecimal allowedDelta = new BigDecimal("1E%d".formatted((int)Math.log10(scaledSignificance.doubleValue())));
+    return diff.compareTo(allowedDelta) <= 0;
   }
 
 
   public static boolean equalFloatSignificance(final float a, final float b) {
-    return equalSignificance(a, b, 5); // float significance is 6 - 7 digits
+    return equalSignificance(a, b, 6); // float significance is 6 - 7 digits
   }
 
   public static boolean equalFloatSignificance(final @Nullable Float a, final @Nullable Float b) {
@@ -240,11 +246,22 @@ public class Precision {
       return false;
     }
 
-    if (a == b) {
+    if (Float.compare(a, b) == 0) {
       return true;
     }
-    final BigDecimal aRound = round(a, sigDigits);
-    final BigDecimal bRound = round(b, sigDigits);
-    return aRound.equals(bRound);
+
+    final BigDecimal aDecimal = new BigDecimal(a);
+    final BigDecimal bDecimal = new BigDecimal(b);
+    final BigDecimal diff = aDecimal.subtract(bDecimal).abs();
+
+    // calculate the allowed difference in significant digits: e.g. 5 sig digits:
+    // 1*10^-5 = 0.00001
+    // then scale to the max of those two values:
+    // 0.00001 * 1234567 = 12.34567
+    // then find the lower power of 10: 12.23467 -> 10
+    // use that as the allowed delta.
+    final BigDecimal scaledSignificance = new BigDecimal("1E-%d".formatted(sigDigits)).multiply(aDecimal.max(bDecimal));
+    final BigDecimal allowedDelta = new BigDecimal("1E%d".formatted((int)Math.log10(scaledSignificance.doubleValue())));
+    return diff.compareTo(allowedDelta) <= 0;
   }
 }
