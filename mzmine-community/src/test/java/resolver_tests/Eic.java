@@ -17,7 +17,8 @@ record Eic(@NotNull String file, @NotNull Range<Double> mzRange, @Nullable Strin
 
   public IonTimeSeries<Scan> extract() {
     RawDataFile file = ProjectService.getProject().getDataFileByName(this.file);
-    return IonTimeSeriesUtils.extractIonTimeSeries(file, ScanSelection.MS1, mzRange,
-        ResolverTests.storage);
+    final IonTimeSeries<Scan> series = IonTimeSeriesUtils.extractIonTimeSeries(file,
+        ScanSelection.MS1, mzRange, ResolverTests.storage);
+    return IonTimeSeriesUtils.remapRtAxis(series, ScanSelection.MS1.getMatchingScans(file.getScans()));
   }
 }
