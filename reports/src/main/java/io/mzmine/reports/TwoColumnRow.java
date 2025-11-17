@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,29 +22,43 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-pluginManagement {
-    repositories {
-        gradlePluginPortal() // if pluginManagement.repositories looks like this, it can be omitted as this is the default
-        // general repos for all sub-modules
-        mavenCentral()
-    }
-    includeBuild("convention-plugins")
+package io.mzmine.reports;
+
+/**
+ * 227 x 146 pixels.
+ * <br>
+ * figure must be the bytes of an SVG-XML or a BufferedImage.
+ */
+public class TwoColumnRow {
+
+  public static final int WIDTH = 227;
+  public static final int HEIGHT = 146;
+
+  private final Object figure1;
+  private final String figure1Caption;
+  private final Object figure2;
+  private final String figure2Caption;
+
+  public TwoColumnRow(Object figure1, String figure1Caption, Object figure2, String figure2Caption) {
+    this.figure1 = figure1;
+    this.figure1Caption = figure1Caption;
+    this.figure2 = figure2;
+    this.figure2Caption = figure2Caption;
+  }
+
+  public Object getFigure1() {
+    return figure1;
+  }
+
+  public String getFigure1Caption() {
+    return figure1Caption;
+  }
+
+  public Object getFigure2() {
+    return figure2;
+  }
+
+  public String getFigure2Caption() {
+    return figure2Caption;
+  }
 }
-
-// this should not be needed but can remove later once stable
-//plugins {
-// this resolution should not be needed if we do not force a specific JDK
-// github actions already have their own jdk defined
-//    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-//}
-
-rootProject.name = "mzmine"
-include(
-    "mzmine-community",
-    "taskcontroller",
-    "utils",
-    "javafx-framework",
-    "config",
-    "reports",
-)
-//includeBuild("convention-plugins")
