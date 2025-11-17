@@ -27,11 +27,13 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
+import io.github.mzmine.modules.presets.ModulePreset;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
@@ -41,8 +43,10 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
+import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,8 +82,11 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
       new AdvancedWaveletParameters());
 
   public WaveletResolverParameters() {
-    super("https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_wavelet/wavelet_resolver.html", GeneralResolverParameters.PEAK_LISTS, GeneralResolverParameters.dimension,
-        GeneralResolverParameters.groupMS2Parameters, snr, topToEdge, minHeight, noiseCalculation, dipFilter,
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_wavelet/wavelet_resolver.html",
+        GeneralResolverParameters.PEAK_LISTS, GeneralResolverParameters.dimension,
+        GeneralResolverParameters.groupMS2Parameters, snr, topToEdge, minHeight, noiseCalculation,
+        dipFilter,
 
         GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS, GeneralResolverParameters.SUFFIX,
         GeneralResolverParameters.handleOriginal,
@@ -98,6 +105,41 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
         this, null);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public @NotNull List<ModulePreset> createDefaultPresets() {
+    final String moduleId = MZmineCore.getModuleInstance(WaveletResolverModule.class).getUniqueID();
+    return List.of(
+        //
+        new ModulePreset("AnyLC_Orbitrap", moduleId,
+            create(new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+                ResolvingDimension.RETENTION_TIME, true, GroupMS2SubParameters.createDefault(), 5,
+                "r", OriginalFeatureListOption.KEEP, 8, null, 1E5,
+                NoiseCalculation.STANDARD_DEVIATION, true, false,
+                AdvancedWaveletParameters.createLcDefault())),
+        //
+        new ModulePreset("AnyLC_TOF", moduleId,
+            create(new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+                ResolvingDimension.RETENTION_TIME, true, GroupMS2SubParameters.createDefault(), 5,
+                "r", OriginalFeatureListOption.KEEP, 8, null, 3E3,
+                NoiseCalculation.STANDARD_DEVIATION, true, false,
+                AdvancedWaveletParameters.createLcDefault())),
+        //
+        new ModulePreset("GC_EI_TOF", moduleId,
+            create(new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+                ResolvingDimension.RETENTION_TIME, false, GroupMS2SubParameters.createDefault(), 8,
+                "r", OriginalFeatureListOption.KEEP, 5, null, 3E3,
+                NoiseCalculation.STANDARD_DEVIATION, false, true,
+                AdvancedWaveletParameters.createGcDefault())),
+        //
+        new ModulePreset("GC_EI_Orbitrap", moduleId,
+            create(new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+                ResolvingDimension.RETENTION_TIME, false, GroupMS2SubParameters.createDefault(), 8,
+                "r", OriginalFeatureListOption.KEEP, 5, null, 1E5,
+                NoiseCalculation.STANDARD_DEVIATION, false, true,
+                AdvancedWaveletParameters.createGcDefault()))
+        );
   }
 
   public static WaveletResolverParameters create(FeatureListsSelection flists,

@@ -53,4 +53,8 @@ public class WaveletResolverModule extends FeatureResolverModule {
     return "Resolves EICs to features by wavelet transform. Supports retention time and mobility resolving.";
   }
 
+  @Override
+  public @NotNull String getUniqueID() {
+    return "wavelet_resolver";
+  }
 }
