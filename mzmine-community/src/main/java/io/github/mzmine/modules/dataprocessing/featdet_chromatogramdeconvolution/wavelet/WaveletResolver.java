@@ -326,10 +326,6 @@ public class WaveletResolver extends AbstractResolver {
       }
 
       if (Booleans.countTrue(averageValuesCheck, rsd < 0.3, edgeCriterion) >= 2) {
-        logger.finest(
-            "Dip detected (edge=%s, rsd: %s, avg: %s) at %s and %s".formatted(edgeCriterion,
-                String.format("%.2f", rsd), averageValuesCheck, current.toString(),
-                next.toString()));
 
         i++; // avoid both peaks.
         if (i == peaks.size() - 1) {
