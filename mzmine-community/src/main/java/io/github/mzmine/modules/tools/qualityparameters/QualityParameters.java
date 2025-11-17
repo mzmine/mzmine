@@ -406,7 +406,7 @@ public class QualityParameters {
     int changes = 0;
 //    final double tenPercentHeight = 0.1 * height; // tested with only changes above 10% height, but was not that useful
 
-    for (int i = startIndex; i < endIndexExclusive; i++) {
+    for (int i = startIndex; i < endIndexExclusive - 1; i++) {
 //      if(y[i] < tenPercentHeight) {
 //        continue;
 //      }
