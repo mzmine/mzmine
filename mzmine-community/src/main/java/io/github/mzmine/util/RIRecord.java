@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
@@ -175,6 +176,20 @@ public class RIRecord {
       return null;
     }
     return riRecord;
+  }
+
+  @Override
+  public final boolean equals(Object o) {
+    if (!(o instanceof RIRecord riRecord)) {
+      return false;
+    }
+
+    return Objects.equals(records, riRecord.records);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(records);
   }
 }
 
