@@ -160,7 +160,7 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
     if (value == null) {
       return;
     }
-    xmlElement.setAttribute("columnType", value.getColumn().name());
+    xmlElement.setAttribute("columnType", value.getRIType().name());
     float tolerance = value.getTolerance();
     String toleranceNum = String.valueOf(tolerance);
     xmlElement.setTextContent(toleranceNum);

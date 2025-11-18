@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.JsonStringType;
+import io.github.mzmine.datamodel.features.types.RIRecordType;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
@@ -55,6 +56,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
@@ -66,11 +68,13 @@ import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RITolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.RIRecord;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -318,6 +322,10 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return get(CCSType.class);
   }
 
+  default RIRecord getRiRecord() {
+    return get(RIRecordType.class);
+  }
+
   @Override
   @Nullable
   default Float getRT() {
@@ -379,20 +387,25 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
   @Nullable
   default Float calculateScore(@NotNull FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
-      @Nullable Double percentCCSTolerance) {
+      @Nullable Double percentCCSTolerance, @Nullable RITolerance riTolerance) {
     if (!matches(row, mzTolerance, rtTolerance, mobilityTolerance, percentCCSTolerance)) {
       return null;
     }
     // setup ranges around the annotation and test for row average values
-    Double mz = getPrecursorMZ();
+    final Double mz = getPrecursorMZ();
     final Float rt = getRT();
     final Float mobility = getMobility();
     final Float ccs = getCCS();
-    var mzRange = mzTolerance != null && mz != null ? mzTolerance.getToleranceRange(mz) : null;
-    var rtRange = rtTolerance != null && rt != null ? rtTolerance.getToleranceRange(rt) : null;
-    var mobilityRange =
+    final RIRecord ri = getRiRecord();
+    final var mzRange =
+        mzTolerance != null && mz != null ? mzTolerance.getToleranceRange(mz) : null;
+    final var rtRange =
+        rtTolerance != null && rt != null ? rtTolerance.getToleranceRange(rt) : null;
+    final var mobilityRange =
         mobilityTolerance != null && mobility != null ? mobilityTolerance.getToleranceRange(
             mobility) : null;
+    final var riRange =
+        riTolerance != null && ri != null ? riTolerance.getToleranceRange(ri) : null;
 
     Range<Float> ccsRange = null;
     if (percentCCSTolerance != null && ccs != null && row.getAverageCCS() != null) {
@@ -400,8 +413,8 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
       ccsRange = Range.closed(ccs - tol, ccs + tol);
     }
     return (float) FeatureListUtils.getAlignmentScore(row.getAverageMZ(), row.getAverageRT(),
-        row.getAverageMobility(), row.getAverageCCS(), mzRange, rtRange, mobilityRange, ccsRange, 1,
-        1, 1, 1);
+        row.getAverageMobility(), row.getAverageCCS(), row.getAverageRI(), mzRange, rtRange,
+        mobilityRange, ccsRange, riRange, 1, 1, 1, 1, 1);
   }
 
   /**
@@ -416,9 +429,9 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
   default @Nullable CompoundDBAnnotation checkMatchAndCalculateDeviation(
       @NotNull FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobTolerance,
-      @Nullable Double percCcsTolerance) {
+      @Nullable Double percCcsTolerance, @Nullable RITolerance ritolerance) {
     final Float score = calculateScore(row, mzTolerance, rtTolerance, mobTolerance,
-        percCcsTolerance);
+        percCcsTolerance, ritolerance);
     if (score == null || score <= 0) {
       return null;
     }
@@ -446,6 +459,12 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
       clone.put(RtRelativeErrorType.class,
           PercentTolerance.getPercentError(compRt, row.getAverageRT()));
       clone.put(RtAbsoluteDifferenceType.class, row.getAverageRT() - compRt);
+    }
+    Float compRi =
+        getRiRecord() != null && ritolerance != null ? getRiRecord().getRI(ritolerance.getRIType())
+            : null;
+    if (compRi != null && compRi > 0 && row.getAverageRI() != null) {
+      clone.put(RIDiffType.class, row.getAverageRI() - compRi);
     }
 
     return clone;

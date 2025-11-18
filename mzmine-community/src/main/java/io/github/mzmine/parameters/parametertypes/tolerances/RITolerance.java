@@ -28,6 +28,8 @@ package io.github.mzmine.parameters.parametertypes.tolerances;
 import com.google.common.collect.Range;
 import io.github.mzmine.util.RIColumn;
 import io.github.mzmine.util.RIRecord;
+import javax.validation.constraints.Null;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -49,15 +51,26 @@ public class RITolerance {
     return tolerance;
   }
 
-  public RIColumn getColumn() {
-    return column;
-  }
-
-  public Range<Float> getToleranceRange(final Float riValue) {
+  @NotNull
+  public Range<Float> getToleranceRange(@Nullable final Float riValue) {
     // riValue may not exist depending on alkane scales
     //   Also, averaged RI is zero when riValues do not exist
+
+    // todo: check where this is used and if we can circumvent range.all
     return riValue != null && riValue != 0 ? Range.closed(riValue - tolerance, riValue + tolerance)
         : Range.all();
+  }
+
+  @Nullable
+  public Range<Float> getToleranceRange(@Nullable final RIRecord riRecord) {
+    if(riRecord == null) {
+      return null;
+    }
+    final Float ri = riRecord.getRI(column);
+    if(ri == null) {
+      return null;
+    }
+    return getToleranceRange(ri);
   }
 
   @Nullable
