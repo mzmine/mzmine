@@ -108,8 +108,8 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       new EntryIdType(), //
       new CASType(),  //
       new InternalIdType(), //
-      new JsonStringType(), //
-      new RIDiffType()
+      new RIDiffType(), //
+      new JsonStringType()
       );
 
   @NotNull
