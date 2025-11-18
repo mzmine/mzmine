@@ -24,9 +24,15 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.tof;
 
-import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 
 public class TofMassDetectorParameters extends SimpleParameterSet {
 
+  public static final DoubleParameter noiseLevel = CentroidMassDetectorParameters.noiseLevel.cloneParameter();
+
+  public TofMassDetectorParameters() {
+    super(noiseLevel);
+  }
 }
