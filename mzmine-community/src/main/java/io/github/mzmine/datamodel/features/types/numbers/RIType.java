@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.features.types.numbers;
 
 import static io.github.mzmine.datamodel.features.types.modifiers.BindingsType.AVERAGE;
+import static io.github.mzmine.datamodel.features.types.modifiers.BindingsType.RANGE;
 
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
@@ -74,7 +75,8 @@ public class RIType extends FloatType implements ExpandableType {
   @Override
   public List<RowBinding> createDefaultRowBindings() {
     return List.of(new SimpleRowBinding(this, AVERAGE),
-        new SimpleRowBinding(DataTypes.get(RIDiffType.class), BindingsType.DIFFERENCE));
+        new SimpleRowBinding(DataTypes.get(RIDiffType.class), this, BindingsType.DIFFERENCE),
+        new SimpleRowBinding(DataTypes.get(RIRangeType.class), this, BindingsType.RANGE));
   }
 
   @Override

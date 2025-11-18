@@ -53,7 +53,7 @@ public class RIDiffType extends RIType {
   @Override
   public List<RowBinding> createDefaultRowBindings() {
     // calculates the difference between the min and max value in all features
-//    return List.of(new SimpleRowBinding(this, get(RIType.class), DIFFERENCE));
+    // bindings added in RIType, as this must be updated when the RI of a feature changes
     return List.of();
   }
 }

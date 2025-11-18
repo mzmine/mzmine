@@ -75,6 +75,7 @@ public class RIRangeType extends FloatRangeType implements ExpandableType {
 
   @Override
   public @NotNull List<RowBinding> createDefaultRowBindings() {
-    return List.of(new SimpleRowBinding(this, DataTypes.get(RIType.class), BindingsType.RANGE));
+    // bindings added in RIType, as this must be updated when the RI of a feature changes
+    return List.of();
   }
 }
