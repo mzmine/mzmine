@@ -34,14 +34,12 @@ import java.util.Map.Entry;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import org.jetbrains.annotations.ApiStatus.ScheduledForRemoval;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Simple FeatureIdentity implementation;
  */
-@Deprecated
-@ScheduledForRemoval
+@Deprecated(forRemoval = true)
 public class SimpleFeatureIdentity implements FeatureIdentity {
 
   public static final String XML_IDENTITY_TYPE = "simplefeatureidentity";

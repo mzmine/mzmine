@@ -33,7 +33,6 @@ import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import org.jetbrains.annotations.ApiStatus.ScheduledForRemoval;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -41,8 +40,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * To be replaced by {@link io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation}.
  */
-@Deprecated
-@ScheduledForRemoval
+@Deprecated(forRemoval = true)
 public interface FeatureIdentity extends Cloneable {
 
   public static final String XML_IDENTITY_TYPE_ATTR = "identitytype";

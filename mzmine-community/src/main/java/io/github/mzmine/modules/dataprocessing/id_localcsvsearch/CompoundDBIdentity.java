@@ -33,6 +33,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
+@Deprecated(forRemoval = true)
 public class CompoundDBIdentity extends SimpleFeatureIdentity {
 
   public static final String XML_IDENTITY_TYPE = "compounddbfeatureidentity";

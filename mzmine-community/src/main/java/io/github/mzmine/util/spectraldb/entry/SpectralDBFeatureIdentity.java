@@ -46,14 +46,12 @@ import java.util.Objects;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import org.jetbrains.annotations.ApiStatus.ScheduledForRemoval;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * To be replaced by {@link SpectralDBAnnotation}.
  */
-@Deprecated
-@ScheduledForRemoval
+@Deprecated(forRemoval = true)
 public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
 
   public static final String XML_IDENTITY_TYPE = "spectraldatabasefeatureidentity";
