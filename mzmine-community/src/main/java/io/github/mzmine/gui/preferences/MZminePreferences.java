@@ -200,14 +200,6 @@ public class MZminePreferences extends SimpleParameterSet {
       Memory efficiency: References to the individual mobilograms of IMS features will be stored in a temporary file.""",
       ImsOptimization.values(), ImsOptimization.MEMORY_EFFICIENCY);
 
-  /*public static final BooleanParameter applyTimsPressureCompensation = new BooleanParameter(
-      "Use MALDI-TIMS pressure compensation", """
-      Specifies if mobility values from Bruker timsTOF fleX MALDI raw data shall be recalibrated using a Bruker algorithm.
-      This compensation is applied during file import and cannot be applied afterwards.
-      Will cause additional memory consumption, because every pixel might have it's own mobility calibration (in theory).
-      In practical cases, this memory consumption is mostly negligible. 
-      """, false);*/
-
   public static final BooleanParameter showPrecursorWindow = new BooleanParameter(
       "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
       true);
@@ -221,6 +213,9 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final ComboParameter<PaintScaleTransform> imageTransformation = new ComboParameter<>(
       "Image paint scale transformation", "Transforms the paint scale for images.",
       PaintScaleTransform.values(), PaintScaleTransform.LINEAR);
+
+  // ---------------------------------------------- Data import parameters
+
   public static final FileNameParameter msConvertPath = new FileNameWithDownloadParameter(
       "MSConvert path",
       "Set a path to MSConvert to automatically convert unknown vendor formats to mzML while importing.",
@@ -235,12 +230,6 @@ public class MZminePreferences extends SimpleParameterSet {
       Apply vendor centroiding (peak picking) during import of native vendor files.
       Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.
       """, true);
-// default is now to always use the raw file parser
-//  public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(
-//      "Thermo data import", """
-//      Specify which path you want to use for Thermo raw data import.
-//      """, ThermoImportOptions.getOptionsForOs(), ThermoImportOptions.THERMO_RAW_FILE_PARSER);
-
 
   public static final OptionalParameter<FileNameWithDownloadParameter> thermoRawFileParserPath = new OptionalParameter<>(
       new FileNameWithDownloadParameter("Thermo raw file parser location",
@@ -252,10 +241,12 @@ public class MZminePreferences extends SimpleParameterSet {
               new ExtensionFilter("Linux / macOS executable", "ThermoRawFileParser")),
           AssetGroup.ThermoRawFileParser));
 
-  public static final OptionalParameter<ParameterSetParameter<WatersLockmassParameters>> watersLockmass = new OptionalParameter<>(
-      new ParameterSetParameter<>("Apply lockmass on import (Waters)",
-          "Apply lockmass correction for native Waters raw data during raw data import via MSConvert.",
-          new WatersLockmassParameters()), true);
+  public static final OptionalModuleParameter<WatersLockmassParameters> watersLockmass = new OptionalModuleParameter<>(
+      "Apply lockmass on import (Waters)",
+      "Apply lockmass correction for native Waters raw data during raw data import via MSConvert.",
+      new WatersLockmassParameters(), true);
+
+
   private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
       new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
       new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.####"),
