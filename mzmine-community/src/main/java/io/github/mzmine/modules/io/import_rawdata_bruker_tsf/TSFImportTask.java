@@ -214,6 +214,10 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
       final Scan scan = tsfUtils.loadScan(newMZmineFile, handle, frameId, metaDataTable, frameTable,
           frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
 
+      if(scan == null) {
+        continue;
+      }
+
       if (isMaldi && scan instanceof ImagingScan imgScan) {
         final MaldiSpotInfo maldiSpotInfo = maldiFrameInfoTable.getMaldiSpotInfo((int) frameId);
         imgScan.setMaldiSpotInfo(maldiSpotInfo);
