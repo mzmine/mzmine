@@ -29,10 +29,13 @@ import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxListViews;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.components.util.FxLayout.Position;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -42,12 +45,14 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FilterableListView<T> extends BorderPane {
 
@@ -56,7 +61,13 @@ public class FilterableListView<T> extends BorderPane {
   private final ObjectProperty<Predicate<T>> filterPredicate = new SimpleObjectProperty<>(
       o -> true);
   private final BooleanProperty removeKeyActive = new SimpleBooleanProperty(false);
+  private final BooleanProperty askBeforeRemove = new SimpleBooleanProperty(false);
   private final ObjectProperty<Comparator<T>> sortingComparator = new SimpleObjectProperty<>();
+
+  // on edit button
+  private final ObjectProperty<Consumer<T>> editSelectedAction = new SimpleObjectProperty<>();
+  // on create new button
+  private final ObjectProperty<Runnable> createNewAction = new SimpleObjectProperty<>();
 
   // original items are input into filtering and sorting
   private final ObservableList<T> originalItems;
@@ -121,6 +132,9 @@ public class FilterableListView<T> extends BorderPane {
           "Cannot place node in the center as this will remove the ListView");
     }
 
+    final BooleanBinding nothingSelectedBinding = listView.getSelectionModel()
+        .selectedItemProperty().isNull();
+
     List<Node> nodesToAdd = new ArrayList<>();
 
     for (final MenuControls control : standardControls) {
@@ -128,9 +142,20 @@ public class FilterableListView<T> extends BorderPane {
         case CLEAR_BTN -> nodesToAdd.add(FxButtons.createButton("Clear",
             "Clear and remove all elements that are currently shown. This only includes those that match any filter (if available).",
             this::clearFilteredItems));
-        case REMOVE_BTN -> nodesToAdd.add(
-            FxButtons.createButton("Remove", "Removes all selected items",
-                this::removeSelectedItems));
+        case CREATE_NEW_BTN -> nodesToAdd.add(
+            FxButtons.createButton("Create new", "Create a new item", this::createNewItem));
+        case REMOVE_BTN -> {
+          final Button btn = FxButtons.createButton("Remove", "Removes all selected items",
+              this::removeSelectedItems);
+          btn.disableProperty().bind(nothingSelectedBinding);
+          nodesToAdd.add(btn);
+        }
+        case EDIT_BTN -> {
+          final Button btn = FxButtons.createButton("Edit", "Edit the selected item",
+              this::editSelectedItem);
+          btn.disableProperty().bind(nothingSelectedBinding);
+          nodesToAdd.add(btn);
+        }
       }
     }
 
@@ -141,18 +166,65 @@ public class FilterableListView<T> extends BorderPane {
     return flowPane;
   }
 
+  private void editSelectedItem() {
+    final T selected = listView.getSelectionModel().getSelectedItem();
+    if (selected == null) {
+      return;
+    }
+    final Consumer<T> editAction = editSelectedAction.get();
+    if (editAction == null) {
+      throw new IllegalStateException("No edit action defined for this list view.");
+    }
+    editAction.accept(selected);
+  }
+
+  private void createNewItem() {
+    final Runnable createAction = createNewAction.get();
+    if (createAction == null) {
+      throw new IllegalStateException("No create new item action defined for this list view.");
+    }
+    createAction.run();
+  }
+
+  public void setEditSelectedAction(Consumer<T> editSelectedAction) {
+    this.editSelectedAction.set(editSelectedAction);
+  }
+
+  public void setCreateNewAction(Runnable createNewAction) {
+    this.createNewAction.set(createNewAction);
+  }
+
   public void removeSelectedItems() {
+
     // have to remove items from the original list
     // sorted list and filtered list are immutable
+    final int selectedIndex = listView.getSelectionModel().getSelectedIndex();
+
+    // skip
+    if (selectedIndex < 0 || (askBeforeRemove.get() && !DialogLoggerUtil.showDialogYesNo(
+        "Remove items?", "Are you sure you want to remove all selected items?"))) {
+      return;
+    }
+
     originalItems.removeAll(listView.getSelectionModel().getSelectedItems());
-    listView.getSelectionModel().clearSelection();
+    final int newIndex = Math.min(listView.getItems().size() - 1, selectedIndex);
+    if (newIndex < 0) {
+      listView.getSelectionModel().clearSelection();
+    } else {
+      listView.getSelectionModel().select(newIndex);
+    }
   }
 
   /**
    * only clears the filtered items currently visible
    */
   public void clearFilteredItems() {
-    originalItems.removeAll(sortedFilteredItems);
+    // need to accept
+    final boolean clear = DialogLoggerUtil.showDialogYesNo("Clear all shown items?",
+        "Are you sure you want to remove all items, this includes all items matching the current filters.");
+    if (clear) {
+      originalItems.removeAll(sortedFilteredItems);
+    }
   }
 
   public ListView<T> getListView() {
@@ -191,7 +263,32 @@ public class FilterableListView<T> extends BorderPane {
     return sortedFilteredItems;
   }
 
+  public boolean isAskBeforeRemove() {
+    return askBeforeRemove.get();
+  }
+
+  public BooleanProperty askBeforeRemoveProperty() {
+    return askBeforeRemove;
+  }
+
+  public void setAskBeforeRemove(boolean askBeforeRemove) {
+    this.askBeforeRemove.set(askBeforeRemove);
+  }
+
+  /**
+   * Removes the top menu and returns it to allow customization of the layout. The top menu may be
+   * added into another layout.
+   *
+   * @return the top menu or null if there was no menu
+   */
+  @Nullable
+  public Node removeTopMenu() {
+    final Node top = getTop();
+    setTop(null);
+    return top;
+  }
+
   public enum MenuControls {
-    REMOVE_BTN, CLEAR_BTN,
+    REMOVE_BTN, CLEAR_BTN, EDIT_BTN, CREATE_NEW_BTN
   }
 }

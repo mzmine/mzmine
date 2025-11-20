@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.fx.sub;
+package io.github.mzmine.datamodel.identities.fx;
 
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
@@ -39,18 +39,11 @@ import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.identities.IonTypeParser;
-import io.github.mzmine.datamodel.identities.IonTypeSorting;
 import io.github.mzmine.javafx.components.FilterableListView;
-import io.github.mzmine.javafx.components.FilterableListView.MenuControls;
-import io.github.mzmine.javafx.components.MappingListCell;
 import io.github.mzmine.javafx.components.factories.FxButtons;
-import io.github.mzmine.javafx.components.factories.FxComboBox;
-import io.github.mzmine.javafx.components.factories.FxListViews;
-import io.github.mzmine.javafx.components.util.FxLayout.Position;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.validation.FxValidation;
 import io.github.mzmine.util.StringUtils;
-import java.util.List;
 import java.util.Optional;
 import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
@@ -64,17 +57,13 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.util.Duration;
-import org.jetbrains.annotations.NotNull;
 
-public class IonTypeCreatorPane extends BorderPane {
+class IonTypeCreatorPane extends BorderPane {
 
   public enum IonTypeDefinition {
     STRING, COMBINED
@@ -86,17 +75,12 @@ public class IonTypeCreatorPane extends BorderPane {
   private final ListProperty<IonPart> unknownParts = new SimpleListProperty<>(
       FXCollections.observableArrayList());
 
-
-  // additional properties for the list view
-  private final ObjectProperty<IonTypeSorting> listSorting = new SimpleObjectProperty<>(
-      IonTypeSorting.getIonTypeDefault());
-
   public IonTypeCreatorPane(ObservableList<IonType> types) {
     setPadding(DEFAULT_PADDING_INSETS);
 
     setTop(newBoldTitle("Ion types: Global list"));
 
-    typesListView = createIonTypeListView(types);
+    typesListView = new IonTypeListView(types);
     typesListView.setCenter(createIonTypeByStringPane());
 
     // option to change it to a tabpane in case other ion type definitions are planned
@@ -120,30 +104,6 @@ public class IonTypeCreatorPane extends BorderPane {
         unknownParts.setAll(nv.stream().filter(IonPart::isUnknown).toList());
       }
     });
-  }
-
-  private @NotNull FilterableListView<IonType> createIonTypeListView(
-      final ObservableList<IonType> types) {
-    // create a list view with addtional controls for sorting and filtering
-    // sorting:
-    final HBox sortingCombo = FxComboBox.createLabeledComboBox("Sort by:",
-        FXCollections.observableList(List.of(IonTypeSorting.values())), listSorting);
-
-    final List<Node> additionalNodes = List.of(sortingCombo);
-    final List<MenuControls> stdButtons = List.of(MenuControls.CLEAR_BTN, MenuControls.REMOVE_BTN);
-
-    // create the list view
-    final FilterableListView<IonType> typeListView = FxListViews.newFilterableListView(types, true,
-        SelectionMode.MULTIPLE, Position.TOP, Pos.CENTER_LEFT, stdButtons, additionalNodes);
-
-    typeListView.getListView().setCellFactory(
-        param -> new MappingListCell<>(ion -> ion.toString(IonTypeStringFlavor.FULL_WITH_MASS)));
-
-    // set comparator and filter
-    listSorting.subscribe(nv -> typeListView.sortingComparatorProperty().set(nv.getComparator()));
-
-    // apply filter now:
-    return typeListView;
   }
 
   private Node createIonTypeByStringPane() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,10 +26,12 @@
 package io.github.mzmine.datamodel.identities.fx;
 
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 
 public class IonTypeCreatorTab extends SimpleTab {
 
+  public static final String HEADER = "Ion libraries";
 
   // lazy init singleton
   private static class Holder {
@@ -38,8 +40,8 @@ public class IonTypeCreatorTab extends SimpleTab {
   }
 
   private IonTypeCreatorTab() {
-    super("Ion libraries");
-    IonTypeCreatorController controller = new IonTypeCreatorController();
+    super(HEADER);
+    IonTypeCreatorController controller = IonTypeCreatorController.getInstance();
     setContent(controller.buildView());
 
     setOnClosed(_ -> {
@@ -54,13 +56,15 @@ public class IonTypeCreatorTab extends SimpleTab {
 
   public static IonTypeCreatorTab showTab() {
     var instance = getInstance();
-    var tabPane = instance.getTabPane();
-    if (tabPane != null) {
-      // show tab
-      tabPane.getSelectionModel().select(instance);
-    } else {
-      MZmineCore.getDesktop().addTab(instance);
-    }
+    FxThread.runLater(() -> {
+      var tabPane = instance.getTabPane();
+      if (tabPane != null) {
+        // show tab
+        tabPane.getSelectionModel().select(instance);
+      } else {
+        MZmineCore.getDesktop().addTab(instance);
+      }
+    });
     return instance;
   }
 }

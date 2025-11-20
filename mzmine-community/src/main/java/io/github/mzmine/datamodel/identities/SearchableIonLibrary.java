@@ -36,6 +36,9 @@ import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Optimized for searching masses and mz
+ */
 public class SearchableIonLibrary {
 
   /**

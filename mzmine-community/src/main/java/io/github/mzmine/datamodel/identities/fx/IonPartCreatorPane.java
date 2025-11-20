@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.fx.sub;
+package io.github.mzmine.datamodel.identities.fx;
 
 import static io.github.mzmine.javafx.components.factories.FxButtons.createDisabledButton;
 import static io.github.mzmine.javafx.components.factories.FxButtons.disableIf;
@@ -84,7 +84,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-public class IonPartCreatorPane extends BorderPane {
+class IonPartCreatorPane extends BorderPane {
 
   private static final Logger logger = Logger.getLogger(IonPartCreatorPane.class.getName());
 

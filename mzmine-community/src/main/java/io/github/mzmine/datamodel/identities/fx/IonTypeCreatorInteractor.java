@@ -26,11 +26,12 @@
 package io.github.mzmine.datamodel.identities.fx;
 
 import io.github.mzmine.datamodel.identities.GlobalIonLibrary;
+import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import javafx.collections.FXCollections;
 
-public class IonTypeCreatorInteractor extends FxInteractor<IonTypeCreatorModel> {
+class IonTypeCreatorInteractor extends FxInteractor<IonTypeCreatorModel> {
 
   protected IonTypeCreatorInteractor(IonTypeCreatorModel model) {
     super(model);
@@ -44,5 +45,16 @@ public class IonTypeCreatorInteractor extends FxInteractor<IonTypeCreatorModel> 
 //      model.partsProperty().set(FXCollections.observableList(global.parts()));
       model.ionTypesProperty().set(FXCollections.observableList(global.ionTypes()));
     });
+  }
+
+  public void createNewLibraryInTab() {
+    new IonLibraryEditController(model).showTab();
+  }
+
+  public void editLibraryInTab(IonLibrary library) {
+    if (library == null) {
+      return;
+    }
+    new IonLibraryEditController(model, library).showTab();
   }
 }

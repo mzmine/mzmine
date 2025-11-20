@@ -23,35 +23,50 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.fx;
+package io.github.mzmine.datamodel.identities;
 
-import io.github.mzmine.javafx.components.util.FxTabs;
-import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import javafx.scene.Node;
-import javafx.scene.control.TabPane;
-import javafx.scene.layout.Region;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-class IonTypeCreatorViewBuilder extends FxViewBuilder<IonTypeCreatorModel> {
+/**
+ * Use {@link #toSearchableLibrary(boolean)} for optimized version for searches
+ */
+public class SimpleIonLibrary implements IonLibrary {
 
-  public IonTypeCreatorViewBuilder(final IonTypeCreatorModel model) {
-    super(model);
+  private final @NotNull String name;
+  private final List<IonType> ions;
+  private final List<IonPart> parts;
+
+  public SimpleIonLibrary(@NotNull String name, @NotNull List<IonType> ions,
+      @NotNull List<IonPart> parts) {
+    this.name = name;
+    this.ions = ions;
+    this.parts = parts;
+  }
+
+  public SimpleIonLibrary(@NotNull String name, @NotNull List<IonType> ions) {
+    this(name, ions, IonTypeUtils.extractUniqueParts(ions));
   }
 
   @Override
-  public Region build() {
-    var main = new TabPane(//
-        FxTabs.newTab("Ion libraries", new IonLibrariesManagePane(model)),
-        FxTabs.newTab("Define ion types", createIonTypesPane()),
-        FxTabs.newTab("Define building blocks", createIonPartsPane()));
-
-    return main;
+  public @NotNull String getName() {
+    return name;
   }
 
-  private Node createIonTypesPane() {
-    return new IonTypeCreatorPane(model.ionTypesProperty());
+  @Override
+  @NotNull
+  public List<IonType> getIons() {
+    return ions;
   }
 
-  private Node createIonPartsPane() {
-    return new IonPartCreatorPane(model.partsProperty());
+  @Override
+  @NotNull
+  public List<IonPart> getParts() {
+    return parts;
+  }
+
+  @Override
+  public String toString() {
+    return "%s (%d ions)".formatted(name, ions.size());
   }
 }

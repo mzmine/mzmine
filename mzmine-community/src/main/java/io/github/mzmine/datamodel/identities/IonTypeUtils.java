@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.identities;
 
 import io.github.mzmine.util.MathUtils;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class IonTypeUtils {
 
@@ -110,5 +111,13 @@ public class IonTypeUtils {
       }
     }
     return false;
+  }
+
+  /**
+   * @return all distinct ion parts in all ion types
+   */
+  public static @NotNull List<IonPart> extractUniqueParts(@NotNull List<IonType> ions) {
+    return ions.stream().<IonPart>mapMulti((ion, consumer) -> ion.parts().forEach(consumer))
+        .distinct().toList();
   }
 }

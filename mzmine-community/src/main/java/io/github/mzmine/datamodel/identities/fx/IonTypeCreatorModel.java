@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,26 +25,72 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonType;
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.SimpleListProperty;
+import java.util.function.Consumer;
+import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 
-public class IonTypeCreatorModel {
+class IonTypeCreatorModel {
 
-  private final ListProperty<IonPart> parts = new SimpleListProperty<>(
+  /**
+   * All defined libraries
+   */
+  private final ReadOnlyListWrapper<IonLibrary> libraries = new ReadOnlyListWrapper<>(
       FXCollections.observableArrayList());
 
-  private final ListProperty<IonType> ionTypes = new SimpleListProperty<>(
+  /**
+   * Global ion types list of all defined ion types that may be used in libraries
+   */
+  private final ReadOnlyListWrapper<IonType> ionTypes = new ReadOnlyListWrapper<>(
       FXCollections.observableArrayList());
+  /**
+   * Global parts list of all defined parts
+   */
+  private final ReadOnlyListWrapper<IonPart> parts = new ReadOnlyListWrapper<>(
+      FXCollections.observableArrayList());
+
+
+  private Consumer<IonLibrary> editSelectedAction;
+  private Runnable createNewAction;
+
+
+  public void setCreateNewAction(@NotNull Runnable createNewAction) {
+    this.createNewAction = createNewAction;
+  }
+
+  public void setEditSelectedAction(@NotNull Consumer<IonLibrary> editSelectedAction) {
+    this.editSelectedAction = editSelectedAction;
+  }
+
+  public @NotNull Consumer<IonLibrary> getEditSelectedAction() {
+    return editSelectedAction;
+  }
+
+  public @NotNull Runnable getCreateNewAction() {
+    return createNewAction;
+  }
+
+  public ObservableList<IonLibrary> getLibraries() {
+    return libraries.get();
+  }
+
+  public ReadOnlyListWrapper<IonLibrary> librariesProperty() {
+    return libraries;
+  }
+
+  public void setLibraries(ObservableList<IonLibrary> libraries) {
+    this.libraries.set(libraries);
+  }
 
   public ObservableList<IonPart> getParts() {
     return parts.get();
   }
 
-  public ListProperty<IonPart> partsProperty() {
+  public ReadOnlyListWrapper<IonPart> partsProperty() {
     return parts;
   }
 
@@ -56,11 +102,12 @@ public class IonTypeCreatorModel {
     return ionTypes.get();
   }
 
-  public ListProperty<IonType> ionTypesProperty() {
+  public ReadOnlyListWrapper<IonType> ionTypesProperty() {
     return ionTypes;
   }
 
   public void setIonTypes(final ObservableList<IonType> ionTypes) {
     this.ionTypes.set(ionTypes);
   }
+
 }

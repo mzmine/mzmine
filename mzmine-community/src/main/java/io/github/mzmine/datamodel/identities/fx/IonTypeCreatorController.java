@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,23 +25,57 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.IonPart;
+import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import javafx.beans.property.ReadOnlyListProperty;
 import org.jetbrains.annotations.NotNull;
 
 public class IonTypeCreatorController extends FxController<IonTypeCreatorModel> {
 
+  // lazy init singleton
+  private static class Holder {
+
+    private static final IonTypeCreatorController INSTANCE = new IonTypeCreatorController();
+  }
+
   private final IonTypeCreatorViewBuilder viewBuilder;
   private final IonTypeCreatorInteractor interactor;
 
-  protected IonTypeCreatorController() {
+  private IonTypeCreatorController() {
     super(new IonTypeCreatorModel());
+
     interactor = new IonTypeCreatorInteractor(model);
+    model.setCreateNewAction(interactor::createNewLibraryInTab);
+    model.setEditSelectedAction(interactor::editLibraryInTab);
+
     viewBuilder = new IonTypeCreatorViewBuilder(model);
+  }
+
+
+  public ReadOnlyListProperty<IonLibrary> librariesProperty() {
+    return model.librariesProperty().getReadOnlyProperty();
+  }
+
+  public ReadOnlyListProperty<IonType> ionTypesProperty() {
+    return model.ionTypesProperty().getReadOnlyProperty();
+  }
+
+  public ReadOnlyListProperty<IonPart> partsProperty() {
+    return model.partsProperty().getReadOnlyProperty();
   }
 
   @Override
   protected @NotNull FxViewBuilder<IonTypeCreatorModel> getViewBuilder() {
     return viewBuilder;
+  }
+
+  /**
+   * Uses a static singleton instance so that there is only one source of truth for ions
+   */
+  public static IonTypeCreatorController getInstance() {
+    return Holder.INSTANCE;
   }
 }

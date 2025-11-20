@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.identities;
 
 import java.util.List;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 
 public enum IonTypes {
   // positive,
@@ -128,4 +129,12 @@ public enum IonTypes {
           FORMATE_FA, ACETATE_AC, H2_MINUS, M2_H_MINUS, M2_CL).map(IonTypes::asIonType)
       .sorted(IonTypeSorting.getIonTypeDefault().getComparator()).toList();
 
+  public static final @NotNull List<IonType> DEFAULT_VALUES_BOTH_POLARITIES = Stream.of(
+          // POSITIVE
+          M_PLUS, M_PLUS_H2O, H, H_H2O, H_2H2O, H_3H2O, H_4H2O, NA, NA_H2O, K, NH4, M_2PLUS, H2_PLUS,
+          H3_PLUS, CA, CA_H_MINUS, FEII, FEII_MINUS_H, FEIII_H_MINUS, FEIII_2H_MINUS, NA_H, NH4_H, K_H,
+          NA2_MINUS_H, M2_H, M2_NA, M2_NH4, M2_H_H2O, M3_H, M3_NA,
+          // NEGATIVE
+          M_MINUS, H_MINUS, CL, BR, FORMATE_FA, ACETATE_AC, H2_MINUS, M2_H_MINUS, M2_CL)
+      .map(IonTypes::asIonType).sorted(IonTypeSorting.getIonTypeDefault().getComparator()).toList();
 }

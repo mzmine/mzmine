@@ -201,6 +201,10 @@ public class FxLayout {
     return pane;
   }
 
+  public static BorderPaneBuilder newBorderPane() {
+    return new BorderPaneBuilder();
+  }
+
   public static void centerAllNodesHorizontally(GridPane pane) {
     pane.getChildren().forEach(node -> GridPane.setHalignment(node, HPos.CENTER));
   }
@@ -328,11 +332,11 @@ public class FxLayout {
   /**
    * Add all children to grid. Special handling of {@link GridRow} which fills a full row
    */
-  public static GridPane addToGrid(final GridPane grid, final Node... children) {
+  public static GridPane addToGrid(final GridPane grid, final @Nullable Node... children) {
     int cols = grid.getColumnCount();
     int row = 0;
     int col = 0;
-    for (final Node child : children) {
+    for (final @Nullable Node child : children) {
       // always fills a full row. If row is started this will flow into the new row
       if (child instanceof GridRow || child instanceof Separator) {
         if (col > 0) {
@@ -342,7 +346,9 @@ public class FxLayout {
         col = 0;
         row++;
       } else {
-        grid.add(child, col, row);
+        if (child != null) {
+          grid.add(child, col, row);
+        }
         col++;
       }
       if (col == cols) {
@@ -370,6 +376,22 @@ public class FxLayout {
   public static <T extends Node> T bindManagedToVisible(T node) {
     node.managedProperty().bind(node.visibleProperty());
     return node;
+  }
+
+  /**
+   * Default row constraints
+   */
+  public static RowConstraints newGridRowConstraints() {
+    return newGridRowConstraints(VPos.CENTER, false);
+  }
+
+  public static RowConstraints newGridRowConstraints(VPos vAlignment, boolean fillHeight) {
+    final RowConstraints constraints = new RowConstraints();
+    constraints.setValignment(vAlignment);
+    if (fillHeight) {
+      setFillHeightRow(constraints);
+    }
+    return constraints;
   }
 
   public enum GridColumnGrow {

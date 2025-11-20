@@ -23,35 +23,37 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.fx;
+package io.github.mzmine.datamodel.identities;
 
-import io.github.mzmine.javafx.components.util.FxTabs;
-import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import javafx.scene.Node;
-import javafx.scene.control.TabPane;
-import javafx.scene.layout.Region;
+import java.util.Comparator;
 
-class IonTypeCreatorViewBuilder extends FxViewBuilder<IonTypeCreatorModel> {
+public enum IonLibrarySorting {
+  ALPHABETICAL(Comparator.comparing(IonLibrary::toString)), //
+  SIZE(Comparator.comparingInt(IonLibrary::getNumIons));
 
-  public IonTypeCreatorViewBuilder(final IonTypeCreatorModel model) {
-    super(model);
+  /**
+   * alphabetical
+   */
+  public static IonLibrarySorting getDefault() {
+    return ALPHABETICAL;
+  }
+
+  private final Comparator<IonLibrary> comparator;
+
+  IonLibrarySorting(Comparator<IonLibrary> comparator) {
+    this.comparator = comparator;
   }
 
   @Override
-  public Region build() {
-    var main = new TabPane(//
-        FxTabs.newTab("Ion libraries", new IonLibrariesManagePane(model)),
-        FxTabs.newTab("Define ion types", createIonTypesPane()),
-        FxTabs.newTab("Define building blocks", createIonPartsPane()));
-
-    return main;
+  public String toString() {
+    return switch (this) {
+      case ALPHABETICAL -> "alphabetic";
+      case SIZE -> "size";
+    };
   }
 
-  private Node createIonTypesPane() {
-    return new IonTypeCreatorPane(model.ionTypesProperty());
+  public Comparator<IonLibrary> getComparator() {
+    return comparator;
   }
 
-  private Node createIonPartsPane() {
-    return new IonPartCreatorPane(model.partsProperty());
-  }
 }

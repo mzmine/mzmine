@@ -25,33 +25,25 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
-import io.github.mzmine.javafx.components.util.FxTabs;
-import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import javafx.scene.Node;
-import javafx.scene.control.TabPane;
-import javafx.scene.layout.Region;
+import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.IonType;
+import java.util.List;
 
-class IonTypeCreatorViewBuilder extends FxViewBuilder<IonTypeCreatorModel> {
+sealed interface IonLibraryEditEvent {
 
-  public IonTypeCreatorViewBuilder(final IonTypeCreatorModel model) {
-    super(model);
+  record Save(boolean saveAsCopy) implements IonLibraryEditEvent {
+
   }
 
-  @Override
-  public Region build() {
-    var main = new TabPane(//
-        FxTabs.newTab("Ion libraries", new IonLibrariesManagePane(model)),
-        FxTabs.newTab("Define ion types", createIonTypesPane()),
-        FxTabs.newTab("Define building blocks", createIonPartsPane()));
+  record ChangeState(IonLibraryEditModel.EditState state) implements IonLibraryEditEvent {
 
-    return main;
   }
 
-  private Node createIonTypesPane() {
-    return new IonTypeCreatorPane(model.ionTypesProperty());
+  record AddIons(List<IonType> ions) implements IonLibraryEditEvent {
+
   }
 
-  private Node createIonPartsPane() {
-    return new IonPartCreatorPane(model.partsProperty());
+  record ComposeAddLibraries(List<IonLibrary> libraries) implements IonLibraryEditEvent {
+
   }
 }
