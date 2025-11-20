@@ -29,11 +29,17 @@ import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComponentWrapperParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import java.util.function.Supplier;
+import javafx.scene.Node;
+import org.jetbrains.annotations.NotNull;
 
-public class MsDataImportParameters extends SimpleParameterSet {
+public class VendorImportParameters extends SimpleParameterSet {
+
+  private static final String JUMP_TO_PREFERENCE_TOOLTIP = """
+      Open the preference dialog, which controls this parameter for the drag & drop import and the mzwizard.
+      Changing this parameter here does not influence the preferences and vice versa.""";
 
   // disabled, but moved from preferences. Disabled due to downstream bugs.
    /*public static final BooleanParameter applyTimsPressureCompensation = new BooleanParameter(
@@ -46,24 +52,25 @@ public class MsDataImportParameters extends SimpleParameterSet {
 
   private static final boolean DEFAULT_VENDOR_CENTROIDING = true;
   public static final ComponentWrapperParameter<Boolean, BooleanParameter> applyVendorCentroiding = new ComponentWrapperParameter<>(
-      new BooleanParameter("Try vendor centroiding",
-          "Vendor centroiding will be applied to the imported raw data if this option is selected and cetroiding is supported.",
-          DEFAULT_VENDOR_CENTROIDING), () -> FxButtons.createButton(null, FxIcons.GEAR_PREFERENCES,
-      "Open the preference dialog, which controls this parameter for the drag & drop import and the mzwizard.",
-      () -> ConfigService.getPreferences()
-          .showSetupDialog(true, MZminePreferences.applyVendorCentroiding.getName())));
+      new BooleanParameter("Try vendor centroiding", """
+          Vendor centroiding will be applied to the imported raw data if this option is selected and centroiding is supported.
+          Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.""",
+          DEFAULT_VENDOR_CENTROIDING),
+      createJumpToPrefButton(MZminePreferences.applyVendorCentroiding.getName()));
 
-  private static final ThermoImportOptions DEFAULT_THERMO_IMPORT = ThermoImportOptions.THERMO_RAW_FILE_PARSER;
-  public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(
-      "Thermo data import", """
-      Specify which path you want to use for Thermo raw data import.
-      """, ThermoImportOptions.getOptionsForOs(), DEFAULT_THERMO_IMPORT);
+  /*private static final ThermoImportOptions DEFAULT_THERMO_IMPORT = ThermoImportOptions.THERMO_RAW_FILE_PARSER;
+  public static final ComponentWrapperParameter<ThermoImportOptions, ComboParameter<ThermoImportOptions>> thermoImportChoice = new ComponentWrapperParameter<>(
+      new ComboParameter<>("Thermo data import", """
+          Specify which path you want to use for Thermo raw data import.
+          """, ThermoImportOptions.getOptionsForOs(), DEFAULT_THERMO_IMPORT),
+      createJumpToPrefButton(VendorImportParameters.thermoImportChoice.getName()));*/
 
   private static final boolean DEFAULT_WATERS_LOCKMASS_ENABLED = true;
-  public static final OptionalModuleParameter<WatersLockmassParameters> watersLockmass = new OptionalModuleParameter<>(
-      "Apply lockmass on import (Waters)",
-      "Apply lockmass correction for native Waters raw data during raw data import via MSConvert.",
-      new WatersLockmassParameters(), DEFAULT_WATERS_LOCKMASS_ENABLED);
+  public static final ComponentWrapperParameter<Boolean, OptionalModuleParameter<WatersLockmassParameters>> watersLockmass = new ComponentWrapperParameter<>(
+      new OptionalModuleParameter<>("Apply lockmass on import (Waters)",
+          "Apply lockmass correction for native Waters raw data during raw data import via MSConvert.",
+          new WatersLockmassParameters(), DEFAULT_WATERS_LOCKMASS_ENABLED),
+      createJumpToPrefButton("Apply lockmass on import (Waters)"));
 
   /*public static final ComboParameter<MassLynxImportOptions> watersImportChoice = new ComboParameter<>(
       "Waters MassLynx data import", """
@@ -72,27 +79,34 @@ public class MsDataImportParameters extends SimpleParameterSet {
       but does not allow centroiding of IMS data files. The native import is slow when applying centroiding on import.""",
       MassLynxImportOptions.values(), MassLynxImportOptions.NATIVE);*/
 
-  public MsDataImportParameters() {
-    super(applyVendorCentroiding, thermoImportChoice, watersLockmass);
+  private static @NotNull Supplier<Node> createJumpToPrefButton(String preferenceParameterName) {
+    return () -> FxButtons.createButton(null, FxIcons.GEAR_PREFERENCES, JUMP_TO_PREFERENCE_TOOLTIP,
+        () -> ConfigService.getPreferences().showSetupDialog(true, preferenceParameterName));
   }
 
-  public static MsDataImportParameters create(boolean applyCentroiding,
-      ThermoImportOptions thermoImport, boolean watersLockmassEnabled,
-      WatersLockmassParameters lockmassParam) {
-    final MsDataImportParameters param = (MsDataImportParameters) new MsDataImportParameters().cloneParameterSet();
+  public VendorImportParameters() {
+    super(applyVendorCentroiding, watersLockmass);
+  }
+
+  public static VendorImportParameters create(boolean applyCentroiding,
+      boolean watersLockmassEnabled, WatersLockmassParameters lockmassParam) {
+    final VendorImportParameters param = (VendorImportParameters) new VendorImportParameters().cloneParameterSet();
 
     param.setParameter(applyVendorCentroiding, applyCentroiding);
-    param.setParameter(thermoImportChoice, thermoImport);
-    param.setParameter(watersLockmass, watersLockmassEnabled);
-    param.getParameter(watersLockmass).setEmbeddedParameters(lockmassParam);
+    param.getParameter(watersLockmass).setValue(watersLockmassEnabled);
+    param.getParameter(watersLockmass).getEmbeddedParameter().setEmbeddedParameters(lockmassParam);
 
     return param;
   }
 
-  public static MsDataImportParameters createFromPreferences() {
+  /**
+   * Creates a copy of the currently selected vendor parameters in the preferences. Used for drag &
+   * drop and wizard import.
+   */
+  public static VendorImportParameters createFromPreferences() {
     final MZminePreferences preferences = ConfigService.getConfiguration().getPreferences();
     return create(preferences.getValue(MZminePreferences.applyVendorCentroiding),
-        /*preferences.getValue(MZminePreferences.thermoImportChoice)*/ DEFAULT_THERMO_IMPORT,
+        /*preferences.getValue(MZminePreferences.thermoImportChoice)*/
         preferences.getValue(MZminePreferences.watersLockmass),
         preferences.getParameter(MZminePreferences.watersLockmass).getEmbeddedParameters());
   }

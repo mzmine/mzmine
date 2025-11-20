@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
@@ -189,7 +190,8 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
     final List<String> cmdLine = new ArrayList<>(); //
     cmdLine.add(thermoRawFileParserCommand); // program to run
     cmdLine.add("-s"); // output mzML to stdout
-    if (!parameters.getValue(AllSpectralDataImportParameters.applyVendorCentroiding)) {
+    if (!parameters.getEmbeddedParameterValue(AllSpectralDataImportParameters.vendorOptions)
+        .getValue(VendorImportParameters.applyVendorCentroiding)) {
       cmdLine.add("-p"); // no peak picking
     }
     cmdLine.add("-z"); // no zlib compression (higher speed)

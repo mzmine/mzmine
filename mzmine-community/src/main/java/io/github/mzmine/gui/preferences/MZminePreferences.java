@@ -220,16 +220,12 @@ public class MZminePreferences extends SimpleParameterSet {
       "MSConvert path",
       "Set a path to MSConvert to automatically convert unknown vendor formats to mzML while importing.",
       List.of(MSCONVERT), AssetGroup.MSCONVERT);
+
   public static final BooleanParameter keepConvertedFile = new BooleanParameter(
       "Keep files converted by MSConvert",
       "Store the files after conversion by MSConvert to an mzML file.\n"
           + "This will reduce the import time when re-processing, but require more disc space.",
       false);
-  public static final BooleanParameter applyVendorCentroiding = new BooleanParameter(
-      "Apply vendor centroiding (recommended)", """
-      Apply vendor centroiding (peak picking) during import of native vendor files.
-      Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.
-      """, true);
 
   public static final OptionalParameter<FileNameWithDownloadParameter> thermoRawFileParserPath = new OptionalParameter<>(
       new FileNameWithDownloadParameter("Thermo raw file parser location",
@@ -241,10 +237,14 @@ public class MZminePreferences extends SimpleParameterSet {
               new ExtensionFilter("Linux / macOS executable", "ThermoRawFileParser")),
           AssetGroup.ThermoRawFileParser));
 
-  public static final OptionalModuleParameter<WatersLockmassParameters> watersLockmass = new OptionalModuleParameter<>(
-      "Apply lockmass on import (Waters)",
-      "Apply lockmass correction for native Waters raw data during raw data import via MSConvert.",
-      new WatersLockmassParameters(), true);
+  public static final BooleanParameter applyVendorCentroiding = new BooleanParameter(
+      "Apply vendor centroiding (recommended)", """
+      Vendor centroiding will be applied to the imported raw data if this option is selected and centroiding is supported.
+      Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.
+      """, true);
+
+  public static final OptionalModuleParameter<WatersLockmassParameters> watersLockmass = VendorImportParameters.watersLockmass.getEmbeddedParameter()
+      .cloneParameter();
 
 
   private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
@@ -299,8 +299,8 @@ public class MZminePreferences extends SimpleParameterSet {
             // silent parameters without controls
             showTempFolderAlert, username, showQuickStart, siriusCountWarningOptOut,
             // conversion, data handling
-            applyVendorCentroiding, msConvertPath, thermoRawFileParserPath, keepConvertedFile,
-            watersLockmass},
+            applyVendorCentroiding, watersLockmass, msConvertPath, keepConvertedFile,
+            thermoRawFileParserPath},
         "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
     darkModeProperty.subscribe(state -> {
@@ -334,8 +334,8 @@ public class MZminePreferences extends SimpleParameterSet {
         new ParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
             chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
             imageNormalization, windowSettings), //
-        new ParameterGroup("MS data import", applyVendorCentroiding, msConvertPath,
-            thermoRawFileParserPath, keepConvertedFile, watersLockmass) //
+        new ParameterGroup("MS data import", applyVendorCentroiding, watersLockmass, msConvertPath,
+            keepConvertedFile, thermoRawFileParserPath) //
     );
     // imsModuleWarnings, showTempFolderAlert, showQuickStart  are hidden parameters
 
@@ -633,5 +633,11 @@ public class MZminePreferences extends SimpleParameterSet {
     return map;
   }
 
-
+  /**
+   * Creates a copy of the currently selected vendor parameters in the preferences. Used for drag &
+   * drop and wizard import.
+   */
+  public VendorImportParameters getVendorImportParameters() {
+    return VendorImportParameters.createFromPreferences();
+  }
 }
