@@ -72,6 +72,13 @@ public class VendorImportParameters extends SimpleParameterSet {
           new WatersLockmassParameters(), DEFAULT_WATERS_LOCKMASS_ENABLED),
       createJumpToPrefButton("Apply lockmass on import (Waters)"));
 
+  private static final boolean DEFAULT_THERMO_EXCEPTION_SIGNALS = true;
+  public static final ComponentWrapperParameter<Boolean, BooleanParameter> excludeThermoExceptionMasses = new ComponentWrapperParameter<>(
+      new BooleanParameter("Remove calibrant signals (Thermo)",
+          "Internal calibration signals may be present in MS1 and MS2 spectra from Thermo Orbitraps. This option automatically removes those on import.",
+          DEFAULT_THERMO_EXCEPTION_SIGNALS),
+      createJumpToPrefButton("Remove calibrant signals (Thermo)"));
+
   /*public static final ComboParameter<MassLynxImportOptions> watersImportChoice = new ComboParameter<>(
       "Waters MassLynx data import", """
       Select if Waters MassLynx data files shall be imported via MSConvert or via the native Waters library.
@@ -85,17 +92,18 @@ public class VendorImportParameters extends SimpleParameterSet {
   }
 
   public VendorImportParameters() {
-    super(applyVendorCentroiding, watersLockmass);
+    super(applyVendorCentroiding, watersLockmass, excludeThermoExceptionMasses);
   }
 
   public static VendorImportParameters create(boolean applyCentroiding,
-      boolean watersLockmassEnabled, WatersLockmassParameters lockmassParam) {
+      boolean watersLockmassEnabled, WatersLockmassParameters lockmassParam,
+      boolean removeThermoExceptionMasses) {
     final VendorImportParameters param = (VendorImportParameters) new VendorImportParameters().cloneParameterSet();
 
     param.setParameter(applyVendorCentroiding, applyCentroiding);
     param.getParameter(watersLockmass).setValue(watersLockmassEnabled);
     param.getParameter(watersLockmass).getEmbeddedParameter().setEmbeddedParameters(lockmassParam);
-
+    param.setParameter(excludeThermoExceptionMasses, removeThermoExceptionMasses);
     return param;
   }
 
@@ -108,6 +116,7 @@ public class VendorImportParameters extends SimpleParameterSet {
     return create(preferences.getValue(MZminePreferences.applyVendorCentroiding),
         /*preferences.getValue(MZminePreferences.thermoImportChoice)*/
         preferences.getValue(MZminePreferences.watersLockmass),
-        preferences.getParameter(MZminePreferences.watersLockmass).getEmbeddedParameters());
+        preferences.getParameter(MZminePreferences.watersLockmass).getEmbeddedParameters(),
+        preferences.getValue(MZminePreferences.excludeThermoExceptionMasses));
   }
 }

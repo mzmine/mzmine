@@ -246,6 +246,9 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final OptionalModuleParameter<WatersLockmassParameters> watersLockmass = VendorImportParameters.watersLockmass.getEmbeddedParameter()
       .cloneParameter();
 
+  public static final BooleanParameter excludeThermoExceptionMasses = VendorImportParameters.excludeThermoExceptionMasses.getEmbeddedParameter()
+      .cloneParameter();
+
 
   private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
       new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
@@ -300,7 +303,7 @@ public class MZminePreferences extends SimpleParameterSet {
             showTempFolderAlert, username, showQuickStart, siriusCountWarningOptOut,
             // conversion, data handling
             applyVendorCentroiding, watersLockmass, msConvertPath, keepConvertedFile,
-            thermoRawFileParserPath},
+            thermoRawFileParserPath, excludeThermoExceptionMasses},
         "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
     darkModeProperty.subscribe(state -> {
@@ -335,7 +338,8 @@ public class MZminePreferences extends SimpleParameterSet {
             chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
             imageNormalization, windowSettings), //
         new ParameterGroup("MS data import", applyVendorCentroiding, watersLockmass, msConvertPath,
-            keepConvertedFile, thermoRawFileParserPath) //
+            keepConvertedFile, thermoRawFileParserPath, excludeThermoExceptionMasses
+        ) //
     );
     // imsModuleWarnings, showTempFolderAlert, showQuickStart  are hidden parameters
 
