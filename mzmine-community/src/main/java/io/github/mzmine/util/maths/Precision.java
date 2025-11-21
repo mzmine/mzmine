@@ -207,9 +207,7 @@ public class Precision {
     if (a == b) {
       return true;
     }
-    final BigDecimal aDecimal = new BigDecimal(a);
-    final BigDecimal bDecimal = new BigDecimal(b);
-    final BigDecimal diff = aDecimal.subtract(bDecimal).abs();
+    final double diff = Math.abs(a - b);
 
     // calculate the allowed difference in significant digits: e.g. 5 sig digits:
     // 1*10^-5 = 0.00001
@@ -217,9 +215,10 @@ public class Precision {
     // 0.00001 * 1234567 = 12.34567
     // then find the lower power of 10: 12.23467 -> 10
     // use that as the allowed delta.
-    final BigDecimal scaledSignificance = new BigDecimal("1E-%d".formatted(sigDigits)).multiply(aDecimal.max(bDecimal));
-    final BigDecimal allowedDelta = new BigDecimal("1E%d".formatted((int)Math.log10(scaledSignificance.doubleValue())));
-    return diff.compareTo(allowedDelta) <= 0;
+    final double max = Math.max(Math.abs(a), Math.abs(b));
+    final double scaledSignificance = Math.pow(10, sigDigits * -1d) * max;
+    final double allowedDelta = Math.pow(10, (int) Math.log10(scaledSignificance));
+    return Double.compare(diff,allowedDelta) <= 0;
   }
 
 
@@ -260,8 +259,10 @@ public class Precision {
     // 0.00001 * 1234567 = 12.34567
     // then find the lower power of 10: 12.23467 -> 10
     // use that as the allowed delta.
-    final BigDecimal scaledSignificance = new BigDecimal("1E-%d".formatted(sigDigits)).multiply(aDecimal.max(bDecimal));
-    final BigDecimal allowedDelta = new BigDecimal("1E%d".formatted((int)Math.log10(scaledSignificance.doubleValue())));
+    final BigDecimal scaledSignificance = new BigDecimal("1E-%d".formatted(sigDigits)).multiply(
+        aDecimal.max(bDecimal));
+    final BigDecimal allowedDelta = new BigDecimal(
+        "1E%d".formatted((int) Math.log10(scaledSignificance.doubleValue())));
     return diff.compareTo(allowedDelta) <= 0;
   }
 }

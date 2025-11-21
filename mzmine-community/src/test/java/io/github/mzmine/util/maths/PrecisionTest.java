@@ -256,5 +256,12 @@ class PrecisionTest {
 
     // exact equality
     assertTrue(Precision.equalSignificance(10.0f, 10.0f, 3));
+
+    assertTrue(Precision.equalSignificance(9.99000000d, 9.98999999d, 3));
+    assertTrue(Precision.equalSignificance(9.99000000d, 9.984999999d, 3));
+    assertFalse(Precision.equalSignificance(9.99000000d, 9.984899999d, 3));
+    assertFalse(Precision.equalSignificance(9.99000000d, 9.984999998d, 3));
+    assertFalse(Precision.equalSignificance(9.99000000d, 9.985000001d, 3));
+    assertFalse(Precision.equalSignificance(9.99d, 9.98d, 3));
   }
 }
