@@ -26,7 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 import io.github.mzmine.datamodel.identities.IonLibrary;
-import io.github.mzmine.datamodel.identities.fx.IonTypeCreatorModule;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesModule;
 import io.github.mzmine.parameters.AbstractParameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
@@ -48,7 +48,7 @@ public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibrar
   public IonLibraryParameter(@NotNull IonLibrary defaultValue) {
     super("Ion library",
         "Select an ion library. Ion types and libraries are created in a separate tab, search for module '%s'".formatted(
-            IonTypeCreatorModule.NAME));
+            GlobalIonLibrariesModule.NAME));
     library = defaultValue;
   }
 

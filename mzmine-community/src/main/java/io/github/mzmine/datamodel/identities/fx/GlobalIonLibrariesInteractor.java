@@ -25,46 +25,36 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
-import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.datamodel.identities.GlobalIonLibrary;
+import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.javafx.mvci.FxInteractor;
+import javafx.collections.FXCollections;
 
-public class IonTypeCreatorTab extends SimpleTab {
+class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel> {
 
-  public static final String HEADER = "Ion libraries";
-
-  // lazy init singleton
-  private static class Holder {
-
-    private static final IonTypeCreatorTab INSTANCE = new IonTypeCreatorTab();
+  protected GlobalIonLibrariesInteractor(GlobalIonLibrariesModel model) {
+    super(model);
+    updateModel();
   }
 
-  private IonTypeCreatorTab() {
-    super(HEADER);
-    IonTypeCreatorController controller = IonTypeCreatorController.getInstance();
-    setContent(controller.buildView());
-
-    setOnClosed(_ -> {
-      // not needed?
-//      controller.close();
-    });
-  }
-
-  public static IonTypeCreatorTab getInstance() {
-    return Holder.INSTANCE;
-  }
-
-  public static IonTypeCreatorTab showTab() {
-    var instance = getInstance();
+  @Override
+  public void updateModel() {
+    final GlobalIonLibrary global = GlobalIonLibrary.getGlobalLibrary();
     FxThread.runLater(() -> {
-      var tabPane = instance.getTabPane();
-      if (tabPane != null) {
-        // show tab
-        tabPane.getSelectionModel().select(instance);
-      } else {
-        MZmineCore.getDesktop().addTab(instance);
-      }
+//      model.partsProperty().set(FXCollections.observableList(global.parts()));
+      model.ionTypesProperty().set(FXCollections.observableList(global.ionTypes()));
     });
-    return instance;
+  }
+
+  public void createNewLibraryInTab() {
+    new IonLibraryEditController(model).showTab();
+  }
+
+  public void editLibraryInTab(IonLibrary library) {
+    if (library == null) {
+      return;
+    }
+    new IonLibraryEditController(model, library).showTab();
   }
 }

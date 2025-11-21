@@ -66,10 +66,10 @@ import org.jetbrains.annotations.NotNull;
 class IonLibraryEditViewBuilder extends FxViewBuilder<IonLibraryEditModel> {
 
   @NotNull
-  private final IonTypeCreatorModel parentModel;
+  private final GlobalIonLibrariesModel parentModel;
   private final Consumer<IonLibraryEditEvent> eventHandler;
 
-  IonLibraryEditViewBuilder(@NotNull IonTypeCreatorModel parentModel,
+  IonLibraryEditViewBuilder(@NotNull GlobalIonLibrariesModel parentModel,
       @NotNull IonLibraryEditModel editModel, Consumer<IonLibraryEditEvent> eventHandler) {
     super(editModel);
     this.parentModel = parentModel;
@@ -155,7 +155,7 @@ class IonLibraryEditViewBuilder extends FxViewBuilder<IonLibraryEditModel> {
             "Return the main page with more options how to add ions.",
             () -> eventHandler.accept(new ChangeState(EditState.MAIN))) //
     );
-    
+
     final GridPane grid = FxLayout.applyGrid2Col(new GridPane(), GridColumnGrow.RIGHT, EMPTY,
         DEFAULT_SPACE,
         // first row

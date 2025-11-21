@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2025 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.datamodel.identities.fx;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -11,21 +36,21 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class IonTypeCreatorModule implements MZmineRunnableModule {
+public class GlobalIonLibrariesModule implements MZmineRunnableModule {
 
   public static final String NAME = "Define global ions";
   private static final String DESCRIPTION = """
       Define global ions types, adducts, and in-source fragments.
       Create and modify lists of ion types used by Ion Identity Networking and other tools.""";
 
-  public IonTypeCreatorModule() {
+  public GlobalIonLibrariesModule() {
   }
 
   @Override
   public @NotNull ExitCode runModule(@NotNull final MZmineProject project,
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
-    IonTypeCreatorTab.showTab();
+    GlobalIonLibrariesTab.showTab();
     return ExitCode.OK;
   }
 
@@ -47,6 +72,6 @@ public class IonTypeCreatorModule implements MZmineRunnableModule {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return IonTypeCreatorParameters.class;
+    return GlobalIonLibrariesParameters.class;
   }
 }

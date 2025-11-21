@@ -55,6 +55,7 @@ public class IonTypeListView extends FilterableListView<IonType> {
 
   public IonTypeListView(ObservableList<IonType> types, boolean allowDeleteItems) {
     super(types, allowDeleteItems, SelectionMode.MULTIPLE);
+    getListView().setPrefWidth(450);
 
     // create a list view with addtional controls for sorting and filtering
     // sorting:

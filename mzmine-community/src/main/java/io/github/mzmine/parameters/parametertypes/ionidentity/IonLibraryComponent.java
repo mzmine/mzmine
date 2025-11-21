@@ -32,8 +32,8 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.colored;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.IonLibrary;
-import io.github.mzmine.datamodel.identities.fx.IonTypeCreatorController;
-import io.github.mzmine.datamodel.identities.fx.IonTypeCreatorTab;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesController;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesTab;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -106,7 +106,7 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
 
     final String tooltip = """
         Ion libraries are defined globally in the '%s' tab, use the button to open the tab and to define a list of ion types to use.""".formatted(
-        IonTypeCreatorTab.HEADER);
+        GlobalIonLibrariesTab.HEADER);
     final TextField selectedLibraryField = FxTextFields.newAutoGrowTextField(selectedName,
         "Select ion library", tooltip, 6, 40);
 
@@ -115,13 +115,13 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
     updateWithGlobalLibrary.visibleProperty().bind(hasConflictWithLocal);
     updateWithGlobalLibrary.managedProperty().bind(hasConflictWithLocal);
 
-    final IonTypeCreatorController controller = IonTypeCreatorController.getInstance();
+    final GlobalIonLibrariesController controller = GlobalIonLibrariesController.getInstance();
     FxTextFields.bindAutoCompletion(selectedLibraryField, controller.librariesProperty());
 
     final var topBox = FxLayout.newFlowPane(Insets.EMPTY, //
         selectedLibraryField, //
         updateWithGlobalLibrary, createButton("Define libraries", FxIcons.GEAR_PREFERENCES, tooltip,
-            IonTypeCreatorTab::showTab) //
+            GlobalIonLibrariesTab::showTab) //
     );
 
     setTop(topBox);

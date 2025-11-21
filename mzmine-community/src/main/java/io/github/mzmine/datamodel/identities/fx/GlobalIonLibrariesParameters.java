@@ -25,36 +25,17 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
-import io.github.mzmine.datamodel.identities.GlobalIonLibrary;
-import io.github.mzmine.datamodel.identities.IonLibrary;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.javafx.mvci.FxInteractor;
-import javafx.collections.FXCollections;
+import io.github.mzmine.parameters.impl.CurrentProjectNoDialogParameterSet;
+import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 
-class IonTypeCreatorInteractor extends FxInteractor<IonTypeCreatorModel> {
+public class GlobalIonLibrariesParameters extends CurrentProjectNoDialogParameterSet {
 
-  protected IonTypeCreatorInteractor(IonTypeCreatorModel model) {
-    super(model);
-    updateModel();
-  }
+  public static final DirectoryParameter otherDirectory = new DirectoryParameter(
+      "Additional ion libraries directory", """
+      Defines an additional directory to search for ion libraries, for example on a shared drive.
+      This allows sharing of ion libraries. If conflicts arise between this and the local user directory - the additional lists will overrule the local definitions.""");
 
-  @Override
-  public void updateModel() {
-    final GlobalIonLibrary global = GlobalIonLibrary.getGlobalLibrary();
-    FxThread.runLater(() -> {
-//      model.partsProperty().set(FXCollections.observableList(global.parts()));
-      model.ionTypesProperty().set(FXCollections.observableList(global.ionTypes()));
-    });
-  }
-
-  public void createNewLibraryInTab() {
-    new IonLibraryEditController(model).showTab();
-  }
-
-  public void editLibraryInTab(IonLibrary library) {
-    if (library == null) {
-      return;
-    }
-    new IonLibraryEditController(model, library).showTab();
+  public GlobalIonLibrariesParameters() {
+    super(otherDirectory);
   }
 }

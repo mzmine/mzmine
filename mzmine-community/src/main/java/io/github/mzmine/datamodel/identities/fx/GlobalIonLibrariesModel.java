@@ -34,7 +34,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
-class IonTypeCreatorModel {
+class GlobalIonLibrariesModel {
 
   /**
    * All defined libraries

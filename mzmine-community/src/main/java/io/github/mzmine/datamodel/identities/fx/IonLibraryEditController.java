@@ -50,13 +50,13 @@ import org.jetbrains.annotations.Nullable;
  */
 class IonLibraryEditController extends FxController<IonLibraryEditModel> {
 
-  private final @NotNull IonTypeCreatorModel parentModel;
+  private final @NotNull GlobalIonLibrariesModel parentModel;
   private final IonLibraryEditViewBuilder viewBuilder;
 
   /**
    * For create new
    */
-  IonLibraryEditController(@NotNull IonTypeCreatorModel parentModel) {
+  IonLibraryEditController(@NotNull GlobalIonLibrariesModel parentModel) {
     this(parentModel, null);
   }
 
@@ -64,7 +64,8 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
    * @param parentModel used to update
    * @param library     if null then create a new library if not null then edit existing library
    */
-  IonLibraryEditController(@NotNull IonTypeCreatorModel parentModel, @Nullable IonLibrary library) {
+  IonLibraryEditController(@NotNull GlobalIonLibrariesModel parentModel,
+      @Nullable IonLibrary library) {
     super(new IonLibraryEditModel(library));
     this.parentModel = parentModel;
     viewBuilder = new IonLibraryEditViewBuilder(parentModel, model, this::handleEvent);

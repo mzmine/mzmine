@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import io.github.mzmine.datamodel.identities.fx.IonTypeCreatorModule;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesModule;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchModule;
@@ -445,7 +445,7 @@ public class BatchModeModulesList {
   public static final List<Class<? extends MZmineRunnableModule>> TOOLS_AND_VISUALIZERS = new ArrayList<>(
       List.of(
           // tools
-          IonTypeCreatorModule.class, //
+          GlobalIonLibrariesModule.class, //
           IsotopePatternPreviewModule.class, //
           QualityParametersModule.class, //
           LibraryAnalysisCSVExportModule.class, //

@@ -33,25 +33,25 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import javafx.beans.property.ReadOnlyListProperty;
 import org.jetbrains.annotations.NotNull;
 
-public class IonTypeCreatorController extends FxController<IonTypeCreatorModel> {
+public class GlobalIonLibrariesController extends FxController<GlobalIonLibrariesModel> {
 
   // lazy init singleton
   private static class Holder {
 
-    private static final IonTypeCreatorController INSTANCE = new IonTypeCreatorController();
+    private static final GlobalIonLibrariesController INSTANCE = new GlobalIonLibrariesController();
   }
 
-  private final IonTypeCreatorViewBuilder viewBuilder;
-  private final IonTypeCreatorInteractor interactor;
+  private final GlobalIonLibrariesViewBuilder viewBuilder;
+  private final GlobalIonLibrariesInteractor interactor;
 
-  private IonTypeCreatorController() {
-    super(new IonTypeCreatorModel());
+  private GlobalIonLibrariesController() {
+    super(new GlobalIonLibrariesModel());
 
-    interactor = new IonTypeCreatorInteractor(model);
+    interactor = new GlobalIonLibrariesInteractor(model);
     model.setCreateNewAction(interactor::createNewLibraryInTab);
     model.setEditSelectedAction(interactor::editLibraryInTab);
 
-    viewBuilder = new IonTypeCreatorViewBuilder(model);
+    viewBuilder = new GlobalIonLibrariesViewBuilder(model);
   }
 
 
@@ -68,14 +68,14 @@ public class IonTypeCreatorController extends FxController<IonTypeCreatorModel> 
   }
 
   @Override
-  protected @NotNull FxViewBuilder<IonTypeCreatorModel> getViewBuilder() {
+  protected @NotNull FxViewBuilder<GlobalIonLibrariesModel> getViewBuilder() {
     return viewBuilder;
   }
 
   /**
    * Uses a static singleton instance so that there is only one source of truth for ions
    */
-  public static IonTypeCreatorController getInstance() {
+  public static GlobalIonLibrariesController getInstance() {
     return Holder.INSTANCE;
   }
 }

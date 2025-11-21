@@ -54,7 +54,7 @@ class IonLibrariesManagePane extends BorderPane {
   private final ListProperty<IonType> ionTypes = new SimpleListProperty<>(
       FXCollections.observableArrayList());
 
-  IonLibrariesManagePane(@NotNull IonTypeCreatorModel model) {
+  IonLibrariesManagePane(@NotNull GlobalIonLibrariesModel model) {
     this(model.getLibraries(), true, model.getEditSelectedAction(), model.getCreateNewAction());
   }
 

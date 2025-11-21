@@ -54,6 +54,7 @@ public class IonLibraryListView extends FilterableListView<IonLibrary> {
       boolean allowEdit, boolean allowCreateNew) {
     super(libraries, allowRemoveItem, SelectionMode.SINGLE);
     setAskBeforeRemove(true);
+    getListView().setPrefWidth(450);
 
     // create a list view with addtional controls for sorting and filtering
     // sorting:
