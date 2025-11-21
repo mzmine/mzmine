@@ -73,9 +73,9 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
   private final MZmineProject project;
   private final Class<? extends MZmineModule> module;
   private final ParameterSet parameters;
-  private MSDKmzMLImportTask msdkTask;
-  private Boolean convertToFile = ConfigService.getConfiguration().getPreferences()
+  private final Boolean convertToFile = ConfigService.getConfiguration().getPreferences()
       .getValue(MZminePreferences.keepConvertedFile);
+  private MSDKmzMLImportTask msdkTask;
 
   public MSConvertImportTask(final @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, File path, ScanImportProcessorConfig config,
@@ -447,7 +447,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFile() : null;
+  public @NotNull List<RawDataFile> getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFile() : List.of();
   }
 }

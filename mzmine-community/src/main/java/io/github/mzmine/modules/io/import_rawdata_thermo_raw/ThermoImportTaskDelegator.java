@@ -29,12 +29,8 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.gui.preferences.ThermoImportOptions;
-import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
-import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractSimpleTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -108,7 +104,7 @@ public class ThermoImportTaskDelegator extends AbstractSimpleTask implements Raw
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
+  public @NotNull List<RawDataFile> getImportedRawDataFile() {
     return actualTask.getImportedRawDataFile();
   }
 }

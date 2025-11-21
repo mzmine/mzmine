@@ -25,13 +25,14 @@
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.taskcontrol.Task;
-import org.jetbrains.annotations.Nullable;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 
 public interface RawDataImportTask extends Task {
 
   /**
-   * @return The imported file or null. Will be null unless this task is finished.
+   * @return The imported files or an empty list. Empty may be caused by the task not being finished or
    */
-  @Nullable RawDataFile getImportedRawDataFile();
+  @NotNull List<RawDataFile> getImportedRawDataFile();
 }

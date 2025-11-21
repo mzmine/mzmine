@@ -622,8 +622,8 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
+  public @NotNull List<RawDataFile> getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? List.of(newMZmineFile) : List.of();
   }
 
  /*private void compareMobilities(IMSRawDataFile rawDataFile) {
