@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_tsf;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -38,7 +37,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
-import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
@@ -185,8 +184,9 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
 
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
-    final boolean tryProfile = !parameters.getValue(
-        AllSpectralDataImportParameters.applyVendorCentroiding);
+    final boolean tryProfile = !parameters.getEmbeddedParameterValue(
+            AllSpectralDataImportParameters.vendorOptions)
+        .getValue(VendorImportParameters.applyVendorCentroiding);
     final MassSpectrumType importSpectrumType =
         tryProfile && metaDataTable.hasProfileSpectra() ? MassSpectrumType.PROFILE
             : MassSpectrumType.CENTROIDED;

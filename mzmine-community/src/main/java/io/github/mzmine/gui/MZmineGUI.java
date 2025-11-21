@@ -391,7 +391,8 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         // set raw and library files to parameter
         ParameterSet param = MZmineCore.getConfiguration()
             .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
-        param = AllSpectralDataImportParameters.create(ConfigService.isApplyVendorCentroiding(),
+        param = AllSpectralDataImportParameters.create(
+            ConfigService.getPreferences().getVendorImportParameters(),
             rawDataFiles.toArray(File[]::new), null, libraryFiles.toArray(File[]::new), null);
 
         // start import task for libraries and raw data files
