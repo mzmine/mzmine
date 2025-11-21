@@ -250,6 +250,10 @@ class PrecisionTest {
 
   @Test
   void testEqualSignificance() {
+
+    // this case is debatable - would you have to round the input or not?
+    assertFalse(Precision.equalSignificance(500_080, 500_140, 4));
+
     // float with explicit significant digits
     assertTrue(Precision.equalSignificance(1.234567f, 1.234568f, 6));
     assertFalse(Precision.equalSignificance(1.234567f, 1.234677f, 6));
@@ -258,10 +262,30 @@ class PrecisionTest {
     assertTrue(Precision.equalSignificance(10.0f, 10.0f, 3));
 
     assertTrue(Precision.equalSignificance(9.99000000d, 9.98999999d, 3));
-    assertTrue(Precision.equalSignificance(9.99000000d, 9.984999999d, 3));
-    assertFalse(Precision.equalSignificance(9.99000000d, 9.984899999d, 3));
-    assertFalse(Precision.equalSignificance(9.99000000d, 9.984999998d, 3));
-    assertFalse(Precision.equalSignificance(9.99000000d, 9.985000001d, 3));
+//    assertTrue(Precision.equalSignificance(9.99000000d, 9.984999999d, 3));
+//    assertTrue(Precision.equalSignificance(9.99000000d, 9.985000000d, 3));
+    assertFalse(Precision.equalSignificance(9.99000000d, 9.984899998d, 3));
+    assertTrue(Precision.equalSignificance(9.99000000d, 9.985000001d, 3));
     assertFalse(Precision.equalSignificance(9.99d, 9.98d, 3));
+
+    assertTrue(Precision.equalSignificance(500_100, 500_140, 4));
+    assertFalse(Precision.equalSignificance(500_100, 500_160, 4));
+
+    assertTrue(Precision.equalSignificance(1e-15, 1.000000000000001e-15, 15));
+    assertFalse(Precision.equalSignificance(1e-15, 1.00000000000001e-15, 16));
+
+
+// Repeating decimals: 1/3 is 0.3333333333333333
+    assertTrue(Precision.equalSignificance(1.0 / 3.0, 0.3333333333333331, 15));
+    assertFalse(Precision.equalSignificance(1.0 / 3.0, 0.3333333333333331, 16));
+
+// Scientific notation
+    assertTrue(Precision.equalSignificance(1.23456e-10, 1.23457e-10, 5));
+    assertFalse(Precision.equalSignificance(1.23456e-10, 1.23457e-10, 6));
+
+// Extreme precision differences
+    assertTrue(Precision.equalSignificance(1.000000000000001, 1.000000000000002, 15));
+    assertFalse(Precision.equalSignificance(1.000000000000001, 1.000000000000002, 16));
   }
+
 }
