@@ -32,7 +32,8 @@ import org.jetbrains.annotations.NotNull;
 public interface RawDataImportTask extends Task {
 
   /**
-   * @return The imported files or an empty list. Empty may be caused by the task not being finished or
+   * @return The imported files or an empty list. Empty may be caused by the task not being finished
+   * or no file being loaded.
    */
-  @NotNull List<RawDataFile> getImportedRawDataFile();
+  @NotNull List<RawDataFile> getImportedRawDataFiles();
 }

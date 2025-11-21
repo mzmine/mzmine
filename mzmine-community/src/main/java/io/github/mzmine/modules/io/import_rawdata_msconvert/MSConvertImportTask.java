@@ -447,7 +447,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
   }
 
   @Override
-  public @NotNull List<RawDataFile> getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFile() : List.of();
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFiles() : List.of();
   }
 }

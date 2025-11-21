@@ -104,7 +104,7 @@ public class ThermoImportTaskDelegator extends AbstractSimpleTask implements Raw
   }
 
   @Override
-  public @NotNull List<RawDataFile> getImportedRawDataFile() {
-    return actualTask.getImportedRawDataFile();
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return actualTask.getImportedRawDataFiles();
   }
 }

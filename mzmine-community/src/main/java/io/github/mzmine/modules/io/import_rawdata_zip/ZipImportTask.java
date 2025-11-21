@@ -176,7 +176,7 @@ public class ZipImportTask extends AbstractTask implements RawDataImportTask {
   }
 
   @Override
-  public @NotNull List<RawDataFile> getImportedRawDataFile() {
-    return msdkTask.getImportedRawDataFile();
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return msdkTask.getImportedRawDataFiles();
   }
 }

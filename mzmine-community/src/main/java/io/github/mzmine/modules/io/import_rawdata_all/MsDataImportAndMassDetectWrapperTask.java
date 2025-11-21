@@ -37,7 +37,6 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * This import task wraps other data import tasks that do not support application of mass detection
@@ -98,7 +97,7 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask implement
 
       // should be in the new data file
       if (importTask.isFinished()) {
-        List<RawDataFile> files = importTask.getImportedRawDataFile();
+        List<RawDataFile> files = importTask.getImportedRawDataFiles();
         totalScans = files.stream().mapToInt(RawDataFile::getNumOfScans).sum();
 
         for (RawDataFile file : files) {
@@ -147,7 +146,7 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask implement
 
 
   @Override
-  public @NotNull List<RawDataFile> getImportedRawDataFile() {
-    return importTask.getImportedRawDataFile();
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return importTask.getImportedRawDataFiles();
   }
 }

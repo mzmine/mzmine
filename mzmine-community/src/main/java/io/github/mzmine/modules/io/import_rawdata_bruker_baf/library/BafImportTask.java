@@ -186,7 +186,7 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
   }
 
   @Override
-  public @NotNull List<RawDataFile> getImportedRawDataFile() {
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
     return getStatus() == TaskStatus.FINISHED ? List.of(file) : List.of();
   }
 }

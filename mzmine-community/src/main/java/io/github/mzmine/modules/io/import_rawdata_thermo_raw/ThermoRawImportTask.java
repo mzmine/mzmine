@@ -42,7 +42,6 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -252,7 +251,7 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
   }
 
   @Override
-  public @NotNull List<RawDataFile> getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFile() : List.of();
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFiles() : List.of();
   }
 }
