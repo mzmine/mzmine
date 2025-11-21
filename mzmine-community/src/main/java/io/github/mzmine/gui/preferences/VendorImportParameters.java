@@ -27,6 +27,7 @@ package io.github.mzmine.gui.preferences;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRemovalModule;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComponentWrapperParameter;
@@ -74,9 +75,11 @@ public class VendorImportParameters extends SimpleParameterSet {
 
   private static final boolean DEFAULT_THERMO_EXCEPTION_SIGNALS = true;
   public static final ComponentWrapperParameter<Boolean, BooleanParameter> excludeThermoExceptionMasses = new ComponentWrapperParameter<>(
-      new BooleanParameter("Remove calibrant signals (Thermo)",
-          "Internal calibration signals may be present in MS1 and MS2 spectra from Thermo Orbitraps. This option automatically removes those on import.",
-          DEFAULT_THERMO_EXCEPTION_SIGNALS),
+      new BooleanParameter("Remove calibrant signals (Thermo)", """
+          Internal calibration signals may be present in spectra of all MS-levels (MS1-MSn) from Thermo Orbitraps.
+          This filter automatically removes those on import for MS1 and MS2 spectra.
+          To remove them from MS>=3 spectra, use "%s".
+          """.formatted(ScanSignalRemovalModule.MODULE_NAME), DEFAULT_THERMO_EXCEPTION_SIGNALS),
       createJumpToPrefButton("Remove calibrant signals (Thermo)"));
 
   /*public static final ComboParameter<MassLynxImportOptions> watersImportChoice = new ComboParameter<>(
@@ -86,13 +89,13 @@ public class VendorImportParameters extends SimpleParameterSet {
       but does not allow centroiding of IMS data files. The native import is slow when applying centroiding on import.""",
       MassLynxImportOptions.values(), MassLynxImportOptions.NATIVE);*/
 
+  public VendorImportParameters() {
+    super(applyVendorCentroiding, watersLockmass, excludeThermoExceptionMasses);
+  }
+
   private static @NotNull Supplier<Node> createJumpToPrefButton(String preferenceParameterName) {
     return () -> FxButtons.createButton(null, FxIcons.GEAR_PREFERENCES, JUMP_TO_PREFERENCE_TOOLTIP,
         () -> ConfigService.getPreferences().showSetupDialog(true, preferenceParameterName));
-  }
-
-  public VendorImportParameters() {
-    super(applyVendorCentroiding, watersLockmass, excludeThermoExceptionMasses);
   }
 
   public static VendorImportParameters create(boolean applyCentroiding,
