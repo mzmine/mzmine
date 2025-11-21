@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -76,6 +77,8 @@ public class IonNetworkingParameters extends SimpleParameterSet {
       "Ion identity library", "Adducts, in-source fragments and multimers",
       new LegacyIonLibraryParameterSet());
 
+  public static final IonLibraryParameter ionLibrary = new IonLibraryParameter();
+
   // MS MS
   // check for truth MS/MS
   // public static final OptionalModuleParameter<IonNetworkMSMSCheckParameters> MSMS_CHECK =
@@ -102,11 +105,12 @@ public class IonNetworkingParameters extends SimpleParameterSet {
     switch (setup) {
       case FULL:
         return new Parameter[]{PEAK_LISTS, MZ_TOLERANCE, CHECK_MODE, MIN_HEIGHT, LIBRARY,
-            ANNOTATION_REFINEMENTS};
+            ANNOTATION_REFINEMENTS, ionLibrary};
       case SUB:
-        return new Parameter[]{MZ_TOLERANCE, CHECK_MODE, LIBRARY, ANNOTATION_REFINEMENTS};
+        return new Parameter[]{MZ_TOLERANCE, CHECK_MODE, LIBRARY, ANNOTATION_REFINEMENTS,
+            ionLibrary};
       case SIMPLE:
-        return new Parameter[]{CHECK_MODE, LIBRARY};
+        return new Parameter[]{CHECK_MODE, LIBRARY, ionLibrary};
     }
     return new Parameter[0];
   }
