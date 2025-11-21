@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.MassLynxImportOptions;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
@@ -263,10 +264,22 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
   public static File applyMsConvertImportNameChanges(File file, boolean keepConverted,
       RawDataFileType type) {
     if (type != null && keepConverted && getSupportedFileTypes().contains(type)) {
+      if ((type == RawDataFileType.WATERS_RAW || type == RawDataFileType.WATERS_RAW_IMS) && (
+          ConfigService.getPreference(MZminePreferences.watersImportChoice)
+              != MassLynxImportOptions.MSCONVERT)) {
+        // if waters mass lynx files are imported via the sdk, apply no remapping
+        return file;
+      }
       return getMzMLFileName(file);
     } else {
       return file;
     }
+  }
+
+  public static Set<RawDataFileType> getSupportedFileTypes() {
+    return Set.of(RawDataFileType.WATERS_RAW, RawDataFileType.WATERS_RAW_IMS,
+        RawDataFileType.SCIEX_WIFF, RawDataFileType.SCIEX_WIFF2, RawDataFileType.AGILENT_D,
+        RawDataFileType.AGILENT_D_IMS, RawDataFileType.THERMO_RAW, RawDataFileType.SHIMADZU_LCD);
   }
 
   @Override
@@ -438,12 +451,6 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
         setStatus(TaskStatus.ERROR);
       }
     }
-  }
-
-  public static Set<RawDataFileType> getSupportedFileTypes() {
-    return Set.of(RawDataFileType.WATERS_RAW, RawDataFileType.WATERS_RAW_IMS,
-        RawDataFileType.SCIEX_WIFF, RawDataFileType.SCIEX_WIFF2, RawDataFileType.AGILENT_D,
-        RawDataFileType.AGILENT_D_IMS, RawDataFileType.THERMO_RAW, RawDataFileType.SHIMADZU_LCD);
   }
 
   @Override

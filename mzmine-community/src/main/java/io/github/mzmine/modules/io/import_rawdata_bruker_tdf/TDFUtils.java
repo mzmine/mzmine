@@ -444,7 +444,8 @@ public class TDFUtils {
       SimpleSpectralArrays data = dataPoints.get(i);
       if (processorConfig.hasProcessors()) {
         data = processorConfig.processor().processScan(frame, data);
-        spectra.add(new BuildingMobilityScan(i, data.mzs(), data.intensities()));
+        spectra.add(new BuildingMobilityScan(i, data.mzs(), data.intensities(),
+            MassSpectrumType.CENTROIDED)); // tdf ims is always centroided
       }
     }
 

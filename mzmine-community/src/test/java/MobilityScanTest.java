@@ -108,7 +108,7 @@ public class MobilityScanTest {
         mzs[j] = rnd.nextDouble();
         intensities[j] = rnd.nextDouble();
       }
-      scans.add(new BuildingMobilityScan(i, intensities, mzs));
+      scans.add(new BuildingMobilityScan(i, intensities, mzs, MassSpectrumType.CENTROIDED));
     }
 
     return scans;
@@ -194,13 +194,13 @@ public class MobilityScanTest {
     // adding scans with mobility scan number 1 as first scan should throw an exception.
     Assertions.assertThrows(IllegalArgumentException.class,
         () -> new MobilityScanStorage(null, frame,
-            List.of(new BuildingMobilityScan(1, new double[0], new double[0]))));
+            List.of(new BuildingMobilityScan(1, new double[0], new double[0], MassSpectrumType.CENTROIDED))));
 
     // non consecutive scan numbers should throw an exception
     Assertions.assertThrows(IllegalArgumentException.class,
         () -> new MobilityScanStorage(null, frame,
-            List.of(new BuildingMobilityScan(0, new double[0], new double[0]),
-                new BuildingMobilityScan(2, new double[0], new double[0]))));
+            List.of(new BuildingMobilityScan(0, new double[0], new double[0], MassSpectrumType.CENTROIDED),
+                new BuildingMobilityScan(2, new double[0], new double[0], MassSpectrumType.CENTROIDED))));
   }
 
   @Test

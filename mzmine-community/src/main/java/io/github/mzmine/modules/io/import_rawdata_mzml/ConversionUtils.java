@@ -34,10 +34,8 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.types.MsMsInfoType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.featuredata.OtherFeatureUtils;
 import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
-import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
@@ -46,6 +44,7 @@ import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.DetectorType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherSpectralData;
 import io.github.mzmine.datamodel.otherdetectors.OtherSpectralDataImpl;
@@ -435,13 +434,14 @@ public class ConversionUtils {
               dps.stream().mapToDouble(DataPoint::getIntensity).toArray(), chrom.getId(),
               timeSeriesData);
 
-          final OtherFeatureImpl otherFeature = new OtherFeatureImpl(timeSeries);
-          timeSeriesData.addRawTrace(otherFeature);
-
           timeSeriesData.setTimeSeriesRangeUnit(unit.getSign());
           timeSeriesData.setTimeSeriesRangeLabel(unit.getLabel());
 
-          extractAndSetMsMsInfoToChromatogram(chrom, chromType, otherFeature);
+          final OtherFeatureImpl otherFeature = new OtherFeatureImpl(timeSeries);
+          timeSeriesData.addRawTrace(otherFeature);
+
+          extractAndSetMsMsInfoToOtherFeature(chrom, chromType, otherFeature);
+
           if (chromType.isMsType()) {
             final PolarityType polarity = chrom.getPolarity();
             if (polarity.isDefined()) {
@@ -483,18 +483,18 @@ public class ConversionUtils {
   /**
    * Sets the MS2 info for the otherFeature if it is set in the chromatogram
    */
-  private static void extractAndSetMsMsInfoToChromatogram(MzMLChromatogram chrom,
-      ChromatogramType chromType, OtherFeatureImpl otherFeature) {
+  private static void extractAndSetMsMsInfoToOtherFeature(@NotNull MzMLChromatogram chrom,
+      ChromatogramType chromType, @NotNull OtherFeature feature) {
     if (chromType == ChromatogramType.MRM_SRM) {
       final List<IsolationInfo> isolations = chrom.getIsolations();
       if (isolations.size() != 2) {
         return;
       }
-      final Double q3Mass = isolations.getLast().getPrecursorMz();
-      otherFeature.set(MZType.class, q3Mass);
 
       final IsolationInfo q1Isolation = isolations.getFirst();
       final Double q1Mass = q1Isolation.getPrecursorMz();
+      final Double q3Mass = isolations.getLast().getPrecursorMz();
+
       final ActivationInfo activationInfo = q1Isolation.getActivationInfo();
       final Float energy =
           activationInfo != null ? Objects.requireNonNullElse(activationInfo.getActivationEnergy(),
@@ -502,9 +502,8 @@ public class ConversionUtils {
       final ActivationMethod method = ActivationMethod.fromActivationType(
           activationInfo != null ? activationInfo.getActivationType() : null);
 
-      if (q1Mass != null) {
-        otherFeature.set(MsMsInfoType.class,
-            List.of(new DDAMsMsInfoImpl(q1Mass, null, energy, null, null, 2, method, null)));
+      if (q1Mass != null && q3Mass != null) {
+        OtherFeatureUtils.applyMrmInfo(q1Mass, q3Mass, method, energy, feature);
       }
     }
   }
@@ -519,12 +518,13 @@ public class ConversionUtils {
         .map(cv -> ChromatogramType.ofAccession(cv.getAccession())).findFirst()
         .map(chromatogramType -> switch (chromatogramType) {
           case TIC, ABSORPTION -> {
-            if(c.getId().contains("CAD")) {
+            if (c.getId().contains("CAD")) {
               yield ChromatogramType.ION_CURRENT;
             }
             yield chromatogramType;
           }
-          case MRM_SRM, SIM, SIC, BPC, EMISSION, ION_CURRENT, PRESSURE, FLOW_RATE, UNKNOWN -> chromatogramType;
+          case MRM_SRM, SIM, SIC, BPC, EMISSION, ION_CURRENT, PRESSURE, FLOW_RATE, UNKNOWN ->
+              chromatogramType;
           case ELECTROMAGNETIC_RADIATION -> ChromatogramType.ELECTROMAGNETIC_RADIATION;
         }).orElse(ChromatogramType.UNKNOWN);
   }

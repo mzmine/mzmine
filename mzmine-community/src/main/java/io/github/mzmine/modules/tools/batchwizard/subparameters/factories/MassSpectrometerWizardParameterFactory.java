@@ -44,7 +44,11 @@ public enum MassSpectrometerWizardParameterFactory implements WizardParameterFac
   public static MassSpectrometerWizardParameters createForIms(
       IonMobilityWizardParameterFactory ims) {
     return switch (ims) {
-      case NO_IMS, IMS, DTIMS, TWIMS, SLIM -> null;
+      case NO_IMS, IMS, DTIMS, SLIM -> null;
+      case TWIMS ->
+          new MassSpectrometerWizardParameters(QTOF, MassDetectorWizardOptions.ABSOLUTE_NOISE_LEVEL,
+              5E1, 5E1, 1.0E3, new MZTolerance(0.005, 20), new MZTolerance(0.0015, 3),
+              new MZTolerance(0.004, 8));
       case TIMS ->
           new MassSpectrometerWizardParameters(QTOF, MassDetectorWizardOptions.ABSOLUTE_NOISE_LEVEL,
               500, 1E2, 1.0E3, new MZTolerance(0.005, 20), new MZTolerance(0.0015, 3),

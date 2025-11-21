@@ -38,6 +38,13 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramTyp
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Interface to model chromatographic data from other detectors such as UV/DAD, fluorescence,
+ * radioactive emissions, CAD, or also MRM/SRM traces. Types are located in the
+ * {@link io.github.mzmine.datamodel.features.types.otherdectectors} package.
+ * <br>
+ * Utility methods are placed in {@link io.github.mzmine.datamodel.featuredata.OtherFeatureUtils}.
+ */
 public interface OtherFeature extends ModularDataModel {
 
   @Nullable

@@ -221,15 +221,18 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final ComboParameter<PaintScaleTransform> imageTransformation = new ComboParameter<>(
       "Image paint scale transformation", "Transforms the paint scale for images.",
       PaintScaleTransform.values(), PaintScaleTransform.LINEAR);
+
   public static final FileNameParameter msConvertPath = new FileNameWithDownloadParameter(
       "MSConvert path",
       "Set a path to MSConvert to automatically convert unknown vendor formats to mzML while importing.",
       List.of(MSCONVERT), AssetGroup.MSCONVERT);
+
   public static final BooleanParameter keepConvertedFile = new BooleanParameter(
       "Keep files converted by MSConvert",
       "Store the files after conversion by MSConvert to an mzML file.\n"
           + "This will reduce the import time when re-processing, but require more disc space.",
       false);
+
   public static final BooleanParameter applyVendorCentroiding = new BooleanParameter(
       "Apply vendor centroiding (recommended)", """
       Apply vendor centroiding (peak picking) during import of native vendor files.
@@ -252,10 +255,30 @@ public class MZminePreferences extends SimpleParameterSet {
               new ExtensionFilter("Linux / macOS executable", "ThermoRawFileParser")),
           AssetGroup.ThermoRawFileParser));
 
+  public static final ComboParameter<MassLynxImportOptions> watersImportChoice = new ComboParameter<>(
+      "Waters MassLynx data import", """
+      Select if Waters MassLynx data files shall be imported via MSConvert or via the native Waters library.
+      The MSConvert import allows to retain the mzml files, allowing a faster import on the second iteration,
+      but does not allow centroiding of IMS data files. The native import is slow when applying centroiding on import.""",
+      MassLynxImportOptions.values(), MassLynxImportOptions.NATIVE);
+
   public static final OptionalParameter<ParameterSetParameter<WatersLockmassParameters>> watersLockmass = new OptionalParameter<>(
       new ParameterSetParameter<>("Apply lockmass on import (Waters)",
           "Apply lockmass correction for native Waters raw data during raw data import via MSConvert.",
           new WatersLockmassParameters()), true);
+  // ---------------------------------------------- Hidden parameters
+  public static final HiddenParameter<Map<String, Boolean>> siriusCountWarningOptOut = new HiddenParameter<>(
+      new OptOutParameter("Sirius feature count warning", ""));
+  public static final HiddenParameter<Boolean> showTempFolderAlert = new HiddenParameter<>(
+      new BooleanParameter("Show temp alert", "Show temp folder alert", true));
+  public static final HiddenParameter<String> username = new HiddenParameter<>(
+      new StringParameter("username", "last active username", "", false, true));
+  public static final HiddenParameter<Boolean> showQuickStart = new HiddenParameter<>(
+      new BooleanParameter("Show quick start video", "", true));
+  public static final HiddenParameter<Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
+      new OptOutParameter("Ion mobility compatibility warnings",
+          "Shows a warning message when a module without explicit ion mobility support is "
+              + "used to process ion mobility data."));
   private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
       new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
       new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.####"),
@@ -268,27 +291,12 @@ public class MZminePreferences extends SimpleParameterSet {
       new DecimalFormat("0.0000"), new DecimalFormat("0.0000"), new DecimalFormat("0.000"),
       new DecimalFormat("0.0000E0"), new DecimalFormat("0.00"), new DecimalFormat("0.0000"),
       new DecimalFormat("0.0000"), UnitFormat.DIVIDE);
+  /**
+   * Set of formats that will never be changed. For example to generate stable row IDs with a fixed
+   * precision for mz etc. See {@link FeatureUtils#rowToFullId(FeatureListRow)}
+   */
   private final BooleanProperty darkModeProperty = new SimpleBooleanProperty(false);
   private NumberFormats guiFormat = exportFormat; // default value
-
-  // ---------------------------------------------- Hidden parameters
-
-  public static final HiddenParameter<Boolean> showTempFolderAlert = new HiddenParameter<>(
-      new BooleanParameter("Show temp alert", "Show temp folder alert", true));
-
-  public static final HiddenParameter<String> username = new HiddenParameter<>(
-      new StringParameter("username", "last active username", "", false, true));
-
-  public static final HiddenParameter<Boolean> showQuickStart = new HiddenParameter<>(
-      new BooleanParameter("Show quick start video", "", true));
-
-  public static final HiddenParameter<Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
-      new OptOutParameter("Ion mobility compatibility warnings",
-          "Shows a warning message when a module without explicit ion mobility support is "
-              + "used to process ion mobility data."));
-
-  public static final HiddenParameter<Map<String, Boolean>> siriusCountWarningOptOut = new HiddenParameter<>(
-      new OptOutParameter("Sirius feature count warning", ""));
 
   public MZminePreferences() {
     super(// start with performance
@@ -309,7 +317,7 @@ public class MZminePreferences extends SimpleParameterSet {
             showTempFolderAlert, username, showQuickStart, siriusCountWarningOptOut,
             // conversion, data handling
             applyVendorCentroiding, msConvertPath, thermoRawFileParserPath, keepConvertedFile,
-            watersLockmass},
+            watersImportChoice, watersLockmass},
         "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
     darkModeProperty.subscribe(state -> {
@@ -344,7 +352,7 @@ public class MZminePreferences extends SimpleParameterSet {
             chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
             imageNormalization, windowSettings), //
         new ParameterGroup("MS data import", applyVendorCentroiding, msConvertPath,
-            thermoRawFileParserPath, keepConvertedFile, watersLockmass) //
+            keepConvertedFile, watersImportChoice, watersLockmass, thermoRawFileParserPath) //
     );
     // imsModuleWarnings, showTempFolderAlert, showQuickStart  are hidden parameters
 
