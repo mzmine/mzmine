@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_precursordbsearch;
 
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -32,10 +33,13 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RIToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PrecursorDBSearchParameters extends SimpleParameterSet {
 
@@ -56,19 +60,45 @@ public class PrecursorDBSearchParameters extends SimpleParameterSet {
       new PercentParameter("CCS tolerance (%)",
           "Maximum allowed difference (in per cent) for two ccs values.", 0.05));
 
+  public static final OptionalParameter<RIToleranceParameter> riTolerance = new OptionalParameter<>(
+      new RIToleranceParameter(), false);
+
   public PrecursorDBSearchParameters() {
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_spectra_lib/local-spectra-lib-search.html",
-        featureLists, libraries, mzTolerancePrecursor, rtTolerance, mobTolerance, ccsTolerance);
+        featureLists, libraries, mzTolerancePrecursor, rtTolerance, mobTolerance, ccsTolerance, riTolerance);
   }
 
   @Override
   public int getVersion() {
-    return 2;
+    return 3;
   }
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+
+    if(loadedVersion < 2) {
+      setParameter(mobTolerance, false);
+      setParameter(ccsTolerance, false);
+    }
+
+    if(loadedVersion < 3) {
+      setParameter(riTolerance, false);
+    }
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 2 -> "Added support for Mobility and CCS matching.";
+      case 3 -> "Added support for Retention index (RI) matching.";
+      default -> null;
+    };
   }
 }

@@ -282,7 +282,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
         if (a.getRT() != null) {
           a.put(RtRelativeErrorType.class, (row.getAverageRT() - a.getRT()) / a.getRT());
         }
-        a.setScore(a.calculateScore(row, mzTolerance, rtTolerance, mobTol, null));
+        a.setScore(a.calculateScore(row, mzTolerance, rtTolerance, mobTol, null, null));
       });
       row.getCompoundAnnotations()
           .sort(Comparator.comparingDouble(a -> a.getScore() != null ? a.getScore() : 0f));

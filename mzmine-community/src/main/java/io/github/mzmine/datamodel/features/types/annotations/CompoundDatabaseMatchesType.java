@@ -51,6 +51,8 @@ import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
+import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
@@ -80,7 +82,7 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
       //
       new PrecursorMZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
       new NeutralMassType(), new RTType(), new CCSType(), new CCSRelativeErrorType(),
-      new IsotopePatternScoreType(), new CommentType());
+      new IsotopePatternScoreType(), new CommentType(), new RIType(), new RIDiffType());
 
   private static final Logger logger = Logger.getLogger(
       CompoundDatabaseMatchesType.class.getName());

@@ -34,9 +34,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.annotations.RIScaleType;
-import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
-import io.github.mzmine.datamodel.features.types.numbers.RIMaxType;
-import io.github.mzmine.datamodel.features.types.numbers.RIMinType;
+import io.github.mzmine.datamodel.features.types.numbers.RIRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.MZmineModule;
@@ -159,15 +157,17 @@ public class RICalculationTask extends AbstractFeatureListTask {
         false);
 
     outputList.addFeatureType(new RIType());
+    outputList.addRowType(new RIRangeType());
+
     if (shouldAddSummary) {
       // the file is set directly
       outputList.addFeatureType(new RIScaleType());
 
       // values below are calculated as row bindings from the RIType - so just add the row binding
       // this automatically adds the types as row types instead of feature types
-      outputList.addFeatureType(new RIMinType());
-      outputList.addFeatureType(new RIMaxType());
-      outputList.addFeatureType(new RIDiffType());
+//      outputList.addFeatureType(new RIMinType());
+//      outputList.addFeatureType(new RIMaxType());
+//      outputList.addFeatureType(new RIDiffType());
 
     }
 

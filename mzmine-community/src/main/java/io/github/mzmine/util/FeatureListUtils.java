@@ -437,6 +437,29 @@ public class FeatureListUtils {
    * mobility values based on tolerances -> ranges). General score is SUM((difference
    * row-center(range)) / rangeLength * factor) / sum(factors)
    *
+   * @param feature        target feature
+   * @param mzRange        allowed range
+   * @param rtRange        allowed range
+   * @param mobilityRange  allowed range
+   * @param mzWeight       weight factor
+   * @param rtWeight       weight factor
+   * @param mobilityWeight weight factor
+   * @return the alignment score between 0-1 with 1 being a perfect match
+   */
+  public static double getAlignmentScore(Feature feature, @Nullable Range<Double> mzRange,
+      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange,
+      @Nullable Range<Float> ccsRange, @Nullable Range<Float> riRange, double mzWeight,
+      double rtWeight, double mobilityWeight, double ccsWeight, double riWeight) {
+    return getAlignmentScore(feature.getMZ(), feature.getRT(), feature.getMobility(),
+        feature.getCCS(), feature.getRI(), mzRange, rtRange, mobilityRange, ccsRange, riRange,
+        mzWeight, rtWeight, mobilityWeight, ccsWeight, riWeight);
+  }
+
+  /**
+   * Compare row average values to ranges (during alignment or annotation to other mz, rt, and
+   * mobility values based on tolerances -> ranges). General score is SUM((difference
+   * row-center(range)) / rangeLength * factor) / sum(factors)
+   *
    * @param row            target row
    * @param mzRange        allowed range
    * @param rtRange        allowed range
@@ -453,6 +476,29 @@ public class FeatureListUtils {
     return getAlignmentScore(row.getAverageMZ(), row.getAverageRT(), row.getAverageMobility(),
         row.getAverageCCS(), mzRange, rtRange, mobilityRange, ccsRange, mzWeight, rtWeight,
         mobilityWeight, ccsWeight);
+  }
+
+  /**
+   * Compare row average values to ranges (during alignment or annotation to other mz, rt, and
+   * mobility values based on tolerances -> ranges). General score is SUM((difference
+   * row-center(range)) / rangeLength * factor) / sum(factors)
+   *
+   * @param row            target row
+   * @param mzRange        allowed range
+   * @param rtRange        allowed range
+   * @param mobilityRange  allowed range
+   * @param mzWeight       weight factor
+   * @param rtWeight       weight factor
+   * @param mobilityWeight weight factor
+   * @return the alignment score between 0-1 with 1 being a perfect match
+   */
+  public static double getAlignmentScore(FeatureListRow row, @Nullable Range<Double> mzRange,
+      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange,
+      @Nullable Range<Float> ccsRange, @Nullable Range<Float> riRange, double mzWeight,
+      double rtWeight, double mobilityWeight, double ccsWeight, double riWeight) {
+    return getAlignmentScore(row.getAverageMZ(), row.getAverageRT(), row.getAverageMobility(),
+        row.getAverageCCS(), row.getAverageRI(), mzRange, rtRange, mobilityRange, ccsRange, riRange,
+        mzWeight, rtWeight, mobilityWeight, ccsWeight, riWeight);
   }
 
   /**
@@ -491,6 +537,32 @@ public class FeatureListUtils {
       @Nullable Range<Float> mobilityRange, @Nullable Range<Float> ccsRange, double mzWeight,
       double rtWeight, double mobilityWeight, double ccsWeight) {
 
+    return getAlignmentScore(testMz, testRt, testMobility, testCCS, null, mzRange, rtRange,
+        mobilityRange, ccsRange, null, mzWeight, rtWeight, mobilityWeight, ccsWeight, 1d);
+  }
+
+  /**
+   * Compare row average values to ranges (during alignment or annotation to other mz, rt, and
+   * mobility values based on tolerances -> ranges). General score is SUM((difference
+   * row-center(range)) / rangeLength * factor) / sum(factors)
+   *
+   * @param testMz         tested value
+   * @param testRt         tested value
+   * @param testMobility   tested value
+   * @param mzRange        allowed range
+   * @param rtRange        allowed range
+   * @param mobilityRange  allowed range
+   * @param mzWeight       weight factor
+   * @param rtWeight       weight factor
+   * @param mobilityWeight weight factor
+   * @return the alignment score between 0-1 with 1 being a perfect match
+   */
+  public static double getAlignmentScore(Double testMz, Float testRt, Float testMobility,
+      Float testCCS, Float testedRi, @Nullable Range<Double> mzRange,
+      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange,
+      @Nullable Range<Float> ccsRange, Range<Float> riRange, double mzWeight, double rtWeight,
+      double mobilityWeight, double ccsWeight, double riWeight) {
+
     ScoreAccumulator score = new ScoreAccumulator();
 
     // values are "matched" if the given value exists in this class and falls within the tolerance.
@@ -499,6 +571,7 @@ public class FeatureListUtils {
     checkAndAddCenterScore(score, testRt, rtRange, rtWeight);
     checkAndAddCenterScore(score, testMobility, mobilityRange, mobilityWeight);
     checkAndAddCenterScore(score, testCCS, ccsRange, ccsWeight);
+    checkAndAddCenterScore(score, testedRi, riRange, riWeight);
 
     return score.getScore();
   }

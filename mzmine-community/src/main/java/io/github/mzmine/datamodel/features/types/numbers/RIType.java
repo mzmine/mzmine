@@ -25,9 +25,15 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import static io.github.mzmine.datamodel.features.types.modifiers.BindingsType.AVERAGE;
+import static io.github.mzmine.datamodel.features.types.modifiers.BindingsType.RANGE;
+
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
-import static io.github.mzmine.datamodel.features.types.modifiers.BindingsType.AVERAGE;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -37,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Retention index type
  */
-public class RIType extends FloatType {
+public class RIType extends FloatType implements ExpandableType {
 
   public RIType() {
     super(new DecimalFormat("0.##"));
@@ -68,7 +74,9 @@ public class RIType extends FloatType {
   @NotNull
   @Override
   public List<RowBinding> createDefaultRowBindings() {
-    return List.of(new SimpleRowBinding(this, AVERAGE));
+    return List.of(new SimpleRowBinding(this, AVERAGE),
+        new SimpleRowBinding(DataTypes.get(RIDiffType.class), this, BindingsType.DIFFERENCE),
+        new SimpleRowBinding(DataTypes.get(RIRangeType.class), this, BindingsType.RANGE));
   }
 
   @Override
@@ -76,4 +84,13 @@ public class RIType extends FloatType {
     return true;
   }
 
+  @Override
+  public @NotNull Class<? extends DataType<?>> getExpandedTypeClass() {
+    return RIRangeType.class;
+  }
+
+  @Override
+  public @NotNull Class<? extends DataType<?>> getHiddenTypeClass() {
+    return getClass();
+  }
 }
