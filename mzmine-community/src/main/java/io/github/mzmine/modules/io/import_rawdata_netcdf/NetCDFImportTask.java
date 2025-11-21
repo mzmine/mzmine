@@ -45,6 +45,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -458,7 +459,7 @@ public class NetCDFImportTask extends AbstractTask implements RawDataImportTask 
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
+  public @NotNull List<RawDataFile> getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? List.of(newMZmineFile) : List.of();
   }
 }

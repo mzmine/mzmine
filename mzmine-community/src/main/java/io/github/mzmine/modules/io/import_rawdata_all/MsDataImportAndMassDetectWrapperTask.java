@@ -35,6 +35,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,11 +98,14 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask implement
 
       // should be in the new data file
       if (importTask.isFinished()) {
-        totalScans = importTask.getImportedRawDataFile().getNumOfScans();
+        List<RawDataFile> files = importTask.getImportedRawDataFile();
+        totalScans = files.stream().mapToInt(RawDataFile::getNumOfScans).sum();
 
-        if (!applyMassDetection()) {
-          // cancelled
-          return;
+        for (RawDataFile file : files) {
+          if (!applyMassDetection(file)) {
+            // cancelled
+            return;
+          }
         }
       }
 
@@ -120,13 +124,10 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask implement
    *
    * @return true if succeed and false if cancelled
    */
-  public boolean applyMassDetection() {
+  public boolean applyMassDetection(@NotNull final RawDataFile importedFile) {
     if (!scanProcessorConfig.hasProcessors()) {
       return true;
     }
-
-    final RawDataFile importedFile = importTask.getImportedRawDataFile();
-    totalScans = importedFile.getNumOfScans();
 
     for (Scan scan : importedFile.getScans()) {
       if (isCanceled() || (importTask != null && importTask.isCanceled())) {
@@ -146,7 +147,7 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask implement
 
 
   @Override
-  public @Nullable RawDataFile getImportedRawDataFile() {
+  public @NotNull List<RawDataFile> getImportedRawDataFile() {
     return importTask.getImportedRawDataFile();
   }
 }

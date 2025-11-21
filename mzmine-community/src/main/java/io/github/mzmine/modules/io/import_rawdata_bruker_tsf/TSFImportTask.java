@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_tsf;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -38,7 +37,6 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
-import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
@@ -390,7 +388,7 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
+  public @NotNull List<RawDataFile> getImportedRawDataFile() {
+    return getStatus() == TaskStatus.FINISHED ? List.of(newMZmineFile) : List.of();
   }
 }
