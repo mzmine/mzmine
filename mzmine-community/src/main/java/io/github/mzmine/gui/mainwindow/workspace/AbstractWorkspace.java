@@ -47,6 +47,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.M
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.WaveletResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_maldispotfeaturedetection.MaldiSpotFeatureDetectionModule;
@@ -259,7 +260,8 @@ public abstract class AbstractWorkspace implements Workspace {
 
   protected Menu buildDefaultResolvingSubMenu() {
     return addModuleMenuItems("Resolving", MinimumSearchFeatureResolverModule.class,
-        NoiseAmplitudeResolverModule.class, SavitzkyGolayResolverModule.class);
+        NoiseAmplitudeResolverModule.class, SavitzkyGolayResolverModule.class,
+        WaveletResolverModule.class);
   }
 
   protected Menu buildDefaultFeatureListExportSubMenu() {

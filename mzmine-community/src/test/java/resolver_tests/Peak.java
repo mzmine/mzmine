@@ -29,21 +29,27 @@ record Peak(float topRt, @Nullable Range<Float> rtRange, @Nullable String desc) 
   }
 
   boolean find(List<Peak> otherPeaks) {
-    return otherPeaks.stream().anyMatch(this::matches);
+
+    for (Peak otherPeak : otherPeaks) {
+      if (matches(otherPeak)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   boolean matches(@Nullable Peak other) {
     if (other == null) {
       return false;
     }
-    if (!Precision.equalFloatSignificance(topRt(), other.topRt())) {
+    if (!Precision.equalSignificance(topRt(), other.topRt(), 4)) {
       return false;
     }
 
     if ((rtRange != null && other.rtRange == null) || (rtRange == null && other.rtRange != null)
-        || (rtRange != null && other.rtRange != null && !(Precision.equalFloatSignificance(
-        rtRange.lowerEndpoint(), other.rtRange.lowerEndpoint()) && Precision.equalFloatSignificance(
-        rtRange.upperEndpoint(), other.rtRange.upperEndpoint())))) {
+        || (rtRange != null && other.rtRange != null && !(Precision.equalSignificance(
+        rtRange.lowerEndpoint(), other.rtRange.lowerEndpoint(), 4) && Precision.equalSignificance(
+        rtRange.upperEndpoint(), other.rtRange.upperEndpoint(), 4)))) {
       return false;
     }
     return true;
