@@ -44,7 +44,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -567,16 +566,13 @@ public interface FeatureListRow extends ModularDataModel {
   @Nullable String getPreferredAnnotationName();
 
   /**
-   * @return The polarity of this row. Based on {@link Feature#getRepresentativeScan()}.
+   * @return The polarity of this row. Based on {@link Feature#getRepresentativeScan()} of the first
+   * feature.
    */
   @Nullable
   default PolarityType getRepresentativePolarity() {
-    final Feature bestFeature = getBestFeature();
-    if (bestFeature != null && bestFeature.getRepresentativePolarity() != null) {
-      return bestFeature.getRepresentativePolarity();
-    }
-    return streamFeatures().sorted(Comparator.comparingDouble(Feature::getHeight).reversed())
-        .map(Feature::getRepresentativePolarity).filter(Objects::nonNull).findFirst().orElse(null);
+    return streamFeatures().map(Feature::getRepresentativePolarity).filter(Objects::nonNull)
+        .filter(p -> p.isDefined()).findFirst().orElse(null);
   }
 
 }

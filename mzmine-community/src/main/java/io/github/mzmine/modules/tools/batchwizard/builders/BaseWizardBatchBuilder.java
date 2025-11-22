@@ -175,7 +175,7 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.FeatureLimitOpt
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -762,7 +762,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         param));
   }
 
-  private void createAndSetIonLibrary(final IonLibraryParameterSet ionLibraryParam) {
+  private void createAndSetIonLibrary(final LegacyIonLibraryParameterSet ionLibraryParam) {
     Set<IonModification> adducts = new HashSet<>();
     Set<IonModification> adductChoices = new HashSet<>();
     // No filter or Positive option --> add positive

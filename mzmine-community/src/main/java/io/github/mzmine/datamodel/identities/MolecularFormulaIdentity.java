@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -60,7 +60,7 @@ public class MolecularFormulaIdentity {
   }
 
   public MolecularFormulaIdentity(String formula, double searchedNeutralMass) {
-    this(FormulaUtils.createMajorIsotopeMolFormula(formula), searchedNeutralMass);
+    this(FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula), searchedNeutralMass);
   }
 
   public String getFormulaAsString() {
@@ -179,7 +179,6 @@ public class MolecularFormulaIdentity {
     final String formula = reader.getElementText();
     IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
     var molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
-
 
     return new MolecularFormulaIdentity(molFormula, Objects.requireNonNull(mass));
   }
