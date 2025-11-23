@@ -42,6 +42,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.time.Instant;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
@@ -112,7 +113,7 @@ public class ZipImportTask extends AbstractTask implements RawDataImportTask {
       msdkTask = new MSDKmzMLImportTask(project, fileToOpen, bis, scanProcessorConfig, module,
           parameters, moduleCallDate, getMemoryMapStorage());
 
-      this.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      this.addTaskStatusListener((_, _, _) -> {
         if (isCanceled()) {
           msdkTask.cancel();
         }
@@ -122,9 +123,6 @@ public class ZipImportTask extends AbstractTask implements RawDataImportTask {
       if (dataFile == null || isCanceled()) {
         return;
       }
-      var totalScans = msdkTask.getTotalScansInMzML();
-      var parsedScans = msdkTask.getParsedMzMLScans();
-      var convertedScans = msdkTask.getConvertedScansAfterFilter();
 
       bis.close();
       is.close();
@@ -178,7 +176,7 @@ public class ZipImportTask extends AbstractTask implements RawDataImportTask {
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFile() : null;
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return msdkTask.getImportedRawDataFiles();
   }
 }

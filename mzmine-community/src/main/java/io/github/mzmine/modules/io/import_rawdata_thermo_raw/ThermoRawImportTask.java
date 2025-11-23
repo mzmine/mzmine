@@ -43,7 +43,6 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -117,7 +116,7 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
         msdkTask = new MSDKmzMLImportTask(project, fileToOpen, mzMLStream, scanProcessorConfig,
             module, parameters, moduleCallDate, storage);
 
-        this.addTaskStatusListener((task, newStatus, oldStatus) -> {
+        this.addTaskStatusListener((_, _, _) -> {
           if (isCanceled()) {
             msdkTask.cancel();
           }
@@ -166,7 +165,7 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
 
   }
 
-  private @Nullable ProcessBuilder createProcessFromThermoFileParser() throws IOException {
+  private @Nullable ProcessBuilder createProcessFromThermoFileParser() {
     taskDescription = "Opening file " + fileToOpen;
 
     final File parserPath = getParserPathForOs();
@@ -259,7 +258,7 @@ public class ThermoRawImportTask extends AbstractTask implements RawDataImportTa
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFile() : null;
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFiles() : List.of();
   }
 }

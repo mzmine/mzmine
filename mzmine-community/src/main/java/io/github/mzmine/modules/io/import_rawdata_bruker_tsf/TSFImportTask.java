@@ -214,7 +214,7 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
       final Scan scan = tsfUtils.loadScan(newMZmineFile, handle, frameId, metaDataTable, frameTable,
           frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
 
-      if(scan == null) {
+      if (scan == null) {
         continue;
       }
 
@@ -394,7 +394,7 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? List.of(newMZmineFile) : List.of();
   }
 }

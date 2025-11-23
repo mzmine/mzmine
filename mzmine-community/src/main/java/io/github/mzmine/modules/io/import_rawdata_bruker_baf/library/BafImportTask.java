@@ -58,6 +58,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,9 +72,9 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
   private final ParameterSet parameters;
   private final MZmineProject project;
   private final ScanImportProcessorConfig scanProcessorConfig;
-  int totalScans = 0;
-  int importedScans = 0;
-  private NumberFormats formats = ConfigService.getGuiFormats();
+  private final NumberFormats formats = ConfigService.getGuiFormats();
+  private int totalScans = 0;
+  private int importedScans = 0;
   private RawDataFileImpl file;
 
   public BafImportTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
@@ -187,7 +188,7 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? file : null;
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? List.of(file) : List.of();
   }
 }
