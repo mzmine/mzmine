@@ -47,15 +47,8 @@ public class Precision {
     if (Math.abs(a - b) <= maxDelta) {
       return true;
     }
-    if (Double.compare(a, b) == 0) {
-      // mainly here to cover infinity, but Double.isInfinite(a) && Double.isInfinite(b) is true
-      // if one is positive and one is negative infinity.
-      return true;
-    }
-    if (Double.isNaN(a) && Double.isNaN(b)) {
-      return true;
-    }
-    return false;
+    // both are NaN or both are - or + INFINITY
+    return Double.compare(a, b) == 0;
   }
 
   /**
@@ -71,15 +64,8 @@ public class Precision {
     if (delta <= maxDelta) {
       return true;
     }
-    if (Float.compare(a, b) == 0) {
-      // mainly here to cover infinity, but Float.isInfinite(a) && Float.isInfinite(b) is true
-      // if one is positive and one is negative infinity.
-      return true;
-    }
-    if (Float.isNaN(a) && Float.isNaN(b)) {
-      return true;
-    }
-    return false;
+    // both are NaN or both are - or + INFINITY
+    return Float.compare(a, b) == 0;
   }
 
   /**
@@ -192,41 +178,43 @@ public class Precision {
   }
 
   public static boolean equalDoubleSignificance(final double a, final double b) {
-    return equalSignificance(a, b, 14); // double significance is 15 - 17 digits
+    // use reduced significance to allow more floating point inaccuracies
+    return equalSignificance(a, b, 12); // double significance is 15 - 17 digits
   }
 
   public static boolean equalSignificance(final double a, final double b, final int sigDigits) {
-    if (Double.isNaN(a) && Double.isNaN(b)) {
+    // equal or both are NaN
+    if (Double.compare(a, b) == 0) {
       return true;
     }
-
+    // only one is NaN
     if (Double.isNaN(a) || Double.isNaN(b)) {
       return false;
     }
 
-    if (a == b) {
-      return true;
-    }
     final double diff = Math.abs(a - b);
+    // if one is infinite or if number overflow
+    if (Double.isInfinite(diff)) {
+      return false;
+    }
 
-    // calculate the allowed difference in significant digits: e.g. 5 sig digits:
-    // 1*10^-5 = 0.00001
-    // then scale to the max of those two values:
-    // 0.00001 * 1234567 = 12.34567
-    // then find the lower power of 10: 12.23467 -> 10
-    // use that as the allowed delta.
+    // Math.floor always rounds to next smaller number so negative values will be like -3.1 -> -4
+    // +1 as we are using floor and in both positive and negative exponents we need +1
     final double max = Math.max(Math.abs(a), Math.abs(b));
-    final double scaledSignificance = Math.pow(10, sigDigits * -1d) * max;
-    final double log10scaledSignificance = Math.log10(scaledSignificance);
-    final double floorLog10ScaledSignificance = Math.floor(log10scaledSignificance);
-
-    final double allowedDelta = Math.pow(10, floorLog10ScaledSignificance + 1) * 0.5;
-    return Double.compare(diff,allowedDelta) <= 0;
+    final double scaleExponent = Math.floor(Math.log10(max)) - sigDigits + 1;
+    final double allowedDelta = Math.pow(10, scaleExponent) * 0.5;
+    return diff <= allowedDelta;
   }
 
 
+  public static boolean equalFloatSignificance(final double a, final double b) {
+    // use reduced significance to allow more floating point inaccuracies
+    return equalSignificance(a, b, 5); // float significance is 6 - 7 digits
+  }
+
   public static boolean equalFloatSignificance(final float a, final float b) {
-    return equalSignificance(a, b, 6); // float significance is 6 - 7 digits
+    // use reduced significance to allow more floating point inaccuracies
+    return equalSignificance(a, b, 5); // float significance is 6 - 7 digits
   }
 
   public static boolean equalFloatSignificance(final @Nullable Float a, final @Nullable Float b) {
@@ -240,18 +228,57 @@ public class Precision {
   }
 
   public static boolean equalSignificance(final float a, final float b, final int sigDigits) {
-    if (Float.isNaN(a) && Float.isNaN(b)) {
+    // conversion from Float.NaN and Float.POSITIVE_INFINITY to double is always correct so can just relay
+    return equalSignificance((double) a, (double) b, sigDigits);
+  }
+
+  /**
+   * Uses relative error of 1E-5 (could also change to 5E-5)
+   *
+   * @param a first value
+   * @param b second value
+   * @return true if the relative difference diff/max is <= relative error. true if both values are
+   * NaN, false if only one is NaN
+   */
+  public static boolean equalRelativeFloatSignificance(final double a, final double b) {
+    return equalRelativeSignificance(a, b, 1E-5);
+  }
+
+  /**
+   * Uses relative error of 1E-12 (could also change to 5E-13)
+   *
+   * @param a first value
+   * @param b second value
+   * @return true if the relative difference diff/max is <= relative error. true if both values are
+   * NaN, false if only one is NaN
+   */
+  public static boolean equalRelativeDoubleSignificance(final double a, final double b) {
+    return equalRelativeSignificance(a, b, 1E-12);
+  }
+
+  /**
+   *
+   * @param a             first value
+   * @param b             second value
+   * @param relativeError relative error that is accepted, e.g., 1E-2, 0.01 of 1%
+   * @return true if the relative difference diff/max is <= relative error. true if both values are
+   * NaN, false if only one is NaN
+   */
+  public static boolean equalRelativeSignificance(final double a, final double b,
+      final double relativeError) {
+    // equal or both are NaN
+    if (Double.compare(a, b) == 0) {
       return true;
     }
-
-    if (Float.isNaN(a) || Float.isNaN(b)) {
+    // only one is NaN
+    if (Double.isNaN(a) || Double.isNaN(b)) {
       return false;
     }
 
-    if (Float.compare(a, b) == 0) {
-      return true;
-    }
+    final double absoluteMax = Math.max(Math.abs(a), Math.abs(b));
+    final double relativeDifference = Math.abs((a - b) / absoluteMax);
 
-    return equalSignificance((double) a, (double)b, sigDigits);
+    // relative difference may be infinite for overflow, but this is handled correctly
+    return relativeDifference <= relativeError;
   }
 }

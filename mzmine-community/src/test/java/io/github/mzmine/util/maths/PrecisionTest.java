@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,15 +25,32 @@
 
 package io.github.mzmine.util.maths;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import org.junit.jupiter.api.Test;
 
 class PrecisionTest {
+
+  @Test
+  void assumptions() {
+    // some assumptions used  in Precision class
+    // never use == to compare NaN. Only compare and Objects.equals works for NaN equality
+    assertFalse(Double.NaN == Double.NaN);
+
+    // infinity is true
+    assertTrue(Double.POSITIVE_INFINITY == Double.POSITIVE_INFINITY);
+    assertTrue(Double.POSITIVE_INFINITY == Float.POSITIVE_INFINITY);
+    assertTrue(Double.POSITIVE_INFINITY == (double) Float.POSITIVE_INFINITY);
+
+    // conversion of Float and Double NaN and INFINITY works
+    assertEquals(0, Double.compare(Double.NaN, (Double) Double.NaN));
+    assertEquals(0, Double.compare(Double.NaN, Float.NaN));
+    assertEquals(0, Double.compare(Double.POSITIVE_INFINITY, Float.POSITIVE_INFINITY));
+  }
 
   @Test
   void testEquals() {
@@ -207,6 +225,11 @@ class PrecisionTest {
 
   @Test
   void equalSignificance() {
+    assertFalse(Precision.equalSignificance(Double.POSITIVE_INFINITY, -5E45, 14));
+    assertFalse(Precision.equalSignificance(Double.MAX_VALUE, -Double.MAX_VALUE, 14));
+    assertFalse(Precision.equalSignificance(Double.MAX_VALUE, 1 - Double.MAX_VALUE, 14));
+    assertFalse(Precision.equalSignificance(Double.MAX_VALUE + 1, 1 - Double.MAX_VALUE, 14));
+
     // basic equality and rounding behavior for double
     assertTrue(Precision.equalSignificance(1.234567, 1.2345671, 6));
     assertFalse(Precision.equalSignificance(1.234567, 1.234678, 6));
@@ -274,7 +297,6 @@ class PrecisionTest {
     assertTrue(Precision.equalSignificance(1e-15, 1.000000000000001e-15, 15));
     assertFalse(Precision.equalSignificance(1e-15, 1.00000000000001e-15, 16));
 
-
 // Repeating decimals: 1/3 is 0.3333333333333333
     assertTrue(Precision.equalSignificance(1.0 / 3.0, 0.3333333333333331, 15));
     assertFalse(Precision.equalSignificance(1.0 / 3.0, 0.3333333333333331, 16));
@@ -286,6 +308,58 @@ class PrecisionTest {
 // Extreme precision differences
     assertTrue(Precision.equalSignificance(1.000000000000001, 1.000000000000002, 15));
     assertFalse(Precision.equalSignificance(1.000000000000001, 1.000000000000002, 16));
+  }
+
+  @Test
+  void testEqualRelativeSignificance() {
+    assertFalse(Precision.equalRelativeSignificance(Double.POSITIVE_INFINITY, -5E45, 1E-14));
+    assertFalse(Precision.equalRelativeSignificance(Double.MAX_VALUE, -Double.MAX_VALUE, 1E-14));
+    assertFalse(Precision.equalRelativeSignificance(Double.MAX_VALUE, 1 - Double.MAX_VALUE, 1E-14));
+    assertFalse(
+        Precision.equalRelativeSignificance(Double.MAX_VALUE + 1, 1 - Double.MAX_VALUE, 1E-14));
+    assertFalse(Precision.equalRelativeSignificance(Double.NaN, 0, 1E-14));
+    assertFalse(Precision.equalRelativeSignificance(0, Double.NaN, 1E-14));
+    assertTrue(Precision.equalRelativeSignificance(Double.NaN, Double.NaN, 1E-14));
+    assertTrue(Precision.equalRelativeSignificance(Float.NaN, Double.NaN, 1E-14));
+    assertTrue(
+        Precision.equalRelativeSignificance(Float.POSITIVE_INFINITY, Double.POSITIVE_INFINITY,
+            1E-14));
+
+    // this case is debatable - would you have to round the input or not?
+    assertFalse(Precision.equalRelativeSignificance(500_080, 500_140, 1E-4));
+
+    // float with explicit significant digits
+    assertTrue(Precision.equalRelativeSignificance(1.234567f, 1.234568f, 1E-6));
+    assertFalse(Precision.equalRelativeSignificance(1.234567f, 1.234677f, 1E-6));
+
+    // exact equality
+    assertTrue(Precision.equalRelativeSignificance(10.0f, 10.0f, 1E-3));
+
+    assertTrue(Precision.equalRelativeSignificance(9.99000000d, 9.98999999d, 1E-3));
+//    assertTrue(Precision.equalRelativeSignificance(9.99000000d, 9.984999999d, 3));
+//    assertTrue(Precision.equalRelativeSignificance(9.99000000d, 9.985000000d, 3));
+    assertTrue(Precision.equalRelativeSignificance(9.99000000d, 9.984899998d, 1E-3));
+    assertFalse(Precision.equalRelativeSignificance(9.99000000d, 9.978009998d, 1E-3));
+    assertTrue(Precision.equalRelativeSignificance(9.99000000d, 9.985000001d, 1E-3));
+    assertFalse(Precision.equalRelativeSignificance(9.99d, 9.98d, 1E-3));
+
+    assertTrue(Precision.equalRelativeSignificance(500_100, 500_140, 1E-4));
+    assertFalse(Precision.equalRelativeSignificance(500_100, 500_160, 1E-4));
+
+    assertTrue(Precision.equalRelativeSignificance(1e-15, 1.000000000000001e-15, 1E-15));
+    assertFalse(Precision.equalRelativeSignificance(1e-15, 1.00000000000001e-15, 1E-16));
+
+// Repeating decimals: 1/3 is 0.3333333333333333
+    assertTrue(Precision.equalRelativeSignificance(1.0 / 3.0, 0.3333333333333331, 1E-15));
+    assertFalse(Precision.equalRelativeSignificance(1.0 / 3.0, 0.3333333333333331, 1E-16));
+
+// Scientific notation
+    assertTrue(Precision.equalRelativeSignificance(1.23456e-10, 1.23457e-10, 1E-5));
+    assertFalse(Precision.equalRelativeSignificance(1.23456e-10, 1.23457e-10, 1E-6));
+
+// Extreme precision differences
+    assertTrue(Precision.equalRelativeSignificance(1.000000000000001, 1.000000000000002, 1E-15));
+    assertFalse(Precision.equalRelativeSignificance(1.000000000000001, 1.000000000000002, 1E-16));
   }
 
 }
