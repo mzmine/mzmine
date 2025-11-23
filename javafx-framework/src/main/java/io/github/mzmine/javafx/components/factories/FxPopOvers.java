@@ -26,28 +26,41 @@
 package io.github.mzmine.javafx.components.factories;
 
 import javafx.scene.Node;
-import javafx.util.Duration;
+import javafx.scene.control.ButtonBase;
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.PopOver.ArrowLocation;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Still needs more styling to be viable
  */
 public class FxPopOvers {
 
-  public static PopOver newPopOver(Node content) {
+  public static PopOver newPopOver(@Nullable Node content) {
+    return newPopOver(content, ArrowLocation.TOP_CENTER);
+  }
+
+  public static PopOver newPopOver(@Nullable Node content, @NotNull ArrowLocation arrowLocation) {
     var popOver = new PopOver(content);
     popOver.setAutoHide(true);
     popOver.setAutoFix(true);
     popOver.setHideOnEscape(true);
-    popOver.setDetachable(true);
-    popOver.setAnimated(true);
+    popOver.setDetachable(false);
+    popOver.setAnimated(false);
     popOver.setDetached(false);
-    popOver.setArrowLocation(ArrowLocation.BOTTOM_LEFT);
-    popOver.setFadeInDuration(Duration.millis(500));
-    popOver.setFadeOutDuration(Duration.millis(1000));
+    popOver.setArrowLocation(arrowLocation);
 //    popOver.show(owner);
     return popOver;
   }
 
+  public static void install(@NotNull ButtonBase button, @NotNull PopOver popOver) {
+    button.setOnAction(_ -> {
+      if (popOver.showingProperty().get()) {
+        popOver.hide();
+      } else {
+        popOver.show(button);
+      }
+    });
+  }
 }

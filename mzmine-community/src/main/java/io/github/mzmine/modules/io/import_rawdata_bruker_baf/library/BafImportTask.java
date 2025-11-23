@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.impl.builders.SimpleBuildingScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
@@ -111,7 +112,8 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
         getMemoryMapStorage());
 
     try (BafDataAccess baf = new BafDataAccess(
-        !parameters.getValue(AllSpectralDataImportParameters.applyVendorCentroiding))) {
+        !parameters.getParameter(AllSpectralDataImportParameters.vendorOptions).getEmbeddedParameters().getValue(
+            VendorImportParameters.applyVendorCentroiding))) {
 
       final boolean b = baf.openBafFile(folderPath);
       if (!b) {

@@ -995,7 +995,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         null, ScanSelection.ALL_SCANS, denormalize);
 
     final var param = AllSpectralDataImportParameters.create(
-        ConfigService.isApplyVendorCentroiding(), dataFiles,
+        ConfigService.getPreferences().getVendorImportParameters(), dataFiles,
         metadataFile.active() ? metadataFile.value() : null, libraries, advancedParameters);
 
     param.setParameter(AllSpectralDataImportParameters.advancedImport, false);

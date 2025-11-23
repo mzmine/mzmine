@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
@@ -183,8 +184,9 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
 
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
-    final boolean tryProfile = !parameters.getValue(
-        AllSpectralDataImportParameters.applyVendorCentroiding);
+    final boolean tryProfile = !parameters.getEmbeddedParameterValue(
+            AllSpectralDataImportParameters.vendorOptions)
+        .getValue(VendorImportParameters.applyVendorCentroiding);
     final MassSpectrumType importSpectrumType =
         tryProfile && metaDataTable.hasProfileSpectra() ? MassSpectrumType.PROFILE
             : MassSpectrumType.CENTROIDED;
@@ -211,6 +213,10 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
 
       final Scan scan = tsfUtils.loadScan(newMZmineFile, handle, frameId, metaDataTable, frameTable,
           frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
+
+      if (scan == null) {
+        continue;
+      }
 
       if (isMaldi && scan instanceof ImagingScan imgScan) {
         final MaldiSpotInfo maldiSpotInfo = maldiFrameInfoTable.getMaldiSpotInfo((int) frameId);

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<batch mzmine_version="4.8.2">
+<batch mzmine_version="4.8.8">
     <batchstep method="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule" module_name="Import MS data" parameter_version="1">
         <parameter name="File names">
             <file>D:\OneDrive - mzio GmbH\mzio\Example data\Bruker\timsTOF\20241126 - WWTP Spiked\pos\wwtp_RA2_6567.d</file>
@@ -79,8 +79,7 @@
         </parameter>
         <parameter name="Sort and color">true</parameter>
         <parameter name="Spectral library files">
-            <file>D:\OneDrive - mzio GmbH\mzio\Example data\other_data_libraries_metadata\Spectral libraries\pesticides\pestlib_explained.json</file>
-            <file>D:\OneDrive - mzio GmbH\mzio\Example data\other_data_libraries_metadata\Spectral libraries\MassBank_NIST.msp</file>
+            <file>C:\Users\Steffen\git\mzmine3\mzmine-community\src\test\resources\spectral_libraries\integration_tests\matches_for_tims-full.json</file>
         </parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule" module_name="Mass detection" parameter_version="1">
@@ -966,5 +965,15 @@
                 <parameter name="Batch size">32</parameter>
             </module>
         </parameter>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule" module_name="Export to CSV file (modular)" parameter_version="1">
+        <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+        <parameter name="Filename">
+            <current_file>C:\Users\Steffen\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\lc_tims\expected_results.csv</current_file>
+        </parameter>
+        <parameter name="Field separator">,</parameter>
+        <parameter name="Identification separator">;</parameter>
+        <parameter name="Remove empty columns">true</parameter>
+        <parameter name="Filter rows">ALL</parameter>
     </batchstep>
 </batch>
