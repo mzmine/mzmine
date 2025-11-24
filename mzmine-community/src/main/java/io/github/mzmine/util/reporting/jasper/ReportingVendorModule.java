@@ -38,6 +38,6 @@ public class ReportingVendorModule implements MZmineModule {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return ReportingVendorParameters.class;
+    return ReportAuthorParameters.class;
   }
 }

@@ -51,6 +51,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +65,6 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
   // null if shown in dialog
   protected final @Nullable ParameterSetupPane paramPane;
   protected final @NotNull CheckBox checkBox;
-  protected final FlowPane topPane;
   private final Button setButton;
   private final BooleanProperty hidden = new SimpleBooleanProperty(true);
   private final DoubleProperty estimatedHeightProperty = new SimpleDoubleProperty(0);

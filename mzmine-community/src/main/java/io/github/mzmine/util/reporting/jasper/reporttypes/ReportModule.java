@@ -27,18 +27,10 @@ package io.github.mzmine.util.reporting.jasper.reporttypes;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.reporting.jasper.ReportingCustomerParameters;
-import io.github.mzmine.util.reporting.jasper.ReportingOrderParameters;
-import io.github.mzmine.util.reporting.jasper.ReportingParameters;
-import io.github.mzmine.util.reporting.jasper.ReportingVendorParameters;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.HashMap;
 import java.util.Map;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperPrint;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public interface ReportModule extends MZmineModule {
 

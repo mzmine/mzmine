@@ -2,39 +2,25 @@ package io.github.mzmine.util.reporting.jasper;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.reporting.jasper.reporttypes.ReportModule;
 import io.github.mzmine.util.reporting.jasper.reporttypes.ReportTypes;
-import io.mzmine.reports.FeatureDetail;
-import io.mzmine.reports.FeatureSummary;
-import io.mzmine.reports.ReportDataFactory;
 import java.io.File;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
-import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.engine.export.ooxml.JRDocxExporter;
-import net.sf.jasperreports.export.SimpleExporterInput;
-import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.xmlbeans.impl.soap.Detail;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,7 +80,6 @@ public class ReportingTask extends AbstractFeatureListTask {
       FileAndPathUtil.createDirectory(htmlDir);
       JasperExportManager.exportReportToHtmlFile(jasperPrint,
           FileAndPathUtil.getRealFilePath(htmlDir, exportPdf.getName(), ".html").getAbsolutePath());
-      desc = "Exporting report for feature list %s to docx.".formatted(flist.getName());
     } catch (JRException e) {
       logger.log(Level.SEVERE, e.getMessage(), e);
     }
@@ -106,7 +91,7 @@ public class ReportingTask extends AbstractFeatureListTask {
     param.put("META_TITLE", parameters.getValue(ReportingParameters.reportTitle));
     param.put("META_FREE_TEXT_FIELD", parameters.getValue(ReportingParameters.freeText));
 
-    final ReportingVendorParameters vendorParam = parameters.getValue(
+    final ReportAuthorParameters vendorParam = parameters.getValue(
         ReportingParameters.reportingVendorParam);
     vendorParam.addToMetadata(param);
 

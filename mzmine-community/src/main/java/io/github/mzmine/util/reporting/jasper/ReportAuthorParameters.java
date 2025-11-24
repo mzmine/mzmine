@@ -35,12 +35,12 @@ import java.util.Map;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javax.validation.constraints.NotNull;
 
-public class ReportingVendorParameters extends SimpleParameterSet {
+public class ReportAuthorParameters extends SimpleParameterSet {
 
-  public static final StringParameter vendorCompany = new StringParameter("Company",
+  public static final StringParameter vendorCompany = new StringParameter("Company/Institute",
       "Your company/institute name.");
 
-  public static final TextParameter contact = new TextParameter("Contact", """
+  public static final TextParameter contact = new TextParameter("Author contact", """
       Your Job description/contact address, e.g.:
       <Your name>
       <Your job title>
@@ -54,15 +54,14 @@ public class ReportingVendorParameters extends SimpleParameterSet {
       List.of(new ExtensionFilter("Image files", "*.jpg", "*.png", "*.svg")),
       FileSelectionType.OPEN, true);
 
-  public ReportingVendorParameters() {
+  public ReportAuthorParameters() {
     super(vendorCompany, contact, logoPath);
   }
 
-
   public void addToMetadata(@NotNull Map<String, Object> jasperParameters) {
-    jasperParameters.put("META_COMPANY", getValue(ReportingVendorParameters.vendorCompany));
-    jasperParameters.put("META_LAB_DESCRIPTION", getValue(ReportingVendorParameters.contact));
-    final File logoPath = getValue(ReportingVendorParameters.logoPath);
+    jasperParameters.put("META_COMPANY", getValue(ReportAuthorParameters.vendorCompany));
+    jasperParameters.put("META_LAB_DESCRIPTION", getValue(ReportAuthorParameters.contact));
+    final File logoPath = getValue(ReportAuthorParameters.logoPath);
     jasperParameters.put("META_LOGO_PATH", logoPath != null ? logoPath.getAbsolutePath() : null);
   }
 }

@@ -32,13 +32,13 @@ import javax.validation.constraints.NotNull;
 public class ReportingCustomerParameters extends SimpleParameterSet {
 
   public static final StringParameter customerName = new StringParameter("Customer name",
-      "The name of the customer.");
+      "The name of the customer.", "", false);
   public static final StringParameter customerDepartment = new StringParameter(
-      "Customer department", "The department of the customer.");
+      "Customer department", "The department of the customer.", "", false);
   public static final StringParameter customerAddress = new StringParameter("Customer address",
-      "The address of the customer.");
+      "The address of the customer.", "", false);
   public static final StringParameter customerProject = new StringParameter(
-      "Customer project reference", "A reference provided to the customer.");
+      "Customer project reference", "A reference provided to the customer.", "", false);
 
   public ReportingCustomerParameters() {
     super(customerName, customerDepartment, customerAddress, customerProject);

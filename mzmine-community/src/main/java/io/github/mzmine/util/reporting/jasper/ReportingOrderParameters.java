@@ -33,15 +33,15 @@ import javax.validation.constraints.NotNull;
 public class ReportingOrderParameters extends SimpleParameterSet {
 
   public static final StringParameter orderNumber = new StringParameter("Order number",
-      "The order number.");
+      "The order number.", "", false);
   public static final StringParameter orderRequestDate = new StringParameter("Order request date",
-      "The date the order was requested on.");
+      "The date the order was requested on.", "", false);
   public static final StringParameter orderFinishedDate = new StringParameter("Order finished date",
-      "The date the order was finished on.");
+      "The date the order was finished on.", "", false);
   public static final StringParameter orderSampleIds = new StringParameter("Order sample IDs",
-      "The sample IDs in the order");
-  public static final TextParameter orderDescription = new TextParameter("Oder description",
-      "Description on what was orderd.");
+      "The sample IDs in the order", "", false);
+  public static final TextParameter orderDescription = new TextParameter("Order description",
+      "Description on what was ordered.", "", false);
 
   public ReportingOrderParameters() {
     super(orderNumber, orderRequestDate, orderFinishedDate, orderSampleIds, orderDescription);
