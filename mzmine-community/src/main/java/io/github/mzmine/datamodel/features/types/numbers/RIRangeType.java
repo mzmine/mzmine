@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,33 +26,56 @@ package io.github.mzmine.datamodel.features.types.numbers;
 
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
-import static io.github.mzmine.datamodel.features.types.DataTypes.get;
-import static io.github.mzmine.datamodel.features.types.modifiers.BindingsType.MAX;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatRangeType;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Retention index type
- */
-public class RIMaxType extends RIType {
+public class RIRangeType extends FloatRangeType implements ExpandableType {
 
-  @NotNull
+  public RIRangeType() {
+    super(new DecimalFormat("0.##"));
+  }
+
   @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "retention_index_max";
+  public NumberFormat getFormat() {
+    return DEFAULT_FORMAT;
+  }
+
+  @Override
+  public NumberFormat getExportFormat() {
+    return DEFAULT_FORMAT;
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return "retention_index_range";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "RI (max)";
+    return "RI range";
   }
 
-  @NotNull
   @Override
-  public List<RowBinding> createDefaultRowBindings() {
-    return List.of(new SimpleRowBinding(this, get(RIType.class), MAX));
+  public @NotNull Class<? extends DataType<?>> getExpandedTypeClass() {
+    return getClass();
   }
 
+  @Override
+  public @NotNull Class<? extends DataType<?>> getHiddenTypeClass() {
+    return RIType.class;
+  }
+
+  @Override
+  public @NotNull List<RowBinding> createDefaultRowBindings() {
+    // bindings added in RIType, as this must be updated when the RI of a feature changes
+    return List.of();
+  }
 }
