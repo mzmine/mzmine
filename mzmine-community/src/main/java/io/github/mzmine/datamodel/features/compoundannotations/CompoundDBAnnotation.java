@@ -322,6 +322,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return get(CCSType.class);
   }
 
+  @Nullable
   default RIRecord getRiRecord() {
     return get(RIRecordType.class);
   }
@@ -374,7 +375,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
   boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
-      @Nullable Double percentCCSTolerance);
+      @Nullable Double percentCCSTolerance, @Nullable RITolerance riTolerance);
 
   /**
    * @param row                 tested row
@@ -388,7 +389,8 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
   default Float calculateScore(@NotNull FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
       @Nullable Double percentCCSTolerance, @Nullable RITolerance riTolerance) {
-    if (!matches(row, mzTolerance, rtTolerance, mobilityTolerance, percentCCSTolerance)) {
+    if (!matches(row, mzTolerance, rtTolerance, mobilityTolerance, percentCCSTolerance,
+        riTolerance)) {
       return null;
     }
     // setup ranges around the annotation and test for row average values
@@ -404,8 +406,15 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     final var mobilityRange =
         mobilityTolerance != null && mobility != null ? mobilityTolerance.getToleranceRange(
             mobility) : null;
-    final var riRange =
-        riTolerance != null && ri != null ? riTolerance.getToleranceRange(ri) : null;
+    Range<Float> riRange;
+    if (riTolerance != null && ri != null) {
+      riRange = riTolerance.getToleranceRange(ri);
+    } else if (riTolerance == null) {
+      riRange = null;
+    } else /*if (ri == null)*/ {
+      riRange = riTolerance.isMatchOnNull() ? null : Range.singleton(Float.NEGATIVE_INFINITY);
+    }
+    // null is treated as a match, so return something that is impossible to match.
 
     Range<Float> ccsRange = null;
     if (percentCCSTolerance != null && ccs != null && row.getAverageCCS() != null) {
@@ -460,11 +469,8 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
           PercentTolerance.getPercentError(compRt, row.getAverageRT()));
       clone.put(RtAbsoluteDifferenceType.class, row.getAverageRT() - compRt);
     }
-    Float compRi =
-        getRiRecord() != null && ritolerance != null ? getRiRecord().getRI(ritolerance.getRIType())
-            : null;
-    if (compRi != null && compRi > 0 && row.getAverageRI() != null) {
-      clone.put(RIDiffType.class, row.getAverageRI() - compRi);
+    if (getRiRecord() != null && row.getAverageRI() != null && ritolerance != null) {
+      clone.put(RIDiffType.class, ritolerance.getRiDifference(row.getAverageRI(), getRiRecord()));
     }
 
     return clone;
