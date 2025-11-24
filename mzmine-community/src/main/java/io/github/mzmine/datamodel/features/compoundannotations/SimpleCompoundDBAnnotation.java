@@ -26,8 +26,6 @@
 package io.github.mzmine.datamodel.features.compoundannotations;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.featuredata.MrmUtils;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -47,9 +45,11 @@ import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RITolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.RIRecord;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import java.util.Collections;
 import java.util.Comparator;
@@ -280,7 +280,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   @Override
   public boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
-      @Nullable Double percentCCSTolerance) {
+      @Nullable Double percentCCSTolerance, @Nullable RITolerance riTolerance) {
 
     final Double exactMass = getPrecursorMZ();
     // values are "matched" if the given value exists in this class and falls within the tolerance.
@@ -318,8 +318,20 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
     // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float ccs = getCCS();
-    return percentCCSTolerance == null || ccs == null || ccs <= 0 || (row.getAverageCCS() != null
-        && !(Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
+    if (percentCCSTolerance != null && ccs != null && ccs > 0 && (row.getAverageCCS() == null
+        || Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance)) {
+      return false;
+    }
+
+    final RIRecord riRecord = getRiRecord();
+    final Float rowRi = row.getAverageRI();
+    if (riTolerance != null && //
+        ((rowRi == null && !riTolerance.isMatchOnNull()) || (rowRi != null
+            && !riTolerance.checkWithinTolerance(rowRi, riRecord)))) {
+      return false;
+    }
+
+    return true;
   }
 
   @Override

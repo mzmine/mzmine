@@ -30,6 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.presets.ModulePreset;
 import io.github.mzmine.modules.presets.ModulePresetStore;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.parameters.EmbeddedParameterComponentProvider;
 import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
 import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
@@ -43,13 +44,14 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.geometry.Insets;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,6 +69,7 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
   private final BooleanProperty hidden = new SimpleBooleanProperty(true);
   private final DoubleProperty estimatedHeightProperty = new SimpleDoubleProperty(0);
   private final DoubleProperty estimatedWidthProperty = new SimpleDoubleProperty(0);
+  protected final HBox topPane;
   private final ParameterSet embeddedParameters;
 
   private final ObjectProperty<@NotNull BiConsumer<ParameterSet, ParameterSetupPane>> askApplyParameterSet = new SimpleObjectProperty<>(
@@ -111,7 +114,6 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
     checkBox = new CheckBox(title);
     setSelected(active);
     checkBox.selectedProperty().addListener((ob, ov, nv) -> applyCheckBoxState());
-    topPane = new FlowPane();
     if (viewOption == EmbeddedComponentOptions.VIEW_IN_WINDOW) {
       paramPane = null;
       setButton = new Button("Setup...");
@@ -153,14 +155,12 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
         presetButton = null;
       }
     }
-    topPane.setHgap(5d);
-    topPane.setVgap(5d);
-
     // just leave out checkbox if always active
     if (alwaysActive) {
-      topPane.getChildren().addAll(setButton);
+      // use HBox, FlowPane by default grew and had bad layout in combination with ComponentWrapperParameterComponent
+      topPane = FxLayout.newHBox(Insets.EMPTY, setButton);
     } else {
-      topPane.getChildren().addAll(checkBox, setButton);
+      topPane = FxLayout.newHBox(Insets.EMPTY, checkBox, setButton);
     }
     if(presetButton != null) {
       topPane.getChildren().add(presetButton);

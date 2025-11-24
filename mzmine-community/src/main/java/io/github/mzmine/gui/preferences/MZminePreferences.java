@@ -200,14 +200,6 @@ public class MZminePreferences extends SimpleParameterSet {
       Memory efficiency: References to the individual mobilograms of IMS features will be stored in a temporary file.""",
       ImsOptimization.values(), ImsOptimization.MEMORY_EFFICIENCY);
 
-  /*public static final BooleanParameter applyTimsPressureCompensation = new BooleanParameter(
-      "Use MALDI-TIMS pressure compensation", """
-      Specifies if mobility values from Bruker timsTOF fleX MALDI raw data shall be recalibrated using a Bruker algorithm.
-      This compensation is applied during file import and cannot be applied afterwards.
-      Will cause additional memory consumption, because every pixel might have it's own mobility calibration (in theory).
-      In practical cases, this memory consumption is mostly negligible. 
-      """, false);*/
-
   public static final BooleanParameter showPrecursorWindow = new BooleanParameter(
       "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
       true);
@@ -221,26 +213,19 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final ComboParameter<PaintScaleTransform> imageTransformation = new ComboParameter<>(
       "Image paint scale transformation", "Transforms the paint scale for images.",
       PaintScaleTransform.values(), PaintScaleTransform.LINEAR);
+
+  // ---------------------------------------------- Data import parameters
+
   public static final FileNameParameter msConvertPath = new FileNameWithDownloadParameter(
       "MSConvert path",
       "Set a path to MSConvert to automatically convert unknown vendor formats to mzML while importing.",
       List.of(MSCONVERT), AssetGroup.MSCONVERT);
+
   public static final BooleanParameter keepConvertedFile = new BooleanParameter(
       "Keep files converted by MSConvert",
       "Store the files after conversion by MSConvert to an mzML file.\n"
           + "This will reduce the import time when re-processing, but require more disc space.",
       false);
-  public static final BooleanParameter applyVendorCentroiding = new BooleanParameter(
-      "Apply vendor centroiding (recommended)", """
-      Apply vendor centroiding (peak picking) during import of native vendor files.
-      Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.
-      """, true);
-// default is now to always use the raw file parser
-//  public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(
-//      "Thermo data import", """
-//      Specify which path you want to use for Thermo raw data import.
-//      """, ThermoImportOptions.getOptionsForOs(), ThermoImportOptions.THERMO_RAW_FILE_PARSER);
-
 
   public static final OptionalParameter<FileNameWithDownloadParameter> thermoRawFileParserPath = new OptionalParameter<>(
       new FileNameWithDownloadParameter("Thermo raw file parser location",
@@ -252,10 +237,19 @@ public class MZminePreferences extends SimpleParameterSet {
               new ExtensionFilter("Linux / macOS executable", "ThermoRawFileParser")),
           AssetGroup.ThermoRawFileParser));
 
-  public static final OptionalParameter<ParameterSetParameter<WatersLockmassParameters>> watersLockmass = new OptionalParameter<>(
-      new ParameterSetParameter<>("Apply lockmass on import (Waters)",
-          "Apply lockmass correction for native Waters raw data during raw data import via MSConvert.",
-          new WatersLockmassParameters()), true);
+  public static final BooleanParameter applyVendorCentroiding = new BooleanParameter(
+      "Apply vendor centroiding (recommended)", """
+      Vendor centroiding will be applied to the imported raw data if this option is selected and centroiding is supported.
+      Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.
+      """, true);
+
+  public static final OptionalModuleParameter<WatersLockmassParameters> watersLockmass = VendorImportParameters.watersLockmass.getEmbeddedParameter()
+      .cloneParameter();
+
+  public static final BooleanParameter excludeThermoExceptionMasses = VendorImportParameters.excludeThermoExceptionMasses.getEmbeddedParameter()
+      .cloneParameter();
+
+
   private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
       new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
       new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.####"),
@@ -308,8 +302,8 @@ public class MZminePreferences extends SimpleParameterSet {
             // silent parameters without controls
             showTempFolderAlert, username, showQuickStart, siriusCountWarningOptOut,
             // conversion, data handling
-            applyVendorCentroiding, msConvertPath, thermoRawFileParserPath, keepConvertedFile,
-            watersLockmass},
+            applyVendorCentroiding, watersLockmass, msConvertPath, keepConvertedFile,
+            thermoRawFileParserPath, excludeThermoExceptionMasses},
         "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
     darkModeProperty.subscribe(state -> {
@@ -343,8 +337,9 @@ public class MZminePreferences extends SimpleParameterSet {
         new ParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
             chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
             imageNormalization, windowSettings), //
-        new ParameterGroup("MS data import", applyVendorCentroiding, msConvertPath,
-            thermoRawFileParserPath, keepConvertedFile, watersLockmass) //
+        new ParameterGroup("MS data import", applyVendorCentroiding, watersLockmass, msConvertPath,
+            keepConvertedFile, thermoRawFileParserPath, excludeThermoExceptionMasses
+        ) //
     );
     // imsModuleWarnings, showTempFolderAlert, showQuickStart  are hidden parameters
 
@@ -642,5 +637,11 @@ public class MZminePreferences extends SimpleParameterSet {
     return map;
   }
 
-
+  /**
+   * Creates a copy of the currently selected vendor parameters in the preferences. Used for drag &
+   * drop and wizard import.
+   */
+  public VendorImportParameters getVendorImportParameters() {
+    return VendorImportParameters.createFromPreferences();
+  }
 }

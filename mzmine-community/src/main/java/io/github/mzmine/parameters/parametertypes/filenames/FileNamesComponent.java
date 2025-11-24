@@ -26,8 +26,12 @@
 package io.github.mzmine.parameters.parametertypes.filenames;
 
 import com.google.common.collect.ImmutableList;
+import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxPopOvers;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.modules.io.download.DownloadAsset;
 import io.github.mzmine.modules.io.download.DownloadAssetButton;
 import io.github.mzmine.util.collections.CollectionUtils;
@@ -149,16 +153,7 @@ public class FileNamesComponent extends BorderPane {
     btnClear.setMaxWidth(Double.MAX_VALUE);
     btnClear.setOnAction(e -> txtFilename.setText(""));
 
-    GridPane buttonGrid = new GridPane();
-    ColumnConstraints b1 = new ColumnConstraints(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE,
-        USE_COMPUTED_SIZE, Priority.ALWAYS, HPos.CENTER, true);
-    ColumnConstraints b2 = new ColumnConstraints(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE,
-        USE_COMPUTED_SIZE, Priority.ALWAYS, HPos.CENTER, true);
-    buttonGrid.getColumnConstraints().addAll(b1, b2);
-
-    buttonGrid.setHgap(1);
-    buttonGrid.setVgap(3);
-    buttonGrid.setPadding(new Insets(0, 0, 0, 5));
+    final GridPane buttonGrid = createButtonGrid(new Insets(0, 0, 0, 5));
 
     int row = 0;
     // add asset button if assets available
@@ -177,17 +172,46 @@ public class FileNamesComponent extends BorderPane {
     row++;
 
     List<Button> directoryButtons = createFromDirectoryBtns(filters);
+    // All in folder spans 2 columns, add outside loop & remove
     buttonGrid.add(directoryButtons.removeFirst(), 0, row, 2, 1);
     row++;
-    for (int i = 0; i < directoryButtons.size(); i++) {
-      buttonGrid.add(directoryButtons.get(i), i % 2, row + 1 + i / 2);
-      directoryButtons.get(i).getParent().layout();
+    if (directoryButtons.size() <= 4) {
+      // add all other buttons in 2 columns
+      for (int i = 0; i < directoryButtons.size(); i++) {
+        buttonGrid.add(directoryButtons.get(i), i % 2, row + 1 + i / 2);
+        directoryButtons.get(i).getParent().layout();
+      }
+    } else {
+      final var popupGrid = createButtonGrid(FxLayout.DEFAULT_PADDING_INSETS);
+      for (int i = 0; i < directoryButtons.size(); i++) {
+        popupGrid.add(directoryButtons.get(i), i % 2, i / 2);
+      }
+
+      final var buttonPopOver = FxPopOvers.newPopOver(popupGrid);
+      final var showFormatsButton = FxButtons.createButton("Show all formats", FxIcons.PLUS, null,
+          null);
+      showFormatsButton.setMinWidth(140);
+      FxPopOvers.install(showFormatsButton, buttonPopOver);
+      buttonGrid.add(showFormatsButton, 0, row, 2, 1);
     }
     buttonGrid.layout();
 
     // main gridpane
     this.setCenter(stack);
     this.setRight(buttonGrid);
+  }
+
+  private static @NotNull GridPane createButtonGrid(@NotNull Insets insets) {
+    GridPane buttonGrid = new GridPane();
+    ColumnConstraints b1 = new ColumnConstraints(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE,
+        USE_COMPUTED_SIZE, Priority.ALWAYS, HPos.CENTER, true);
+    ColumnConstraints b2 = new ColumnConstraints(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE,
+        USE_COMPUTED_SIZE, Priority.ALWAYS, HPos.CENTER, true);
+    buttonGrid.getColumnConstraints().addAll(b1, b2);
+    buttonGrid.setHgap(1);
+    buttonGrid.setVgap(3);
+    buttonGrid.setPadding(insets);
+    return buttonGrid;
   }
 
   /**
@@ -214,40 +238,40 @@ public class FileNamesComponent extends BorderPane {
 
     List<Button> btns = new ArrayList<>();
     // create from folder button
-    createButton(btns, allFilters, true);
+    createButtonAndAdd(btns, allFilters, true);
 
     // add buttons for single format filters
     List<ExtensionFilter> singleFormatFilters = filters.stream()
         .filter(f -> f.getExtensions().stream().map(String::toLowerCase).distinct().count() == 1)
         .toList();
     for (ExtensionFilter filter : singleFormatFilters) {
-      createButton(btns, filter, false);
+      createButtonAndAdd(btns, filter, false);
     }
     return btns;
   }
 
-  private void createButton(final List<Button> btns, final ExtensionFilter filter,
+  private void createButtonAndAdd(final List<Button> btns, final ExtensionFilter filter,
       final boolean isAllFilter) {
     if (filter.getExtensions().isEmpty() || filter.getExtensions().get(0).equals("*.*")) {
       return;
     }
-    String name = isAllFilter ? "All in folder" : "All " + filter.getExtensions().get(0);
+    final String name = isAllFilter ? "All in folder" : "All " + filter.getExtensions().get(0);
 
-    Button btnFromDirectory = new Button(name);
-    btnFromDirectory.setMinWidth(USE_COMPUTED_SIZE);
-    btnFromDirectory.setPrefWidth(USE_COMPUTED_SIZE);
-    btnFromDirectory.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-    btnFromDirectory.setTooltip(new Tooltip(
+    final Button button = new Button(name);
+    button.setMinWidth(USE_COMPUTED_SIZE);
+    button.setPrefWidth(USE_COMPUTED_SIZE);
+    button.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+    button.setTooltip(new Tooltip(
         "All files in the selected folder (optionally include all sub folders if checked above)"));
-    btns.add(btnFromDirectory);
-    btnFromDirectory.setOnAction(_ -> {
+    btns.add(button);
+    button.setOnAction(_ -> {
       // Create chooser.
       DirectoryChooser fileChooser = new DirectoryChooser();
       fileChooser.setTitle("Select a folder");
       setInitialDirectory(fileChooser);
 
       // Open chooser.
-      File dir = fileChooser.showDialog(null);
+      final File dir = fileChooser.showDialog(null);
       if (dir == null) {
         return;
       }
