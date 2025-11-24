@@ -20,9 +20,11 @@ tasks.test {
 
 java {
     // Configure a Java Toolchain
-    toolchain {
+    /*toolchain {
         languageVersion = JavaLanguageVersion.of(8) // Or 11, 17, etc.
-    }
+    }*/
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 // Attach an action to the 'jar' task to print Java version info
