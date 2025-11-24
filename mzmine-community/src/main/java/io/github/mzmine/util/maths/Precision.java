@@ -44,7 +44,18 @@ public class Precision {
    * @return true if Math.abs(a-b) <= maxDelta
    */
   public static boolean equals(double a, double b, double maxDelta) {
-    return Math.abs(a - b) <= maxDelta;
+    if (Math.abs(a - b) <= maxDelta) {
+      return true;
+    }
+    if (Double.compare(a, b) == 0) {
+      // mainly here to cover infinity, but Double.isInfinite(a) && Double.isInfinite(b) is true
+      // if one is positive and one is negative infinity.
+      return true;
+    }
+    if (Double.isNaN(a) && Double.isNaN(b)) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -56,7 +67,19 @@ public class Precision {
    * @return true if Math.abs(a-b) <= maxDelta
    */
   public static boolean equals(float a, float b, float maxDelta) {
-    return Math.abs(a - b) <= maxDelta;
+    final float delta = Math.abs(a - b);
+    if (delta <= maxDelta) {
+      return true;
+    }
+    if (Float.compare(a, b) == 0) {
+      // mainly here to cover infinity, but Float.isInfinite(a) && Float.isInfinite(b) is true
+      // if one is positive and one is negative infinity.
+      return true;
+    }
+    if (Float.isNaN(a) && Float.isNaN(b)) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -108,8 +131,8 @@ public class Precision {
    * @return A BigDecimal rounded to sig number of significant digits (figures)
    */
   public static BigDecimal round(double value, int sig, RoundingMode mode) {
-    MathContext mc = new MathContext(sig, RoundingMode.HALF_UP);
-    BigDecimal bigDecimal = new BigDecimal(value, mc);
+    MathContext mc = new MathContext(sig, mode);
+    BigDecimal bigDecimal = BigDecimal.valueOf(value).round(mc);
     return bigDecimal;
   }
 
@@ -173,22 +196,32 @@ public class Precision {
   }
 
   public static boolean equalSignificance(final double a, final double b, final int sigDigits) {
-    if(Double.isNaN(a) && Double.isNaN(b)) {
+    if (Double.isNaN(a) && Double.isNaN(b)) {
       return true;
     }
 
-    if(Double.isNaN(a) || Double.isNaN(b)) {
+    if (Double.isNaN(a) || Double.isNaN(b)) {
       return false;
     }
 
     if (a == b) {
       return true;
     }
-    return round(a, sigDigits).equals(round(b, sigDigits));
-    // below is an alternative but this may overflow the double/float so maybe a bad idea
-//    double diff = Math.abs(a - b);
-//    double larger = Math.max(Math.abs(a), Math.abs(b));
-//    return diff <= larger / sigDigits;
+    final double diff = Math.abs(a - b);
+
+    // calculate the allowed difference in significant digits: e.g. 5 sig digits:
+    // 1*10^-5 = 0.00001
+    // then scale to the max of those two values:
+    // 0.00001 * 1234567 = 12.34567
+    // then find the lower power of 10: 12.23467 -> 10
+    // use that as the allowed delta.
+    final double max = Math.max(Math.abs(a), Math.abs(b));
+    final double scaledSignificance = Math.pow(10, sigDigits * -1d) * max;
+    final double log10scaledSignificance = Math.log10(scaledSignificance);
+    final double floorLog10ScaledSignificance = Math.floor(log10scaledSignificance);
+
+    final double allowedDelta = Math.pow(10, floorLog10ScaledSignificance + 1) * 0.5;
+    return Double.compare(diff,allowedDelta) <= 0;
   }
 
 
@@ -197,27 +230,28 @@ public class Precision {
   }
 
   public static boolean equalFloatSignificance(final @Nullable Float a, final @Nullable Float b) {
-    if(a == null && b == null) {
+    if (a == null && b == null) {
       return true;
     }
-    if(a == null || b == null) {
+    if (a == null || b == null) {
       return false;
     }
     return equalFloatSignificance(a.floatValue(), b.floatValue());
   }
 
   public static boolean equalSignificance(final float a, final float b, final int sigDigits) {
-    if(Float.isNaN(a) && Float.isNaN(b)) {
+    if (Float.isNaN(a) && Float.isNaN(b)) {
       return true;
     }
 
-    if(Float.isNaN(a) || Float.isNaN(b)) {
+    if (Float.isNaN(a) || Float.isNaN(b)) {
       return false;
     }
 
-    if (a == b) {
+    if (Float.compare(a, b) == 0) {
       return true;
     }
-    return round(a, sigDigits).equals(round(b, sigDigits));
+
+    return equalSignificance((double) a, (double)b, sigDigits);
   }
 }

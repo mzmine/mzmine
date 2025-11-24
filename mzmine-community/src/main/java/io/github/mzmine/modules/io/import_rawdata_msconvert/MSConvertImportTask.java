@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.MassLynxImportOptions;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
@@ -74,9 +75,9 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
   private final MZmineProject project;
   private final Class<? extends MZmineModule> module;
   private final ParameterSet parameters;
-  private MSDKmzMLImportTask msdkTask;
-  private Boolean convertToFile = ConfigService.getConfiguration().getPreferences()
+  private final Boolean convertToFile = ConfigService.getConfiguration().getPreferences()
       .getValue(MZminePreferences.keepConvertedFile);
+  private MSDKmzMLImportTask msdkTask;
 
   public MSConvertImportTask(final @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, File path, ScanImportProcessorConfig config,
@@ -91,7 +92,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
   }
 
   public static @NotNull List<String> buildCommandLine(File filePath, File msConvertPath,
-      boolean convertToFile, boolean applyVendorCentroiding) {
+      boolean convertToFile, final VendorImportParameters vendorParameters) {
     final File mzMLFile = getMzMLFileName(filePath);
     final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(filePath);
 
@@ -118,12 +119,13 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       cmdLine.addAll(List.of("--combineIonMobilitySpectra"));
     }
 
-    if (applyVendorCentroiding && isPeakPickingSupported(fileType)) {
+    if (vendorParameters.getValue(VendorImportParameters.applyVendorCentroiding)
+        && isPeakPickingSupported(fileType)) {
       cmdLine.addAll(List.of("--filter", "\"peakPicking vendor msLevel=1-\""));
     }
 
     if (fileType == RawDataFileType.WATERS_RAW || fileType == RawDataFileType.WATERS_RAW_IMS) {
-      addWatersOptions(filePath, cmdLine);
+      addWatersOptions(filePath, cmdLine, vendorParameters);
     }
 
 //    cmdLine.addAll(List.of("--filter",
@@ -159,15 +161,16 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
     };
   }
 
-  private static void addWatersOptions(File rawFolder, List<String> cmdLine) {
+  private static void addWatersOptions(File rawFolder, List<String> cmdLine,
+      final VendorImportParameters vendorParameters) {
     final WatersAcquisitionInfo acquisitionInfo = RawDataFileTypeDetector.detectWatersAcquisitionType(
         rawFolder);
     PolarityType polarity = acquisitionInfo.polarity();
 
-    final MZminePreferences preferences = ConfigService.getPreferences();
-    final Boolean lockmassEnabled = preferences.getValue(MZminePreferences.watersLockmass);
-    final WatersLockmassParameters lockmassParameters = preferences.getEmbeddedParameterValue(
-        MZminePreferences.watersLockmass);
+    final boolean lockmassEnabled = vendorParameters.getValue(
+        VendorImportParameters.watersLockmass);
+    final ParameterSet lockmassParameters = vendorParameters.getParameter(
+            VendorImportParameters.watersLockmass).getEmbeddedParameter().getEmbeddedParameters();
     final double positiveLockmass = lockmassParameters.getValue(WatersLockmassParameters.positive);
     final double negativeLockmass = lockmassParameters.getValue(WatersLockmassParameters.negative);
 
@@ -313,7 +316,8 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
     }
 
     final List<String> cmdLine = buildCommandLine(rawFilePath, msConvertPath, convertToFile,
-        parameters.getValue(AllSpectralDataImportParameters.applyVendorCentroiding));
+        (VendorImportParameters) parameters.getEmbeddedParameterValue(
+            AllSpectralDataImportParameters.vendorOptions));
 
     if (convertToFile) {
       ProcessBuilder builder = new ProcessBuilder(cmdLine).directory(FileAndPathUtil.getTempDir());
@@ -454,7 +458,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFile() : null;
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFiles() : List.of();
   }
 }

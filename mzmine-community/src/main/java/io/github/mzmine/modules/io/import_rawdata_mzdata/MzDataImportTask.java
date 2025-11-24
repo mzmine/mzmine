@@ -50,6 +50,7 @@ import java.nio.ByteOrder;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -186,8 +187,8 @@ public class MzDataImportTask extends AbstractTask implements RawDataImportTask 
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return newMZmineFile;
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? List.of(newMZmineFile) : List.of();
   }
 
   private class MzDataHandler extends DefaultHandler {

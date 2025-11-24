@@ -630,7 +630,7 @@ public class MSDKmzMLImportTask extends AbstractTask implements RawDataImportTas
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? List.of(newMZmineFile) : List.of();
   }
 }
