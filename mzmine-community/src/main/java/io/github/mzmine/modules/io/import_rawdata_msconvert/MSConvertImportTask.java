@@ -268,7 +268,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       RawDataFileType type) {
     if (type != null && keepConverted && getSupportedFileTypes().contains(type)) {
       if ((type == RawDataFileType.WATERS_RAW || type == RawDataFileType.WATERS_RAW_IMS) && (
-          ConfigService.getPreference(MZminePreferences.watersImportChoice)
+          ConfigService.getPreference(MZminePreferences.massLynxImportChoice)
               != MassLynxImportOptions.MSCONVERT)) {
         // if waters mass lynx files are imported via the sdk, apply no remapping
         return file;

@@ -48,6 +48,7 @@ import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
 import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
@@ -55,6 +56,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleS
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -130,7 +132,7 @@ public class MassLynxDataAccess implements AutoCloseable {
    */
   private MemorySegment analogIntensityBuffer = arena.allocate(0);
 
-  public MassLynxDataAccess(@NotNull File rawFolder, boolean centroid,
+  public MassLynxDataAccess(@NotNull File rawFolder, @NotNull final VendorImportParameters vendorParam,
       @Nullable MemoryMapStorage storage, @Nullable ScanImportProcessorConfig processor) {
     MemorySegment tempHandle = null;
     // do multiple trys. it is not uncommon that mass lynx fails to open the file
@@ -157,6 +159,9 @@ public class MassLynxDataAccess implements AutoCloseable {
     this.rawFolder = rawFolder;
     this.storage = storage;
     this.processor = processor;
+    final boolean centroid = vendorParam.getValue(VendorImportParameters.applyVendorCentroiding);
+    OptionalModuleParameter<WatersLockmassParameters> watersLockmassParam = vendorParam.getParameter(
+        VendorImportParameters.watersLockmass).getEmbeddedParameter();
 
     isImsFile = MassLynxLib.isIonMobilityFile(handle) > 0;
     isDdaFile = MassLynxLib.isDdaFile(handle) > 0;
@@ -172,7 +177,7 @@ public class MassLynxDataAccess implements AutoCloseable {
       functionTypes[i] = readFunctionType(i);
     }
 
-    checkAndApplyLockMassCorrection(rawFolder);
+    checkAndApplyLockMassCorrection(rawFolder, watersLockmassParam);
     requestedSpectrumType =
         centroid && !isImsFile ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
     MassLynxLib.setCentroid(handle, requestedSpectrumType == MassSpectrumType.CENTROIDED ? 1 : 0);
@@ -229,9 +234,9 @@ public class MassLynxDataAccess implements AutoCloseable {
     }
   }
 
-  private void checkAndApplyLockMassCorrection(@NotNull File rawFolder) {
-    final Boolean applyLockMass = ConfigService.getPreferences()
-        .getValue(MZminePreferences.watersLockmass);
+  private void checkAndApplyLockMassCorrection(@NotNull File rawFolder,
+      OptionalModuleParameter<WatersLockmassParameters> watersLockmassParam) {
+    final Boolean applyLockMass = watersLockmassParam.getValue();
 
     if (!applyLockMass) {
       logger.finest("Ignoring lock mass correction for file " + rawFolder.getAbsolutePath());
@@ -261,8 +266,7 @@ public class MassLynxDataAccess implements AutoCloseable {
     final ScanInfoWrapper scanInfo = getScanInfo(lockmassFunction, 0, scanInfoBuffer);
     final PolarityType polarityType = scanInfo.polarityType();
 
-    final WatersLockmassParameters lmParam = ConfigService.getPreferences()
-        .getEmbeddedParameterValue(MZminePreferences.watersLockmass);
+    final WatersLockmassParameters lmParam = watersLockmassParam.getEmbeddedParameters();
     final double lockmass = switch (polarityType) {
       case POSITIVE -> lmParam.getValue(WatersLockmassParameters.positive);
       case NEGATIVE -> lmParam.getValue(WatersLockmassParameters.negative);

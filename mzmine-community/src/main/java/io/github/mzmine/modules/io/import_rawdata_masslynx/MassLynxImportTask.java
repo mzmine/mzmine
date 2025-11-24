@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.WatersImsCalibrationReader;
@@ -44,6 +45,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -106,7 +108,7 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
       // there may be noise
       final DataPoint actualPrecursor = ScanUtils.findBasePeak(precursorScan,
           RangeUtils.rangeAround(isolationMz, 3d));
-      if(actualPrecursor == null) {
+      if (actualPrecursor == null) {
         return;
       }
 
@@ -132,10 +134,10 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    final boolean centroid = parameters.getValue(
-        AllSpectralDataImportParameters.applyVendorCentroiding);
+    final VendorImportParameters vendorParameters = parameters.getValue(
+        AllSpectralDataImportParameters.vendorOptions);
 
-    try (final MassLynxDataAccess ml = new MassLynxDataAccess(rawFolder, centroid, storage,
+    try (final MassLynxDataAccess ml = new MassLynxDataAccess(rawFolder, vendorParameters, storage,
         processor)) {
 
       if (ml.isSonarFile() && !ml.isImsFile()) {
@@ -292,11 +294,11 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
   }
 
   @Override
-  public @Nullable RawDataFile getImportedRawDataFile() {
-    if (isCanceled()) {
-      return null;
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    if (!isFinished()) {
+      return List.of();
     }
 
-    return dataFile;
+    return List.of(dataFile);
   }
 }

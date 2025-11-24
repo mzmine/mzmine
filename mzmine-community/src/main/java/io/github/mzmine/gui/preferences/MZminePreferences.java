@@ -138,7 +138,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final ProxyConfigParameter proxyConfig = new ProxyConfigParameter();
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
-//  public static final BooleanParameter sendStatistics = new BooleanParameter(
+  //  public static final BooleanParameter sendStatistics = new BooleanParameter(
 //      "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
 //      true);
 //  public static final OptionalModuleParameter sendErrorEMail = new OptionalModuleParameter(
@@ -223,12 +223,8 @@ public class MZminePreferences extends SimpleParameterSet {
       """, true);
   public static final OptionalModuleParameter<WatersLockmassParameters> watersLockmass = VendorImportParameters.watersLockmass.getEmbeddedParameter()
       .cloneParameter();
-  public static final ComboParameter<MassLynxImportOptions> watersImportChoice = new ComboParameter<>(
-      "Waters MassLynx data import", """
-      Select if Waters MassLynx data files shall be imported via MSConvert or via the native Waters library.
-      The MSConvert import allows to retain the mzml files, allowing a faster import on the second iteration,
-      but does not allow centroiding of IMS data files. The native import is slow when applying centroiding on import.""",
-      MassLynxImportOptions.values(), MassLynxImportOptions.NATIVE);
+  public static final ComboParameter<MassLynxImportOptions> massLynxImportChoice = VendorImportParameters.massLynxImportChoice.getEmbeddedParameter()
+      .cloneParameter();
   public static final BooleanParameter excludeThermoExceptionMasses = VendorImportParameters.excludeThermoExceptionMasses.getEmbeddedParameter()
       .cloneParameter();
   public static final HiddenParameter<Boolean> showTempFolderAlert = new HiddenParameter<>(
@@ -281,8 +277,8 @@ public class MZminePreferences extends SimpleParameterSet {
             // silent parameters without controls
             showTempFolderAlert, username, showQuickStart, siriusCountWarningOptOut,
             // conversion, data handling
-            applyVendorCentroiding, watersLockmass, msConvertPath, keepConvertedFile,
-            watersImportChoice, thermoRawFileParserPath, excludeThermoExceptionMasses},
+            applyVendorCentroiding, watersLockmass, massLynxImportChoice, msConvertPath,
+            keepConvertedFile, thermoRawFileParserPath, excludeThermoExceptionMasses},
         "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
     darkModeProperty.subscribe(state -> {
@@ -316,9 +312,9 @@ public class MZminePreferences extends SimpleParameterSet {
         new ParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
             chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
             imageNormalization, windowSettings), //
-        new ParameterGroup("MS data import", applyVendorCentroiding, watersLockmass, msConvertPath,
-            keepConvertedFile, thermoRawFileParserPath, excludeThermoExceptionMasses,
-            watersImportChoice) //
+        new ParameterGroup("MS data import", applyVendorCentroiding, massLynxImportChoice,
+            watersLockmass, msConvertPath, keepConvertedFile, thermoRawFileParserPath,
+            excludeThermoExceptionMasses) //
     );
     // imsModuleWarnings, showTempFolderAlert, showQuickStart  are hidden parameters
 

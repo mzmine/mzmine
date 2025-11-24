@@ -86,7 +86,7 @@ public class MassLynxImportTaskDelegator extends AbstractSimpleTask implements R
     super(storage, moduleCallDate, parameters, moduleClass);
 
     final MassLynxImportOptions importChoice = ConfigService.getPreference(
-        MZminePreferences.watersImportChoice);
+        MZminePreferences.massLynxImportChoice);
     actualTask = importChoice == MassLynxImportOptions.MSCONVERT ? new MSConvertImportTask(storage,
         moduleCallDate, file, processorConfig, project, moduleClass, parameters)
         : new MassLynxImportTask(storage, moduleCallDate, file, moduleClass, parameters, project,
@@ -130,7 +130,7 @@ public class MassLynxImportTaskDelegator extends AbstractSimpleTask implements R
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return actualTask.getImportedRawDataFile();
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return actualTask.getImportedRawDataFiles();
   }
 }

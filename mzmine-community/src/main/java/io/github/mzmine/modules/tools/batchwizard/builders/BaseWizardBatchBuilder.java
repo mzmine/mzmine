@@ -308,7 +308,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         .map(RawDataFileTypeDetector::detectDataFileType).toList();
     isNativeIms = allFileTypes.stream().allMatch(
         type -> (type == RawDataFileType.BRUKER_TDF || (type == RawDataFileType.WATERS_RAW_IMS
-            && ConfigService.getPreference(MZminePreferences.watersImportChoice)
+            && ConfigService.getPreference(MZminePreferences.massLynxImportChoice)
             == MassLynxImportOptions.NATIVE)));
     allMobilityScansCentroided = allFileTypes.stream()
         .allMatch(type -> (type == RawDataFileType.BRUKER_TDF));
