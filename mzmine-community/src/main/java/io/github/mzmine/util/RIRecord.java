@@ -25,13 +25,16 @@
 
 package io.github.mzmine.util;
 
+import static java.util.Map.entry;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import static java.util.Map.entry;
+import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This holds information from the RI field in spectral libraries for gas chromatography The RI
@@ -48,7 +51,7 @@ public class RIRecord {
       entry("s=", RIColumn.SEMIPOLAR), entry("SemiStdNP=", RIColumn.SEMIPOLAR),
       entry("n=", RIColumn.NONPOLAR), entry("StdNP=", RIColumn.NONPOLAR),
       entry("p=", RIColumn.POLAR), entry("Polar=", RIColumn.POLAR), entry("a=", RIColumn.DEFAULT));
-  
+
   // uses list instead of map to lower the memory footprint.
   // small list with few items is better than hashmap and still fast in lookup
   private final List<RIRecordPart> records;
@@ -118,6 +121,7 @@ public class RIRecord {
     return records.stream().map(RIRecordPart::toString).collect(Collectors.joining(" "));
   }
 
+  @Nullable
   public Float getRI(RIColumn type) {
     int defaultIndex = -1;
     for (int i = 0; i < records.size(); i++) {
@@ -148,6 +152,45 @@ public class RIRecord {
     }
   }
 
+  /**
+   *
+   * @return true if this record contains no data.
+   */
+  public boolean isEmpty() {
+    return records.isEmpty();
+  }
+
+  /**
+   * Attempts to parse an RIRecord from a string. if the string is null or the created record
+   * contains no data, null will be returned.
+   *
+   * @param str the input.
+   * @return A RIRecord with at least 1 entry or null.
+   */
+  public static @Nullable RIRecord fromString(@Nullable String str) {
+    if (StringUtils.isBlank(str)) {
+      return null;
+    }
+    final RIRecord riRecord = new RIRecord(str);
+    if (riRecord.isEmpty()) {
+      return null;
+    }
+    return riRecord;
+  }
+
+  @Override
+  public final boolean equals(Object o) {
+    if (!(o instanceof RIRecord riRecord)) {
+      return false;
+    }
+
+    return Objects.equals(records, riRecord.records);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(records);
+  }
 }
 
 

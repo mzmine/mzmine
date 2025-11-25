@@ -10,6 +10,9 @@ import io.github.mzmine.project.ProjectService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Extract an EIC from a data file.
+ */
 record Eic(@NotNull String file, @NotNull Range<Double> mzRange, @Nullable String desc) {
 
   public IonTimeSeries<Scan> extract() {

@@ -325,7 +325,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       ParameterSet parameters = AllSpectralDataImportParameters.create(
           // use the last set value, not the preference
           ConfigService.getConfiguration().getModuleParameters(AllSpectralDataImportModule.class)
-              .getValue(AllSpectralDataImportParameters.applyVendorCentroiding), //
+              .getParameter(AllSpectralDataImportParameters.vendorOptions).getEmbeddedParameters(), //
           allDataFiles, metadataFile, allLibraryFiles);
       addFirst(new MZmineProcessingStepImpl<>(module, parameters));
 

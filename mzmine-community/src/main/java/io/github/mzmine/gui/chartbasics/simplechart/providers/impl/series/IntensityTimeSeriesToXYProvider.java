@@ -46,6 +46,7 @@ public class IntensityTimeSeriesToXYProvider implements PlotXYDataProvider {
   private final IntensityTimeSeries series;
   private final NumberFormats formats;
   private final @NotNull String seriesKey;
+  private final double normalizationFactor;
 
   public IntensityTimeSeriesToXYProvider(OtherTimeSeries series) {
     this(series, series.getOtherDataFile().getCorrespondingRawDataFile().getColorAWT());
@@ -64,9 +65,15 @@ public class IntensityTimeSeriesToXYProvider implements PlotXYDataProvider {
 
   public IntensityTimeSeriesToXYProvider(IntensityTimeSeries series, @NotNull Color colorAwt,
       @Nullable String seriesKey) {
+    this(series, colorAwt, seriesKey, 1);
+  }
+
+  public IntensityTimeSeriesToXYProvider(IntensityTimeSeries series, @NotNull Color colorAwt,
+      @Nullable String seriesKey, double normalizationFactor) {
     colorFx = FxColorUtil.awtColorToFX(colorAwt);
     this.colorAwt = colorAwt;
     this.series = series;
+    this.normalizationFactor = normalizationFactor;
     formats = ConfigService.getGuiFormats();
 
     if (seriesKey == null) {
@@ -127,7 +134,7 @@ public class IntensityTimeSeriesToXYProvider implements PlotXYDataProvider {
 
   @Override
   public double getRangeValue(int index) {
-    return series.getIntensity(index);
+    return series.getIntensity(index) * normalizationFactor;
   }
 
   @Override

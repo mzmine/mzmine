@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotat
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionException;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RITolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -58,6 +59,7 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
   private final RTTolerance rtTol;
   private final MobilityTolerance mobTol;
   private final Double ccsTol;
+  private final RITolerance riTol;
   private int libraryEntries;
 
   public PrecursorDBSearchTask(final ParameterSet parameters, final Instant moduleCallDate) {
@@ -71,7 +73,8 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
         PrecursorDBSearchParameters.mobTolerance, null);
     ccsTol = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         PrecursorDBSearchParameters.ccsTolerance, null);
-
+    riTol = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        PrecursorDBSearchParameters.riTolerance, null);
   }
 
   @Override
@@ -123,7 +126,7 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
 
       indexRange.forEach(index -> {
         CompoundDBAnnotation db = mzSortedEntries.get(index);
-        var match = db.checkMatchAndCalculateDeviation(row, mzTol, rtTol, mobTol, ccsTol);
+        var match = db.checkMatchAndCalculateDeviation(row, mzTol, rtTol, mobTol, ccsTol, riTol);
         if (match != null) {
           row.addCompoundAnnotation(match);
           matches.incrementAndGet();

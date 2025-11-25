@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,10 +29,7 @@ import io.github.mzmine.parameters.UserParameter;
 import java.util.function.Supplier;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import org.jetbrains.annotations.NotNull;
 
 public class ComponentWrapperParameterComponent<EmbeddedComponent extends Node> extends HBox {
@@ -48,7 +45,9 @@ public class ComponentWrapperParameterComponent<EmbeddedComponent extends Node> 
     getChildren().add(embeddedComponent);
     getChildren().add(nodeSupplier.get());
     setAlignment(Pos.CENTER_LEFT);
-    HBox.setHgrow(embeddedComponent, Priority.ALWAYS);
+    // growing set to SOMETIMES or ALWAYS broke the layout combined with embedded OptionalModuleComponent
+    // the wrapper node was then pushed to the side
+//    HBox.setHgrow(embeddedComponent, Priority.NEVER);
   }
 
   public EmbeddedComponent getEmbeddedComponent() {
