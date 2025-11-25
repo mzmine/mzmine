@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 public class ReportingModule extends TaskPerFeatureListModule {
 
   public ReportingModule() {
-    super("Reporting", ReportingParameters.class, MZmineModuleCategory.TOOLS, false, "Export feature reports to PDF and HTML.");
+    super("Reporting (beta)", ReportingParameters.class, MZmineModuleCategory.TOOLS, false, "Export feature reports to PDF and HTML.");
   }
 
   @Override
