@@ -440,6 +440,7 @@ public class ReportUtils {
     }
 
     mirrorChart = MirrorChartFactory.createMirrorPlotFromSpectralDBPeakIdentity(matches.getFirst());
+    theme.apply(mirrorChart);
     mirrorChart.getChart().removeLegend();
     return true;
   }
