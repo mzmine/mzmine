@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,16 +29,17 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.ChartLogics;
+import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartthemes.LabelColorMatch;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxJFreeChart;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxJFreeChartModel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorUtils;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
@@ -69,21 +70,15 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Cursor;
 import javafx.util.Pair;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
-import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.ValueMarker;
-import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.chart.ui.Layer;
 import org.jfree.data.xy.XYDataset;
 
 /**
@@ -99,23 +94,19 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
    * {@link SpectraItemLabelGenerator}.
    */
   private final Map<XYDataset, List<Pair<Double, Double>>> datasetToLabelsCoords = new HashMap<>();
-  private final JFreeChart chart;
-  private final XYPlot plot;
+  private final FxXYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
   /**
    * If true, the labels of the data set will have the same color as the data set itself
    */
   protected BooleanProperty matchLabelColors;
-  protected ObjectProperty<SpectrumCursorPosition> cursorPosition;
   private final ObjectProperty<MZTolerance> mzToleranceProperty = new SimpleObjectProperty<>();
   private final ObjectProperty<Range<Double>> selectedMzRangeProperty = new SimpleObjectProperty<>();
 
   // Spectra processing
   protected DataPointProcessingController controller;
   protected EStandardChartTheme theme;
-  private Marker mzMarker;
-  private boolean showCursor = false;
   private boolean isotopesVisible = true, peaksVisible = true, itemLabelsVisible = true, dataPointsVisible = false;
   private boolean processingAllowed;
 
@@ -129,7 +120,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   public SpectraPlot(boolean processingAllowed, boolean showLegend) {
 
-    super(ChartFactory.createXYLineChart("", // title
+    final FxJFreeChart internalChart = FxChartFactory.createXYLineChart("", // title
         "m/z", // x-axis label
         "Intensity", // y-axis label
         null, // data set
@@ -137,7 +128,16 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
         true, // isotopeFlag, // create legend?
         true, // generate tooltips?
         false // generate URLs?
-    ));
+    );
+    super(internalChart);
+
+    // initialize the chart by default time series chart from factory
+    plot = (FxXYPlot) getChart().getXYPlot();
+    // on click update cursor
+    PlotCursorUtils.addMouseListener(this, plot, plot.cursorPositionProperty());
+
+    getChart().setBackgroundPaint(Color.white);
+    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
 
     plotMode = new SimpleObjectProperty<>(SpectrumPlotType.AUTO);
     addPlotModeListener();
@@ -145,29 +145,18 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     // setBackground(Color.white);
     setCursor(Cursor.CROSSHAIR);
 
-    cursorPosition = new SimpleObjectProperty<>();
-    cursorPosition.addListener(((observable, oldValue, newValue) -> updateDomainMarker(newValue)));
-
     ObjectBinding<Range<Double>> selectedMzBinding = Bindings.createObjectBinding(
-        () -> getMzRange(cursorPositionProperty().getValue(), mzToleranceProperty.getValue()),
-        cursorPosition, mzToleranceProperty);
+        () -> getMzRange(plot.getCursorPosition(), mzToleranceProperty.getValue()),
+        plot.cursorPositionProperty(), mzToleranceProperty);
     selectedMzRangeProperty.bind(selectedMzBinding);
 
-    initializeSpectrumMouseListener();
     matchLabelColors = new SimpleBooleanProperty(false);
     addMatchLabelColorsListener();
 
-    // initialize the chart by default time series chart from factory
-    chart = getChart();
-    chart.setBackgroundPaint(Color.white);
-
-    plot = chart.getXYPlot();
-    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
-
     // title
-    chartTitle = chart.getTitle();
+    chartTitle = getChart().getTitle();
     chartSubTitle = new TextTitle();
-    chart.addSubtitle(chartSubTitle);
+    getChart().addSubtitle(chartSubTitle);
 
     // disable maximum size (we don't want scaling)
     // setMaximumDrawWidth(Integer.MAX_VALUE);
@@ -191,7 +180,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     yAxis.setNumberFormatOverride(intensityFormat);
     yAxis.setUpperMargin(0.1); // some margin for m/z labels
     // only allow positive values for the axes
-    ChartLogics.setAxesTypesPositive(chart);
+    ChartLogics.setAxesTypesPositive(getChart());
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
@@ -201,10 +190,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
     theme.apply(this);
 
-    // set crosshair (selection) properties
-    plot.setDomainCrosshairVisible(false);
-    plot.setRangeCrosshairVisible(false);
-
+    plot.setShowCursorCrosshair(true, true);
     getChart().getLegend().setVisible(showLegend);
 
     setMinHeight(50);
@@ -215,6 +201,16 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     // If the plot is changed then clear the map containing coordinates of labels. New values will be
     // added by the SpectraItemLabelGenerator
     getChart().getXYPlot().addChangeListener(event -> datasetToLabelsCoords.clear());
+  }
+
+  @Override
+  public FxJFreeChart getChart() {
+    // only uses this type internally in constructor
+    return (FxJFreeChart) super.getChart();
+  }
+
+  public FxJFreeChartModel getChartModel() {
+    return getChart().getChartModel();
   }
 
   public void setLegendVisible(boolean state) {
@@ -236,20 +232,20 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     return selectedMzRangeProperty;
   }
 
-  private Range<Double> getMzRange(SpectrumCursorPosition pos, MZTolerance tolerance) {
+  private Range<Double> getMzRange(PlotCursorPosition pos, MZTolerance tolerance) {
     if (pos == null) {
       return null;
     }
     if (tolerance == null) {
-      return Range.singleton(pos.mz);
+      return Range.singleton(pos.getDomainValue());
     } else {
-      return tolerance.getToleranceRange(pos.mz);
+      return tolerance.getToleranceRange(pos.getDomainValue());
     }
   }
 
   public void setShowCursor(boolean showCursor) {
-    this.showCursor = showCursor;
-    updateDomainMarker(cursorPosition.getValue());
+    plot.getCursorConfigModel().getDomainCursorMarker().setVisible(showCursor);
+    plot.getCursorConfigModel().getRangeCursorMarker().setVisible(showCursor);
   }
 
   public SpectrumPlotType getPlotMode() {
@@ -306,7 +302,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     }));
   }
 
-  public XYPlot getXYPlot() {
+  public FxXYPlot getXYPlot() {
     return plot;
   }
 
@@ -394,11 +390,9 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
         controller.cancelTasks();
       }
       controller = null;
+      plot.removeAllDatasets();
 
-      int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
-      for (int i = 0; i < numDatasets; i++) {
-        plot.setDataset(i, null);
-      }
+      // MS2 range markers
       plot.clearDomainMarkers();
       this.getDatasetToLabelsCoords().clear();
     });
@@ -483,9 +477,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       }
       ((AbstractRenderer) newRenderer).setItemLabelAnchorOffset(1.3d);
 
-      int nextDatasetId = JFreeChartUtils.getNextDatasetIndex(plot);
-      plot.setDataset(nextDatasetId, dataSet);
-      plot.setRenderer(nextDatasetId, newRenderer);
+      plot.addDataset(dataSet, newRenderer);
 
       if (dataSet instanceof ScanDataSet) {
         checkAndRunController();
@@ -525,43 +517,9 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   }
 
 
-  /**
-   * Add marker to background
-   *
-   * @param pos position to mark in spectrum by mz
-   */
-  private void updateDomainMarker(SpectrumCursorPosition pos) {
-    if (pos == null || !showCursor) {
-      if (mzMarker == null) {
-        getXYPlot().removeDomainMarker(mzMarker, Layer.BACKGROUND);
-      }
-      return;
-    }
-    if (mzMarker == null) {
-      Color color = MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColorAWT();
-      mzMarker = addDomainMarker(pos.getMz(), color, 0.7f);
-      getXYPlot().addDomainMarker(mzMarker);
-    } else {
-      if (mzMarker instanceof ValueMarker valueMarker) {
-        valueMarker.setValue(pos.getMz());
-        if (!getChart().getXYPlot().getDomainMarkers(Layer.BACKGROUND).contains(mzMarker)) {
-          getXYPlot().addDomainMarker(mzMarker, Layer.BACKGROUND);
-        }
-      }
-    }
-  }
-
-
   public synchronized void removePeakListDataSets() {
     applyWithNotifyChanges(false, () -> {
-
-      int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
-      for (int i = 0; i < numDatasets; i++) {
-        XYDataset dataSet = plot.getDataset(i);
-        if (dataSet instanceof PeakListDataSet) {
-          plot.setDataset(i, null);
-        }
-      }
+      JFreeChartUtils.removeAllDataSetsOf(plot, PeakListDataSet.class);
     });
   }
 
@@ -624,7 +582,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       for (int i = 0; i < numDatasets; i++) {
         XYDataset dataSet = plot.getDataset(i);
         if (dataSet instanceof DPPResultsDataSet) {
-          plot.setDataset(i, null);
+          plot.removeDataSet(i);
         }
       }
       // when adding DPPResultDataSet the label generator is overwritten,
@@ -664,58 +622,6 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
         }
       }
     }));
-  }
-
-  /**
-   * Listens to clicks in the Spectrum plot and updates the selected position accordingly.
-   */
-  private void initializeSpectrumMouseListener() {
-    getMouseAdapter().addGestureHandler(
-        new ChartGestureHandler(new ChartGesture(Entity.PLOT, Event.CLICK, GestureButton.BUTTON1),
-            e -> {
-              SpectrumCursorPosition pos = updateCursorPosition();
-              if (pos != null) {
-                setCursorPosition(pos);
-              }
-            }));
-    getMouseAdapter().addGestureHandler(new ChartGestureHandler(
-        new ChartGesture(Entity.XY_ITEM, Event.CLICK, GestureButton.BUTTON1), e -> {
-      SpectrumCursorPosition pos = updateCursorPosition();
-      if (pos != null) {
-        setCursorPosition(pos);
-      }
-    }));
-
-  }
-
-  private SpectrumCursorPosition updateCursorPosition() {
-    double selectedMZ = getXYPlot().getDomainCrosshairValue();
-    double selectedIntensity = getXYPlot().getRangeCrosshairValue();
-    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
-    for (int i = 0; i < numDatasets; i++) {
-      XYDataset ds = getXYPlot().getDataset(i);
-
-      if (!(ds instanceof ScanDataSet scanDataSet)) {
-        continue;
-      }
-      int index = scanDataSet.getIndex(selectedMZ, selectedIntensity);
-      if (index >= 0) {
-        return new SpectrumCursorPosition(selectedIntensity, selectedMZ, scanDataSet.getScan());
-      }
-    }
-    return null;
-  }
-
-  public SpectrumCursorPosition getCursorPosition() {
-    return cursorPosition.get();
-  }
-
-  public void setCursorPosition(SpectrumCursorPosition cursorPosition) {
-    this.cursorPosition.set(cursorPosition);
-  }
-
-  public ObjectProperty<SpectrumCursorPosition> cursorPositionProperty() {
-    return cursorPosition;
   }
 
   public Map<XYDataset, List<Pair<Double, Double>>> getDatasetToLabelsCoords() {
