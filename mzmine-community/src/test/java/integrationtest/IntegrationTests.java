@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -194,6 +195,7 @@ public class IntegrationTests {
     }
     Assertions.assertEquals(0,
         IntegrationTest.builder("rawdatafiles/integration_tests/lc_tims", "lc_tims_local.mzbatch")
+            .specLibsFullPath("spectral_libraries/integration_tests/matches_for_tims-full.json")
             .tempDir(tempDir).build()
             .runBatchGetCheckResults("rawdatafiles/integration_tests/lc_tims/expected_results.csv")
             .size());
@@ -222,5 +224,23 @@ public class IntegrationTests {
             "dia_pasef_local.mzbatch").tempDir(tempDir).build()
         .runBatchGetCheckResults("rawdatafiles/integration_tests/diaPASEF/expected_results.csv")
         .size());
+  }
+
+  @Test
+  @Disabled("This test needs to be run from the $ProjectFileDir$ working directory to resolve to the correct path.")
+  void testThermo(@TempDir File tempDir) {
+    // only run the test on local machines
+    if (!new File("D:\\OneDrive - mzio GmbH").exists()) {
+      logger.info("Skipping thermo full batch integration test.");
+      return;
+    }
+//    Assertions.assertEquals(0, IntegrationTest.builder("rawdatafiles/integration_tests/thermo_import",
+//            "trp_batch.mzbatch").tempDir(tempDir).build()
+//        .runBatchGetCheckResults("rawdatafiles/integration_tests/thermo_import/test_trp_old.csv")
+//        .size());
+    Assertions.assertEquals(0,
+        IntegrationTest.builder("rawdatafiles/integration_tests/thermo_import", "trp_batch.mzbatch")
+            .tempDir(tempDir).build().runBatchGetCheckResults(
+                "rawdatafiles/integration_tests/thermo_import/test_msconvert.csv").size());
   }
 }

@@ -95,7 +95,7 @@ public class SiriusExportTask extends AbstractTask {
   private final FragmentScanSelection scanMergeSelect;
 
 
-  protected SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
 
     this.parameters = parameters;
@@ -244,7 +244,6 @@ public class SiriusExportTask extends AbstractTask {
     return actuallyExported > 0;
   }
 
-
   private @Nullable SpectralLibraryEntry getCorrelatedOrBestMS1Spectrum(final FeatureListRow row) {
     final Feature bestFeature = row.getBestFeature();
     if (bestFeature == null) {
@@ -265,7 +264,7 @@ public class SiriusExportTask extends AbstractTask {
       if (ms1Scan == null) {
         logger.fine(
             "Best feature has no representative scan. This may be due to missing MS1 data or unsupported workflow. mzmine will skip MS1 scan of row "
-            + FeatureUtils.rowToString(row));
+                + FeatureUtils.rowToString(row));
         return null;
       }
       return spectrumToEntry(ms1Scan, row, bestFeature);

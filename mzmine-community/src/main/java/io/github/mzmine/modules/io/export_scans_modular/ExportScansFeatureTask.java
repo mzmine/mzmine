@@ -197,6 +197,8 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
 
     totalItems = Arrays.stream(featureLists).mapToLong(FeatureList::getNumberOfRows).sum();
 
+    FileAndPathUtil.createDirectory(outFile.getParentFile());
+
     final boolean separateFiles = outFile.getName().contains(SiriusExportTask.MULTI_NAME_PATTERN);
     if (separateFiles) {
       for (final FeatureList featureList : featureLists) {

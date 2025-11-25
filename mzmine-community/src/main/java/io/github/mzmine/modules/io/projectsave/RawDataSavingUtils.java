@@ -36,6 +36,7 @@ import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -206,7 +207,9 @@ public class RawDataSavingUtils {
       MZmineProcessingModule module) {
 
     if (!ParameterUtils.equalValues(parameterSet1, parameterSet2, true, true)) {
-      throw new IllegalArgumentException("Parameter sets differ in more than raw/file parameters.");
+      throw new IllegalArgumentException(
+          "Parameter sets differ in more than raw/file parameters.\n1:\n%s\n2:\n%s".formatted(
+              parameterSet1.toString(), parameterSet2.toString()));
     }
 
     final var mergedParameterSet = parameterSet1.cloneParameterSet(true);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -94,7 +94,8 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
   }
 
   @Override
-  public void setValueToComponent(OptionalParameterComponent<?> component, @Nullable Boolean newValue) {
+  public void setValueToComponent(OptionalParameterComponent<?> component,
+      @Nullable Boolean newValue) {
     component.setSelected(requireNonNullElse(newValue, false));
     if (embeddedParameter.getValue() != null) {
       ((UserParameter) this.embeddedParameter).setValueToComponent(component.getEmbeddedComponent(),
@@ -106,7 +107,12 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
   public void loadValueFromXML(Element xmlElement) {
     embeddedParameter.loadValueFromXML(xmlElement);
     String selectedAttr = xmlElement.getAttribute("selected");
-    this.value = Boolean.valueOf(selectedAttr);
+    // might be blank if the attribute does not exist. For example if the parameter was not optional before
+    if (selectedAttr.isBlank()) {
+      this.value = false;
+    } else {
+      this.value = Boolean.parseBoolean(selectedAttr);
+    }
   }
 
   @Override

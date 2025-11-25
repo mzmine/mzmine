@@ -73,9 +73,9 @@ public class SpectralLibraryEntryFactory {
   private final boolean addExperimentalResults;
   private final boolean addAnnotation;
   private final boolean useRowIdAsScanNumber;
-  private boolean flagChimerics = true;
   // online reaction workflow to flag spectra as potential educts or products of reactions
   private final OnlineReactionJsonWriter reactionJsonWriter = new OnlineReactionJsonWriter(false);
+  private boolean flagChimerics = true;
   private boolean addOnlineReactivityFlags = false;
 
   /**
@@ -139,6 +139,27 @@ public class SpectralLibraryEntryFactory {
       Map<DBEntryField, Object> fields, DataPoint[] dps) {
     double[][] data = DataPointUtils.getDataPointsAsDoubleArray(dps);
     return new SpectralDBEntry(storage, data[0], data[1], fields);
+  }
+
+  /**
+   * Filenames usually from the scan (all source scans of a merged or simple scan) or if scan is
+   * null from feature
+   */
+  public static void addFilenames(final SpectralLibraryEntry entry, final @Nullable Feature feature,
+      final @Nullable MassSpectrum scan) {
+    final List<String> filenames;
+    if (scan != null) {
+      filenames = ScanUtils.streamSourceScans(scan).map(ScanUtils::getSourceFile)
+          .filter(Objects::nonNull).distinct().sorted().toList();
+    } else if (feature != null && feature.getRawDataFile() != null) {
+      filenames = List.of(feature.getRawDataFile().getName());
+    } else {
+      filenames = List.of();
+    }
+    if (!filenames.isEmpty()) {
+      entry.putIfNotNull(DBEntryField.FILENAME, String.join(";", filenames));
+      entry.putIfNotNull(DBEntryField.MERGED_N_SAMPLES, filenames.size());
+    }
   }
 
   /**
@@ -221,28 +242,6 @@ public class SpectralLibraryEntryFactory {
   }
 
   /**
-   * Filenames usually from the scan (all source scans of a merged or simple scan) or if scan is
-   * null from feature
-   */
-  public static void addFilenames(final SpectralLibraryEntry entry, final @Nullable Feature feature,
-      final @Nullable MassSpectrum scan) {
-    final List<String> filenames;
-    if (scan != null) {
-      filenames = ScanUtils.streamSourceScans(scan).map(ScanUtils::getSourceFile)
-          .filter(Objects::nonNull).distinct().sorted().toList();
-    } else if (feature != null && feature.getRawDataFile() != null) {
-      filenames = List.of(feature.getRawDataFile().getName());
-    } else {
-      filenames = List.of();
-    }
-    if (!filenames.isEmpty()) {
-      entry.putIfNotNull(DBEntryField.FILENAME, String.join(";", filenames));
-      entry.putIfNotNull(DBEntryField.MERGED_N_SAMPLES, filenames.size());
-    }
-  }
-
-
-  /**
    * This method is specific to unknown spectra. Also see
    * {@link #create(MemoryMapStorage, FeatureListRow, Feature, MassSpectrum, FeatureAnnotation,
    * DataPoint[], Map)} for generation of spectral library entries in a more general way.
@@ -317,7 +316,11 @@ public class SpectralLibraryEntryFactory {
       return;
     }
     if (spec instanceof Scan scan) {
-      MsMsInfo msMsInfo = scan.getMsMsInfo();
+      // put the scan mslevel as default, may be overridden later. should not be different from
+      // the MsMsInfo mslevel any way.
+      entry.putIfNotNull(DBEntryField.MS_LEVEL, scan.getMSLevel());
+
+      final MsMsInfo msMsInfo = scan.getMsMsInfo();
       if (msMsInfo instanceof MSnInfoImpl msnInfo) {
         // energies are quite complex
         // [MS2, MS3, MS4] and multiple energies in last level due to merging
@@ -356,7 +359,6 @@ public class SpectralLibraryEntryFactory {
 
     final MergingType mergingType;
     if (spec instanceof MergedMassSpectrum merged) {
-      entry.putIfNotNull(DBEntryField.MS_LEVEL, merged.getMSLevel());
       entry.putIfNotNull(DBEntryField.SCAN_NUMBER,
           ScanUtils.extractScanNumbers(merged).boxed().toList());
       mergingType = merged.getMergingType();

@@ -27,6 +27,7 @@ package io.github.mzmine.modules.presets;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.presets.AbstractJsonPresetStore;
@@ -41,6 +42,12 @@ public class ModulePresetStore extends AbstractJsonPresetStore<ModulePreset> {
   private final ParameterSet serializationHelper;
   private final ObjectMapper mapper;
   private final ModulePresetGroup group;
+
+  public ModulePresetStore(MZmineModule module) {
+    final ParameterSet param = ConfigService.getConfiguration()
+        .getModuleParameters(module.getClass());
+    this(module, param.cloneParameterSet());
+  }
 
   public ModulePresetStore(MZmineModule moduleClass, ParameterSet serializationHelper) {
     group = new ModulePresetGroup(moduleClass);
@@ -63,7 +70,7 @@ public class ModulePresetStore extends AbstractJsonPresetStore<ModulePreset> {
 
   @Override
   public @NotNull List<ModulePreset> createDefaults() {
-    return List.of();
+    return serializationHelper.createDefaultPresets();
   }
 
   @Override

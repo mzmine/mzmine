@@ -61,6 +61,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
@@ -76,6 +77,12 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardTab;
+import io.github.mzmine.modules.tools.siriusapi.MzmineToSirius;
+import io.github.mzmine.modules.tools.siriusapi.modules.export.SiriusApiExportRowsModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.export.SiriusApiExportRowsParameters;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdParameters;
+import io.github.mzmine.modules.tools.siriusapi.modules.rank_annotations.SiriusApiRankAnnotationsModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
@@ -130,6 +137,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.image.ImageView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -147,6 +155,9 @@ public class FeatureTableContextMenu extends ContextMenu {
   final Menu exportMenu;
 
   private final FeatureTableFX table;
+  private final BooleanProperty hasIonMobilityData = new SimpleBooleanProperty();
+  private final BooleanProperty hasImagingData = new SimpleBooleanProperty();
+  private final BooleanProperty hasPseudoSpectra = new SimpleBooleanProperty();
   @Nullable ModularFeatureListRow selectedRow;
   private Set<DataType<?>> selectedRowTypes;
   private Set<DataType<?>> selectedFeatureTypes;
@@ -157,10 +168,6 @@ public class FeatureTableContextMenu extends ContextMenu {
   private ModularFeature selectedFeature;
   private @Nullable ModularFeature selectedOrBestFeature;
   private List<FeatureIdentity> copiedIDs;
-
-  private final BooleanProperty hasIonMobilityData = new SimpleBooleanProperty();
-  private final BooleanProperty hasImagingData = new SimpleBooleanProperty();
-  private final BooleanProperty hasPseudoSpectra = new SimpleBooleanProperty();
 
   FeatureTableContextMenu(final FeatureTableFX table) {
     this.table = table;
@@ -278,7 +285,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     bioTransformerItem.setOnAction(e -> {
       final FeatureAnnotation annotation = getAnnotationForBioTransformerPrediction();
       if (annotation != null) {
-        BioTransformerModule.runSingleRowPredection(selectedRow, annotation.getSmiles(),
+        BioTransformerModule.runSingleRowPredection(selectedRow,
+            annotation.getStructure().canonicalSmiles(),
             requireNonNullElse(annotation.getCompoundName(), "UNKNOWN"));
       }
     });
@@ -293,14 +301,17 @@ public class FeatureTableContextMenu extends ContextMenu {
    */
   @Nullable
   private FeatureAnnotation getAnnotationForBioTransformerPrediction() {
+    if (selectedRow == null) {
+      return null;
+    }
     List<? extends FeatureAnnotation> annotations = selectedRow.getSpectralLibraryMatches();
     if (annotations.isEmpty()) {
       annotations = selectedRow.getCompoundAnnotations();
     }
-    if (annotations.isEmpty() || annotations.get(0).getSmiles() == null) {
+    if (annotations.isEmpty() || annotations.getFirst().getStructure() == null) {
       return null;
     }
-    return annotations.get(0);
+    return annotations.getFirst();
   }
 
 
@@ -314,7 +325,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> selectedRows.size() == 1 && selectedRows.get(0).getMostIntenseFragmentScan() != null);
     exportMSMSItem.setOnAction(e -> MSMSExportModule.exportMSMS(selectedRows.get(0)));
 
-    final MenuItem exportToSirius = new ConditionalMenuItem("Export to Sirius",
+    final MenuItem exportToSirius = new ConditionalMenuItem("Export to Sirius (file)",
         () -> !selectedRows.isEmpty());
     exportToSirius.setOnAction(
         e -> SiriusExportModule.exportSingleRows(selectedRows.toArray(new ModularFeatureListRow[0]),
@@ -399,9 +410,29 @@ public class FeatureTableContextMenu extends ContextMenu {
           ionType.getMass(selectedRow.getAverageMZ())).showInWindow();
     });
 
+    final ImageView siriusImage = FxIconUtil.resizeImage("icons/sirius/sirius_icon.png", 20, 20);
+    final Menu siriusSubMenu = new Menu("SIRIUS", siriusImage);
+
+    final MenuItem sendToSirius = new ConditionalMenuItem("Send to SIRIUS", this::siriusApiCheck);
+    sendToSirius.setOnAction(_ -> MZmineCore.runMZmineModule(SiriusApiExportRowsModule.class,
+        SiriusApiExportRowsParameters.of(selectedRows)));
+
+    final MenuItem runFingerId = new ConditionalMenuItem("Send to SIRIUS & Compute",
+        this::siriusApiCheck);
+    runFingerId.setOnAction(_ -> MZmineCore.runMZmineModule(SiriusApiFingerIdModule.class,
+        SiriusApiFingerIdParameters.of(selectedRows)));
+
+    final MenuItem rankUsingFingerId = new ConditionalMenuItem(
+        "Rank compound annotations using SIRIUS",
+        () -> siriusApiCheck() && !selectedRow.getCompoundAnnotations().isEmpty());
+    rankUsingFingerId.setOnAction(_ -> SiriusApiRankAnnotationsModule.runForRows(selectedRows));
+
+    siriusSubMenu.getItems().addAll(sendToSirius, runFingerId, rankUsingFingerId);
+
     searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
         formulaPredictionItem, fragmentDashboardItem, new SeparatorMenuItem(), masstSearch,
-        new SeparatorMenuItem(), searchMassPubChem, searchFormulaPubChem);
+        new SeparatorMenuItem(), searchMassPubChem, searchFormulaPubChem, new SeparatorMenuItem(),
+        siriusSubMenu);
   }
 
   private void initShowMenu() {
@@ -890,5 +921,9 @@ public class FeatureTableContextMenu extends ContextMenu {
         " (no correlation)");
 
     window.show();
+  }
+
+  private boolean siriusApiCheck() {
+    return selectedRow != null && selectedRows.stream().anyMatch(MzmineToSirius::isSiriusCompatible);
   }
 }

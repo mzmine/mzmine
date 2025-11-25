@@ -483,7 +483,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
             building.getCollisionEnergy(), building.getPrecursorCharge(), parentFrame, frame,
             building.getIsolationWindow());
 
-        frame.getImsMsMsInfos().add(info);
+        ((SimpleFrame)frame).addImsMsMsInfo(info);
         constructed++;
       }
     }
@@ -575,7 +575,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
       final float ce = frameMsMsInfoTable.getCe().get(frameMsMsTableIndex).floatValue();
       final DIAImsMsMsInfoImpl diaImsMsMsInfo = new DIAImsMsMsInfoImpl(
           Range.closed(0, frame.getNumberOfMobilityScans() - 1), ce, frame, mzRange);
-      frame.getImsMsMsInfos().add(diaImsMsMsInfo);
+      ((SimpleFrame)frame).addImsMsMsInfo(diaImsMsMsInfo);
     }
   }
 
@@ -606,7 +606,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
 
       final PasefMsMsInfo ddaImsMsMsInfo = frameMsMsInfoTable.getImsAutoMsMsInfo(
           frameMsMsTableIndex, frame, null);
-      frame.getImsMsMsInfos().add(ddaImsMsMsInfo);
+      ((SimpleFrame)frame).addImsMsMsInfo(ddaImsMsMsInfo);
     }
   }
 
@@ -622,8 +622,8 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? List.of(newMZmineFile) : List.of();
   }
 
  /*private void compareMobilities(IMSRawDataFile rawDataFile) {

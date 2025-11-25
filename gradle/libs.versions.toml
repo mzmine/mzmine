@@ -1,25 +1,25 @@
 [versions]
-jdk = { strictly = "23" }
-javafx = { strictly = "23.0.2" }
+jdk = { strictly = "25" }
+javafx = { strictly = "24.0.2" }
 javafx-plugin = "0.1.0"
 log4j-core = { strictly = "[2.23.0, 2.23.0[", prefer = "2.23.0" }
 
-licenseplugin = "2.8"
-beryx-runtime = "1.13.1"
+licenseplugin = "2.9"
+beryx-runtime = "2.0.0"
 semver = "1.0.4"
 msdk = "0.0.27"
 # update to 2.9? from 2.5
-cdk = "2.11"
+cdk = "2.12-SNAPSHOT"
 swagger = "1.5.22"
 okhttp = "2.7.5"
-slf4j = '1.7.36'
+slf4j = '2.0.17'
 poi = '5.0.0'
-batik = '1.17'
+batik = { require = "1.19" }
 controlsfx = '11.2.2'
 jmzTabm = "1.0.6"
 jna = '5.12.1'
-junit = '5.12.0'
-mockito = '5.16.0'
+junit = '5.14.0'
+mockito = '5.20.0'
 jackson = '2.18.0'
 ikonli = "12.3.1"
 graphstream = "2.0"
@@ -35,7 +35,6 @@ mzio-user-client = { module = "io.mzio:user-client", version.ref = "mzio" }
 mzio-mzmine-core = { module = "io.mzio:mzmine-core", version.ref = "mzio" }
 mzio-memory-management = { module = "io.mzio:memory-management", version.ref = "mzio" }
 mzio-global-events = { module = "io.mzio:global-events", version.ref = "mzio" }
-mzio-test-utils = { module = "io.mzio:mzmine-test-utils", version.ref = "mzio" }
 #
 javafx-plugin = { module = "org.openjfx.javafxplugin:org.openjfx.javafxplugin.gradle.plugin", version.ref = "javafx-plugin" }
 # productivity
@@ -91,9 +90,10 @@ msdk-mzml = { module = "io.github.msdk:msdk-io-mzml", version.ref = "msdk" }
 msdk-adap3d = { module = "io.github.msdk:msdk-featuredetection-adap3d", version.ref = "msdk" }
 msdk-netcdf = { module = "io.github.msdk:msdk-io-netcdf", version.ref = "msdk" }
 
-batik-anim = { group = "org.apache.xmlgraphics", name = "batik-anim", version = "batik" }
-batik-swing = { group = "org.apache.xmlgraphics", name = "batik-swing", version = "batik" }
-batik-svggen = { group = "org.apache.xmlgraphics", name = "batik-svggen", version = "batik" }
+sirius-api = { module = "io.sirius-ms:sirius-sdk", version = "3.1+sirius6.3.3" }
+
+# we could use individual packages, but some dependencies use batik-all anyway. this way we make sure we at least get the latest version
+batik-all = { group = "org.apache.xmlgraphics", name = "batik-all", version.ref = "batik" }
 guava = { group = "com.google.guava", name = "guava", version = "33.0.0-jre" }
 
 commons-io = { group = "commons-io", name = "commons-io", version = "2.15.1" }
@@ -119,7 +119,6 @@ javafx-convention = ["controlsfx", "ikonli-javafx", "ikonli-bootstrap", "ikonli-
 productivity = ["jetbrains-annotations"]
 djl-pytorch = ["djl-api", "djl-pytorch-engine"]
 mzio = ["mzio-memory-management", "mzio-taskcontroller", "mzio-user-client", "mzio-user-management", "mzio-user-management-fx", "mzio-global-events", "mzio-mzmine-core"]
-mzio-test = ["mzio-test-utils"]
 # UI
 ikonli = ["ikonli-bootstrap", "ikonli-javafx", "ikonli-lineawesome"]
 jfreechart = ["jfree-core", "jfree-fx", "jfree-fxgraphics"]
@@ -128,13 +127,12 @@ graphstream = ["graphstream-algo", "graphstream-core", "graphstream-javafx"]
 cdk = ["cdk-core", "cdk-data", "cdk-formula", "cdk-interfaces", "cdk-io", "cdk-renderawt", "cdk-renderbasic", "cdk-fingerprint", "cdk-sdg", "cdk-silent", "cdk-smiles", "cdk-standard", "cdk-inchi"]
 msdk = ["msdk-adap3d", "msdk-mzml", "msdk-netcdf"]
 # logging and other utils
-slf4j = ["slf4j-api", "slf4j-jdk14"]
+slf4j = ["slf4j-api", "slf4j-jdk14"] # libraries should only use slf4j-api, no other dependencies
 poi = ["poi", "poi-ooxml"]
 okhttp = ["okhttp", "okhttp-logging-interceptor"]
 junit-mockito = ["junit-jupiter", "junit-platform", "mockito"]
 jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv", "jackson-datetime", "jackson-datatype"]
-batik = ["batik-anim", "batik-svggen", "batik-swing"]
-
+batik = ["batik-all"]#, "batik-xml-commons-ext"] #, "batik-xml-commons"]
 
 [plugins]
 semver = { id = "net.thauvin.erik.gradle.semver", version.ref = "semver" }

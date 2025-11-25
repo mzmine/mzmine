@@ -35,6 +35,7 @@ import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
@@ -65,7 +66,7 @@ class FormulaRowTypeFilter extends AbstractRowTypeFilter {
         .anyMatch(this::matchesFormula);
   }
 
-  private boolean matchesFormula(String formulaStr) {
+  private boolean matchesFormula(@Nullable String formulaStr) {
     final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
     if (formula == null) {
       return false;
@@ -91,6 +92,8 @@ class FormulaRowTypeFilter extends AbstractRowTypeFilter {
         yield true;
       }
       case NOT_EQUAL -> !queryFormula.equals(formula);
+      case ALL, ANY -> throw new UnsupportedOperationException(
+          "The selected matching mode is not implemented for this filter: " + matchingMode);
     };
   }
 

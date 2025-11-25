@@ -37,7 +37,6 @@ import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupPane.GroupView;
@@ -56,6 +55,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithDownloadParameter;
 import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePaletteParameter;
+import io.github.mzmine.parameters.parametertypes.proxy.ProxyConfigParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.ExitCode;
@@ -64,9 +64,12 @@ import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.web.Proxy;
+import io.github.mzmine.util.web.ProxyDefinition;
 import io.github.mzmine.util.web.ProxyType;
 import io.github.mzmine.util.web.ProxyUtils;
+import io.github.mzmine.util.web.proxy.FullProxyConfig;
+import io.github.mzmine.util.web.proxy.ManualProxyConfig;
+import io.github.mzmine.util.web.proxy.ProxyConfigOption;
 import io.mzio.users.gui.fx.UsersController;
 import java.io.File;
 import java.text.DecimalFormat;
@@ -84,12 +87,6 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.Nullable;
 
 public class MZminePreferences extends SimpleParameterSet {
-
-  public static final HiddenParameter<String> username = new HiddenParameter<>(
-      new StringParameter("username", "last active username", "", false, true));
-
-  public static final HiddenParameter<Boolean> showQuickStart = new HiddenParameter<>(
-      new BooleanParameter("Show quick start video", "", true));
 
   public static final NumberFormatParameter mzFormat = new NumberFormatParameter("m/z value format",
       "Format of m/z values", false, new DecimalFormat("0.0000"));
@@ -138,7 +135,10 @@ public class MZminePreferences extends SimpleParameterSet {
       This options is only added temporarily to allow using the old temp file cleanup, which should not be necessary.
       Default is true (checked).""", true);
 
-  public static final OptionalModuleParameter<ProxyParameters> proxySettings = new OptionalModuleParameter<>(
+  public static final ProxyConfigParameter proxyConfig = new ProxyConfigParameter();
+
+  // OLD PARAMETER THAT IS NOW MAPPED
+  private final OptionalModuleParameter<ProxyParameters> LEGACY_PROXY_SETTINGS = new OptionalModuleParameter<>(
       "Use proxy", "Use proxy for internet connection?", new ProxyParameters(), false);
 
 //  public static final BooleanParameter sendStatistics = new BooleanParameter(
@@ -173,11 +173,6 @@ public class MZminePreferences extends SimpleParameterSet {
       "If checked, fonts in the MZmine gui will be enlarged. The chart fonts are still controlled by the chart theme.",
       false);
 
-  public static final HiddenParameter<Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
-      new OptOutParameter("Ion mobility compatibility warnings",
-          "Shows a warning message when a module without explicit ion mobility support is "
-              + "used to process ion mobility data."));
-
   public static final DirectoryParameter tempDirectory = new DirectoryParameter(
       "Temporary file directory", "Directory where temporary files"
       + " will be stored. Directory should be located on a drive with fast read and write "
@@ -205,20 +200,9 @@ public class MZminePreferences extends SimpleParameterSet {
       Memory efficiency: References to the individual mobilograms of IMS features will be stored in a temporary file.""",
       ImsOptimization.values(), ImsOptimization.MEMORY_EFFICIENCY);
 
-  /*public static final BooleanParameter applyTimsPressureCompensation = new BooleanParameter(
-      "Use MALDI-TIMS pressure compensation", """
-      Specifies if mobility values from Bruker timsTOF fleX MALDI raw data shall be recalibrated using a Bruker algorithm.
-      This compensation is applied during file import and cannot be applied afterwards.
-      Will cause additional memory consumption, because every pixel might have it's own mobility calibration (in theory).
-      In practical cases, this memory consumption is mostly negligible. 
-      """, false);*/
-
   public static final BooleanParameter showPrecursorWindow = new BooleanParameter(
       "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
       true);
-
-  public static final HiddenParameter<Boolean> showTempFolderAlert = new HiddenParameter<>(
-      new BooleanParameter("Show temp alert", "Show temp folder alert", true));
 
   public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<ImageNormalization>(
       "Normalize images",
@@ -230,22 +214,7 @@ public class MZminePreferences extends SimpleParameterSet {
       "Image paint scale transformation", "Transforms the paint scale for images.",
       PaintScaleTransform.values(), PaintScaleTransform.LINEAR);
 
-  private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
-      new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
-      new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.####"),
-      new DecimalFormat("0.###"), UnitFormat.DIVIDE);
-
-  /**
-   * Set of formats that will never be changed. For example to generate stable row IDs with a fixed
-   * precision for mz etc. See {@link FeatureUtils#rowToFullId(FeatureListRow)}
-   */
-  private static final NumberFormats stableFormat = new NumberFormats(new DecimalFormat("0.000000"),
-      new DecimalFormat("0.0000"), new DecimalFormat("0.0000"), new DecimalFormat("0.000"),
-      new DecimalFormat("0.0000E0"), new DecimalFormat("0.00"), new DecimalFormat("0.0000"),
-      new DecimalFormat("0.0000"), UnitFormat.DIVIDE);
-
-  private final BooleanProperty darkModeProperty = new SimpleBooleanProperty(false);
-  private NumberFormats guiFormat = exportFormat; // default value
+  // ---------------------------------------------- Data import parameters
 
   public static final FileNameParameter msConvertPath = new FileNameWithDownloadParameter(
       "MSConvert path",
@@ -258,37 +227,67 @@ public class MZminePreferences extends SimpleParameterSet {
           + "This will reduce the import time when re-processing, but require more disc space.",
       false);
 
+  public static final OptionalParameter<FileNameWithDownloadParameter> thermoRawFileParserPath = new OptionalParameter<>(
+      new FileNameWithDownloadParameter("Thermo raw file parser location",
+          "This is the optional external location to overwrite the internal thermo raw file parsing default. Disable to use the internal parser. macOS currently requires mono installed and the external raw file parser (see download button on the right).",
+          List.of(new ExtensionFilter("Executable or zip", "ThermoRawFileParser.exe",
+                  "ThermoRawFileParser", "ThermoRawFileParser.zip"),
+              new ExtensionFilter("zip", "ThermoRawFileParser.zip"),
+              new ExtensionFilter("Windows executable", "ThermoRawFileParser.exe"),
+              new ExtensionFilter("Linux / macOS executable", "ThermoRawFileParser")),
+          AssetGroup.ThermoRawFileParser));
+
   public static final BooleanParameter applyVendorCentroiding = new BooleanParameter(
       "Apply vendor centroiding (recommended)", """
-      Apply vendor centroiding (peak picking) during import of native vendor files.
+      Vendor centroiding will be applied to the imported raw data if this option is selected and centroiding is supported.
       Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.
       """, true);
 
-  public static final ComboParameter<ThermoImportOptions> thermoImportChoice = new ComboParameter<>(
-      "Thermo data import", """
-      Specify which path you want to use for Thermo raw data import. MSConvert allows import of
-      UV spectra and chromatograms and is therefore recommended, but only available on windows.
-      """, ThermoImportOptions.getOptionsForOs(), ThermoImportOptions.MSCONVERT);
+  public static final OptionalModuleParameter<WatersLockmassParameters> watersLockmass = VendorImportParameters.watersLockmass.getEmbeddedParameter()
+      .cloneParameter();
 
-  public static final FileNameWithDownloadParameter thermoRawFileParserPath = new FileNameWithDownloadParameter(
-      "Thermo raw file parser location", "The file path to the thermo raw file parser.", List.of(
-      new ExtensionFilter("Executable or zip", "ThermoRawFileParser.exe",
-          "ThermoRawFileParserLinux", "ThermoRawFileParserMac", "ThermoRawFileParser.zip"),
-      new ExtensionFilter("zip", "ThermoRawFileParser.zip"),
-      new ExtensionFilter("Windows executable", "ThermoRawFileParser.exe"),
-      new ExtensionFilter("Linux executable", "ThermoRawFileParserLinux"),
-      new ExtensionFilter("Mac executable", "ThermoRawFileParserMac")),
-      AssetGroup.ThermoRawFileParser);
+  public static final BooleanParameter excludeThermoExceptionMasses = VendorImportParameters.excludeThermoExceptionMasses.getEmbeddedParameter()
+      .cloneParameter();
 
-  public static final OptionalParameter<ParameterSetParameter<WatersLockmassParameters>> watersLockmass = new OptionalParameter<>(
-      new ParameterSetParameter<>("Apply lockmass on import (Waters)",
-          "Apply lockmass correction for native Waters raw data during raw data import via MSConvert.",
-          new WatersLockmassParameters()), true);
+
+  private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
+      new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
+      new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.####"),
+      new DecimalFormat("0.###"), UnitFormat.DIVIDE);
+  /**
+   * Set of formats that will never be changed. For example to generate stable row IDs with a fixed
+   * precision for mz etc. See {@link FeatureUtils#rowToFullId(FeatureListRow)}
+   */
+  private static final NumberFormats stableFormat = new NumberFormats(new DecimalFormat("0.000000"),
+      new DecimalFormat("0.0000"), new DecimalFormat("0.0000"), new DecimalFormat("0.000"),
+      new DecimalFormat("0.0000E0"), new DecimalFormat("0.00"), new DecimalFormat("0.0000"),
+      new DecimalFormat("0.0000"), UnitFormat.DIVIDE);
+  private final BooleanProperty darkModeProperty = new SimpleBooleanProperty(false);
+  private NumberFormats guiFormat = exportFormat; // default value
+
+  // ---------------------------------------------- Hidden parameters
+
+  public static final HiddenParameter<Boolean> showTempFolderAlert = new HiddenParameter<>(
+      new BooleanParameter("Show temp alert", "Show temp folder alert", true));
+
+  public static final HiddenParameter<String> username = new HiddenParameter<>(
+      new StringParameter("username", "last active username", "", false, true));
+
+  public static final HiddenParameter<Boolean> showQuickStart = new HiddenParameter<>(
+      new BooleanParameter("Show quick start video", "", true));
+
+  public static final HiddenParameter<Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
+      new OptOutParameter("Ion mobility compatibility warnings",
+          "Shows a warning message when a module without explicit ion mobility support is "
+              + "used to process ion mobility data."));
+
+  public static final HiddenParameter<Map<String, Boolean>> siriusCountWarningOptOut = new HiddenParameter<>(
+      new OptOutParameter("Sirius feature count warning", ""));
 
   public MZminePreferences() {
     super(// start with performance
         new Parameter[]{numOfThreads, memoryOption, imsOptimization, tempDirectory,
-            runGCafterBatchStep, deleteTempFiles, proxySettings,
+            runGCafterBatchStep, deleteTempFiles, proxyConfig,
             /*applyTimsPressureCompensation,*/
             // visuals
             // number formats
@@ -301,10 +300,10 @@ public class MZminePreferences extends SimpleParameterSet {
             imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
             windowSettings, useTabSubtitles,
             // silent parameters without controls
-            showTempFolderAlert, username, showQuickStart,
-            //
-            applyVendorCentroiding, msConvertPath, keepConvertedFile, watersLockmass,
-            thermoRawFileParserPath, thermoImportChoice},
+            showTempFolderAlert, username, showQuickStart, siriusCountWarningOptOut,
+            // conversion, data handling
+            applyVendorCentroiding, watersLockmass, msConvertPath, keepConvertedFile,
+            thermoRawFileParserPath, excludeThermoExceptionMasses},
         "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
     darkModeProperty.subscribe(state -> {
@@ -331,15 +330,16 @@ public class MZminePreferences extends SimpleParameterSet {
 
     final List<ParameterGroup> groups = List.of( //
         new ParameterGroup("General", numOfThreads, memoryOption, imsOptimization, tempDirectory,
-            runGCafterBatchStep, deleteTempFiles, proxySettings
+            runGCafterBatchStep, deleteTempFiles, proxyConfig
             /*, applyTimsPressureCompensation*/), //
         new ParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
             intensityFormat, ppmFormat, scoreFormat, percentFormat, unitFormat), //
         new ParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
             chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
             imageNormalization, windowSettings), //
-        new ParameterGroup("MS data import", applyVendorCentroiding, msConvertPath,
-            keepConvertedFile, watersLockmass, thermoRawFileParserPath, thermoImportChoice) //
+        new ParameterGroup("MS data import", applyVendorCentroiding, watersLockmass, msConvertPath,
+            keepConvertedFile, thermoRawFileParserPath, excludeThermoExceptionMasses
+        ) //
     );
     // imsModuleWarnings, showTempFolderAlert, showQuickStart  are hidden parameters
 
@@ -350,7 +350,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
     dialog.setWidth(800);
     dialog.setHeight(800);
-    
+
     // check
     dialog.showAndWait();
     final ExitCode retVal = dialog.getExitCode();
@@ -542,31 +542,45 @@ public class MZminePreferences extends SimpleParameterSet {
     if (StringUtils.hasValue(username)) {
       UsersController.getInstance().setCurrentUserByName(username);
     }
+
+    // no way to know if the parameter was actively deselected by user
+    // therefore no way to activate this parameter automatically
+    // only activate for macOS as macOS needs external for now
+    if (com.sun.jna.Platform.isMac()) {
+      final OptionalParameter<FileNameWithDownloadParameter> parserPath = (OptionalParameter<FileNameWithDownloadParameter>) loadedParams.get(
+          thermoRawFileParserPath.getName());
+      if (parserPath != null) {
+        final File path = parserPath.getEmbeddedParameter().getValue();
+        if (path != null && path.getPath().endsWith("ThermoRawFileParserMac")) {
+          setParameter(thermoRawFileParserPath, true);
+        }
+      }
+    }
+
+    // set old manual proxy to config
+    final var oldProxy = (OptionalModuleParameter<ProxyParameters>) loadedParams.get(
+        LEGACY_PROXY_SETTINGS.getName());
+    if (oldProxy != null && oldProxy.getValue()) {
+      String address = oldProxy.getEmbeddedParameters().getValue(ProxyParameters.proxyAddress);
+      int port = 80;
+      try {
+        final String portStr = oldProxy.getEmbeddedParameters().getValue(ProxyParameters.proxyPort);
+        if (portStr != null) {
+          port = Integer.parseInt(portStr);
+        }
+      } catch (Exception e) {
+      }
+      final ProxyType type = oldProxy.getEmbeddedParameters().getValue(ProxyParameters.proxyType);
+      final FullProxyConfig config = new FullProxyConfig(ProxyConfigOption.MANUAL_PROXY,
+          new ManualProxyConfig(type, address, port, List.of()));
+      ProxyUtils.applyConfig(config);
+    }
   }
 
   private void updateSystemProxySettings() {
     // Update system proxy settings
-    Boolean proxyEnabled = getParameter(proxySettings).getValue();
-    if ((proxyEnabled != null) && (proxyEnabled)) {
-      ParameterSet proxyParams = getParameter(proxySettings).getEmbeddedParameters();
-      String address = proxyParams.getParameter(ProxyParameters.proxyAddress).getValue();
-      String port = proxyParams.getParameter(ProxyParameters.proxyPort).getValue();
-
-      // some proxy urls contain http:// at the beginning, we need to filter this out
-      if (address.startsWith("http://")) {
-        proxyParams.setParameter(ProxyParameters.proxyType, ProxyType.HTTP);
-        address = address.replaceFirst("http://", "");
-      } else if (address.startsWith("https://")) {
-        proxyParams.setParameter(ProxyParameters.proxyType, ProxyType.HTTPS);
-        address = address.replaceFirst("https://", "");
-      }
-
-      final ProxyType proxyType = proxyParams.getValue(ProxyParameters.proxyType);
-      // need to set both proxies anyway
-      ProxyUtils.setSystemProxy(address, port, proxyType);
-    } else {
-      ProxyUtils.clearSystemProxy();
-    }
+    final FullProxyConfig config = getValue(proxyConfig);
+    ProxyUtils.applyConfig(config);
   }
 
 
@@ -599,14 +613,11 @@ public class MZminePreferences extends SimpleParameterSet {
   }
 
   /**
-   * Set system proxy in preferences and {@link ProxyUtils#setSystemProxy(Proxy)}
+   * Set system proxy in preferences and {@link ProxyUtils#setManualProxy(ProxyDefinition)}
    */
-  public void setProxy(final Proxy proxy) {
-    OptionalModuleParameter<ProxyParameters> pp = getParameter(proxySettings);
-    pp.setValue(proxy.active());
-    ProxyParameters params = pp.getEmbeddedParameters();
-    params.setProxy(proxy);
-    ProxyUtils.setSystemProxy(proxy);
+  public void setProxy(final FullProxyConfig proxy) {
+    setParameter(proxyConfig, proxy);
+    ProxyUtils.applyConfig(proxy);
   }
 
   @Override
@@ -624,5 +635,13 @@ public class MZminePreferences extends SimpleParameterSet {
     map.put("Apply peak picking (recommended)",
         getParameter(MZminePreferences.applyVendorCentroiding));
     return map;
+  }
+
+  /**
+   * Creates a copy of the currently selected vendor parameters in the preferences. Used for drag &
+   * drop and wizard import.
+   */
+  public VendorImportParameters getVendorImportParameters() {
+    return VendorImportParameters.createFromPreferences();
   }
 }

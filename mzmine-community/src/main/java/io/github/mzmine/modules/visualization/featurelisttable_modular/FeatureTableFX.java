@@ -86,6 +86,7 @@ import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
@@ -174,6 +175,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   private final List<TreeTableColumn<ModularFeatureListRow, String>> rawColumns = new ArrayList<>();
   private final FeatureTableContextMenu contextMenu;
   private final FeatureTableColumnMenuHelper contextMenuHelper;
+  private final int SAMPLE_COLUMNS_THRESHOLD = 30;
 
   /**
    * Package private to centralize creation in {@link FxFeatureTableController}
@@ -878,6 +880,16 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
       return;
     }
 
+    final int numSamples = getFeatureList().getNumberOfRawDataFiles();
+    if (numSamples > SAMPLE_COLUMNS_THRESHOLD) {
+      if (!DialogLoggerUtil.showDialogYesNo("Show sample columns?", """
+          Showing sample columns for %d samples may take time and slow down mzmine. \
+          Consider using the statistics dashboard and box plot columns instead for an overview.""".formatted(
+          numSamples))) {
+        return;
+      }
+    }
+
     // Add feature columns for each raw file
     for (RawDataFile dataFile : getFeatureList().getRawDataFiles()) {
       TreeTableColumn<ModularFeatureListRow, String> sampleCol = new TreeTableColumn<>();
@@ -1140,7 +1152,8 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     contextMenu.onFeatureListChanged(newFeatureList);
 
     // too many samples slow down the table - therefore do not show sample specific columns then
-    sampleColVisibleParameter.setValue(newFeatureList.getNumberOfRawDataFiles() <= 36);
+    sampleColVisibleParameter.setValue(
+        newFeatureList.getNumberOfRawDataFiles() <= SAMPLE_COLUMNS_THRESHOLD);
     addColumns(newFeatureList);
     // first check if feature list is too large
     applyDefaultColumnVisibilities();

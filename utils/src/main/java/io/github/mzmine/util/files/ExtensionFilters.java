@@ -25,7 +25,9 @@
 
 package io.github.mzmine.util.files;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ExtensionFilters {
@@ -80,7 +82,7 @@ public class ExtensionFilters {
   public static final ExtensionFilter JSON_LIBRARY = new ExtensionFilter(
       "json libraries from MoNA, GNPS, MZmine", "*.json");
   public static final ExtensionFilter MSP = new ExtensionFilter("msp mass spectra format (NIST)",
-      "*.msp");
+      "*.msp", "*.msp_RIKEN", "*.msp_NIST");
   public static final ExtensionFilter MGF = new ExtensionFilter("mgf mass spectra format", "*.mgf");
   public static final ExtensionFilter JDCAMX = new ExtensionFilter("JCAM-DX files", "*.jdx");
 
@@ -150,10 +152,46 @@ public class ExtensionFilters {
   public static final ExtensionFilter MSCONVERT = new ExtensionFilter("MSConvert", "msconvert.exe");
 
 
-  public static String getExtensionName(ExtensionFilter filter) {
-    return filter.getExtensions().stream().findFirst().map(ext -> {
-      var split = ext.split("\\.");
-      return split[split.length - 1];
-    }).orElse("");
+  /**
+   *
+   * @param filter usually *.csv and similar
+   * @return csv without the star and .
+   */
+  public static String getCleanExtensionName(String filter) {
+    return filter.replaceAll("[.*]", "");
+  }
+
+  /**
+   * All extension filter clean names. Each filter may have multiple. The all filter (*.*) is
+   * removed
+   *
+   * @param filters usually *.csv and similar
+   * @return csv without the star and .
+   */
+  public static Stream<String> getAllCleanExtensionNames(List<ExtensionFilter> filters) {
+    return filters.stream().map(ExtensionFilter::getExtensions).flatMap(Collection::stream)
+        .map(ExtensionFilters::getCleanExtensionName).filter(s -> !s.isBlank());
+  }
+
+  /**
+   * All extension filter clean names. Each filter may have multiple. The all filter (*.*) is
+   * removed
+   *
+   * @param filter usually *.csv and similar
+   * @return csv without the star and .
+   */
+  public static Stream<String> getAllCleanExtensionNames(ExtensionFilter filter) {
+    return getAllCleanExtensionNames(List.of(filter));
+  }
+
+  /**
+   * Only the first extension filter
+   *
+   * @param filter usually *.csv and similar
+   * @return csv without the star and .
+   */
+  public static String getFirstCleanExtensionName(ExtensionFilter filter) {
+    return filter.getExtensions().stream().findFirst().map(ExtensionFilters::getCleanExtensionName)
+        .orElse("");
   }
 }

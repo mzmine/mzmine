@@ -995,7 +995,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         null, ScanSelection.ALL_SCANS, denormalize);
 
     final var param = AllSpectralDataImportParameters.create(
-        ConfigService.isApplyVendorCentroiding(), dataFiles,
+        ConfigService.getPreferences().getVendorImportParameters(), dataFiles,
         metadataFile.active() ? metadataFile.value() : null, libraries, advancedParameters);
 
     param.setParameter(AllSpectralDataImportParameters.advancedImport, false);
@@ -1450,7 +1450,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     if (exportPath != null) {
       File fileName = FileAndPathUtil.eraseFormat(exportPath);
-      final String extension = ExtensionFilters.getExtensionName(ExtensionFilters.MZ_BATCH);
+      final String extension = ExtensionFilters.getFirstCleanExtensionName(
+          ExtensionFilters.MZ_BATCH);
       fileName = new File(fileName.getParentFile(),
           fileName.getName() + "_batch.%s".formatted(extension));
       param.setParameter(AutoSaveBatchParameters.savePath, true, fileName);

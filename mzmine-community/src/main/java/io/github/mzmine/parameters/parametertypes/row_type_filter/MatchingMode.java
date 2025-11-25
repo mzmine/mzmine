@@ -27,18 +27,32 @@ package io.github.mzmine.parameters.parametertypes.row_type_filter;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.annotation.JsonFormat.Feature;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
+@JsonNaming(SnakeCaseStrategy.class)
+@JsonFormat(with = Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
 public enum MatchingMode implements UniqueIdSupplier {
 
-  EQUAL, GREATER_EQUAL, LESSER_EQUAL, NOT_EQUAL, CONTAINS;
+  EQUAL, GREATER_EQUAL, LESSER_EQUAL, NOT_EQUAL, CONTAINS,
+
+  /**
+   * any is a list operation where any should match. For example, in Strings this is used by
+   * separating the query string by space, comma, or semicolon symbols and searching for ANY
+   * substring
+   */
+  ANY,
+  /**
+   * ALL is a list operation where ALL should match. For example, in Strings this is used by
+   * separating the query string by space, comma, or semicolon symbols and searching for ALL
+   * substring
+   */
+  ALL;
 
   @JsonCreator
   @Nullable
@@ -47,12 +61,12 @@ public enum MatchingMode implements UniqueIdSupplier {
   }
 
 
-  public List<MatchingMode> getNumericMatchingModes() {
+  public static List<MatchingMode> getNumericMatchingModes() {
     return List.of(EQUAL, GREATER_EQUAL, LESSER_EQUAL, NOT_EQUAL);
   }
 
-  public List<MatchingMode> getStringMatchingModes() {
-    return List.of(EQUAL, NOT_EQUAL, CONTAINS);
+  public static List<MatchingMode> getStringMatchingModes() {
+    return List.of(ANY, ALL, CONTAINS, EQUAL);
   }
 
   @Override
@@ -63,6 +77,8 @@ public enum MatchingMode implements UniqueIdSupplier {
       case LESSER_EQUAL -> "≤";
       case NOT_EQUAL -> "≠";
       case CONTAINS -> "⊂";
+      case ANY -> "any";
+      case ALL -> "all";
     };
   }
 
@@ -73,6 +89,10 @@ public enum MatchingMode implements UniqueIdSupplier {
       case LESSER_EQUAL -> "Lesser or equal";
       case NOT_EQUAL -> "Not equal";
       case CONTAINS -> "Contains (e.g., substring, substructure)";
+      case ANY ->
+          "Search for ANY substring match to any query word. Separate words by space, comma, or semicolon symbols like: 'alpha hydroxy'. This query requires ANY of the two words in any order.";
+      case ALL ->
+          "Search for ALL substring matches to any query word. Separate words by space, comma, or semicolon symbols like: 'alpha hydroxy'. This query requires ALL of the two words in any order.";
     };
   }
 
@@ -84,6 +104,18 @@ public enum MatchingMode implements UniqueIdSupplier {
       case LESSER_EQUAL -> "lesser_equal";
       case NOT_EQUAL -> "not_equal";
       case CONTAINS -> "contains";
+      case ANY -> "any";
+      case ALL -> "all";
+    };
+  }
+
+  /**
+   * Should split query strings by spaces, comma, and semicolons and search for each
+   */
+  public boolean isStringListOperation() {
+    return switch (this) {
+      case ANY, ALL -> true;
+      case EQUAL, GREATER_EQUAL, LESSER_EQUAL, NOT_EQUAL, CONTAINS -> false;
     };
   }
 }

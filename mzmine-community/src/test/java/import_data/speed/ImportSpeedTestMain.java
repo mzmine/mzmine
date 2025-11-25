@@ -27,12 +27,13 @@ package import_data.speed;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Range;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
+import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -138,8 +139,9 @@ public class ImportSpeedTestMain {
       return new File(ImportSpeedTestMain.class.getClassLoader().getResource(name).getFile());
     }).toArray(File[]::new);
 
-    ParameterSet paramDataImport = AllSpectralDataImportParameters.create(true, files, null, null,
-        advanced);
+    ParameterSet paramDataImport = AllSpectralDataImportParameters.create(
+        VendorImportParameters.create(true, true, WatersLockmassParameters.createDefault(), true),
+        files, null, null, advanced);
 
     logger.info("Testing data import of mzML and mzXML without advanced parameters");
 

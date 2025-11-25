@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,10 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
+import io.github.mzmine.datamodel.features.types.JsonStringType;
+import io.github.mzmine.datamodel.features.types.RIRecordType;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
@@ -53,6 +56,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
@@ -60,14 +64,17 @@ import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotati
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RITolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.RIRecord;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -315,6 +322,11 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return get(CCSType.class);
   }
 
+  @Nullable
+  default RIRecord getRiRecord() {
+    return get(RIRecordType.class);
+  }
+
   @Override
   @Nullable
   default Float getRT() {
@@ -355,9 +367,15 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return get(DatabaseNameType.class);
   }
 
+  @Override
+  @Nullable
+  default String getComment() {
+    return get(CommentType.class);
+  }
+
   boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
-      @Nullable Double percentCCSTolerance);
+      @Nullable Double percentCCSTolerance, @Nullable RITolerance riTolerance);
 
   /**
    * @param row                 tested row
@@ -370,20 +388,33 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
   @Nullable
   default Float calculateScore(@NotNull FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
-      @Nullable Double percentCCSTolerance) {
-    if (!matches(row, mzTolerance, rtTolerance, mobilityTolerance, percentCCSTolerance)) {
+      @Nullable Double percentCCSTolerance, @Nullable RITolerance riTolerance) {
+    if (!matches(row, mzTolerance, rtTolerance, mobilityTolerance, percentCCSTolerance,
+        riTolerance)) {
       return null;
     }
     // setup ranges around the annotation and test for row average values
-    Double mz = getPrecursorMZ();
+    final Double mz = getPrecursorMZ();
     final Float rt = getRT();
     final Float mobility = getMobility();
     final Float ccs = getCCS();
-    var mzRange = mzTolerance != null && mz != null ? mzTolerance.getToleranceRange(mz) : null;
-    var rtRange = rtTolerance != null && rt != null ? rtTolerance.getToleranceRange(rt) : null;
-    var mobilityRange =
+    final RIRecord ri = getRiRecord();
+    final var mzRange =
+        mzTolerance != null && mz != null ? mzTolerance.getToleranceRange(mz) : null;
+    final var rtRange =
+        rtTolerance != null && rt != null ? rtTolerance.getToleranceRange(rt) : null;
+    final var mobilityRange =
         mobilityTolerance != null && mobility != null ? mobilityTolerance.getToleranceRange(
             mobility) : null;
+    Range<Float> riRange;
+    if (riTolerance != null && ri != null) {
+      riRange = riTolerance.getToleranceRange(ri);
+    } else if (riTolerance == null) {
+      riRange = null;
+    } else /*if (ri == null)*/ {
+      riRange = riTolerance.isMatchOnNull() ? null : Range.singleton(Float.NEGATIVE_INFINITY);
+    }
+    // null is treated as a match, so return something that is impossible to match.
 
     Range<Float> ccsRange = null;
     if (percentCCSTolerance != null && ccs != null && row.getAverageCCS() != null) {
@@ -391,8 +422,8 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
       ccsRange = Range.closed(ccs - tol, ccs + tol);
     }
     return (float) FeatureListUtils.getAlignmentScore(row.getAverageMZ(), row.getAverageRT(),
-        row.getAverageMobility(), row.getAverageCCS(), mzRange, rtRange, mobilityRange, ccsRange, 1,
-        1, 1, 1);
+        row.getAverageMobility(), row.getAverageCCS(), row.getAverageRI(), mzRange, rtRange,
+        mobilityRange, ccsRange, riRange, 1, 1, 1, 1, 1);
   }
 
   /**
@@ -407,9 +438,9 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
   default @Nullable CompoundDBAnnotation checkMatchAndCalculateDeviation(
       @NotNull FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobTolerance,
-      @Nullable Double percCcsTolerance) {
+      @Nullable Double percCcsTolerance, @Nullable RITolerance ritolerance) {
     final Float score = calculateScore(row, mzTolerance, rtTolerance, mobTolerance,
-        percCcsTolerance);
+        percCcsTolerance, ritolerance);
     if (score == null || score <= 0) {
       return null;
     }
@@ -437,6 +468,9 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
       clone.put(RtRelativeErrorType.class,
           PercentTolerance.getPercentError(compRt, row.getAverageRT()));
       clone.put(RtAbsoluteDifferenceType.class, row.getAverageRT() - compRt);
+    }
+    if (getRiRecord() != null && row.getAverageRI() != null && ritolerance != null) {
+      clone.put(RIDiffType.class, ritolerance.getRiDifference(row.getAverageRI(), getRiRecord()));
     }
 
     return clone;
@@ -536,4 +570,23 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
   }
 
   void setStructure(MolecularStructure structure);
+
+  /**
+   * convenience method to derive additional fields from fields that are present. Recommended to
+   * call this method after retrieving the annotation from an external source.
+   */
+  default void enrichMetadata() {
+    MolecularStructure struc = StructureParser.silent().parseStructure(getSmiles(), getInChI());
+    if (struc != null) {
+      setStructure(struc);
+    }
+  }
+
+  /**
+   * An additional json string that may contain additional fields that are otherwise not captured.
+   *
+   */
+  default @Nullable String getAdditionalJson() {
+    return get(JsonStringType.class);
+  }
 }

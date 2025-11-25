@@ -25,30 +25,35 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
-import static io.github.mzmine.util.StringUtils.inQuotes;
 import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
 
 public class GroupMs2AdvancedParameters extends SimpleParameterSet {
 
+  public static final double DEFAULT_OUTPUT_NOISE_ABS = 250d;
   public static final OptionalParameter<DoubleParameter> outputNoiseLevel = new OptionalParameter<>(
       new DoubleParameter("Minimum signal intensity (absolute, TIMS)",
           "If a TIMS feature is processed, this parameter "
-          + "can be used to filter low abundant signals in the MS/MS spectrum, since multiple "
-          + "MS/MS mobility scans need to be merged together.",
-          MZmineCore.getConfiguration().getIntensityFormat(), 250d, 0d, Double.MAX_VALUE), false);
+              + "can be used to filter low abundant signals in the MS/MS spectrum, since multiple "
+              + "MS/MS mobility scans need to be merged together.",
+          MZmineCore.getConfiguration().getIntensityFormat(), DEFAULT_OUTPUT_NOISE_ABS, 0d,
+          Double.MAX_VALUE), false);
 
+  public static final double DEFUALT_OUTPUT_NOISE_REL = 0.01d;
   public static final OptionalParameter<PercentParameter> outputNoiseLevelRelative = new OptionalParameter<>(
       new PercentParameter("Minimum signal intensity (relative, TIMS)",
           "If an ion mobility spectrometry (TIMS) feature is processed, this parameter "
-          + "can be used to filter low abundant peaks in the MS/MS spectrum, since multiple "
-          + "MS/MS mobility scans need to be merged together.", 0.01d), true);
+              + "can be used to filter low abundant peaks in the MS/MS spectrum, since multiple "
+              + "MS/MS mobility scans need to be merged together.", DEFUALT_OUTPUT_NOISE_REL),
+      true);
 
   public static final OptionalParameter<MetadataGroupingParameter> iterativeMs2Column = new OptionalParameter<>(
       new MetadataGroupingParameter("Group iterative MS2s", """
@@ -70,9 +75,10 @@ public class GroupMs2AdvancedParameters extends SimpleParameterSet {
     final GroupMs2AdvancedParameters param = (GroupMs2AdvancedParameters) new GroupMs2AdvancedParameters().cloneParameterSet();
 
     param.setParameter(GroupMs2AdvancedParameters.outputNoiseLevel, outputNoiseLevel != null,
-        outputNoiseLevel);
+        Objects.requireNonNullElse(outputNoiseLevel, DEFAULT_OUTPUT_NOISE_ABS));
     param.setParameter(GroupMs2AdvancedParameters.outputNoiseLevelRelative,
-        outputNoiseLevelRelative != null, outputNoiseLevelRelative);
+        outputNoiseLevelRelative != null,
+        Objects.requireNonNullElse(outputNoiseLevelRelative, DEFUALT_OUTPUT_NOISE_REL));
 
     param.setParameter(GroupMs2AdvancedParameters.iterativeMs2Column,
         iterativeMs2ColumnName != null, Objects.requireNonNullElse(iterativeMs2ColumnName,
