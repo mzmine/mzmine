@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class Precision {
 
-  private static DecimalFormat format = new DecimalFormat("0.0E0");
+  private static final DecimalFormat exponentFormat = new DecimalFormat("0.0E0");
 
   /**
    * Checks if difference of a and b is small equal to max difference
@@ -79,8 +79,23 @@ public class Precision {
    * @return true if Math.abs(a-b) <= maxDelta
    */
   public static boolean equals(double a, double b, double maxDelta, double maxRelativeDelta) {
-    // diff <= max of relative and absolute
-    return Math.abs(a - b) <= Math.max(Math.max(a, b) * maxRelativeDelta, maxDelta);
+    // equal or both are NaN
+    if (Double.compare(a, b) == 0) {
+      return true;
+    }
+    // only one is NaN
+    if (Double.isNaN(a) || Double.isNaN(b)) {
+      return false;
+    }
+    // abs error
+    final double diff = Math.abs(a - b);
+    if (diff <= maxDelta) {
+      return true;
+    }
+
+    final double absoluteMax = Math.max(Math.abs(a), Math.abs(b));
+    final double relativeDifference = Math.abs(diff / absoluteMax);
+    return relativeDifference <= maxRelativeDelta;
   }
 
   /**
@@ -94,8 +109,23 @@ public class Precision {
    * @return true if Math.abs(a-b) <= maxDelta
    */
   public static boolean equals(float a, float b, float maxDelta, float maxRelativeDelta) {
-    // diff <= max of relative and absolute
-    return Math.abs(a - b) <= Math.max(Math.max(a, b) * maxRelativeDelta, maxDelta);
+    // equal or both are NaN
+    if (Float.compare(a, b) == 0) {
+      return true;
+    }
+    // only one is NaN
+    if (Float.isNaN(a) || Float.isNaN(b)) {
+      return false;
+    }
+    // abs error
+    final double diff = Math.abs(a - b);
+    if (diff <= maxDelta) {
+      return true;
+    }
+
+    final double absoluteMax = Math.max(Math.abs(a), Math.abs(b));
+    final double relativeDifference = Math.abs(diff / absoluteMax);
+    return relativeDifference <= maxRelativeDelta;
   }
 
 
@@ -172,89 +202,56 @@ public class Precision {
     if (digits <= maxLength) {
       return str;
     } else {
-      format.setMaximumFractionDigits(maxLength - 1);
-      return format.format(dec);
+      // format as 1E5 notation
+      return exponentFormat.format(dec);
     }
   }
 
-  public static boolean equalDoubleSignificance(final double a, final double b) {
-    // use reduced significance to allow more floating point inaccuracies
-    return equalSignificance(a, b, 12); // double significance is 15 - 17 digits
-  }
-
-  public static boolean equalSignificance(final double a, final double b, final int sigDigits) {
-    // equal or both are NaN
-    if (Double.compare(a, b) == 0) {
-      return true;
-    }
-    // only one is NaN
-    if (Double.isNaN(a) || Double.isNaN(b)) {
-      return false;
-    }
-
-    final double diff = Math.abs(a - b);
-    // if one is infinite or if number overflow
-    if (Double.isInfinite(diff)) {
-      return false;
-    }
-
-    // Math.floor always rounds to next smaller number so negative values will be like -3.1 -> -4
-    // +1 as we are using floor and in both positive and negative exponents we need +1
-    final double max = Math.max(Math.abs(a), Math.abs(b));
-    final double scaleExponent = Math.floor(Math.log10(max)) - sigDigits + 1;
-    final double allowedDelta = Math.pow(10, scaleExponent) * 0.5;
-    return diff <= allowedDelta;
-  }
-
-
-  public static boolean equalFloatSignificance(final double a, final double b) {
-    // use reduced significance to allow more floating point inaccuracies
-    return equalSignificance(a, b, 5); // float significance is 6 - 7 digits
-  }
-
-  public static boolean equalFloatSignificance(final float a, final float b) {
-    // use reduced significance to allow more floating point inaccuracies
-    return equalSignificance(a, b, 5); // float significance is 6 - 7 digits
-  }
-
-  public static boolean equalFloatSignificance(final @Nullable Float a, final @Nullable Float b) {
+  public static boolean equalDoubleSignificance(final @Nullable Number a,
+      final @Nullable Number b) {
     if (a == null && b == null) {
       return true;
     }
     if (a == null || b == null) {
       return false;
     }
-    return equalFloatSignificance(a.floatValue(), b.floatValue());
+    return equalDoubleSignificance(a.doubleValue(), b.doubleValue());
   }
 
-  public static boolean equalSignificance(final float a, final float b, final int sigDigits) {
-    // conversion from Float.NaN and Float.POSITIVE_INFINITY to double is always correct so can just relay
-    return equalSignificance((double) a, (double) b, sigDigits);
+  public static boolean equalFloatSignificance(final @Nullable Number a, final @Nullable Number b) {
+    if (a == null && b == null) {
+      return true;
+    }
+    if (a == null || b == null) {
+      return false;
+    }
+    return equalFloatSignificance(a.doubleValue(), b.doubleValue());
   }
 
   /**
-   * Uses relative error of 1E-5 (could also change to 5E-5)
+   * Uses relative error of 5E-5
    *
    * @param a first value
    * @param b second value
    * @return true if the relative difference diff/max is <= relative error. true if both values are
    * NaN, false if only one is NaN
    */
-  public static boolean equalRelativeFloatSignificance(final double a, final double b) {
-    return equalRelativeSignificance(a, b, 1E-5);
+  public static boolean equalFloatSignificance(final double a, final double b) {
+    return equalRelativeSignificance(a, b, 5E-6);
   }
 
   /**
-   * Uses relative error of 1E-12 (could also change to 5E-13)
+   * Uses relative error of 5E-13
    *
    * @param a first value
    * @param b second value
    * @return true if the relative difference diff/max is <= relative error. true if both values are
    * NaN, false if only one is NaN
    */
-  public static boolean equalRelativeDoubleSignificance(final double a, final double b) {
-    return equalRelativeSignificance(a, b, 1E-12);
+  public static boolean equalDoubleSignificance(final double a, final double b) {
+    return equalRelativeSignificance(a, b, 5E-13);
   }
+
 
   /**
    *
