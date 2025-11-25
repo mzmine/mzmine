@@ -5,6 +5,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Used in JasperStudio to generate example data by calling one of the static methods.
+ */
 public class ReportDataFactory {
 
   public ReportDataFactory() {

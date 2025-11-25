@@ -493,6 +493,7 @@ public class ReportUtils {
       return false;
     }
     boxPlot.setDataset(ds);
+    boxPlot.getChart().getCategoryPlot().getDomainAxis().setLabel(groupingColumn.getTitle());
     return true;
   }
 

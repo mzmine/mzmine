@@ -9,6 +9,11 @@ import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ *
+ * @param chartSvg String representation of the SVG-XML or a {@link BufferedImage}.
+ * @param caption  The caption of the figure or null.
+ */
 public record FigureAndCaption(@Nullable Object chartSvg, @Nullable String caption) {
 
   @NotNull
