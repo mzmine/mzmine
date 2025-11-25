@@ -136,8 +136,8 @@ public class PlotCursorUtils {
   @NotNull
   public static PlotCursorPosition moveCursorFindInData(@Nullable PlotCursorPosition pos,
       @NotNull List<? extends XYDataset> datasets, double domain, double range) {
-    if (pos != null && Precision.equalSignificance(domain, pos.getDomainValue(), 6)
-        && Precision.equalSignificance(range, pos.getRangeValue(), 6)) {
+    if (pos != null && Precision.equalDoubleSignificance(domain, pos.getDomainValue())
+        && Precision.equalDoubleSignificance(range, pos.getRangeValue())) {
       // skip for the same values
       return pos;
     }
@@ -169,7 +169,7 @@ public class PlotCursorUtils {
   @NotNull
   public static PlotCursorPosition moveDomainCursorFindInData(@Nullable PlotCursorPosition pos,
       List<? extends XYDataset> datasets, double value) {
-    if (pos != null && Precision.equalSignificance(value, pos.getDomainValue(), 6)) {
+    if (pos != null && Precision.equalDoubleSignificance(value, pos.getDomainValue())) {
       // skip for the same values
       return pos;
     }
@@ -201,7 +201,7 @@ public class PlotCursorUtils {
   @NotNull
   public static PlotCursorPosition moveRangeCursorFindInData(@Nullable PlotCursorPosition pos,
       List<? extends XYDataset> datasets, double value) {
-    if (pos != null && Precision.equalSignificance(value, pos.getRangeValue(), 6)) {
+    if (pos != null && Precision.equalDoubleSignificance(value, pos.getRangeValue())) {
       // skip for the same values
       return pos;
     }
