@@ -434,7 +434,12 @@ public class BatchModeModulesList {
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#OTHER}
            */
           TimsTOFMaldiAcquisitionModule.class, //
-          SimsefImagingSchedulerModule.class //
+          SimsefImagingSchedulerModule.class, //
+
+          /**
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#TOOLS}
+           */
+          ReportingModule.class //
       ));
 
   // must be modifiable so we can add more modules for mzminepro
@@ -452,7 +457,6 @@ public class BatchModeModulesList {
           BatchWizardModule.class, //
           CompareModularCsvModule.class, //
           AnalyzeLogFileModule.class, //
-          ReportingModule.class, //
 
           // visualizers
           SpectraVisualizerModule.class, //
