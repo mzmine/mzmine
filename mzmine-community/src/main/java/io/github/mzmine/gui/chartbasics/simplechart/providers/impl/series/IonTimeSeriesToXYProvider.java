@@ -82,6 +82,11 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
     this(series, seriesKey, new SimpleObjectProperty<>(color));
   }
 
+  public IonTimeSeriesToXYProvider(IonTimeSeries<Scan> series, String seriesKEy, Color colorAWT,
+      double normalizationFactor) {
+    this(series, seriesKEy, new SimpleObjectProperty<>(FxColorUtil.awtColorToFX(colorAWT)), normalizationFactor);
+  }
+
   @NotNull
   @Override
   public Color getAWTColor() {
