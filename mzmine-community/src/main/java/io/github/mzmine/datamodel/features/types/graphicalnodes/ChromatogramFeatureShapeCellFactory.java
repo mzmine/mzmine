@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,16 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.chartbasics.simplechart;
+package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import java.util.Map;
-import org.jfree.data.xy.XYDataset;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import java.util.concurrent.atomic.AtomicInteger;
+import javafx.scene.control.TreeTableCell;
+import javafx.scene.control.TreeTableColumn;
+import javafx.util.Callback;
 
-/**
- * Called when a dataset is added or removed from a {@link SimpleChart}.
- */
-@FunctionalInterface
-public interface DatasetsChangedListener {
+public class ChromatogramFeatureShapeCellFactory implements
+    Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
 
-  public void datasetsChanged(Map<Integer, XYDataset> newDatasets);
+  // uses a counter to label the first cell that seems to be the measurement cell
+  public final AtomicInteger counter = new AtomicInteger(0);
+
+  @Override
+  public TreeTableCell<ModularFeatureListRow, Object> call(
+      TreeTableColumn<ModularFeatureListRow, Object> column) {
+    return new ChromatogramFeatureShapeCell(counter.getAndIncrement());
+  }
 }

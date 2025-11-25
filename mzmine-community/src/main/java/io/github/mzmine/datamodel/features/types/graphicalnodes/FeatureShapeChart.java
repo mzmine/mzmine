@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,7 +39,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTim
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.RangeUtils;
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -74,9 +73,6 @@ public class FeatureShapeChart extends BufferedChartNode {
         progress.addAndGet(1.0 / size);
       }
     }
-
-    chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
-    chart.getXYPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
     final ModularFeature bestFeature = row.getBestFeature();
     final org.jfree.data.Range defaultRange;
