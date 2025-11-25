@@ -21,15 +21,15 @@ public class ReportingParameters extends SimpleParameterSet {
       "The title of the report.", "Feature report", true, true);
 
   public static final ParameterSetParameter<ReportAuthorParameters> reportingVendorParam = new ParameterSetParameter<>(
-      "Author description", "Description of your company/institute.",
+      "Author", "Description of your company/institute.",
       new ReportAuthorParameters(), false, ReportingVendorModule.class);
 
   public static final ParameterSetParameter<ReportingCustomerParameters> reportingCustomerParam = new ParameterSetParameter<>(
-      "Customer description", "Customer related data.", new ReportingCustomerParameters(), true,
+      "Customer", "Customer related data.", new ReportingCustomerParameters(), true,
       ReportingCustomerModule.class);
 
   public static final ParameterSetParameter<ReportingOrderParameters> reportingOrderParam = new ParameterSetParameter<>(
-      "Order description", "Order related fields", new ReportingOrderParameters(), true,
+      "Order", "Order related fields", new ReportingOrderParameters(), true,
       ReportingOrderModule.class);
 
   public static final TextParameter freeText = new TextParameter("Free text",
