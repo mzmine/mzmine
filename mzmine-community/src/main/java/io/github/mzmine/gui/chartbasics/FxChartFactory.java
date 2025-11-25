@@ -30,6 +30,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.main.ConfigService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
@@ -54,6 +55,11 @@ import org.jfree.data.xy.TableXYDataset;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 
+/**
+ * This is the preferred alternative to {@link ChartFactory} and generated observable versions of
+ * the same charts and plots as {@link FxJFreeChart} and {@link FxXYPlot} that already come with
+ * observability, optimized reduced chart draw events, and more.
+ */
 public class FxChartFactory {
 
   /**

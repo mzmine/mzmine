@@ -27,6 +27,7 @@ package io.github.mzmine.gui.chartbasics.gui.javafx;
 
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportModule;
@@ -90,12 +91,17 @@ import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 
-/**
- * This is an extended version of the ChartViewer (JFreeChartFX). it Adds: ChartGestures (with a set
- * of standard chart gestures), ZoomHistory, AxesRangeChangeListener, data export, graphics export,
- *
- * @author Robin Schmid (robinschmid@uni-muenster.de)
- */
+/// This is an extended version of the ChartViewer (JFreeChartFX). it Adds:
+///
+/// - [DelayedChartDrawAdapter] is attached in the constructor and accumulates change events to
+/// reduce redundant draw call
+/// - [ChartGesture] (with a set of standard chart gestures)
+/// - [ZoomHistory]
+/// - [AxesRangeChangedListener]
+/// - data export
+/// - graphics export
+///
+/// @author Robin Schmid (robinschmid@uni-muenster.de)
 public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
   private static final Logger logger = Logger.getLogger(EChartViewer.class.getName());
@@ -168,7 +174,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
   public EChartViewer(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
       boolean standardGestures, boolean addZoomHistory, boolean stickyZeroForRangeAxis) {
     super(null);
-    // before setting the chart
+    // attach to accumulate chart change events and reduce draw calls
     DelayedChartDrawAdapter.attach(this);
 
     this.stickyZeroForRangeAxis = stickyZeroForRangeAxis;

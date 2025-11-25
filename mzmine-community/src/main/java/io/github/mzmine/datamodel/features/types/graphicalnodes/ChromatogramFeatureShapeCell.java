@@ -48,11 +48,9 @@ import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.logging.Logger;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableRow;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import org.jfree.chart.JFreeChart;
@@ -88,12 +86,6 @@ public class ChromatogramFeatureShapeCell extends TreeTableCell<ModularFeatureLi
     graphicProperty().bind(emptyProperty().map(empty -> empty ? null : view));
   }
 
-  private String getIdentifier(String action) {
-    final TreeTableRow<ModularFeatureListRow> row = getTableRow();
-    return "Chromatogram Cell %d action: %s (%s %s row %s)".formatted(id, action, isEmpty(),
-        getItem(), row == null ? "no table row" : row.getItem());
-  }
-
   @Override
   protected void updateItem(Object o, boolean visible) {
     // always need to call super.updateItem
@@ -112,9 +104,6 @@ public class ChromatogramFeatureShapeCell extends TreeTableCell<ModularFeatureLi
 
     // clear zoom history because it comes from old data
     plot.getZoomHistory().clear();
-
-    // debugging of updates
-//    logger.info(getIdentifier("updateItem"));
 
     // for selecting a range
     com.google.common.collect.Range<Float> featureRTRange = null;
@@ -147,22 +136,19 @@ public class ChromatogramFeatureShapeCell extends TreeTableCell<ModularFeatureLi
       return;
     }
 
-    featureRTRange = RangeUtils.multiplyGrow(featureRTRange, 1.25f);
+    featureRTRange = RangeUtils.multiplyGrow(featureRTRange, 1.5f);
     featureRTRange = RangeUtils.withinBounds(featureRTRange, 0f, null);
     final Range rtRange = RangeUtils.guavaToJFree(featureRTRange);
 
     final float finalMaxHeight = maxHeight;
     plot.applyWithNotifyChanges(false, true, () -> {
       plot.setDatasets(datasets);
-      try {
-        final XYPlot xyplot = plot.getXYPlot();
-        xyplot.getRangeAxis().setRange(new Range(0, finalMaxHeight), true, false);
-        xyplot.getRangeAxis().setUpperMargin(0.025);
-        xyplot.getDomainAxis().setRange(rtRange, true, false);
-        xyplot.getDomainAxis().setDefaultAutoRange(rtRange);
-      } catch (NullPointerException | NoSuchElementException ex) {
-        // error in jfreechart draw method
-      }
+
+      final XYPlot xyplot = plot.getXYPlot();
+      xyplot.getRangeAxis().setRange(new Range(0, finalMaxHeight), true, false);
+      xyplot.getRangeAxis().setUpperMargin(0.025);
+      xyplot.getDomainAxis().setRange(rtRange, true, false);
+      xyplot.getDomainAxis().setDefaultAutoRange(rtRange);
     });
   }
 

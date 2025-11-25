@@ -35,7 +35,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.event.ChartChangeEvent;
 import org.jfree.chart.event.ChartChangeListener;
+import org.jfree.chart.fx.ChartCanvas;
+import org.jfree.chart.plot.Plot;
 
+/// This adapter accumulates events and delays the chart draw until a later time. Maximum delay is a
+/// single pause of 25 ms to keep the refresh rate responsive. So the [PauseTransition] is never
+/// restarted if it is already running.
+///
+/// This class needs to be attached to a ChartViewer because there are some chart draw events that
+/// directly call the draw event without checking the [Plot#isNotify()] or [JFreeChart#isNotify()] -
+/// so the notify later mechanism does not always stop multi draw events.
+///
+/// Every [EChartViewer] can use this delayed draws and this is currently attached in its
+/// constructor.
+///
+/// How it works:
+///
+///   - Chart, plot, axes, etc send [ChartChangeEvent] to [ChartChangeListener]
+///   - notify later works often but not for all changes
+///   - [ChartCanvas] registers a listener on JFreeChart and calls draw for every event
+///   - [DelayedChartDrawAdapter] removes the ChartCanvas as a listener and attaches itself to
+/// accumulate events
 public class DelayedChartDrawAdapter implements ChartChangeListener {
 
   private static final Logger logger = Logger.getLogger(DelayedChartDrawAdapter.class.getName());
@@ -58,9 +78,12 @@ public class DelayedChartDrawAdapter implements ChartChangeListener {
         chart.addChangeListener(this);
       }
     });
-
   }
 
+  /**
+   * Will attach a {@link DelayedChartDrawAdapter} that listens for changes to the internal chart
+   * and also to chart changed events.
+   */
   public static DelayedChartDrawAdapter attach(EChartViewer viewer) {
     return new DelayedChartDrawAdapter(viewer);
   }

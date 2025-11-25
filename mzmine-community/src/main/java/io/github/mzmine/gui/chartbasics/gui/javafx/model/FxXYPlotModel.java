@@ -400,30 +400,8 @@ public class FxXYPlotModel implements FxPlotModel {
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
-   *
-   */
-  public void setSingleDomainRangeMarker(@Nullable MarkerDefinition domain,
-      @Nullable MarkerDefinition range) {
-    applyWithNotifyChanges(false, () -> {
-      setAllDomainMarkers(domain);
-      setAllRangeMarkers(range);
-    });
-  }
-
-  /**
-   * Prefer method to set all markers at once or use the apply with notify changes method for single
-   * update calls
-   *
-   */
-  public void setSingleDomainRangeMarker(@Nullable Marker domain, @Nullable Marker range) {
-    setSingleDomainRangeMarker(domain == null ? null : new MarkerDefinition(domain),
-        range == null ? null : new MarkerDefinition(range));
-  }
-
-  /**
-   * Prefer method to set all markers at once or use the apply with notify changes method for single
-   * update calls
-   *
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void setAllDomainMarkers(MarkerDefinition... markers) {
     markers = Arrays.stream(markers).filter(Objects::nonNull).toArray(MarkerDefinition[]::new);
@@ -437,7 +415,8 @@ public class FxXYPlotModel implements FxPlotModel {
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
-   *
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void setAllDomainMarkers(Marker... markers) {
     setAllDomainMarkers(Arrays.stream(markers).filter(Objects::nonNull).map(MarkerDefinition::new)
@@ -447,7 +426,8 @@ public class FxXYPlotModel implements FxPlotModel {
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
-   *
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void setAllDomainMarkers(Collection<Marker> markers) {
     setAllDomainMarkers(markers.stream().filter(Objects::nonNull).map(MarkerDefinition::new)
@@ -457,7 +437,8 @@ public class FxXYPlotModel implements FxPlotModel {
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
-   *
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void addDomainMarker(int index, Marker marker, Layer layer, boolean notify) {
     // change will happen through property subscription
@@ -499,7 +480,8 @@ public class FxXYPlotModel implements FxPlotModel {
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
-   *
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void setAllRangeMarkers(MarkerDefinition... markers) {
     markers = Arrays.stream(markers).filter(Objects::nonNull).toArray(MarkerDefinition[]::new);
@@ -513,7 +495,8 @@ public class FxXYPlotModel implements FxPlotModel {
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
-   *
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void setAllRangeMarkers(Marker... markers) {
     setAllRangeMarkers(Arrays.stream(markers).filter(Objects::nonNull).map(MarkerDefinition::new)
@@ -523,7 +506,8 @@ public class FxXYPlotModel implements FxPlotModel {
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
-   *
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void setAllRangeMarkers(Collection<Marker> markers) {
     setAllRangeMarkers(markers.stream().filter(Objects::nonNull).map(MarkerDefinition::new)
@@ -533,7 +517,8 @@ public class FxXYPlotModel implements FxPlotModel {
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
-   *
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void addRangeMarker(int index, Marker marker, Layer layer, boolean notify) {
     // change will happen through property subscription

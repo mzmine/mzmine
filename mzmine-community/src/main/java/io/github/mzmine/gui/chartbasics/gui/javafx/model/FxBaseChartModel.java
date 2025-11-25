@@ -26,6 +26,7 @@
 package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.DelayedChartDrawAdapter;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import java.util.function.Consumer;
 import javafx.beans.value.ObservableValue;
 import org.jetbrains.annotations.Nullable;
@@ -33,9 +34,11 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.Plot;
 
 /**
- * Provides some methods for delayed update calls on charts and plots. This is not always needed as
- * we use the {@link DelayedChartDrawAdapter} but can still help to limit the number of events if
- * there are many changes done on a chart, plot, or the internal components like axes.
+ * Provides some methods for delayed update calls (appluWithNotifyLater) on charts and plots. This
+ * is not always needed as we use the {@link DelayedChartDrawAdapter}, e.g., in the
+ * {@link EChartViewer} constructor (almost all charts in mzmine use EChartViewer) but can still
+ * help to limit the number of events if there are many changes done on a chart, plot, or the
+ * internal components like axes.
  */
 public interface FxBaseChartModel extends ChartRenderingInfoPropertyProvider {
 

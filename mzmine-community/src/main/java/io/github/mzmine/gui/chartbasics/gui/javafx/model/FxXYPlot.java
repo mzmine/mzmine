@@ -619,26 +619,8 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
-   *
-   */
-  public void setSingleDomainRangeMarker(@Nullable MarkerDefinition domain,
-      @Nullable MarkerDefinition range) {
-    plotModel.setSingleDomainRangeMarker(domain, range);
-  }
-
-  /**
-   * Prefer method to set all markers at once or use the apply with notify changes method for single
-   * update calls
-   *
-   */
-  public void setSingleDomainRangeMarker(@Nullable Marker domain, @Nullable Marker range) {
-    plotModel.setSingleDomainRangeMarker(domain, range);
-  }
-
-  /**
-   * Prefer method to set all markers at once or use the apply with notify changes method for single
-   * update calls
-   *
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void setAllDomainMarkers(MarkerDefinition... markers) {
     plotModel.setAllDomainMarkers(markers);
@@ -647,7 +629,8 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
-   *
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void setAllDomainMarkers(Marker... markers) {
     plotModel.setAllDomainMarkers(markers);
@@ -655,8 +638,9 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
 
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
-   * update calls
-   *
+   * update calls.
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void setAllDomainMarkers(Collection<Marker> markers) {
     plotModel.setAllDomainMarkers(markers);
@@ -665,7 +649,8 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
-   *
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   @Override
   public void addDomainMarker(int index, Marker marker, Layer layer, boolean notify) {
@@ -723,7 +708,8 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
-   *
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void setAllRangeMarkers(MarkerDefinition... markers) {
     plotModel.setAllRangeMarkers(markers);
@@ -732,7 +718,8 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
-   *
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void setAllRangeMarkers(Marker... markers) {
     plotModel.setAllRangeMarkers(markers);
@@ -741,7 +728,8 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
-   *
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   public void setAllRangeMarkers(Collection<Marker> markers) {
     plotModel.setAllRangeMarkers(markers);
@@ -750,7 +738,8 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
   /**
    * Prefer method to set all markers at once or use the apply with notify changes method for single
    * update calls
-   *
+   * <p>
+   * Prefer {@link FxMarker} for markers that may change their visibility or value.
    */
   @Override
   public void addRangeMarker(int index, Marker marker, Layer layer, boolean notify) {

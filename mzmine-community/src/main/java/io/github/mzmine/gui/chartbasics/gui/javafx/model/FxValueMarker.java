@@ -44,9 +44,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.plot.ValueMarker;
 
 /**
- * A {@link ValueMarker} that can be configured in JavaFX. Is invisible if visible false, value
- * null, or alpha 0. If the value or alpha is changed, there is an automatic update event triggered
- * in the plot.
+ * An observable {@link ValueMarker} that can be configured in JavaFX through properties. Is
+ * invisible if visible false, value null, or alpha 0. If the value or alpha is changed, there is an
+ * automatic update event triggered in the plot.
  */
 public class FxValueMarker extends ValueMarker implements FxMarker {
 

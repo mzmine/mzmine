@@ -465,13 +465,13 @@ public class RangeUtils {
 
   public static Range<Float> multiplyGrow(Range<Float> range, float factor) {
     final float length = rangeLength(range);
-    final float diff = (length * factor) - length;
+    final float diff = length * (factor - 1) * 0.5f;
     return Range.closed(range.lowerEndpoint() - diff, range.upperEndpoint() + diff);
   }
 
   public static Range<Double> multiplyGrow(Range<Double> range, double factor) {
     final double length = rangeLength(range);
-    final double diff = (length * factor) - length;
+    final double diff = length * (factor - 1) * 0.5;
     return Range.closed(range.lowerEndpoint() - diff, range.upperEndpoint() + diff);
   }
 

@@ -35,11 +35,29 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
 
+/**
+ * This class coordinates the crosshair (already available in base JFreeChart in {@link XYPlot}) and
+ * the {@link PlotCursorPosition} introduced in some mzmine chart classes.
+ * <p>
+ * The {@link XYPlot} crosshair is not used and is invisible. Instead, we use
+ * {@link #getDomainCursorMarker()} and {@link #getRangeCursorMarker()} to show lines where the user
+ * clicks or where the crosshair moves.
+ * <p>
+ * On click, or on {@link XYPlot#setDomainCrosshairValue(double)}, the
+ * {@link #cursorPositionProperty()} is usually changed to the closest data point and the markers
+ * are moved as well. The markers may also be bound to other markers in other plots to automatically
+ * synchronize their location.
+ */
 public class PlotCursorConfigModel {
 
   private final ObjectProperty<@Nullable PlotCursorPosition> cursorPosition = new SimpleObjectProperty<>();
+
+  // TODO currently those two are not used, decide how to handle the non data locked state
+  //  maybe just skip PlotCursorUtils.moveCursorFindInData in case non data locked
+  //  they are set through the XYPlot method for crosshair
   private final BooleanProperty domainCursorLockedOnData = new SimpleBooleanProperty();
   private final BooleanProperty rangeCursorLockedOnData = new SimpleBooleanProperty();
 
@@ -129,6 +147,7 @@ public class PlotCursorConfigModel {
    * Sets the cursor to the current position and updates the selected dataset, datapoint index, etc
    */
   public void setCursorPosition(double domain, double range) {
+    // TODO skip moveCursorFindInData if not data locked?
     PlotCursorPosition pos = PlotCursorUtils.moveCursorFindInData(getCursorPosition(),
         allDatasetsSupplier.get(), domain, range);
     setCursorPosition(pos);
