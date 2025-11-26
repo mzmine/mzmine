@@ -33,6 +33,11 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import javafx.beans.property.ReadOnlyListProperty;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This class is the controller of the ion libraries tab that holds the global list of
+ * {@link IonLibrary}, {@link IonType}, and {@link IonPart}. The properties are bound to javafx so
+ * they can only be modified on the javafx thread.
+ */
 public class GlobalIonLibrariesController extends FxController<GlobalIonLibrariesModel> {
 
   // lazy init singleton

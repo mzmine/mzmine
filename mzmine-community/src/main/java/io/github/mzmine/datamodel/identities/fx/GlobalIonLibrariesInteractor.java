@@ -25,7 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
-import io.github.mzmine.datamodel.identities.GlobalIonLibrary;
+import io.github.mzmine.datamodel.identities.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxInteractor;
@@ -40,7 +40,7 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
 
   @Override
   public void updateModel() {
-    final GlobalIonLibrary global = GlobalIonLibrary.getGlobalLibrary();
+    final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
     FxThread.runLater(() -> {
 //      model.partsProperty().set(FXCollections.observableList(global.parts()));
       model.ionTypesProperty().set(FXCollections.observableList(global.ionTypes()));

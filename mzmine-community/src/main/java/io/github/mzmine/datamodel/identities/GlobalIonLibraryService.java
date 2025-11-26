@@ -46,21 +46,24 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * The library that is used to create new ion identities when the user types in H2O as a part this
- * part is searched in the global library first.
- */
-public final class GlobalIonLibrary {
+/// The global ion library that is used to create new ion identities when the user types in H2O as a
+/// part this part is searched in the global library first.
+///
+/// The global ion library contains:
+/// - a list of {@link IonLibrary} that are saved as individual files so that they can be shared
+/// - a list of {@link IonType} of all uniquely defined ion types so that they may be reused in all
+/// libraries
+/// - a map of {@link IonPart} to find the singleton instance of a specific ion part. -
+public final class GlobalIonLibraryService {
 
-  private static final Logger logger = Logger.getLogger(GlobalIonLibrary.class.getName());
+  private static final Logger logger = Logger.getLogger(GlobalIonLibraryService.class.getName());
 
 
   /**
    * Track the last modified state of the loaded global library to see if changes need to be loaded
    */
-  private static GlobalIonLibrary globalLibrary;
+  private static GlobalIonLibraryService globalLibrary;
   private static final AtomicLong globalFileLastModified = new AtomicLong(-1);
-
 
   // maps the short name often used to the ion part without count: like Fe will match Fe+3 and Fe+2
   private final Map<String, List<IonPartNoCount>> partDefinitions;
@@ -75,7 +78,7 @@ public final class GlobalIonLibrary {
    *                        state
    * @param ionTypes
    */
-  public GlobalIonLibrary(Map<String, List<IonPartNoCount>> partDefinitions,
+  public GlobalIonLibraryService(Map<String, List<IonPartNoCount>> partDefinitions,
       List<IonType> ionTypes) {
     this.partDefinitions = partDefinitions;
     this.ionTypes = ionTypes;
@@ -88,7 +91,7 @@ public final class GlobalIonLibrary {
     }
   }
 
-  public GlobalIonLibrary(List<IonPart> parts, List<IonType> ionTypes) {
+  public GlobalIonLibraryService(List<IonPart> parts, List<IonType> ionTypes) {
     final Map<String, List<IonPartNoCount>> map = HashMap.newHashMap(parts.size());
     for (final IonPart part : parts) {
       final String key = part.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE);
@@ -134,7 +137,7 @@ public final class GlobalIonLibrary {
    *
    * @return global ion library
    */
-  public static @NotNull GlobalIonLibrary getGlobalLibrary() {
+  public static @NotNull GlobalIonLibraryService getGlobalLibrary() {
     File file = getGlobalFile();
     if (globalLibrary == null || (file.exists()
         && file.lastModified() != globalFileLastModified.get())) {
@@ -162,13 +165,13 @@ public final class GlobalIonLibrary {
    *
    * @return a global ion library
    */
-  private static synchronized GlobalIonLibrary loadGlobalIonLibrary() {
+  private static synchronized GlobalIonLibraryService loadGlobalIonLibrary() {
     // maybe already initialized - then no need to add mzmine internal ions
     // just check if reload of file is needed
     boolean alreadyInitialized = globalFileLastModified.get() != -1;
 
     File file = getGlobalFile();
-    GlobalIonLibrary global = null;
+    GlobalIonLibraryService global = null;
     if (file.exists() && file.lastModified() != globalFileLastModified.get()) {
       try {
         global = loadJson(file);
@@ -181,18 +184,19 @@ public final class GlobalIonLibrary {
     }
 
     // use already initialzied one or new
-    final GlobalIonLibrary internalLibrary;
+    final GlobalIonLibraryService internalLibrary;
     if (alreadyInitialized) {
       internalLibrary = globalLibrary;
     } else {
       // might also have new internal ion types defined in mzmine - combine these into a new library
       var types = Arrays.stream(IonTypes.values()).map(IonTypes::asIonType)
           .collect(Collectors.toCollection(ArrayList::new));
-      internalLibrary = new GlobalIonLibrary(new ArrayList<>(IonParts.PREDEFINED_PARTS), types);
+      internalLibrary = new GlobalIonLibraryService(new ArrayList<>(IonParts.PREDEFINED_PARTS),
+          types);
     }
 
     // merge both libraries: from file and internal
-    GlobalIonLibrary merged = GlobalIonLibrary.merge(global, internalLibrary);
+    GlobalIonLibraryService merged = GlobalIonLibraryService.merge(global, internalLibrary);
 
     // if changed then save
     if (global == null || merged.numIonTypes() != global.numIonTypes()
@@ -224,8 +228,8 @@ public final class GlobalIonLibrary {
    * @return merges two non-null libraries into a new instance. Or null if both are null or returns
    * the original instance that is non-null
    */
-  public static GlobalIonLibrary merge(final @Nullable GlobalIonLibrary first,
-      final @Nullable GlobalIonLibrary second) {
+  public static GlobalIonLibraryService merge(final @Nullable GlobalIonLibraryService first,
+      final @Nullable GlobalIonLibraryService second) {
     if (first == null && second == null) {
       return null;
     }
@@ -240,7 +244,7 @@ public final class GlobalIonLibrary {
 //    List<IonPart> mergedParts = mergeParts(first.parts(), second.parts());
     List<IonType> ionTypes = mergeTypes(first.ionTypes(), second.ionTypes());
 
-    return new GlobalIonLibrary(List.of(), ionTypes);
+    return new GlobalIonLibraryService(List.of(), ionTypes);
   }
 
   private static List<IonPart> mergeParts(final List<IonPart> first, final List<IonPart> second) {
@@ -334,8 +338,8 @@ public final class GlobalIonLibrary {
   }
 
   @NotNull
-  public static GlobalIonLibrary loadJson(final @NotNull File file) throws IOException {
-    return new ObjectMapper().readValue(file, GlobalIonLibrary.class);
+  public static GlobalIonLibraryService loadJson(final @NotNull File file) throws IOException {
+    return new ObjectMapper().readValue(file, GlobalIonLibraryService.class);
   }
 
   public void saveGlobalLibrary() throws IOException {
@@ -370,7 +374,7 @@ public final class GlobalIonLibrary {
     if (obj == null || obj.getClass() != this.getClass()) {
       return false;
     }
-    var that = (GlobalIonLibrary) obj;
+    var that = (GlobalIonLibraryService) obj;
     return Objects.equals(this.partDefinitions, that.partDefinitions) && Objects.equals(
         this.singletonParts, that.singletonParts) && Objects.equals(this.ionTypes, that.ionTypes);
   }
