@@ -572,6 +572,51 @@ public class ParameterUtils {
     }
   }
 
+  /**
+   * Creates XML string from single parameter. Useful in test scenarios
+   *
+   * @return
+   */
+  public static String saveParameterToXMLString(Parameter<?> parameter) {
+    try {
+      final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+          .newDocument();
+
+      Element paramElement = document.createElement(SimpleParameterSet.parameterElement);
+      paramElement.setAttribute(SimpleParameterSet.nameAttribute, parameter.getName());
+      document.appendChild(paramElement);
+      parameter.saveValueToXML(paramElement);
+      return XMLUtils.saveToString(document);
+    } catch (Exception exception) {
+      logger.log(Level.SEVERE,
+          "Error while creating XML string for single parameter " + parameter.getClass().getName(),
+          exception);
+      return null;
+    }
+  }
+
+  /**
+   * Loads paramter value from xml into the same instance input parameter. Useful in test scenarios
+   *
+   * @return the input parameter
+   */
+  @Nullable
+  public static <T extends Parameter<?>> T loadParameterFromString(@NotNull T parameter,
+      String xml) {
+    try {
+      final Document document = XMLUtils.load(xml);
+      final Element paramElement = (Element) document.getElementsByTagName(
+          SimpleParameterSet.parameterElement).item(0);
+      parameter.loadValueFromXML(paramElement);
+    } catch (Exception exception) {
+      logger.log(Level.SEVERE,
+          "Error while creating XML string for single parameter " + parameter.getClass().getName(),
+          exception);
+      return null;
+    }
+    return parameter;
+  }
+
   public static void loadValuesFromXMLString(ParameterSet parameterSet, String xml)
       throws ParserConfigurationException, IOException, SAXException {
     final Document document = XMLUtils.load(xml);
