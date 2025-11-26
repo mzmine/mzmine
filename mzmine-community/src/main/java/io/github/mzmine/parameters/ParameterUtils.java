@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -268,6 +267,17 @@ public class ParameterUtils {
         .findFirst().map(FeatureListAppliedMethod::getParameters)
         .map(parameterSet -> parameterSet.getValue(mzTolParameter));
   }
+
+  @NotNull
+  public static <T extends Parameter<?>> Optional<T> getParameterFromAppliedMethods(
+      Collection<FeatureListAppliedMethod> appliedMethods,
+      Class<? extends ParameterSet> parameterClass, T parameter) {
+    return appliedMethods.stream()
+        .filter(appliedMethod -> appliedMethod.getParameters().getClass().equals(parameterClass))
+        .findFirst().map(FeatureListAppliedMethod::getParameters)
+        .map(parameterSet -> parameterSet.getParameter(parameter));
+  }
+
 
   /**
    * Replaces a file in the first FileNamesParameter of the parameter set. Synchronized method in
