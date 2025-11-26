@@ -211,12 +211,12 @@ public class IMSRawDataOverviewPane extends BorderPane {
     selectedFrame = new SimpleObjectProperty<>();
     selectedFrame.addListener((observable, oldValue, newValue) -> onSelectedFrameChanged());
 
-    // create without standard mouse gestures as this plot is flipped
     summedSpectrumChart = new SimpleXYChart<>("Summed frame spectrum");
     singleSpectrumChart = new SimpleXYChart<>("Mobility scan");
     heatmapChart = new SimpleXYZScatterPlot<>("Frame heatmap");
     ionTraceChart = new SimpleXYZScatterPlot<>("Ion trace chart");
     ticChart = new TICPlot();
+    // create without standard mouse gestures as this plot is flipped
     mobilogramChart = new SimpleXYChart<>("Mobilogram chart", false);
     // add flipped chart gestures
     ChartGestureHandler.addStandardGestures(mobilogramChart, true);
