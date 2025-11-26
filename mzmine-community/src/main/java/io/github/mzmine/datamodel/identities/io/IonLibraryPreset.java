@@ -23,42 +23,41 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.datamodel.identities.io;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.github.mzmine.datamodel.identities.IonLibrary;
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset;
+import io.github.mzmine.datamodel.identities.SimpleIonLibrary;
+import io.github.mzmine.util.presets.KnownPresetGroup;
+import io.github.mzmine.util.presets.Preset;
+import io.github.mzmine.util.presets.PresetCategory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public enum KnownPresetGroup implements PresetGroup {
 
-  /**
-   * {@link RowTypeFilterPreset}
-   */
-  ROW_TYPE_FILTER_PRESET,
-  /**
-   * {@link IonLibrary}
-   */
-  ION_LIBRARY_PRESET, //
-  ;
+public record IonLibraryPreset(@JsonSerialize(using = IonLibrarySerializer.class) //
+                               @JsonDeserialize(using = IonLibraryDeserializer.class) //
+                               IonLibrary library) implements Preset {
 
-  public KnownPresetGroup parse(String name) {
-    return UniqueIdSupplier.parseOrElse(name, values(), null);
+  @Override
+  public @NotNull String name() {
+    return library.name();
   }
 
   @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case ROW_TYPE_FILTER_PRESET -> "feature_table_filters";
-      case ION_LIBRARY_PRESET -> "ion_libraries";
-    };
+  public @NotNull PresetCategory presetCategory() {
+    return PresetCategory.ION_LIBRARIES;
   }
 
   @Override
-  public String toString() {
-    return switch (this) {
-      case ROW_TYPE_FILTER_PRESET -> "Feature table filters";
-      case ION_LIBRARY_PRESET -> "Ion libraries";
-    };
+  public @Nullable String presetGroup() {
+    return KnownPresetGroup.ION_LIBRARY_PRESET.getUniqueID();
   }
+
+  @Override
+  public @NotNull IonLibraryPreset withName(String name) {
+    return new IonLibraryPreset(new SimpleIonLibrary(name, library.ions()));
+  }
+
 }

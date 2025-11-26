@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.presets;
 
+import io.github.mzmine.datamodel.identities.io.IonLibraryPresetStore;
 import io.github.mzmine.modules.presets.ModulePresetStoreFactory;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPresetStore;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -58,6 +59,8 @@ public class PresetStoreService {
     registerStoreFactory(PresetCategory.FILTERS,
         KnownPresetGroup.ROW_TYPE_FILTER_PRESET.getUniqueID(),
         (_, _) -> new RowTypeFilterPresetStore());
+    registerStoreFactory(PresetCategory.ION_LIBRARIES,
+        KnownPresetGroup.ION_LIBRARY_PRESET.getUniqueID(), (_, _) -> new IonLibraryPresetStore());
   }
 
 

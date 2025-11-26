@@ -23,42 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.datamodel.identities.io;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import io.github.mzmine.datamodel.identities.IonLibrary;
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset;
-import org.jetbrains.annotations.NotNull;
+import java.io.IOException;
 
-public enum KnownPresetGroup implements PresetGroup {
-
-  /**
-   * {@link RowTypeFilterPreset}
-   */
-  ROW_TYPE_FILTER_PRESET,
-  /**
-   * {@link IonLibrary}
-   */
-  ION_LIBRARY_PRESET, //
-  ;
-
-  public KnownPresetGroup parse(String name) {
-    return UniqueIdSupplier.parseOrElse(name, values(), null);
-  }
+public class IonLibraryDeserializer extends JsonDeserializer<IonLibrary> {
 
   @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case ROW_TYPE_FILTER_PRESET -> "feature_table_filters";
-      case ION_LIBRARY_PRESET -> "ion_libraries";
-    };
-  }
-
-  @Override
-  public String toString() {
-    return switch (this) {
-      case ROW_TYPE_FILTER_PRESET -> "Feature table filters";
-      case ION_LIBRARY_PRESET -> "Ion libraries";
-    };
+  public IonLibrary deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+    StorableIonLibrary storable = p.readValueAs(StorableIonLibrary.class);
+    return IonLibraryIO.convert(storable);
   }
 }

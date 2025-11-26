@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
  * Defines a category which is the first folder in the presets directory
  */
 public enum PresetCategory implements UniqueIdSupplier {
-  MODULES, FILTERS;
+  MODULES, FILTERS, ION_LIBRARIES;
 
 
   @Nullable
@@ -55,6 +55,7 @@ public enum PresetCategory implements UniqueIdSupplier {
     return switch (this) {
       case MODULES -> "modules";
       case FILTERS -> "filters";
+      case ION_LIBRARIES -> "ion_libraries";
     };
   }
 }

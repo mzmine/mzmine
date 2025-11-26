@@ -23,42 +23,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.datamodel.identities.io;
 
-import io.github.mzmine.datamodel.identities.IonLibrary;
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset;
+import io.github.mzmine.util.presets.AbstractJsonPresetStore;
+import io.github.mzmine.util.presets.FxPresetEditor;
+import io.github.mzmine.util.presets.KnownPresetGroup;
+import io.github.mzmine.util.presets.PresetCategory;
+import io.github.mzmine.util.presets.PresetGroup;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public enum KnownPresetGroup implements PresetGroup {
+public class IonLibraryPresetStore extends AbstractJsonPresetStore<IonLibraryPreset> {
 
-  /**
-   * {@link RowTypeFilterPreset}
-   */
-  ROW_TYPE_FILTER_PRESET,
-  /**
-   * {@link IonLibrary}
-   */
-  ION_LIBRARY_PRESET, //
-  ;
-
-  public KnownPresetGroup parse(String name) {
-    return UniqueIdSupplier.parseOrElse(name, values(), null);
+  @Override
+  public @NotNull PresetCategory getPresetCategory() {
+    return PresetCategory.ION_LIBRARIES;
   }
 
   @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case ROW_TYPE_FILTER_PRESET -> "feature_table_filters";
-      case ION_LIBRARY_PRESET -> "ion_libraries";
-    };
+  public @NotNull PresetGroup getPresetGroup() {
+    return KnownPresetGroup.ION_LIBRARY_PRESET;
   }
 
   @Override
-  public String toString() {
-    return switch (this) {
-      case ROW_TYPE_FILTER_PRESET -> "Feature table filters";
-      case ION_LIBRARY_PRESET -> "Ion libraries";
-    };
+  public @NotNull List<IonLibraryPreset> createDefaults() {
+    return List.of();
   }
+
+  @Override
+  public FxPresetEditor createPresetEditor() {
+    return null;
+  }
+
 }
