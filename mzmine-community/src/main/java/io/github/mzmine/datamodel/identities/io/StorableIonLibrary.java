@@ -26,16 +26,101 @@
 package io.github.mzmine.datamodel.identities.io;
 
 
-import io.github.mzmine.datamodel.identities.IonPartNoCount;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.IonPart;
+import io.github.mzmine.datamodel.identities.IonPartSorting;
+import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.IonTypeUtils;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Only used for storage
+ * Only used for storage.
  *
- * @param parts            all part definitions without count just name, formula, charge, mass
- * @param fullNameIonTypes the full name of ion types to parse and find the correct part definition.
- *                         Like [M+2(H+)+(Fe+3)]+
+ * @param name     the library name
+ * @param parts    all part definitions without count just name, formula, charge, mass + a unique ID
+ *                 that is used in types.
+ * @param ionTypes ion types that use unique ids to refer to the ion parts
  */
-record StorableIonLibrary(List<IonPartNoCount> parts, List<String> fullNameIonTypes) {
 
+record StorableIonLibrary(@NotNull String name,
+                          @JsonDeserialize(as = LinkedHashMap.class) @NotNull Map<Integer, IonPartNoCount> parts,
+                          @NotNull List<IonTypeDTO> ionTypes) {
+
+  public StorableIonLibrary(@NotNull IonLibrary library) {
+    // reduce parts to a list of unique parts without counts
+    final List<IonPart> allParts = new ArrayList<>(IonTypeUtils.extractUniqueParts(library.ions()));
+    allParts.sort(IonPartSorting.DEFAULT_NEUTRAL_THEN_LOSSES_THEN_ADDED.getComparator());
+
+    int nextID = 0;
+    final Map<IonPart, IonPartNoCount> partMapping = HashMap.newHashMap(allParts.size());
+    final Map<IonPartNoCount, Integer> uniquePartIds = HashMap.newHashMap(allParts.size());
+    // the final map to use
+    final Map<Integer, IonPartNoCount> parts = LinkedHashMap.newHashMap(allParts.size());
+
+    for (IonPart part : allParts) {
+      // use same id for now to check if this part is already added (may be multiple parts with different counts)
+      final IonPartNoCount noCount = new IonPartNoCount(part);
+      // H+ and 2H+ will point to the same value
+      partMapping.put(part, noCount);
+      if (!uniquePartIds.containsKey(noCount)) {
+        uniquePartIds.put(noCount, nextID);
+        parts.put(nextID, noCount);
+        nextID++;
+      }
+    }
+
+    // map types to just the part ids
+    final List<IonTypeDTO> types = library.ions().stream()
+        .map(ion -> IonTypeDTO.createIonTypeDTO(ion, uniquePartIds, partMapping)).toList();
+
+    this(library.name(), parts, types);
+  }
+
+  /**
+   * Used to reduce the parts that have different count to single instances
+   *
+   */
+  record IonPartNoCount(@NotNull String name, @Nullable String formula, double mass, int charge) {
+
+    public IonPartNoCount(@NotNull IonPart p) {
+      this(p.name(), p.singleFormula(), p.absSingleMass(), p.singleCharge());
+    }
+
+    @NotNull
+    @JsonIgnore
+    public IonPart withCount(int count) {
+      return new IonPart(name, formula, mass, charge, count);
+    }
+  }
+
+  /**
+   *
+   * @param parts     just the IDs that need to be mapped to the real ion parts
+   * @param molecules num molecules
+   */
+  record IonTypeDTO(@NotNull List<@NotNull IonPartID> parts, int molecules) {
+
+    static @NotNull IonTypeDTO createIonTypeDTO(IonType ion,
+        Map<IonPartNoCount, Integer> uniquePartIds, Map<IonPart, IonPartNoCount> partMapping) {
+      final List<IonPartID> partIds = ion.parts().stream()
+          .map(part -> new IonPartID(uniquePartIds.get(partMapping.get(part)), part.count()))
+          .toList();
+      return new IonTypeDTO(partIds, ion.molecules());
+    }
+  }
+
+  /**
+   * Identifies the ion part by ID
+   */
+  record IonPartID(int id, int count) {
+
+  }
 }

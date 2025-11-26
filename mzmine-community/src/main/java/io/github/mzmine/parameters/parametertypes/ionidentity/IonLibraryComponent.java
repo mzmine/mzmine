@@ -80,17 +80,17 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
             Exchange this ion list with the one defined in the global ions with the same name: "%s".
             Generally the current list is fine to use to reproduce results, if this is not required it may be better to update the list to the current version.
             This ion list differs from the globally defined ion list with the same name or there may be differences in how ion parts are defined, e.g., different delta mass or alternative names.""".formatted(
-            nv.getName()));
+            nv.name()));
 
-        final long positives = nv.getIons().stream()
+        final long positives = nv.ions().stream()
             .filter(type -> type.getPolarity() == PolarityType.POSITIVE).count();
-        final long negatives = nv.getIons().stream()
+        final long negatives = nv.ions().stream()
             .filter(type -> type.getPolarity() == PolarityType.NEGATIVE).count();
         numIonsText.set(
             "Num ion types: %d (%d positive / %d negative)".formatted(nv.getNumIons(), positives,
                 negatives));
 
-        selectedName.set(nv.getName());
+        selectedName.set(nv.name());
       }
     });
 
@@ -134,7 +134,7 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
 
   private void handleSelectedNameChange(String newName) {
     final IonLibrary currentLibrary = getValue();
-    if (currentLibrary != null && newName.equals(currentLibrary.getName())) {
+    if (currentLibrary != null && newName.equals(currentLibrary.name())) {
       // TODO
     }
   }

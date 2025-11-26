@@ -69,10 +69,9 @@ class IonLibrariesManagePane extends BorderPane {
 
     selectedIonLibrary = libraryList.getListView().getSelectionModel().selectedItemProperty();
     final ObservableValue<@NotNull String> selectedLibraryName = selectedIonLibrary.map(
-        lib -> "Ions types in: " + lib.getName()).orElse("");
+        lib -> "Ions types in: " + lib.name()).orElse("");
 
-    selectedIonLibrary.subscribe(
-        (_, lib) -> ionTypes.setAll(lib != null ? lib.getIons() : List.of()));
+    selectedIonLibrary.subscribe((_, lib) -> ionTypes.setAll(lib != null ? lib.ions() : List.of()));
 
     setCenter(FxSplitPanes.newSplitPane( //
         newBorderPane().defaultPadding() //

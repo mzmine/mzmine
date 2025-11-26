@@ -27,9 +27,6 @@ package io.github.mzmine.datamodel.identities;
 
 import static java.util.Objects.requireNonNullElse;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.FormulaUtils;
@@ -50,7 +47,6 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * <p>
  * Is class no record to remain in control of construction
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public final class IonPart {
 
   private static final Logger logger = Logger.getLogger(IonPart.class.getName());
@@ -103,7 +99,6 @@ public final class IonPart {
    * @param count         the singed multiplier of this single item, non-zero. e.g., 2 for +2Na and
    *                      -1 for -H
    */
-  @JsonCreator
   public IonPart(@Nullable String name, @Nullable String singleFormula,
       @Nullable Double absSingleMass, @Nullable Integer singleCharge, final int count) {
 
@@ -213,7 +208,6 @@ public final class IonPart {
     return new IonPart(name, null, 0d, 0, signedCount);
   }
 
-  @JsonIgnore
   public boolean isUnknown() {
     // name is blank for silent charge - so it is reserved
     // for example for [M]+ (already charged and not -e-)
@@ -299,17 +293,14 @@ public final class IonPart {
     return new IonPart(name, singleFormula, absSingleMass, singleCharge, count);
   }
 
-  @JsonIgnore
   public int totalCharge() {
     return singleCharge * count;
   }
 
-  @JsonIgnore
   public int absTotalCharge() {
     return Math.abs(totalCharge());
   }
 
-  @JsonIgnore
   public boolean isCharged() {
     return singleCharge != 0;
   }
@@ -317,7 +308,6 @@ public final class IonPart {
   /**
    * Polarity of total charge so charge * count which may flip sign of singleCharge
    */
-  @JsonIgnore
   public PolarityType totalChargePolarity() {
     return switch (singleCharge) {
       case int c when c < 0 -> PolarityType.NEGATIVE;
@@ -326,32 +316,26 @@ public final class IonPart {
     };
   }
 
-  @JsonIgnore
   public double totalMass() {
     return absSingleMass * count;
   }
 
-  @JsonIgnore
   public double absTotalMass() {
     return Math.abs(totalMass());
   }
 
-  @JsonIgnore
   public String partSign() {
     return isLoss() ? "-" : "+";
   }
 
-  @JsonIgnore
   public boolean isLoss() {
     return count < 0;
   }
 
-  @JsonIgnore
   public boolean isAddition() {
     return count >= 0;
   }
 
-  @JsonIgnore
   public boolean isNeutralModification() {
     return !isCharged();
   }
@@ -359,7 +343,6 @@ public final class IonPart {
   /**
    * @return the type of this ion part
    */
-  @JsonIgnore
   public Type type() {
     if (isCharged()) {
       return Type.ADDUCT;
@@ -474,7 +457,6 @@ public final class IonPart {
   /**
    * @return the charged formula object of a single count
    */
-  @JsonIgnore
   @Nullable
   public IMolecularFormula chargedSingleCDKFormula() {
     if (singleFormula == null) {
@@ -487,7 +469,6 @@ public final class IonPart {
   /**
    * @return the charged formula object of a single count
    */
-  @JsonIgnore
   @Nullable
   public IMolecularFormula unchargedSingleCDKFormula() {
     if (singleFormula == null) {
@@ -501,7 +482,6 @@ public final class IonPart {
   /**
    * @return silent charge is the only blank name
    */
-  @JsonIgnore
   public boolean isSilentCharge() {
     return name.isBlank() && singleFormula == null && absSingleMass == 0d;
   }

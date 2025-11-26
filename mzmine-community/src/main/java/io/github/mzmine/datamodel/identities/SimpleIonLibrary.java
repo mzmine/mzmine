@@ -29,43 +29,20 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Use {@link #toSearchableLibrary(boolean)} for optimized version for searches
+ * A simple ion library used by the parameter. Use {@link #toSearchableLibrary(boolean)} for an
+ * optimized version for searches.
  */
-public class SimpleIonLibrary implements IonLibrary {
-
-  private final @NotNull String name;
-  private final List<IonType> ions;
-  private final List<IonPart> parts;
-
-  public SimpleIonLibrary(@NotNull String name, @NotNull List<IonType> ions,
-      @NotNull List<IonPart> parts) {
-    this.name = name;
-    this.ions = ions;
-    this.parts = parts;
-  }
-
-  public SimpleIonLibrary(@NotNull String name, @NotNull List<IonType> ions) {
-    this(name, ions, IonTypeUtils.extractUniqueParts(ions));
-  }
-
-  @Override
-  public @NotNull String getName() {
-    return name;
-  }
+public record SimpleIonLibrary(@NotNull String name, @NotNull List<IonType> ions) implements
+    IonLibrary {
 
   @Override
   @NotNull
-  public List<IonType> getIons() {
+  public List<IonType> ions() {
     return ions;
   }
 
   @Override
   @NotNull
-  public List<IonPart> getParts() {
-    return parts;
-  }
-
-  @Override
   public String toString() {
     return "%s (%d ions)".formatted(name, ions.size());
   }

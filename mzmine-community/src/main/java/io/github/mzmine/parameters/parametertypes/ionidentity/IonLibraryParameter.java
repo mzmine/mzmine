@@ -25,10 +25,11 @@
 
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
+import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesModule;
+import io.github.mzmine.datamodel.identities.io.IonLibraryIO;
 import io.github.mzmine.parameters.AbstractParameter;
-import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +43,7 @@ public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibrar
   private IonLibrary library;
 
   public IonLibraryParameter() {
-    this(IonLibrary.MZMINE_DEFAULT_DUAL_POLARITY);
+    this(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY);
   }
 
   public IonLibraryParameter(@NotNull IonLibrary defaultValue) {
@@ -89,16 +90,18 @@ public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibrar
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-// TODO
+    setValue(IonLibraryIO.loadFromXML(xmlElement));
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-//TODO
+    // save all ions and library name so that a library will reload exactly the same library
+    // the local version of this library might change and the component will display a modified symbol
+    IonLibraryIO.saveToXML(xmlElement, getValue());
   }
 
   @Override
-  public UserParameter<IonLibrary, IonLibraryComponent> cloneParameter() {
+  public IonLibraryParameter cloneParameter() {
     return new IonLibraryParameter(library);
   }
 }

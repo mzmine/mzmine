@@ -96,8 +96,8 @@ class IonLibraryEditModel {
     if (library == null) {
       name.set("unnamed");
     } else {
-      name.set(library.getName());
-      ionTypes.setAll(library.getIons());
+      name.set(library.name());
+      ionTypes.setAll(library.ions());
     }
     sameAsOriginal.set(true);
     title.set(isNewlyCreated() ? "Creating new library" : "Editing ion library " + getName());

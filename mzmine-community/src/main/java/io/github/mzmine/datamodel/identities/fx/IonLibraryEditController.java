@@ -103,7 +103,7 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
 
     Set<IonType> all = new HashSet<>(model.getIonTypes());
     for (IonLibrary library : libraries) {
-      all.addAll(library.getIons());
+      all.addAll(library.ions());
     }
     model.getIonTypes().setAll(all);
   }
@@ -138,7 +138,7 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
     // check if name was changed
     final IonLibrary original = model.getLibrary();
     final String newName = model.getName();
-    final boolean keepsOriginalName = original != null && original.getName().equals(newName);
+    final boolean keepsOriginalName = original != null && original.name().equals(newName);
     if (saveAsCopy && keepsOriginalName) {
       // name was never changed - only needed for save copy
       DialogLoggerUtil.showErrorNotification("Requires name change to save copy!",
@@ -148,7 +148,7 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
 
     // on save overwrite original library always ask if user is sure
     if (!saveAsCopy && original != null && !DialogLoggerUtil.showDialogYesNo(
-        "Overwrite original library named " + original.getName(),
+        "Overwrite original library named " + original.name(),
         "Do you want to overwrite the original library?")) {
       return;
     }
@@ -167,7 +167,7 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
           parentModel.getLibraries().remove(original);
         }
         if (!nameUnique) {
-          parentModel.getLibraries().removeIf(l -> l.getName().equals(newName));
+          parentModel.getLibraries().removeIf(l -> l.name().equals(newName));
         }
         parentModel.getLibraries().add(newLibrary);
         model.setLibrary(newLibrary);
@@ -180,6 +180,6 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
    */
   private boolean isLibraryNameUnique(String newName) {
     final List<IonLibrary> allLibraries = List.copyOf(parentModel.getLibraries());
-    return allLibraries.stream().noneMatch(l -> l.getName().equals(newName));
+    return allLibraries.stream().noneMatch(l -> l.name().equals(newName));
   }
 }

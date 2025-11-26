@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,16 +23,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.io;
+package io.github.mzmine.util;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import io.github.mzmine.util.FormulaUtils;
 import java.io.IOException;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-public class IMolecularFormulaSerializer extends JsonSerializer<IMolecularFormula> {
+public class FormulaSerializer extends JsonSerializer<IMolecularFormula> {
 
   public void serialize(IMolecularFormula value, JsonGenerator gen, SerializerProvider serializers)
       throws IOException {

@@ -30,33 +30,15 @@ import org.jetbrains.annotations.NotNull;
 
 public interface IonLibrary {
 
-  final @NotNull String MZMINE_DEFAULT_NAME_DUAL_POLARITIES = "mzmine default (+/-)";
-  final @NotNull String MZMINE_DEFAULT_NAME_POS = "mzmine default (+)";
-  final @NotNull String MZMINE_DEFAULT_NAME_NEG = "mzmine default (-)";
-  final @NotNull List<String> RESERVED_LIBRARY_NAMES = List.of(MZMINE_DEFAULT_NAME_DUAL_POLARITIES,
-      MZMINE_DEFAULT_NAME_POS, MZMINE_DEFAULT_NAME_NEG);
+  @NotNull String name();
 
-  /**
-   * A default library with both positive and negative ions
-   */
-  final @NotNull IonLibrary MZMINE_DEFAULT_DUAL_POLARITY = new SimpleIonLibrary(
-      IonLibrary.MZMINE_DEFAULT_NAME_DUAL_POLARITIES, IonTypes.DEFAULT_VALUES_BOTH_POLARITIES);
-  final @NotNull IonLibrary MZMINE_DEFAULT_POS = new SimpleIonLibrary(
-      IonLibrary.MZMINE_DEFAULT_NAME_POS, IonTypes.DEFAULT_VALUES_POSITIVE);
-  final @NotNull IonLibrary MZMINE_DEFAULT_NEG = new SimpleIonLibrary(
-      IonLibrary.MZMINE_DEFAULT_NAME_NEG, IonTypes.DEFAULT_VALUES_NEGATIVE);
-
-  @NotNull String getName();
-
-  List<IonType> getIons();
+  List<IonType> ions();
 
   default int getNumIons() {
-    return getIons().size();
+    return ions().size();
   }
 
-  List<IonPart> getParts();
-
   default SearchableIonLibrary toSearchableLibrary(boolean filterByRowCharge) {
-    return new SearchableIonLibrary(getIons(), filterByRowCharge);
+    return new SearchableIonLibrary(ions(), filterByRowCharge);
   }
 }
