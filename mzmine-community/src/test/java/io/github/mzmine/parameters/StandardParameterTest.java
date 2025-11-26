@@ -26,7 +26,6 @@
 package io.github.mzmine.parameters;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import io.github.mzmine.datamodel.PolarityType;
@@ -35,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import java.text.DecimalFormat;
@@ -55,6 +55,9 @@ class StandardParameterTest {
         new ParameterTestCase(new DoubleParameter("t", "", new DecimalFormat("0.0000"), 5d), 1d), //
         new ParameterTestCase(new IntegerParameter("t", "", 2), 1), //
         new ParameterTestCase(new BooleanParameter("test", "", true), false), //
+        new ParameterTestCase(new MultiChoiceParameter<>("t", "", PolarityType.values(),
+            new PolarityType[]{PolarityType.POSITIVE, PolarityType.NEGATIVE}),
+            new PolarityType[]{PolarityType.NEGATIVE, PolarityType.POSITIVE}), //
         new ParameterTestCase(comboParam, PolarityType.POSITIVE), //
         // optional parameters
         new ParameterTestCase(new OptionalParameter<>(comboParam, true), false,
@@ -77,7 +80,7 @@ class StandardParameterTest {
 
     // check value and embedded
     assertNotSame(param, clone);
-    assertEquals(param.getValue(), clone.getValue());
+    assertValueEqual(param, clone, true);
     assertEmbeddedEqual(param, clone, true);
   }
 
@@ -87,7 +90,7 @@ class StandardParameterTest {
     final Parameter param = test.param();
     final Parameter clone = param.cloneParameter();
     assertNotSame(param, clone);
-    assertEquals(param.getValue(), clone.getValue());
+    assertValueEqual(param, clone, true);
     assertEquals(param.getName(), clone.getName());
     if (param instanceof UserParameter up) {
       assertEquals(up.getDescription(), ((UserParameter) clone).getDescription());
@@ -100,16 +103,22 @@ class StandardParameterTest {
 
       // should not be the same instance
       assertNotSame(embedded, embeddedClone);
-      assertEquals(embedded.getValue(), embeddedClone.getValue());
+      assertValueEqual(embedded, embeddedClone, true);
       // change value and see that the clone is independent
       embeddedClone.setValue(test.embeddedDifferentValue());
-      assertNotEquals(embedded.getValue(), embeddedClone.getValue());
+      assertValueEqual(embedded, embeddedClone, false);
     }
 
     // change value and see that the clone is independent
     clone.setValue(test.differentValue());
     assertEquals(test.differentValue(), clone.getValue());
-    assertNotEquals(param.getValue(), clone.getValue());
+    assertValueEqual(param, clone, false);
+  }
+
+
+  void assertValueEqual(Parameter param, Parameter clone, boolean equal) {
+    assertEquals(equal, param.valueEquals(clone),
+        "Value equals should be %s but is %s".formatted(equal, !equal));
   }
 
   void assertEmbeddedEqual(Parameter param, Parameter clone, boolean equal) {
@@ -119,11 +128,7 @@ class StandardParameterTest {
 
       // should not be the same instance
       assertNotSame(embedded, embeddedClone);
-      if (equal) {
-        assertEquals(embedded.getValue(), embeddedClone.getValue());
-      } else {
-        assertNotEquals(embedded.getValue(), embeddedClone.getValue());
-      }
+      assertValueEqual(embedded, embeddedClone, equal);
     }
   }
 
