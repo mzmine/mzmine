@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,24 +22,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_diams2_nocorr;
+package io.github.mzmine.modules.dataprocessing.filter_diams2.no_corr;
 
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import org.jetbrains.annotations.NotNull;
 
 public class DiaMs2NoCorrParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
-
-  public static final ScanSelectionParameter ms2ScanSelection = new ScanSelectionParameter(
-      "MS2 scan selection", "Select the ms2 scans you want included for DIA MS2 correlation.",
-      new ScanSelection(2));
 
   public static final BooleanParameter replaceExisting = new BooleanParameter(
       "Replace existing MS2 spectra", """
@@ -48,9 +41,8 @@ public class DiaMs2NoCorrParameters extends SimpleParameterSet {
       May be useful to first pair high-confidence DIA-MS2s by the %s module and then add 
       additional MS2s to features without high quality MS2s.""".formatted(DiaMs2CorrModule.NAME));
 
-
   public DiaMs2NoCorrParameters() {
-    super(flists, ms2ScanSelection, replaceExisting);
+    super(flists, replaceExisting);
   }
 
   @Override

@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_diams2_nocorr;
+package io.github.mzmine.modules.dataprocessing.filter_diams2.no_corr;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
@@ -37,53 +37,47 @@ import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
-import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrParameters;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
+import io.github.mzmine.taskcontrol.operations.AbstractTaskSubProcessor;
 import io.github.mzmine.util.IonMobilityUtils;
-import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DiaMs2NoCorrTask extends AbstractFeatureListTask {
+public class DiaMs2NoCorrTask extends AbstractTaskSubProcessor {
 
   private final FeatureList flist;
   private final boolean replaceExisting;
   private final ScanSelection scanSelection;
+  private final long totalItems;
+  private final AtomicLong finishedItems = new AtomicLong(0);
 
-  /**
-   * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
-   *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
-   *                       stored in ram. For now, one storage should be created per module call in
-   * @param moduleCallDate the call date of module to order execution order
-   * @param parameters
-   * @param moduleClass
-   */
-  protected DiaMs2NoCorrTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
-      @NotNull ParameterSet parameters, @NotNull Class<? extends MZmineModule> moduleClass,
-      FeatureList flist) {
-    super(storage, moduleCallDate, parameters, moduleClass);
+  protected DiaMs2NoCorrTask(@NotNull final ModularFeatureList flist,
+      DiaMs2CorrParameters mainParam, ParameterSet moduleParam,
+      @NotNull final DiaMs2CorrTask mainTask) {
+    super(mainTask);
     this.flist = flist;
-    replaceExisting = parameters.getValue(DiaMs2NoCorrParameters.replaceExisting);
-    scanSelection = parameters.getValue(DiaMs2NoCorrParameters.ms2ScanSelection);
+    replaceExisting = moduleParam.getValue(DiaMs2NoCorrParameters.replaceExisting);
+    scanSelection = mainParam.getValue(DiaMs2CorrParameters.ms2ScanSelection);
 
     totalItems = (long) flist.getNumberOfRows() * flist.getNumberOfRawDataFiles();
   }
@@ -156,12 +150,7 @@ public class DiaMs2NoCorrTask extends AbstractFeatureListTask {
   }
 
   @Override
-  protected @NotNull List<FeatureList> getProcessedFeatureLists() {
-    return List.of(flist);
-  }
-
-  @Override
-  protected void process() {
+  public void process() {
     final List<FeatureListRow> rows = flist.getRowsCopy();
 
     final List<RawDataFile> files = flist.getRawDataFiles();
@@ -284,5 +273,10 @@ public class DiaMs2NoCorrTask extends AbstractFeatureListTask {
   @Override
   public String getTaskDescription() {
     return "Assigning closest MS2 scans to Features.";
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+    return (double) finishedItems.get() / totalItems;
   }
 }

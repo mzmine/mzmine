@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_diams2;
+package io.github.mzmine.modules.dataprocessing.filter_diams2.rt_corr;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -30,7 +30,7 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import java.util.Map;
 
-public class DiaMs2CorrAdvancedParameters extends SimpleParameterSet {
+public class DiaMs2RtCorrAdvancedParameters extends SimpleParameterSet {
 
   public static final double DEFAULT_CORR_THRESHOLD = 0.001;
 
@@ -39,7 +39,7 @@ public class DiaMs2CorrAdvancedParameters extends SimpleParameterSet {
           "Specify a percentage of the maximum intensity below which no further correlation will be performed. The default is 0.1% (0.1% mzmine ≥ 4.8 and 10% mzmine < 4.8)",
           DEFAULT_CORR_THRESHOLD, 0d, 1d));
 
-  public DiaMs2CorrAdvancedParameters() {
+  public DiaMs2RtCorrAdvancedParameters() {
     super(correlationThreshold);
   }
 

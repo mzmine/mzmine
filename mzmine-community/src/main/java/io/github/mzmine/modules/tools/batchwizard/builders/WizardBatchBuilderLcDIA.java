@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -31,9 +30,10 @@ import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerParameters;
-import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrAdvancedParameters;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaCorrelationOptions;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrParameters;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.rt_corr.DiaMs2RtCorrParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
@@ -48,6 +48,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.util.maths.Weighting;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
@@ -150,17 +151,26 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     final var param = MZmineCore.getConfiguration().getModuleParameters(DiaMs2CorrModule.class)
         .cloneParameterSet();
 
-    param.setParameter(DiaMs2CorrParameters.minPearson, minPearson);
-    param.setParameter(DiaMs2CorrParameters.flists,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(DiaMs2CorrParameters.ms2ScanToScanAccuracy, mzTolScans);
-    param.setParameter(DiaMs2CorrParameters.minMs1Intensity, minFeatureHeight);
-    param.setParameter(DiaMs2CorrParameters.numCorrPoints, minCorrelatedPoints);
-    param.setParameter(DiaMs2CorrParameters.minMs2Intensity,
-        Math.max(minFeatureHeight * 0.1, massDetectorOption.getMs1NoiseLevel()));
     param.setParameter(DiaMs2CorrParameters.ms2ScanSelection,
         new ScanSelection(MsLevelFilter.of(2)));
-    param.setParameter(DiaMs2CorrParameters.advanced, false);
+
+    param.setParameter(DiaMs2CorrParameters.flists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(DiaMs2CorrParameters.algorithm, DiaCorrelationOptions.RT_CORRELATION);
+
+    ModuleOptionsEnumComboParameter<DiaCorrelationOptions> algorithmParameter = param.getParameter(
+        DiaMs2CorrParameters.algorithm);
+
+    final ParameterSet ms2RtParam = new DiaMs2RtCorrParameters().cloneParameterSet();
+    ms2RtParam.setParameter(DiaMs2RtCorrParameters.ms2ScanToScanAccuracy, mzTolScans);
+    ms2RtParam.setParameter(DiaMs2RtCorrParameters.minMs1Intensity, minFeatureHeight);
+    ms2RtParam.setParameter(DiaMs2RtCorrParameters.minMs2Intensity,
+        Math.max(minFeatureHeight * 0.1, massDetectorOption.getMs1NoiseLevel()));
+    ms2RtParam.setParameter(DiaMs2RtCorrParameters.minPearson, minPearson);
+    ms2RtParam.setParameter(DiaMs2RtCorrParameters.numCorrPoints, minCorrelatedPoints);
+    ms2RtParam.setParameter(DiaMs2RtCorrParameters.advanced, false);
+
+    algorithmParameter.setEmbeddedParameters(ms2RtParam);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(DiaMs2CorrModule.class),
         param));

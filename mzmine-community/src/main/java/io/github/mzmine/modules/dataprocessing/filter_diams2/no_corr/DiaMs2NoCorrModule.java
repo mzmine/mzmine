@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,23 +22,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_diams2_nocorr;
+package io.github.mzmine.modules.dataprocessing.filter_diams2.no_corr;
 
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaCorrelationModule;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrParameters;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrTask;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.time.Instant;
-import java.util.Collection;
+import io.github.mzmine.taskcontrol.operations.TaskSubProcessor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DiaMs2NoCorrModule implements MZmineProcessingModule {
+public class DiaMs2NoCorrModule implements DiaCorrelationModule {
 
   @Override
   public @NotNull String getName() {
@@ -52,25 +46,9 @@ public class DiaMs2NoCorrModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @NotNull String getDescription() {
-    return "Pairs the closest MS2 spectrum based on retention time and ion mobility dimension without filtering for feature shape correlation.";
-  }
-
-  @Override
-  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
-      @NotNull Instant moduleCallDate) {
-    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
-    for (ModularFeatureList matchingFeatureList : parameters.getValue(DiaMs2NoCorrParameters.flists)
-        .getMatchingFeatureLists()) {
-      tasks.add(new DiaMs2NoCorrTask(storage, moduleCallDate, parameters, this.getClass(),
-          matchingFeatureList));
-    }
-    return ExitCode.OK;
-  }
-
-  @Override
-  public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATURELISTFILTERING;
+  public TaskSubProcessor createLogicTask(@NotNull ModularFeatureList flist,
+      @NotNull DiaMs2CorrParameters mainParam, @NotNull ParameterSet moduleParam,
+      @NotNull DiaMs2CorrTask mainTask) {
+    return new DiaMs2NoCorrTask(flist, mainParam, moduleParam, mainTask);
   }
 }
