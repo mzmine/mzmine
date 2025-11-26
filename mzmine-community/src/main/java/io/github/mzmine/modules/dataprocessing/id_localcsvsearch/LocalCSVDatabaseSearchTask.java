@@ -38,6 +38,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RITolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -71,12 +72,13 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
   // vars
   private final FeatureList[] featureLists;
-  private final @Nullable MobilityTolerance mobTolerance;
-  private final @Nullable Double ccsTolerance;
   private final File dataBaseFile;
   private final String fieldSeparator;
   private final @Nullable MZTolerance mzTolerance;
   private final @Nullable RTTolerance rtTolerance;
+  private final @Nullable MobilityTolerance mobTolerance;
+  private final @Nullable RITolerance riTolerance;
+  private final @Nullable Double ccsTolerance;
   private final IsotopePatternMatcherParameters isotopePatternMatcherParameters;
   private final MZTolerance isotopeMzTolerance;
   private final double minRelativeIsotopeIntensity;
@@ -114,6 +116,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
         LocalCSVDatabaseSearchParameters.mobTolerance, null);
     ccsTolerance = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         LocalCSVDatabaseSearchParameters.ccsTolerance, null);
+    riTolerance = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        LocalCSVDatabaseSearchParameters.riTolerance, null);
 
     Boolean calcMz = parameters.getValue(LocalCSVDatabaseSearchParameters.ionLibrary);
     ionLibraryParameterSet = calcMz != null && calcMz ? parameters.getParameter(
@@ -299,7 +303,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
           for (FeatureListRow row : candidates) {
             checkMatchAndAnnotate(annotation, row, mzTolerance, rtTolerance, mobTolerance,
-                ccsTolerance);
+                ccsTolerance, riTolerance);
           }
         }
       }
@@ -350,10 +354,10 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private void checkMatchAndAnnotate(@NotNull CompoundDBAnnotation annotation,
       @NotNull FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobTolerance,
-      @Nullable Double percCcsTolerance) {
+      @Nullable Double percCcsTolerance, @Nullable RITolerance riTolerance) {
 
     final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(row, mzTolerance,
-        rtTolerance, mobTolerance, percCcsTolerance);
+        rtTolerance, mobTolerance, percCcsTolerance, riTolerance);
     if (clone != null) {
       row.addCompoundAnnotation(clone);
     }

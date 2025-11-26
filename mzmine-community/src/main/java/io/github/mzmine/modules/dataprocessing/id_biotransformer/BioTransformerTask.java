@@ -263,7 +263,7 @@ public class BioTransformerTask extends AbstractTask {
         for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
           flist.stream().filter(this::filterProductRow).forEach(r -> {
             final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(r,
-                mzTolerance, rtTolerance, null, null);
+                mzTolerance, rtTolerance, null, null, null);
             if (clone != null) {
 
               final RowsRelationship correlation = ms1Groups.map(map -> map.get(row, r))

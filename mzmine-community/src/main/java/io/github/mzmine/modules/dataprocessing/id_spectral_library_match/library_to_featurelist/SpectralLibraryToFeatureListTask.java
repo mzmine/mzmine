@@ -179,7 +179,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
       for (final LibraryEntryWrappedScan scan : compound) {
         var similarity = SpectralSimilarity.ofMatchIdentity(scan.getEntry());
         // add spectral lib match
-        var match = new SpectralDBAnnotation(scan.getEntry(), similarity, scan, null, null, null);
+        var match = new SpectralDBAnnotation(scan.getEntry(), similarity, scan, null, null, null, null);
         matches.add(match);
       }
       row.addSpectralLibraryMatches(matches);
@@ -216,7 +216,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
       var row = new ModularFeatureListRow(flist, scan.getScanNumber(), feature);
       var similarity = SpectralSimilarity.ofMatchIdentity(scan.getEntry());
       // add spectral lib match
-      var match = new SpectralDBAnnotation(scan.getEntry(), similarity, scan, null, null, null);
+      var match = new SpectralDBAnnotation(scan.getEntry(), similarity, scan, null, null, null, null);
       row.addSpectralLibraryMatch(match);
 
       row.set(FeatureShapeType.class, false);

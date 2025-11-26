@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,37 +22,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.gui.chartbasics.graphicsexport;
 
-import io.github.mzmine.datamodel.features.RowBinding;
-import io.github.mzmine.datamodel.features.SimpleRowBinding;
-import static io.github.mzmine.datamodel.features.types.DataTypes.get;
-import static io.github.mzmine.datamodel.features.types.modifiers.BindingsType.MIN;
-import java.util.List;
+
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Retention index type
+ * Module class so we can store and load presets for the export chart theme if it is embedded in
+ * another parameter set.
  */
-public class RIMinType extends RIType {
+public class ExportChartThemeModule implements MZmineModule {
 
-  @NotNull
   @Override
-  public String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "retention_index_min";
+  public @NotNull String getName() {
+    return "Export chart theme";
   }
 
   @Override
-  public @NotNull String getHeaderString() {
-    return "RI (min)";
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return ExportChartThemeParameters.class;
   }
-
-  @NotNull
-  @Override
-  public List<RowBinding> createDefaultRowBindings() {
-    return List.of(new SimpleRowBinding(this, get(RIType.class), MIN));
-  }
-
-
 }

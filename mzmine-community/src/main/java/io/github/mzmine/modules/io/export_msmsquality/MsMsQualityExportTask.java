@@ -71,6 +71,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -163,7 +164,7 @@ public class MsMsQualityExportTask extends AbstractTask {
     mobScanAccess.jumpToFrame((Frame) frame);
     final double isolationPurityScore = IonMobilityUtils.getPurityInMzAndMobilityRange(
         feature.getMZ(), mobScanAccess, RangeUtils.rangeAround(feature.getMZ(), window),
-        info.getMobilityRange(), true);
+        Objects.requireNonNullElse(info.getMobilityRange(), Range.all()), true);
     return isolationPurityScore;
   }
 

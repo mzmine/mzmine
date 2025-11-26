@@ -25,13 +25,22 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+import io.github.mzmine.datamodel.features.types.MsMsInfoType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.util.MemoryMapStorage;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import java.util.List;
 import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class OtherFeatureUtils {
 
@@ -71,8 +80,8 @@ public class OtherFeatureUtils {
       float summedRt = 0;
       int lastJ = 0;
       for (int j = 0; j < width && i + j < intensities.length; j++) {
-        summedIntensity += intensities[i+j];
-        summedRt += timeSeries.getRetentionTime(i+j);
+        summedIntensity += intensities[i + j];
+        summedRt += timeSeries.getRetentionTime(i + j);
         lastJ = j;
       }
       newIntensities.add(summedIntensity / (lastJ + 1));
@@ -83,5 +92,28 @@ public class OtherFeatureUtils {
         newIntensities.toDoubleArray(), timeSeries.getName(), timeSeries.getTimeSeriesData());
 
     return feature.createSubFeature(shifted);
+  }
+
+  /**
+   *
+   * @param q1      The q1 mass. Set as precursor mass of the
+   *                {@link io.github.mzmine.datamodel.msms.DDAMsMsInfo} in the
+   *                {@link MsMsInfoType}.
+   * @param q3      the Q3 set mass. Set as {@link MZType} of the {@link OtherFeature}.
+   * @param method  The activation method or null.
+   * @param energy  The activation energy or null.
+   * @param feature The other feature.
+   *
+   * @Note When the {@link OtherFeature} is converted to a
+   * {@link io.github.mzmine.datamodel.features.Feature} in the MrmToScansTask, the q1 mz is set as mz of the feature.
+   */
+  public static void applyMrmInfo(double q1, double q3, @Nullable ActivationMethod method,
+      @Nullable Float energy, @NotNull OtherFeature feature) {
+    feature.set(ChromatogramTypeType.class, ChromatogramType.MRM_SRM);
+    feature.set(MZType.class, q3);
+
+    final DDAMsMsInfoImpl msmsInfo = new DDAMsMsInfoImpl(q1, null, energy, null, null, 2, method,
+        null);
+    feature.set(MsMsInfoType.class, List.of(msmsInfo));
   }
 }

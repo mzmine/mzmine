@@ -35,6 +35,8 @@ import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.MassLynxImportOptions;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -229,19 +231,17 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final boolean rsdQcFilter;
   protected final AbsoluteAndRelativeInt minAlignedSamples;
   protected final OriginalFeatureListOption handleOriginalFeatureLists;
-  private final OptionalValue<MinimumSamplesFilterConfig> minNumberOfSamplesInAnyGroup;
   // IMS parameter currently all the same
   protected final boolean isImsActive;
   protected final boolean isNativeIms;
+  protected final boolean allMobilityScansCentroided;
   protected final boolean imsSmoothing;
   protected final MobilityType imsInstrumentType;
   protected final Integer minImsDataPoints;
   protected final Double imsFwhm;
   protected final MobilityTolerance imsFwhmMobTolerance;
-
   //Imaging
   protected final boolean isImaging;
-
   // MS parameters currently all the same
   protected final WizardMassDetectorNoiseLevels massDetectorOption;
   protected final Double minFeatureHeight;
@@ -249,6 +249,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final MZTolerance mzTolFeaturesIntraSample;
   protected final MZTolerance mzTolInterSample;
   protected final WizardMsPolarity polarity;
+  private final OptionalValue<MinimumSamplesFilterConfig> minNumberOfSamplesInAnyGroup;
   // csv database
   private final boolean checkLocalCsvDatabase;
   // lipid annotation
@@ -302,8 +303,15 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     imsSmoothing = getValue(params, IonMobilityWizardParameters.smoothing);
     imsFwhm = getValue(params, IonMobilityWizardParameters.approximateImsFWHM);
     imsFwhmMobTolerance = new MobilityTolerance(imsFwhm.floatValue());
-    isNativeIms = Arrays.stream(dataFiles).map(RawDataFileTypeDetector::detectDataFileType)
-        .allMatch(type -> type == RawDataFileType.BRUKER_TDF);
+
+    final List<RawDataFileType> allFileTypes = Arrays.stream(dataFiles)
+        .map(RawDataFileTypeDetector::detectDataFileType).toList();
+    isNativeIms = allFileTypes.stream().allMatch(
+        type -> (type == RawDataFileType.BRUKER_TDF || (type == RawDataFileType.WATERS_RAW_IMS
+            && ConfigService.getPreference(MZminePreferences.massLynxImportChoice)
+            == MassLynxImportOptions.NATIVE)));
+    allMobilityScansCentroided = allFileTypes.stream()
+        .allMatch(type -> (type == RawDataFileType.BRUKER_TDF));
 
     // Imaging
     isImaging = steps.isImaging();
@@ -995,7 +1003,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         null, ScanSelection.ALL_SCANS, denormalize);
 
     final var param = AllSpectralDataImportParameters.create(
-        ConfigService.isApplyVendorCentroiding(), dataFiles,
+        ConfigService.getPreferences().getVendorImportParameters(), dataFiles,
         metadataFile.active() ? metadataFile.value() : null, libraries, advancedParameters);
 
     param.setParameter(AllSpectralDataImportParameters.advancedImport, false);
@@ -1097,7 +1105,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(ImsExpanderParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(ImsExpanderParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(ImsExpanderParameters.useRawData, isNativeIms);
+    param.setParameter(ImsExpanderParameters.useRawData, isNativeIms && allMobilityScansCentroided);
     param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter().setValue(1E1);
     param.setParameter(ImsExpanderParameters.mzTolerance, mzTolScans);
     // need to set SLIM specifically here, as it looks like TWIMS in the raw data.

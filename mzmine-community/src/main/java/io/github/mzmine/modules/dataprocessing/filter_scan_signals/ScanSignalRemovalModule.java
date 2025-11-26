@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class ScanSignalRemovalModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Scan signal removal";
+  public static final String MODULE_NAME = "Scan signal removal";
   private static final String MODULE_DESCRIPTION = """
       Removes signals in scans by m/z ranges.
       """;

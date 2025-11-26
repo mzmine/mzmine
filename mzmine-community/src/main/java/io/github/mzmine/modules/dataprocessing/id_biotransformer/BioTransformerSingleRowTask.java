@@ -147,7 +147,7 @@ public class BioTransformerSingleRowTask extends AbstractTask {
     for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
       final int annotated = flist.stream().mapToInt(r -> {
         final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(r,
-            mzTolerance, rtTolerance, null, null);
+            mzTolerance, rtTolerance, null, null, null);
         if (clone != null) {
           final RowsRelationship correlation = ms1Groups.map(map -> map.get(row, r)).orElse(null);
           if (rowCorrelationFilter && correlation == null) {

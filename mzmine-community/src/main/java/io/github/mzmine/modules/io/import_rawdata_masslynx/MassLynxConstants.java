@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,37 +22,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.modules.io.import_rawdata_masslynx;
 
-import io.github.mzmine.datamodel.features.RowBinding;
-import io.github.mzmine.datamodel.features.SimpleRowBinding;
-import static io.github.mzmine.datamodel.features.types.DataTypes.get;
-import static io.github.mzmine.datamodel.features.types.modifiers.BindingsType.MAX;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
+class MassLynxConstants {
 
-/**
- * Retention index type
- */
-public class RIMaxType extends RIType {
+  public static final float DEFAULT_FLOAT = -1.0f;
+  public static final int DEFAULT_INT = -1;
 
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "retention_index_max";
-  }
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "RI (max)";
-  }
-
-  @NotNull
-  @Override
-  public List<RowBinding> createDefaultRowBindings() {
-    return List.of(new SimpleRowBinding(this, get(RIType.class), MAX));
-  }
+  public static final float NO_PRECURSOR = DEFAULT_FLOAT;
+  public static final float NO_QUAD_ISOLATION = DEFAULT_FLOAT;
+  public static final float NO_COLLISION_ENERGY = DEFAULT_FLOAT;
+  public static final float NO_MOBILITY = DEFAULT_FLOAT;
+  public static final int NO_DRIFT_SCANS = DEFAULT_INT;
+  public static final int NO_LOCKMASS_FUNCTION = DEFAULT_INT;
+  public static final float NO_RT = DEFAULT_FLOAT;
+  public static final float NO_POSITION = DEFAULT_FLOAT;
 
 }

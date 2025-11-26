@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataanalysis.rowsboxplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
@@ -46,6 +47,8 @@ public class RowsBoxplotModel {
   private final BooleanProperty showCategoryAxislabel = new SimpleBooleanProperty(true);
   private final BooleanProperty showTitle = new SimpleBooleanProperty(true);
   private final BooleanProperty showCategoryAxisColumnLabels = new SimpleBooleanProperty(true);
+
+  private final ObjectProperty<@Nullable EChartViewer> chart = new SimpleObjectProperty<>(null);
 
   public List<FeatureListRow> getSelectedRows() {
     return selectedRows.get();
@@ -117,5 +120,13 @@ public class RowsBoxplotModel {
 
   public BooleanProperty showCategoryAxisColumnLabelsProperty() {
     return showCategoryAxisColumnLabels;
+  }
+
+  public @Nullable EChartViewer getChart() {
+    return chart.get();
+  }
+
+  protected ObjectProperty<@Nullable EChartViewer> chartProperty() {
+    return chart;
   }
 }

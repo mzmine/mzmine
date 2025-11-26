@@ -28,8 +28,7 @@ package io.github.mzmine.modules.io.import_rawdata_all;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.javafx.components.factories.FxButtons;
-import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
@@ -38,15 +37,16 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.ComponentWrapperParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.files.ExtensionFilters;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -60,14 +60,6 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
   private static final Logger logger = Logger.getLogger(
       AllSpectralDataImportParameters.class.getName());
 
-  public static final ComponentWrapperParameter<Boolean, BooleanParameter> applyVendorCentroiding = new ComponentWrapperParameter<>(
-      new BooleanParameter("Try vendor centroiding",
-          "Vendor centroiding will be applied to the imported raw data if this option is selected and cetroiding is supported.",
-          true), () -> FxButtons.createButton(null, FxIcons.GEAR_PREFERENCES,
-      "Open the preference dialog, which controls this parameter for the drag & drop import and the mzwizard.",
-      () -> ConfigService.getPreferences()
-          .showSetupDialog(true, MZminePreferences.applyVendorCentroiding.getName())));
-
   /**
    * This parameter adds a different validation step to files that may map files selected in the All
    * .d or similar buttons to a validated list of distinct files
@@ -75,6 +67,10 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
   public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
       ExtensionFilters.MS_RAW_DATA, "Drag & drop your MS data files here.",
       AllSpectralDataImportParameters::validateDistinctPaths);
+
+  public static final ParameterSetParameter<VendorImportParameters> vendorOptions = new ParameterSetParameter<>(
+      "Vendor data options", "Set specific options how to handle vendor data.",
+      new VendorImportParameters());
 
   public static final OptionalModuleParameter<AdvancedSpectraImportParameters> advancedImport = new OptionalModuleParameter<>(
       "Advanced import",
@@ -89,9 +85,14 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
       To color by metadata, apply the "%s" module in batch, quick access, or via right click in the MS data files list.""".formatted(
       ColorByMetadataModule.MODULE_NAME), true);
 
+  private final BooleanParameter applyVendorCentroidingOld = new BooleanParameter(
+      "Try vendor centroiding",
+      "Vendor centroiding will be applied to the imported raw data if this option is selected and cetroiding is supported.",
+      true);
+
   public AllSpectralDataImportParameters() {
     super(new Parameter[]{fileNames, //
-            applyVendorCentroiding, //
+            vendorOptions, //
             advancedImport, // directly process masslists
             metadataFile, // metadata import
             sortAndRecolor, // sort and recolor
@@ -101,19 +102,18 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
   }
 
 
-  public static ParameterSet create(final boolean applyVendorCentroiding,
+  public static ParameterSet create(final VendorImportParameters importParam,
       @NotNull final File[] allDataFiles, @Nullable final File metadata,
       @Nullable final File[] allLibraryFiles) {
-    return create(applyVendorCentroiding, allDataFiles, metadata, allLibraryFiles, null);
+    return create(importParam, allDataFiles, metadata, allLibraryFiles, null);
   }
 
-  public static ParameterSet create(final boolean applyVendorCentroiding,
+  public static ParameterSet create(final VendorImportParameters importParam,
       @NotNull final File[] allDataFiles, @Nullable final File metadata,
       @Nullable final File[] allLibraryFiles,
       @Nullable final AdvancedSpectraImportParameters advanced) {
     var params = new AllSpectralDataImportParameters().cloneParameterSet();
-    params.setParameter(AllSpectralDataImportParameters.applyVendorCentroiding,
-        applyVendorCentroiding);
+    params.getParameter(vendorOptions).setEmbeddedParameters(importParam);
     params.setParameter(fileNames, allDataFiles);
     params.setParameter(metadataFile, metadata != null, metadata);
     params.setParameter(SpectralLibraryImportParameters.dataBaseFiles, allLibraryFiles);
@@ -210,4 +210,22 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
         .distinct().toArray(File[]::new);
   }
 
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+
+    if (loadedParams.containsKey(applyVendorCentroidingOld.getName())) {
+      final BooleanParameter oldCentroiding = (BooleanParameter) loadedParams.get(
+          applyVendorCentroidingOld.getName());
+      getEmbeddedParameterValue(vendorOptions).setParameter(
+          VendorImportParameters.applyVendorCentroiding, oldCentroiding.getValue());
+    }
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    final var map = super.getNameParameterMap();
+    map.put(applyVendorCentroidingOld.getName(), applyVendorCentroidingOld);
+    return map;
+  }
 }
