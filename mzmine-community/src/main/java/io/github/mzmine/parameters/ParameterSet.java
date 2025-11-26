@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -162,7 +161,8 @@ public interface ParameterSet extends ParameterContainer {
   /**
    * This method is called after successfully loading parameters (e.g., from xml). This allows to
    * load old legacy parameters and map their values to new parameters or load parameters and apply
-   * their value also to other parameters that were added later.
+   * their value also to other parameters that were added later. Use
+   * {@link #setParameter(Parameter, Object)} to map old to new parameter values.
    *
    * @param loadedParams  map of parameter name to actually loaded parameters
    * @param loadedVersion the version of the loaded parameter set
@@ -312,8 +312,8 @@ public interface ParameterSet extends ParameterContainer {
    * Presets that are shown in the {@link io.github.mzmine.modules.presets.ModulePresetStore} unless
    * no user presets are available.
    *
-   * @see ModulePresetStore#createDefaults()
    * @return List of presets.
+   * @see ModulePresetStore#createDefaults()
    */
   default @NotNull List<ModulePreset> createDefaultPresets() {
     return List.of();
