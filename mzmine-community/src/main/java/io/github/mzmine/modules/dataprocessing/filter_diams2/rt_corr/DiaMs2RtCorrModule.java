@@ -22,24 +22,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_diams2;
+package io.github.mzmine.modules.dataprocessing.filter_diams2.rt_corr;
 
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaCorrelationModule;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrParameters;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrTask;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.time.Instant;
-import java.util.Collection;
+import io.github.mzmine.taskcontrol.operations.TaskSubProcessor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DiaMs2CorrModule implements MZmineProcessingModule {
+public class DiaMs2RtCorrModule implements DiaCorrelationModule {
 
-  public static final String NAME = "DIA pseudo MS2 builder (experimental)";
+  public static final String NAME = "DIA pseudo MS2 builder (RT correlation) (experimental)";
 
   @Override
   public @NotNull String getName() {
@@ -48,28 +44,14 @@ public class DiaMs2CorrModule implements MZmineProcessingModule {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return DiaMs2CorrParameters.class;
+    return DiaMs2RtCorrParameters.class;
   }
 
   @Override
-  public @NotNull String getDescription() {
-    return "Builds pseudo MS2 scans for DIA acquisition.";
+  public TaskSubProcessor createLogicTask(@NotNull ModularFeatureList flist,
+      @NotNull DiaMs2CorrParameters mainParam, @NotNull ParameterSet moduleParam,
+      @NotNull DiaMs2CorrTask mainTask) {
+    return new DiaMs2RtCorrTask(flist, mainParam, moduleParam, mainTask);
   }
 
-  @Override
-  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
-      @NotNull Instant moduleCallDate) {
-    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
-    for (ModularFeatureList matchingFeatureList : parameters.getValue(DiaMs2CorrParameters.flists)
-        .getMatchingFeatureLists()) {
-      tasks.add(new DiaMs2CorrTask(storage, moduleCallDate, matchingFeatureList, parameters));
-    }
-    return ExitCode.OK;
-  }
-
-  @Override
-  public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATURELISTFILTERING;
-  }
 }

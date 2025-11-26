@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -11,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -22,21 +22,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel;
+package io.github.mzmine.modules.dataprocessing.filter_diams2;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.operations.TaskSubProcessor;
 import org.jetbrains.annotations.NotNull;
 
-public enum PseudoSpectrumType implements UniqueIdSupplier {
-  LC_DIA, GC_EI, MALDI_IMAGING, UNCORRELATED;
+public interface DiaCorrelationModule extends MZmineModule {
 
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case LC_DIA -> "LC_DIA";
-      case GC_EI -> "GC_EI";
-      case MALDI_IMAGING -> "MALDI_IMAGING";
-      case UNCORRELATED -> "UNCORRELATED";
-    };
-  }
+  public TaskSubProcessor createLogicTask(@NotNull final ModularFeatureList flist,
+      @NotNull final DiaMs2CorrParameters mainParam, @NotNull final ParameterSet moduleParam,
+      @NotNull final DiaMs2CorrTask mainTask);
 }

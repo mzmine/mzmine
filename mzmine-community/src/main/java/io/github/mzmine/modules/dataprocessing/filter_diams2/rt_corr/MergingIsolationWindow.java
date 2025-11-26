@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -11,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -22,21 +22,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel;
+package io.github.mzmine.modules.dataprocessing.filter_diams2.rt_corr;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.datamodel.Scan;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public enum PseudoSpectrumType implements UniqueIdSupplier {
-  LC_DIA, GC_EI, MALDI_IMAGING, UNCORRELATED;
+final class MergingIsolationWindow {
+
+  private final @NotNull List<Scan> scans;
+  private IsolationWindow window;
+
+  MergingIsolationWindow(IsolationWindow window, @NotNull List<Scan> scans) {
+    this.window = window;
+    this.scans = scans;
+  }
+
+  IsolationWindow window() {
+    return window;
+  }
+
+  @NotNull List<Scan> scans() {
+    return scans;
+  }
+
+  void setWindow(IsolationWindow window) {
+    this.window = window;
+  }
 
   @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case LC_DIA -> "LC_DIA";
-      case GC_EI -> "GC_EI";
-      case MALDI_IMAGING -> "MALDI_IMAGING";
-      case UNCORRELATED -> "UNCORRELATED";
-    };
+  public String toString() {
+    return "%s (%s scans)".formatted(window.toString(), scans.size());
   }
 }
