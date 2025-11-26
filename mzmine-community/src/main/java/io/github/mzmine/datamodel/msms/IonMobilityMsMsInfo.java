@@ -36,7 +36,7 @@ public interface IonMobilityMsMsInfo extends MsMsInfo {
   /**
    * @return The range of spectra numbers in this frame where this precursor was fragmented in.
    */
-  Range<Integer> getSpectrumNumberRange();
+  @Nullable Range<Integer> getSpectrumNumberRange();
 
   @Nullable
   default Range<Float> getMobilityRange() {

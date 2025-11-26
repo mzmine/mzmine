@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -146,6 +147,30 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
     this.module = module;
     this.parameters = parameters;
     setDescription("Importing raw data file %s".formatted(file.getName()));
+  }
+
+  /**
+   * With timsControl > 6.1 the SIMSEF data is saved as DIA window. We have to map it to a regular
+   * MS2 info.
+   */
+  private static @Nullable PasefMsMsInfo mapToPasefInfo(IonMobilityMsMsInfo i) {
+    return switch (i) {
+      case PasefMsMsInfo pasef -> pasef;
+      case DIAImsMsMsInfoImpl dia -> {
+        if (dia.getIsolationWindow() == null) {
+          yield null;
+        }
+        final double isoWidth = RangeUtils.rangeLength(dia.getIsolationWindow()).doubleValue();
+        if (isoWidth
+            <= 5) { // is arbitrarily chosen as a cutoff for what can be deemed as a SIMSEF dda MS2.
+          yield new PasefMsMsInfoImpl(RangeUtils.rangeCenter(dia.getIsolationWindow()),
+              dia.getSpectrumNumberRange(), dia.getActivationEnergy(), null, null,
+              dia.getMsMsFrame(), dia.getIsolationWindow());
+        }
+        yield null;
+      }
+      default -> null;
+    };
   }
 
   @Override
@@ -407,7 +432,8 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
     final List<BuildingMobilityScan> spectra = tdfUtils.loadSpectraForTIMSFrame(frame, frameTable,
         scanProcessorConfig);
     if (spectra.isEmpty()) {
-      spectra.add(new BuildingMobilityScan(0, new double[]{}, new double[]{}));
+      spectra.add(
+          new BuildingMobilityScan(0, new double[]{}, new double[]{}, MassSpectrumType.CENTROIDED));
     }
 
     boolean useAsMassList = scanProcessorConfig.isMassDetectActive(frame.getMSLevel());
@@ -522,30 +548,6 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
   }
 
   /**
-   * With timsControl > 6.1 the SIMSEF data is saved as DIA window. We have to map it to a regular
-   * MS2 info.
-   */
-  private static @Nullable PasefMsMsInfo mapToPasefInfo(IonMobilityMsMsInfo i) {
-    return switch (i) {
-      case PasefMsMsInfo pasef -> pasef;
-      case DIAImsMsMsInfoImpl dia -> {
-        if (dia.getIsolationWindow() == null) {
-          yield null;
-        }
-        final double isoWidth = RangeUtils.rangeLength(dia.getIsolationWindow()).doubleValue();
-        if (isoWidth
-            <= 5) { // is arbitrarily chosen as a cutoff for what can be deemed as a SIMSEF dda MS2.
-          yield new PasefMsMsInfoImpl(RangeUtils.rangeCenter(dia.getIsolationWindow()),
-              dia.getSpectrumNumberRange(), dia.getActivationEnergy(), null, null,
-              dia.getMsMsFrame(), dia.getIsolationWindow());
-        }
-        yield null;
-      }
-      default -> null;
-    };
-  }
-
-  /**
    * bbCID is Bruker's version of all ion fragmentation (AIF) or MSe. Alternating between low (MS1)
    * and high collision energies (MS2) without quad isolation.
    */
@@ -622,8 +624,8 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? List.of(newMZmineFile) : List.of();
   }
 
  /*private void compareMobilities(IMSRawDataFile rawDataFile) {

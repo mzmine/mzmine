@@ -168,9 +168,9 @@ Text.warning-label {
 }
 
 .popover > .border {
-  -fx-stroke: linear-gradient(to bottom, rgba(0, 0, 0, .3), rgba(0, 0, 0, .7));
-  -fx-stroke-width: 1;
-  -fx-fill: rgba(255.0, 255.0, 255.0, .95);
+  -fx-stroke: -fx-outer-border !important;
+  -fx-stroke-width: 2;
+  -fx-fill: derive(-fx-control-inner-background, 5%) !important;
   -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, .2), 10.0, 0.5, 2.0, 2.0);
 }
 
@@ -201,6 +201,7 @@ Text.warning-label {
   -fx-stroke: white;
   -fx-stroke-width: 2;
 }
+
 
 .icon-button:flash .ikonli-font-icon {
   -fx-icon-color: -jr-selected;

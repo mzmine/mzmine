@@ -414,11 +414,12 @@ public class MSDKmzMLImportTask extends AbstractTask implements RawDataImportTas
     finishedFrame.setMobilities(mobilities);
 
     //
-    boolean massDetectActive = scanProcessorConfig.isMassDetectActive(finishedFrame.getMSLevel());
+    final boolean massDetectActive = scanProcessorConfig.isMassDetectActive(finishedFrame.getMSLevel());
 
     var mobilityScanStorage = new MobilityScanStorage(storage, finishedFrame,
         frameStorage.getMzValues(), frameStorage.getIntensityValues(),
-        frameStorage.getMaxNumPoints(), storageOffsets, basePeakIndices, massDetectActive);
+        frameStorage.getMaxNumPoints(), storageOffsets, basePeakIndices, massDetectActive,
+        massDetectActive ? MassSpectrumType.CENTROIDED : scans.getFirst().spectrumType());
 
     finishedFrame.setMobilityScanStorage(mobilityScanStorage);
     newImsFile.addScan(finishedFrame);
@@ -629,7 +630,7 @@ public class MSDKmzMLImportTask extends AbstractTask implements RawDataImportTas
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? List.of(newMZmineFile) : List.of();
   }
 }

@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class Precision {
 
-  private static DecimalFormat format = new DecimalFormat("0.0E0");
+  private static final DecimalFormat exponentFormat = new DecimalFormat("0.0E0");
 
   /**
    * Checks if difference of a and b is small equal to max difference
@@ -44,7 +44,11 @@ public class Precision {
    * @return true if Math.abs(a-b) <= maxDelta
    */
   public static boolean equals(double a, double b, double maxDelta) {
-    return Math.abs(a - b) <= maxDelta;
+    if (Math.abs(a - b) <= maxDelta) {
+      return true;
+    }
+    // both are NaN or both are - or + INFINITY
+    return Double.compare(a, b) == 0;
   }
 
   /**
@@ -56,7 +60,12 @@ public class Precision {
    * @return true if Math.abs(a-b) <= maxDelta
    */
   public static boolean equals(float a, float b, float maxDelta) {
-    return Math.abs(a - b) <= maxDelta;
+    final float delta = Math.abs(a - b);
+    if (delta <= maxDelta) {
+      return true;
+    }
+    // both are NaN or both are - or + INFINITY
+    return Float.compare(a, b) == 0;
   }
 
   /**
@@ -70,8 +79,23 @@ public class Precision {
    * @return true if Math.abs(a-b) <= maxDelta
    */
   public static boolean equals(double a, double b, double maxDelta, double maxRelativeDelta) {
-    // diff <= max of relative and absolute
-    return Math.abs(a - b) <= Math.max(Math.max(a, b) * maxRelativeDelta, maxDelta);
+    // equal or both are NaN
+    if (Double.compare(a, b) == 0) {
+      return true;
+    }
+    // only one is NaN
+    if (Double.isNaN(a) || Double.isNaN(b)) {
+      return false;
+    }
+    // abs error
+    final double diff = Math.abs(a - b);
+    if (diff <= maxDelta) {
+      return true;
+    }
+
+    final double absoluteMax = Math.max(Math.abs(a), Math.abs(b));
+    final double relativeDifference = Math.abs(diff / absoluteMax);
+    return relativeDifference <= maxRelativeDelta;
   }
 
   /**
@@ -85,8 +109,23 @@ public class Precision {
    * @return true if Math.abs(a-b) <= maxDelta
    */
   public static boolean equals(float a, float b, float maxDelta, float maxRelativeDelta) {
-    // diff <= max of relative and absolute
-    return Math.abs(a - b) <= Math.max(Math.max(a, b) * maxRelativeDelta, maxDelta);
+    // equal or both are NaN
+    if (Float.compare(a, b) == 0) {
+      return true;
+    }
+    // only one is NaN
+    if (Float.isNaN(a) || Float.isNaN(b)) {
+      return false;
+    }
+    // abs error
+    final double diff = Math.abs(a - b);
+    if (diff <= maxDelta) {
+      return true;
+    }
+
+    final double absoluteMax = Math.max(Math.abs(a), Math.abs(b));
+    final double relativeDifference = Math.abs(diff / absoluteMax);
+    return relativeDifference <= maxRelativeDelta;
   }
 
 
@@ -108,8 +147,8 @@ public class Precision {
    * @return A BigDecimal rounded to sig number of significant digits (figures)
    */
   public static BigDecimal round(double value, int sig, RoundingMode mode) {
-    MathContext mc = new MathContext(sig, RoundingMode.HALF_UP);
-    BigDecimal bigDecimal = new BigDecimal(value, mc);
+    MathContext mc = new MathContext(sig, mode);
+    BigDecimal bigDecimal = BigDecimal.valueOf(value).round(mc);
     return bigDecimal;
   }
 
@@ -163,61 +202,80 @@ public class Precision {
     if (digits <= maxLength) {
       return str;
     } else {
-      format.setMaximumFractionDigits(maxLength - 1);
-      return format.format(dec);
+      // format as 1E5 notation
+      return exponentFormat.format(dec);
     }
   }
 
+  public static boolean equalDoubleSignificance(final @Nullable Number a,
+      final @Nullable Number b) {
+    if (a == null && b == null) {
+      return true;
+    }
+    if (a == null || b == null) {
+      return false;
+    }
+    return equalDoubleSignificance(a.doubleValue(), b.doubleValue());
+  }
+
+  public static boolean equalFloatSignificance(final @Nullable Number a, final @Nullable Number b) {
+    if (a == null && b == null) {
+      return true;
+    }
+    if (a == null || b == null) {
+      return false;
+    }
+    return equalFloatSignificance(a.doubleValue(), b.doubleValue());
+  }
+
+  /**
+   * Uses relative error of 5E-5
+   *
+   * @param a first value
+   * @param b second value
+   * @return true if the relative difference diff/max is <= relative error. true if both values are
+   * NaN, false if only one is NaN
+   */
+  public static boolean equalFloatSignificance(final double a, final double b) {
+    return equalRelativeSignificance(a, b, 5E-6);
+  }
+
+  /**
+   * Uses relative error of 5E-13
+   *
+   * @param a first value
+   * @param b second value
+   * @return true if the relative difference diff/max is <= relative error. true if both values are
+   * NaN, false if only one is NaN
+   */
   public static boolean equalDoubleSignificance(final double a, final double b) {
-    return equalSignificance(a, b, 14); // double significance is 15 - 17 digits
+    return equalRelativeSignificance(a, b, 5E-13);
   }
 
-  public static boolean equalSignificance(final double a, final double b, final int sigDigits) {
-    if(Double.isNaN(a) && Double.isNaN(b)) {
+
+  /**
+   *
+   * @param a             first value
+   * @param b             second value
+   * @param relativeError relative error that is accepted, e.g., 1E-2, 0.01 of 1%
+   * @return true if the relative difference diff/max is <= relative error. true if both values are
+   * NaN, false if only one is NaN
+   */
+  public static boolean equalRelativeSignificance(final double a, final double b,
+      final double relativeError) {
+    // equal or both are NaN
+    if (Double.compare(a, b) == 0) {
       return true;
     }
-
-    if(Double.isNaN(a) || Double.isNaN(b)) {
+    // only one is NaN
+    if (Double.isNaN(a) || Double.isNaN(b)) {
       return false;
     }
 
-    if (a == b) {
-      return true;
-    }
-    return round(a, sigDigits).equals(round(b, sigDigits));
-    // below is an alternative but this may overflow the double/float so maybe a bad idea
-//    double diff = Math.abs(a - b);
-//    double larger = Math.max(Math.abs(a), Math.abs(b));
-//    return diff <= larger / sigDigits;
-  }
+    final double absoluteMax = Math.max(Math.abs(a), Math.abs(b));
+    final double relativeDifference = Math.abs((a - b) / absoluteMax);
 
-
-  public static boolean equalFloatSignificance(final float a, final float b) {
-    return equalSignificance(a, b, 6); // float significance is 6 - 7 digits
-  }
-
-  public static boolean equalFloatSignificance(final @Nullable Float a, final @Nullable Float b) {
-    if(a == null && b == null) {
-      return true;
-    }
-    if(a == null || b == null) {
-      return false;
-    }
-    return equalFloatSignificance(a.floatValue(), b.floatValue());
-  }
-
-  public static boolean equalSignificance(final float a, final float b, final int sigDigits) {
-    if(Float.isNaN(a) && Float.isNaN(b)) {
-      return true;
-    }
-
-    if(Float.isNaN(a) || Float.isNaN(b)) {
-      return false;
-    }
-
-    if (a == b) {
-      return true;
-    }
-    return round(a, sigDigits).equals(round(b, sigDigits));
+    // relative difference may be infinite for overflow, but this is handled correctly
+    return relativeDifference <= relativeError;
   }
 }

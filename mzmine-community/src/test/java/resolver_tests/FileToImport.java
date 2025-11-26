@@ -5,13 +5,17 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWiza
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import org.jetbrains.annotations.NotNull;
 
-record FileToImport(@NotNull String filePath, AdvancedSpectraImportParameters importParam) {
+/**
+ * Wraps a file + import param
+ */
+record FileToImport(@NotNull String filePath,
+                    @NotNull AdvancedSpectraImportParameters importParam) {
 
-  static FileToImport factor5(String fileName) {
+  static FileToImport factor5(@NotNull String fileName) {
     return new FileToImport(fileName, factor5);
   }
 
-  static FileToImport centroid500(String fileName) {
+  static FileToImport centroid500(@NotNull String fileName) {
     return new FileToImport(fileName, centroid500);
   }
 

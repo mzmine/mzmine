@@ -405,7 +405,6 @@ public final class MZmineCore {
     return Map.copyOf(getInstance().initializedModules);
   }
 
-
   @NotNull
   public static Optional<MZmineModule> getModuleForParameterSetIfUnique(ParameterSet parameterSet) {
     final List<MZmineModule> modules = getModulesForParameterSet(parameterSet);
@@ -545,7 +544,6 @@ public final class MZmineCore {
     // newTasks);
     // currentProject.logProcessingStep(auditLogEntry);
   }
-
 
   /**
    * @return headless mode or JavaFX GUI
