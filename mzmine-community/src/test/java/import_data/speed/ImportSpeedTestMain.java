@@ -27,6 +27,7 @@ package import_data.speed;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Range;
+import io.github.mzmine.gui.preferences.MassLynxImportOptions;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
@@ -67,10 +68,8 @@ public class ImportSpeedTestMain {
       rawdatafiles/DOM_a_invalid_chars.mzML
       rawdatafiles/DOM_a_invalid_header.mzML
       """.split("\n"));
-  public static String speedTestFile = "D:\\git\\mzmine3\\mzmine-community\\src\\test\\java\\import_data\\speed\\speed.jsonlines";
-
-
   private static final Logger logger = Logger.getLogger(ImportSpeedTestMain.class.getName());
+  public static String speedTestFile = "D:\\git\\mzmine3\\mzmine-community\\src\\test\\java\\import_data\\speed\\speed.jsonlines";
 
   public static void main(String[] args) {
 
@@ -140,8 +139,8 @@ public class ImportSpeedTestMain {
     }).toArray(File[]::new);
 
     ParameterSet paramDataImport = AllSpectralDataImportParameters.create(
-        VendorImportParameters.create(true, true, WatersLockmassParameters.createDefault(), true),
-        files, null, null, advanced);
+        VendorImportParameters.create(true, MassLynxImportOptions.NATIVE, true,
+            WatersLockmassParameters.createDefault(), true), files, null, null, advanced);
 
     logger.info("Testing data import of mzML and mzXML without advanced parameters");
 
