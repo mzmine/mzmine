@@ -28,7 +28,6 @@ package io.github.mzmine.javafx.components.factories;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ComboBox;
-import javafx.scene.layout.StackPane;
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.PopOver.ArrowLocation;
 import org.jetbrains.annotations.NotNull;
@@ -47,10 +46,12 @@ public class FxPopOvers {
   }
 
   public static PopOver newPopOver(@Nullable Node content, @NotNull ArrowLocation arrowLocation) {
-    if (content != null) {
-      content = new StackPane(content);
-      content.getStyleClass().add("outlined-panel");
-    }
+//    if (content != null) {
+    // add an outline content pane to the popover
+    // needs better style
+//      content = new StackPane(content);
+//      content.getStyleClass().add("outlined-panel");
+//    }
 
     var popOver = new PopOver(content);
     popOver.setAutoHide(true);
