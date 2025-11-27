@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,4 +54,13 @@ public class IonLibraries {
    */
   public static final @NotNull List<String> RESERVED_LIBRARY_NAMES = List.of(
       MZMINE_DEFAULT_NAME_DUAL_POLARITIES, MZMINE_DEFAULT_NAME_POS, MZMINE_DEFAULT_NAME_NEG);
+
+  /**
+   *
+   * @return a new modifiable list of default libraries
+   */
+  public static List<IonLibrary> createDefaultLibrariesModifiable() {
+    return new ArrayList<IonLibrary>(
+        List.of(MZMINE_DEFAULT_DUAL_POLARITY, MZMINE_DEFAULT_POS, MZMINE_DEFAULT_NEG));
+  }
 }

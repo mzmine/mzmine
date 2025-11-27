@@ -28,8 +28,14 @@ package io.github.mzmine.datamodel.identities.fx;
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
+import io.github.mzmine.javafx.properties.LastUpdateProperty;
+import java.time.Instant;
 import java.util.function.Consumer;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ReadOnlyListWrapper;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
@@ -53,10 +59,68 @@ class GlobalIonLibrariesModel {
   private final ReadOnlyListWrapper<IonPart> parts = new ReadOnlyListWrapper<>(
       FXCollections.observableArrayList());
 
+  /**
+   * true if the global ions version has changed since retrieving the ions libraries etc. This may
+   * be used to show a notification to the user to update the model.
+   */
+  private final BooleanBinding globalVersionChanged;
+
+  /**
+   * The last change to the internal data model - might show a notification to update the global
+   * model based on this
+   */
+  private final LastUpdateProperty lastModelUpdateProperty = new LastUpdateProperty();
+
+  /**
+   * Holds the global library version number last retrieved for updating the model
+   * {@link GlobalIonLibraryService#getVersion()}. This is a modification counter.
+   */
+  private final IntegerProperty retrivalVersion = new SimpleIntegerProperty();
+  /**
+   * The current version - mismatch to retrieval date signals change.
+   * {@link GlobalIonLibraryService#getVersion()}. This is a modification counter.
+   */
+  private final IntegerProperty globalIonsVersion = new SimpleIntegerProperty();
+
 
   private Consumer<IonLibrary> editSelectedAction;
   private Runnable createNewAction;
 
+  public GlobalIonLibrariesModel() {
+    globalVersionChanged = retrivalVersion.isEqualTo(globalIonsVersion);
+  }
+
+  public int getGlobalIonsVersion() {
+    return globalIonsVersion.get();
+  }
+
+  public IntegerProperty globalIonsVersionProperty() {
+    return globalIonsVersion;
+  }
+
+  public void setGlobalIonsVersion(int globalIonsVersion) {
+    this.globalIonsVersion.set(globalIonsVersion);
+  }
+
+  public boolean isGlobalVersionChanged() {
+    return globalVersionChanged.get();
+  }
+
+  public BooleanBinding globalVersionChangedProperty() {
+    return globalVersionChanged;
+  }
+
+  public Instant getLastModelUpdateProperty() {
+    return lastModelUpdateProperty.get();
+  }
+
+  public LastUpdateProperty lastModelUpdatePropertyProperty() {
+    return lastModelUpdateProperty;
+  }
+
+  public void setLastModelUpdateProperty(Instant lastModelUpdateProperty) {
+    this.lastModelUpdateProperty.set(lastModelUpdateProperty);
+  }
 
   public void setCreateNewAction(@NotNull Runnable createNewAction) {
     this.createNewAction = createNewAction;
@@ -110,4 +174,15 @@ class GlobalIonLibrariesModel {
     this.ionTypes.set(ionTypes);
   }
 
+  public int getRetrivalVersion() {
+    return retrivalVersion.get();
+  }
+
+  public IntegerProperty retrivalVersionProperty() {
+    return retrivalVersion;
+  }
+
+  public void setRetrivalVersion(int retrivalVersion) {
+    this.retrivalVersion.set(retrivalVersion);
+  }
 }

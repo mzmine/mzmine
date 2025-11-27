@@ -51,7 +51,8 @@ class GlobalIonLibraryIO {
     final File file = GlobalIonLibraryService.getGlobalFile();
 
     try {
-      IonLibraryIO.toJsonFile(file, new SimpleIonLibrary("mzmine_global_ions", library.ionTypes()));
+      IonLibraryIO.toJsonFile(file,
+          new SimpleIonLibrary("mzmine_global_ions", library.getIonTypesUnmodifiable()));
       globalFileLastModified.set(file.lastModified());
       logger.fine("Saved global ion library to file: " + file.getAbsolutePath());
     } catch (Exception ex) {

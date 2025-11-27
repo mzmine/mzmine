@@ -26,24 +26,55 @@
 package io.github.mzmine.datamodel.identities.fx;
 
 import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.IonPart;
+import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryDTO;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxInteractor;
-import javafx.collections.FXCollections;
+import java.util.List;
 
+/**
+ * Updates in the {@link GlobalIonLibraryService}
+ */
 class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel> {
+
 
   protected GlobalIonLibrariesInteractor(GlobalIonLibrariesModel model) {
     super(model);
+    model.setGlobalIonsVersion(GlobalIonLibraryService.getGlobalLibrary().getVersion());
     updateModel();
+    // attach listener to update the model if global ions have changed
+    GlobalIonLibraryService.getGlobalLibrary().addChangeListener(
+        event -> FxThread.runLater(() -> model.setGlobalIonsVersion(event.version())));
   }
 
+  /**
+   * Push changes to {@link GlobalIonLibraryService}
+   */
+  public void applyToGlobalIons() {
+    final List<IonLibrary> libraries = List.copyOf(model.getLibraries());
+    final List<IonType> types = List.copyOf(model.getIonTypes());
+    final List<IonPart> parts = List.copyOf(model.getParts());
+
+    final int currentVersion = GlobalIonLibraryService.getGlobalLibrary().getVersion();
+    final int retrivalVersion = model.getRetrivalVersion();
+    // TODO add check that if the versions mismatch than we need to apply safer merging of states
+    GlobalIonLibraryService.getGlobalLibrary().applyUpdates(libraries, types, parts);
+  }
+
+  /**
+   * Pull ions from {@link GlobalIonLibraryService}
+   */
   @Override
   public void updateModel() {
     final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
     FxThread.runLater(() -> {
-//      model.partsProperty().set(FXCollections.observableList(global.parts()));
-      model.ionTypesProperty().set(FXCollections.observableList(global.ionTypes()));
+      final GlobalIonLibraryDTO current = global.getCurrentGlobalLibrary();
+      model.setRetrivalVersion(current.version());
+      model.librariesProperty().setAll(current.libraries());
+      model.partsProperty().setAll(current.parts());
+      model.ionTypesProperty().setAll(current.types());
     });
   }
 

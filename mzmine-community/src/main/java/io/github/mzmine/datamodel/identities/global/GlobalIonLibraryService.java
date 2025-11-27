@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.global;
 
+import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
@@ -35,19 +36,26 @@ import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.identities.IonTypeSorting;
 import io.github.mzmine.datamodel.identities.IonTypes;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesController;
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryChangedEvent.SimpleGlobalIonLibraryChangedEvent;
+import io.github.mzmine.datamodel.identities.io.IonLibraryPreset;
 import io.github.mzmine.datamodel.identities.io.IonLibraryPresetStore;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.maths.Precision;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 
 /// The global ion library that is used to create new ion libraries, types, and parts.
@@ -77,6 +85,12 @@ public final class GlobalIonLibraryService {
     private static final GlobalIonLibraryService globalLibrary = new GlobalIonLibraryService();
   }
 
+  // on changes just count up the current version so that other parts like the tab can see if changes happened
+  private final AtomicInteger modificationCount = new AtomicInteger(Integer.MIN_VALUE);
+  private final AtomicBoolean notifyChanges = new AtomicBoolean(true);
+
+  private final List<GlobalIonLibraryChangedListener> changedListeners = new ArrayList<>();
+
   /**
    * Only used for parts as there are multiple data structures to update
    */
@@ -92,6 +106,7 @@ public final class GlobalIonLibraryService {
   // used to deduplciate
   private final Map<IonPart, IonPart> singletonParts;
   private final Map<IonType, IonType> singletonIons;
+
 
   /**
    * Initializes with the defaults in {@link IonTypes} and {@link IonParts}
@@ -109,7 +124,160 @@ public final class GlobalIonLibraryService {
 
     // load presets from disk once for global library
     presetStore.loadAllPresetsOrDefaults();
+    // the preset store has an observable list and is only updated on the fx thread
+    // this means that there is already a delay between calling the change and the change happining on fx thread
+    // accumulate multiple changes here to avoid each addition/removal to trigger a change
+    PropertyUtils.onChangeListDelayed(this::notifyChange, Duration.millis(30),
+        presetStore.getCurrentPresets());
   }
+
+  public synchronized void addChangeListener(GlobalIonLibraryChangedListener listener) {
+    changedListeners.add(listener);
+  }
+
+  /**
+   * One static image of the global ion library at a specific version. Used to access all variables
+   * within a read lock. All unmodifiable.
+   */
+  public GlobalIonLibraryDTO getCurrentGlobalLibrary() {
+    try (var _ = lock.lockRead()) {
+      return new GlobalIonLibraryDTO(getVersion(), getIonLibrariesUnmodifiable(),
+          getIonTypesUnmodifiable(), getIonPartsUnmodifiable());
+    }
+  }
+
+  /**
+   * The current version, tracks every modification and is thread-safe
+   */
+  public int getVersion() {
+    return modificationCount.get();
+  }
+
+  /**
+   * Changes the modification count and calls listeners. Can be turned off to accumulate changes by
+   * {@link #notifyChanges)}
+   */
+  public void notifyChange() {
+    if (!notifyChanges.get()) {
+      return;
+    }
+
+    final int version = modificationCount.incrementAndGet();
+    final var event = new SimpleGlobalIonLibraryChangedEvent(version);
+    // notify listeners if needed
+    changedListeners.forEach(l -> l.globalIonsChanged(event));
+  }
+
+  /**
+   * Applies write lock and accumulates multiple changes into a single change event
+   */
+  private void applyLockedChange(Runnable runnable) {
+    try (var _ = lock.lockWrite()) {
+      final boolean oldNotify = notifyChanges.getAndSet(false);
+      try {
+        runnable.run();
+      } catch (Exception ex) {
+        logger.log(Level.WARNING, "Failed to update global ions" + ex.getMessage(), ex);
+      }
+      notifyChanges.set(oldNotify);
+      notifyChange();
+    }
+  }
+
+  /**
+   * Update the internal data structures to the lists of libraries, types and parts. This is
+   * important when the {@link GlobalIonLibrariesController} applies changes and pushes the changes
+   * to the global library.
+   * <p>
+   * All internal lists are cleared and exchanged for the arguments.
+   */
+  public void applyUpdates(List<IonLibrary> libraries, List<IonType> types, List<IonPart> parts) {
+    applyLockedChange(() -> {
+      setIonParts(parts);
+      setIonTypes(types);
+      setLibraries(libraries);
+    });
+  }
+
+  /**
+   * Update the internal data structures to the lists of libraries, types and parts. This is
+   * important when the {@link GlobalIonLibrariesController} applies changes and pushes the changes
+   * to the global library.
+   * <p>
+   * All internal lists are cleared and exchanged for the arguments.
+   */
+  private void setIonTypes(List<IonType> types) {
+    applyLockedChange(() -> {
+      this.singletonIons.clear();
+      addIonTypes(types);
+    });
+  }
+
+  /**
+   * Update the internal data structures to the lists of libraries, types and parts. This is
+   * important when the {@link GlobalIonLibrariesController} applies changes and pushes the changes
+   * to the global library.
+   * <p>
+   * All internal lists are cleared and exchanged for the arguments.
+   */
+  private void setIonParts(List<IonPart> parts) {
+    applyLockedChange(() -> {
+      this.partDefinitions.clear();
+      this.singletonParts.clear();
+      addParts(parts);
+    });
+  }
+
+  /**
+   * Update the internal data structures to the lists of libraries, types and parts. This is
+   * important when the {@link GlobalIonLibrariesController} applies changes and pushes the changes
+   * to the global library.
+   * <p>
+   * All internal lists are cleared and exchanged for the arguments.
+   */
+  private void setLibraries(List<IonLibrary> libraries) {
+    applyLockedChange(() -> {
+      Map<IonLibrary, Boolean> saveNewLibraries = new HashMap<>();
+      // Add all libraries with true value
+      for (IonLibrary lib : libraries) {
+        saveNewLibraries.put(lib, true);
+      }
+
+      final List<IonLibraryPreset> oldPresets = List.copyOf(presetStore.getCurrentPresets());
+
+      // remove old presets that were changed and keep track which libraries were changed and need saving
+      for (IonLibraryPreset old : oldPresets) {
+        final boolean isUnchanged = saveNewLibraries.containsKey(old.library());
+        if (isUnchanged) {
+          saveNewLibraries.put(old.library(), false);
+        } else {
+          // remove old presets because new ones may have different name or content
+          presetStore.removePresetsWithName(old);
+        }
+      }
+
+      // save changed libraries
+      saveNewLibraries.forEach((lib, save) -> {
+        if (save) {
+          presetStore.addAndSavePreset(new IonLibraryPreset(lib), true);
+        }
+      });
+    });
+  }
+
+  /**
+   * @return The default mzmine libraries and all user preset libraries
+   */
+  public List<IonLibrary> getIonLibrariesUnmodifiable() {
+    // need to add the internal mzmine default libraries here as they should not be saved as presets
+    final List<IonLibrary> allLibraries = IonLibraries.createDefaultLibrariesModifiable();
+    final List<IonLibraryPreset> presets = List.copyOf(presetStore.getCurrentPresets());
+    for (IonLibraryPreset preset : presets) {
+      allLibraries.add(preset.library());
+    }
+    return allLibraries;
+  }
+
 
   /**
    * Deduplicates {@link IonPart} instances and adds new parts to the global library
@@ -137,6 +305,8 @@ public final class GlobalIonLibraryService {
       final String key = part.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE);
       List<IonPartNoCount> values = partDefinitions.computeIfAbsent(key, _ -> new ArrayList<>(1));
       values.add(IonPartNoCount.of(part));
+      notifyChange();
+
       return part;
     }
   }
@@ -159,9 +329,11 @@ public final class GlobalIonLibraryService {
    * Adds all new types to the global list of singletons (checks for existing)
    */
   public void addIonTypes(List<IonType> ions) {
-    for (final IonType type : ions) {
-      deduplicateTypeAndAdd(type);
-    }
+    applyLockedChange(() -> {
+      for (final IonType type : ions) {
+        deduplicateTypeAndAdd(type);
+      }
+    });
   }
 
   /**
@@ -198,15 +370,26 @@ public final class GlobalIonLibraryService {
    * @return the single instance
    */
   public @NotNull IonType deduplicateTypeAndAdd(IonType type) {
-    final IonType single = singletonIons.get(type);
+    IonType single = singletonIons.get(type);
     if (single != null) {
       return single;
     }
 
-    // deduplicate parts and add new ion type to global
-    final IonType dedup = IonType.create(deduplicateIonParts(type.parts(), true), type.molecules());
-    singletonIons.put(dedup, dedup);
-    return dedup;
+    // double lock
+    try (var _ = lock.lockWrite()) {
+      single = singletonIons.get(type);
+      if (single != null) {
+        return single;
+      }
+
+      // deduplicate parts and add new ion type to global
+      final IonType dedup = IonType.create(deduplicateIonParts(type.parts(), true),
+          type.molecules());
+      singletonIons.put(dedup, dedup);
+      notifyChange();
+
+      return dedup;
+    }
   }
 
 
@@ -214,9 +397,11 @@ public final class GlobalIonLibraryService {
    * Add all parts to the global list
    */
   public void addParts(List<IonPart> parts) {
-    for (final IonPart part : parts) {
-      deduplicateAndAdd(part);
-    }
+    applyLockedChange(() -> {
+      for (final IonPart part : parts) {
+        deduplicateAndAdd(part);
+      }
+    });
   }
 
   /**
@@ -371,21 +556,14 @@ public final class GlobalIonLibraryService {
   /**
    * @return unmodifiable
    */
-  public Map<String, List<IonPartNoCount>> partDefinitions() {
-    return Collections.unmodifiableMap(partDefinitions);
+  public List<IonPart> getIonPartsUnmodifiable() {
+    return List.copyOf(singletonParts.values());
   }
 
   /**
    * @return unmodifiable
    */
-  public Map<IonPart, IonPart> singletonParts() {
-    return Collections.unmodifiableMap(singletonParts);
-  }
-
-  /**
-   * @return unmodifiable
-   */
-  public List<IonType> ionTypes() {
+  public List<IonType> getIonTypesUnmodifiable() {
     return List.copyOf(singletonIons.values());
   }
 

@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesModule;
 import io.github.mzmine.datamodel.identities.io.IonLibraryIO;
+import io.github.mzmine.datamodel.identities.io.LoadedIonLibrary;
 import io.github.mzmine.parameters.AbstractParameter;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -90,7 +91,8 @@ public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibrar
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    setValue(IonLibraryIO.loadFromXML(xmlElement));
+    final LoadedIonLibrary loaded = IonLibraryIO.loadFromXML(xmlElement);
+    setValue(loaded == null ? null : loaded.library());
   }
 
   @Override

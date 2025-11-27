@@ -28,15 +28,19 @@ package io.github.mzmine.datamodel.identities.fx;
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import javafx.beans.property.ReadOnlyListProperty;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This class is the controller of the ion libraries tab that holds the global list of
- * {@link IonLibrary}, {@link IonType}, and {@link IonPart}. The properties are bound to javafx so
- * they can only be modified on the javafx thread.
+ * This class is the controller of the ion libraries tab that holds the observable instances of
+ * global ion list of {@link IonLibrary}, {@link IonType}, and {@link IonPart}. The properties are
+ * bound to javafx so they can only be modified on the javafx thread.
+ * <p>
+ * The {@link GlobalIonLibraryService} holds the thread safe original instances of global ions. This
+ * is used for parsing etc while this controller class is used for visualization and modifications.
  */
 public class GlobalIonLibrariesController extends FxController<GlobalIonLibrariesModel> {
 
