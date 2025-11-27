@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -112,6 +113,10 @@ public enum IonTypes {
 
   IonTypes(IonType ion) {
     this.ion = ion;
+  }
+
+  public static List<IonType> valuesAsIonType() {
+    return Arrays.stream(values()).map(IonTypes::asIonType).toList();
   }
 
   public IonType asIonType() {

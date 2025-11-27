@@ -25,45 +25,56 @@
 
 package io.github.mzmine.datamodel.identities;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
+import io.github.mzmine.datamodel.identities.io.IonLibraryPresetStore;
+import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.maths.Precision;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-/// The global ion library that is used to create new ion identities when the user types in H2O as a
-/// part this part is searched in the global library first.
+/// The global ion library that is used to create new ion libraries, types, and parts.
+///
+/// The global ions are constructed from:
+/// 1. the internal mzmine defaults in {@link IonTypes} and {@link IonParts}
+/// 2. by loading a json file ({@link GlobalIonLibraryIO}) from the presets folder (not a preset but
+/// all the global ion definitions)
+///
+/// {@link IonLibrary} are loaded as presets but they may contain outdated ion definitions
+/// (different mass or different formula/name) so they are currently not added to the global ions.
 ///
 /// The global ion library contains:
-/// - a list of {@link IonLibrary} that are saved as individual files so that they can be shared
+/// - an {@link IonLibraryPresetStore} to store ion libraries as presets. This also acts as a list
+/// of {@link IonLibrary} that are saved as individual files so that they can be shared
 /// - a list of {@link IonType} of all uniquely defined ion types so that they may be reused in all
 /// libraries
-/// - a map of {@link IonPart} to find the singleton instance of a specific ion part. -
+/// - a map of {@link IonPart} to find the singleton instance of a specific ion part.
 public final class GlobalIonLibraryService {
 
   private static final Logger logger = Logger.getLogger(GlobalIonLibraryService.class.getName());
 
 
+  // lazy init singleton
+  private static class Holder {
+
+    private static final GlobalIonLibraryService globalLibrary = new GlobalIonLibraryService();
+  }
+
+  private final CloseableReentrantReadWriteLock lock = new CloseableReentrantReadWriteLock();
   /**
-   * Track the last modified state of the loaded global library to see if changes need to be loaded
+   * Used to save ion libraries as presets
    */
-  private static GlobalIonLibraryService globalLibrary;
-  private static final AtomicLong globalFileLastModified = new AtomicLong(-1);
+  private final IonLibraryPresetStore presetStore = new IonLibraryPresetStore();
 
   // maps the short name often used to the ion part without count: like Fe will match Fe+3 and Fe+2
   private final Map<String, List<IonPartNoCount>> partDefinitions;
@@ -72,33 +83,64 @@ public final class GlobalIonLibraryService {
   private final List<IonType> ionTypes;
 
   /**
-   * @param partDefinitions key: simple name like +Fe might have multiple options like Fe+2 and
-   *                        Fe+3, which are put into a list of potential ion parts resolved for this
-   *                        simple name in definitions like [M+Fe-H]+ to find the correct charge
-   *                        state
-   * @param ionTypes
+   * Initialzies with the defaults in {@link IonTypes} and {@link IonParts}
    */
-  public GlobalIonLibraryService(Map<String, List<IonPartNoCount>> partDefinitions,
-      List<IonType> ionTypes) {
-    this.partDefinitions = partDefinitions;
-    this.ionTypes = ionTypes;
-    this.singletonParts = new HashMap<>();
+  public GlobalIonLibraryService() {
+    final int numParts = IonParts.PREDEFINED_PARTS.size();
+    this.partDefinitions = HashMap.newHashMap(numParts);
+    this.singletonParts = HashMap.newHashMap(numParts);
 
-    for (final IonType type : ionTypes) {
-      for (final IonPart part : type.parts()) {
-        deduplicate(part);
+    addParts(IonParts.PREDEFINED_PARTS);
+
+    // ion types
+    final int numIonTypes = IonTypes.values().length;
+    this.ionTypes = new ArrayList<>(numIonTypes);
+    addIonTypes(IonTypes.valuesAsIonType());
+  }
+
+  private void addIonTypes(List<IonType> ions) {
+    try (var _ = lock.lockWrite()) {
+      for (final IonType type : ions) {
+        addIonType(type);
       }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 
-  public GlobalIonLibraryService(List<IonPart> parts, List<IonType> ionTypes) {
-    final Map<String, List<IonPartNoCount>> map = HashMap.newHashMap(parts.size());
-    for (final IonPart part : parts) {
-      final String key = part.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE);
-      List<IonPartNoCount> values = map.computeIfAbsent(key, p -> new ArrayList<>(1));
-      values.add(IonPartNoCount.of(part));
+  private void addIonType(IonType type) {
+    try (var _ = lock.lockWrite()) {
+      type = deduplicateIonType(type);
+      ionTypes.add(type);
+      for (final IonPart part : type.parts()) {
+        addPart(part);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
-    this(map, ionTypes);
+  }
+
+  private void addParts(List<IonPart> parts) {
+    try (var _ = lock.lockWrite()) {
+      for (IonPart part : parts) {
+        addPart(part);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void addPart(IonPart part) {
+    try (var _ = lock.lockWrite()) {
+      // adds to map
+      final IonPart single = deduplicate(part);
+
+      final String key = single.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE);
+      List<IonPartNoCount> values = partDefinitions.computeIfAbsent(key, _ -> new ArrayList<>(1));
+      values.add(IonPartNoCount.of(single));
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -120,11 +162,15 @@ public final class GlobalIonLibraryService {
   public List<IonType> deduplicateIonTypes(List<IonType> ionTypes) {
     List<IonType> newTypes = new ArrayList<>();
     for (final IonType type : ionTypes) {
-      var nt = IonType.create(deduplicateIonParts(type.parts()), type.molecules());
+      var nt = deduplicateIonType(type);
       newTypes.add(nt);
     }
 
     return newTypes;
+  }
+
+  private @NotNull IonType deduplicateIonType(IonType type) {
+    return IonType.create(deduplicateIonParts(type.parts()), type.molecules());
   }
 
   private @NotNull List<IonPart> deduplicateIonParts(final List<@NotNull IonPart> parts) {
@@ -138,13 +184,7 @@ public final class GlobalIonLibraryService {
    * @return global ion library
    */
   public static @NotNull GlobalIonLibraryService getGlobalLibrary() {
-    File file = getGlobalFile();
-    if (globalLibrary == null || (file.exists()
-        && file.lastModified() != globalFileLastModified.get())) {
-      globalLibrary = loadGlobalIonLibrary();
-    }
-
-    return globalLibrary;
+    return Holder.globalLibrary;
   }
 
   /**
@@ -160,58 +200,14 @@ public final class GlobalIonLibraryService {
     return FileAndPathUtil.resolveInMzmineDir("libraries/mzmine_global_ions.json");
   }
 
-  /**
-   * Loads the global library from file, also if the library has changed since the last import
-   *
-   * @return a global ion library
-   */
-  private static synchronized GlobalIonLibraryService loadGlobalIonLibrary() {
-    // maybe already initialized - then no need to add mzmine internal ions
-    // just check if reload of file is needed
-    boolean alreadyInitialized = globalFileLastModified.get() != -1;
+  public File getPresetPath() {
+    return presetStore.getPresetStoreFilePath();
+  }
 
-    File file = getGlobalFile();
-    GlobalIonLibraryService global = null;
-    if (file.exists() && file.lastModified() != globalFileLastModified.get()) {
-      try {
-        global = loadJson(file);
-        globalFileLastModified.set(file.lastModified());
-        logger.fine("Loaded global ion library from file: " + file.getAbsolutePath());
-      } catch (IOException ex) {
-        logger.warning(
-            "Cannot load file: " + file.getAbsolutePath() + " because " + ex.getMessage());
-      }
-    }
-
-    // use already initialzied one or new
-    final GlobalIonLibraryService internalLibrary;
-    if (alreadyInitialized) {
-      internalLibrary = globalLibrary;
-    } else {
-      // might also have new internal ion types defined in mzmine - combine these into a new library
-      var types = Arrays.stream(IonTypes.values()).map(IonTypes::asIonType)
-          .collect(Collectors.toCollection(ArrayList::new));
-      internalLibrary = new GlobalIonLibraryService(new ArrayList<>(IonParts.PREDEFINED_PARTS),
-          types);
-    }
-
-    // merge both libraries: from file and internal
-    GlobalIonLibraryService merged = GlobalIonLibraryService.merge(global, internalLibrary);
-
-    // if changed then save
-    if (global == null || merged.numIonTypes() != global.numIonTypes()
-        || merged.numIonParts() != global.numIonParts()) {
-      logger.info("Initializing ion libraries file: " + file.getAbsolutePath());
-      try {
-        merged.saveGlobalLibrary();
-      } catch (IOException e) {
-        logger.log(Level.WARNING,
-            "Cannot initialize ion libraries file in: " + file.getAbsolutePath()
-                + ". Will continue with default list of ions.", e);
-      }
-    }
-
-    return merged;
+  public File getGlobalLibraryFile() {
+    final File path = getGlobalFile();
+    FileAndPathUtil.createDirectory(path);
+    return new File(path, "mzmine_global_ions.json");
   }
 
   private int numIonTypes() {
@@ -220,31 +216,6 @@ public final class GlobalIonLibraryService {
 
   private int numIonParts() {
     return partDefinitions.size();
-  }
-
-  /**
-   * merge two libraries
-   *
-   * @return merges two non-null libraries into a new instance. Or null if both are null or returns
-   * the original instance that is non-null
-   */
-  public static GlobalIonLibraryService merge(final @Nullable GlobalIonLibraryService first,
-      final @Nullable GlobalIonLibraryService second) {
-    if (first == null && second == null) {
-      return null;
-    }
-    if (first == null) {
-      return second;
-    }
-    if (second == null) {
-      return first;
-    }
-
-    // TODO load simplified.
-//    List<IonPart> mergedParts = mergeParts(first.parts(), second.parts());
-    List<IonType> ionTypes = mergeTypes(first.ionTypes(), second.ionTypes());
-
-    return new GlobalIonLibraryService(List.of(), ionTypes);
   }
 
   private static List<IonPart> mergeParts(final List<IonPart> first, final List<IonPart> second) {
@@ -337,33 +308,33 @@ public final class GlobalIonLibraryService {
     return merged;
   }
 
-  @NotNull
-  public static GlobalIonLibraryService loadJson(final @NotNull File file) throws IOException {
-    return new ObjectMapper().readValue(file, GlobalIonLibraryService.class);
+  public static void loadGlobalLibrary() {
+    GlobalIonLibraryIO.loadGlobalIonLibrary();
   }
 
   public void saveGlobalLibrary() throws IOException {
-    final File file = getGlobalFile();
-    saveJson(file);
-    globalFileLastModified.set(file.lastModified());
-    logger.fine("Saved global ion library to file: " + file.getAbsolutePath());
+    GlobalIonLibraryIO.saveGlobalIonLibrary();
   }
 
-  public void saveJson(final @NotNull File file) throws IOException {
-    FileAndPathUtil.createDirectory(file.getParentFile());
-    new ObjectMapper().writerWithDefaultPrettyPrinter().writeValue(file, this);
-  }
-
+  /**
+   * @return unmodifiable
+   */
   public Map<String, List<IonPartNoCount>> partDefinitions() {
-    return partDefinitions;
+    return Collections.unmodifiableMap(partDefinitions);
   }
 
+  /**
+   * @return unmodifiable
+   */
   public Map<IonPart, IonPart> singletonParts() {
-    return singletonParts;
+    return Collections.unmodifiableMap(singletonParts);
   }
 
+  /**
+   * @return unmodifiable
+   */
   public List<IonType> ionTypes() {
-    return ionTypes;
+    return Collections.unmodifiableList(ionTypes);
   }
 
   @Override
