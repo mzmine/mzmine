@@ -25,34 +25,10 @@
 
 package io.github.mzmine.datamodel.identities.io;
 
-import io.github.mzmine.util.presets.AbstractJsonPresetStore;
-import io.github.mzmine.util.presets.FxPresetEditor;
-import io.github.mzmine.util.presets.KnownPresetGroup;
-import io.github.mzmine.util.presets.PresetCategory;
-import io.github.mzmine.util.presets.PresetGroup;
-import java.util.List;
+import io.github.mzmine.datamodel.identities.IonLibrary;
+import java.time.LocalDateTime;
 import org.jetbrains.annotations.NotNull;
 
-public class IonLibraryPresetStore extends AbstractJsonPresetStore<IonLibraryPreset> {
-
-  @Override
-  public @NotNull PresetCategory getPresetCategory() {
-    return PresetCategory.LIBRARIES;
-  }
-
-  @Override
-  public @NotNull PresetGroup getPresetGroup() {
-    return KnownPresetGroup.ION_LIBRARY_PRESET;
-  }
-
-  @Override
-  public @NotNull List<IonLibraryPreset> createDefaults() {
-    return List.of();
-  }
-
-  @Override
-  public FxPresetEditor createPresetEditor() {
-    return null;
-  }
+public record LoadedIonLibrary(@NotNull LocalDateTime savedDate, @NotNull IonLibrary library) {
 
 }

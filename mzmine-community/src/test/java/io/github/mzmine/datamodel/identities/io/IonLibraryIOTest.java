@@ -44,7 +44,7 @@ class IonLibraryIOTest {
 
   @Test
   void fromJson() {
-    final IonLibrary library = IonLibraryIO.fromJson(expected);
+    final IonLibrary library = IonLibraryIO.loadFromJson(expected).library();
 
     Assertions.assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY.getNumIons(),
         library.getNumIons());
@@ -54,7 +54,7 @@ class IonLibraryIOTest {
   @Test
   void saveLoad() {
     final String json = IonLibraryIO.toJson(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY);
-    final IonLibrary library = IonLibraryIO.fromJson(json);
+    final IonLibrary library = IonLibraryIO.loadFromJson(json).library();
 
     Assertions.assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY.getNumIons(),
         library.getNumIons());

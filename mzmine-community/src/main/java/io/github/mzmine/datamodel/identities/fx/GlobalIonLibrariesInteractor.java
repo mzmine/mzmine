@@ -25,8 +25,8 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
-import io.github.mzmine.datamodel.identities.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import javafx.collections.FXCollections;

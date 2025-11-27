@@ -47,7 +47,7 @@ public record IonLibraryPreset(@JsonSerialize(using = IonLibrarySerializer.class
 
   @Override
   public @NotNull PresetCategory presetCategory() {
-    return PresetCategory.ION_LIBRARIES;
+    return PresetCategory.LIBRARIES;
   }
 
   @Override

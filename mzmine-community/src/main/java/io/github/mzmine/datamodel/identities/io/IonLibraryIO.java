@@ -32,7 +32,10 @@ import io.github.mzmine.datamodel.identities.SimpleIonLibrary;
 import io.github.mzmine.datamodel.identities.io.StorableIonLibrary.IonPartID;
 import io.github.mzmine.datamodel.identities.io.StorableIonLibrary.IonPartNoCount;
 import io.github.mzmine.datamodel.identities.io.StorableIonLibrary.IonTypeDTO;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.JsonUtils;
+import java.io.File;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -49,6 +52,15 @@ import org.w3c.dom.NodeList;
  */
 public class IonLibraryIO {
 
+  /**
+   * @throws RuntimeException if io was not successful
+   */
+  public static void toJsonFile(@NotNull File file, @NotNull IonLibrary library) {
+    file = FileAndPathUtil.getRealFilePath(file, "json");
+    final StorableIonLibrary storableLibrary = new StorableIonLibrary(library);
+    JsonUtils.writeToFileReplaceOrThrow(file, storableLibrary);
+  }
+
   public static @NotNull String toJson(@NotNull IonLibrary library) {
     final StorableIonLibrary storableLibrary = new StorableIonLibrary(library);
     return JsonUtils.writeStringOrThrow(storableLibrary);
@@ -57,10 +69,20 @@ public class IonLibraryIO {
   /**
    *
    * @return the ion library
+   * @throws RuntimeException in case of io issues
    */
-  public static @NotNull IonLibrary fromJson(@NotNull String json) {
+  public static @NotNull LoadedIonLibrary loadFromJsonFile(@NotNull File file) {
+    final StorableIonLibrary storable = JsonUtils.readValueOrThrow(file, StorableIonLibrary.class);
+    return new LoadedIonLibrary(storable.savedDate(), convert(storable));
+  }
+
+  /**
+   *
+   * @return the ion library
+   */
+  public static @NotNull LoadedIonLibrary loadFromJson(@NotNull String json) {
     final StorableIonLibrary storable = JsonUtils.readValueOrThrow(json, StorableIonLibrary.class);
-    return convert(storable);
+    return new LoadedIonLibrary(storable.savedDate(), convert(storable));
   }
 
   /**
@@ -92,7 +114,7 @@ public class IonLibraryIO {
    * @return the library or null if this element does not contain any library
    */
   @Nullable
-  public static IonLibrary loadFromXML(Element parent) {
+  public static LoadedIonLibrary loadFromXML(Element parent) {
     // create wrapper to avoid attributes leak to parent that shoudl be the parameter element
     final Element xmlElement = (Element) parent.getElementsByTagName("ionLibrary").item(0);
 
@@ -100,6 +122,7 @@ public class IonLibraryIO {
       return null;
     }
     final String libraryName = xmlElement.getAttribute("name");
+    final LocalDateTime savedDate = LocalDateTime.parse(xmlElement.getAttribute("savedDate"));
     final NodeList partsList = xmlElement.getElementsByTagName("parts");
 
     // Load ion parts
@@ -136,8 +159,9 @@ public class IonLibraryIO {
       types.add(new StorableIonLibrary.IonTypeDTO(ionParts, molecules));
     }
 
-    final StorableIonLibrary storable = new StorableIonLibrary(libraryName, parts, types);
-    return convert(storable);
+    final StorableIonLibrary storable = new StorableIonLibrary(libraryName, savedDate, parts,
+        types);
+    return new LoadedIonLibrary(storable.savedDate(), convert(storable));
   }
 
   public static void saveToXML(Element parent, @Nullable IonLibrary library) {
@@ -153,6 +177,7 @@ public class IonLibraryIO {
 
     // Save library name
     xmlElement.setAttribute("name", storable.name());
+    xmlElement.setAttribute("savedDate", storable.savedDate().toString());
 
     // Save ion parts
     Element partsElement = doc.createElement("parts");

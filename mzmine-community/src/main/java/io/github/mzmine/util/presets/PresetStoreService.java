@@ -59,7 +59,7 @@ public class PresetStoreService {
     registerStoreFactory(PresetCategory.FILTERS,
         KnownPresetGroup.ROW_TYPE_FILTER_PRESET.getUniqueID(),
         (_, _) -> new RowTypeFilterPresetStore());
-    registerStoreFactory(PresetCategory.ION_LIBRARIES,
+    registerStoreFactory(PresetCategory.LIBRARIES,
         KnownPresetGroup.ION_LIBRARY_PRESET.getUniqueID(), (_, _) -> new IonLibraryPresetStore());
   }
 

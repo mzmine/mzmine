@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonPartSorting;
 import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.IonTypeUtils;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -50,7 +51,7 @@ import org.jetbrains.annotations.Nullable;
  * @param ionTypes ion types that use unique ids to refer to the ion parts
  */
 
-record StorableIonLibrary(@NotNull String name,
+record StorableIonLibrary(@NotNull String name, @NotNull LocalDateTime savedDate,
                           @JsonDeserialize(as = LinkedHashMap.class) @NotNull Map<Integer, IonPartNoCount> parts,
                           @NotNull List<IonTypeDTO> ionTypes) {
 
@@ -81,7 +82,7 @@ record StorableIonLibrary(@NotNull String name,
     final List<IonTypeDTO> types = library.ions().stream()
         .map(ion -> IonTypeDTO.createIonTypeDTO(ion, uniquePartIds, partMapping)).toList();
 
-    this(library.name(), parts, types);
+    this(library.name(), LocalDateTime.now(), parts, types);
   }
 
   /**
