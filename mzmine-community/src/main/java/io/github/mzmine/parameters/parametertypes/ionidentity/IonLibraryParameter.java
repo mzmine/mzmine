@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.identities.io.IonLibraryIO;
 import io.github.mzmine.datamodel.identities.io.LoadedIonLibrary;
 import io.github.mzmine.parameters.AbstractParameter;
 import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -41,13 +40,14 @@ import org.w3c.dom.Element;
  */
 public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibraryComponent> {
 
+  @Nullable
   private IonLibrary library;
 
   public IonLibraryParameter() {
     this(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY);
   }
 
-  public IonLibraryParameter(@NotNull IonLibrary defaultValue) {
+  public IonLibraryParameter(@Nullable IonLibrary defaultValue) {
     super("Ion library",
         "Select an ion library. Ion types and libraries are created in a separate tab, search for module '%s'".formatted(
             GlobalIonLibrariesModule.NAME));

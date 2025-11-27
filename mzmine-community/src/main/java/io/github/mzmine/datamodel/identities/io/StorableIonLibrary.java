@@ -28,6 +28,9 @@ package io.github.mzmine.datamodel.identities.io;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonPartSorting;
@@ -51,7 +54,10 @@ import org.jetbrains.annotations.Nullable;
  * @param ionTypes ion types that use unique ids to refer to the ion parts
  */
 
-record StorableIonLibrary(@NotNull String name, @NotNull LocalDateTime savedDate,
+record StorableIonLibrary(@NotNull String name, //
+                          @JsonDeserialize(using = LocalDateTimeDeserializer.class) //
+                          @JsonSerialize(using = LocalDateTimeSerializer.class) //
+                          @NotNull LocalDateTime savedDate, //
                           @JsonDeserialize(as = LinkedHashMap.class) @NotNull Map<Integer, IonPartNoCount> parts,
                           @NotNull List<IonTypeDTO> ionTypes) {
 
