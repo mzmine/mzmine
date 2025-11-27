@@ -57,12 +57,9 @@ public class GlobalIonLibrariesController extends FxController<GlobalIonLibrarie
     super(new GlobalIonLibrariesModel());
 
     interactor = new GlobalIonLibrariesInteractor(model);
-    model.setCreateNewAction(interactor::createNewLibraryInTab);
-    model.setEditSelectedAction(interactor::editLibraryInTab);
 
-    viewBuilder = new GlobalIonLibrariesViewBuilder(model);
+    viewBuilder = new GlobalIonLibrariesViewBuilder(model, interactor::handleEvent);
   }
-
 
   public ReadOnlyListProperty<IonLibrary> librariesProperty() {
     return model.librariesProperty().getReadOnlyProperty();

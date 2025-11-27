@@ -31,14 +31,12 @@ import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.javafx.properties.LastUpdateProperty;
 import java.time.Instant;
-import java.util.function.Consumer;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.jetbrains.annotations.NotNull;
 
 class GlobalIonLibrariesModel {
 
@@ -66,12 +64,6 @@ class GlobalIonLibrariesModel {
   private final BooleanBinding globalVersionChanged;
 
   /**
-   * The last change to the internal data model - might show a notification to update the global
-   * model based on this
-   */
-  private final LastUpdateProperty lastModelUpdateProperty = new LastUpdateProperty();
-
-  /**
    * Holds the global library version number last retrieved for updating the model
    * {@link GlobalIonLibraryService#getVersion()}. This is a modification counter.
    */
@@ -82,12 +74,16 @@ class GlobalIonLibrariesModel {
    */
   private final IntegerProperty globalIonsVersion = new SimpleIntegerProperty();
 
+  /**
+   * The last change to the internal data model - might show a notification to update the global
+   * model based on this
+   */
+  private final LastUpdateProperty lastModelUpdate = new LastUpdateProperty(libraries, ionTypes,
+      parts);
 
-  private Consumer<IonLibrary> editSelectedAction;
-  private Runnable createNewAction;
 
   public GlobalIonLibrariesModel() {
-    globalVersionChanged = retrivalVersion.isEqualTo(globalIonsVersion);
+    globalVersionChanged = retrivalVersion.isNotEqualTo(globalIonsVersion);
   }
 
   public int getGlobalIonsVersion() {
@@ -110,32 +106,16 @@ class GlobalIonLibrariesModel {
     return globalVersionChanged;
   }
 
-  public Instant getLastModelUpdateProperty() {
-    return lastModelUpdateProperty.get();
+  public Instant getLastModelUpdate() {
+    return lastModelUpdate.get();
   }
 
-  public LastUpdateProperty lastModelUpdatePropertyProperty() {
-    return lastModelUpdateProperty;
+  public LastUpdateProperty lastModelUpdateProperty() {
+    return lastModelUpdate;
   }
 
-  public void setLastModelUpdateProperty(Instant lastModelUpdateProperty) {
-    this.lastModelUpdateProperty.set(lastModelUpdateProperty);
-  }
-
-  public void setCreateNewAction(@NotNull Runnable createNewAction) {
-    this.createNewAction = createNewAction;
-  }
-
-  public void setEditSelectedAction(@NotNull Consumer<IonLibrary> editSelectedAction) {
-    this.editSelectedAction = editSelectedAction;
-  }
-
-  public @NotNull Consumer<IonLibrary> getEditSelectedAction() {
-    return editSelectedAction;
-  }
-
-  public @NotNull Runnable getCreateNewAction() {
-    return createNewAction;
+  public void setLastModelUpdate(Instant lastModelUpdateProperty) {
+    this.lastModelUpdate.set(lastModelUpdateProperty);
   }
 
   public ObservableList<IonLibrary> getLibraries() {

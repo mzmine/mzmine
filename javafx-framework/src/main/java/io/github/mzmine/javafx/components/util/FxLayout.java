@@ -139,6 +139,10 @@ public class FxLayout {
     return newHBox(Pos.CENTER_LEFT, padding, children);
   }
 
+  public static HBox newHBox(int spacing, Node... children) {
+    return newHBox(Pos.CENTER_LEFT, DEFAULT_PADDING_INSETS, spacing, children);
+  }
+
   public static HBox newHBox(Pos alignment, Insets padding, Node... children) {
     return newHBox(alignment, padding, DEFAULT_SPACE, children);
   }

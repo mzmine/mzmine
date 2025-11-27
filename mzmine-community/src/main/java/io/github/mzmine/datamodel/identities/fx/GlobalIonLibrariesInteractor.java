@@ -28,11 +28,18 @@ package io.github.mzmine.datamodel.identities.fx;
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ApplyModelChangesToGlobalService;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.CreateNewLibrary;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.DiscardModelChanges;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.EditSelectedLibrary;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ReloadGlobalServiceChanges;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryDTO;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Updates in the {@link GlobalIonLibraryService}
@@ -45,8 +52,29 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
     model.setGlobalIonsVersion(GlobalIonLibraryService.getGlobalLibrary().getVersion());
     updateModel();
     // attach listener to update the model if global ions have changed
+    // only the current global version is changed and this will show an interface to the user to
+    // trigger the update
     GlobalIonLibraryService.getGlobalLibrary().addChangeListener(
         event -> FxThread.runLater(() -> model.setGlobalIonsVersion(event.version())));
+
+  }
+
+
+  public void handleEvent(@NotNull GlobalIonLibrariesEvent event) {
+    switch (event) {
+      case DiscardModelChanges _ -> askDiscardModelChanges();
+      case ApplyModelChangesToGlobalService _ -> applyToGlobalIons();
+      case CreateNewLibrary _ -> createNewLibraryInTab();
+      case EditSelectedLibrary(IonLibrary library) -> editLibraryInTab(library);
+      case ReloadGlobalServiceChanges _ -> updateModel();
+    }
+  }
+
+  private void askDiscardModelChanges() {
+    if (DialogLoggerUtil.showDialogYesNo("Discard local changes to ion?",
+        "Discarding the local changes will reset the ion libraries.")) {
+      updateModel();
+    }
   }
 
   /**
@@ -57,10 +85,14 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
     final List<IonType> types = List.copyOf(model.getIonTypes());
     final List<IonPart> parts = List.copyOf(model.getParts());
 
-    final int currentVersion = GlobalIonLibraryService.getGlobalLibrary().getVersion();
+    final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
+    final int currentVersion = global.getVersion();
     final int retrivalVersion = model.getRetrivalVersion();
     // TODO add check that if the versions mismatch than we need to apply safer merging of states
-    GlobalIonLibraryService.getGlobalLibrary().applyUpdates(libraries, types, parts);
+    global.applyUpdates(libraries, types, parts);
+    // there is always a delayed change due to the ion libraries that are changed on fx thread delayed
+    model.setRetrivalVersion(global.getVersion() + 1);
+    model.setLastModelUpdate(null);
   }
 
   /**
@@ -72,9 +104,11 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
     FxThread.runLater(() -> {
       final GlobalIonLibraryDTO current = global.getCurrentGlobalLibrary();
       model.setRetrivalVersion(current.version());
+      model.setGlobalIonsVersion(current.version());
       model.librariesProperty().setAll(current.libraries());
       model.partsProperty().setAll(current.parts());
       model.ionTypesProperty().setAll(current.types());
+      model.setLastModelUpdate(null);
     });
   }
 

@@ -23,44 +23,42 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.javafx.properties;
+package io.github.mzmine.datamodel.identities.fx;
 
-import java.time.Instant;
-import javafx.beans.Observable;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
+import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * Binds multiple observables and updates the latest change as an Instant
- */
-public class LastUpdateProperty extends SimpleObjectProperty<Instant> {
+sealed interface GlobalIonLibrariesEvent {
+
+  record CreateNewLibrary() implements GlobalIonLibrariesEvent {
+
+  }
+
+  record EditSelectedLibrary(@NotNull IonLibrary library) implements GlobalIonLibrariesEvent {
+
+  }
 
   /**
-   * @param triggers all triggers are bound, on any change the internal Instant is updated
+   * {@link GlobalIonLibrariesModel} has changed and user decided to apply changes to
+   * {@link GlobalIonLibraryService}
    */
-  public LastUpdateProperty(final Observable... triggers) {
-    // use listeners and not binding to be able to clear the property
-    for (Observable trigger : triggers) {
-      if (trigger instanceof Property<?> prop) {
-        prop.addListener((_, _, _) -> setNow());
-      } else if (trigger instanceof ObservableList prop) {
-        prop.addListener((ListChangeListener) _ -> setNow());
-      } else {
-        // invalidation
-        trigger.addListener(_ -> setNow());
-      }
-    }
+  record ApplyModelChangesToGlobalService() implements GlobalIonLibrariesEvent {
+
   }
 
-  public void clearValue() {
-    setValue(null);
+  /**
+   * {@link GlobalIonLibrariesModel} has changed but user discards changes, reload global
+   */
+  record DiscardModelChanges() implements GlobalIonLibrariesEvent {
+
   }
 
-  public Instant setNow() {
-    Instant now = Instant.now();
-    set(now);
-    return now;
+  /**
+   * Reload {@link GlobalIonLibraryService} ions. Similar to {@link DiscardModelChanges}, but there
+   * the internal model also changed
+   */
+  record ReloadGlobalServiceChanges() implements GlobalIonLibrariesEvent {
+
   }
 }
