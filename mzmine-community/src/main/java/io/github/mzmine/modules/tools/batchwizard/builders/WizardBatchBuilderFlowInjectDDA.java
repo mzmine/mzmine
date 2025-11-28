@@ -91,6 +91,7 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, null);
     makeAndAddLipidAnnotationStep(q);
+    makeAndAddFormulaPredictionStep(q);
     // networking
     if (applySpectralNetworking) {
       makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, false);

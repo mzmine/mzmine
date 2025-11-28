@@ -30,7 +30,11 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IsotopePatternScoreParameters extends SimpleParameterSet {
 
@@ -50,7 +54,16 @@ public class IsotopePatternScoreParameters extends SimpleParameterSet {
       "Minimum score", "If the score between isotope pattern is lower, discard this match", 0d);
 
   public IsotopePatternScoreParameters() {
-    super(new Parameter[]{mzTolerance, isotopeNoiseLevel, isotopePatternScoreThreshold});
+    super(mzTolerance, isotopeNoiseLevel, isotopePatternScoreThreshold);
   }
 
+  public static @NotNull IsotopePatternScoreParameters create(@NotNull MZTolerance mzTolerance,
+      double isotopeNoiseLevel, double isotopePatternScoreThreshold) {
+    final IsotopePatternScoreParameters p = (IsotopePatternScoreParameters) new IsotopePatternScoreParameters().cloneParameterSet();
+    p.setParameter(IsotopePatternScoreParameters.mzTolerance, mzTolerance);
+    p.setParameter(IsotopePatternScoreParameters.isotopeNoiseLevel, isotopeNoiseLevel);
+    p.setParameter(IsotopePatternScoreParameters.isotopePatternScoreThreshold,
+        isotopePatternScoreThreshold);
+    return p;
+  }
 }

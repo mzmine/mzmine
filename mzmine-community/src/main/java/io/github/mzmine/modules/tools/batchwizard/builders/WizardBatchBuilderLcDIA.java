@@ -140,6 +140,8 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
     makeAndAddLipidAnnotationStep(q);
+    makeAndAddFormulaPredictionStep(q);
+
     // export
     makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
         exportAnnotationGraphics, mzTolScans);

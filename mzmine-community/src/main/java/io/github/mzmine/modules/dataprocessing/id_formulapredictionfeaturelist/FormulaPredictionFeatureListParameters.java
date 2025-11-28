@@ -32,6 +32,7 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -39,11 +40,14 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsCompositionRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.formula.MolecularFormulaRange;
 
 public class FormulaPredictionFeatureListParameters extends SimpleParameterSet {
 
@@ -116,8 +120,40 @@ public class FormulaPredictionFeatureListParameters extends SimpleParameterSet {
 
   @Override
   public Map<String, Parameter<?>> getNameParameterMap() {
-    var map =  super.getNameParameterMap();
+    var map = super.getNameParameterMap();
     map.put("Ionization type", getParameter(ionization));
     return map;
-  };
+  }
+
+  ;
+
+  public static FormulaPredictionFeatureListParameters create(@NotNull FeatureListsSelection flists,
+      boolean sortingEnabled, @NotNull FormulaSortParameters sortingParameters,
+      @NotNull IonizationType fallbackIon, @NotNull MZTolerance mzTol, Integer maxFormuals,
+      @NotNull MolecularFormulaRange allowedElements, boolean ratioCheck,
+      @NotNull ElementalHeuristicParameters ratioCheckParam, boolean rdbeCheck,
+      @NotNull RDBERestrictionParameters rdbeParam, boolean isotopeCheck,
+      @NotNull IsotopePatternScoreParameters isotopeParam, boolean msmsCheck,
+      @NotNull MSMSScoreParameters msmsParam, double predictionMassLimit) {
+    final ParameterSet param = new FormulaPredictionFeatureListParameters().cloneParameterSet();
+
+    param.setParameter(FEATURE_LISTS, flists);
+    param.setParameter(sorting, sortingEnabled);
+    param.getParameter(sorting).setEmbeddedParameters(sortingParameters);
+    param.setParameter(ionization, fallbackIon);
+    param.setParameter(mzTolerance, mzTol);
+    param.setParameter(maxBestFormulasPerFeature, maxFormuals);
+    param.setParameter(elements, allowedElements);
+    param.setParameter(elementalRatios, ratioCheck);
+    param.getParameter(elementalRatios).setEmbeddedParameters(ratioCheckParam);
+    param.setParameter(rdbeRestrictions, rdbeCheck);
+    param.getParameter(rdbeRestrictions).setEmbeddedParameters(rdbeParam);
+    param.setParameter(isotopeFilter, isotopeCheck);
+    param.getParameter(isotopeFilter).setEmbeddedParameters(isotopeParam);
+    param.setParameter(msmsFilter, msmsCheck);
+    param.getParameter(msmsFilter).setEmbeddedParameters(msmsParam);
+    param.setParameter(highMassLimit, predictionMassLimit);
+
+    return (FormulaPredictionFeatureListParameters) param;
+  }
 }

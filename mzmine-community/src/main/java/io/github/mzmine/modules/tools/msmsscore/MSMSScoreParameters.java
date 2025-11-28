@@ -25,12 +25,14 @@
 
 package io.github.mzmine.modules.tools.msmsscore;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MSMSScoreParameters extends SimpleParameterSet {
 
@@ -45,7 +47,15 @@ public class MSMSScoreParameters extends SimpleParameterSet {
           "Use only the most abundant N signals for scoring (speeds up the process)", 20), true);
 
   public MSMSScoreParameters() {
-    super(new Parameter[]{msmsTolerance, msmsMinScore, useTopNSignals});
+    super(msmsTolerance, msmsMinScore, useTopNSignals);
   }
 
+  public static @NotNull MSMSScoreParameters create(@NotNull MZTolerance msmsTolerance,
+      double msmsMinScore, @Nullable Integer useTopNSignals) {
+    final MSMSScoreParameters p = (MSMSScoreParameters) new MSMSScoreParameters().cloneParameterSet();
+    p.setParameter(MSMSScoreParameters.msmsTolerance, msmsTolerance);
+    p.setParameter(MSMSScoreParameters.msmsMinScore, msmsMinScore);
+    p.setParameter(MSMSScoreParameters.useTopNSignals, useTopNSignals != null, useTopNSignals);
+    return p;
+  }
 }
