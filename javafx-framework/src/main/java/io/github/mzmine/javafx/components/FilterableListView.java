@@ -99,6 +99,9 @@ public class FilterableListView<T> extends BorderPane {
         if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE) {
           removeSelectedItems();
         }
+        if (event.getCode() == KeyCode.ESCAPE) {
+          getListView().getSelectionModel().clearSelection();
+        }
       });
     }
   }
@@ -207,12 +210,7 @@ public class FilterableListView<T> extends BorderPane {
     }
 
     originalItems.removeAll(listView.getSelectionModel().getSelectedItems());
-    final int newIndex = Math.min(listView.getItems().size() - 1, selectedIndex);
-    if (newIndex < 0) {
-      listView.getSelectionModel().clearSelection();
-    } else {
-      listView.getSelectionModel().select(newIndex);
-    }
+    // selection automatically moves to the previous index or is cleared when empty. seems fine
   }
 
   /**
