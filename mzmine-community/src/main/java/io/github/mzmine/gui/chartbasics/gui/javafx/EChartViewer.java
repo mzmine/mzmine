@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,13 +40,14 @@ import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,6 +69,7 @@ import javafx.scene.input.ClipboardContent;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.event.ChartProgressEvent;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.fx.interaction.MouseHandlerFX;
 import org.jfree.chart.labels.XYToolTipGenerator;
@@ -576,12 +578,14 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
   }
 
   /**
-   * Disable/enable chart change events that trigger updating the chart.
+   * Disable/enable chart change events that trigger updating the chart. Setting to true will always
+   * trigger a chart update.
    */
   public void setNotifyChange(boolean notifyChange) {
     if (getChart() == null) {
       return;
     }
+    // setting to true will already fire a chart change event automatically
     getChart().setNotify(notifyChange);
 //    final Plot plot = getChart().getPlot();
 //    if(plot!=null) {
@@ -626,10 +630,8 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       logic.run();
     } finally {
       // reset to old state and run changes if true
+      // setting to true will automatically trigger a draw event
       setNotifyChange(afterRunState);
-      if (afterRunState) {
-        FxThread.runLater(() -> fireChangeEvent());
-      }
     }
   }
 
@@ -666,5 +668,17 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
     marker.setAlpha(alpha);
     getChart().getXYPlot().addDomainMarker(marker, Layer.BACKGROUND);
     return marker;
+  }
+
+  /**
+   * Debugging of draw events. Only runs when {@link JFreeChart#draw(Graphics2D, Rectangle2D)} is
+   * started
+   */
+  public void addChartDrawDebugListener(Runnable eventListener) {
+    getChart().addProgressListener(event -> {
+      if (event.getType() == ChartProgressEvent.DRAWING_STARTED) {
+        eventListener.run();
+      }
+    });
   }
 }
