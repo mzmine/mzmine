@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,9 @@ package io.github.mzmine.modules.visualization.ims_featurevisualizer;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
@@ -96,14 +98,17 @@ public class IMSTraceVisualizerPane extends BorderPane {
 
     traceChart = new SimpleXYZScatterPlot<>("Ion mobility trace");
     ticChart = new SimpleXYChart<>("Feature shape");
-    mobilogramChart = new SimpleXYChart<>("Summed mobilogram");
+    mobilogramChart = new SimpleXYChart<>("Summed mobilogram", false);
+    // add flipped chart gestures
+    ChartGestureHandler.addStandardGestures(mobilogramChart, true);
+
     traceLegendCanvas = new Canvas();
 
     featureProperty = new SimpleObjectProperty<>();
     featureProperty.addListener(((observable, oldValue, newValue) -> onFeatureChanged(newValue)));
     rawFileProperty = new SimpleObjectProperty<>();
-    rawFileProperty
-        .addListener(((observable, oldValue, newValue) -> onRawFileChanged(oldValue, newValue)));
+    rawFileProperty.addListener(
+        ((observable, oldValue, newValue) -> onRawFileChanged(oldValue, newValue)));
 
     initCharts();
     updateAxisLabels();
@@ -118,9 +123,8 @@ public class IMSTraceVisualizerPane extends BorderPane {
     if (oldValue != newFile) {
       ticChart.removeDataSet(ticDatasetIndex, false);
     }
-    final TICDataSet dataSet = new TICDataSet(newFile,
-        newFile.getScanNumbers(1), newFile.getDataMZRange(), null,
-        TICPlotType.BASEPEAK);
+    final TICDataSet dataSet = new TICDataSet(newFile, newFile.getScanNumbers(1),
+        newFile.getDataMZRange(), null, TICPlotType.BASEPEAK);
     TICPlotRenderer renderer = new TICPlotRenderer();
     renderer.setSeriesPaint(0,
         MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT());
@@ -146,10 +150,10 @@ public class IMSTraceVisualizerPane extends BorderPane {
 
     final ColoredXYDataset mobilogram = new ColoredXYDataset(
         new SummedMobilogramXYProvider(feature, true), RunOption.THIS_THREAD);
-    mobilogramChart.addDataset(mobilogram, mobilogramChart.getDefaultRenderer());
+    mobilogramChart.addDataset(mobilogram);
 
-    final ColoredXYDataset dataSet = new ColoredXYDataset(
-        new IonTimeSeriesToXYProvider(feature), RunOption.THIS_THREAD);
+    final ColoredXYDataset dataSet = new ColoredXYDataset(new IonTimeSeriesToXYProvider(feature),
+        RunOption.THIS_THREAD);
     ticFeatureDatasetIndex = ticChart.addDataset(dataSet);
   }
 
@@ -182,22 +186,37 @@ public class IMSTraceVisualizerPane extends BorderPane {
   }
 
   private void initCharts() {
+    traceChart.getXYPlot().rangeCursorValueProperty()
+        .bindBidirectional(mobilogramChart.getXYPlot().rangeCursorValueProperty());
+    traceChart.getXYPlot().domainCursorValueProperty()
+        .bindBidirectional(ticChart.getXYPlot().domainCursorValueProperty());
+
     mobilogramChart.getXYPlot().getDomainAxis().setInverted(true);
-    mobilogramChart.setShowCrosshair(false);
     mobilogramChart.setLegendItemsVisible(false);
     NumberAxis axis = (NumberAxis) mobilogramChart.getXYPlot().getRangeAxis();
-    axis.setAutoRangeMinimumSize(0.2);
     axis.setAutoRangeIncludesZero(false);
     axis.setAutoRangeStickyZero(false);
+    axis.setAutoRange(true);
+
+    axis = (NumberAxis) mobilogramChart.getXYPlot().getDomainAxis();
+    axis.setAutoRangeIncludesZero(true);
+    axis.setAutoRangeStickyZero(true);
+    axis.setAutoRange(true);
+
     mobilogramChart.setMinHeight(300);
     mobilogramChart.setMinWidth(MIN_MOBILOGRAM_WIDTH);
+    mobilogramChart.getXYPlot().setShowCursorCrosshair(false, true);
 
-    mobilogramChart.addDatasetChangeListener(e -> {
-      mobilogramChart.getXYPlot().getRangeAxis().setAutoRange(true);
-      mobilogramChart.getXYPlot().getDomainAxis().setAutoRange(true);
-    });
+    axis = (NumberAxis) traceChart.getXYPlot().getRangeAxis();
+    axis.setAutoRangeIncludesZero(false);
+    axis.setAutoRangeStickyZero(false);
+    axis.setVisible(false);
 
-    traceChart.setShowCrosshair(false);
+    axis = (NumberAxis) traceChart.getXYPlot().getDomainAxis();
+    axis.setAutoRangeIncludesZero(false);
+    axis.setAutoRangeStickyZero(false);
+
+    traceChart.getXYPlot().setShowCursorCrosshair(true, true);
     traceChart.getXYPlot().setBackgroundPaint(Color.BLACK);
     traceChart.setDefaultPaintscaleLocation(RectangleEdge.BOTTOM);
     traceChart.setMinHeight(500);
@@ -211,16 +230,17 @@ public class IMSTraceVisualizerPane extends BorderPane {
           != TaskStatus.FINISHED)) {
         return;
       }
-      traceChart.getXYPlot().getDomainAxis().setRange(
-          RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(((ColoredXYDataset) e.getDataset()).getDomainValueRange(), 0.001d)), false,
-          true);
-      traceChart.getXYPlot().getRangeAxis().setRange(
-          RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(((ColoredXYDataset) e.getDataset()).getRangeValueRange(), 0.0001d)), false,
-          true);
+      traceChart.getXYPlot().getDomainAxis().setRange(RangeUtils.guavaToJFree(
+          RangeUtils.getPositiveRange(((ColoredXYDataset) e.getDataset()).getDomainValueRange(),
+              0.0001d)), false, true);
+      traceChart.getXYPlot().getRangeAxis().setRange(RangeUtils.guavaToJFree(
+          RangeUtils.getPositiveRange(((ColoredXYDataset) e.getDataset()).getRangeValueRange(),
+              0.0001d)), false, true);
+
+      ChartLogicsFX.autoRangeAxis(ticChart);
     });
 
-    ticChart.getXYPlot().setDomainCrosshairVisible(false);
-    ticChart.getXYPlot().setRangeCrosshairVisible(false);
+    ticChart.getXYPlot().setShowCursorCrosshair(true, false);
     ticChart.setMinHeight(200);
 
     ChartGroup rtGroup = new ChartGroup(false, false, true, false);

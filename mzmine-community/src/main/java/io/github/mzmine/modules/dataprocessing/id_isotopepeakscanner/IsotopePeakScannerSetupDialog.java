@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.chartthemes.EIsotopePatternChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
@@ -54,7 +55,6 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.util.converter.NumberStringConverter;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.ValueMarker;
@@ -128,7 +128,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
     theme.initialize();
     ttGen = new SpectraToolTipGenerator();
 
-    chart = ChartFactory.createXYBarChart("Isotope pattern preview", "m/z", false, "Abundance",
+    chart = FxChartFactory.createXYBarChart("Isotope pattern preview", "m/z", false, "Abundance",
         new XYSeriesCollection(new XYSeries("")));
     pnlChart = new EChartViewer(chart);
     pnlChart.setMinSize(400, 300);

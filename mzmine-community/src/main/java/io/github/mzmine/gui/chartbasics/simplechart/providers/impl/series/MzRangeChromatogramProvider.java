@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,6 +41,7 @@ public class MzRangeChromatogramProvider extends SimpleXYProvider {
 
   private final Range<Double> mz;
   private final List<? extends Scan> scans;
+  private boolean isComputed;
 
   public MzRangeChromatogramProvider(Range<Double> mz, List<? extends Scan> scans, String seriesKey,
       Color awt) {
@@ -59,6 +60,14 @@ public class MzRangeChromatogramProvider extends SimpleXYProvider {
       throw new RuntimeException("Could not calculate chromatogram");
     }
     setyValues(result[0].getIntensities());
+    isComputed = true;
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return isComputed;
   }
 
   @Override
