@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.CreateNewLibrary;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.EditSelectedLibrary;
-import io.github.mzmine.javafx.components.factories.FxSplitPanes;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.beans.property.ListProperty;
@@ -42,6 +41,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -62,6 +62,8 @@ class IonLibrariesManagePane extends BorderPane {
 
   IonLibrariesManagePane(@NotNull ObservableList<IonLibrary> libraries, boolean allowRemoveItem,
       @NotNull Consumer<GlobalIonLibrariesEvent> eventHandler) {
+
+    // create main layout
     final IonLibraryListView libraryList = new IonLibraryListView(libraries, allowRemoveItem, true,
         true);
     libraryList.setCreateNewAction(() -> eventHandler.accept(new CreateNewLibrary()));
@@ -72,18 +74,23 @@ class IonLibrariesManagePane extends BorderPane {
 
     selectedIonLibrary = libraryList.getListView().getSelectionModel().selectedItemProperty();
     final ObservableValue<@NotNull String> selectedLibraryName = selectedIonLibrary.map(
-        lib -> "Ions types in: " + lib.name()).orElse("");
+            lib -> "Ion types in library: " + lib.name())
+        .orElse("Select library on left to view ion content");
 
     selectedIonLibrary.subscribe((_, lib) -> ionTypes.setAll(lib != null ? lib.ions() : List.of()));
 
-    setCenter(FxSplitPanes.newSplitPane( //
-        newBorderPane().defaultPadding() //
-            .top(newBoldTitle("Ion libraries")) //
-            .center(libraryList).build(), //
-        newBorderPane().defaultPadding() //
-            .top(newBoldTitle(selectedLibraryName)) //
-            .center(typesList).build() //
-    ));
+    final BorderPane librarySelectionLeft = newBorderPane().defaultPadding() //
+        .top(newBoldTitle("Available ion libraries")) //
+        .center(libraryList).build();
+
+    Pane libraryDetailPane = newBorderPane().defaultPadding() //
+        .top(newBoldTitle(selectedLibraryName)) //
+        .center(typesList).build(); //
+    // only show details once selected
+    typesList.visibleProperty().bind(selectedIonLibrary.isNotNull());
+
+    setCenter(libraryDetailPane);
+    setLeft(librarySelectionLeft);
   }
 
 }
