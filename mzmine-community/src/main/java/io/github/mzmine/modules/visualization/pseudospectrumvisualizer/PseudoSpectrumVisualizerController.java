@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -37,7 +36,10 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrParameters;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.rt_corr.DiaMs2RtCorrParameters;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.List;
 import java.util.Optional;
@@ -60,6 +62,40 @@ public class PseudoSpectrumVisualizerController extends
     super(new PseudoSpectrumVisualizerModel());
 
     initListeners();
+  }
+
+  /*
+   *  Extract mz tolerance from DIA correlation or GC clustering module
+   * */
+  public static MZTolerance extractMzToleranceFromPreviousMethods(FeatureList flist) {
+    try {
+      final ObservableList<FeatureListAppliedMethod> appliedMethods = flist.getAppliedMethods();
+      // for DIA correlation
+      final Optional<MZTolerance> ms2Tolerance = ParameterUtils.getParameterFromAppliedMethods(
+              appliedMethods, DiaMs2CorrParameters.class, DiaMs2CorrParameters.algorithm)
+          .map(ModuleOptionsEnumComboParameter::getValueWithParameters)
+          .map(ValueWithParameters::parameters)
+          .map(p -> p.getValue(DiaMs2RtCorrParameters.ms2ScanToScanAccuracy));
+      if (ms2Tolerance.isPresent()) {
+        return ms2Tolerance.get();
+      }
+
+      // for GC-EI workflow use tolerance of chromatogram building, because deconvolution does
+      // not use mz tol parameter
+      boolean hasChromatograms = appliedMethods.stream().anyMatch(
+          appliedMethod -> appliedMethod.getParameters().getClass()
+              .equals(ADAPChromatogramBuilderParameters.class));
+      if (hasChromatograms) {
+        return ParameterUtils.getValueFromAppliedMethods(appliedMethods,
+                ADAPChromatogramBuilderParameters.class, ADAPChromatogramBuilderParameters.mzTolerance)
+            .orElse(new MZTolerance(0.005, 15));
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING,
+          " Could not extract previously used mz tolerance, will apply default settings. "
+              + e.getMessage());
+    }
+    return new MZTolerance(0.005, 15);
   }
 
   private void initListeners() {
@@ -103,38 +139,6 @@ public class PseudoSpectrumVisualizerController extends
   public void setRow(@Nullable FeatureListRow row) {
     setRawFile(null); // resets to best feature of row
     model.selectedRowsProperty().setValue(row == null ? List.of() : List.of(row));
-  }
-
-
-  /*
-   *  Extract mz tolerance from DIA correlation or GC clustering module
-   * */
-  public static MZTolerance extractMzToleranceFromPreviousMethods(FeatureList flist) {
-    try {
-      final ObservableList<FeatureListAppliedMethod> appliedMethods = flist.getAppliedMethods();
-      // for DIA correlation
-      final Optional<MZTolerance> ms2Tolerance = ParameterUtils.getValueFromAppliedMethods(
-          appliedMethods, DiaMs2CorrParameters.class, DiaMs2CorrParameters.ms2ScanToScanAccuracy);
-      if (ms2Tolerance.isPresent()) {
-        return ms2Tolerance.get();
-      }
-
-      // for GC-EI workflow use tolerance of chromatogram building, because deconvolution does
-      // not use mz tol parameter
-      boolean hasChromatograms = appliedMethods.stream().anyMatch(
-          appliedMethod -> appliedMethod.getParameters().getClass()
-              .equals(ADAPChromatogramBuilderParameters.class));
-      if (hasChromatograms) {
-        return ParameterUtils.getValueFromAppliedMethods(appliedMethods,
-                ADAPChromatogramBuilderParameters.class, ADAPChromatogramBuilderParameters.mzTolerance)
-            .orElse(new MZTolerance(0.005, 15));
-      }
-    } catch (Exception e) {
-      logger.log(Level.WARNING,
-          " Could not extract previously used mz tolerance, will apply default settings. "
-              + e.getMessage());
-    }
-    return new MZTolerance(0.005, 15);
   }
 
   public void setColor(Color color) {

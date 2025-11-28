@@ -45,7 +45,6 @@ import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceImagingWizardParameters;
@@ -162,7 +161,7 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
           massDetectorOption.getMs1NoiseLevel());
 
       final var param = AllSpectralDataImportParameters.create(
-          ConfigService.isApplyVendorCentroiding(), dataFiles,
+          ConfigService.getPreferences().getVendorImportParameters(), dataFiles,
           metadataFile.active() ? metadataFile.value() : null, libraries, advancedParam);
 
       q.add(new MZmineProcessingStepImpl<>(

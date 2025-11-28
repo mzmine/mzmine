@@ -293,11 +293,15 @@ public class RawDataFileInfoPaneController {
     return infos.stream().map(info -> {
       return switch (info) {
         case PasefMsMsInfo i -> mzFormat.format(i.getIsolationMz());
-        case IonMobilityMsMsInfo i ->
-            mzFormat.format(Objects.requireNonNullElse(i.getIsolationWindow().lowerEndpoint(), -1))
-            + "-" + mzFormat.format(
-                Objects.requireNonNullElse(i.getIsolationWindow().upperEndpoint(), -1));
+        case IonMobilityMsMsInfo i -> {
+          if(i.getIsolationWindow() != null) {
+            yield mzFormat.format(i.getIsolationWindow().lowerEndpoint())
+                + "-" + mzFormat.format(i.getIsolationWindow().upperEndpoint());
+
+          }
+          yield null;
+        }
       };
-    }).toList();
+    }).filter(Objects::nonNull).toList();
   }
 }

@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -36,6 +35,8 @@ import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.MassLynxImportOptions;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -128,6 +129,7 @@ import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAll
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularParameters;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
+import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureTableExportType;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitParameters;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
@@ -238,19 +240,17 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final boolean rsdQcFilter;
   protected final AbsoluteAndRelativeInt minAlignedSamples;
   protected final OriginalFeatureListOption handleOriginalFeatureLists;
-  private final OptionalValue<MinimumSamplesFilterConfig> minNumberOfSamplesInAnyGroup;
   // IMS parameter currently all the same
   protected final boolean isImsActive;
   protected final boolean isNativeIms;
+  protected final boolean allMobilityScansCentroided;
   protected final boolean imsSmoothing;
   protected final MobilityType imsInstrumentType;
   protected final Integer minImsDataPoints;
   protected final Double imsFwhm;
   protected final MobilityTolerance imsFwhmMobTolerance;
-
   //Imaging
   protected final boolean isImaging;
-
   // MS parameters currently all the same
   protected final WizardMassDetectorNoiseLevels massDetectorOption;
   protected final Double minFeatureHeight;
@@ -258,6 +258,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final MZTolerance mzTolFeaturesIntraSample;
   protected final MZTolerance mzTolInterSample;
   protected final WizardMsPolarity polarity;
+  private final OptionalValue<MinimumSamplesFilterConfig> minNumberOfSamplesInAnyGroup;
   // csv database
   private final boolean checkLocalCsvDatabase;
   // lipid annotation
@@ -313,8 +314,15 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     imsSmoothing = getValue(params, IonMobilityWizardParameters.smoothing);
     imsFwhm = getValue(params, IonMobilityWizardParameters.approximateImsFWHM);
     imsFwhmMobTolerance = new MobilityTolerance(imsFwhm.floatValue());
-    isNativeIms = Arrays.stream(dataFiles).map(RawDataFileTypeDetector::detectDataFileType)
-        .allMatch(type -> type == RawDataFileType.BRUKER_TDF);
+
+    final List<RawDataFileType> allFileTypes = Arrays.stream(dataFiles)
+        .map(RawDataFileTypeDetector::detectDataFileType).toList();
+    isNativeIms = allFileTypes.stream().allMatch(
+        type -> (type == RawDataFileType.BRUKER_TDF || (type == RawDataFileType.WATERS_RAW_IMS
+            && ConfigService.getPreference(MZminePreferences.massLynxImportChoice)
+            == MassLynxImportOptions.NATIVE)));
+    allMobilityScansCentroided = allFileTypes.stream()
+        .allMatch(type -> (type == RawDataFileType.BRUKER_TDF));
 
     // Imaging
     isImaging = steps.isImaging();
@@ -492,24 +500,11 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
   protected static void makeAndAddIimnGnpsExportStep(final BatchQueue q, final File exportPath,
       final MZTolerance mzTolScans, final String fileNameSuffix) {
-    final ParameterSet param = new GnpsFbmnExportAndSubmitParameters().cloneParameterSet();
 
-    File fileName = FileAndPathUtil.eraseFormat(exportPath);
-    fileName = new File(fileName.getParentFile(), fileName.getName() + fileNameSuffix);
-
-    param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.getParameter(GnpsFbmnExportAndSubmitParameters.spectraMergeSelect)
-        .setSimplePreset(SpectraMergeSelectPresets.SINGLE_MERGED_SCAN, mzTolScans);
-
-    param.setParameter(GnpsFbmnExportAndSubmitParameters.NORMALIZER,
-        IntensityNormalizer.createDefault());
-    param.setParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT, false);
-    param.setParameter(GnpsFbmnExportAndSubmitParameters.OPEN_FOLDER, false);
-    param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY, AbundanceMeasure.Area);
-    param.setParameter(GnpsFbmnExportAndSubmitParameters.FILENAME, fileName);
-    param.setParameter(GnpsFbmnExportAndSubmitParameters.FILTER,
-        FeatureListRowsFilter.MS2_OR_ION_IDENTITY);
+    final ParameterSet param = GnpsFbmnExportAndSubmitParameters.create(exportPath, fileNameSuffix,
+        mzTolScans, new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+        false, FeatureListRowsFilter.MS2_OR_ION_IDENTITY, false,
+        IntensityNormalizer.createDefault(), FeatureTableExportType.SIMPLE, AbundanceMeasure.Area);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(GnpsFbmnExportAndSubmitModule.class), param));
@@ -1006,7 +1001,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         null, ScanSelection.ALL_SCANS, denormalize);
 
     final var param = AllSpectralDataImportParameters.create(
-        ConfigService.isApplyVendorCentroiding(), dataFiles,
+        ConfigService.getPreferences().getVendorImportParameters(), dataFiles,
         metadataFile.active() ? metadataFile.value() : null, libraries, advancedParameters);
 
     param.setParameter(AllSpectralDataImportParameters.advancedImport, false);
@@ -1108,7 +1103,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(ImsExpanderParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(ImsExpanderParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(ImsExpanderParameters.useRawData, isNativeIms);
+    param.setParameter(ImsExpanderParameters.useRawData, isNativeIms && allMobilityScansCentroided);
     param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter().setValue(1E1);
     param.setParameter(ImsExpanderParameters.mzTolerance, mzTolScans);
     // need to set SLIM specifically here, as it looks like TWIMS in the raw data.

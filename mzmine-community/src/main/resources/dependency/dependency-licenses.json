@@ -34,6 +34,10 @@
             ],
             "moduleLicenses": [
                 {
+                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
+                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
+                },
+                {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
                     "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-3.0"
                 }
@@ -70,6 +74,19 @@
                 {
                     "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
                     "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
+                }
+            ]
+        },
+        {
+            "moduleName": "com.adobe.xmp:xmpcore",
+            "moduleVersion": "6.1.11",
+            "moduleUrls": [
+                "https://www.adobe.com/devnet/xmp/library/eula-xmp-library-java.html"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "The 3-Clause BSD License",
+                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
                 }
             ]
         },
@@ -1776,6 +1793,32 @@
             ]
         },
         {
+            "moduleName": "net.sf.jasperreports:jasperreports",
+            "moduleVersion": "7.0.3",
+            "moduleUrls": [
+                "http://jasperreports.sourceforge.net"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
+                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
+                }
+            ]
+        },
+        {
+            "moduleName": "net.sf.jasperreports:jasperreports-pdf",
+            "moduleVersion": "7.0.3",
+            "moduleUrls": [
+                "http://jasperreports.sourceforge.net"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
+                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
+                }
+            ]
+        },
+        {
             "moduleName": "net.sf.py4j:py4j",
             "moduleVersion": "0.8.1",
             "moduleUrls": [
@@ -2068,6 +2111,156 @@
         {
             "moduleName": "org.apache.xmlgraphics:batik-all",
             "moduleVersion": "1.19",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-anim",
+            "moduleVersion": "1.18",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-awt-util",
+            "moduleVersion": "1.18",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-bridge",
+            "moduleVersion": "1.18",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-constants",
+            "moduleVersion": "1.18",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-css",
+            "moduleVersion": "1.18",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-dom",
+            "moduleVersion": "1.18",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-ext",
+            "moduleVersion": "1.18",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-gvt",
+            "moduleVersion": "1.18",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-i18n",
+            "moduleVersion": "1.18",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-parser",
+            "moduleVersion": "1.18",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-script",
+            "moduleVersion": "1.18",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-shared-resources",
+            "moduleVersion": "1.18",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-svg-dom",
+            "moduleVersion": "1.18",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-util",
+            "moduleVersion": "1.18",
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.apache.xmlgraphics:batik-xml",
+            "moduleVersion": "1.18",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
