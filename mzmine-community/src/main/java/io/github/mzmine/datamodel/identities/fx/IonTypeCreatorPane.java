@@ -42,6 +42,7 @@ import io.github.mzmine.datamodel.identities.IonTypeParser;
 import io.github.mzmine.javafx.components.FilterableListView;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.validation.FxValidation;
 import io.github.mzmine.util.StringUtils;
 import java.util.Optional;
@@ -119,7 +120,7 @@ class IonTypeCreatorPane extends BorderPane {
     ionParsingValidation(inputText);
 
     //
-    final Button btnAdd = FxButtons.createDisabledButton("Add",
+    final Button btnAdd = FxButtons.createDisabledButton("Add", FxIcons.ADD,
         "Add new ion type based on formatted entry",
         parsedIonType.isNull().or(Bindings.isNotEmpty(unknownParts)),
         () -> addIonType(parsedIonType.get()));
@@ -129,7 +130,7 @@ class IonTypeCreatorPane extends BorderPane {
         parts -> parts.isEmpty() ? "All known"
             : "Define unknown: " + parts.getFirst().toString(IonPartStringFlavor.SIMPLE_NO_CHARGE));
 
-    final Button btnDefineUnknown = FxButtons.createDisabledButton("Define unknown",
+    final Button btnDefineUnknown = FxButtons.createDisabledButton("Define unknown", FxIcons.EDIT,
         "At least one entered ion building block is unknown, maybe a typo or an unknown name. Provide formula or mass and charge in 'Define building blocks'.",
         Bindings.isEmpty(unknownParts), this::defineFirstUnknownPart);
     btnDefineUnknown.textProperty().bind(firstUnknown);

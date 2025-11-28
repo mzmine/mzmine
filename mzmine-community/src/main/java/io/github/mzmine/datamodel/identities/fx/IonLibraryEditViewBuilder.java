@@ -45,6 +45,7 @@ import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.components.util.FxLayout.GridColumnGrow;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.util.FxIcons;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.beans.binding.BooleanBinding;
@@ -116,12 +117,12 @@ class IonLibraryEditViewBuilder extends FxViewBuilder<IonLibraryEditModel> {
     final BooleanBinding noneSelected = selection.selectedItemProperty().isNull();
 
     final VBox centerButtons = newVBox(Pos.TOP_LEFT, //
-        FxButtons.createDisabledButton("Add selected ions",
+        FxButtons.createDisabledButton("Add selected ions", FxIcons.ADD,
             "Add selected ions (right) to the ion library (left)", noneSelected, () -> {
               eventHandler.accept(new AddIons(List.copyOf(selection.getSelectedItems())));
               selection.clearSelection();
             }), //
-        FxButtons.createButton("Page back",
+        FxButtons.createButton("Page back", FxIcons.ARROW_LEFT,
             "Return the main page with more options how to add ions.",
             () -> eventHandler.accept(new ChangeState(EditState.MAIN))) //
     );
@@ -144,14 +145,14 @@ class IonLibraryEditViewBuilder extends FxViewBuilder<IonLibraryEditModel> {
     final MultipleSelectionModel<IonLibrary> selection = listView.getListView().getSelectionModel();
     final BooleanBinding noneSelected = selection.selectedItemProperty().isNull();
     final VBox centerButtons = newVBox(Pos.TOP_LEFT, //
-        FxButtons.createDisabledButton("Add whole libraries",
-            "Adds all ions of the selected libraries (right) to the ion library (left)",
+        FxButtons.createDisabledButton("Add whole libraries", FxIcons.ADD,
+            "Adds all ions of the selected libraries (right) to the ion library that is being edited (left)",
             noneSelected, () -> {
               eventHandler.accept(
                   new ComposeAddLibraries(List.copyOf(selection.getSelectedItems())));
               selection.clearSelection();
             }), //
-        FxButtons.createButton("Page back",
+        FxButtons.createButton("Page back", FxIcons.ARROW_LEFT,
             "Return the main page with more options how to add ions.",
             () -> eventHandler.accept(new ChangeState(EditState.MAIN))) //
     );
@@ -172,20 +173,21 @@ class IonLibraryEditViewBuilder extends FxViewBuilder<IonLibraryEditModel> {
     // more space to bottom for clearer separation
     return newHBox(new Insets(0, 0, DEFAULT_SPACE * 3, 0), FxLabels.newBoldLabel("Name:"),
         FxTextFields.newAutoGrowTextField(model.nameProperty(), "The current library name"),
-        FxButtons.createDisabledButton("Save", "Save and overwrite the ion library",
+        FxButtons.createDisabledButton("Save", FxIcons.SAVE, "Save and overwrite the ion library",
             model.sameAsOriginalProperty(), () -> eventHandler.accept(new Save(false))),
-        FxButtons.createDisabledButton("Save copy",
+        FxButtons.createDisabledButton("Save copy", FxIcons.PLUS_CIRCLE,
             "Create a copy (requires a new name) and saves this copy. The original list stays unchanged.",
             model.sameAsOriginalProperty(), () -> eventHandler.accept(new Save(true))));
   }
 
   private @NotNull VBox createEditButtonsPane() {
-    return newVBox(Pos.TOP_LEFT, EMPTY, FxButtons.createButton("Add from global ions",
+    return newVBox(Pos.TOP_LEFT, EMPTY, //
+        FxButtons.createButton("Add from global ions", FxIcons.LIST,
             "Add ions from the global ion list, which contains all ion definitions and harmonizes the mass differences and names.",
-            _ -> eventHandler.accept(new ChangeState(EditState.ADD_FROM_GLOBAL_IONS))),
-        FxButtons.createButton("Compose libraries",
+            () -> eventHandler.accept(new ChangeState(EditState.ADD_FROM_GLOBAL_IONS))),
+        FxButtons.createButton("Compose libraries", FxIcons.MERGE,
             "Add all ions from other libraries to compose libraries.",
-            _ -> eventHandler.accept(new ChangeState(EditState.COMPOSE_LIBRARIES))));
+            () -> eventHandler.accept(new ChangeState(EditState.COMPOSE_LIBRARIES))));
   }
 
 }

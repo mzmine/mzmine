@@ -53,6 +53,7 @@ import io.github.mzmine.javafx.components.factories.FxListViews;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.components.util.FxLayout.Position;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.validation.FxValidation;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.StringUtils;
@@ -72,6 +73,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
@@ -169,9 +171,9 @@ class IonPartCreatorPane extends BorderPane {
     var lbParsingResult = newBoldLabel(
         part.map(p -> p.toString(IonPartStringFlavor.FULL_WITH_MASS)).orElse("Cannot parse input"));
 
-    var btnAdd = createDisabledButton("Add", "Add new ion part based on name, formula, and charge",
-        part.isNull(), () -> addPart(false));
-    var btnAddAndClear = createDisabledButton("Add & clear",
+    var btnAdd = createDisabledButton("Add", FxIcons.ADD,
+        "Add new ion part based on name, formula, and charge", part.isNull(), () -> addPart(false));
+    var btnAddAndClear = createDisabledButton("Add & clear", FxIcons.ADD,
         "Add new ion part based on name, formula, and charge, then clear inputs", part.isNull(),
         () -> addPart(true));
 
@@ -300,8 +302,11 @@ class IonPartCreatorPane extends BorderPane {
     var items = partListView.getOriginalItems();
     if (!items.contains(part)) {
       items.add(part);
-      partListView.getListView().getSelectionModel().select(part);
-      partListView.getListView().scrollTo(part);
+
+      final ListView<IonPart> listView = partListView.getListView();
+      listView.getSelectionModel().clearSelection();
+      listView.getSelectionModel().select(part);
+      listView.scrollTo(part);
     }
   }
 

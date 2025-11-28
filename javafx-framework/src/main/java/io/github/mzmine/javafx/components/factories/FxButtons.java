@@ -55,7 +55,13 @@ public class FxButtons {
 
   public static Button createDisabledButton(String label, @Nullable String tooltip,
       @Nullable ObservableBooleanValue disableBinding, Runnable onAction) {
-    return disableIf(createButton(label, tooltip, null, onAction), disableBinding);
+    return createDisabledButton(label, null, tooltip, disableBinding, onAction);
+  }
+
+  public static Button createDisabledButton(String label, @Nullable IconCodeSupplier icon,
+      @Nullable String tooltip, @Nullable ObservableBooleanValue disableBinding,
+      Runnable onAction) {
+    return disableIf(createButton(label, icon, tooltip, onAction), disableBinding);
   }
 
   public static Button createDisabledButton(Node icon, @Nullable String tooltip,
@@ -77,9 +83,10 @@ public class FxButtons {
     return createButton(label, tooltip, icon, _ -> onAction.run());
   }
 
-  public static Button createButton(@Nullable String label, @NotNull IconCodeSupplier icon,
+  public static Button createButton(@Nullable String label, @Nullable IconCodeSupplier icon,
       @Nullable String tooltip, Runnable onAction) {
-    return createButton(label, tooltip, FxIconUtil.getFontIcon(icon), _ -> onAction.run());
+    return createButton(label, tooltip, icon == null ? null : FxIconUtil.getFontIcon(icon),
+        _ -> onAction.run());
   }
 
   public static Button createButton(String label, String tooltip,

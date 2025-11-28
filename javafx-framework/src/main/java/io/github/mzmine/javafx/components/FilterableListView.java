@@ -30,6 +30,7 @@ import io.github.mzmine.javafx.components.factories.FxListViews;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.components.util.FxLayout.Position;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -142,19 +143,19 @@ public class FilterableListView<T> extends BorderPane {
 
     for (final MenuControls control : standardControls) {
       switch (control) {
-        case CLEAR_BTN -> nodesToAdd.add(FxButtons.createButton("Clear",
+        case CLEAR_BTN -> nodesToAdd.add(FxButtons.createButton("Clear", FxIcons.CLEAR,
             "Clear and remove all elements that are currently shown. This only includes those that match any filter (if available).",
             this::clearFilteredItems));
         case CREATE_NEW_BTN -> nodesToAdd.add(
-            FxButtons.createButton("Create new", "Create a new item", this::createNewItem));
+            FxButtons.createButton("Create new", FxIcons.ADD, "Create a new item",
+                this::createNewItem));
         case REMOVE_BTN -> {
-          final Button btn = FxButtons.createButton("Remove", "Removes all selected items",
-              this::removeSelectedItems);
-          btn.disableProperty().bind(nothingSelectedBinding);
+          final Button btn = FxButtons.createDisabledButton("Remove", FxIcons.X_CIRCLE,
+              "Removes all selected items", nothingSelectedBinding, this::removeSelectedItems);
           nodesToAdd.add(btn);
         }
         case EDIT_BTN -> {
-          final Button btn = FxButtons.createButton("Edit", "Edit the selected item",
+          final Button btn = FxButtons.createButton("Edit", FxIcons.EDIT, "Edit the selected item",
               this::editSelectedItem);
           btn.disableProperty().bind(nothingSelectedBinding);
           nodesToAdd.add(btn);
