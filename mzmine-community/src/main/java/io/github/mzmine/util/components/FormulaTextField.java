@@ -31,6 +31,8 @@ import io.github.mzmine.javafx.validation.FxValidation;
 import io.github.mzmine.util.FormulaStringFlavor;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.StringUtils;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -39,6 +41,7 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.control.ButtonBase;
 import org.controlsfx.control.textfield.CustomTextField;
 import org.jetbrains.annotations.Nullable;
@@ -82,18 +85,26 @@ public class FormulaTextField extends CustomTextField {
       }
     }));
 
-    final ButtonBase harmonizeButton = FxIconUtil.newIconButton(FxIcons.RELOAD, """
-            Harmonize formula to see it formatted correctly. Like H3C => CH3""",
+    final ObservableValue<String> harmonizeTooltip = parsedFormula.map(
+        parsed -> "Harmonize formula format: %s => %s".formatted(getText(), parsed));
+
+    final ButtonBase harmonizeButton = FxIconUtil.newIconButton(FxIcons.RELOAD, harmonizeTooltip,
         this::harmonizeFormula);
-    harmonizeButton.disableProperty().bind(textProperty().isEqualTo(parsedFormula));
+
+    final BooleanBinding mayHarmonize = Bindings.createBooleanBinding(
+        () -> getText() == null || getText().trim().equals(getParsedFormula()));
+    harmonizeButton.disableProperty().bind(mayHarmonize);
     setRight(harmonizeButton);
 
     FxValidation.registerErrorValidator(this, parsingError);
   }
 
   private void harmonizeFormula() {
+    if (formula.get() == null) {
+      return;
+    }
     // this will set the formula to the text property by formatting the formula
-    setFormula(getFormula());
+    setText(parsedFormula.get());
   }
 
   private void parseFormula(@Nullable String text) {
