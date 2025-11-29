@@ -25,6 +25,7 @@
 
 package io.github.mzmine.javafx.components.util;
 
+import io.github.mzmine.javafx.components.GridRow;
 import java.util.List;
 import java.util.stream.IntStream;
 import javafx.geometry.HPos;
@@ -36,6 +37,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
@@ -137,6 +139,10 @@ public class FxLayout {
     return newHBox(Pos.CENTER_LEFT, padding, children);
   }
 
+  public static HBox newHBox(int spacing, Node... children) {
+    return newHBox(Pos.CENTER_LEFT, DEFAULT_PADDING_INSETS, spacing, children);
+  }
+
   public static HBox newHBox(Pos alignment, Insets padding, Node... children) {
     return newHBox(alignment, padding, DEFAULT_SPACE, children);
   }
@@ -197,6 +203,10 @@ public class FxLayout {
     var pane = new BorderPane(center);
     pane.setPadding(padding);
     return pane;
+  }
+
+  public static BorderPaneBuilder newBorderPane() {
+    return new BorderPaneBuilder();
   }
 
   public static void centerAllNodesHorizontally(GridPane pane) {
@@ -307,6 +317,8 @@ public class FxLayout {
     grid.setHgap(space);
 
     ColumnConstraints column1 = new ColumnConstraints();
+    column1.setHgrow(Priority.NEVER);
+    column1.setHalignment(HPos.RIGHT);
     ColumnConstraints column2 = new ColumnConstraints();
     switch (grow) {
       case BOTH -> setGrowColumn(column1, column2);
@@ -314,14 +326,38 @@ public class FxLayout {
       case RIGHT -> setGrowColumn(column2);
     }
     grid.getColumnConstraints().addAll(column1, column2);
-    var row = new RowConstraints();
-    row.setValignment(VPos.CENTER);
-    grid.getRowConstraints().add(row);
+    var rowConstraint = new RowConstraints();
+    rowConstraint.setValignment(VPos.CENTER);
+    grid.getRowConstraints().add(rowConstraint);
 
-    for (int i = 0; i < children.length; i += 2) {
-      grid.add(children[i], 0, i / 2);
-      if (i + 1 < children.length) {
-        grid.add(children[i + 1], 1, i / 2);
+    return addToGrid(grid, children);
+  }
+
+  /**
+   * Add all children to grid. Special handling of {@link GridRow} which fills a full row
+   */
+  public static GridPane addToGrid(final GridPane grid, final @Nullable Node... children) {
+    int cols = grid.getColumnCount();
+    int row = 0;
+    int col = 0;
+    for (final @Nullable Node child : children) {
+      // always fills a full row. If row is started this will flow into the new row
+      if (child instanceof GridRow || child instanceof Separator) {
+        if (col > 0) {
+          row++;
+        }
+        grid.add(child, 0, row, 2, 1);
+        col = 0;
+        row++;
+      } else {
+        if (child != null) {
+          grid.add(child, col, row);
+        }
+        col++;
+      }
+      if (col == cols) {
+        col = 0;
+        row++;
       }
     }
     return grid;
@@ -344,6 +380,22 @@ public class FxLayout {
   public static <T extends Node> T bindManagedToVisible(T node) {
     node.managedProperty().bind(node.visibleProperty());
     return node;
+  }
+
+  /**
+   * Default row constraints
+   */
+  public static RowConstraints newGridRowConstraints() {
+    return newGridRowConstraints(VPos.CENTER, false);
+  }
+
+  public static RowConstraints newGridRowConstraints(VPos vAlignment, boolean fillHeight) {
+    final RowConstraints constraints = new RowConstraints();
+    constraints.setValignment(vAlignment);
+    if (fillHeight) {
+      setFillHeightRow(constraints);
+    }
+    return constraints;
   }
 
   public enum GridColumnGrow {
@@ -373,5 +425,29 @@ public class FxLayout {
   private static void setFillHeightRow(RowConstraints rc) {
     rc.setFillHeight(true);
     rc.setVgrow(Priority.ALWAYS);
+  }
+
+  /**
+   * Fill a full
+   * {@link GridPane) row if combined with factory methods like {@link #newGrid2Col(Node...)}
+   */
+  public static GridRow gridRow(Node... children) {
+    return new GridRow(children);
+  }
+
+
+  public static BorderPane addNode(BorderPane borderPane, Node node, Position position) {
+    switch (position) {
+      case TOP -> borderPane.setTop(node);
+      case BOTTOM -> borderPane.setBottom(node);
+      case LEFT -> borderPane.setLeft(node);
+      case RIGHT -> borderPane.setRight(node);
+      case CENTER -> borderPane.setCenter(node);
+    }
+    return borderPane;
+  }
+
+  public enum Position {
+    CENTER, TOP, LEFT, BOTTOM, RIGHT
   }
 }

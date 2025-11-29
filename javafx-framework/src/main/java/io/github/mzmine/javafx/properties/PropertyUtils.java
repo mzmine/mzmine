@@ -76,6 +76,35 @@ public class PropertyUtils {
   }
 
   /**
+   * Add ListChangeListener to all triggers and call operation on any change, but with a delay.
+   *
+   * @param operation called on any change to trigger values
+   * @param delay     delay to wait before triggering an update, may want to use
+   *                  {@link #DEFAULT_TEXT_FIELD_DELAY}
+   */
+  public static void onChangeListDelayed(Runnable operation, Duration delay,
+      final ObservableList<?>... triggers) {
+    PauseTransition pause = new PauseTransition(delay);
+    // use FxThread runlater to run on the fxthread. Otherwise we cannot call dialog.showAndWait.
+//    java.lang.IllegalStateException: showAndWait is not allowed during animation or layout processing
+    // use Platform.runLater directly and not FxThread. Platform does extra checks
+    pause.setOnFinished(_ -> Platform.runLater(operation));
+
+    onChangeList(pause::playFromStart, triggers);
+  }
+
+  /**
+   * Add ListChangeListener to all triggers and call operation on any change
+   *
+   * @param operation called on any change to trigger values
+   */
+  public static void onChangeList(Runnable operation, final ObservableList<?>... triggers) {
+    for (ObservableList<?> trigger : triggers) {
+      trigger.addListener((ListChangeListener) _ -> operation.run());
+    }
+  }
+
+  /**
    * Add change listeners to all triggers and call operation on any change. Consider
    * {@link #onChangeSubscription(Runnable, ObservableValue[])} when removing the listeners is
    * important! Then retain the subscription and call {@link Subscription#unsubscribe()} later.

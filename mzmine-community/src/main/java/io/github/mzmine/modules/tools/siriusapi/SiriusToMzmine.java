@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -87,7 +87,7 @@ public class SiriusToMzmine {
 
     final IonType ionType = IonTypeParser.parse(structure.getAdduct());
     annotation.put(IonTypeType.class, ionType);
-    final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(
+    final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
         structure.getMolecularFormula());
     final double neutralMass = FormulaUtils.getMonoisotopicMass(formula);
     final double mz = ionType.getMZ(neutralMass);
