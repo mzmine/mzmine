@@ -58,7 +58,7 @@ record StorableIonLibrary(@NotNull String name, //
                           @JsonDeserialize(using = LocalDateTimeDeserializer.class) //
                           @JsonSerialize(using = LocalDateTimeSerializer.class) //
                           @NotNull LocalDateTime savedDate, //
-                          @JsonDeserialize(as = LinkedHashMap.class) @NotNull Map<Integer, IonPartNoCount> parts,
+                          @JsonDeserialize(as = LinkedHashMap.class) @NotNull Map<Integer, IonPartNoCountDTO> parts,
                           @NotNull List<IonTypeDTO> ionTypes) {
 
   public StorableIonLibrary(@NotNull IonLibrary library) {
@@ -67,14 +67,14 @@ record StorableIonLibrary(@NotNull String name, //
     allParts.sort(IonPartSorting.DEFAULT_NEUTRAL_THEN_LOSSES_THEN_ADDED.getComparator());
 
     int nextID = 0;
-    final Map<IonPart, IonPartNoCount> partMapping = HashMap.newHashMap(allParts.size());
-    final Map<IonPartNoCount, Integer> uniquePartIds = HashMap.newHashMap(allParts.size());
+    final Map<IonPart, IonPartNoCountDTO> partMapping = HashMap.newHashMap(allParts.size());
+    final Map<IonPartNoCountDTO, Integer> uniquePartIds = HashMap.newHashMap(allParts.size());
     // the final map to use
-    final Map<Integer, IonPartNoCount> parts = LinkedHashMap.newHashMap(allParts.size());
+    final Map<Integer, IonPartNoCountDTO> parts = LinkedHashMap.newHashMap(allParts.size());
 
     for (IonPart part : allParts) {
       // use same id for now to check if this part is already added (may be multiple parts with different counts)
-      final IonPartNoCount noCount = new IonPartNoCount(part);
+      final IonPartNoCountDTO noCount = new IonPartNoCountDTO(part);
       // H+ and 2H+ will point to the same value
       partMapping.put(part, noCount);
       if (!uniquePartIds.containsKey(noCount)) {
@@ -95,9 +95,10 @@ record StorableIonLibrary(@NotNull String name, //
    * Used to reduce the parts that have different count to single instances
    *
    */
-  record IonPartNoCount(@NotNull String name, @Nullable String formula, double mass, int charge) {
+  record IonPartNoCountDTO(@NotNull String name, @Nullable String formula, double mass,
+                           int charge) {
 
-    public IonPartNoCount(@NotNull IonPart p) {
+    public IonPartNoCountDTO(@NotNull IonPart p) {
       this(p.name(), p.singleFormula(), p.absSingleMass(), p.singleCharge());
     }
 
@@ -116,7 +117,8 @@ record StorableIonLibrary(@NotNull String name, //
   record IonTypeDTO(@NotNull List<@NotNull IonPartID> parts, int molecules) {
 
     static @NotNull IonTypeDTO createIonTypeDTO(IonType ion,
-        Map<IonPartNoCount, Integer> uniquePartIds, Map<IonPart, IonPartNoCount> partMapping) {
+        Map<IonPartNoCountDTO, Integer> uniquePartIds,
+        Map<IonPart, IonPartNoCountDTO> partMapping) {
       final List<IonPartID> partIds = ion.parts().stream()
           .map(part -> new IonPartID(uniquePartIds.get(partMapping.get(part)), part.count()))
           .toList();

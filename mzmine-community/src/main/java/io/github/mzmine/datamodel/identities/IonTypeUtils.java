@@ -124,10 +124,10 @@ public class IonTypeUtils {
   /**
    * @return all distinct ion parts in all ion types but without count
    */
-  public static @NotNull List<IonPartNoCount> extractUniquePartsIgnoreCounts(
+  public static @NotNull List<IonPartDefinition> extractUniquePartsIgnoreCounts(
       @NotNull List<IonType> ions) {
-    return ions.stream().<IonPartNoCount>mapMulti((ion, consumer) -> ion.parts().forEach(p -> {
-      consumer.accept(IonPartNoCount.of(p));
+    return ions.stream().<IonPartDefinition>mapMulti((ion, consumer) -> ion.parts().forEach(p -> {
+      consumer.accept(IonPartDefinition.of(p));
     })).distinct().toList();
   }
 }

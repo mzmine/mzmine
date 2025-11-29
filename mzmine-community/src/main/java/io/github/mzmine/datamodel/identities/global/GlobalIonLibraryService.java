@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
-import io.github.mzmine.datamodel.identities.IonPartNoCount;
+import io.github.mzmine.datamodel.identities.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.IonPartSorting;
 import io.github.mzmine.datamodel.identities.IonParts;
 import io.github.mzmine.datamodel.identities.IonType;
@@ -102,7 +102,7 @@ public final class GlobalIonLibraryService {
   private final IonLibraryPresetStore presetStore = new IonLibraryPresetStore();
 
   // maps the short name often used to the ion part without count: like Fe will match Fe+3 and Fe+2
-  private final Map<String, List<IonPartNoCount>> partDefinitions;
+  private final Map<String, List<IonPartDefinition>> partDefinitions;
   // used to deduplciate
   private final Map<IonPart, IonPart> singletonParts;
   private final Map<IonType, IonType> singletonIons;
@@ -303,8 +303,9 @@ public final class GlobalIonLibraryService {
       // finally add new part
       singletonParts.put(part, part);
       final String key = part.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE);
-      List<IonPartNoCount> values = partDefinitions.computeIfAbsent(key, _ -> new ArrayList<>(1));
-      values.add(IonPartNoCount.of(part));
+      List<IonPartDefinition> values = partDefinitions.computeIfAbsent(key,
+          _ -> new ArrayList<>(1));
+      values.add(IonPartDefinition.of(part));
       notifyChange();
 
       return part;
@@ -434,7 +435,7 @@ public final class GlobalIonLibraryService {
    * @param name the name without count, like Fe for +2Fe
    * @return
    */
-  public List<IonPartNoCount> findPartsByName(String name) {
+  public List<IonPartDefinition> findPartsByName(String name) {
     return partDefinitions.get(name);
   }
 

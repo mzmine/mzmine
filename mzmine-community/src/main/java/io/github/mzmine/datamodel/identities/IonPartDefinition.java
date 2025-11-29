@@ -25,23 +25,23 @@
 
 package io.github.mzmine.datamodel.identities;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.util.Objects;
 import java.util.logging.Logger;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
+ * this class is used to define alternative names and unknown pseudonyms for formulas or just names
+ * used in {@link IonPart} definitions while parsing {@link IonType}.
+ * <p>
  * A single part definition in an IonType - but without the count. So +H and -H are both just H+ and
  * can easily be found in hashmaps. There should always only be one definition of the charge and
  * mass of H+ but there can be multiple versions with different charge Fe+2 and Fe3+
@@ -53,36 +53,71 @@ import org.jetbrains.annotations.Nullable;
  * @param absMass absolute (positive) mass of a single item
  * @param charge  signed charge of a single item. Both H+ and H+1 would be single charge +1.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
-public record IonPartNoCount(@NotNull String name, @Nullable String formula, double absMass,
-                             int charge) {
+public record IonPartDefinition(@NotNull String name, @Nullable String formula, double absMass,
+                                int charge) {
 
-  private static final Logger logger = Logger.getLogger(IonPartNoCount.class.getName());
-  public static final String XML_ELEMENT = "ionpart_definition";
+  private static final Logger logger = Logger.getLogger(IonPartDefinition.class.getName());
 
-  @JsonCreator
-  public IonPartNoCount(@NotNull final String name, @Nullable final String formula,
-      final double absMass, final int charge) {
-    this.name = name;
-    this.formula = formula;
-    this.absMass = Math.abs(absMass); // allways positive and then multiplied with count
-    this.charge = charge;
+  /**
+   * @param name          clear name - often derived from formula or from alternative names. Empty
+   *                      name is only supported for {@link IonParts#SILENT_CHARGE}
+   * @param singleFormula uncharged formula without multiplier formula may be null if unknown.
+   *                      Formula of a single item - so the count multiplier is not added. Using a
+   *                      String here instead of CDK formula as CDK formula does not implement
+   *                      equals.
+   * @param absSingleMass absolute (positive) mass of a single item of this type which is multiplied
+   *                      by count to get total mass.
+   * @param singleCharge  signed charge of a single item which is multiplied by count to get total
+   *                      charge. Both H+ and 2H+ would be single charge +1. See count.
+   */
+  public IonPartDefinition(@Nullable String name, @Nullable String singleFormula,
+      @Nullable Double absSingleMass, @Nullable Integer singleCharge) {
+
+    if (singleFormula != null) {
+      final IMolecularFormula parsedFormula =
+          singleCharge == null ? FormulaUtils.createMajorIsotopeMolFormulaWithCharge(singleFormula)
+              : FormulaUtils.createMajorIsotopeMolFormulaWithCharge(singleFormula, singleCharge);
+
+      if (parsedFormula == null) {
+        if (name == null) {
+          name = singleFormula;
+        }
+        singleFormula = null; // formula was not parsed correctly
+      } else {
+        // parsing successful
+        if (singleCharge == null) {
+          singleCharge = requireNonNullElse(parsedFormula.getCharge(), 0);
+        }
+        singleFormula = FormulaUtils.getFormulaString(parsedFormula, false);
+
+        if (absSingleMass == null) {
+          absSingleMass = FormulaUtils.getMonoisotopicMass(parsedFormula, singleCharge);
+        }
+      }
+    }
+
+    if (absSingleMass == null) {
+      absSingleMass = 0d;
+    }
+
+    if (name == null && singleFormula == null) {
+      throw new IllegalArgumentException("name or singleFormula must be defined");
+    }
+
+    String nameOrFormula = requireNonNullElse(name, singleFormula);
+    int charge = requireNonNullElse(singleCharge, 0);
+    final double mass = Math.abs(absSingleMass);
+    this(nameOrFormula, singleFormula, mass, charge);
   }
 
-  public static IonPartNoCount unknown(final String name) {
-    return new IonPartNoCount(name, null, 0d, 0);
+  public static IonPartDefinition of(final IonPart p) {
+    return new IonPartDefinition(p.name(), p.singleFormula(), p.absSingleMass(), p.singleCharge());
   }
 
-  public static IonPartNoCount of(final IonPart p) {
-    return new IonPartNoCount(p.name(), p.singleFormula(), p.absSingleMass(), p.singleCharge());
-  }
-
-  @JsonIgnore
-  public boolean isUnknown() {
-    // name is blank for silent charge - so it is reserved
-    // for example for [M]+ (already charged and not -e-)
-    // do not treat silent charge as unknown
-    return !name.isBlank() && formula == null && absMass == 0d;
+  public static IonPartDefinition ofFormula(@Nullable String name, @NotNull String formula,
+      @Nullable Integer singleCharge) {
+    // formula as name
+    return new IonPartDefinition(name, formula, null, singleCharge);
   }
 
   /**
@@ -110,7 +145,7 @@ public record IonPartNoCount(@NotNull String name, @Nullable String formula, dou
     };
   }
 
-  @JsonIgnore
+
   public boolean isCharged() {
     return charge != 0;
   }
@@ -118,7 +153,7 @@ public record IonPartNoCount(@NotNull String name, @Nullable String formula, dou
   /**
    * Polarity of total charge so charge * count which may flip sign of charge
    */
-  @JsonIgnore
+
   public PolarityType chargePolarity() {
     return switch (charge) {
       case int c when c < 0 -> PolarityType.NEGATIVE;
@@ -127,39 +162,22 @@ public record IonPartNoCount(@NotNull String name, @Nullable String formula, dou
     };
   }
 
-  @JsonIgnore
+
   public boolean isNeutralModification() {
     return !isCharged();
   }
 
-  /**
-   * Exclude count from equals and hash so that duplicate elements can be more easily merged
-   *
-   * @param o the reference object with which to compare.
-   * @return true if equals
-   */
-  public boolean equalsWithoutCount(final Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof final IonPartNoCount ionPart)) {
-      return false;
-    }
-
-    return charge == ionPart.charge && Precision.equals(absMass, ionPart.absMass, 0.0000001)
-        && name.equals(ionPart.name) && Objects.equals(formula, ionPart.formula);
-  }
 
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof final IonPartNoCount ionPart)) {
+    if (!(o instanceof final IonPartDefinition ionPart)) {
       return false;
     }
 
-    return charge == ionPart.charge && Precision.equals(absMass, ionPart.absMass, 0.0000001)
+    return charge == ionPart.charge && Precision.equalFloatSignificance(absMass, ionPart.absMass)
         && name.equals(ionPart.name) && Objects.equals(formula, ionPart.formula);
   }
 
@@ -175,43 +193,6 @@ public record IonPartNoCount(@NotNull String name, @Nullable String formula, dou
     result = 31 * result + Double.hashCode(absMass);
     result = 31 * result + charge;
     return result;
-  }
-
-
-  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
-    writer.writeStartElement(XML_ELEMENT);
-    writer.writeAttribute("name", name);
-    writer.writeAttribute("mass", String.valueOf(absMass));
-    writer.writeAttribute("charge", String.valueOf(charge));
-    if (formula != null) {
-      writer.writeAttribute("formula", formula);
-    }
-    writer.writeEndElement();
-  }
-
-  public static IonPartNoCount loadFromXML(XMLStreamReader reader) throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals("ionpart"))) {
-      throw new IllegalStateException("Current element is not an ionpart");
-    }
-
-    final Integer charge = ParsingUtils.stringToInteger(reader.getAttributeValue(null, "charge"));
-    final Double mass = ParsingUtils.stringToDouble(reader.getAttributeValue(null, "mass"));
-    final String name = reader.getAttributeValue(null, "name");
-    Objects.requireNonNull(charge);
-    Objects.requireNonNull(mass);
-    Objects.requireNonNull(name);
-    // may be null
-    final String formula = reader.getAttributeValue(null, "formula");
-
-    return new IonPartNoCount(name, formula, mass, charge);
-  }
-
-  /**
-   * @return silent charge is the only blank name
-   */
-  @JsonIgnore
-  public boolean isSilentCharge() {
-    return name.isBlank() && formula == null && absMass == 0d;
   }
 
 }

@@ -25,65 +25,128 @@
 
 package io.github.mzmine.util.components;
 
-import static io.github.mzmine.util.StringUtils.hasValue;
-
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.validation.FxValidation;
-import javafx.beans.binding.Bindings;
+import io.github.mzmine.util.FormulaStringFlavor;
+import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.StringUtils;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextFormatter;
-import org.jetbrains.annotations.NotNull;
+import javafx.scene.control.ButtonBase;
+import org.controlsfx.control.textfield.CustomTextField;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-public class FormulaTextField extends TextField {
+/**
+ * Text is bound to the formula which is read only.
+ */
+public class FormulaTextField extends CustomTextField {
 
-  private final TextFormatter<IMolecularFormula> textFormatter;
+  private final ObjectProperty<FormulaStringFlavor> stringFlavor = new SimpleObjectProperty<>(
+      FormulaStringFlavor.DEFAULT_CHARGED);
+  private final ReadOnlyObjectWrapper<IMolecularFormula> formula = new ReadOnlyObjectWrapper<>();
+  private final ReadOnlyStringWrapper parsedFormula = new ReadOnlyStringWrapper();
   private final StringProperty parsingError = new SimpleStringProperty();
+  private final boolean requireValue;
 
   /**
    * Shows charge and allows empty value
    */
   public FormulaTextField() {
-    this(true, false);
+    this(FormulaStringFlavor.DEFAULT_CHARGED, false);
   }
 
   public FormulaTextField(boolean requireValue) {
-    this(true, requireValue);
+    this(FormulaStringFlavor.DEFAULT_CHARGED, requireValue);
   }
 
-  public FormulaTextField(boolean showCharge, final boolean requireValue) {
-    final IMolecularFormulaStringConverter stringConverter = new IMolecularFormulaStringConverter(
-        showCharge);
-    textFormatter = new TextFormatter<>(stringConverter);
-    setTextFormatter(textFormatter);
-
-    parsingError.bind(Bindings.createStringBinding(() -> {
-      final IMolecularFormula formula = getFormula();
-      if ((requireValue || hasValue(getText())) && formula == null) {
-        String format = showCharge ? "[Fe]+2" : "Fe";
-        return "Cannot parse formula, required format: " + format;
+  public FormulaTextField(FormulaStringFlavor flavor, final boolean requireValue) {
+    this.requireValue = requireValue;
+    stringFlavor.set(flavor);
+    textProperty().subscribe(this::parseFormula);
+    parsedFormula.bind(formula.map(f -> {
+      if (f == null) {
+        return null;
       }
-      return null; // no error
-    }, formulaProperty(), textProperty()));
+      try {
+        return FormulaUtils.getFormulaString(f, stringFlavor.get());
+      } catch (Exception e) {
+        return null;
+      }
+    }));
+
+    final ButtonBase harmonizeButton = FxIconUtil.newIconButton(FxIcons.RELOAD, """
+            Harmonize formula to see it formatted correctly. Like H3C => CH3""",
+        this::harmonizeFormula);
+    harmonizeButton.disableProperty().bind(textProperty().isEqualTo(parsedFormula));
+    setRight(harmonizeButton);
 
     FxValidation.registerErrorValidator(this, parsingError);
+  }
+
+  private void harmonizeFormula() {
+    // this will set the formula to the text property by formatting the formula
+    setFormula(getFormula());
+  }
+
+  private void parseFormula(@Nullable String text) {
+    final FormulaStringFlavor flavor = stringFlavor.get();
+    String format = flavor.showCharge() ? "[Fe]+2" : "Fe";
+    String error = "Cannot parse formula, required format: " + format;
+
+    if (StringUtils.isBlank(text)) {
+      formula.set(null);
+      parsingError.set(requireValue ? error : null);
+      return;
+    }
+
+    try {
+      final IMolecularFormula parsed = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(text);
+      formula.set(parsed);
+    } catch (Exception e) {
+      formula.set(null);
+    }
+    if (formula.get() == null) {
+      parsingError.set(error);
+    }
   }
 
   /**
    * Create formula field and bind bidirectionally
    *
-   * @param showCharge      show charge in formula
    * @param formulaProperty bind bidirectional
    * @return formula field
    */
-  public static FormulaTextField newFormulaTextField(final boolean showCharge,
+  public static FormulaTextField newFormulaTextField(final boolean requireValue,
+      final @Nullable ObjectProperty<@Nullable IMolecularFormula> formulaProperty) {
+    return newFormulaTextField(FormulaStringFlavor.DEFAULT_CHARGED, requireValue, formulaProperty);
+  }
+
+  public static FormulaTextField newFormulaTextField(final FormulaStringFlavor flavor,
       final boolean requireValue,
-      final @NotNull ObjectProperty<@Nullable IMolecularFormula> formulaProperty) {
-    var field = new FormulaTextField(showCharge, requireValue);
-    field.formulaProperty().bindBidirectional(formulaProperty);
+      final @Nullable ObjectProperty<@Nullable IMolecularFormula> formulaProperty) {
+    return newFormulaTextField(flavor, requireValue, formulaProperty, null);
+  }
+
+  public static FormulaTextField newFormulaTextField(final FormulaStringFlavor flavor,
+      final boolean requireValue,
+      final @Nullable ObjectProperty<@Nullable IMolecularFormula> formulaProperty,
+      @Nullable final StringProperty formulaString) {
+    var field = new FormulaTextField(flavor, requireValue);
+    if (formulaProperty != null) {
+      // cannot bind bidirectionally as formula prop is internal and only set through text
+      formulaProperty.bind(field.formulaProperty());
+    }
+    if (formulaString != null) {
+      field.textProperty().bindBidirectional(formulaString);
+    }
     return field;
   }
 
@@ -94,20 +157,37 @@ public class FormulaTextField extends TextField {
    * @return formula field
    */
   public static FormulaTextField newFormulaTextField(
-      final @NotNull ObjectProperty<@Nullable IMolecularFormula> formulaProperty) {
-    return newFormulaTextField(false, false, formulaProperty);
+      final @Nullable ObjectProperty<@Nullable IMolecularFormula> formulaProperty,
+      @Nullable final StringProperty formulaString) {
+    return newFormulaTextField(FormulaStringFlavor.DEFAULT_CHARGED, false, formulaProperty,
+        formulaString);
   }
-
 
   public @Nullable IMolecularFormula getFormula() {
     return formulaProperty().get();
   }
 
-  public ObjectProperty<@Nullable IMolecularFormula> formulaProperty() {
-    return textFormatter.valueProperty();
+  public ReadOnlyObjectProperty<IMolecularFormula> formulaProperty() {
+    return formula.getReadOnlyProperty();
   }
 
   public void setFormula(@Nullable IMolecularFormula formula) {
-    this.formulaProperty().set(formula);
+    if (formula == null) {
+      setText(null);
+      return;
+    }
+    setText(FormulaUtils.getFormulaString(formula, stringFlavor.get()));
+  }
+
+  public ObjectProperty<FormulaStringFlavor> stringFlavorProperty() {
+    return stringFlavor;
+  }
+
+  public ReadOnlyStringProperty parsedFormulaProperty() {
+    return parsedFormula.getReadOnlyProperty();
+  }
+
+  public String getParsedFormula() {
+    return parsedFormula.get();
   }
 }

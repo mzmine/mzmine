@@ -25,10 +25,13 @@
 
 package io.github.mzmine.util;
 
+import static java.util.Objects.requireNonNullElse;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import static java.util.Objects.requireNonNullElse;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.config.Elements;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.interfaces.IElement;
@@ -77,16 +80,22 @@ public class FormulaStringConverter {
 //  public static String getString(IMolecularFormula formula) {
 //    return getString(formula, false);
 //  }
+  public static String getString(@Nullable IMolecularFormula formula,
+      @NotNull FormulaStringFlavor flavor) {
+    return getString(formula, flavor.skipMajorMassNumber(), flavor.showCharge());
+  }
+
   public static String getString(IMolecularFormula formula) {
-    return getString(formula, true);
+    return getString(formula, FormulaStringFlavor.DEFAULT_CHARGED);
   }
 
   public static String getString(IMolecularFormula formula, boolean skipMajorMassNumber) {
-    return getString(formula, skipMajorMassNumber, 0.6);
+    return getString(formula, skipMajorMassNumber, true);
   }
 
   public static String getString(IMolecularFormula formula, boolean skipMajorMassNumber,
-      double skipMassNumberForMajorPercent) {
+      boolean showCharge) {
+    final double skipMassNumberForMajorPercent = 0.6;
 
     if (skipMassNumberForMajorPercent < 0.5) {
       throw new IllegalArgumentException(
@@ -97,7 +106,7 @@ public class FormulaStringConverter {
 
     StringBuilder stringMF = new StringBuilder();
     List<IIsotope> isotopesList = MolecularFormulaManipulator.putInOrder(orderElements, formula);
-    Integer charge = formula.getCharge();
+    final Integer charge = showCharge ? formula.getCharge() : null;
     if (charge != null && charge != 0) {
       stringMF.append('[');
     }
@@ -170,5 +179,4 @@ public class FormulaStringConverter {
       sb.append(count);
     }
   }
-
 }

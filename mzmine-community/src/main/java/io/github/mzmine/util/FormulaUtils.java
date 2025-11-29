@@ -120,16 +120,19 @@ public class FormulaUtils {
    * @param showCharge append charge or not
    */
   public static String getFormulaString(@Nullable IMolecularFormula formula, boolean showCharge) {
-    if (!showCharge) {
-      formula = cloneFormula(formula);
-      if (formula != null) {
-        formula.setCharge(0);
-      }
-    }
+    return getFormulaString(formula,
+        showCharge ? FormulaStringFlavor.DEFAULT_CHARGED : FormulaStringFlavor.DEFAULT_NO_CHARGE);
+  }
+
+  /**
+   * Pretty print formula
+   */
+  public static String getFormulaString(@Nullable IMolecularFormula formula,
+      @NotNull FormulaStringFlavor flavor) {
     if (formula == null) {
       return null;
     }
-    return FormulaStringConverter.getString(formula);
+    return FormulaStringConverter.getString(formula, flavor);
   }
 
   /**

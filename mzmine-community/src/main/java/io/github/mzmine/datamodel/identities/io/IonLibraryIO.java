@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.SimpleIonLibrary;
 import io.github.mzmine.datamodel.identities.io.StorableIonLibrary.IonPartID;
-import io.github.mzmine.datamodel.identities.io.StorableIonLibrary.IonPartNoCount;
+import io.github.mzmine.datamodel.identities.io.StorableIonLibrary.IonPartNoCountDTO;
 import io.github.mzmine.datamodel.identities.io.StorableIonLibrary.IonTypeDTO;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.JsonUtils;
@@ -100,7 +100,7 @@ public class IonLibraryIO {
       // con
       final List<IonPart> ionParts = ion.parts().stream()
           .map(p -> actualParts.computeIfAbsent(p, _ -> {
-            final IonPartNoCount noCount = storable.parts().get(p.id());
+            final IonPartNoCountDTO noCount = storable.parts().get(p.id());
             return noCount.withCount(p.count());
           })).toList();
 
@@ -127,7 +127,8 @@ public class IonLibraryIO {
 
     // Load ion parts
     var partElements = ((Element) partsList.item(0)).getElementsByTagName("part");
-    Map<Integer, IonPartNoCount> parts = LinkedHashMap.newLinkedHashMap(partElements.getLength());
+    Map<Integer, IonPartNoCountDTO> parts = LinkedHashMap.newLinkedHashMap(
+        partElements.getLength());
 
     for (int i = 0; i < partElements.getLength(); i++) {
       Element partElement = (Element) partElements.item(i);
@@ -137,7 +138,7 @@ public class IonLibraryIO {
       int charge = Integer.parseInt(partElement.getAttribute("charge"));
       double mass = Double.parseDouble(partElement.getAttribute("mass"));
 
-      parts.put(id, new IonPartNoCount(name, formula, mass, charge));
+      parts.put(id, new IonPartNoCountDTO(name, formula, mass, charge));
     }
 
     // Load ion types

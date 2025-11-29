@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,34 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.components;
+package io.github.mzmine.util;
 
-import io.github.mzmine.util.FormulaUtils;
-import javafx.util.StringConverter;
-import org.openscience.cdk.interfaces.IMolecularFormula;
+public enum FormulaStringFlavor {
+  DEFAULT_NO_CHARGE, DEFAULT_CHARGED, FULL_WITH_MASS_NUMBERS_CHARGED;
 
-public class IMolecularFormulaStringConverter extends StringConverter<IMolecularFormula> {
-
-  private final boolean showCharge;
-
-  public IMolecularFormulaStringConverter(final boolean showCharge) {
-    this.showCharge = showCharge;
+  public boolean skipMajorMassNumber() {
+    return switch (this) {
+      case DEFAULT_NO_CHARGE, DEFAULT_CHARGED -> true;
+      case FULL_WITH_MASS_NUMBERS_CHARGED -> false;
+    };
   }
 
-  @Override
-  public String toString(IMolecularFormula object) {
-    if (object == null) {
-      return "";
-    }
-    return FormulaUtils.getFormulaString(object, showCharge);
-  }
-
-  @Override
-  public IMolecularFormula fromString(String string) {
-    try {
-      return FormulaUtils.createMajorIsotopeMolFormulaWithCharge(string);
-    } catch (Exception e) {
-      return null;
-    }
+  public boolean showCharge() {
+    return switch (this) {
+      case DEFAULT_CHARGED, FULL_WITH_MASS_NUMBERS_CHARGED -> true;
+      case DEFAULT_NO_CHARGE -> false;
+    };
   }
 }
