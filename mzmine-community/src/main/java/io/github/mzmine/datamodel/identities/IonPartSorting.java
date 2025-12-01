@@ -78,4 +78,8 @@ public enum IonPartSorting {
     return comparator;
   }
 
+  public Comparator<IonPartDefinition> getDefinitionComparator() {
+    final Comparator<IonPart> parentComparator = this.getComparator();
+    return Comparator.comparing(part -> part.withCount(1), parentComparator);
+  }
 }

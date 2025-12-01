@@ -120,6 +120,16 @@ public record IonPartDefinition(@NotNull String name, @Nullable String formula, 
     return new IonPartDefinition(name, formula, null, singleCharge);
   }
 
+  public static IonPartDefinition parse(String ionPart) {
+    // simulate the addition if +- is missing.
+    // definition does not need the count but parsing through the IonPart is easiest
+    if (!ionPart.startsWith("[+-]")) {
+      ionPart = "+" + ionPart;
+    }
+    final IonPart parsed = IonPart.parse(ionPart);
+    return parsed == null ? null : of(parsed);
+  }
+
   /**
    * Creates the final part string with mass and charge see {@link #toString(IonPartStringFlavor)}
    * with {@link IonPartStringFlavor#FULL_WITH_MASS}
@@ -193,6 +203,10 @@ public record IonPartDefinition(@NotNull String name, @Nullable String formula, 
     result = 31 * result + Double.hashCode(absMass);
     result = 31 * result + charge;
     return result;
+  }
+
+  public IonPart withCount(int count) {
+    return new IonPart(name, formula, absMass, charge, count);
   }
 
 }

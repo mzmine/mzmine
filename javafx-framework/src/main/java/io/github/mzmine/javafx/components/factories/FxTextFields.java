@@ -25,7 +25,6 @@
 
 package io.github.mzmine.javafx.components.factories;
 
-import impl.org.controlsfx.skin.AutoCompletePopup;
 import io.github.mzmine.javafx.components.NumberTextField;
 import io.github.mzmine.javafx.components.skins.DynamicTextFieldSkin;
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -34,7 +33,6 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -80,18 +78,18 @@ public class FxTextFields {
     return applyToField(new TextField(), columnCount, textProperty, prompt, tooltip);
   }
 
-  public static TextField applyToField(@NotNull final TextField field,
+  public static <T extends TextField> T applyToField(@NotNull final T field,
       final @Nullable Integer columnCount, final @Nullable String tooltip) {
     return applyToField(field, columnCount, null, tooltip);
   }
 
-  public static TextField applyToField(@NotNull final TextField field,
+  public static <T extends TextField> T applyToField(@NotNull final T field,
       final @Nullable Integer columnCount, final @Nullable StringProperty textProperty,
       final @Nullable String tooltip) {
     return applyToField(field, columnCount, textProperty, null, tooltip);
   }
 
-  public static TextField applyToField(@NotNull final TextField field,
+  public static <T extends TextField> T applyToField(@NotNull final T field,
       final @Nullable Integer columnCount, final @Nullable StringProperty textProperty,
       final @Nullable StringProperty prompt, final @Nullable String tooltip) {
     if (textProperty != null) {

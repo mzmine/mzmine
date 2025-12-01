@@ -101,8 +101,16 @@ public final class GlobalIonLibraryService {
    */
   private final IonLibraryPresetStore presetStore = new IonLibraryPresetStore();
 
-  // maps the short name often used to the ion part without count: like Fe will match Fe+3 and Fe+2
+  /// maps the short name often used to the ion part without count: like Fe will match Fe+3 and Fe+2
+  /// We only store definitions for ion parts where the name is unequal to the formula. For example,
+  /// to capture alternative names of chemicals or to use a different formula order.
+  ///
+  /// Examples:
+  /// - Fe could also be presented as Fe(II)
+  /// - MeOH for methanol
+  /// - NH3 (different order) instead of default: H3N
   private final Map<String, List<IonPartDefinition>> partDefinitions;
+
   // used to deduplciate
   private final Map<IonPart, IonPart> singletonParts;
   private final Map<IonType, IonType> singletonIons;
@@ -142,7 +150,7 @@ public final class GlobalIonLibraryService {
   public GlobalIonLibraryDTO getCurrentGlobalLibrary() {
     try (var _ = lock.lockRead()) {
       return new GlobalIonLibraryDTO(getVersion(), getIonLibrariesUnmodifiable(),
-          getIonTypesUnmodifiable(), getIonPartsUnmodifiable());
+          getIonTypesUnmodifiable(), getIonPartsUnmodifiable(), getIonPartDefinitionsCopy());
     }
   }
 
@@ -191,11 +199,22 @@ public final class GlobalIonLibraryService {
    * <p>
    * All internal lists are cleared and exchanged for the arguments.
    */
-  public void applyUpdates(List<IonLibrary> libraries, List<IonType> types, List<IonPart> parts) {
+  public void applyUpdates(List<IonLibrary> libraries, List<IonType> types, List<IonPart> parts,
+      List<IonPartDefinition> partDefinitions) {
     applyLockedChange(() -> {
+      setIonPartDefinitions(partDefinitions);
       setIonParts(parts);
       setIonTypes(types);
       setLibraries(libraries);
+    });
+  }
+
+  private void setIonPartDefinitions(List<IonPartDefinition> definitions) {
+    applyLockedChange(() -> {
+      this.partDefinitions.clear();
+      for (IonPartDefinition def : definitions) {
+        addIonPartDefinition(def);
+      }
     });
   }
 
@@ -222,7 +241,6 @@ public final class GlobalIonLibraryService {
    */
   private void setIonParts(List<IonPart> parts) {
     applyLockedChange(() -> {
-      this.partDefinitions.clear();
       this.singletonParts.clear();
       addParts(parts);
     });
@@ -302,14 +320,29 @@ public final class GlobalIonLibraryService {
 
       // finally add new part
       singletonParts.put(part, part);
-      final String key = part.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE);
-      List<IonPartDefinition> values = partDefinitions.computeIfAbsent(key,
-          _ -> new ArrayList<>(1));
-      values.add(IonPartDefinition.of(part));
+      addIonPartDefinition(IonPartDefinition.of(part));
       notifyChange();
 
       return part;
     }
+  }
+
+  /**
+   * adds an ion part definition. caller should call notify changes once all changes are done
+   */
+  private void addIonPartDefinition(@NotNull IonPartDefinition part) {
+    // so that Fe might be defined as 2+ or 3+
+    if (part.name().equals(part.formula()) && part.isNeutralModification()) {
+      // name and formula are equal and no charge means this is the default behavior of the parsing.
+      // no need to keep an instance of this, so skip
+      // only add definitions where name is different from formula or where charge is defined
+      // do not add to many to reduce number of definitions in {@link GlobalIonLibrariesController}
+      return;
+    }
+
+    final String key = part.name();
+    List<IonPartDefinition> values = partDefinitions.computeIfAbsent(key, _ -> new ArrayList<>(1));
+    values.add(part);
   }
 
   /**
@@ -559,6 +592,19 @@ public final class GlobalIonLibraryService {
    */
   public List<IonPart> getIonPartsUnmodifiable() {
     return List.copyOf(singletonParts.values());
+  }
+
+  /**
+   * @return modifiable copy
+   */
+  public List<IonPartDefinition> getIonPartDefinitionsCopy() {
+    final List<List<IonPartDefinition>> current = List.copyOf(partDefinitions.values());
+    final List<IonPartDefinition> definitions = new ArrayList<>(current.size());
+    for (List<IonPartDefinition> def : current) {
+      definitions.addAll(def);
+    }
+
+    return definitions;
   }
 
   /**

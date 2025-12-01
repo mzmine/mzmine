@@ -43,6 +43,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.ButtonBase;
+import javafx.scene.control.Tooltip;
 import org.controlsfx.control.textfield.CustomTextField;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -73,6 +74,10 @@ public class FormulaTextField extends CustomTextField {
   public FormulaTextField(FormulaStringFlavor flavor, final boolean requireValue) {
     this.requireValue = requireValue;
     stringFlavor.set(flavor);
+    setTooltip(new Tooltip(
+        "Enter a formula formatted like: %s (%s)".formatted(flavor.getInputExample(),
+            requireValue ? "value required" : "empty allowed")));
+
     textProperty().subscribe(this::parseFormula);
     parsedFormula.bind(formula.map(f -> {
       if (f == null) {
@@ -109,12 +114,12 @@ public class FormulaTextField extends CustomTextField {
 
   private void parseFormula(@Nullable String text) {
     final FormulaStringFlavor flavor = stringFlavor.get();
-    String format = flavor.showCharge() ? "[Fe]+2" : "Fe";
-    String error = "Cannot parse formula, required format: " + format;
+    String format = flavor.getInputExample();
 
     if (StringUtils.isBlank(text)) {
       formula.set(null);
-      parsingError.set(requireValue ? error : null);
+      parsingError.set(
+          requireValue ? "Empty value not allowed. Requires formula format: " + format : null);
       return;
     }
 
@@ -125,6 +130,7 @@ public class FormulaTextField extends CustomTextField {
       formula.set(null);
     }
     if (formula.get() == null) {
+      String error = "Cannot parse formula, required format: " + format;
       parsingError.set(error);
     }
   }
@@ -132,29 +138,20 @@ public class FormulaTextField extends CustomTextField {
   /**
    * Create formula field and bind bidirectionally
    *
-   * @param formulaProperty bind bidirectional
    * @return formula field
    */
-  public static FormulaTextField newFormulaTextField(final boolean requireValue,
-      final @Nullable ObjectProperty<@Nullable IMolecularFormula> formulaProperty) {
-    return newFormulaTextField(FormulaStringFlavor.DEFAULT_CHARGED, requireValue, formulaProperty);
+  public static FormulaTextField newFormulaTextField(final boolean requireValue) {
+    return newFormulaTextField(FormulaStringFlavor.DEFAULT_CHARGED, requireValue);
   }
 
   public static FormulaTextField newFormulaTextField(final FormulaStringFlavor flavor,
-      final boolean requireValue,
-      final @Nullable ObjectProperty<@Nullable IMolecularFormula> formulaProperty) {
-    return newFormulaTextField(flavor, requireValue, formulaProperty, null);
+      final boolean requireValue) {
+    return newFormulaTextField(flavor, requireValue, null);
   }
 
   public static FormulaTextField newFormulaTextField(final FormulaStringFlavor flavor,
-      final boolean requireValue,
-      final @Nullable ObjectProperty<@Nullable IMolecularFormula> formulaProperty,
-      @Nullable final StringProperty formulaString) {
+      final boolean requireValue, @Nullable final StringProperty formulaString) {
     var field = new FormulaTextField(flavor, requireValue);
-    if (formulaProperty != null) {
-      // cannot bind bidirectionally as formula prop is internal and only set through text
-      formulaProperty.bind(field.formulaProperty());
-    }
     if (formulaString != null) {
       field.textProperty().bindBidirectional(formulaString);
     }
@@ -164,14 +161,10 @@ public class FormulaTextField extends CustomTextField {
   /**
    * Create formula field and bind bidirectionally
    *
-   * @param formulaProperty bind bidirectional
    * @return formula field
    */
-  public static FormulaTextField newFormulaTextField(
-      final @Nullable ObjectProperty<@Nullable IMolecularFormula> formulaProperty,
-      @Nullable final StringProperty formulaString) {
-    return newFormulaTextField(FormulaStringFlavor.DEFAULT_CHARGED, false, formulaProperty,
-        formulaString);
+  public static FormulaTextField newFormulaTextField(@Nullable final StringProperty formulaString) {
+    return newFormulaTextField(FormulaStringFlavor.DEFAULT_CHARGED, false, formulaString);
   }
 
   public @Nullable IMolecularFormula getFormula() {

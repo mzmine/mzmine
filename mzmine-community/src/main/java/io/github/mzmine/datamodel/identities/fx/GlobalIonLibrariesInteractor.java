@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.identities.fx;
 
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonPart;
+import io.github.mzmine.datamodel.identities.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ApplyModelChangesToGlobalService;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.CreateNewLibrary;
@@ -84,12 +85,13 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
     final List<IonLibrary> libraries = List.copyOf(model.getLibraries());
     final List<IonType> types = List.copyOf(model.getIonTypes());
     final List<IonPart> parts = List.copyOf(model.getParts());
+    final List<IonPartDefinition> partDefinitions = List.copyOf(model.getPartsDefinitions());
 
     final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
     final int currentVersion = global.getVersion();
     final int retrivalVersion = model.getRetrivalVersion();
     // TODO add check that if the versions mismatch than we need to apply safer merging of states
-    global.applyUpdates(libraries, types, parts);
+    global.applyUpdates(libraries, types, parts, partDefinitions);
     // there is always a delayed change due to the ion libraries that are changed on fx thread delayed
     model.setRetrivalVersion(global.getVersion() + 1);
     model.setLastModelUpdate(null);
@@ -108,6 +110,7 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
       model.librariesProperty().setAll(current.libraries());
       model.partsProperty().setAll(current.parts());
       model.ionTypesProperty().setAll(current.types());
+      model.partsDefinitionsProperty().setAll(current.partDefinitions());
       model.setLastModelUpdate(null);
     });
   }

@@ -41,4 +41,8 @@ public enum FormulaStringFlavor {
       case DEFAULT_NO_CHARGE -> false;
     };
   }
+
+  public String getInputExample() {
+    return showCharge() ? "[Fe]+2" : "Fe";
+  }
 }

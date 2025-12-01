@@ -130,7 +130,7 @@ public class PubChemResultsViewBuilder extends FxViewBuilder<PubChemResultsModel
 
   private @NotNull HBox createFormulaSearchBox() {
     final FormulaTextField formulaField = FormulaTextField.newFormulaTextField(
-        FormulaStringFlavor.DEFAULT_CHARGED, false, null, model.formulaToSearchProperty());
+        FormulaStringFlavor.DEFAULT_CHARGED, false, model.formulaToSearchProperty());
     final Button btnSearchFormula = FxButtons.createButton("Search formula", null,
         FxIconUtil.getFontIcon(FxIcons.SEARCH), _ -> onFormulaSearchPressed.run());
     btnSearchFormula.disableProperty().bind(

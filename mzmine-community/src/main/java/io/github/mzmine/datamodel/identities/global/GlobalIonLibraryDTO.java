@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.identities.global;
 
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonPart;
+import io.github.mzmine.datamodel.identities.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.IonType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
  * within a read lock. All unmodifiable.
  */
 public record GlobalIonLibraryDTO(int version, @NotNull List<IonLibrary> libraries,
-                                  @NotNull List<IonType> types, @NotNull List<IonPart> parts) {
+                                  @NotNull List<IonType> types, @NotNull List<IonPart> parts,
+                                  List<IonPartDefinition> partDefinitions) {
 
 }

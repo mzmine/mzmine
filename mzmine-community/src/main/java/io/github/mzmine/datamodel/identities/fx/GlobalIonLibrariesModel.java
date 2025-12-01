@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.identities.fx;
 
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonPart;
+import io.github.mzmine.datamodel.identities.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.javafx.properties.LastUpdateProperty;
@@ -57,6 +58,13 @@ class GlobalIonLibrariesModel {
   private final ReadOnlyListWrapper<IonPart> parts = new ReadOnlyListWrapper<>(
       FXCollections.observableArrayList());
 
+  /// The part definitions is a subset of parts to define alternative names or charge state for
+  /// formulas as parts. Examples:
+  /// - ACN as a chemical with a specific formula.
+  /// - Fe as Fe+2 and Fe+3
+  private final ReadOnlyListWrapper<IonPartDefinition> partsDefinitions = new ReadOnlyListWrapper<>(
+      FXCollections.observableArrayList());
+
   /**
    * true if the global ions version has changed since retrieving the ions libraries etc. This may
    * be used to show a notification to the user to update the model.
@@ -84,6 +92,26 @@ class GlobalIonLibrariesModel {
 
   public GlobalIonLibrariesModel() {
     globalVersionChanged = retrivalVersion.isNotEqualTo(globalIonsVersion);
+  }
+
+  /// The part definitions is a subset of parts to define alternative names or charge state for
+  /// formulas as parts. Examples:
+  /// - ACN as a chemical with a specific formula.
+  /// - Fe as Fe+2 and Fe+3
+  public ObservableList<IonPartDefinition> getPartsDefinitions() {
+    return partsDefinitions.get();
+  }
+
+  /// The part definitions is a subset of parts to define alternative names or charge state for
+  /// formulas as parts. Examples:
+  /// - ACN as a chemical with a specific formula.
+  /// - Fe as Fe+2 and Fe+3
+  public ReadOnlyListWrapper<IonPartDefinition> partsDefinitionsProperty() {
+    return partsDefinitions;
+  }
+
+  public void setPartsDefinitions(ObservableList<IonPartDefinition> partsDefinitions) {
+    this.partsDefinitions.set(partsDefinitions);
   }
 
   public int getGlobalIonsVersion() {
