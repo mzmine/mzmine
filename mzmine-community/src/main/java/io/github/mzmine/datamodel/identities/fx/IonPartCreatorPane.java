@@ -58,7 +58,7 @@ class IonPartCreatorPane extends BorderPane {
 
   // additional properties for the list view
   private final ObjectProperty<IonPartSorting> listSorting = new SimpleObjectProperty<>(
-      IonPartSorting.DEFAULT_NEUTRAL_THEN_LOSSES_THEN_ADDED);
+      IonPartSorting.ALPHABETICAL);
 
   private final IonPartDefinitionPane ionPartDefinitionPane;
 
@@ -81,7 +81,7 @@ class IonPartCreatorPane extends BorderPane {
     // create a list view with addtional controls for sorting and filtering
     // sorting:
     final HBox sortingCombo = FxComboBox.createLabeledComboBox("Sort by:",
-        FXCollections.observableList(List.of(IonPartSorting.values())), listSorting);
+        FXCollections.observableList(IonPartSorting.valuesForDefinitions()), listSorting);
 
     final List<Node> additionalNodes = List.of(sortingCombo);
     final List<MenuControls> stdButtons = List.of(MenuControls.CLEAR_BTN, MenuControls.REMOVE_BTN);

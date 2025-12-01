@@ -87,7 +87,7 @@ class GlobalIonLibrariesModel {
    * model based on this
    */
   private final LastUpdateProperty lastModelUpdate = new LastUpdateProperty(libraries, ionTypes,
-      parts);
+      parts, partsDefinitions);
 
 
   public GlobalIonLibrariesModel() {

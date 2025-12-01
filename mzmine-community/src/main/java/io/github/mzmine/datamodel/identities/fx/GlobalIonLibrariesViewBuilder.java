@@ -101,8 +101,9 @@ class GlobalIonLibrariesViewBuilder extends FxViewBuilder<GlobalIonLibrariesMode
         new Separator(Orientation.VERTICAL), globalChangePane);
 
     // only visible if one is visible
-//    main.visibleProperty()
-//        .bind(globalChangePane.visibleProperty().or(modelChangePane.visibleProperty()));
+    main.visibleProperty()
+        .bind(globalChangePane.visibleProperty().or(modelChangePane.visibleProperty()));
+    // keep managed true to safe space that is needed
 //    FxLayout.bindManagedToVisible(main);
 
     return main;

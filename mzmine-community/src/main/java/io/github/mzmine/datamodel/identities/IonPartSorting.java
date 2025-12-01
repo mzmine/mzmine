@@ -60,7 +60,7 @@ public enum IonPartSorting {
     this.comparator = comparator;
   }
 
-  public static List<IonPartSorting> valuesForIonTypes() {
+  public static List<IonPartSorting> valuesForDefinitions() {
     return List.of(ALPHABETICAL, CHARGE_THEN_MASS, MASS);
   }
 

@@ -342,6 +342,10 @@ public final class GlobalIonLibraryService {
 
     final String key = part.name();
     List<IonPartDefinition> values = partDefinitions.computeIfAbsent(key, _ -> new ArrayList<>(1));
+
+    if (values.contains(part)) {
+      return;
+    }
     values.add(part);
   }
 
