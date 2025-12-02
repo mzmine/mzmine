@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,7 +41,7 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refine
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -114,7 +114,7 @@ public class IonNetworkingTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return "Identification of adducts, in-source fragments and clusters in " + featureList.getName()
-           + " ";
+        + " ";
   }
 
   @Override
@@ -149,7 +149,7 @@ public class IonNetworkingTask extends AbstractTask {
 
       PolarityType polarity = FeatureListUtils.getPolarity(featureList, PolarityType.ANY);
 
-      IonLibraryParameterSet p = parameters.getParameter(IonNetworkingParameters.LIBRARY)
+      LegacyIonLibraryParameterSet p = parameters.getParameter(IonNetworkingParameters.LIBRARY)
           .getEmbeddedParameters();
       library = new IonNetworkLibrary(p, polarity, mzTolerance);
       annotateGroups(library);
@@ -184,7 +184,7 @@ public class IonNetworkingTask extends AbstractTask {
       return annotations;
     }).sum();
     LOG.info("Corr: A total of " + compared.get() + " row2row adduct comparisons with " + annotPairs
-             + " annotation pairs");
+        + " annotation pairs");
 
     refineAndFinishNetworks();
   }

@@ -484,14 +484,14 @@ public class MathUtils {
   }
 
   public static Double requireNonNanElse(@Nullable Double possiblyNaN, @Nullable Double instead) {
-    if(possiblyNaN == null) {
+    if (possiblyNaN == null) {
       return null;
     }
     return Double.isNaN(possiblyNaN) ? instead : possiblyNaN;
   }
 
   public static Float requireNonNanElse(@Nullable Float possiblyNaN, @Nullable Float instead) {
-    if(possiblyNaN == null) {
+    if (possiblyNaN == null) {
       return null;
     }
     return Float.isNaN(possiblyNaN) ? instead : possiblyNaN;
@@ -504,5 +504,19 @@ public class MathUtils {
    */
   public static int capMaxInt(long value) {
     return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) value;
+  }
+
+  /**
+   * fast euclidean algorithm for GCD
+   *
+   * @return the GCD as in gcd(2,6)=2, gcd(2, 5)=1
+   */
+  public static int greatestCommonDivisor(int a, int b) {
+    while (b != 0) {
+      int temp = b;
+      b = a % b;
+      a = temp;
+    }
+    return a;
   }
 }

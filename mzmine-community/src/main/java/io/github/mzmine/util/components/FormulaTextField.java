@@ -1,71 +1,197 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util.components;
 
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.javafx.validation.FxValidation;
+import io.github.mzmine.util.FormulaStringFlavor;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.StringUtils;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.Property;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.control.TextField;
-import javafx.util.StringConverter;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.control.ButtonBase;
+import javafx.scene.control.Tooltip;
+import org.controlsfx.control.textfield.CustomTextField;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class FormulaTextField extends TextField {
+/**
+ * Text is bound to the formula which is read only.
+ */
+public class FormulaTextField extends CustomTextField {
 
-  private final ObjectProperty<@Nullable IMolecularFormula> formula = new SimpleObjectProperty<>();
+  private final ObjectProperty<FormulaStringFlavor> stringFlavor = new SimpleObjectProperty<>(
+      FormulaStringFlavor.DEFAULT_CHARGED);
+  private final ReadOnlyObjectWrapper<IMolecularFormula> formula = new ReadOnlyObjectWrapper<>();
+  private final ReadOnlyStringWrapper parsedFormula = new ReadOnlyStringWrapper();
+  private final StringProperty parsingError = new SimpleStringProperty();
+  private final boolean requireValue;
 
+  /**
+   * Shows charge and allows empty value
+   */
   public FormulaTextField() {
-
-    Bindings.bindBidirectional(textProperty(), formulaProperty(), new StringConverter<>() {
-      @Override
-      public String toString(IMolecularFormula object) {
-        if (object == null) {
-          return "";
-        }
-        return MolecularFormulaManipulator.getString(object);
-      }
-
-      @Override
-      public IMolecularFormula fromString(String string) {
-        if (string == null || string.isEmpty()) {
-          return null;
-        }
-        final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(string);
-        return formula;
-      }
-    });
+    this(FormulaStringFlavor.DEFAULT_CHARGED, false);
   }
 
+  public FormulaTextField(boolean requireValue) {
+    this(FormulaStringFlavor.DEFAULT_CHARGED, requireValue);
+  }
+
+  public FormulaTextField(FormulaStringFlavor flavor, final boolean requireValue) {
+    this.requireValue = requireValue;
+    stringFlavor.set(flavor);
+    setTooltip(new Tooltip(
+        "Enter a formula formatted like: %s (%s)".formatted(flavor.getInputExample(),
+            requireValue ? "value required" : "empty allowed")));
+
+    textProperty().subscribe(this::parseFormula);
+    parsedFormula.bind(formula.map(f -> {
+      if (f == null) {
+        return null;
+      }
+      try {
+        return FormulaUtils.getFormulaString(f, stringFlavor.get());
+      } catch (Exception e) {
+        return null;
+      }
+    }));
+
+    final ObservableValue<String> harmonizeTooltip = parsedFormula.map(
+        parsed -> "Harmonize formula format: %s => %s".formatted(getText(), parsed));
+
+    final ButtonBase harmonizeButton = FxIconUtil.newIconButton(FxIcons.RELOAD, harmonizeTooltip,
+        this::harmonizeFormula);
+
+    final BooleanBinding mayHarmonize = Bindings.createBooleanBinding(
+        () -> getText() == null || getText().trim().equals(getParsedFormula()));
+    harmonizeButton.disableProperty().bind(mayHarmonize);
+    setRight(harmonizeButton);
+
+    FxValidation.registerErrorValidator(this, parsingError);
+  }
+
+  private void harmonizeFormula() {
+    if (formula.get() == null) {
+      return;
+    }
+    // this will set the formula to the text property by formatting the formula
+    setText(parsedFormula.get());
+  }
+
+  private void parseFormula(@Nullable String text) {
+    final FormulaStringFlavor flavor = stringFlavor.get();
+    String format = flavor.getInputExample();
+
+    if (StringUtils.isBlank(text)) {
+      formula.set(null);
+      parsingError.set(
+          requireValue ? "Empty value not allowed. Requires formula format: " + format : null);
+      return;
+    }
+
+    try {
+      final IMolecularFormula parsed = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(text);
+      formula.set(parsed);
+    } catch (Exception e) {
+      formula.set(null);
+    }
+    if (formula.get() == null) {
+      String error = "Cannot parse formula, required format: " + format;
+      parsingError.set(error);
+    }
+  }
+
+  /**
+   * Create formula field and bind bidirectionally
+   *
+   * @return formula field
+   */
+  public static FormulaTextField newFormulaTextField(final boolean requireValue) {
+    return newFormulaTextField(FormulaStringFlavor.DEFAULT_CHARGED, requireValue);
+  }
+
+  public static FormulaTextField newFormulaTextField(final FormulaStringFlavor flavor,
+      final boolean requireValue) {
+    return newFormulaTextField(flavor, requireValue, null);
+  }
+
+  public static FormulaTextField newFormulaTextField(final FormulaStringFlavor flavor,
+      final boolean requireValue, @Nullable final StringProperty formulaString) {
+    var field = new FormulaTextField(flavor, requireValue);
+    if (formulaString != null) {
+      field.textProperty().bindBidirectional(formulaString);
+    }
+    return field;
+  }
+
+  /**
+   * Create formula field and bind bidirectionally
+   *
+   * @return formula field
+   */
+  public static FormulaTextField newFormulaTextField(@Nullable final StringProperty formulaString) {
+    return newFormulaTextField(FormulaStringFlavor.DEFAULT_CHARGED, false, formulaString);
+  }
 
   public @Nullable IMolecularFormula getFormula() {
-    return formula.get();
+    return formulaProperty().get();
   }
 
-  public ObjectProperty<@Nullable IMolecularFormula> formulaProperty() {
-    return formula;
+  public ReadOnlyObjectProperty<IMolecularFormula> formulaProperty() {
+    return formula.getReadOnlyProperty();
   }
 
   public void setFormula(@Nullable IMolecularFormula formula) {
-    this.formula.set(formula);
+    if (formula == null) {
+      setText(null);
+      return;
+    }
+    setText(FormulaUtils.getFormulaString(formula, stringFlavor.get()));
+  }
+
+  public ObjectProperty<FormulaStringFlavor> stringFlavorProperty() {
+    return stringFlavor;
+  }
+
+  public ReadOnlyStringProperty parsedFormulaProperty() {
+    return parsedFormula.getReadOnlyProperty();
+  }
+
+  public String getParsedFormula() {
+    return parsedFormula.get();
   }
 }
