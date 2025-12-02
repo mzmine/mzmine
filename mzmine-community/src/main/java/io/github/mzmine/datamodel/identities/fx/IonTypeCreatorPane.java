@@ -25,195 +25,30 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
-import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
-import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
-import static io.github.mzmine.javafx.components.factories.FxTextFields.newTextField;
 import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_INSETS;
-import static io.github.mzmine.javafx.components.util.FxLayout.gridRow;
-import static io.github.mzmine.javafx.components.util.FxLayout.newBorderPane;
-import static io.github.mzmine.javafx.components.util.FxLayout.newGrid2Col;
-import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 
-import io.github.mzmine.datamodel.identities.IonPart;
-import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
-import io.github.mzmine.datamodel.identities.IonTypeParser;
-import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
-import io.github.mzmine.javafx.components.FilterableListView;
-import io.github.mzmine.javafx.components.factories.FxButtons;
-import io.github.mzmine.javafx.components.factories.FxLabels;
-import io.github.mzmine.javafx.properties.PropertyUtils;
-import io.github.mzmine.javafx.util.FxIcons;
-import io.github.mzmine.javafx.validation.FxValidation;
-import io.github.mzmine.util.StringUtils;
-import javafx.animation.PauseTransition;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.StringBinding;
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleListProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
-import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
-import javafx.util.Duration;
 
 class IonTypeCreatorPane extends BorderPane {
 
-  private final ObservableList<IonPartDefinition> partsDefinitions;
-
-  public enum IonTypeDefinition {
-    STRING, COMBINED
-  }
-
-  private final FilterableListView<IonType> typesListView;
-  private final StringProperty parsedIonTypeString = new SimpleStringProperty();
-  private final ObjectProperty<IonType> parsedIonType = new SimpleObjectProperty<>();
-  private final ListProperty<IonPart> unknownParts = new SimpleListProperty<>(
-      FXCollections.observableArrayList());
-
   public IonTypeCreatorPane(ObservableList<IonType> types,
       ObservableList<IonPartDefinition> partsDefinitions) {
-    this.partsDefinitions = partsDefinitions;
     setPadding(DEFAULT_PADDING_INSETS);
 
-    setTop(newBoldTitle("Ion types: Global list"));
+    setTop(newBoldTitle("All currently defined ion types:"));
 
-    typesListView = new IonTypeListView(types);
-    final BorderPane ionTypeAddPane = newBorderPane(createUnknownPartDefinitionPane());
-    ionTypeAddPane.setTop(createIonTypeByStringPane());
-    typesListView.setCenter(ionTypeAddPane);
+    IonTypeListView typesListView = new IonTypeListView(types);
 
-    // option to change it to a tabpane in case other ion type definitions are planned
-//        new TabPane( //
-//        newTab("Specify format", createIonTypeByStringPane()), //
-//        newTab("Combine parts", createIonTypeByStringPane()) //
-//    ));
+    final IonTypeDefinitionPane typeDefPane = new IonTypeDefinitionPane(typesListView, types,
+        partsDefinitions);
+    typesListView.setCenter(typeDefPane);
+
     typesListView.setLeft(typesListView.getListView());
     setCenter(typesListView);
-
-    // on any change - update part
-    PauseTransition updateDelay = new PauseTransition(Duration.millis(250));
-    updateDelay.setOnFinished(_ -> updateCurrentType());
-    PropertyUtils.onChange(updateDelay::playFromStart, partsDefinitions, parsedIonTypeString);
-
-    // find unknowns
-    parsedIonType.subscribe((nv) -> {
-      if (nv == null) {
-        unknownParts.clear();
-      } else {
-        unknownParts.setAll(nv.stream().filter(IonPart::isUnknown).toList());
-      }
-    });
   }
 
-  private Node createIonTypeByStringPane() {
-
-    var lbParsingResult = newBoldLabel(
-        parsedIonType.map(ion -> ion.toString(IonTypeStringFlavor.FULL_WITH_MASS))
-            .orElse("Cannot parse input"));
-
-    final TextField inputText = newTextField(10, parsedIonTypeString,
-        "Format: [2M-H2O+2H]+2 or with charge M+(Cu+2)", """
-            Enter ion types like adducts, in source fragments, and clusters.
-            Best format uses brackets and charge state: [M+2H]+2 but both are optional.
-            Define charge of individual parts in (): M+(Cu+2)-H equals [M+(Cu+2)-H]+""");
-
-    ionParsingValidation(inputText);
-
-    //
-    final Button btnAdd = FxButtons.createDisabledButton("Add", FxIcons.ADD,
-        "Add new ion type based on formatted entry",
-        parsedIonType.isNull().or(Bindings.isNotEmpty(unknownParts)),
-        () -> addIonType(parsedIonType.get()));
-
-    var lbUnknown = newBoldLabel(unknownParts.map(parts -> parts.isEmpty() ? ""
-        : "%d parts unknown: %s".formatted(parts.size(), StringUtils.join(parts, ", ",
-            part -> part.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE)))));
-
-    return newGrid2Col( //
-        newLabel("Ion type:"), inputText, //
-        newLabel("Result:"), lbParsingResult, //
-        gridRow(lbUnknown), //
-        gridRow(btnAdd) //
-    );
-  }
-
-  private void ionParsingValidation(TextField inputText) {
-    StringBinding errorBinding = Bindings.createStringBinding(() -> {
-      IonType value = parsedIonType.getValue();
-      if (value == null && StringUtils.hasValue(inputText.getText())) {
-        return "Cannot parse ion type for %s. Input correct format, e.g., [2M-H2O+2H]+2 or M+ACN+H".formatted(
-            parsedIonTypeString.getValue());
-      }
-      return null; // no error
-    }, parsedIonType, inputText.textProperty());
-
-    FxValidation.registerErrorValidator(inputText, errorBinding);
-  }
-
-  private Node createUnknownPartDefinitionPane() {
-    final ObservableValue<IonPart> firstUnknown = unknownParts.map(
-        parts -> parts.isEmpty() ? null : parts.getFirst());
-
-    final StringProperty firstUnknownTitle = new SimpleStringProperty();
-
-    final IonPartDefinitionPane partDefPane = new IonPartDefinitionPane(this::addPartDefinition,
-        false);
-
-    final Pane unknownMainPane = newVBox(new Insets(20, 0, 10, 25), //
-        newBoldTitle(firstUnknownTitle), //
-        FxLabels.addIconGraphic(FxIcons.INFO_CIRCLE,
-            newLabel("Define the charge and either the formula or mass.")), //
-        partDefPane);
-
-    firstUnknown.subscribe(unknown -> {
-      unknownMainPane.setVisible(unknown != null);
-      firstUnknownTitle.set(unknown == null ? null
-          : "Define unknown part named: " + unknown.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE));
-      if (unknown != null) {
-        partDefPane.setNameOnly(unknown.name());
-      }
-    });
-    return unknownMainPane;
-  }
-
-  private void addPartDefinition(IonPartDefinition partDef) {
-    if (partDef == null || partsDefinitions.contains(partDef)) {
-      return;
-    }
-    // add definition here, change listener will trigger and hide the unknown definition pane
-    // or will show the next unknown
-    GlobalIonLibraryService.getGlobalLibrary().addPartDefinition(partDef);
-    partsDefinitions.add(partDef);
-  }
-
-  private void updateCurrentType() {
-    String ionStr = parsedIonTypeString.get();
-    IonType ion = IonTypeParser.parse(ionStr);
-    parsedIonType.set(ion);
-  }
-
-  private void addIonType(final IonType type) {
-    if (type == null) {
-      return;
-    }
-    ObservableList<IonType> items = typesListView.getOriginalItems();
-    if (!items.contains(type)) {
-      items.add(type);
-      typesListView.getListView().getSelectionModel().select(type);
-      typesListView.getListView().scrollTo(type);
-    }
-  }
 }
