@@ -28,12 +28,9 @@ import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import org.jetbrains.annotations.NotNull;
 
 public class DiaMs2NoCorrParameters extends SimpleParameterSet {
-
-  public static final FeatureListsParameter flists = new FeatureListsParameter();
 
   public static final BooleanParameter replaceExisting = new BooleanParameter(
       "Replace existing MS2 spectra", """
@@ -42,7 +39,7 @@ public class DiaMs2NoCorrParameters extends SimpleParameterSet {
       additional MS2s to features without high quality MS2s.""".formatted(DiaMs2CorrModule.NAME));
 
   public DiaMs2NoCorrParameters() {
-    super(flists, replaceExisting);
+    super(replaceExisting);
   }
 
   @Override
