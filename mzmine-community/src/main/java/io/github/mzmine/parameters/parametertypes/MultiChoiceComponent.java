@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -45,6 +44,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.BooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
@@ -253,6 +253,10 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
     adductsView.getCheckModel().clearChecks();
     for (T adduct : newValue) {
       adductsView.getCheckModel().check(adduct);
+      BooleanProperty prop = adductsView.getItemBooleanProperty(adduct);
+      if (prop != null && !prop.get()) {
+        prop.set(true); // sometimes this property is not set to true
+      }
     }
   }
 
