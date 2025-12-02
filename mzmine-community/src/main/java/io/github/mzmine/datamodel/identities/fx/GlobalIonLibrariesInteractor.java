@@ -122,6 +122,7 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
     if (library == null) {
       return;
     }
+    // tab handles the defense of internal libraries from being changed
     new IonLibraryEditController(model, library).showTab();
   }
 }

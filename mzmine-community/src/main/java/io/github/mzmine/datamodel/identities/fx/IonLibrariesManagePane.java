@@ -28,18 +28,15 @@ package io.github.mzmine.datamodel.identities.fx;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
 import static io.github.mzmine.javafx.components.util.FxLayout.newBorderPane;
 
-import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.CreateNewLibrary;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.EditSelectedLibrary;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.beans.property.ListProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import org.jetbrains.annotations.NotNull;
@@ -50,29 +47,29 @@ import org.jetbrains.annotations.NotNull;
  */
 class IonLibrariesManagePane extends BorderPane {
 
-  private final ReadOnlyObjectProperty<IonLibrary> selectedIonLibrary;
   // ion types of the selected library
   private final ListProperty<IonType> ionTypes = new SimpleListProperty<>(
       FXCollections.observableArrayList());
 
   IonLibrariesManagePane(@NotNull GlobalIonLibrariesModel model,
       @NotNull Consumer<GlobalIonLibrariesEvent> eventHandler) {
-    this(model.getLibraries(), true, eventHandler);
+    this(model, true, eventHandler);
   }
 
-  IonLibrariesManagePane(@NotNull ObservableList<IonLibrary> libraries, boolean allowRemoveItem,
+  IonLibrariesManagePane(@NotNull GlobalIonLibrariesModel model, boolean allowRemoveItem,
       @NotNull Consumer<GlobalIonLibrariesEvent> eventHandler) {
 
     // create main layout
-    final IonLibraryListView libraryList = new IonLibraryListView(libraries, allowRemoveItem, true,
-        true);
+    final IonLibraryListView libraryList = new IonLibraryListView(model.librariesProperty(),
+        allowRemoveItem, true, true);
+
     libraryList.setCreateNewAction(() -> eventHandler.accept(new CreateNewLibrary()));
     libraryList.setEditSelectedAction(
         library -> eventHandler.accept(new EditSelectedLibrary(library)));
 
     final IonTypeListView typesList = new IonTypeListView(ionTypes, false);
 
-    selectedIonLibrary = libraryList.getListView().getSelectionModel().selectedItemProperty();
+    final var selectedIonLibrary = libraryList.selectedIonLibraryProperty();
     final ObservableValue<@NotNull String> selectedLibraryName = selectedIonLibrary.map(
             lib -> "Ion types in library: " + lib.name())
         .orElse("Select library on left to view ion content");

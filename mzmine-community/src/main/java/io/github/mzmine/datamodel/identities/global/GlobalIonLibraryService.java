@@ -53,8 +53,10 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 
@@ -254,11 +256,11 @@ public final class GlobalIonLibraryService {
    */
   private void setLibraries(List<IonLibrary> libraries) {
     applyLockedChange(() -> {
-      Map<IonLibrary, Boolean> saveNewLibraries = new HashMap<>();
+      // remove internal libraries to not add them to the list of presets
       // Add all libraries with true value
-      for (IonLibrary lib : libraries) {
-        saveNewLibraries.put(lib, true);
-      }
+      Map<IonLibrary, Boolean> saveNewLibraries = libraries.stream()
+          .filter(lib -> !IonLibraries.isInternalLibrary(lib))
+          .collect(Collectors.toMap(Function.identity(), _ -> true));
 
       final List<IonLibraryPreset> oldPresets = List.copyOf(presetStore.getCurrentPresets());
 

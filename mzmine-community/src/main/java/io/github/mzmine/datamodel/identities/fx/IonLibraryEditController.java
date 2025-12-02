@@ -25,14 +25,13 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.SimpleIonLibrary;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.AddIons;
-import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.ChangeState;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.ComposeAddLibraries;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.Save;
-import io.github.mzmine.datamodel.identities.fx.IonLibraryEditModel.EditState;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.mvci.FxController;
@@ -66,6 +65,11 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
    */
   IonLibraryEditController(@NotNull GlobalIonLibrariesModel parentModel,
       @Nullable IonLibrary library) {
+    if (IonLibraries.isInternalLibrary(library)) {
+      // cannot change internal library so create copy with different name
+      library = new SimpleIonLibrary("unnamed library", library.ions());
+    }
+
     super(new IonLibraryEditModel(library));
     this.parentModel = parentModel;
     viewBuilder = new IonLibraryEditViewBuilder(parentModel, model, this::handleEvent);
@@ -90,7 +94,6 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
   private void handleEvent(@NotNull IonLibraryEditEvent event) {
     switch (event) {
       case Save(boolean saveAsCopy) -> saveLibrary(saveAsCopy);
-      case ChangeState(EditState state) -> model.setEditState(state);
       case AddIons(List<IonType> ions) -> addIons(ions);
       case ComposeAddLibraries(List<IonLibrary> libraries) -> composeAddLibraries(libraries);
     }
@@ -126,7 +129,7 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
   /**
    * Save the library
    *
-   * @param saveAsCopy save as a copy (requires new name) otherwise overwrite original input
+   * @param saveAsCopy save as a copy (requires new name) otherwise overwrite an original input
    *                   library.
    */
   public void saveLibrary(boolean saveAsCopy) {
@@ -134,10 +137,14 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
     if (model.isSameAsOriginal()) {
       return;
     }
+    // cannot overwrite name of internal libs
+    final String newName = model.getName().trim();
+    if (IonLibraries.isInternalLibrary(newName)) {
+      return;
+    }
 
     // check if name was changed
     final IonLibrary original = model.getLibrary();
-    final String newName = model.getName();
     final boolean keepsOriginalName = original != null && original.name().equals(newName);
     if (saveAsCopy && keepsOriginalName) {
       // name was never changed - only needed for save copy

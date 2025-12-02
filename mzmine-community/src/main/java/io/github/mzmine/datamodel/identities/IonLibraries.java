@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.identities;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Default internal {@link IonLibrary} that may not be changed by the user. The only option is to
@@ -62,5 +63,20 @@ public class IonLibraries {
   public static List<IonLibrary> createDefaultLibrariesModifiable() {
     return new ArrayList<IonLibrary>(
         List.of(MZMINE_DEFAULT_DUAL_POLARITY, MZMINE_DEFAULT_POS, MZMINE_DEFAULT_NEG));
+  }
+
+  /**
+   * @return true if input is an internal library that may never be changed
+   */
+  public static boolean isInternalLibrary(@Nullable IonLibrary library) {
+    return library != null && isInternalLibrary(library.name());
+  }
+
+  /**
+   * @return true if input is an internal library that may never be changed
+   */
+  public static boolean isInternalLibrary(@Nullable String name) {
+    return name != null && (name.toLowerCase().contains("mzmine default")
+        || RESERVED_LIBRARY_NAMES.contains(name));
   }
 }

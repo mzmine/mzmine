@@ -196,4 +196,5 @@ class GlobalIonLibrariesModel {
   public void setRetrivalVersion(int retrivalVersion) {
     this.retrivalVersion.set(retrivalVersion);
   }
+
 }

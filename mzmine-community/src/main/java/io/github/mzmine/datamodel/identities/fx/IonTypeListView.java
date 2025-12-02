@@ -78,7 +78,6 @@ public class IonTypeListView extends FilterableListView<IonType> {
 
     // set comparator and filter
     listSorting.subscribe(nv -> sortingComparatorProperty().set(nv.getComparator()));
-
   }
 
   public void setListSorting(IonTypeSorting listSorting) {

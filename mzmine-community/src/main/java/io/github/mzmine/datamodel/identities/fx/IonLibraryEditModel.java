@@ -25,9 +25,11 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.util.StringUtils;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -53,10 +55,24 @@ class IonLibraryEditModel {
   private final StringProperty title = new SimpleStringProperty("");
   private final ObservableList<IonType> ionTypes = FXCollections.observableArrayList();
   private final BooleanProperty sameAsOriginal = new SimpleBooleanProperty(true);
+  // some names are restricted
+  private final StringProperty nameIssue = new SimpleStringProperty("");
+  private final ReadOnlyBooleanWrapper nameRestricted = new ReadOnlyBooleanWrapper(false);
 
 
   public IonLibraryEditModel(@Nullable IonLibrary library) {
     setLibrary(library);
+
+    name.subscribe((n) -> {
+      if (StringUtils.isBlank(n)) {
+        nameIssue.setValue("Requires a name");
+      } else if (IonLibraries.isInternalLibrary(n)) {
+        nameIssue.setValue(n + " is reserved for mzmine internal ion libraries");
+      } else {
+        nameIssue.setValue(null);
+      }
+    });
+    nameRestricted.bind(nameIssue.isNotEmpty());
 
     // ion types or name changed so save button is active
     PropertyUtils.onChange(() -> sameAsOriginal.set(false), ionTypes, name);
@@ -68,6 +84,10 @@ class IonLibraryEditModel {
 
   public BooleanProperty sameAsOriginalProperty() {
     return sameAsOriginal;
+  }
+
+  public StringProperty nameIssueProperty() {
+    return nameIssue;
   }
 
   public void setSameAsOriginal(boolean sameAsOriginal) {
@@ -97,6 +117,10 @@ class IonLibraryEditModel {
     }
     sameAsOriginal.set(true);
     title.set(isNewlyCreated() ? "Creating new library" : "Editing ion library " + getName());
+  }
+
+  public ReadOnlyBooleanProperty nameRestrictedProperty() {
+    return nameRestricted.getReadOnlyProperty();
   }
 
   public String getName() {

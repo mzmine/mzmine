@@ -35,10 +35,6 @@ sealed interface IonLibraryEditEvent {
 
   }
 
-  record ChangeState(IonLibraryEditModel.EditState state) implements IonLibraryEditEvent {
-
-  }
-
   record AddIons(List<IonType> ions) implements IonLibraryEditEvent {
 
   }

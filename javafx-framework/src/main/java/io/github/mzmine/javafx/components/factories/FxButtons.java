@@ -33,6 +33,7 @@ import io.github.mzmine.javafx.util.IconCodeSupplier;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ObservableBooleanValue;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -64,6 +65,12 @@ public class FxButtons {
     return disableIf(createButton(label, icon, tooltip, onAction), disableBinding);
   }
 
+  public static Button createDisabledLabelButton(ObservableValue<String> label,
+      @Nullable IconCodeSupplier icon, @Nullable String tooltip,
+      @Nullable ObservableBooleanValue disableBinding, Runnable onAction) {
+    return disableIf(createLabelButton(label, icon, tooltip, onAction), disableBinding);
+  }
+
   public static Button createDisabledButton(Node icon, @Nullable String tooltip,
       @Nullable ObservableBooleanValue disableBinding, Runnable onAction) {
     return disableIf(createButton(null, tooltip, icon, onAction), disableBinding);
@@ -89,11 +96,23 @@ public class FxButtons {
         _ -> onAction.run());
   }
 
+  public static Button createLabelButton(@NotNull ObservableValue<String> label,
+      @Nullable IconCodeSupplier icon, @Nullable String tooltip, Runnable onAction) {
+    return createLabelButton(label, tooltip, icon == null ? null : FxIconUtil.getFontIcon(icon),
+        _ -> onAction.run());
+  }
+
   public static Button createButton(String label, String tooltip,
       EventHandler<ActionEvent> onAction) {
     return createButton(label, tooltip, null, onAction);
   }
 
+  public static Button createLabelButton(@NotNull ObservableValue<String> label,
+      @Nullable String tooltip, @Nullable Node icon, EventHandler<ActionEvent> onAction) {
+    final Button button = createButton(null, tooltip, icon, onAction);
+    button.textProperty().bind(label);
+    return button;
+  }
 
   public static Button createButton(@Nullable String label, @Nullable String tooltip,
       @Nullable Node icon, EventHandler<ActionEvent> onAction) {

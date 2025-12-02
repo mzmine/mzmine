@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonLibrarySorting;
 import io.github.mzmine.javafx.components.FilterableListView;
@@ -34,7 +35,9 @@ import io.github.mzmine.javafx.components.util.FxLayout.Position;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -49,6 +52,9 @@ public class IonLibraryListView extends FilterableListView<IonLibrary> {
 
   private final ObjectProperty<IonLibrarySorting> listSorting = new SimpleObjectProperty<>(
       IonLibrarySorting.getDefault());
+  private final ReadOnlyObjectProperty<IonLibrary> selectedIonLibrary;
+  private final ObservableValue<Boolean> selectedLibraryIsInternal;
+
 
   public IonLibraryListView(ObservableList<IonLibrary> libraries, boolean allowRemoveItem,
       boolean allowEdit, boolean allowCreateNew) {
@@ -76,10 +82,19 @@ public class IonLibraryListView extends FilterableListView<IonLibrary> {
     addMenuFlowPane(Position.TOP, Pos.CENTER_LEFT, stdButtons, additionalNodes);
 
     // create the list view
-    getListView().setCellFactory(param -> new MappingListCell<>(Object::toString));
+    getListView().setCellFactory(_ -> new MappingListCell<>(Object::toString));
 
     // set comparator and filter
     listSorting.subscribe(nv -> sortingComparatorProperty().set(nv.getComparator()));
+
+    selectedIonLibrary = getListView().getSelectionModel().selectedItemProperty();
+    selectedLibraryIsInternal = selectedIonLibrary.map(IonLibraries::isInternalLibrary)
+        .orElse(false);
+    // internal libraries can only be duplicated
+    editButtonTextProperty().bind(
+        selectedLibraryIsInternal.map(isInternal -> isInternal ? "Copy" : "Edit"));
+
+    disableRemoveProperty().bind(selectedLibraryIsInternal);
   }
 
   public static IonLibraryListView createImmutableMultiSelect(
@@ -99,5 +114,13 @@ public class IonLibraryListView extends FilterableListView<IonLibrary> {
 
   public IonLibrarySorting getListSorting() {
     return listSorting.get();
+  }
+
+  public IonLibrary getSelectedIonLibrary() {
+    return selectedIonLibrary.get();
+  }
+
+  public ReadOnlyObjectProperty<IonLibrary> selectedIonLibraryProperty() {
+    return selectedIonLibrary;
   }
 }

@@ -45,6 +45,7 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.components.util.FxLayout.GridColumnGrow;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.javafx.validation.FxValidation;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.beans.binding.BooleanBinding;
@@ -53,6 +54,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.MultipleSelectionModel;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -167,13 +169,20 @@ class IonLibraryEditViewBuilder extends FxViewBuilder<IonLibraryEditModel> {
 
   private @NotNull HBox createNameSavePane() {
     // more space to bottom for clearer separation
+    final BooleanBinding canSave = model.sameAsOriginalProperty()
+        .or(model.nameRestrictedProperty());
+
+    final TextField nameField = FxTextFields.newAutoGrowTextField(model.nameProperty(),
+        "The current library name");
+    FxValidation.registerErrorValidator(nameField, model.nameIssueProperty());
+
     return newHBox(new Insets(0, 0, DEFAULT_SPACE * 3, 0), FxLabels.newBoldLabel("Name:"),
-        FxTextFields.newAutoGrowTextField(model.nameProperty(), "The current library name"),
+        nameField,
         FxButtons.createDisabledButton("Save", FxIcons.SAVE, "Save and overwrite the ion library",
-            model.sameAsOriginalProperty(), () -> eventHandler.accept(new Save(false))),
+            canSave, () -> eventHandler.accept(new Save(false))),
         FxButtons.createDisabledButton("Save copy", FxIcons.PLUS_CIRCLE,
             "Create a copy (requires a new name) and saves this copy. The original list stays unchanged.",
-            model.sameAsOriginalProperty(), () -> eventHandler.accept(new Save(true))));
+            canSave, () -> eventHandler.accept(new Save(true))));
   }
 
 }

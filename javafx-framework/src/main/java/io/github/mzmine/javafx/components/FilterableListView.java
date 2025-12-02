@@ -41,6 +41,8 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
@@ -59,6 +61,8 @@ public class FilterableListView<T> extends BorderPane {
 
   private final ListView<T> listView;
 
+  private final BooleanProperty disableRemove = new SimpleBooleanProperty(false);
+  private final StringProperty editButtonText = new SimpleStringProperty("Edit");
   private final ObjectProperty<Predicate<T>> filterPredicate = new SimpleObjectProperty<>(
       o -> true);
   private final BooleanProperty removeKeyActive = new SimpleBooleanProperty(false);
@@ -111,14 +115,13 @@ public class FilterableListView<T> extends BorderPane {
   /**
    * Creates a menu with options for standard controls and additional nodes
    *
-   * @param position         position of the flow pane, never center
    * @param standardControls standard controls to be added
    * @param menuAlignment
    * @return the flow pane
    */
-  public FlowPane addMenuFlowPane(@NotNull Position position,
-      @NotNull List<MenuControls> standardControls, final @NotNull Pos menuAlignment) {
-    return addMenuFlowPane(position, menuAlignment, standardControls, List.of());
+  public FlowPane addMenuFlowPane(final @NotNull Pos menuAlignment,
+      @NotNull List<MenuControls> standardControls) {
+    return addMenuFlowPane(Position.TOP, menuAlignment, standardControls, List.of());
   }
 
   /**
@@ -152,13 +155,13 @@ public class FilterableListView<T> extends BorderPane {
                 this::createNewItem));
         case REMOVE_BTN -> {
           final Button btn = FxButtons.createDisabledButton("Remove", FxIcons.X_CIRCLE,
-              "Removes all selected items", nothingSelectedBinding, this::removeSelectedItems);
+              "Removes all selected items", disableRemove.or(nothingSelectedBinding),
+              this::removeSelectedItems);
           nodesToAdd.add(btn);
         }
         case EDIT_BTN -> {
-          final Button btn = FxButtons.createButton("Edit", FxIcons.EDIT, "Edit the selected item",
-              this::editSelectedItem);
-          btn.disableProperty().bind(nothingSelectedBinding);
+          final Button btn = FxButtons.createDisabledLabelButton(editButtonText, FxIcons.EDIT,
+              "Edit the selected item", nothingSelectedBinding, this::editSelectedItem);
           nodesToAdd.add(btn);
         }
       }
@@ -288,6 +291,14 @@ public class FilterableListView<T> extends BorderPane {
 
   public void setAskBeforeRemove(boolean askBeforeRemove) {
     this.askBeforeRemove.set(askBeforeRemove);
+  }
+
+  public StringProperty editButtonTextProperty() {
+    return editButtonText;
+  }
+
+  public BooleanProperty disableRemoveProperty() {
+    return disableRemove;
   }
 
   /**
