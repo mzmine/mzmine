@@ -30,6 +30,7 @@ import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_I
 
 import io.github.mzmine.datamodel.identities.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.IonPartSorting;
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.javafx.components.FilterableListView;
 import io.github.mzmine.javafx.components.FilterableListView.MenuControls;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
@@ -105,6 +106,9 @@ class IonPartCreatorPane extends BorderPane {
     if (part == null) {
       return;
     }
+    // need to directly push into service for paring purposes
+    GlobalIonLibraryService.getGlobalLibrary().addPartDefinition(part);
+
     var items = partListView.getOriginalItems();
     if (!items.contains(part)) {
       items.add(part);

@@ -100,15 +100,9 @@ public class IonPartParser {
       return null;
     }
     final int count = parseSignAndIntegerOrElse(countStr, true, 1);
-    var ionPart = IonParts.findPartByNameOrFormula(formula, count);
     Integer charge = parseSignAndIntegerOrElse(chargeStr, true, null);
+    var ionPart = IonParts.findPartByNameOrFormula(formula, count, charge);
 
-    // mismatch in charge
-    // like when the current list of ion parts defines Fe+2 but not Fe+3 which was loaded
-    // create a new instance with that charge
-    if (charge != null && charge != ionPart.singleCharge()) {
-      return ionPart.withSingleCharge(charge);
-    }
     return ionPart;
   }
 

@@ -52,6 +52,7 @@ import io.github.mzmine.javafx.validation.FxValidation;
 import io.github.mzmine.util.FormulaStringFlavor;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.StringUtils;
+import io.github.mzmine.util.maths.Precision;
 import java.text.DecimalFormat;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -200,6 +201,11 @@ public class IonPartDefinitionPane extends BorderPane {
             Mass input is only available if singleFormula field is empty.
             Otherwise the mass is calculated from the singleFormula.""";
       }
+      if (Precision.equalFloatSignificance(mass, 0d)) {
+        return """
+            Enter a valid singleFormula or neutral mass.
+            Neutral mass must be >0""";
+      }
       return null; // no error
     }, singleFormula, mass);
 
@@ -236,14 +242,23 @@ public class IonPartDefinitionPane extends BorderPane {
       if (StringUtils.isBlank(name) || (singleFormula == null && mass == null)) {
         return;
       }
-      final IonPartDefinition part;
+
+      IonPartDefinition part = null;
       if (singleFormula == null) {
+        if (Precision.equalFloatSignificance(mass, 0d)) {
+          // do not allow 0 mass as this is reserved for undefined
+          return;
+        }
         // parse with mass instead
         part = new IonPartDefinition(name, null, mass.doubleValue(), charge);
       } else {
         // has singleFormula so parse singleFormula and calc mass from there
-        part = IonPartDefinition.ofFormula(name, formulaString, charge);
-        this.mass.set(part.absMass());
+        try {
+          part = IonPartDefinition.ofFormula(name, formulaString, charge);
+          this.mass.set(part.absMass());
+        } catch (Exception e) {
+          // cannot parse formula
+        }
       }
       this.part.set(part);
     } catch (Exception ex) {

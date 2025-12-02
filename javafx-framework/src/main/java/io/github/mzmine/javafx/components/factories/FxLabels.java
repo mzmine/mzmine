@@ -26,8 +26,12 @@
 package io.github.mzmine.javafx.components.factories;
 
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.IconCodeSupplier;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.Node;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
@@ -35,6 +39,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class FxLabels {
 
@@ -179,4 +184,16 @@ public class FxLabels {
     hyperlink.setOnAction(_ -> DesktopService.getDesktop().openWebPage(hyperlink.getText()));
     return hyperlink;
   }
+
+  public static Label addIconGraphic(IconCodeSupplier codeSupplier, Label lbl) {
+    final FontIcon fontIcon = FxIconUtil.getFontIcon(codeSupplier);
+    return addIconGraphic(lbl, fontIcon);
+  }
+
+  private static @NotNull Label addIconGraphic(Label lbl, Node fontIcon) {
+    lbl.setGraphic(fontIcon);
+    lbl.setGraphicTextGap(FxLayout.DEFAULT_SPACE);
+    return lbl;
+  }
+
 }

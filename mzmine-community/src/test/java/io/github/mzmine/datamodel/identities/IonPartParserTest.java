@@ -27,9 +27,11 @@ package io.github.mzmine.datamodel.identities;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -179,4 +181,26 @@ class IonPartParserTest {
 //    }
     }
   }
+
+  @Test
+  void testAddPartDefinition() {
+    final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
+
+    final IonPart unknown = IonPartParser.parse("+TE");
+    assertEquals(1, unknown.count());
+    assertEquals("TE", unknown.name());
+    assertNull(unknown.singleFormula());
+    assertEquals(0d, unknown.absSingleMass(), 0.0001);
+    assertEquals(0, unknown.singleCharge());
+
+    final IonPartDefinition def = IonPartDefinition.ofFormula("TE", "T", 1);
+    global.addPartDefinition(def);
+
+    final IonPart known = IonPartParser.parse("+TE");
+    assertNotNull(known);
+    assertEquals(def.formula(), known.singleFormula());
+    assertEquals(def.absMass(), known.absSingleMass());
+    assertEquals(def.charge(), known.singleCharge());
+  }
+
 }

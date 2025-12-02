@@ -55,7 +55,7 @@ public class IonTypeParser {
     } else {
       // read charge that was not separated by ']' so maybe from M+H or M+H+
       int lastPlusMinusSignIndex = StringUtils.findLastPlusMinusSignIndex(clean, true);
-      if (lastPlusMinusSignIndex > -1) {
+      if (lastPlusMinusSignIndex > 0) {
         detectedCharge = StringUtils.parseSignAndIntegerOrElse(
             clean.substring(lastPlusMinusSignIndex - 1), true, null);
         clean = clean.substring(0, lastPlusMinusSignIndex);

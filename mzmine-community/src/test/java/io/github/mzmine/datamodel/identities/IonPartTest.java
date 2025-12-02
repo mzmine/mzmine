@@ -26,8 +26,10 @@
 package io.github.mzmine.datamodel.identities;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.mzmine.util.FormulaUtils;
 import org.junit.jupiter.api.Test;
 
 class IonPartTest {
@@ -41,5 +43,32 @@ class IonPartTest {
   void testEquals() {
     assertEquals(IonParts.H, new IonPart("H", 1));
     assertEquals(IonParts.H2_PLUS, new IonPart("H", 1, 2));
+  }
+
+  @Test
+  void testWithCharge() {
+    final IonPart h = IonParts.H;
+    IonPart changed = h.withSingleCharge(-1);
+    assertEquals(h.absSingleMass() + 2 * FormulaUtils.electronMass, changed.absSingleMass(),
+        0.000001);
+
+    changed = h.withSingleCharge(2);
+    assertEquals(h.absSingleMass() - 1 * FormulaUtils.electronMass, changed.absSingleMass(),
+        0.000001);
+
+    // undefined formula
+    IonPart named = IonPart.ofNamed("TE", 50d, 0);
+    changed = named.withSingleCharge(-1);
+
+    assertEquals(named.absSingleMass() + 1 * FormulaUtils.electronMass, changed.absSingleMass(),
+        0.000001);
+
+    changed = named.withSingleCharge(2);
+    assertEquals(Math.abs(named.absSingleMass() - 2 * FormulaUtils.electronMass),
+        changed.absSingleMass(), 0.000001);
+
+    // illegal to change charge state of unknown where formula and mass is undefined
+    assertThrows(IllegalStateException.class,
+        () -> IonPart.ofNamed("unknown", 0d, 0).withSingleCharge(-1));
   }
 }

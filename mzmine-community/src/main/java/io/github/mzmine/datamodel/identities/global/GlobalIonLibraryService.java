@@ -78,7 +78,6 @@ public final class GlobalIonLibraryService {
 
   private static final Logger logger = Logger.getLogger(GlobalIonLibraryService.class.getName());
 
-
   // lazy init singleton
   private static class Holder {
 
@@ -213,7 +212,7 @@ public final class GlobalIonLibraryService {
     applyLockedChange(() -> {
       this.partDefinitions.clear();
       for (IonPartDefinition def : definitions) {
-        addIonPartDefinition(def);
+        addIonPartDefinitionInternal(def);
       }
     });
   }
@@ -320,7 +319,7 @@ public final class GlobalIonLibraryService {
 
       // finally add new part
       singletonParts.put(part, part);
-      addIonPartDefinition(IonPartDefinition.of(part));
+      addIonPartDefinitionInternal(IonPartDefinition.of(part));
       notifyChange();
 
       return part;
@@ -330,7 +329,7 @@ public final class GlobalIonLibraryService {
   /**
    * adds an ion part definition. caller should call notify changes once all changes are done
    */
-  private void addIonPartDefinition(@NotNull IonPartDefinition part) {
+  private void addIonPartDefinitionInternal(@NotNull IonPartDefinition part) {
     // so that Fe might be defined as 2+ or 3+
     if (part.name().equals(part.formula()) && part.isNeutralModification()) {
       // name and formula are equal and no charge means this is the default behavior of the parsing.
@@ -442,6 +441,12 @@ public final class GlobalIonLibraryService {
     });
   }
 
+  public void addPartDefinition(IonPartDefinition partDef) {
+    applyLockedChange(() -> {
+      addIonPartDefinitionInternal(partDef);
+    });
+  }
+
   /**
    *
    * @param addToGlobal true: add to global list, false: do not add and may return non signleton
@@ -472,8 +477,10 @@ public final class GlobalIonLibraryService {
    * @param name the name without count, like Fe for +2Fe
    * @return
    */
+  @NotNull
   public List<IonPartDefinition> findPartsByName(String name) {
-    return partDefinitions.get(name);
+    final List<IonPartDefinition> definitions = partDefinitions.get(name);
+    return definitions == null ? List.of() : definitions;
   }
 
   @NotNull

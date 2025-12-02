@@ -79,10 +79,7 @@ public record IonPartDefinition(@NotNull String name, @Nullable String formula, 
               : FormulaUtils.createMajorIsotopeMolFormulaWithCharge(singleFormula, singleCharge);
 
       if (parsedFormula == null) {
-        if (name == null) {
-          name = singleFormula;
-        }
-        singleFormula = null; // formula was not parsed correctly
+        throw new IllegalArgumentException("Formula cannot be parsed: " + singleFormula);
       } else {
         // parsing successful
         if (singleCharge == null) {

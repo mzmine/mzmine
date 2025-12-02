@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureInputType;
 import io.github.mzmine.datamodel.structures.StructureParser;
@@ -98,31 +99,41 @@ public class IonParts {
 
   /**
    * @param nameOrFormula structure or common name
+   * @param charge
    * @return an IonPart either predefined by name, common name {@link CompoundsByNames}, by
    * structure. Otherwise, {@link IonPart#unknown(String, int)}
    */
   @NotNull
-  public static IonPart findPartByNameOrFormula(@NotNull String nameOrFormula, int count) {
+  public static IonPart findPartByNameOrFormula(@NotNull String nameOrFormula, int count,
+      Integer charge) {
 
     nameOrFormula = nameOrFormula.trim();
-    // search predefined
-    IonPart best = null;
-    for (final IonPart predefined : PREDEFINED_PARTS) {
+    // search predefined by mzmine and by user
+    final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
+    final List<IonPartDefinition> definitionsForName = global.findPartsByName(nameOrFormula);
+
+    IonPartDefinition best = null;
+    for (final IonPartDefinition predefined : definitionsForName) {
       if (predefined.name().equals(nameOrFormula)) {
-        if (best == null || (Math.abs(best.count() - count) > Math.abs(
-            predefined.count() - count))) {
+        if (charge != null && Objects.equals(charge, predefined.charge())) {
+          return predefined.withCount(count);
+        }
+        if (best == null) {
           best = predefined;
         }
       }
     }
     if (best != null) {
-      return best.withCount(count);
+      // mismatch in charge
+      // like when the current list of ion parts defines Fe+2 but not Fe+3 which was loaded
+      // create a new instance with that charge
+      return best.withCount(count).withSingleCharge(charge);
     }
 
-    // map names or structure
+    // map names or structure by internal known names
     Optional<IonPart> part = CompoundsByNames.getIonPartByName(nameOrFormula);
     if (part.isPresent()) {
-      return part.get().withCount(count);
+      return part.get().withCount(count).withSingleCharge(charge);
     }
 
     final String formula;
@@ -143,7 +154,7 @@ public class IonParts {
       var ionPart = new IonPart(formula, null, count);
       for (IonPart predefined : PREDEFINED_PARTS) {
         if (predefined.equalsWithoutCount(ionPart)) {
-          return predefined.withCount(count);
+          return predefined.withCount(count).withSingleCharge(charge);
         }
       }
       return ionPart;
@@ -152,7 +163,7 @@ public class IonParts {
         + " not found during parsing of ion type. This means that the mass remains unknown. Please provide proper formulas or add this name to the mzmine code base");
     // just create with unknown values
 
-    return IonPart.unknown(nameOrFormula, count);
+    return IonPart.unknown(nameOrFormula, count, charge);
   }
 
 

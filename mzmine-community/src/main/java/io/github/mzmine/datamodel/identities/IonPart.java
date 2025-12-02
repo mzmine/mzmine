@@ -205,7 +205,15 @@ public final class IonPart {
    * @param signedCount - or + count here to see if this is a loss or addition
    */
   public static IonPart unknown(final String name, final int signedCount) {
-    return new IonPart(name, null, 0d, 0, signedCount);
+    return unknown(name, signedCount, 0);
+  }
+
+  /**
+   * @param signedCount - or + count here to see if this is a loss or addition
+   */
+  public static IonPart unknown(final String name, final int signedCount,
+      final Integer singleCharge) {
+    return new IonPart(name, null, 0d, requireNonNullElse(singleCharge, 0), signedCount);
   }
 
   public boolean isUnknown() {
@@ -286,11 +294,33 @@ public final class IonPart {
     return new IonPart(name, singleFormula, absSingleMass, singleCharge, count);
   }
 
+  /**
+   * Will change mass by the number of electrons
+   *
+   * @return a new instance if charge is different or the same instance if not
+   */
   public IonPart withSingleCharge(final Integer singleCharge) {
-    if (this.singleCharge == singleCharge) {
+    if (singleCharge == null) {
       return this;
     }
-    return new IonPart(name, singleFormula, absSingleMass, singleCharge, count);
+    if (isUnknown()) {
+      throw new IllegalStateException(
+          "Cannot change charge of unknown ion part without mass definition");
+    }
+
+    final int actualCharge = requireNonNullElse(singleCharge, 0);
+    if (this.singleCharge == actualCharge) {
+      return this;
+    }
+    final double actualMass;
+    final IMolecularFormula formula = unchargedSingleCDKFormula();
+    if (formula != null) {
+      actualMass = FormulaUtils.getMonoisotopicMass(formula, actualCharge);
+    } else {
+      int chargeDiff = this.singleCharge - actualCharge;
+      actualMass = absSingleMass + chargeDiff * FormulaUtils.electronMass;
+    }
+    return new IonPart(name, singleFormula, actualMass, singleCharge, count);
   }
 
   public int totalCharge() {

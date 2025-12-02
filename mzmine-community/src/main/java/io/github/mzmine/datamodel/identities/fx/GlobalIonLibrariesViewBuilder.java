@@ -110,7 +110,7 @@ class GlobalIonLibrariesViewBuilder extends FxViewBuilder<GlobalIonLibrariesMode
   }
 
   private Node createIonTypesPane() {
-    return new IonTypeCreatorPane(model.ionTypesProperty());
+    return new IonTypeCreatorPane(model.ionTypesProperty(), model.getPartsDefinitions());
   }
 
   private Node createIonPartsPane() {
