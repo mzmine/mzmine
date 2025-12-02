@@ -441,10 +441,33 @@ public final class GlobalIonLibraryService {
     });
   }
 
+  /**
+   * Just add part definition. will not trigger a change as {@link GlobalIonLibrariesController} and
+   * this service are at the same state for the definitions.
+   */
   public void addPartDefinition(IonPartDefinition partDef) {
-    applyLockedChange(() -> {
+    try (var _ = lock.lockWrite()) {
       addIonPartDefinitionInternal(partDef);
-    });
+    }
+  }
+
+  /**
+   * Just remove part definition. will not trigger a change as {@link GlobalIonLibrariesController}
+   * and this service are at the same state for the definitions.
+   */
+  public void removePartDefinition(IonPartDefinition partDef) {
+    try (var _ = lock.lockWrite()) {
+      final List<IonPartDefinition> definitions = partDefinitions.get(partDef.name());
+      if (definitions == null) {
+        return;
+      }
+
+      // remove definition from list and remove list if empty
+      definitions.remove(partDef);
+      if (definitions.isEmpty()) {
+        partDefinitions.remove(partDef.name());
+      }
+    }
   }
 
   /**

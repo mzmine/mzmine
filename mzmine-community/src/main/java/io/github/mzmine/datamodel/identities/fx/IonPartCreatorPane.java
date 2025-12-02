@@ -85,18 +85,25 @@ class IonPartCreatorPane extends BorderPane {
         FXCollections.observableList(IonPartSorting.valuesForDefinitions()), listSorting);
 
     final List<Node> additionalNodes = List.of(sortingCombo);
-    final List<MenuControls> stdButtons = List.of(MenuControls.CLEAR_BTN, MenuControls.REMOVE_BTN);
+    final List<MenuControls> stdButtons = List.of(MenuControls.REMOVE_BTN);
 
     // create the list view
     final FilterableListView<IonPartDefinition> partListView = FxListViews.newFilterableListView(
         parts, true, SelectionMode.MULTIPLE, Position.TOP, Pos.CENTER_LEFT, stdButtons,
         additionalNodes);
 
+    partListView.onRemoveItem(this::removePart);
+
     // set comparator and filter
     listSorting.subscribe(
         nv -> partListView.sortingComparatorProperty().set(nv.getDefinitionComparator()));
 
     return partListView;
+  }
+
+  private void removePart(IonPartDefinition removed) {
+    final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
+    global.removePartDefinition(removed);
   }
 
   /**

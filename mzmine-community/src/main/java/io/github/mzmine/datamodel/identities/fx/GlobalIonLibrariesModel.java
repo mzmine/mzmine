@@ -84,10 +84,13 @@ class GlobalIonLibrariesModel {
 
   /**
    * The last change to the internal data model - might show a notification to update the global
-   * model based on this
+   * model based on this.
+   * <p>
+   * {@link #partsDefinitions} do not update this as property as the definitions are directly sent
+   * to the {@link GlobalIonLibraryService} to allow parsing right after adding a new definition.
    */
   private final LastUpdateProperty lastModelUpdate = new LastUpdateProperty(libraries, ionTypes,
-      parts, partsDefinitions);
+      parts);
 
 
   public GlobalIonLibrariesModel() {

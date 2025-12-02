@@ -73,6 +73,7 @@ public class FilterableListView<T> extends BorderPane {
   // original items are input into filtering and sorting
   private final ObservableList<T> originalItems;
   private final SortedList<T> sortedFilteredItems;
+  private Consumer<T> onRemoveItemListener;
 
   // top flow pane
 
@@ -210,8 +211,23 @@ public class FilterableListView<T> extends BorderPane {
       return;
     }
 
-    originalItems.removeAll(listView.getSelectionModel().getSelectedItems());
+    removeItems(listView.getSelectionModel().getSelectedItems());
     // selection automatically moves to the previous index or is cleared when empty. seems fine
+  }
+
+  /**
+   * Remove items and notify listener if available
+   */
+  public void removeItems(List<T> toRemove) {
+    toRemove = List.copyOf(toRemove);
+
+    originalItems.removeAll(toRemove);
+
+    if (onRemoveItemListener != null) {
+      for (T r : toRemove) {
+        onRemoveItemListener.accept(r);
+      }
+    }
   }
 
   /**
@@ -222,7 +238,7 @@ public class FilterableListView<T> extends BorderPane {
     final boolean clear = DialogLoggerUtil.showDialogYesNo("Clear all shown items?",
         "Are you sure you want to remove all items, this includes all items matching the current filters.");
     if (clear) {
-      originalItems.removeAll(sortedFilteredItems);
+      removeItems(sortedFilteredItems);
     }
   }
 
@@ -285,6 +301,10 @@ public class FilterableListView<T> extends BorderPane {
     final Node top = getTop();
     setTop(null);
     return top;
+  }
+
+  public void onRemoveItem(Consumer<T> onRemoveItemListener) {
+    this.onRemoveItemListener = onRemoveItemListener;
   }
 
   public enum MenuControls {

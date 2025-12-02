@@ -57,7 +57,6 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
     // trigger the update
     GlobalIonLibraryService.getGlobalLibrary().addChangeListener(
         event -> FxThread.runLater(() -> model.setGlobalIonsVersion(event.version())));
-
   }
 
 
