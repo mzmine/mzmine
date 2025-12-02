@@ -30,16 +30,13 @@ import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.Nullable;
@@ -56,7 +53,6 @@ class IonLibraryEditModel {
   private final StringProperty title = new SimpleStringProperty("");
   private final ObservableList<IonType> ionTypes = FXCollections.observableArrayList();
   private final BooleanProperty sameAsOriginal = new SimpleBooleanProperty(true);
-  private final ObjectProperty<EditState> editState = new SimpleObjectProperty<>(EditState.MAIN);
 
 
   public IonLibraryEditModel(@Nullable IonLibrary library) {
@@ -139,19 +135,4 @@ class IonLibraryEditModel {
     return title;
   }
 
-  public ObservableValue<EditState> editStateProperty() {
-    return editState;
-  }
-
-  public void setEditState(EditState state) {
-    editState.set(state);
-  }
-
-  public EditState getEditState() {
-    return editState.get();
-  }
-
-  enum EditState {
-    MAIN, ADD_FROM_GLOBAL_IONS, COMPOSE_LIBRARIES
-  }
 }

@@ -33,12 +33,11 @@ import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 import static javafx.geometry.Insets.EMPTY;
 
 import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.AddIons;
-import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.ChangeState;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.ComposeAddLibraries;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.Save;
-import io.github.mzmine.datamodel.identities.fx.IonLibraryEditModel.EditState;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
@@ -49,10 +48,12 @@ import io.github.mzmine.javafx.util.FxIcons;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.beans.binding.BooleanBinding;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.MultipleSelectionModel;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -84,31 +85,32 @@ class IonLibraryEditViewBuilder extends FxViewBuilder<IonLibraryEditModel> {
 
 // add the top menu to the parent layout to have it flow over left and center pane
     final Node topMenu = typesList.removeTopMenu();
-    final BorderPane mainPane = newBorderPane(createCenterControls());
+    final BorderPane mainPane = newBorderPane(
+        createCenterControlsAccordion(typesList, model.getIonTypes(),
+            parentModel.getPartsDefinitions()));
     mainPane.setTop(newVBox(newBoldTitle(model.titleProperty()), topMenu));
     mainPane.setLeft(typesList);
     return mainPane;
   }
 
-  private Node createCenterControls() {
-    // main options to add more ions
-    final Pane mainEditControls = createEditButtonsPane();
+  private Node createCenterControlsAccordion(IonTypeListView typesList,
+      ObservableList<IonType> ionTypes, ObservableList<IonPartDefinition> partsDefinitions) {
 
-    // specialized panes depending on state
-    final Pane addGlobalIons = createAddGlobalIonsPane();
-    final Pane composeLibrariesPane = createComposeLibrariesPane();
+    var accordion = FxLayout.newAccordion(false //
+        , new TitledPane("Add from global ions", createAddGlobalIonsPane()) //
+        , new TitledPane("Define new ion type",
+            createDefineIonTypePane(typesList, ionTypes, partsDefinitions)) //
+        , new TitledPane("Compose/add whole libraries", createComposeLibrariesPane()) //
+    );
 
-    final BorderPane centerControls = newBorderPane(mainEditControls);
-    // name and save buttons always there
+    final BorderPane centerControls = newBorderPane(accordion);
     centerControls.setTop(createNameSavePane());
-    // depending on state other panes are shown
-    centerControls.centerProperty().bind(model.editStateProperty().map(state -> switch (state) {
-      case MAIN -> mainEditControls;
-      case ADD_FROM_GLOBAL_IONS -> addGlobalIons;
-      case COMPOSE_LIBRARIES -> composeLibrariesPane;
-    }).orElse(null));
-
     return centerControls;
+  }
+
+  private Node createDefineIonTypePane(IonTypeListView typesList, ObservableList<IonType> ionTypes,
+      ObservableList<IonPartDefinition> partsDefinitions) {
+    return new IonTypeDefinitionPane(typesList, ionTypes, partsDefinitions);
   }
 
   private Pane createAddGlobalIonsPane() {
@@ -121,10 +123,7 @@ class IonLibraryEditViewBuilder extends FxViewBuilder<IonLibraryEditModel> {
             "Add selected ions (right) to the ion library (left)", noneSelected, () -> {
               eventHandler.accept(new AddIons(List.copyOf(selection.getSelectedItems())));
               selection.clearSelection();
-            }), //
-        FxButtons.createButton("Page back", FxIcons.ARROW_LEFT,
-            "Return the main page with more options how to add ions.",
-            () -> eventHandler.accept(new ChangeState(EditState.MAIN))) //
+            }) //
     );
 
     final GridPane grid = FxLayout.applyGrid2Col(new GridPane(), GridColumnGrow.RIGHT, EMPTY,
@@ -151,10 +150,7 @@ class IonLibraryEditViewBuilder extends FxViewBuilder<IonLibraryEditModel> {
               eventHandler.accept(
                   new ComposeAddLibraries(List.copyOf(selection.getSelectedItems())));
               selection.clearSelection();
-            }), //
-        FxButtons.createButton("Page back", FxIcons.ARROW_LEFT,
-            "Return the main page with more options how to add ions.",
-            () -> eventHandler.accept(new ChangeState(EditState.MAIN))) //
+            }) //
     );
 
     final GridPane grid = FxLayout.applyGrid2Col(new GridPane(), GridColumnGrow.RIGHT, EMPTY,
@@ -178,16 +174,6 @@ class IonLibraryEditViewBuilder extends FxViewBuilder<IonLibraryEditModel> {
         FxButtons.createDisabledButton("Save copy", FxIcons.PLUS_CIRCLE,
             "Create a copy (requires a new name) and saves this copy. The original list stays unchanged.",
             model.sameAsOriginalProperty(), () -> eventHandler.accept(new Save(true))));
-  }
-
-  private @NotNull VBox createEditButtonsPane() {
-    return newVBox(Pos.TOP_LEFT, EMPTY, //
-        FxButtons.createButton("Add from global ions", FxIcons.LIST,
-            "Add ions from the global ion list, which contains all ion definitions and harmonizes the mass differences and names.",
-            () -> eventHandler.accept(new ChangeState(EditState.ADD_FROM_GLOBAL_IONS))),
-        FxButtons.createButton("Compose libraries", FxIcons.MERGE,
-            "Add all ions from other libraries to compose libraries.",
-            () -> eventHandler.accept(new ChangeState(EditState.COMPOSE_LIBRARIES))));
   }
 
 }
