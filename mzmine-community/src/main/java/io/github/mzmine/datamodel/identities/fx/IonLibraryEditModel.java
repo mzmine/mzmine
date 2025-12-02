@@ -30,6 +30,8 @@ import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.util.StringUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.util.Collection;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -66,8 +68,15 @@ class IonLibraryEditModel {
     name.subscribe((n) -> {
       if (StringUtils.isBlank(n)) {
         nameIssue.setValue("Requires a name");
+        return;
       } else if (IonLibraries.isInternalLibrary(n)) {
         nameIssue.setValue(n + " is reserved for mzmine internal ion libraries");
+        return;
+      }
+
+      final Collection<String> illegal = FileAndPathUtil.getPathIllegalChars(n);
+      if (!illegal.isEmpty()) {
+        nameIssue.setValue("Name contains invalid characters: " + String.join(" ", illegal));
       } else {
         nameIssue.setValue(null);
       }
