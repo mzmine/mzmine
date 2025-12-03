@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -777,7 +776,7 @@ public class TDFUtils {
    */
   private boolean printLastError(long errorCode) {
     if (errorCode == 0 || errorCode > BUFFER_SIZE) {
-      byte[] errorBuffer = new byte[64];
+      byte[] errorBuffer = new byte[256];
       long len = tdfLib.tims_get_last_error_string(errorBuffer, errorBuffer.length);
       try {
         final String errorMessage = new String(errorBuffer, "UTF-8");
