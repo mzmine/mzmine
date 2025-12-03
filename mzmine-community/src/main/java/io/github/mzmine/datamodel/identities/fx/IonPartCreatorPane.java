@@ -61,24 +61,22 @@ class IonPartCreatorPane extends BorderPane {
   private final ObjectProperty<IonPartSorting> listSorting = new SimpleObjectProperty<>(
       IonPartSorting.ALPHABETICAL);
 
-  private final IonPartDefinitionPane ionPartDefinitionPane;
-
 
   public IonPartCreatorPane(ObservableList<IonPartDefinition> parts) {
+    setPadding(DEFAULT_PADDING_INSETS);
     setTop(newBoldTitle("List of ion building blocks"));
 
-    ionPartDefinitionPane = new IonPartDefinitionPane(this::addPart, true);
+    IonPartDefinitionPane ionPartDefinitionPane = new IonPartDefinitionPane(this::addPart, true);
 
     partListView = createListView(parts);
-    partListView.setCenter(ionPartDefinitionPane);
-    partListView.setLeft(partListView.getListView());
-    setCenter(partListView);
+    setCenter(ionPartDefinitionPane);
+    setTop(partListView.removeTopMenu());
+    setLeft(partListView);
   }
 
   private @NotNull FilterableListView<IonPartDefinition> createListView(
       final ObservableList<IonPartDefinition> parts) {
 
-    setPadding(DEFAULT_PADDING_INSETS);
     // create a list view with addtional controls for sorting and filtering
     // sorting:
     final HBox sortingCombo = FxComboBox.createLabeledComboBox("Sort by:",
@@ -91,6 +89,8 @@ class IonPartCreatorPane extends BorderPane {
     final FilterableListView<IonPartDefinition> partListView = FxListViews.newFilterableListView(
         parts, true, SelectionMode.MULTIPLE, Position.TOP, Pos.CENTER_LEFT, stdButtons,
         additionalNodes);
+
+    partListView.setPrefWidth(350);
 
     partListView.onRemoveItem(this::removePart);
 

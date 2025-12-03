@@ -45,10 +45,10 @@ class IonTypeCreatorPane extends BorderPane {
 
     final IonTypeDefinitionPane typeDefPane = new IonTypeDefinitionPane(typesListView, types,
         partsDefinitions);
-    typesListView.setCenter(typeDefPane);
 
-    typesListView.setLeft(typesListView.getListView());
-    setCenter(typesListView);
+    setLeft(typesListView);
+    setTop(typesListView.removeTopMenu());
+    setCenter(typeDefPane);
   }
 
 }
