@@ -24,23 +24,25 @@
  */
 package io.github.mzmine.modules.dataprocessing.id_formula_sort;
 
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import java.text.DecimalFormat;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import java.text.DecimalFormat;
 
 public class FormulaSortParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
-  public static final DoubleParameter MAX_PPM_WEIGHT =
-      new DoubleParameter("Max ppm distance (weight)",
-          "Score is calculated as (ppm distance-ppmMax)/ppmMax", new DecimalFormat("0.0"), 10d);
+  public static final DoubleParameter MAX_PPM_WEIGHT = new DoubleParameter(
+      "Max ppm distance (weight)", "Score is calculated as (ppm distance-ppmMax)/ppmMax",
+      new DecimalFormat("0.0"), 10d);
 
-  public static final DoubleParameter ISOTOPE_SCORE_WEIGHT =
-      new DoubleParameter("Weight isotope pattern score", "Weight for isotope pattern score",
-          new DecimalFormat("0.0"), 1d);
+  public static final DoubleParameter ISOTOPE_SCORE_WEIGHT = new DoubleParameter(
+      "Weight isotope pattern score", "Weight for isotope pattern score", new DecimalFormat("0.0"),
+      1d);
 
   public static final DoubleParameter MSMS_SCORE_WEIGHT = new DoubleParameter("Weight MS/MS score",
       "Weight for MS/MS score", new DecimalFormat("0.0"), 1d);
@@ -51,7 +53,30 @@ public class FormulaSortParameters extends SimpleParameterSet {
   }
 
   public FormulaSortParameters(boolean isSub) {
-    super(isSub ? new Parameter[] {MAX_PPM_WEIGHT, ISOTOPE_SCORE_WEIGHT, MSMS_SCORE_WEIGHT}
-        : new Parameter[] {FEATURE_LISTS, MAX_PPM_WEIGHT, ISOTOPE_SCORE_WEIGHT, MSMS_SCORE_WEIGHT});
+    super(isSub ? new Parameter[]{MAX_PPM_WEIGHT, ISOTOPE_SCORE_WEIGHT, MSMS_SCORE_WEIGHT}
+        : new Parameter[]{FEATURE_LISTS, MAX_PPM_WEIGHT, ISOTOPE_SCORE_WEIGHT, MSMS_SCORE_WEIGHT});
+  }
+
+  public static FormulaSortParameters createSub(double ppmWeight, double isotopeWeight,
+      double msmsWeight) {
+    final ParameterSet param = new FormulaSortParameters(true).cloneParameterSet();
+
+    param.setParameter(MAX_PPM_WEIGHT, ppmWeight);
+    param.setParameter(ISOTOPE_SCORE_WEIGHT, isotopeWeight);
+    param.setParameter(MSMS_SCORE_WEIGHT, msmsWeight);
+
+    return (FormulaSortParameters) param;
+  }
+
+  public static FormulaSortParameters createFull(FeatureListsSelection selection, double ppmWeight,
+      double isotopeWeight, double msmsWeight) {
+    final ParameterSet param = new FormulaSortParameters(false).cloneParameterSet();
+
+    param.setParameter(FEATURE_LISTS, selection);
+    param.setParameter(MAX_PPM_WEIGHT, ppmWeight);
+    param.setParameter(ISOTOPE_SCORE_WEIGHT, isotopeWeight);
+    param.setParameter(MSMS_SCORE_WEIGHT, msmsWeight);
+
+    return (FormulaSortParameters) param;
   }
 }
