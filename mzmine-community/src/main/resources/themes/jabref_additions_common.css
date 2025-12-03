@@ -22,7 +22,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-
+.root {
+    /* set background color of scene root node so that stages have correct color
+     most panes are transparent - so root needs to have base color */
+    -fx-background-color: -jr-base;
+}
 
 .notification-bar > .pane {
   -fx-background-color: -jr-base;
