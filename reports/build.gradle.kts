@@ -28,6 +28,10 @@ plugins {
     alias(libs.plugins.semver)
 }
 
+semver {
+    properties = "../mzmine-community/src/main/resources/mzmineversion.properties"
+}
+
 repositories {
     mavenCentral()
 }
