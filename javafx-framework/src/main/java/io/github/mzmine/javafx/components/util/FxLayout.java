@@ -306,12 +306,14 @@ public class FxLayout {
   }
 
   public static GridPane applyGrid2Col(@NotNull GridPane grid, final Node... children) {
-    return applyGrid2Col(grid, GridColumnGrow.RIGHT, DEFAULT_PADDING_INSETS, DEFAULT_SPACE,
+    // added more spacing, because validation overlaps with other components and takes away fokus
+    // like a text box is wider then and a spinner on top is hard to control with default spacing
+    return applyGrid2Col(grid, GridColumnGrow.RIGHT, DEFAULT_PADDING_INSETS, DEFAULT_SPACE * 1.85,
         children);
   }
 
   public static GridPane applyGrid2Col(@NotNull GridPane grid, @NotNull GridColumnGrow grow,
-      Insets padding, int space, final Node... children) {
+      Insets padding, double space, final Node... children) {
     grid.setPadding(padding);
     grid.setVgap(space);
     grid.setHgap(space);
