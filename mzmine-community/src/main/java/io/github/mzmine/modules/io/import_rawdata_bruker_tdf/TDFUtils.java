@@ -47,6 +47,7 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMa
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
+import io.mzio.general.Result;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
@@ -72,7 +73,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author https://github.com/SteffenHeu
  */
-public class TDFUtils {
+public class TDFUtils implements AutoCloseable {
 
   public static final int SCAN_PACKAGE_SIZE = 5_000;
   public static final int BUFFER_SIZE_INCREMENT = 100_000; // 100 kb increase each time we fail
@@ -202,6 +203,8 @@ public class TDFUtils {
       close();
     }
 
+    file = path;
+
     if (!loadLibrary() || tdfLib == null) {
       logger.warning(() -> "File + " + path.getAbsolutePath() + " cannot be loaded because tdf "
           + "library could not be initialised.");
@@ -219,24 +222,20 @@ public class TDFUtils {
       handle = tdfLib.tims_open_v2(path.getParentFile().getAbsolutePath(), useRecalibratedState,
           pressureCompensation);
       if (handle == 0) {
-        printLastError(0);
-        throw new RuntimeException("Error opening tdf file.");
+        printLastError(0).throwOnError();
       }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
-      this.file = path;
       return handle;
     } else {
       logger.finest(() -> "Opening tdf path " + path.getAbsolutePath());
       handle = tdfLib.tims_open_v2(path.getAbsolutePath(), useRecalibratedState,
           pressureCompensation);
       if (handle == 0) {
-        printLastError(0);
-        throw new RuntimeException("Error opening tdf file.");
+        printLastError(0).throwOnError();
       }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
-      file = path;
       return handle;
     }
   }
@@ -254,6 +253,7 @@ public class TDFUtils {
     return openFile(path, 1);
   }
 
+  @Override
   public void close() {
     if (tdfLib != null && handle != 0L) {
       tdfLib.tims_close(handle);
@@ -294,15 +294,12 @@ public class TDFUtils {
       synchronized (tdfLib) {
         final long lastError = tdfLib.tims_read_scans_v2(handle, frameId, start, end, buffer,
             buffer.length);
-        // check if the buffer size was enough
-        if (printLastError(lastError)) {
-          BUFFER_SIZE += BUFFER_SIZE_INCREMENT;
-          final long finalStart = start;
-          logger.fine(
-              () -> "Could not read scans " + finalStart + "-" + end + " for frame " + frameId
-                  + ". Increasing buffer size to " + BUFFER_SIZE + " and reloading.");
+        if (lastError > BUFFER_SIZE) {
+          BUFFER_SIZE = ((int) (lastError / BUFFER_SIZE_INCREMENT + 1)) * BUFFER_SIZE_INCREMENT;
           buffer = new byte[BUFFER_SIZE];
-          continue; // try again
+          continue;
+        } else if (lastError == 0) {
+          printLastError(lastError).throwOnError();
         }
       }
 
@@ -370,15 +367,12 @@ public class TDFUtils {
       synchronized (tdfLib) {
         final long lastError = tdfLib.tims_read_scans_v2(handle, frameId, start, end, buffer,
             buffer.length);
-        // check if the buffer size was enough
-        if (printLastError(lastError)) {
-          BUFFER_SIZE += BUFFER_SIZE_INCREMENT;
-          final long finalStart = start;
-          logger.fine(
-              () -> "Could not read scans " + finalStart + "-" + end + " for frame " + frameId
-                  + ". Increasing buffer size to " + BUFFER_SIZE + " and reloading.");
+        if (lastError > BUFFER_SIZE) {
+          BUFFER_SIZE = ((int) (lastError / BUFFER_SIZE_INCREMENT + 1)) * BUFFER_SIZE_INCREMENT;
           buffer = new byte[BUFFER_SIZE];
-          continue; // try again
+          continue;
+        } else if (lastError == 0) {
+          printLastError(lastError).throwOnError();
         }
       }
 
@@ -469,6 +463,7 @@ public class TDFUtils {
       if (error == 0) {
         logger.warning(() -> "Could not extract centroid scan for frame " + frameId + " for scans "
             + startScanNum + " to " + endScanNum + ".");
+        printLastError(error).throwOnError();
         return SimpleSpectralArrays.EMPTY;
       }
 
@@ -559,6 +554,7 @@ public class TDFUtils {
 
       if (error == 0) {
         logger.warning(() -> "Could not extract profile for frame " + frameId + ".");
+        printLastError(error).throwOnError();
         return null;
       }
 
@@ -662,6 +658,7 @@ public class TDFUtils {
         Pointer.NULL);
     if (error == 0) {
       logger.warning(() -> "Could not extract MS/MS for precursor " + precursorId + ".");
+      printLastError(error).throwOnError();
       return new double[][]{{0}, {0}};
     }
     return data.toDoubles();
@@ -676,6 +673,7 @@ public class TDFUtils {
     final long error = tdfLib.tims_index_to_mz(handle, frameId,
         Arrays.stream(indices).asDoubleStream().toArray(), buffer, indices.length);
     if (error == 0) {
+      printLastError(error).throwOnError();
       logger.warning(() -> "Could not convert indices to mzs for frame " + frameId);
     }
     return buffer;
@@ -716,6 +714,7 @@ public class TDFUtils {
 
       if (error == 0) {
         logger.warning(() -> "Could not convert indices to mzs for frame " + frameId);
+        printLastError(error).throwOnError();
       }
 
       // index in the newly converted mz buffer
@@ -742,6 +741,7 @@ public class TDFUtils {
         Arrays.stream(scanNums).asDoubleStream().toArray(), buffer, scanNums.length);
     if (error == 0) {
       logger.warning(() -> "Could not convert scan nums to 1/K0 for frame " + frameId);
+      printLastError(error).throwOnError();
     }
     return buffer;
   }
@@ -774,24 +774,29 @@ public class TDFUtils {
    * @param errorCode return value of tims library methods
    * @return true if an error occurred
    */
-  private boolean printLastError(long errorCode) {
+  private Result printLastError(long errorCode) {
     if (errorCode == 0 || errorCode > BUFFER_SIZE) {
       byte[] errorBuffer = new byte[256];
       long len = tdfLib.tims_get_last_error_string(errorBuffer, errorBuffer.length);
       try {
-        final String errorMessage = new String(errorBuffer, "UTF-8");
-        logger.fine(() -> "Last TDF import error: " + errorMessage + " length: " + len
-            + ". Required buffer size: " + errorCode + " actual size: " + BUFFER_SIZE);
+        final String errorMessage = new String(errorBuffer, "UTF-8").substring(0, (int) len - 1);
+//        logger.fine(() -> "Last TDF import error: " + errorMessage + " length: " + len
+//            + ". Required buffer size: " + errorCode + " actual size: " + BUFFER_SIZE);
         if (errorMessage.contains("CorruptFrameDataError")) {
-          throw new IllegalStateException("Error reading tdf raw data. " + errorMessage);
+          return Result.warning("Error reading tdf raw data. " + errorMessage);
+        } else if (errorMessage.contains("no error")) {
+          return Result.ok();
+        } else {
+          return Result.error(
+              "Error while importing TDF file %s. %s".formatted(file.getName(), errorMessage));
         }
       } catch (UnsupportedEncodingException e) {
         logger.log(Level.WARNING, e.getMessage(), e);
       }
-      return true;
-    } else {
-      return false;
     }
+
+    // error returns 0
+    return Result.ok();
   }
 
   private void setNumThreads(int numThreads) {
