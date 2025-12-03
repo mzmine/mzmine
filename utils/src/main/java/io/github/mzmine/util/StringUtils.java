@@ -253,7 +253,18 @@ public class StringUtils {
    */
   @NotNull
   public static String getDigits(@Nullable final String str) {
-    return str == null ? "" : org.apache.commons.lang3.StringUtils.getDigits(str);
+    if (str == null) {
+      return "";
+    }
+    final StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < str.length(); i++) {
+      final char c = str.charAt(i);
+      if (Character.isDigit(c)) {
+        builder.append(c);
+      }
+    }
+
+    return builder.toString();
   }
 
   /**
