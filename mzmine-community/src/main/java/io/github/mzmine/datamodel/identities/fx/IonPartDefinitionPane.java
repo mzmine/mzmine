@@ -106,12 +106,14 @@ public class IonPartDefinitionPane extends BorderPane {
 
     var mzFormat = new DecimalFormat("0.########");
 
-    var txtParsedIonPart = newTextField(8, this.ionPartStrToParse, "Format: Cu+2",
-        "Use singleFormula to parse ion parts name and charge, e.g., Fe+2 for doubly charged iron");
+    var txtParsedIonPart = newTextField(8, this.ionPartStrToParse, "Format: Cu+2", """
+        Use singleFormula to parse ion parts name and charge, e.g., Fe+2 for doubly charged iron.
+        This field is only used as a quick definition, the fields below define the full ion building block.""");
     FxTextFields.autoGrowFitText(txtParsedIonPart, 12, 100);
 
-    var btnParseIonPart = createDisabledButton("Parse", FxIcons.INFO_CIRCLE,
-        "Parse ion part from singleFormula and set other fields based on it, e.g., +Fe+3 or -2Cl-",
+    var btnParseIonPart = createDisabledButton("Parse", FxIcons.INFO_CIRCLE, """
+            Parse ion part from singleFormula and set other fields based on it, e.g., +Fe+3 or -2Cl-.
+            This field is only used as a quick definition, the fields below define the full ion building block.""",
         this.ionPartStrToParse.isEmpty(),
         () -> parsePartStringFillFields(this.ionPartStrToParse.get()));
 

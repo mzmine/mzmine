@@ -59,6 +59,7 @@ import org.jetbrains.annotations.Nullable;
 public class FxLayout {
 
   public static final int DEFAULT_SPACE = 5;
+  public static final int DEFAULT_SPACE_GRID = 8;
   public static final int DEFAULT_ICON_SPACE = 0;
   public static final Insets DEFAULT_PADDING_INSETS = new Insets(5);
 
@@ -276,6 +277,49 @@ public class FxLayout {
     return newAccordion(panes);
   }
 
+
+  public static GridPane newGrid1ColFillW(List<RowConstraints> rows, Node... children) {
+    return newGrid1ColFillW(DEFAULT_PADDING_INSETS, rows, children);
+  }
+
+  public static GridPane newGrid1ColFillW(Insets padding, List<RowConstraints> rows,
+      Node... children) {
+    return newGrid1ColFillW(padding, DEFAULT_SPACE_GRID, rows, children);
+  }
+
+  public static GridPane newGrid1ColFillW(Insets padding, double space, List<RowConstraints> rows,
+      Node... children) {
+    final List<ColumnConstraints> columns = newFillWidthColumns(1);
+    return newGridPane(padding, space, columns, rows, children);
+  }
+
+  public static GridPane newGridPane(List<ColumnConstraints> columns, List<RowConstraints> rows,
+      Node... children) {
+    return newGridPane(DEFAULT_PADDING_INSETS, DEFAULT_SPACE_GRID, columns, rows, children);
+  }
+
+  public static GridPane newGridPane(Insets padding, double space, List<ColumnConstraints> columns,
+      List<RowConstraints> rows, Node... children) {
+    final GridPane grid = new GridPane(space, space);
+    return applyToGrid(grid, padding, space, columns, rows, children);
+  }
+
+  public static GridPane applyToGrid(GridPane grid, Insets padding, double space,
+      List<ColumnConstraints> columns, List<RowConstraints> rows, Node... children) {
+    if (padding != null) {
+      grid.setPadding(padding);
+    }
+    grid.setVgap(space);
+    grid.setHgap(space);
+    if (columns != null) {
+      grid.getColumnConstraints().addAll(columns);
+    }
+    if (rows != null) {
+      grid.getRowConstraints().addAll(rows);
+    }
+    return addToGrid(grid, children);
+  }
+
   /**
    * Adding an empty ColumnConstraints object for column2 has the effect of not setting any
    * constraints, leaving the GridPane to compute the column's layout based solely on its content's
@@ -296,7 +340,7 @@ public class FxLayout {
 
   public static GridPane newGrid2Col(@NotNull GridColumnGrow grow, Insets padding,
       final Node... children) {
-    return newGrid2Col(grow, padding, DEFAULT_SPACE, children);
+    return newGrid2Col(grow, padding, DEFAULT_SPACE_GRID, children);
   }
 
   public static GridPane newGrid2Col(@NotNull GridColumnGrow grow, Insets padding, int space,
@@ -308,16 +352,12 @@ public class FxLayout {
   public static GridPane applyGrid2Col(@NotNull GridPane grid, final Node... children) {
     // added more spacing, because validation overlaps with other components and takes away fokus
     // like a text box is wider then and a spinner on top is hard to control with default spacing
-    return applyGrid2Col(grid, GridColumnGrow.RIGHT, DEFAULT_PADDING_INSETS, DEFAULT_SPACE * 1.85,
+    return applyGrid2Col(grid, GridColumnGrow.RIGHT, DEFAULT_PADDING_INSETS, DEFAULT_SPACE_GRID,
         children);
   }
 
   public static GridPane applyGrid2Col(@NotNull GridPane grid, @NotNull GridColumnGrow grow,
       Insets padding, double space, final Node... children) {
-    grid.setPadding(padding);
-    grid.setVgap(space);
-    grid.setHgap(space);
-
     ColumnConstraints column1 = new ColumnConstraints();
     column1.setHgrow(Priority.NEVER);
     column1.setHalignment(HPos.RIGHT);
@@ -327,12 +367,12 @@ public class FxLayout {
       case LEFT -> setGrowColumn(column1);
       case RIGHT -> setGrowColumn(column2);
     }
-    grid.getColumnConstraints().addAll(column1, column2);
+    final List<ColumnConstraints> columns = List.of(column1, column2);
     var rowConstraint = new RowConstraints();
     rowConstraint.setValignment(VPos.CENTER);
-    grid.getRowConstraints().add(rowConstraint);
+    final List<RowConstraints> rows = List.of(rowConstraint);
 
-    return addToGrid(grid, children);
+    return applyToGrid(grid, padding, space, columns, rows, children);
   }
 
   /**
