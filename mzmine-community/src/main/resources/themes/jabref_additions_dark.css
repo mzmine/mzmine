@@ -23,6 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+ .root {
+   -error-text-color: #e12525;
+   -warning-text-color: #e8cd1b;
+ }
 
 .region-match-chart-bg, .tool-bar, .status-bar, .button-bar {
   -fx-background-color: -jr-menu-background;
@@ -38,14 +42,6 @@ Text, Text:hover {
 
 .text-flow {
   -fx-background-color: -jr-sidepane-background;
-}
-
-.error-label {
-  -fx-text-fill: #ff4f69;
-}
-
-.warning-label {
-  -fx-text-fill: #ffec3d;
 }
 
 .title-label {

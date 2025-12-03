@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -100,7 +100,7 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
     setLegendCanvas(new Canvas());
 
     // apply the theme here, let's see how that works
-    MZmineCore.getConfiguration().getDefaultChartTheme().apply(chart);
+    MZmineCore.getConfiguration().getDefaultChartTheme().apply(getChart());
   }
 
   public MsMsXYAxisType getXAxisType() {
