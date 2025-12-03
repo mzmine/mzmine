@@ -405,6 +405,14 @@ public class FormulaUtils {
   @Nullable
   public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(
       @Nullable String formulaOrSmiles) {
+    return parse(formulaOrSmiles);
+  }
+
+  /**
+   * @see FormulaParser#parseFormulaOrSMILES(String)
+   */
+  @Nullable
+  public static IMolecularFormula parse(@Nullable String formulaOrSmiles) {
     if (formulaOrSmiles == null) {
       return null;
     }

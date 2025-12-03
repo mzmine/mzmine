@@ -25,18 +25,22 @@
 
 package io.github.mzmine.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
-import org.junit.jupiter.api.Assertions;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.FieldSource;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -44,6 +48,43 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 class FormulaUtilsTest {
 
   private static final Logger logger = Logger.getLogger(FormulaUtilsTest.class.getName());
+
+  record Case(String input, @NotNull String formatted, @NotNull String formattedIsotopic,
+              Integer charge) {
+
+    Case(String input, @NotNull String formatted, Integer charge) {
+      this(input, formatted, formatted, charge);
+    }
+  }
+
+  final static List<Case> cases = List.of( //
+      new Case("NH4", "H4N", null) //
+      , new Case("NH4+", "[H4N]+", 1) //
+      , new Case("COOH", "CHO2", null) //
+      , new Case("(NH4)+", "[H4N]+", 1) //
+      , new Case("[13C]C5H12+", "[C6H12]+", "[C5[13]CH12]+", 1) //
+      , new Case("[[13C]C5H12]+", "[C6H12]+", "[C5[13]CH12]+", 1) //
+      // those are parsed as smiles therefore charge needs to be fixed in smiles parsing.
+      , new Case("C-C-OH", "C2H6O", 0) //
+      , new Case("[C-C-OH]+", "[C2H6O]+", 1) //
+  );
+
+  @ParameterizedTest
+  @FieldSource("cases")
+  void testParsingCases(Case c) {
+    final IMolecularFormula isotopic = FormulaUtils.parse(c.input);
+    assertNotNull(isotopic);
+
+    final IMolecularFormula major = FormulaUtils.replaceAllToMajorIsotopes(isotopic);
+
+    assertNotNull(major);
+    assertEquals(c.charge, major.getCharge());
+    assertEquals(c.charge, isotopic.getCharge());
+    assertEquals(c.formatted,
+        FormulaUtils.getFormulaString(major, FormulaStringFlavor.DEFAULT_CHARGED));
+    assertEquals(c.formattedIsotopic,
+        FormulaUtils.getFormulaString(isotopic, FormulaStringFlavor.DEFAULT_CHARGED));
+  }
 
   @Test
   void testIonizationType() {
@@ -75,11 +116,11 @@ class FormulaUtilsTest {
     final IMolecularFormula n2 = FormulaUtils.neutralizeFormulaWithHydrogen("C6H13O6+");
     final IMolecularFormula n3 = FormulaUtils.neutralizeFormulaWithHydrogen("C6H11O6-");
 
-    Assertions.assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
+    assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
         MolecularFormulaManipulator.getString(n1));
-    Assertions.assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
+    assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
         MolecularFormulaManipulator.getString(n2));
-    Assertions.assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
+    assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
         MolecularFormulaManipulator.getString(n3));
 
     final IMolecularFormula n4 = FormulaUtils.neutralizeFormulaWithHydrogen(
@@ -89,11 +130,11 @@ class FormulaUtilsTest {
     final IMolecularFormula n6 = FormulaUtils.neutralizeFormulaWithHydrogen(
         FormulaUtils.getFormulaFromSmiles("OC(O1)C(O)C(O)C([O-])C1CO"));
 
-    Assertions.assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
+    assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
         MolecularFormulaManipulator.getString(n4));
-    Assertions.assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
+    assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
         MolecularFormulaManipulator.getString(n5));
-    Assertions.assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
+    assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
         MolecularFormulaManipulator.getString(n6));
   }
 
@@ -103,8 +144,7 @@ class FormulaUtilsTest {
     final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMolecularFormula(
         "[C6H11O6Na2]+", SilentChemObjectBuilder.getInstance());
 
-    Assertions.assertEquals((float) 225.0345531,
-        (float) FormulaUtils.calculateMzRatio(molecularFormula));
+    assertEquals((float) 225.0345531, (float) FormulaUtils.calculateMzRatio(molecularFormula));
   }
 
   @Test
@@ -153,7 +193,7 @@ class FormulaUtilsTest {
     // will remove one H+ to neutralize
     var ion2 = annotationPlus.ionize(adduct);
 
-    Assertions.assertEquals(ion1.getPrecursorMZ(), ion2.getPrecursorMZ());
+    assertEquals(ion1.getPrecursorMZ(), ion2.getPrecursorMZ());
   }
 
   @Test
@@ -203,10 +243,12 @@ class FormulaUtilsTest {
     parseFormula("GGG", true); //
     parseFormula("H2o", true);
     parseFormula("H2O", false);
+    // bindings supported
+    parseFormula("C-C-OH", false);
   }
 
   private static IMolecularFormula parseFormula(final String formula, boolean resultNull) {
-    var f = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula);
+    var f = FormulaUtils.parse(formula);
     if (resultNull) {
       assertNull(f, () -> "Parsed formula for %s is %s".formatted(formula,
           FormulaUtils.getFormulaString(f, false)));

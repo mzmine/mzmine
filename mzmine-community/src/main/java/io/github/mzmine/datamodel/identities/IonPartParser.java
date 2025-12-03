@@ -43,7 +43,6 @@ public class IonPartParser {
   // will produce 4 groups with naming pattern
   // uncharged will be group1=count, group2=formula group3=charge
   // charged will be   group1=count, group4=formula group5=parenthesisCharge
-
   public static final Pattern PART_PATTERN = Pattern.compile("""
       (?x)                      # Enable comments/free-spacing mode
       (?<count>[+-]\\d*)        # count multiplier either +- or with number

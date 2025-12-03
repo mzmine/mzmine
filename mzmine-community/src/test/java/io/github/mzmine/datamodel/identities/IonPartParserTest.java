@@ -40,6 +40,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.FieldSource;
 
 class IonPartParserTest {
 
@@ -47,38 +49,39 @@ class IonPartParserTest {
 
   }
 
-  @Test
-  public void testParse() {
-    List<Case> cases = List.of( //
-        new Case("+Na-", -1, 1, "Na"),//
-        new Case("+(C-OH)", 0, 1, "CH4O"),//
-        new Case("+2(C-OH+)", 1, 2, "CH4O"),//
-        new Case("+2(C-OH+1)", 1, 2, "CH4O"),//
-        new Case("+2(C-OH-)", -1, 2, "CH4O"),//
-        new Case("+2(C-OH-1)", -1, 2, "CH4O"),//
-        new Case("+H", 1, 1, "H"),//
-        new Case("+2H", 1, 2, "H"),//
-        new Case("+(H)", 1, 1, "H"),//
-        new Case("+2(H)", 1, 2, "H"),//
+  final static List<Case> cases = List.of( //
+      new Case("+Na-", -1, 1, "Na"),//
+      new Case("+(C-OH)", 0, 1, "CH4O"),//
+      new Case("+2(C-OH+)", 1, 2, "CH4O"),//
+      new Case("+2(C-OH+1)", 1, 2, "CH4O"),//
+      new Case("+2(C-OH-)", -1, 2, "CH4O"),//
+      new Case("+2(C-OH-1)", -1, 2, "CH4O"),//
+      new Case("+H", 1, 1, "H"),//
+      new Case("+2H", 1, 2, "H"),//
+      new Case("+(H)", 1, 1, "H"),//
+      new Case("+2(H)", 1, 2, "H"),//
 // will be charge 1 because this is the predefined charge state of Na
-        new Case("+Na", 1, 1, "Na"), new Case("+Na+", 1, 1, "Na"),//
-        new Case("+Na+1", 1, 1, "Na"),//
-        new Case("+Na-2", -2, 1, "Na"),//
-        new Case("+Na-2", -2, 1, "Na"),//
-        new Case("+(Na)", 1, 1, "Na"),//
-        new Case("+(Na+)", 1, 1, "Na"),//
-        new Case("+(Na-2)", -2, 1, "Na")//
-    );
+      new Case("+Na", 1, 1, "Na"), //
+      // need to use some more exotic formula to avoid charge being known in predefined parts
+      new Case("+Ar+", 1, 1, "Ar"),//
+      new Case("+Ar+1", 1, 1, "Ar"),//
+      new Case("+Ar-2", -2, 1, "Ar"),//
+      new Case("+Ar-2", -2, 1, "Ar"),//
+      new Case("+(Ar)", 1, 1, "Ar"),//
+      new Case("+(Ar+)", 1, 1, "Ar"),//
+      new Case("+(Ar-2)", -2, 1, "Ar")//
+  );
 
-    for (Case c : cases) {
-      IonPart part = IonPartParser.parse(c.input);
-      final String message = "For input: " + c.input;
-      assertNotNull(part, message);
-      assertEquals(c.charge, part.singleCharge(), message);
-      assertEquals(c.count, part.count(), message);
-      assertEquals(c.formula, part.singleFormula(), message);
-      assertTrue(part.absSingleMass() > 0, message);
-    }
+  @ParameterizedTest
+  @FieldSource("cases")
+  public void testParse(Case c) {
+    IonPart part = IonPartParser.parse(c.input);
+    final String message = "For input: " + c.input;
+    assertNotNull(part, message);
+    assertEquals(c.charge, part.singleCharge(), message);
+    assertEquals(c.count, part.count(), message);
+    assertEquals(c.formula, part.singleFormula(), message);
+    assertTrue(part.absSingleMass() > 0, message);
   }
 
   @Test
