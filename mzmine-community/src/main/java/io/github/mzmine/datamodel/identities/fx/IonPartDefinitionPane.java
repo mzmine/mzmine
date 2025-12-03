@@ -197,13 +197,16 @@ public class IonPartDefinitionPane extends BorderPane {
     final StringBinding formulaMassError = Bindings.createStringBinding(() -> {
       Number mass = this.mass.getValue();
       IMolecularFormula singleFormula = this.singleFormula.getValue();
-      if (mass == null && singleFormula == null) {
+      if (singleFormula != null) {
+        return null;
+      }
+
+      if (mass == null) {
         return """
             Enter a valid singleFormula or neutral mass.
             Mass input is only available if singleFormula field is empty.
             Otherwise the mass is calculated from the singleFormula.""";
-      }
-      if (Precision.equalFloatSignificance(mass, 0d)) {
+      } else if (Precision.equalFloatSignificance(mass, 0d)) {
         return """
             Enter a valid singleFormula or neutral mass.
             Neutral mass must be >0""";
