@@ -24,15 +24,19 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.tof;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 
 public class TofMassDetectorParameters extends SimpleParameterSet {
 
   public static final DoubleParameter noiseLevel = CentroidMassDetectorParameters.noiseLevel.cloneParameter();
+  public static final AbundanceMeasureParameter intensityCalculation = new AbundanceMeasureParameter(
+      "Intensity calculation", "", AbundanceMeasure.values());
 
   public TofMassDetectorParameters() {
-    super(noiseLevel);
+    super(noiseLevel, intensityCalculation);
   }
 }
