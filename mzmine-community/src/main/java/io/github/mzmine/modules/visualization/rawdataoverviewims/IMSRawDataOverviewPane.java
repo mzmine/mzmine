@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -668,12 +667,12 @@ public class IMSRawDataOverviewPane extends BorderPane {
     ionTraceChart.removeAllDatasets();
     aFrame = ((IMSRawDataFile) rawDataFile).getFrames().stream().findFirst().get();
     if(aFrame.getSpectrumType() == MassSpectrumType.PROFILE) {
-      controlsPanel.setFrameNoiseLevel(0d);
-      frameNoiseLevel = 0;
+      controlsPanel.setFrameNoiseLevel(-1d);
+      frameNoiseLevel = -1d;
     }
     if(aFrame.getMobilityScan(0).getSpectrumType() == MassSpectrumType.PROFILE) {
-      controlsPanel.setMobilityScanNoiseLevel(0);
-      mobilityScanNoiseLevel = 0;
+      controlsPanel.setMobilityScanNoiseLevel(-1d);
+      mobilityScanNoiseLevel = -1d;
     }
     setSelectedFrame(aFrame);
   }
