@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -49,17 +48,22 @@ import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraM
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.IntensityNormalizer;
 import io.github.mzmine.parameters.parametertypes.IntensityNormalizerComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import javafx.scene.layout.Region;
@@ -97,9 +101,9 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
   );
   public static final FileNameSuffixExportParameter FILENAME = new FileNameSuffixExportParameter(
       "Filename", "Base name of the output files (.MGF and .CSV). "
-                  + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-                  + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
-                  + "If the file already exists, it will be overwritten.", extensions, "iimn_fbmn");
+      + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+      + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
+      + "If the file already exists, it will be overwritten.", extensions, "iimn_fbmn");
 
   // legacy parameter replaced by other parameter only here for loading of old batches
   private final OptionalModuleParameter<MsMsSpectraMergeParameters> LEGACY_MERGE_PARAMETER = new OptionalModuleParameter<>(
@@ -111,6 +115,48 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
     super(new Parameter[]{FEATURE_LISTS, FILENAME, FILTER, spectraMergeSelect, NORMALIZER,
             FEATURE_INTENSITY, CSV_TYPE, SUBMIT, OPEN_FOLDER},
         "https://mzmine.github.io/mzmine_documentation/module_docs/GNPS_export/gnps_export.html");
+  }
+
+  /**
+   *
+   * @param exportPath     The exported file name. (will be appended with suffix)
+   * @param fileNameSuffix The file name suffix. Default: "_iimn_gnps" for lc-ms and "_gc_ei_gnps"
+   *                       for GC.
+   * @param mzTolerance    ms2 merging tolerance
+   * @param flists         the feature lists
+   * @param submit         directly submit?
+   * @param filter         which rows to export? {@link FeatureListRowsFilter#MS2_OR_ION_IDENTITY}
+   *                       for IIMN-FBMN
+   * @param openFolder     open results folder?
+   * @param normalizer     Intensity normalizer for ms2s.
+   * @param exportType     Full or simple feature table export.
+   *                       {@link FeatureTableExportType#SIMPLE} for gnps1.
+   * @param abundanceType  Abundance to use in feature table export.
+   */
+  public static GnpsFbmnExportAndSubmitParameters create(@NotNull final File exportPath,
+      @NotNull final String fileNameSuffix, @NotNull final MZTolerance mzTolerance,
+      @NotNull final FeatureListsSelection flists, final boolean submit,
+      @NotNull final FeatureListRowsFilter filter, final boolean openFolder,
+      @NotNull final IntensityNormalizer normalizer,
+      @NotNull final FeatureTableExportType exportType,
+      @NotNull final AbundanceMeasure abundanceType) {
+    final ParameterSet param = new GnpsFbmnExportAndSubmitParameters().cloneParameterSet();
+
+    File fileName = FileAndPathUtil.eraseFormat(exportPath);
+    fileName = new File(fileName.getParentFile(), fileName.getName() + fileNameSuffix);
+
+    param.getParameter(GnpsFbmnExportAndSubmitParameters.spectraMergeSelect)
+        .setSimplePreset(SpectraMergeSelectPresets.SINGLE_MERGED_SCAN, mzTolerance);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS, flists);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT, submit);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.FILTER, filter);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.OPEN_FOLDER, openFolder);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.NORMALIZER, normalizer);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.CSV_TYPE, exportType);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY, abundanceType);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.FILENAME, fileName);
+
+    return (GnpsFbmnExportAndSubmitParameters) param;
   }
 
   @Override
@@ -134,7 +180,6 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
     dialog.showAndWait();
     return dialog.getExitCode();
   }
-
 
   @Override
   public Map<String, Parameter<?>> getNameParameterMap() {

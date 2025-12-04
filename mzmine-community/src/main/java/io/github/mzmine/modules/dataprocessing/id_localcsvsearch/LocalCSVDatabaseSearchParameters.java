@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,9 +26,9 @@ package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import static io.github.mzmine.util.StringUtils.inQuotes;
 
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundNameIdentifier;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.RIRecordType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
@@ -72,12 +71,12 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RIToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.files.ExtensionFilters;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -115,6 +114,9 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   public static final OptionalParameter<MobilityToleranceParameter> mobTolerance = new OptionalParameter<>(
       new MobilityToleranceParameter(new MobilityTolerance(0.01f)), false);
 
+  public static final OptionalParameter<RIToleranceParameter> riTolerance = new OptionalParameter<>(
+      new RIToleranceParameter(), false);
+
   public static final OptionalParameter<PercentParameter> ccsTolerance = new OptionalParameter<>(
       new PercentParameter("CCS tolerance (%)",
           "Maximum allowed difference (in per cent) for two ccs values.", 0.05), false);
@@ -141,6 +143,7 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType<>(true, "neutral_mass", new NeutralMassType()),
       new ImportType<>(true, "mz", new PrecursorMZType()), //
       new ImportType<>(true, "rt", new RTType(), wildcardFloatMapper), //
+      new ImportType<>(false, "ri_record", new RIRecordType()), //
       new ImportType<>(true, "formula", new FormulaType()),
       new ImportType<>(true, "smiles", new SmilesStructureType()),
       new ImportType<>(false, "inchi", new InChIStructureType()),
@@ -184,7 +187,7 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_cmpd_db/local-cmpd-db-search.html",
         peakLists, dataBaseFile, fieldSeparator, columns, mzTolerance, rtTolerance, mobTolerance,
-        ccsTolerance, isotopePatternMatcher, ionLibrary, filterSamples, extraColumns);
+        ccsTolerance, riTolerance, isotopePatternMatcher, ionLibrary, filterSamples, extraColumns);
   }
 
   @Override
@@ -279,6 +282,11 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       setParameter(ccsTolerance, ccsFilterEnabled);
     }
 
+    if(loadedVersion < 3) {
+      // need to disable when loading an old parameter set.
+      setParameter(riTolerance, false);
+    }
+
     if (!loadedParams.containsKey(extraColumns.getName())) {
       // if the parameter was not loaded, we set to ignore. Otherwise we would not have clear
       // behaviour when loading old batches.
@@ -299,7 +307,7 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
 
   @Override
   public int getVersion() {
-    return 2;
+    return 3;
   }
 
   @Override
@@ -310,6 +318,7 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
           The parameter "Append comment fields" was replaced by the "Additional columns" parameter, which allows import of all or specific columns
           from the database and also maps those into a generated spectral library as JSON.
           """;
+      case 3 -> "Added support for Retention index (RI) matching.";
       default -> null;
     };
   }

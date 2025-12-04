@@ -28,6 +28,8 @@ package io.github.mzmine.parameters.parametertypes.tolerances;
 import com.google.common.collect.Range;
 import io.github.mzmine.util.RIColumn;
 import io.github.mzmine.util.RIRecord;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * RITolerance allows specifying retention index tolerance for comparing two compounds It is an
@@ -38,33 +40,90 @@ public class RITolerance {
 
   private final float tolerance;
   private final RIColumn column;
+  private final boolean matchOnNull;
 
-  public RITolerance(final float rtTolerance, RIColumn type) {
-    this.tolerance = rtTolerance;
+  public RITolerance(final float riTolerance, @NotNull RIColumn type, final boolean matchOnNull) {
+    this.tolerance = riTolerance;
     this.column = type;
+    this.matchOnNull = matchOnNull;
+  }
+
+  public RITolerance withMatchOnNull(boolean matchOnNull) {
+    return new RITolerance(tolerance, column, matchOnNull);
   }
 
   public float getTolerance() {
     return tolerance;
   }
 
-  public RIColumn getColumn() {
-    return column;
+  /**
+   *
+   * @return The tolerance around the given RI. Not that if riValue is 0 (e.g. not set in a row),
+   * the return will be [-tolerance..+tolerance]
+   */
+  @NotNull
+  public Range<Float> getToleranceRange(final float riValue) {
+    return Range.closed(riValue - tolerance, riValue + tolerance);
   }
 
-  public Range<Float> getToleranceRange(final Float riValue) {
-    // riValue may not exist depending on alkane scales
-    //   Also, averaged RI is zero when riValues do not exist
-    return riValue != null && riValue != 0 ? Range.closed(riValue - tolerance, riValue + tolerance)
-        : Range.all();
+  /**
+   *
+   * @return Null if no valid (= selected or default) tolerance in this RI record is found, the
+   * tolerance otherwise.
+   */
+  @Nullable
+  public Range<Float> getToleranceRange(@Nullable final RIRecord riRecord) {
+    if (riRecord == null) {
+      return null;
+    }
+    final Float ri = riRecord.getRI(column);
+    if (ri == null) {
+      return null;
+    }
+    return getToleranceRange(ri);
   }
 
-  public boolean checkWithinTolerance(Float ri, RIRecord libRI) {
-    return libRI == null || getToleranceRange(libRI.getRI(column)).contains(ri);
+  /**
+   *
+   * @return Null if the given libRi is null or does not contain the correct tolerance.
+   */
+  @Nullable
+  public Float getRiDifference(final float ri, @Nullable RIRecord libRi) {
+    if (libRi == null || libRi.getRI(column) == null) {
+      return null;
+    }
+    return ri - libRi.getRI(column);
+  }
+
+  /**
+   * @return True if both values are within tolerance. True if libRI is null and
+   * {@link #isMatchOnNull()} is true. false otherwise.
+   */
+  public boolean checkWithinTolerance(float ri, @Nullable RIRecord libRI) {
+    if (libRI == null || libRI.getRI(column) == null) {
+      return validInput(libRI);
+    }
+    final Range<Float> toleranceRange = getToleranceRange(libRI.getRI(column));
+    return toleranceRange.contains(ri);
   }
 
   public boolean checkWithinTolerance(final float ri1, final float ri2) {
     return getToleranceRange(ri1).contains(ri2);
+  }
+
+  public boolean isMatchOnNull() {
+    return matchOnNull;
+  }
+
+  private boolean validInput(@Nullable RIRecord record) {
+    if (record == null) {
+      return isMatchOnNull();
+    }
+    if (record.getRI(column) == null) {
+      return isMatchOnNull();
+    }
+
+    return true;
   }
 
   public RIColumn getRIType() {

@@ -106,7 +106,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private String description = "Spectral library search";
   private boolean useRT;
   private boolean useRI;
-  private boolean shouldIgnoreWithoutRI;
   private boolean cropSpectraToOverlap;
   // remove 13C isotopes
   private boolean removeIsotopes;
@@ -137,7 +136,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
     useRI = false;
     rtTolerance = null;
     riTolerance = null;
-    shouldIgnoreWithoutRI = false;
 
     minMatch = parameters.getValue(SpectralLibrarySearchParameters.minMatch);
     var simfuncParams = parameters.getParameter(SpectralLibrarySearchParameters.similarityFunction)
@@ -217,8 +215,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
       useRI = advanced.getValue(AdvancedSpectralLibrarySearchParameters.riTolerance);
       riTolerance = advanced.getParameter(AdvancedSpectralLibrarySearchParameters.riTolerance)
           .getEmbeddedParameter().getValue();
-      shouldIgnoreWithoutRI = advanced.getParameter(
-          AdvancedSpectralLibrarySearchParameters.ignoreWithoutRI).getValue();
 
       needsIsotopePattern = advanced.getValue(
           AdvancedSpectralLibrarySearchParameters.needsIsotopePattern);
@@ -394,7 +390,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
           matches.incrementAndGet();
           addIdentities(null, List.of(
-              new SpectralDBAnnotation(entry, sim, scan, ccsError, singleScanPrecursorMZ, rt)));
+              new SpectralDBAnnotation(entry, sim, scan, ccsError, singleScanPrecursorMZ, rt,
+                  null)));
         }
       }
     } catch (MissingMassListException e) {
@@ -493,9 +490,13 @@ public class RowsSpectralMatchTask extends AbstractTask {
               || best.getSimilarity().getScore() < sim.getScore())) {
 
             Float ccsRelativeError = PercentTolerance.getPercentError(rowCCS, libCCS);
+            final RIRecord riRecord = ident.getOrElse(DBEntryField.RETENTION_INDEX, null);
+            final Float riDiff =
+                riTolerance != null && riRecord != null && row.getAverageRI() != null
+                    ? riTolerance.getRiDifference(row.getAverageRI(), riRecord) : null;
 
             best = new SpectralDBAnnotation(ident, sim, scans.get(i), ccsRelativeError,
-                row.getAverageMZ(), row.getAverageRT());
+                row.getAverageMZ(), row.getAverageRT(), riDiff);
           }
         }
         // has match?
@@ -559,6 +560,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
    * @param ident       library entry
    * @return spectral similarity or null if no match
    */
+  @Nullable
   private SpectralSimilarity matchSpectrum(Float rowRT, Float rowRI, double rowMZ, Float rowCCS,
       DataPoint[] rowMassList, SpectralLibraryEntry ident) {
     // prefilters
@@ -646,14 +648,18 @@ public class RowsSpectralMatchTask extends AbstractTask {
     return (rt == null || rtTolerance.checkWithinTolerance(rt, retentionTime));
   }
 
-  private boolean checkRI(Float retentionIndex, SpectralLibraryEntry ident) {
-    if (!useRI || retentionIndex == null) {
+  private boolean checkRI(@Nullable Float retentionIndex, SpectralLibraryEntry ident) {
+    if (!useRI) {
       return true;
     }
-    RIRecord riRecord = (RIRecord) ident.getField(DBEntryField.RETENTION_INDEX).orElse(null);
-    boolean shouldIgnore = shouldIgnoreWithoutRI && (riRecord == null
-        || riRecord.getRI(riTolerance.getRIType()) == null);
-    return !shouldIgnore && riTolerance.checkWithinTolerance(retentionIndex, riRecord);
+    if (retentionIndex == null) {
+      return riTolerance.isMatchOnNull();
+    }
+    final RIRecord riRecord = (RIRecord) ident.getField(DBEntryField.RETENTION_INDEX).orElse(null);
+    final boolean shouldIgnore =
+        (riRecord == null || riRecord.getRI(riTolerance.getRIType()) == null)
+            && riTolerance.isMatchOnNull();
+    return shouldIgnore || riTolerance.checkWithinTolerance(retentionIndex, riRecord);
   }
 
   /**
