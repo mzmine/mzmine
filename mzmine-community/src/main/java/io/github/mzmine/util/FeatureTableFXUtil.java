@@ -28,10 +28,8 @@ package io.github.mzmine.util;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.MZmineGUI;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -84,10 +82,10 @@ public class FeatureTableFXUtil {
       final IndexedCell<?> lastCell = flow.getLastVisibleCell();
       if (firstCell != null && lastCell != null && !(itemIndex >= firstCell.getIndex()
           && itemIndex <= lastCell.getIndex())) {
-        table.scrollTo(table.getFilteredRowItems().indexOf(rowItem));
+        table.scrollTo(itemIndex);
       }
     }
-    table.getSelectionModel().clearAndSelect(table.getFilteredRowItems().indexOf(rowItem));
+    table.getSelectionModel().clearAndSelect(itemIndex);
   }
 
   public static void selectAndScrollTo(@Nullable FeatureListRow row,
