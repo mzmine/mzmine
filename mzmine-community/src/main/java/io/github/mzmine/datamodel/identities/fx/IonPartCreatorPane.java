@@ -44,10 +44,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,13 +66,14 @@ class IonPartCreatorPane extends BorderPane {
 
   public IonPartCreatorPane(ObservableList<IonPartDefinition> parts) {
     setPadding(DEFAULT_PADDING_INSETS);
-    setTop(newBoldTitle("List of ion building blocks"));
+    final Label title = newBoldTitle("List of ion building blocks");
 
     IonPartDefinitionPane ionPartDefinitionPane = new IonPartDefinitionPane(this::addPart, true);
 
     partListView = createListView(parts);
     setCenter(ionPartDefinitionPane);
-    setTop(partListView.removeTopMenu());
+    // space is already enough
+    setTop(new VBox(0, title, partListView.removeTopMenu()));
     setLeft(partListView);
   }
 

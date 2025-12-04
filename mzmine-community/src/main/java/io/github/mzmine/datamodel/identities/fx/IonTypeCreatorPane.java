@@ -31,7 +31,9 @@ import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_I
 import io.github.mzmine.datamodel.identities.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.IonType;
 import javafx.collections.ObservableList;
+import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 
 class IonTypeCreatorPane extends BorderPane {
 
@@ -39,7 +41,7 @@ class IonTypeCreatorPane extends BorderPane {
       ObservableList<IonPartDefinition> partsDefinitions) {
     setPadding(DEFAULT_PADDING_INSETS);
 
-    setTop(newBoldTitle("All currently defined ion types:"));
+    final Label title = newBoldTitle("All currently defined ion types:");
 
     IonTypeListView typesListView = new IonTypeListView(types);
 
@@ -47,7 +49,8 @@ class IonTypeCreatorPane extends BorderPane {
         partsDefinitions);
 
     setLeft(typesListView);
-    setTop(typesListView.removeTopMenu());
+    // space is already enough
+    setTop(new VBox(0, title, typesListView.removeTopMenu()));
     setCenter(typeDefPane);
   }
 
