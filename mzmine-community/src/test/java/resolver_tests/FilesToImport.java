@@ -1,0 +1,77 @@
+/*
+ * Copyright (c) 2004-2025 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package resolver_tests;
+
+import io.github.mzmine.gui.preferences.VendorImportParameters;
+import io.github.mzmine.gui.preferences.WatersLockmassParameters;
+import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Wraps a file + import param
+ */
+public record FilesToImport(@NotNull List<String> filePaths,
+                            @NotNull AdvancedSpectraImportParameters advancedParam,
+                            @NotNull VendorImportParameters vendorParam) {
+
+  private static final AdvancedSpectraImportParameters factor5 = AdvancedSpectraImportParameters.create(
+      MassDetectorWizardOptions.FACTOR_OF_LOWEST_SIGNAL, 5d, 2.5d, null, ScanSelection.MS1, false);
+  private static final AdvancedSpectraImportParameters centroid500 = AdvancedSpectraImportParameters.create(
+      MassDetectorWizardOptions.ABSOLUTE_NOISE_LEVEL, 500d, 200d, null, ScanSelection.MS1, false);
+  private static final VendorImportParameters defaultVendorParam = VendorImportParameters.createDefault();
+  private static VendorImportParameters vendorParamNoCentroid = VendorImportParameters.create(false,
+      VendorImportParameters.DEFAULT_WATERS_OPTION,
+      VendorImportParameters.DEFAULT_WATERS_LOCKMASS_ENABLED,
+      WatersLockmassParameters.createDefault(),
+      VendorImportParameters.DEFAULT_THERMO_EXCEPTION_SIGNALS);
+
+  public static FilesToImport factor5(@NotNull String fileName) {
+    return factor5(List.of(fileName));
+  }
+
+  public static FilesToImport factor5(@NotNull List<String> fileNames) {
+    return new FilesToImport(fileNames, factor5, defaultVendorParam);
+  }
+
+  public static FilesToImport centroid500(@NotNull String fileName) {
+    return centroid500(List.of(fileName));
+  }
+
+  public static FilesToImport centroid500(@NotNull List<String> fileNames) {
+    return new FilesToImport(fileNames, centroid500, defaultVendorParam);
+  }
+
+  public static FilesToImport centroid(@NotNull String fileName, double noiseLevelMs1,
+      double noiseLevelMs2) {
+    final AdvancedSpectraImportParameters param = AdvancedSpectraImportParameters.create(
+        MassDetectorWizardOptions.ABSOLUTE_NOISE_LEVEL, noiseLevelMs1, noiseLevelMs2, null,
+        ScanSelection.ALL_SCANS, false);
+    return new FilesToImport(List.of(fileName), param, defaultVendorParam);
+  }
+
+}
