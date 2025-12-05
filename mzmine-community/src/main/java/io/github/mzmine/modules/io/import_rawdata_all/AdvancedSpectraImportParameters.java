@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,6 +28,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -96,6 +96,38 @@ public class AdvancedSpectraImportParameters extends SimpleParameterSet {
       var mdParam = detector.createMassDetectorParameters(ms2NoiseLevel);
       params.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter()
           .setValue(mdParam.value(), mdParam.parameters());
+    }
+
+    return params;
+  }
+
+  /**
+   * Create new instance copy and set all values
+   */
+  @NotNull
+  public static AdvancedSpectraImportParameters create(@Nullable MassDetectors ms1MassDetector,
+      @Nullable ParameterSet ms1Parameters, @Nullable MassDetectors ms2MassDetector,
+      @Nullable ParameterSet ms2Parameters, @Nullable Range<Double> mzRangeFilter,
+      @NotNull ScanSelection scanFilter, boolean denormMsnScans) {
+    var params = (AdvancedSpectraImportParameters) new AdvancedSpectraImportParameters().cloneParameterSet();
+
+    params.setParameter(AdvancedSpectraImportParameters.msMassDetection,
+        ms1MassDetector != null && ms1Parameters != null);
+    params.setParameter(AdvancedSpectraImportParameters.ms2MassDetection,
+        ms2Parameters != null && ms2MassDetector != null);
+    params.setParameter(AdvancedSpectraImportParameters.mzRange, mzRangeFilter != null,
+        mzRangeFilter);
+    params.setParameter(AdvancedSpectraImportParameters.scanFilter, scanFilter);
+    params.setParameter(AdvancedSpectraImportParameters.denormalizeMSnScans, denormMsnScans);
+
+    if (ms1MassDetector != null && ms1Parameters != null) {
+      params.getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
+          .setValue(ms1MassDetector, ms1Parameters);
+
+    }
+    if (ms2MassDetector != null && ms2Parameters != null) {
+      params.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter()
+          .setValue(ms2MassDetector, ms2Parameters);
     }
 
     return params;
