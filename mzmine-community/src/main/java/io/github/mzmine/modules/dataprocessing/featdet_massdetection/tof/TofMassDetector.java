@@ -26,6 +26,8 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection.tof;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.collections.IndexRange;
@@ -132,7 +134,7 @@ public class TofMassDetector implements MassDetector {
 
     // Add the final region if valid
     if (numPoints - currentRegionStart > 2 && onePointAboveNoise) {
-      consecutiveRanges.add(new SimpleIndexRange(currentRegionStart, numPoints));
+      consecutiveRanges.add(new SimpleIndexRange(currentRegionStart, numPoints - 1));
     }
 
     // Handle case where spectrum was all zeros or empty
@@ -343,5 +345,11 @@ public class TofMassDetector implements MassDetector {
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
     return TofMassDetectorParameters.class;
+  }
+
+  @Override
+  public double[][] getMassValues(double[] mzs, double[] intensities,
+      @NotNull MassSpectrumType type) {
+    return getMassValues(new SimpleMassSpectrum(mzs, intensities, type));
   }
 }

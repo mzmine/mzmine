@@ -26,9 +26,11 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection.tof;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class TofMassDetectorParameters extends SimpleParameterSet {
 
@@ -38,5 +40,13 @@ public class TofMassDetectorParameters extends SimpleParameterSet {
 
   public TofMassDetectorParameters() {
     super(noiseLevel, intensityCalculation);
+  }
+
+  public static TofMassDetectorParameters create(final double noiseLevel,
+      @NotNull final AbundanceMeasure intensityCalculation) {
+    ParameterSet param = new TofMassDetectorParameters().cloneParameterSet();
+    param.setParameter(TofMassDetectorParameters.noiseLevel, noiseLevel);
+    param.setParameter(TofMassDetectorParameters.intensityCalculation, intensityCalculation);
+    return (TofMassDetectorParameters) param;
   }
 }
