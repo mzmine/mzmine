@@ -40,7 +40,15 @@ import org.jetbrains.annotations.NotNull;
 public class VendorImportParameters extends SimpleParameterSet {
 
   public static final MassLynxImportOptions DEFAULT_WATERS_OPTION = MassLynxImportOptions.NATIVE;
-
+  /*private static final ThermoImportOptions DEFAULT_THERMO_IMPORT = ThermoImportOptions.THERMO_RAW_FILE_PARSER;
+  public static final ComponentWrapperParameter<ThermoImportOptions, ComboParameter<ThermoImportOptions>> thermoImportChoice = new ComponentWrapperParameter<>(
+      new ComboParameter<>("Thermo data import", """
+          Specify which path you want to use for Thermo raw data import.
+          """, ThermoImportOptions.getOptionsForOs(), DEFAULT_THERMO_IMPORT),
+      createJumpToPrefButton(VendorImportParameters.thermoImportChoice.getName()));*/
+  public static final boolean DEFAULT_VENDOR_CENTROIDING = true;
+  public static final boolean DEFAULT_WATERS_LOCKMASS_ENABLED = true;
+  public static final boolean DEFAULT_THERMO_EXCEPTION_SIGNALS = true;
   // disabled, but moved from preferences. Disabled due to downstream bugs.
    /*public static final BooleanParameter applyTimsPressureCompensation = new BooleanParameter(
       "Use MALDI-TIMS pressure compensation", """
@@ -59,29 +67,17 @@ public class VendorImportParameters extends SimpleParameterSet {
           but does not allow centroiding of IMS data files. The native import is slow when applying centroiding on import.""",
           MassLynxImportOptions.values(), DEFAULT_WATERS_OPTION),
       createJumpToPrefButton("Waters MassLynx data import"));
-
-
-  /*private static final ThermoImportOptions DEFAULT_THERMO_IMPORT = ThermoImportOptions.THERMO_RAW_FILE_PARSER;
-  public static final ComponentWrapperParameter<ThermoImportOptions, ComboParameter<ThermoImportOptions>> thermoImportChoice = new ComponentWrapperParameter<>(
-      new ComboParameter<>("Thermo data import", """
-          Specify which path you want to use for Thermo raw data import.
-          """, ThermoImportOptions.getOptionsForOs(), DEFAULT_THERMO_IMPORT),
-      createJumpToPrefButton(VendorImportParameters.thermoImportChoice.getName()));*/
-  private static final boolean DEFAULT_VENDOR_CENTROIDING = true;
   public static final ComponentWrapperParameter<Boolean, BooleanParameter> applyVendorCentroiding = new ComponentWrapperParameter<>(
       new BooleanParameter("Try vendor centroiding", """
           Vendor centroiding will be applied to the imported raw data if this option is selected and centroiding is supported.
           Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.""",
           DEFAULT_VENDOR_CENTROIDING),
       createJumpToPrefButton(MZminePreferences.applyVendorCentroiding.getName()));
-
-  private static final boolean DEFAULT_WATERS_LOCKMASS_ENABLED = true;
   public static final ComponentWrapperParameter<Boolean, OptionalModuleParameter<WatersLockmassParameters>> watersLockmass = new ComponentWrapperParameter<>(
       new OptionalModuleParameter<>("Apply lockmass on import (Waters)",
           "Apply lockmass correction for native Waters raw data during raw data import via MSConvert.",
           new WatersLockmassParameters(), DEFAULT_WATERS_LOCKMASS_ENABLED),
       createJumpToPrefButton("Apply lockmass on import (Waters)"));
-  private static final boolean DEFAULT_THERMO_EXCEPTION_SIGNALS = true;
   public static final ComponentWrapperParameter<Boolean, BooleanParameter> excludeThermoExceptionMasses = new ComponentWrapperParameter<>(
       new BooleanParameter("Remove calibrant signals (Thermo)", """
           Internal calibration signals may be present in spectra of all MS-levels (MS1-MSn) from Thermo Orbitraps.
@@ -111,6 +107,12 @@ public class VendorImportParameters extends SimpleParameterSet {
     param.getParameter(watersLockmass).getEmbeddedParameter().setEmbeddedParameters(lockmassParam);
     param.setParameter(excludeThermoExceptionMasses, removeThermoExceptionMasses);
     return param;
+  }
+
+  public static VendorImportParameters createDefault() {
+    return create(DEFAULT_VENDOR_CENTROIDING, DEFAULT_WATERS_OPTION,
+        DEFAULT_WATERS_LOCKMASS_ENABLED, WatersLockmassParameters.createDefault(),
+        DEFAULT_THERMO_EXCEPTION_SIGNALS);
   }
 
   /**
