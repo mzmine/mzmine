@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -259,6 +258,13 @@ public class MZmineProjectImpl implements MZmineProject {
     }
     try {
       rawLock.readLock().lock();
+      // check by exact name + format match first
+      for (RawDataFile file : rawDataFiles) {
+        if (file.getName().matches(name)) {
+          return file;
+        }
+      }
+      // check by name match, no format match
       for (final RawDataFile raw : rawDataFiles) {
         if (MetadataTableUtils.matchesFilename(name, raw)) {
           return raw;
