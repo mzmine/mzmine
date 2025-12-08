@@ -83,7 +83,8 @@ public class AdvancedSpectraImportParameters extends SimpleParameterSet {
     params.setParameter(AdvancedSpectraImportParameters.ms2MassDetection, ms2NoiseLevel != null);
     params.setParameter(AdvancedSpectraImportParameters.mzRange, mzRangeFilter != null,
         mzRangeFilter);
-    params.setParameter(AdvancedSpectraImportParameters.scanFilter, scanFilter);
+    params.getParameter(AdvancedSpectraImportParameters.scanFilter)
+        .setValue(scanFilter.isActiveFilter(), scanFilter);
     params.setParameter(AdvancedSpectraImportParameters.denormalizeMSnScans, denormMsnScans);
     // create centroid mass detectors
     if (ms1NoiseLevel != null) {
@@ -117,7 +118,8 @@ public class AdvancedSpectraImportParameters extends SimpleParameterSet {
         ms2Parameters != null && ms2MassDetector != null);
     params.setParameter(AdvancedSpectraImportParameters.mzRange, mzRangeFilter != null,
         mzRangeFilter);
-    params.setParameter(AdvancedSpectraImportParameters.scanFilter, scanFilter);
+    params.getParameter(AdvancedSpectraImportParameters.scanFilter)
+        .setValue(scanFilter.isActiveFilter(), scanFilter);
     params.setParameter(AdvancedSpectraImportParameters.denormalizeMSnScans, denormMsnScans);
 
     if (ms1MassDetector != null && ms1Parameters != null) {
