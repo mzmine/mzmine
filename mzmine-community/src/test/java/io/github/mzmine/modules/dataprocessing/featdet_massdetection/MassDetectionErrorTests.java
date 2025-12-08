@@ -24,23 +24,61 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
+import io.github.mzmine.gui.preferences.WatersLockmassParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.tof.TofMassDetector;
+import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import resolver_tests.FilesToImport;
 import testutils.MZmineTestUtil;
 
 public class MassDetectionErrorTests {
+
+  private static final Logger logger = Logger.getLogger(MassDetectionErrorTests.class.getName());
+
+  private static void exportResults(String name, List<MassDetectionErrorStatistics> results,
+      int scanStep) {
+    try (var writer = CSVParsingUtils.createDefaultWriter(new File(
+        "C:\\Users\\Steffen\\PyCharmMiscProject\\centroiding_errors\\Errors_peaks_%s.csv".formatted(
+            name)), '\t', WriterOptions.REPLACE)) {
+      writer.writeNext(
+          new String[]{"scan", "mz_vendor", "i_vendor", "mz_mzmine", "i_mzmine", "error_abs",
+              "error_ppm"});
+      for (int i = 0; i < results.size(); i++) {
+        MassDetectionErrorStatistics result = results.get(i);
+        for (MassDetectionError matchedSignal : result.matchedSignals()) {
+          writer.writeNext(
+              new String[]{String.valueOf(i * scanStep), String.valueOf(matchedSignal.vendorMz()),
+                  String.valueOf(matchedSignal.vendorIntensity()),
+                  String.valueOf(matchedSignal.mz()), String.valueOf(matchedSignal.intensity()),
+                  matchedSignal.errorAbs(), matchedSignal.errorPpm()});
+        }
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   @ParameterizedTest
   @EnumSource(MassDetectionErrorSource.class)
@@ -68,42 +106,46 @@ public class MassDetectionErrorTests {
       results.add(stats);
     }
 
-    try (var writer = CSVParsingUtils.createDefaultWriter(new File(
-        "C:\\Users\\Steffen\\PyCharmMiscProject\\centroiding_errors\\Errors_peaks_%s.csv".formatted(
-            source.name)), '\t', WriterOptions.REPLACE)) {
-      writer.writeNext(
-          new String[]{"scan", "mz_vendor", "i_vendor", "mz_mzmine", "i_mzmine", "error_abs",
-              "error_ppm"});
-      for (int i = 0; i < results.size(); i++) {
-        MassDetectionErrorStatistics result = results.get(i);
-        for (MassDetectionError matchedSignal : result.matchedSignals()) {
-          writer.writeNext(
-              new String[]{String.valueOf(i * scanStep), String.valueOf(matchedSignal.vendorMz()),
-                  String.valueOf(matchedSignal.vendorIntensity()),
-                  String.valueOf(matchedSignal.mz()), String.valueOf(matchedSignal.intensity()),
-                  matchedSignal.errorAbs(), matchedSignal.errorPpm()});
-        }
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    exportResults(source.name, results, scanStep);
+  }
+
+  @Test
+  public void testBruker() {
+    MZmineTestUtil.cleanProject();
+    final var brukerImport = new FilesToImport(List.of(MassDetectionErrorSource.BRUKER.mzmineFile),
+        AdvancedSpectraImportParameters.create(null, null, null, null,
+            Range.closed(1123.2d, 1124.4d),
+            new ScanSelection(Range.closed(584, 590), null, null, null, PolarityType.ANY,
+                MassSpectrumType.ANY, MsLevelFilter.of(1), null), false),
+        VendorImportParameters.create(false, VendorImportParameters.DEFAULT_WATERS_OPTION,
+            VendorImportParameters.DEFAULT_WATERS_LOCKMASS_ENABLED,
+            WatersLockmassParameters.createDefault(),
+            VendorImportParameters.DEFAULT_THERMO_EXCEPTION_SIGNALS));
+
+    final RawDataFile file = brukerImport.runImport().getFirst();
+    final Scan scan = file.getScans().getLast();
+
+    final TofMassDetector massDetector = new TofMassDetector(1, AbundanceMeasure.Height);
+    double[][] massValues = massDetector.getMassValues(scan);
+
+    logger.info(Arrays.toString(massValues));
   }
 
   enum MassDetectionErrorSource {
-    //    WATERS("D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Waters\\LC-MS DDA\\pos\\050325_029.raw",
-//        100,
-//        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Waters\\LC-MS DDA\\pos\\050325_029_copy.raw",
-//        30, AbundanceMeasure.Area, "Waters"), //
-//    AGILENT(
-//        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Agilent\\Agilent 6546_Zamboni\\mzML\\BEH30mm_5min_LipidMix_DDA.mzML",
-//        100,
-//        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Agilent\\Agilent 6546_Zamboni\\BEH30mm_5min_LipidMix_DDA.d",
-//        30, AbundanceMeasure.Height, "Agilent"), //
-    BRUKER(
-        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Bruker\\timsTOF_tsf\\timsTOF_autoMSMS_Urine_6min_pos.d",
+    WATERS("D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Waters\\LC-MS DDA\\pos\\050325_029.raw",
         100,
+        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Waters\\LC-MS DDA\\pos\\050325_029_copy.raw",
+        30, AbundanceMeasure.Area, "Waters"), //
+    AGILENT(
+        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Agilent\\Agilent 6546_Zamboni\\mzML\\BEH30mm_5min_LipidMix_DDA.mzML",
+        100,
+        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Agilent\\Agilent 6546_Zamboni\\BEH30mm_5min_LipidMix_DDA.d",
+        100, AbundanceMeasure.Height, "Agilent"), //
+    BRUKER(
         "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Bruker\\timsTOF_tsf\\timsTOF_autoMSMS_Urine_6min_pos.mzML",
-        30, AbundanceMeasure.Height, "Bruker"),
+        100,
+        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Bruker\\timsTOF_tsf\\timsTOF_autoMSMS_Urine_6min_pos.d",
+        100, AbundanceMeasure.Height, "Bruker"),
     ;
 
     final double vendorNoise;
