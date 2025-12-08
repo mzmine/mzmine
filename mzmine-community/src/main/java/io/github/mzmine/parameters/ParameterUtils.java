@@ -41,6 +41,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExport
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
@@ -169,6 +170,10 @@ public class ParameterUtils {
       if (targetParam instanceof EmbeddedParameter<?, ?, ?> targetEm
           && sourceParam instanceof EmbeddedParameter<?, ?, ?> sourceEm) {
         copyParameterValue(sourceEm.getEmbeddedParameter(), targetEm.getEmbeddedParameter());
+      }
+      if (targetParam instanceof ScanSelectionParameter target
+          && sourceParam instanceof ScanSelectionParameter source) {
+        target.setValue(source.isActive(), source.getValue());
       }
     } catch (Exception e) {
       logger.warning(
