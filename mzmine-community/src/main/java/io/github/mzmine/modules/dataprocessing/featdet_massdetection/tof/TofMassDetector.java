@@ -61,6 +61,19 @@ public class TofMassDetector implements MassDetector {
     this.intensityCalculation = intensityCalculation;
   }
 
+  private static double getMaxMzDiff(final double[] mzs, final double[] intensities,
+      final int numPoints) {
+    for (int i = numPoints - 1; i > 1; i--) {
+      // tof mz value distances are proportional to sqrt(m/z)
+      // so the biggest mass diff will be at the top of the spectrum
+      if (Double.compare(intensities[i], 0) != 0 || !(intensities[i - 1] > 0)) {
+        continue;
+      }
+      return Math.abs(mzs[i] - mzs[i - 1]);
+    }
+    return 0.1;
+  }
+
   @Override
   public MassDetector create(final ParameterSet params) {
     return new TofMassDetector(params.getValue(TofMassDetectorParameters.noiseLevel),
@@ -93,27 +106,28 @@ public class TofMassDetector implements MassDetector {
 
     final List<IndexRange> consecutiveRanges = new ArrayList<>();
 
+    final double rangeDetectionNoiseLevel =
+        intensityCalculation == AbundanceMeasure.Height ? noiseLevel : noiseLevel / 3;
+    // Initialize absMinIntensity. Check first point.
+    double absMinIntensity = Double.MAX_VALUE;
+    if (intensities[0] > 0) {
+      absMinIntensity = intensities[0];
+    }
+
     // 1. Detect continuous regions and track minimum positive intensity
     int currentRegionStart = 0;
     double lastMz = mzs[0];
-
-    // Initialize minIntensity. Check first point.
-    double minIntensity = Double.MAX_VALUE;
-    if (intensities[0] > 0) {
-      minIntensity = intensities[0];
-    }
-
     boolean onePointAboveNoise = false;
     for (int i = 1; i < numPoints; i++) {
       final double thisMz = mzs[i];
       final double thisInt = intensities[i];
 
       // Track absolute minimum intensity > 0
-      if (thisInt > 0 && thisInt < minIntensity) {
-        minIntensity = thisInt;
+      if (thisInt > 0 && thisInt < absMinIntensity) {
+        absMinIntensity = thisInt;
       }
 
-      if (thisInt > noiseLevel) {
+      if (thisInt > rangeDetectionNoiseLevel) {
         onePointAboveNoise = true;
       }
 
@@ -122,8 +136,8 @@ public class TofMassDetector implements MassDetector {
       // If the gap is too large, we close the current region and start a new one
       if (mzDelta >= maxDiff) {
         // Only add regions that contain enough data points to form a peak (e.g., > 2 points)
-        if (i - currentRegionStart > 2 && onePointAboveNoise) {
-          consecutiveRanges.add(new SimpleIndexRange(currentRegionStart, i));
+        if (i - currentRegionStart > 4 && onePointAboveNoise) {
+          consecutiveRanges.add(new SimpleIndexRange(currentRegionStart, i - 1));
         }
         currentRegionStart = i;
         onePointAboveNoise = false;
@@ -133,13 +147,13 @@ public class TofMassDetector implements MassDetector {
     }
 
     // Add the final region if valid
-    if (numPoints - currentRegionStart > 2 && onePointAboveNoise) {
+    if (numPoints - currentRegionStart > 3 && onePointAboveNoise) {
       consecutiveRanges.add(new SimpleIndexRange(currentRegionStart, numPoints - 1));
     }
 
     // Handle case where spectrum was all zeros or empty
-    if (minIntensity == Double.MAX_VALUE) {
-      minIntensity = 0.0;
+    if (absMinIntensity == Double.MAX_VALUE) {
+      absMinIntensity = 0.0;
     }
 
     // 2. Process regions to find centroids
@@ -147,7 +161,7 @@ public class TofMassDetector implements MassDetector {
     final DoubleArrayList resultIntensities = new DoubleArrayList();
 
     for (final IndexRange range : consecutiveRanges) {
-      findAndCentroidPeaks(mzs, intensities, range, minIntensity, resultMzs, resultIntensities);
+      findAndCentroidPeaks(mzs, intensities, range, absMinIntensity, resultMzs, resultIntensities);
     }
 
     // 3. Convert results to double[][] format
@@ -176,6 +190,7 @@ public class TofMassDetector implements MassDetector {
     int activePeakIdx = candidateIndices.getInt(0);
     int leftBoundary = range.min(); // Start of the region
 
+    // todo check what happens if there are consecutive but zero intensities in the range
     for (int i = 1; i < candidateIndices.size(); i++) {
       final int nextCandidateIdx = candidateIndices.getInt(i);
 
@@ -204,8 +219,9 @@ public class TofMassDetector implements MassDetector {
         // Update the active peak index to be the higher of the two.
         if (nextCandidateInt > activePeakInt) {
           activePeakIdx = nextCandidateIdx;
+          // move the left boundary, since it would have been enough of a valley and rise to be a individual peak
+          leftBoundary = valleyIdx;
         }
-        // leftBoundary remains unchanged.
       }
     }
 
@@ -224,15 +240,14 @@ public class TofMassDetector implements MassDetector {
 
     for (int i = start; i < end - 1; i++) {
       final double currentInt = intensities[i];
-      if (currentInt < noiseLevel) {
-        continue;
-      }
+//      if (currentInt < noiseLevel) {
+//        continue;
+//      }
 
       final double leftInt = (i == start) ? 0 : intensities[i - 1];
       final double rightInt = (i == end - 1) ? 0 : intensities[i + 1];
 
       // Check local max
-      // Strictly greater than right neighbor as requested
       if (currentInt >= leftInt && currentInt > rightInt) {
         indices.add(i);
       }
@@ -262,13 +277,13 @@ public class TofMassDetector implements MassDetector {
   /**
    * Calculates centroid and intensity for a defined peak and adds to results.
    *
-   * @param peakMaxIdx   The index of the maximum intensity within these bounds.
-   * @param startIdx     Inclusive start of peak region (valley or range start).
-   * @param endIdx       Exclusive end of peak region (valley or range end).
-   * @param minIntensity Absolute minimum intensity of the whole spectrum.
+   * @param peakMaxIdx      The index of the maximum intensity within these bounds.
+   * @param startIdx        Inclusive start of peak region (valley or range start).
+   * @param endIdx          Exclusive end of peak region (valley or range end).
+   * @param absMinIntensity Absolute minimum intensity of the whole spectrum.
    */
   private void processSinglePeak(final double[] mzs, final double[] intensities,
-      final int peakMaxIdx, final int startIdx, final int endIdx, final double minIntensity,
+      final int peakMaxIdx, final int startIdx, final int endIdx, final double absMinIntensity,
       final DoubleArrayList resultMzs, final DoubleArrayList resultIntensities) {
 
     final double maxIntensity = intensities[peakMaxIdx];
@@ -276,19 +291,21 @@ public class TofMassDetector implements MassDetector {
     // 1. Peak Validity Check
     // "The noise level only defines the minimum intensity a peak must exceed at least once"
     final double detectionThreshold;
-    if (maxIntensity < 5 * minIntensity) {
-      detectionThreshold = 2 * minIntensity;
+    if (maxIntensity < 5 * absMinIntensity) {
+      detectionThreshold = 2 * absMinIntensity;
     } else {
       detectionThreshold = noiseLevel;
     }
 
-    if (maxIntensity < detectionThreshold) {
+    /*if (maxIntensity < detectionThreshold) {
       return;
-    }
+    }*/
 
     // 2. Prepare for calculation
-    // M/z weighting still uses the top 40% logic
-    final double mzWeightingCutoff = maxIntensity * MZ_WEIGHTING_THRESHOLD;
+    // M/z weighting still uses the top 40% logic or the more shallow valley
+    final double mzWeightingCutoff = Math.max(maxIntensity * MZ_WEIGHTING_THRESHOLD,
+        Math.max((intensities[startIdx] + maxIntensity) * MZ_WEIGHTING_THRESHOLD,
+            (intensities[endIdx] + maxIntensity) * MZ_WEIGHTING_THRESHOLD));
 
     double sumMzInt = 0.0;
     double sumIntForMz = 0.0;
@@ -320,21 +337,12 @@ public class TofMassDetector implements MassDetector {
     final double finalIntensity =
         (intensityCalculation == AbundanceMeasure.Area) ? totalArea : maxIntensity;
 
+    if (finalIntensity < detectionThreshold) {
+      return;
+    }
+
     resultMzs.add(centroidMz);
     resultIntensities.add(finalIntensity);
-  }
-
-  private static double getMaxMzDiff(final double[] mzs, final double[] intensities,
-      final int numPoints) {
-    for (int i = numPoints - 1; i > 1; i--) {
-      // tof mz value distances are proportional to sqrt(m/z)
-      // so the biggest mass diff will be at the top of the spectrum
-      if (Double.compare(intensities[i], 0) != 0 || !(intensities[i - 1] > 0)) {
-        continue;
-      }
-      return Math.abs(mzs[i] - mzs[i - 1]);
-    }
-    return 0.1;
   }
 
   @Override
