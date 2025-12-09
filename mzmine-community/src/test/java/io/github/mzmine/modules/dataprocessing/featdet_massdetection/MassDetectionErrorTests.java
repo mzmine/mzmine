@@ -26,6 +26,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -39,7 +40,9 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.CSVParsingUtils;
+import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.io.WriterOptions;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,8 +51,6 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import resolver_tests.FilesToImport;
 import testutils.MZmineTestUtil;
 
@@ -80,15 +81,35 @@ public class MassDetectionErrorTests {
     }
   }
 
-  @ParameterizedTest
-  @EnumSource(MassDetectionErrorSource.class)
-  void testTof(MassDetectionErrorSource source) {
+  private static void exportResults(String name, List<IsotopeError> results) {
+    try (var writer = CSVParsingUtils.createDefaultWriter(new File(
+        "C:\\Users\\Steffen\\PyCharmMiscProject\\centroiding_errors\\Errors_isotopes_%s.csv".formatted(
+            name)), '\t', WriterOptions.REPLACE)) {
+      writer.writeNext(
+          new String[]{"scan", "main_mz", "isotope_mz", "measured_distance", "error_abs",
+              "error_ppm"});
+      for (int i = 0; i < results.size(); i++) {
+        IsotopeError result = results.get(i);
+        writer.writeNext(new String[]{String.valueOf(result.scan().getScanNumber()),
+            String.valueOf(result.mainPeakMz()), String.valueOf(result.isotopePeakMz()),
+            String.valueOf(result.measuredDistance()), String.valueOf(result.absoluteError()),
+            String.valueOf(result.ppmError())});
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  //  @ParameterizedTest
+//  @EnumSource(MassDetectionErrorSource.class)
+  @Test
+  void testExactMass() {
+    final var source = MassDetectionErrorSource.WATERS;
 
     MZmineTestUtil.cleanProject();
-    FilesToImport vendorImport = FilesToImport.centroid(source.vendorFile, source.vendorNoise,
-        source.vendorNoise);
-    FilesToImport profileImport = FilesToImport.tof(source.mzmineFile, source.mzmineNoise,
-        source.mzmineNoise, source.intensityCalc);
+    FilesToImport vendorImport = FilesToImport.centroid(source.vendorCentroidingFile,
+        source.vendorNoise, source.vendorNoise);
+    FilesToImport profileImport = FilesToImport.exactMass(source.mzmineCentroidingFile, 0, 0);
     final MZTolerance tol = new MZTolerance(0.005, 5);
 
     final RawDataFile vendorFile = vendorImport.runImport().getFirst();
@@ -106,13 +127,14 @@ public class MassDetectionErrorTests {
       results.add(stats);
     }
 
-    exportResults(source.name, results, scanStep);
+    exportResults("exact_mass_" + source.name, results, scanStep);
   }
 
   @Test
   public void testBruker() {
     MZmineTestUtil.cleanProject();
-    final var brukerImport = new FilesToImport(List.of(MassDetectionErrorSource.BRUKER.mzmineFile),
+    final var brukerImport = new FilesToImport(
+        List.of(MassDetectionErrorSource.BRUKER.mzmineCentroidingFile),
         AdvancedSpectraImportParameters.create(null, null, null, null,
             Range.closed(1123.2d, 1124.4d),
             new ScanSelection(Range.closed(584, 590), null, null, null, PolarityType.ANY,
@@ -131,11 +153,77 @@ public class MassDetectionErrorTests {
     logger.info(Arrays.toString(massValues));
   }
 
+  //  @ParameterizedTest
+//  @EnumSource(MassDetectionErrorSource.class)
+//  void testTof(MassDetectionErrorSource source) {
+  @Test
+  void testTof() {
+    final MassDetectionErrorSource source = MassDetectionErrorSource.WATERS;
+
+    MZmineTestUtil.cleanProject();
+    FilesToImport vendorImport = FilesToImport.centroid(source.vendorCentroidingFile,
+        source.vendorNoise, source.vendorNoise);
+    FilesToImport profileImport = FilesToImport.tof(source.mzmineCentroidingFile,
+        source.mzmineNoise, source.mzmineNoise, source.intensityCalc);
+    final MZTolerance tol = new MZTolerance(0.005, 5);
+
+    final RawDataFile vendorCentroided = vendorImport.runImport().getFirst();
+    final RawDataFile mzmineCentroided = profileImport.runImport().getFirst();
+
+    assert vendorCentroided.getNumOfScans() == mzmineCentroided.getNumOfScans();
+
+    List<MassDetectionErrorStatistics> results = new ArrayList<>();
+    List<IsotopeError> mzmineErrors = new ArrayList<>();
+    List<IsotopeError> vendorErrors = new ArrayList<>();
+    final int scanStep = 1;
+    for (int i = 0; i < vendorCentroided.getNumOfScans(); i += scanStep) {
+      final MassSpectrum vendorScan = vendorCentroided.getScan(i).getMassList();
+      final MassSpectrum centroidedScan = mzmineCentroided.getScan(i).getMassList();
+
+      MassDetectionErrorStatistics stats = MassDetectionErrorStatistics.of(vendorScan,
+          centroidedScan, tol, source.vendorNoise);
+      results.add(stats);
+
+      vendorErrors.addAll(getIsotopeErrors(vendorCentroided.getScan(i), tol));
+      mzmineErrors.addAll(getIsotopeErrors(mzmineCentroided.getScan(i), tol));
+    }
+
+    exportResults(source.name, results, scanStep);
+    exportResults("vendor_" + source.name, vendorErrors);
+    exportResults("tof_" + source.name, mzmineErrors);
+  }
+
+  private List<IsotopeError> getIsotopeErrors(Scan spectrum, MZTolerance tol) {
+    @NotNull DataPoint[] data = ScanUtils.extractDataPoints(spectrum);
+
+    List<IsotopeError> errors = new ArrayList<>();
+    Arrays.sort(data, DataPointSorter.DEFAULT_INTENSITY);
+
+    for (int i = 0; i < data.length; i++) {
+      final DataPoint dp = data[i];
+      final double mz = dp.getMZ();
+      boolean found = false;
+      for (int j = i; j < data.length; j++) {
+        final DataPoint iso = data[j];
+
+        if (tol.checkWithinTolerance(mz + IsotopeError.DISTANCE, iso.getMZ())) {
+          found = true;
+          errors.add(new IsotopeError(spectrum, dp, iso));
+        }
+      }
+      if (!found) {
+        // stop if no isotope is found for a peak
+        break;
+      }
+    }
+    return errors;
+  }
+
   enum MassDetectionErrorSource {
     WATERS("D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Waters\\LC-MS DDA\\pos\\050325_029.raw",
         100,
         "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Waters\\LC-MS DDA\\pos\\050325_029_copy.raw",
-        30, AbundanceMeasure.Area, "Waters"), //
+        30, AbundanceMeasure.Area, "pow2_Waters"), //
     AGILENT(
         "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Agilent\\Agilent 6546_Zamboni\\mzML\\BEH30mm_5min_LipidMix_DDA.mzML",
         100,
@@ -151,15 +239,16 @@ public class MassDetectionErrorTests {
     final double vendorNoise;
     final double mzmineNoise;
     final @NotNull AbundanceMeasure intensityCalc;
-    final String vendorFile;
-    final String mzmineFile;
+    final String vendorCentroidingFile;
+    final String mzmineCentroidingFile;
     final String name;
 
-    MassDetectionErrorSource(String vendorFile, double vendorNoise, String mzmineFile,
-        double mzmineNoise, AbundanceMeasure intensityCalc, String name) {
-      this.vendorFile = vendorFile;
+    MassDetectionErrorSource(String vendorCentroidingFile, double vendorNoise,
+        String mzmineCentroidingFile, double mzmineNoise, AbundanceMeasure intensityCalc,
+        String name) {
+      this.vendorCentroidingFile = vendorCentroidingFile;
       this.vendorNoise = vendorNoise;
-      this.mzmineFile = mzmineFile;
+      this.mzmineCentroidingFile = mzmineCentroidingFile;
       this.mzmineNoise = mzmineNoise;
       this.intensityCalc = intensityCalc;
       this.name = name;

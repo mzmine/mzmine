@@ -32,6 +32,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecto
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.collections.SimpleIndexRange;
+import io.github.mzmine.util.maths.Weighting;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import java.util.ArrayList;
@@ -49,8 +50,14 @@ public class TofMassDetector implements MassDetector {
   private static final double VALLEY_FACTOR = 0.7;
   private static final double RISE_FACTOR = 1.3;
 
+  /**
+   * Minimum peak length in points including zeros
+   */
+  private final int MIN_PEAK_RANGE_LENGTH = 4; // two points + 2 zeros
+
   private final double noiseLevel;
   private final AbundanceMeasure intensityCalculation;
+  private Weighting mzWeighting = Weighting.POW2;
 
   public TofMassDetector() {
     this(0, AbundanceMeasure.Height);
@@ -136,7 +143,7 @@ public class TofMassDetector implements MassDetector {
       // If the gap is too large, we close the current region and start a new one
       if (mzDelta >= maxDiff) {
         // Only add regions that contain enough data points to form a peak (e.g., > 2 points)
-        if (i - currentRegionStart > 4 && onePointAboveNoise) {
+        if (i - currentRegionStart > MIN_PEAK_RANGE_LENGTH && onePointAboveNoise) {
           consecutiveRanges.add(new SimpleIndexRange(currentRegionStart, i - 1));
         }
         currentRegionStart = i;
@@ -147,7 +154,7 @@ public class TofMassDetector implements MassDetector {
     }
 
     // Add the final region if valid
-    if (numPoints - currentRegionStart > 3 && onePointAboveNoise) {
+    if (numPoints - currentRegionStart > MIN_PEAK_RANGE_LENGTH - 1 && onePointAboveNoise) {
       consecutiveRanges.add(new SimpleIndexRange(currentRegionStart, numPoints - 1));
     }
 
@@ -194,7 +201,7 @@ public class TofMassDetector implements MassDetector {
     for (int i = 1; i < candidateIndices.size(); i++) {
       final int nextCandidateIdx = candidateIndices.getInt(i);
 
-      // Find the deepest valley between the current active peak and the next candidate
+      // Find the deepest valley between the current active peak and the next candidate (to the right)
       final int valleyIdx = findLowestValleyIndex(intensities, activePeakIdx, nextCandidateIdx);
 
       final double activePeakInt = intensities[activePeakIdx];
@@ -286,6 +293,11 @@ public class TofMassDetector implements MassDetector {
       final int peakMaxIdx, final int startIdx, final int endIdx, final double absMinIntensity,
       final DoubleArrayList resultMzs, final DoubleArrayList resultIntensities) {
 
+    if (endIdx - startIdx
+        < MIN_PEAK_RANGE_LENGTH - 2) { // potentially this peak does not start and end at zero.
+      return;
+    }
+
     final double maxIntensity = intensities[peakMaxIdx];
 
     // 1. Peak Validity Check
@@ -310,6 +322,7 @@ public class TofMassDetector implements MassDetector {
     double sumMzInt = 0.0;
     double sumIntForMz = 0.0;
     double totalArea = 0.0;
+    int nonZeroPoints = 0;
 
     // 3. Integrate Valley-to-Valley
     // We iterate strictly from startIdx to endIdx (exclusive), which are the boundaries
@@ -323,13 +336,16 @@ public class TofMassDetector implements MassDetector {
 
       // Centroid M/Z: Weighted average using ONLY points > 0.4 * maxIntensity
       if (intensity > mzWeightingCutoff) {
-        sumMzInt += (mz * intensity);
-        sumIntForMz += intensity;
+        sumMzInt += (mz * mzWeighting.transform(intensity));
+        sumIntForMz += mzWeighting.transform(intensity);
+      }
+      if (intensity > 0) {
+        nonZeroPoints++;
       }
     }
 
     // Safety check if no points met the weighting criteria (unlikely if max > detectionThreshold)
-    if (sumIntForMz == 0) {
+    if (sumIntForMz == 0 || nonZeroPoints < MIN_PEAK_RANGE_LENGTH - 2) {
       return;
     }
 

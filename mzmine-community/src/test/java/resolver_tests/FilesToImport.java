@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.tof.TofMassDetectorParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
@@ -100,6 +101,21 @@ public record FilesToImport(@NotNull List<String> filePaths,
         ScanSelection.ALL_SCANS, false);
 
     return new FilesToImport(fileName, advancedParam, vendorParamNoCentroid);
+  }
+
+  public static FilesToImport exactMass(String mzmineFile, double noiseLevelMs1,
+      double noiseLevelMs2) {
+
+    ExactMassDetectorParameters paramMs1 = (ExactMassDetectorParameters) new ExactMassDetectorParameters().cloneParameterSet();
+    paramMs1.setParameter(ExactMassDetectorParameters.noiseLevel, noiseLevelMs1);
+
+    ExactMassDetectorParameters paramMs2 = (ExactMassDetectorParameters) new ExactMassDetectorParameters().cloneParameterSet();
+    paramMs2.setParameter(ExactMassDetectorParameters.noiseLevel, noiseLevelMs2);
+
+    AdvancedSpectraImportParameters param = AdvancedSpectraImportParameters.create(
+        MassDetectors.EXACT, paramMs1, MassDetectors.EXACT, paramMs2, null, ScanSelection.ALL_SCANS,
+        false);
+    return new FilesToImport(List.of(mzmineFile), param, vendorParamNoCentroid);
   }
 
   public List<RawDataFile> runImport() {
