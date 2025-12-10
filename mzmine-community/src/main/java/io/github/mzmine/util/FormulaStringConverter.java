@@ -30,6 +30,7 @@ import static java.util.Objects.requireNonNullElse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.config.Elements;
@@ -40,6 +41,8 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaStringConverter {
+
+  private static final Logger logger = Logger.getLogger(FormulaStringConverter.class.getName());
 
   private static String[] generateOrderEle_Hill_NoCarbons() {
     return new String[]{"Ac", "Ag", "Al", "Am", "Ar", "As", "At", "Au", "B", "Ba", "Be", "Bh", "Bi",
@@ -110,8 +113,12 @@ public class FormulaStringConverter {
     if (charge != null && charge != 0) {
       stringMF.append('[');
     }
+    int counter = 0;
 
     for (IIsotope isotope : isotopesList) {
+      counter++;
+      logger.warning("Adding at %d atom %s full: %s".formatted(counter, isotope.getSymbol(),
+          stringMF.toString()));
       final IIsotope major;
       try {
         major = Isotopes.getInstance().getMajorIsotope(isotope.getAtomicNumber());
@@ -174,6 +181,7 @@ public class FormulaStringConverter {
       sb.append('[').append(mass).append(']').append(symbol);
     } else {
       sb.append(symbol);
+      logger.warning("Added %s with count %d   total: %s".formatted(symbol, count, sb.toString()));
     }
     if (count != 0) {
       sb.append(count);

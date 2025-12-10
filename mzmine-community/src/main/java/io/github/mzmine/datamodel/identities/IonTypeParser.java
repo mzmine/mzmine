@@ -29,6 +29,7 @@ import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -37,6 +38,29 @@ import org.jetbrains.annotations.Nullable;
 public class IonTypeParser {
 
   private static final Logger logger = Logger.getLogger(IonTypeParser.class.getName());
+
+  /// Charge pattern at the end of string as +- with optional number Options are: Just sign: + -
+  /// sign number: +2 bracket number sign: ]2+ or )2+
+  public static final Pattern CHARGE_PATTERN = Pattern.compile("[])](\\d+[+-])$|([+-]\\d*)$");
+
+  @Nullable
+  public static Integer parseChargeOrElse(@Nullable String input, @Nullable Integer defaultValue) {
+    if (input == null) {
+      return null;
+    }
+    input = StringUtils.removeAllWhiteSpace(input);
+    var matcher = CHARGE_PATTERN.matcher(input);
+    if (matcher.find()) {
+      // either in group 1 or in group 2 depending on which alternative pattern matches
+      String charge = matcher.group(1);
+      if (charge == null) {
+        charge = matcher.group(2);
+      }
+      return StringUtils.parseSignAndIntegerOrElse(charge, false, defaultValue);
+    }
+    return defaultValue;
+  }
+
 
   @Nullable
   public static IonType parse(final @Nullable String str) {

@@ -25,14 +25,11 @@
 
 package io.github.mzmine.util;
 
-import io.github.mzmine.datamodel.structures.MolecularStructure;
-import io.github.mzmine.datamodel.structures.StructureInputType;
-import io.github.mzmine.datamodel.structures.StructureParser;
+import io.github.mzmine.datamodel.identities.IonTypeParser;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
-import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
@@ -50,68 +47,33 @@ public class FormulaParser {
    * <p>
    * Keeps specifically defined isotopes as is: If the formula string contains specific isotopes
    * like C5[13C] then one 13C isotope will be retained and not exchanged for the major isotope.
-   * <p>
-   * May also parse a SMILES if formula fails
    *
-   * @param formulaOrSmiles formula or smiles
    * @return the formula or null on error
    */
   @Nullable
-  public static IMolecularFormula parseFormulaOrSMILES(String formulaOrSmiles) {
-    IMolecularFormula f = parseFormula(formulaOrSmiles);
-    if (f == null) {
-      // try to parse as smiles
-      // useful for formulas given as CH3-OH
-      final MolecularStructure structure = StructureParser.silent()
-          .parseStructure(formulaOrSmiles, StructureInputType.SMILES);
-      if (structure != null) {
-        f = structure.formula();
-        logger.finer(() -> "Formula %s was parsed as SMILES %s".formatted(formulaOrSmiles,
-            structure.formulaString()));
-      }
+  public static IMolecularFormula parseFormula(@Nullable String formula) {
+    if (formula == null) {
+      return null;
     }
-    return f;
-  }
-
-  /**
-   * Creates a formula with the major isotopes (important to use this method for exact mass
-   * calculation over the CDK version, which generates formulas without an exact mass)
-   * <p>
-   * Keeps specifically defined isotopes as is: If the formula string contains specific isotopes
-   * like C5[13C] then one 13C isotope will be retained and not exchanged for the major isotope.
-   *
-   * @return the formula or null on error
-   */
-  @Nullable
-  public static IMolecularFormula parseFormula(String formula) {
     try {
       IChemObjectBuilder builder = FormulaUtils.silentBuilder();
       // generate regular formula first
       // this method adds missing atoms as isotope with atom number 0
       // parsing TEST will result in 1 S atom and 3 atoms with number 0 -> check this to validate parsing
-      var f = MolecularFormulaManipulator.getMolecularFormula(formula.replace(" ", ""), builder);
+      formula = formula.replaceAll("\\s+", "");
+      var f = MolecularFormulaManipulator.getMolecularFormula(formula, builder);
 
       if (f == null) {
         return null;
       }
 
-      for (IIsotope iso : f.isotopes()) {
-        if ((iso.getAtomicNumber() == null) || (iso.getAtomicNumber() == 0)) {
-          logger.warning("Cannot parse formula %s as there are unknown atoms".formatted(formula));
-          return null;
-        }
-
-        final IIsotope exactIso = FormulaUtils.getExactIsotope(iso);
-        if (exactIso != null) {
-          // replace isotopes
-          // needed, as MolecularFormulaManipulator method returns isotopes
-          // without exact mass info
-          iso.setMassNumber(exactIso.getMassNumber());
-          iso.setExactMass(exactIso.getExactMass());
-          iso.setNaturalAbundance(exactIso.getNaturalAbundance());
-        }
+      // CDK parses charge only from [H]+ not from H+ so we add this behavior here
+      if (FormulaUtils.isUncharged(f)) {
+        final Integer charge = IonTypeParser.parseChargeOrElse(formula, null);
+        f.setCharge(charge);
       }
-      return f;
+
+      return FormulaUtils.replaceAllIsotopesWithoutExactMass(f);
     } catch (Exception e) {
       logger.log(Level.SEVERE, "Cannot create formula for: " + formula, e);
       return null;

@@ -120,6 +120,28 @@ class IonTypeParserTest {
   }
 
   @Test
+  void parseChargeOrElse() {
+    // flipped charge string needs ) or ] before 2+ charge
+    Assertions.assertEquals(-2, IonTypeParser.parseChargeOrElse("Cl2]2-", null));
+    Assertions.assertEquals(-2, IonTypeParser.parseChargeOrElse("Cl2)2-", null));
+    // white space allowed after and trimmed
+    Assertions.assertEquals(-2, IonTypeParser.parseChargeOrElse("Cl2) 2 -  \t", null));
+    // default is +2 sign then number
+    Assertions.assertEquals(1, IonTypeParser.parseChargeOrElse("Fe+", null));
+    Assertions.assertEquals(1, IonTypeParser.parseChargeOrElse("Fe+1", null));
+    Assertions.assertEquals(2, IonTypeParser.parseChargeOrElse("Fe+2", null));
+    Assertions.assertEquals(-1, IonTypeParser.parseChargeOrElse("Cl-", null));
+    Assertions.assertEquals(-1, IonTypeParser.parseChargeOrElse("Cl-1", null));
+    Assertions.assertEquals(-2, IonTypeParser.parseChargeOrElse("Cl-2", null));
+    Assertions.assertEquals(-2, IonTypeParser.parseChargeOrElse("Cl-2", null));
+    Assertions.assertNull(IonTypeParser.parseChargeOrElse("Cl", null));
+    Assertions.assertEquals(-1, IonTypeParser.parseChargeOrElse("Cl2-", null));
+
+    Assertions.assertNull(IonTypeParser.parseChargeOrElse("Cl-2nothing after allowed", null));
+    Assertions.assertNull(IonTypeParser.parseChargeOrElse("Cl2)2-nothing allowed after", null));
+  }
+
+  @Test
   void test() {
 //    IonType ionType = IonTypes.H.asIonType();
 //    CompoundDBAnnotation annotation = new SimpleCompoundDBAnnotation();

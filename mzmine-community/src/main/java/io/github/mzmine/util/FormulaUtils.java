@@ -36,6 +36,9 @@ import io.github.mzmine.datamodel.identities.IonUtils;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureInputType;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,14 +56,11 @@ import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.config.Isotopes;
-import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.formula.MolecularFormula;
-import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaUtils {
@@ -387,12 +387,12 @@ public class FormulaUtils {
   /**
    * Creates a formula with replaced charge
    *
-   * @see FormulaParser#parseFormulaOrSMILES(String)
+   * @see FormulaParser#parseFormula(String)
    */
   @Nullable
-  public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(
-      @Nullable String formulaOrSmiles, int overwriteCharge) {
-    var f = createMajorIsotopeMolFormulaWithCharge(formulaOrSmiles);
+  public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(@Nullable String formula,
+      int overwriteCharge) {
+    var f = createMajorIsotopeMolFormulaWithCharge(formula);
     if (f != null) {
       f.setCharge(overwriteCharge);
     }
@@ -400,23 +400,22 @@ public class FormulaUtils {
   }
 
   /**
-   * @see FormulaParser#parseFormulaOrSMILES(String)
+   * @see FormulaParser#parseFormula(String)
    */
   @Nullable
-  public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(
-      @Nullable String formulaOrSmiles) {
-    return parse(formulaOrSmiles);
+  public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(@Nullable String formula) {
+    return parse(formula);
   }
 
   /**
-   * @see FormulaParser#parseFormulaOrSMILES(String)
+   * @see FormulaParser#parseFormula(String)
    */
   @Nullable
-  public static IMolecularFormula parse(@Nullable String formulaOrSmiles) {
-    if (formulaOrSmiles == null) {
+  public static IMolecularFormula parse(@Nullable String formula) {
+    if (formula == null) {
       return null;
     }
-    return FormulaParser.parseFormulaOrSMILES(formulaOrSmiles);
+    return FormulaParser.parseFormula(formula);
   }
 
   /**
@@ -468,6 +467,14 @@ public class FormulaUtils {
     }
   }
 
+  public static boolean isUncharged(@Nullable IMolecularFormula f) {
+    return f == null || f.getCharge() == null || f.getCharge() == 0;
+  }
+
+  public static boolean isCharged(@Nullable IMolecularFormula f) {
+    return !isUncharged(f);
+  }
+
   public IMolecularFormula clone(IMolecularFormula formula) {
     final MolecularFormula nf = new MolecularFormula();
     nf.add(formula);
@@ -478,26 +485,31 @@ public class FormulaUtils {
    * Searches for all isotopes exactmass=null and replaces them with the isotope instance with exact
    * mass
    */
-  public static IMolecularFormula replaceAllIsotopesWithoutExactMass(IMolecularFormula f,
-      boolean inPlace) {
-    if (!inPlace) {
-      f = cloneFormula(f);
-    }
+  @Nullable
+  public static IMolecularFormula replaceAllIsotopesWithoutExactMass(
+      @Nullable IMolecularFormula f) {
     if (f == null) {
       return null;
     }
+    // has to be on copy because otherwise the formula chokes in tests
+    // somehow parsing CC(=O)O smiles and then FormulaUtils.getFormula(structure)
+    // with this replace isotopes results in different formulas
+    // first call: C2H4O2 (correct)
+    // second call: CCH4OO
+    final MolecularFormula copy = new MolecularFormula();
+    copy.setCharge(f.getCharge());
 
     for (IIsotope iso : f.isotopes()) {
-      // find isotope without exact mass
-      if (iso.getExactMass() == null || iso.getExactMass() == 0) {
-        IIsotope major = getExactIsotope(iso);
-        iso.setMassNumber(major.getMassNumber());
-        iso.setExactMass(major.getExactMass());
-        iso.setNaturalAbundance(major.getNaturalAbundance());
+      if ((iso.getAtomicNumber() == null) || (iso.getAtomicNumber() == 0)) {
+        logger.warning("Cannot parse formula %s as there are unknown atoms".formatted(
+            FormulaUtils.getFormulaString(f)));
+        return null;
       }
+      // find isotope without exact mass
+      IIsotope major = getExactIsotope(iso);
+      copy.addIsotope(major, f.getIsotopeCount(iso));
     }
-    // no isotope found
-    return f;
+    return copy;
   }
 
   /**
@@ -808,9 +820,10 @@ public class FormulaUtils {
       return null;
     }
     try {
-      final IAtomContainer iAtomContainer = new SmilesParser(silentBuilder()).parseSmiles(smiles);
-      return MolecularFormulaManipulator.getMolecularFormula(iAtomContainer);
-    } catch (InvalidSmilesException e) {
+      final MolecularStructure structure = StructureParser.silent()
+          .parseStructure(smiles, StructureInputType.SMILES);
+      return structure == null ? null : structure.formula();
+    } catch (Exception e) {
       logger.log(Level.SEVERE, e.getMessage(), e);
     }
     return null;
@@ -849,7 +862,7 @@ public class FormulaUtils {
       final IMolecularFormula molecularFormula = (IMolecularFormula) formula.clone();
       final Integer charge = molecularFormula.getCharge();
       if (charge != null && charge != 0) {
-        final String string = MolecularFormulaManipulator.getString(molecularFormula);
+        final String string = FormulaUtils.getFormulaString(molecularFormula);
 
         logger.finest(
             () -> "Compound " + string + " is not neutral as determined by molFormula. charge = "

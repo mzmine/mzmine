@@ -146,6 +146,45 @@ public class StringUtils {
    * Will search for a sign + or - that precedes or succeeds a number so +2 and 2+ will both result
    * in +2
    *
+   * @param str          input
+   * @param defaultValue default to return
+   * @return parsed integer or the default value on exception
+   */
+  @Nullable
+  public static Integer parseSignAndIntegerOrElse(@Nullable String str,
+      @Nullable Integer defaultValue) {
+    if (str == null || str.isBlank()) {
+      return defaultValue;
+    }
+    str = str.trim();
+    // handle charge sign at the end like 2+
+    final char lastChar = str.charAt(str.length() - 1);
+    if (lastChar == '+' || lastChar == '-') {
+      int sign = lastChar == '+' ? 1 : -1;
+      if (str.length() == 1) {
+        return sign; // only sign
+      }
+      Integer value = parseIntegerOrElse(str.substring(0, str.length() - 1), false, null);
+      if (value == null) {
+        return defaultValue;
+      }
+      return sign * Math.abs(value);
+    }
+
+    // regular value first
+    Integer value = parseIntegerOrElse(str, false, null);
+    if (value != null) {
+      return value;
+    }
+
+    // just + or -
+    return findFirstPlusMinusSignMultiplier(str);
+  }
+
+  /**
+   * Will search for a sign + or - that precedes or succeeds a number so +2 and 2+ will both result
+   * in +2
+   *
    * @param str           input
    * @param onlyUseDigits use only digits contained in string - otherwise try on the whole string
    * @param defaultValue  default to return
@@ -154,19 +193,24 @@ public class StringUtils {
   @Nullable
   public static Integer parseSignAndIntegerOrElse(@Nullable String str, boolean onlyUseDigits,
       @Nullable Integer defaultValue) {
+    if (!onlyUseDigits) {
+      return parseSignAndIntegerOrElse(str, defaultValue);
+    }
     if (str == null || str.isBlank()) {
       return defaultValue;
     }
+
     int signMultiplier = findFirstPlusMinusSignMultiplier(str);
     try {
-      var value = parseIntegerOrElse(str, onlyUseDigits, defaultValue);
+      var value = parseIntegerOrElse(str, true, null);
       if (signMultiplier == 0 && value == null) {
-        return null;
+        return defaultValue;
       } else if (value == null) {
         return signMultiplier;
       } else if (signMultiplier == 0) {
         return value;
       } else {
+        // only digits always returns positive value
         return value * signMultiplier;
       }
     } catch (Exception ex) {

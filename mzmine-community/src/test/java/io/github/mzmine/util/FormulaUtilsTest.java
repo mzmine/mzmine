@@ -58,15 +58,18 @@ class FormulaUtilsTest {
   }
 
   final static List<Case> cases = List.of( //
-      new Case("NH4", "H4N", null) //
+      new Case("[NH4]+", "[H4N]+", 1) //
+      , new Case("NH4", "H4N", null) //
       , new Case("NH4+", "[H4N]+", 1) //
       , new Case("COOH", "CHO2", null) //
       , new Case("(NH4)+", "[H4N]+", 1) //
+      , new Case("(NH4)-2", "[H4N]2-", -2) //
+      // flipped charge only works with []2- not with ()2- as ()2- would mean 2 times what is in ()
+      , new Case("NH4-2", "[H4N]2-", -2) //
+      , new Case("[NH4]2-", "[H4N]2-", -2) //
+      , new Case("[NH4]-2", "[H4N]2-", -2) //
       , new Case("[13C]C5H12+", "[C6H12]+", "[C5[13]CH12]+", 1) //
       , new Case("[[13C]C5H12]+", "[C6H12]+", "[C5[13]CH12]+", 1) //
-      // those are parsed as smiles therefore charge needs to be fixed in smiles parsing.
-      , new Case("C-C-OH", "C2H6O", 0) //
-      , new Case("[C-C-OH]+", "[C2H6O]+", 1) //
   );
 
   @ParameterizedTest
@@ -109,19 +112,17 @@ class FormulaUtilsTest {
 
   @Test
   void testNeutralizeFormula() {
-    final IMolecularFormula neutralGlucose = MolecularFormulaManipulator.getMolecularFormula(
-        "C6H12O6", SilentChemObjectBuilder.getInstance());
+    final String gluStr = "C6H12O6";
+    final IMolecularFormula neutralGlucose = MolecularFormulaManipulator.getMolecularFormula(gluStr,
+        SilentChemObjectBuilder.getInstance());
 
-    final IMolecularFormula n1 = FormulaUtils.neutralizeFormulaWithHydrogen("C6H12O6");
+    final IMolecularFormula n1 = FormulaUtils.neutralizeFormulaWithHydrogen(gluStr);
     final IMolecularFormula n2 = FormulaUtils.neutralizeFormulaWithHydrogen("C6H13O6+");
     final IMolecularFormula n3 = FormulaUtils.neutralizeFormulaWithHydrogen("C6H11O6-");
 
-    assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
-        MolecularFormulaManipulator.getString(n1));
-    assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
-        MolecularFormulaManipulator.getString(n2));
-    assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
-        MolecularFormulaManipulator.getString(n3));
+    assertEquals(gluStr, FormulaUtils.getFormulaString(n1));
+    assertEquals(gluStr, FormulaUtils.getFormulaString(n2));
+    assertEquals(gluStr, FormulaUtils.getFormulaString(n3));
 
     final IMolecularFormula n4 = FormulaUtils.neutralizeFormulaWithHydrogen(
         FormulaUtils.getFormulaFromSmiles("OC(O1)C(O)C(O)C(O)C1CO"));
@@ -130,12 +131,9 @@ class FormulaUtilsTest {
     final IMolecularFormula n6 = FormulaUtils.neutralizeFormulaWithHydrogen(
         FormulaUtils.getFormulaFromSmiles("OC(O1)C(O)C(O)C([O-])C1CO"));
 
-    assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
-        MolecularFormulaManipulator.getString(n4));
-    assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
-        MolecularFormulaManipulator.getString(n5));
-    assertEquals(MolecularFormulaManipulator.getString(neutralGlucose),
-        MolecularFormulaManipulator.getString(n6));
+    assertEquals(gluStr, FormulaUtils.getFormulaString(n4));
+    assertEquals(gluStr, FormulaUtils.getFormulaString(n5));
+    assertEquals(gluStr, FormulaUtils.getFormulaString(n6));
   }
 
   @Test
@@ -243,8 +241,6 @@ class FormulaUtilsTest {
     parseFormula("GGG", true); //
     parseFormula("H2o", true);
     parseFormula("H2O", false);
-    // bindings supported
-    parseFormula("C-C-OH", false);
   }
 
   private static IMolecularFormula parseFormula(final String formula, boolean resultNull) {
