@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
@@ -50,26 +49,24 @@ class IonPartParserTest {
   }
 
   final static List<Case> cases = List.of( //
+      new Case("+C2ArS+", 1, 1, "C2ArS"),//
+      // check if charge overwrite works
       new Case("+Na-", -1, 1, "Na"),//
-      new Case("+(C-OH)", 0, 1, "CH4O"),//
-      new Case("+2(C-OH+)", 1, 2, "CH4O"),//
-      new Case("+2(C-OH+1)", 1, 2, "CH4O"),//
-      new Case("+2(C-OH-)", -1, 2, "CH4O"),//
-      new Case("+2(C-OH-1)", -1, 2, "CH4O"),//
+      new Case("+Na-2", -2, 1, "Na"),//
+// will be charge 1 because this is the predefined charge state of Na
+      new Case("+Na", 1, 1, "Na"), //
+      // regular cases
       new Case("+H", 1, 1, "H"),//
       new Case("+2H", 1, 2, "H"),//
       new Case("+(H)", 1, 1, "H"),//
       new Case("+2(H)", 1, 2, "H"),//
-// will be charge 1 because this is the predefined charge state of Na
-      new Case("+Na", 1, 1, "Na"), //
       // need to use some more exotic formula to avoid charge being known in predefined parts
-      new Case("+Ar+", 1, 1, "Ar"),//
-      new Case("+Ar+1", 1, 1, "Ar"),//
-      new Case("+Ar-2", -2, 1, "Ar"),//
-      new Case("+Ar-2", -2, 1, "Ar"),//
-      new Case("+(Ar)", 1, 1, "Ar"),//
-      new Case("+(Ar+)", 1, 1, "Ar"),//
-      new Case("+(Ar-2)", -2, 1, "Ar")//
+      new Case("+C2ArS+1", 1, 1, "C2ArS"),//
+      new Case("+C2ArS-2", -2, 1, "C2ArS"),//
+      new Case("+C2ArS-2", -2, 1, "C2ArS"),//
+      new Case("+(C2ArS)", 0, 1, "C2ArS"),//
+      new Case("+(C2ArS+)", 1, 1, "C2ArS"),//
+      new Case("+(C2ArS-2)", -2, 1, "C2ArS")//
   );
 
   @ParameterizedTest
@@ -85,42 +82,12 @@ class IonPartParserTest {
   }
 
   @Test
-  public void testParseBindings() {
-    var charges = List.of(0, 2, -1);
-    String input = "+2(C-OH) +  2(C-OH+2) + 2(C-OH-)";
-    List<IonPart> parts = IonPartParser.parseMultiple(input);
-    assertEquals(3, parts.size());
-    for (int i = 0; i < parts.size(); i++) {
-      final IonPart part = parts.get(i);
-      assertEquals(charges.get(i), part.singleCharge());
-      assertEquals("CH4O", part.name());
-      assertEquals(2, part.count());
-    }
-  }
-
-  @Test
-  public void testParseSmiles() {
-    final List<String> smiles = List.of("C#C-C", "C-OH", "C=O");
-    final List<String> names = List.of("C3H4", "CH4O", "CH2O");
-    final var charges = List.of(0, 2, -1);
-    final var counts = List.of(-1, 1, 2);
-
-    final List<IonPart> ions = IntStream.range(0, counts.size())
-        .mapToObj(i -> new IonPart(smiles.get(i), charges.get(i), counts.get(i))).toList();
-    var input = ions.stream().map(ion -> ion.toString(IonPartStringFlavor.SIMPLE_WITH_CHARGE))
-        .collect(Collectors.joining(""));
-
-    var parts = IonPartParser.parseMultiple(input);
-    assertEquals(3, parts.size());
-    for (int i = 0; i < parts.size(); i++) {
-      final String message =
-          "For part: " + ions.get(i).toString(IonPartStringFlavor.SIMPLE_WITH_CHARGE);
-
-      final IonPart part = parts.get(i);
-      assertEquals(charges.get(i), part.singleCharge(), message);
-      assertEquals(names.get(i), part.name(), message);
-      assertEquals(counts.get(i), part.count(), message);
-    }
+  void testParse() {
+    final IonPart part = IonPartParser.parse("+3C2ArS+1");
+    assertNotNull(part);
+    assertEquals("C2ArS", part.name());
+    assertEquals(1, part.singleCharge());
+    assertEquals(3, part.count());
   }
 
   @Test

@@ -475,6 +475,22 @@ public class FormulaUtils {
     return !isUncharged(f);
   }
 
+
+  /**
+   * @return the major isotope of an element
+   */
+  @Nullable
+  public static IIsotope getMajorIsotope(@Nullable Integer atomicNumber) {
+    if (atomicNumber == null) {
+      return null;
+    }
+    try {
+      return isotopesSilent().getMajorIsotope(atomicNumber);
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
   public IMolecularFormula clone(IMolecularFormula formula) {
     final MolecularFormula nf = new MolecularFormula();
     nf.add(formula);

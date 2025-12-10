@@ -25,15 +25,11 @@
 
 package io.github.mzmine.util;
 
-import static java.util.Objects.requireNonNullElse;
-
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.config.Elements;
-import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.interfaces.IElement;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -115,21 +111,19 @@ public class FormulaStringConverter {
 
     for (IIsotope isotope : isotopesList) {
       counter++;
-      final IIsotope major;
-      try {
-        major = Isotopes.getInstance().getMajorIsotope(isotope.getAtomicNumber());
-      } catch (IOException e) {
-        // should not happen
-        throw new RuntimeException(e);
-      }
+      final IIsotope major = FormulaUtils.getMajorIsotope(isotope.getAtomicNumber());
 
       int count = formula.getIsotopeCount(isotope);
       // replace with major number if missing
-      Integer massNumber = requireNonNullElse(isotope.getMassNumber(), major.getMassNumber());
+      Integer massNumber = isotope.getMassNumber();
+      if (massNumber == null && major != null) {
+        massNumber = major.getMassNumber();
+      }
 
       // always showing mass number for elements different from major
       // may skip major if percent >
-      if (skipMajorMassNumber && Objects.equals(major.getMassNumber(), massNumber)) {
+      if (skipMajorMassNumber && major != null && Objects.equals(major.getMassNumber(),
+          massNumber)) {
         // abundance is in 100% not 1.0
         final Double abundance = major.getNaturalAbundance();
         if (abundance != null && skipMassNumberForMajorPercent <= abundance / 100d) {

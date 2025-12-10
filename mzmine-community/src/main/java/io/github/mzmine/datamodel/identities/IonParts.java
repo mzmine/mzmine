@@ -26,9 +26,6 @@
 package io.github.mzmine.datamodel.identities;
 
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
-import io.github.mzmine.datamodel.structures.MolecularStructure;
-import io.github.mzmine.datamodel.structures.StructureInputType;
-import io.github.mzmine.datamodel.structures.StructureParser;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -42,6 +39,9 @@ public class IonParts {
 
   private static final Logger logger = Logger.getLogger(IonParts.class.getName());
 
+  /**
+   * The only part allowed with empty name
+   */
   public static final IonPart SILENT_CHARGE = IonPart.ofNamed("", 0d, 1);
 
   public static final IonPart M_MINUS = IonPart.ofNamed("e", IonUtils.ELECTRON_MASS, -1);
@@ -115,7 +115,8 @@ public class IonParts {
     IonPartDefinition best = null;
     for (final IonPartDefinition predefined : definitionsForName) {
       if (predefined.name().equals(nameOrFormula)) {
-        if (charge != null && Objects.equals(charge, predefined.charge())) {
+        // directly found the correct part
+        if (charge == null || Objects.equals(charge, predefined.charge())) {
           return predefined.withCount(count);
         }
         if (best == null) {
@@ -136,34 +137,8 @@ public class IonParts {
       return part.get().withCount(count).withSingleCharge(charge);
     }
 
-    final String formula;
-
-    // parse structure as smiles if special chars found
-    if (StructureParser.containsSmilesSpecialChars(nameOrFormula)) {
-      final MolecularStructure struc = StructureParser.silent()
-          .parseStructure(nameOrFormula, StructureInputType.SMILES);
-
-      formula = struc != null ? struc.formulaString() : null;
-    } else {
-      // parse formula
-      formula = nameOrFormula;
-    }
-
-    if (formula != null) {
-      // check if formula matches predefined names which are derived from formula
-      var ionPart = new IonPart(formula, null, count);
-      for (IonPart predefined : PREDEFINED_PARTS) {
-        if (predefined.equalsWithoutCount(ionPart)) {
-          return predefined.withCount(count).withSingleCharge(charge);
-        }
-      }
-      return ionPart;
-    }
-    logger.warning("Formula for " + nameOrFormula
-        + " not found during parsing of ion type. This means that the mass remains unknown. Please provide proper formulas or add this name to the mzmine code base");
-    // just create with unknown values
-
-    return IonPart.unknown(nameOrFormula, count, charge);
+    // try with formula or return unknown
+    return IonPart.ofFormula(nameOrFormula, charge, count);
   }
 
 

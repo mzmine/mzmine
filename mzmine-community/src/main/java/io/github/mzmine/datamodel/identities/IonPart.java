@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.util.List;
 import java.util.Objects;
@@ -102,12 +103,14 @@ public final class IonPart {
   public IonPart(@Nullable String name, @Nullable String singleFormula,
       @Nullable Double absSingleMass, @Nullable Integer singleCharge, final int count) {
 
-    if (singleFormula != null) {
+    if (StringUtils.hasValue(singleFormula)) {
       final IMolecularFormula parsedFormula =
           singleCharge == null ? FormulaUtils.createMajorIsotopeMolFormulaWithCharge(singleFormula)
               : FormulaUtils.createMajorIsotopeMolFormulaWithCharge(singleFormula, singleCharge);
 
       if (parsedFormula == null) {
+        // remain unknown as formula was not parsed
+        absSingleMass = null;
         if (name == null) {
           name = singleFormula;
         }
@@ -124,16 +127,28 @@ public final class IonPart {
         }
       }
     }
-
     if (absSingleMass == null) {
       absSingleMass = 0d;
     }
 
-    if (name == null && singleFormula == null) {
+    if (name == null && StringUtils.isBlank(singleFormula)) {
       throw new IllegalArgumentException("name or singleFormula must be defined");
     }
 
-    this.name = requireNonNullElse(name, singleFormula);
+    this.name = requireNonNullElse(name, singleFormula).trim();
+
+    // SILENT_CHARGE has empty name check that mass is null
+    if (this.name.isEmpty()) {
+      if (Double.compare(absSingleMass, 0d) != 0) {
+        throw new IllegalStateException(
+            "Cannot use blank name for part that defines a mass. Blank name is reserved for silent charge");
+      }
+      if (singleFormula != null) {
+        throw new IllegalStateException(
+            "Cannot use formula in combination with empty name. Empty name is reserved for silent charge instance.");
+      }
+    }
+
     this.singleFormula = singleFormula;
     // always positive and then multiplied with count
     this.absSingleMass = Math.abs(absSingleMass);
