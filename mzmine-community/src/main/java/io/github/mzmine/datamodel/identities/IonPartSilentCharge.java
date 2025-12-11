@@ -25,42 +25,73 @@
 
 package io.github.mzmine.datamodel.identities;
 
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * A simple ion library used by the parameter. Use {@link #toSearchableLibrary(boolean)} for an
- * optimized version for searches.
+ * Used when parsing says there is a charge but it is unknown which part holds the charge
  */
-public record SimpleIonLibrary(@NotNull String name, @NotNull List<IonType> ions) implements
-    IonLibrary {
+record IonPartSilentCharge(int count) implements IonPart {
 
+  /**
+   * @return empty string for silent ion
+   */
   @Override
-  @NotNull
-  public List<IonType> ions() {
-    return ions;
+  public @NotNull String name() {
+    return "";
   }
 
   @Override
-  @NotNull
+  public IonPart withSingleCharge(Integer singleCharge) {
+    throw new UnsupportedOperationException(
+        "Cannot change charge of silent single charge part. Rather set the count");
+  }
+
+  @Override
+  public String toString(IonPartStringFlavor flavor) {
+    return toString();
+  }
+
+  @Override
   public String toString() {
-    return "%s (%d ions)".formatted(name, ions.size());
+    return "";
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (!(o instanceof SimpleIonLibrary(String oName, List<IonType> oIons))) {
-      return false;
+  public @Nullable String singleFormula() {
+    return null;
+  }
+
+  @Override
+  public boolean isSilentCharge() {
+    return true;
+  }
+
+  @Override
+  public boolean isUnknown() {
+    return true;
+  }
+
+  @Override
+  public double absSingleMass() {
+    return 0d;
+  }
+
+  @Override
+  public int singleCharge() {
+    return 1;
+  }
+
+  @Override
+  public int count() {
+    return count;
+  }
+
+  @Override
+  public IonPart withCount(int count) {
+    if (count == this.count) {
+      return this;
     }
-
-    return name.equals(oName) && ions.size() == oIons.size() && ions.containsAll(oIons)
-        && oIons.containsAll(ions);
-  }
-
-  @Override
-  public int hashCode() {
-    int result = name.hashCode();
-    result = 31 * result + ions.hashCode();
-    return result;
+    return new IonPartSilentCharge(count);
   }
 }

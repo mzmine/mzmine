@@ -255,12 +255,12 @@ public class IonPartDefinitionPane extends BorderPane {
           return;
         }
         // parse with mass instead
-        part = new IonPartDefinition(name, null, mass.doubleValue(), charge);
+        part = IonPartDefinition.ofNamed(name, mass.doubleValue(), charge);
       } else {
         // has singleFormula so parse singleFormula and calc mass from there
         try {
           part = IonPartDefinition.ofFormula(name, formulaString, charge);
-          this.mass.set(part.absMass());
+          this.mass.set(part.absSingleMass());
         } catch (Exception e) {
           // cannot parse formula
         }
@@ -314,9 +314,9 @@ public class IonPartDefinitionPane extends BorderPane {
         return false;
       }
       name.set(part.name());
-      charge.set(part.charge());
-      mass.set(part.absMass());
-      rawFormulaStr.set(part.formula());
+      charge.set(part.singleCharge());
+      mass.set(part.absSingleMass());
+      rawFormulaStr.set(part.singleFormula());
       return true;
     } catch (Exception ex) {
       return false;

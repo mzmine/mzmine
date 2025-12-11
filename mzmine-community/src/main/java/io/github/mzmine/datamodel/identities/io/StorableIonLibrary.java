@@ -34,6 +34,7 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonPartSorting;
+import io.github.mzmine.datamodel.identities.IonParts;
 import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.IonTypeUtils;
 import java.time.LocalDateTime;
@@ -105,7 +106,7 @@ record StorableIonLibrary(@NotNull String name, //
     @NotNull
     @JsonIgnore
     public IonPart withCount(int count) {
-      return new IonPart(name, formula, mass, charge, count);
+      return IonParts.create(name, formula, mass, charge, count);
     }
   }
 

@@ -25,42 +25,68 @@
 
 package io.github.mzmine.datamodel.identities;
 
-import java.util.List;
+import io.github.mzmine.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * A simple ion library used by the parameter. Use {@link #toSearchableLibrary(boolean)} for an
- * optimized version for searches.
+ * Unknown part, no formula no mass
  */
-public record SimpleIonLibrary(@NotNull String name, @NotNull List<IonType> ions) implements
-    IonLibrary {
+record IonPartUnknown(@NotNull String name, int singleCharge, int count) implements IonPart {
 
-  @Override
-  @NotNull
-  public List<IonType> ions() {
-    return ions;
-  }
-
-  @Override
-  @NotNull
-  public String toString() {
-    return "%s (%d ions)".formatted(name, ions.size());
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (!(o instanceof SimpleIonLibrary(String oName, List<IonType> oIons))) {
-      return false;
+  public IonPartUnknown(@NotNull String name, int singleCharge, int count) {
+    if (StringUtils.isBlank(name)) {
+      throw new IllegalArgumentException(
+          "name is null or empty and this is reserved for part silent charge");
     }
-
-    return name.equals(oName) && ions.size() == oIons.size() && ions.containsAll(oIons)
-        && oIons.containsAll(ions);
+    this.name = name.trim();
+    this.singleCharge = singleCharge;
+    this.count = count;
   }
 
   @Override
-  public int hashCode() {
-    int result = name.hashCode();
-    result = 31 * result + ions.hashCode();
-    return result;
+  public IonPart withSingleCharge(Integer singleCharge) {
+    return new IonPartUnknown(name, singleCharge, count);
+  }
+
+  /**
+   * @return empty string for silent ion
+   */
+  @Override
+  public @NotNull String name() {
+    return name;
+  }
+
+  @Override
+  public @NotNull String toString() {
+    return toString(IonPartStringFlavor.FULL_WITH_MASS);
+  }
+
+  @Override
+  public @Nullable String singleFormula() {
+    return null;
+  }
+
+  @Override
+  public boolean isSilentCharge() {
+    return false;
+  }
+
+  @Override
+  public boolean isUnknown() {
+    return true;
+  }
+
+  @Override
+  public double absSingleMass() {
+    return 0d;
+  }
+
+  @Override
+  public IonPart withCount(int count) {
+    if (count == this.count) {
+      return this;
+    }
+    return new IonPartUnknown(name, singleCharge, count);
   }
 }

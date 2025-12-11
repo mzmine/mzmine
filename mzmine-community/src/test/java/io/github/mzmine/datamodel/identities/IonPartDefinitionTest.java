@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.mzmine.util.FormulaUtils;
 import org.junit.jupiter.api.Test;
 
 class IonPartDefinitionTest {
@@ -41,18 +42,18 @@ class IonPartDefinitionTest {
   void parse() {
     IonPartDefinition parsed = IonPartDefinition.parse("Cu+2");
     assertNotNull(parsed);
-    assertEquals(2, parsed.charge());
+    assertEquals(2, parsed.singleCharge());
     assertTrue(parsed.isCharged());
     assertEquals("Cu", parsed.name());
-    assertEquals("Cu", parsed.formula());
-    assertEquals(62.92850034, parsed.absMass(), 0.0000001);
+    assertEquals("Cu", parsed.singleFormula());
+    assertEquals(FormulaUtils.calculateExactMass("Cu", 2), parsed.absSingleMass(), 0.0000001);
 
     parsed = IonPartDefinition.parse("Cu+");
     assertNotNull(parsed);
-    assertEquals(1, parsed.charge());
+    assertEquals(1, parsed.singleCharge());
     assertTrue(parsed.isCharged());
     assertEquals("Cu", parsed.name());
-    assertEquals("Cu", parsed.formula());
-    assertEquals(62.92901892, parsed.absMass(), 0.0000001);
+    assertEquals("Cu", parsed.singleFormula());
+    assertEquals(FormulaUtils.calculateExactMass("Cu", 1), parsed.absSingleMass(), 0.0000001);
   }
 }

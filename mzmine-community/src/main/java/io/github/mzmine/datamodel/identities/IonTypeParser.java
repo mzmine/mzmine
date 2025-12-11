@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -135,12 +137,25 @@ public class IonTypeParser {
 
     int chargeDiff = 0;
     if (detectedCharge == null && ion.totalCharge() == 0) {
-      // default to charge 1
+      // default to charge 1 because we are looking at ions and mostly in positive ion mode
+      // for negative the charge needs to be defined
       chargeDiff = 1;
     } else if (detectedCharge != null) {
       chargeDiff = detectedCharge - ion.totalCharge();
     }
     if (chargeDiff != 0) {
+      // if we have a single modification then we can set its charge to the parsed charge
+      if (mods.size() == 1) {
+        final IonPart first = mods.getFirst();
+        final int actualCharge = requireNonNullElse(detectedCharge, chargeDiff);
+        // needs to be dividable by count
+        if (Math.abs(actualCharge) % Math.abs(first.count()) == 0) {
+          final List<IonPart> newChargeMods = List.of(
+              first.withSingleCharge(actualCharge / first.count()));
+          return IonType.create(newChargeMods, molMultiplier);
+        }
+      }
+      // if more parts then add silent charges instead
       IonPart chargeChanger = IonParts.SILENT_CHARGE.withCount(chargeDiff);
       mods.add(chargeChanger);
       return IonType.create(mods, molMultiplier);
@@ -150,7 +165,7 @@ public class IonTypeParser {
   }
 
   private static void parseAndAddIonModifications(final List<IonPart> mods, String mod) {
-    IonPart part = IonPart.parse(mod);
+    IonPart part = IonParts.parse(mod);
     if (part != null) {
       mods.add(part);
     }

@@ -31,22 +31,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * this class is used to define alternative names and unknown pseudonyms for formulas or just names
- * used in {@link IonPart} definitions while parsing {@link IonType}.
+ * A single part in an IonType: like 2Na or -H.
  * <p>
- * A single part definition in an IonType - but without the count. So +H and -H are both just H+ and
- * can easily be found in hashmaps. There should always only be one definition of the charge and
- * mass of H+ but there can be multiple versions with different charge Fe+2 and Fe3+
- *
- * @param name          clear name - often derived from formula or from alternative names. Empty
- *                      name is only supported for {@link IonParts#SILENT_CHARGE}
- * @param singleFormula uncharged formula without multiplier formula may be null if unknown. Formula
- *                      of a single item
- * @param absSingleMass absolute (positive) mass of a single item
- * @param singleCharge  signed charge of a single item. Both H+ and H+1 would be single charge +1.
+ * Is class no record to remain in control of construction
  */
-public record IonPartDefinition(@NotNull String name, @Nullable String singleFormula,
-                                double absSingleMass, int singleCharge) implements IonPart {
+final class IonPartFullCounted implements IonPart {
+
+  private final @NotNull String name;
+  private final @Nullable String singleFormula;
+  private final double absSingleMass;
+  private final int singleCharge;
+  private final int count;
+
 
   /**
    * @param name          clear name - often derived from formula or from alternative names. Empty
@@ -59,14 +55,15 @@ public record IonPartDefinition(@NotNull String name, @Nullable String singleFor
    *                      by count to get total mass.
    * @param singleCharge  signed charge of a single item which is multiplied by count to get total
    *                      charge. Both H+ and 2H+ would be single charge +1. See count.
+   * @param count         the singed multiplier of this single item, non-zero. e.g., 2 for +2Na and
+   *                      -1 for -H
    */
-  public IonPartDefinition(@NotNull String name, @Nullable String singleFormula,
-      double absSingleMass, int singleCharge) {
-
+  IonPartFullCounted(@NotNull String name, @Nullable String singleFormula, double absSingleMass,
+      int singleCharge, final int count) {
     // checks were already done in IonParts
     this.name = name.trim();
     // SILENT_CHARGE has empty name check that mass is null
-    if (name.isEmpty()) {
+    if (this.name.isEmpty()) {
       if (Double.compare(absSingleMass, 0d) != 0) {
         throw new IllegalStateException(
             "Cannot use blank name for part that defines a mass. Blank name is reserved for silent charge");
@@ -81,37 +78,9 @@ public record IonPartDefinition(@NotNull String name, @Nullable String singleFor
     // always positive and then multiplied with count
     this.absSingleMass = Math.abs(absSingleMass);
     this.singleCharge = singleCharge;
+    this.count = count;
   }
 
-  @NotNull
-  public static IonPartDefinition of(@NotNull final IonPart p) {
-    if (p instanceof IonPartDefinition def) {
-      return def;
-    }
-    return new IonPartDefinition(p.name(), p.singleFormula(), p.absSingleMass(), p.singleCharge());
-  }
-
-  @NotNull
-  public static IonPartDefinition ofFormula(@Nullable String name, @NotNull String formula,
-      @Nullable Integer singleCharge) {
-    // formula as name
-    return of(IonParts.ofFormula(name, formula, singleCharge, null));
-  }
-
-  public static IonPartDefinition ofNamed(@NotNull String name, final double singleMass,
-      final @Nullable Integer singleCharge) {
-    return of(IonParts.ofNamed(name, singleMass, singleCharge, null));
-  }
-
-  public static IonPartDefinition parse(String ionPart) {
-    // simulate the addition if +- is missing.
-    // definition does not need the count but parsing through the IonPart is easiest
-    if (!ionPart.startsWith("[+-]")) {
-      ionPart = "+" + ionPart;
-    }
-    final IonPart parsed = IonParts.parse(ionPart);
-    return parsed == null ? null : of(parsed);
-  }
 
   /**
    * Creates the final part string with mass and charge see {@link #toString(IonPartStringFlavor)}
@@ -120,44 +89,62 @@ public record IonPartDefinition(@NotNull String name, @Nullable String singleFor
    * @return sign count name charge (mass)
    */
   @Override
-  public @NotNull String toString() {
+  public String toString() {
     return toString(IonPartStringFlavor.FULL_WITH_MASS);
   }
 
-  /**
-   * Count always 0. Just here to conform to the interface
-   */
-  @Override
-  public int count() {
-    return 0;
-  }
 
-  /**
-   * Use {@link #equalsWithoutCount(Object)} to check for any match between implementing classes
-   * without count
-   *
-   * @param o the reference object with which to compare.
-   */
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
       return true;
     }
-    // needs to be ion part definition here otherwise its not equal
-    if (!(o instanceof final IonPartDefinition ionPart)) {
+    if (!(o instanceof final IonPartFullCounted ionPart)) {
       return false;
     }
 
-    return equalsWithoutCount(o);
+    return equalsWithoutCount(o) && Objects.equals(count, ionPart.count);
   }
 
+  /**
+   * Hash does not include the count - idea is to find the same adduct in maps
+   *
+   */
   @Override
   public int hashCode() {
     int result = name.hashCode();
     result = 31 * result + Objects.hashCode(singleFormula);
     result = 31 * result + Double.hashCode(absSingleMass);
+    result = 31 * result + count;
     result = 31 * result + singleCharge;
     return result;
   }
+
+
+  @Override
+  public @NotNull String name() {
+    return name;
+  }
+
+  @Override
+  public @Nullable String singleFormula() {
+    return singleFormula;
+  }
+
+  @Override
+  public double absSingleMass() {
+    return absSingleMass;
+  }
+
+  @Override
+  public int singleCharge() {
+    return singleCharge;
+  }
+
+  @Override
+  public int count() {
+    return count;
+  }
+
 
 }

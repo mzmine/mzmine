@@ -180,7 +180,7 @@ public final class IonType {
     {
       writer.writeStartElement("parts");
       for (final IonPart part : parts) {
-        part.saveToXML(writer);
+        IonParts.saveToXML(writer, part);
       }
       writer.writeEndElement();
     }
@@ -210,10 +210,10 @@ public final class IonType {
         continue;
       }
 
-      if (reader.getLocalName().equals(IonPart.XML_ELEMENT)) {
+      if (reader.getLocalName().equals(IonParts.XML_ELEMENT)) {
 //        if (ParsingUtils.progressToStartElement(reader, IonModification.XML_ELEMENT,
 //            CONST.XML_DATA_TYPE_ELEMENT)) {
-        var part = IonPart.loadFromXML(reader);
+        var part = IonParts.loadFromXML(reader);
         Objects.requireNonNull(part);
         parts.add(part);
       }
@@ -349,15 +349,6 @@ public final class IonType {
     stream(false).filter(IonPart::isLoss).forEach(ion -> ion.addToFormula(formula, ionize));
 
     return result;
-  }
-
-  /**
-   * @return number of neutral modifications
-   */
-  @JsonIgnore
-  public int getModCount() {
-    return stream(false).filter(IonPart::isNeutralModification).mapToInt(p -> Math.abs(p.count()))
-        .sum();
   }
 
   /**

@@ -56,7 +56,7 @@ class IonTypeTest {
         IonTypes.NA_H.asIonType().streamPartsOverlap(H, true).map(p -> p[0]).toList());
     assertEquals(List.of(IonParts.H),
         IonTypes.NA_H.asIonType().streamPartsOverlap(H, false).map(p -> p[0]).toList());
-    assertEquals(List.of(new IonPart("H", 1)),
+    assertEquals(List.of(IonParts.ofFormula("H", 1)),
         IonTypes.NA_H.asIonType().streamPartsOverlap(H).map(p -> p[0]).toList());
     assertEquals(List.of(),
         IonTypes.NA_H.asIonType().streamPartsOverlap(IonTypes.FEII.asIonType()).map(p -> p[0])
@@ -84,12 +84,6 @@ class IonTypeTest {
   void streamNeutralMods() {
     assertEquals(List.of(), IonTypes.NA_H.asIonType().streamNeutralMods().toList());
     assertEquals(List.of(IonParts.H2O), IonTypes.H_H2O.asIonType().streamNeutralMods().toList());
-  }
-
-  @Test
-  void getModCount() {
-    assertEquals(0, IonTypes.NA_H.asIonType().getModCount());
-    assertEquals(1, IonTypes.H_H2O.asIonType().getModCount());
   }
 
   @Test

@@ -33,12 +33,11 @@ class IonTypeParserTest {
 
   private static final Logger logger = Logger.getLogger(IonTypeParserTest.class.getName());
 
-  private static void testIonParser(final String input, int mol, int charge, int mod) {
-    testIonParser(input, input, mol, charge, mod);
+  private static void testIonParser(final String input, int mol, int charge) {
+    testIonParser(input, input, mol, charge);
   }
 
-  private static void testIonParser(final String input, String formatted, int mol, int charge,
-      int mod) {
+  private static void testIonParser(final String input, String formatted, int mol, int charge) {
     IonType ionType = IonTypeParser.parse(input);
 
     Assertions.assertNotNull(ionType, "%s could not be parsed".formatted(input));
@@ -46,8 +45,6 @@ class IonTypeParserTest {
         "%s charge was wrong as %d".formatted(input, charge));
     Assertions.assertEquals(mol, ionType.molecules(),
         "%s mol was wrong as %d".formatted(input, mol));
-    Assertions.assertEquals(mod, ionType.getModCount(),
-        "%s mod was wrong as %d".formatted(input, mod));
     Assertions.assertEquals(formatted, ionType.toString());
   }
 
@@ -77,46 +74,65 @@ class IonTypeParserTest {
 
   @Test
   void testIonParserRandomString() {
-    testIonParser("[M+TEST]+", "[M+TEST]+", 1, 1, 1);
-    testIonParser("[M-TEST]-", "[M-TEST]-", 1, -1, 1);
+    testIonParser("[M-TEST]-", "[M-TEST]-", 1, -1);
+    testIonParser("[M+TEST]+", "[M+TEST]+", 1, 1);
+
+// silent charge is only added if multiple parts are there
+    IonType ion = IonTypeParser.parse("[M+TEST]+");
+    Assertions.assertEquals(1, ion.parts().size());
+    Assertions.assertEquals(1, ion.parts().getFirst().singleCharge());
+    Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUnknown));
+
+    // H is known to carry charge
+    ion = IonTypeParser.parse("[M+TEST+H]+");
+    Assertions.assertEquals(2, ion.parts().size());
+    Assertions.assertEquals(0, ion.parts().getFirst().singleCharge());
+    Assertions.assertEquals(1, ion.parts().get(1).singleCharge());
+    Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUnknown));
+
+    // two ion types will have silent charge added because we dont know which carries the charge
+    ion = IonTypeParser.parse("[M+TEST+OTHERUNKNOWN]+");
+    Assertions.assertEquals(3, ion.parts().size());
+    Assertions.assertTrue(ion.parts().contains(IonParts.SILENT_CHARGE));
+    Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUnknown));
   }
 
   @Test
   void testIonParse() {
     // this is tricky to format correctly. M- does not write e- and here we want it to be written
-    testIonParser("M-H+e", "[M-H+e]2-", 1, -2, 0);
-    testIonParser("M-H-2e", "[M-H-2e]+", 1, 1, 0);
-    testIonParser("2M+2H-2H2O]", "[2M-2H2O+2H]2+", 2, 2, 2);
-    testIonParser("2M+", "[2M]+", 2, 1, 0);
-    testIonParser("M+", "[M]+", 1, 1, 0);
-    testIonParser("M-2H]2-", "[M-2H]2-", 1, -2, 0);
-    testIonParser("M-H-", "[M-H]-", 1, -1, 0);
-    testIonParser("M+H", "[M+H]+", 1, 1, 0);
-    testIonParser("M-H]-1", "[M-H]-", 1, -1, 0);
-    testIonParser("[2M+2H+Na]3+", 2, 3, 0);
-    testIonParser("M+Na+2H+3", "[M+2H+Na]3+", 1, 3, 0);
-    testIonParser("[M+2Na-H-H2O]+", "[M-H2O-H+2Na]+", 1, 1, 1);
-    testIonParser("M+H+", "[M+H]+", 1, 1, 0);
-    testIonParser("[M+CH3]+", "[M+CH3]+", 1, 1, 1);
-    testIonParser("[M-H+CH3]+", "[M+CH3-H]+", 1, 1, 1);
-    testIonParser("[M-H+Fe]2+", "[M-H+Fe]2+", 1, 2, 0);
-    testIonParser("[M-H+Fe]+2", "[M-H+Fe]2+", 1, 2, 0);
-    testIonParser("M+e", "[M+e]-", 1, -1, 0);
-    testIonParser("M+2e", "[M+2e]2-", 1, -2, 0);
-    testIonParser("M-e", "[M-e]+", 1, 1, 0);
-    testIonParser("M-2e", "[M-2e]2+", 1, 2, 0);
+    testIonParser("M-H+e", "[M-H+e]2-", 1, -2);
+    testIonParser("M-H-2e", "[M-H-2e]+", 1, 1);
+    testIonParser("2M+2H-2H2O]", "[2M-2H2O+2H]2+", 2, 2);
+    testIonParser("2M+", "[2M]+", 2, 1);
+    testIonParser("M+", "[M]+", 1, 1);
+    testIonParser("M-2H]2-", "[M-2H]2-", 1, -2);
+    testIonParser("M-H-", "[M-H]-", 1, -1);
+    testIonParser("M+H", "[M+H]+", 1, 1);
+    testIonParser("M-H]-1", "[M-H]-", 1, -1);
+    testIonParser("[2M+2H+Na]3+", 2, 3);
+    testIonParser("M+Na+2H+3", "[M+2H+Na]3+", 1, 3);
+    testIonParser("[M+2Na-H-H2O]+", "[M-H2O-H+2Na]+", 1, 1);
+    testIonParser("M+H+", "[M+H]+", 1, 1);
+    testIonParser("[M+CH3]+", "[M+CH3]+", 1, 1);
+    testIonParser("[M-H+CH3]+", "[M+CH3-H]+", 1, 1);
+    testIonParser("[M-H+Fe]2+", "[M-H+Fe]2+", 1, 2);
+    testIonParser("[M-H+Fe]+2", "[M-H+Fe]2+", 1, 2);
+    testIonParser("M+e", "[M+e]-", 1, -1);
+    testIonParser("M+2e", "[M+2e]2-", 1, -2);
+    testIonParser("M-e", "[M-e]+", 1, 1);
+    testIonParser("M-2e", "[M-2e]2+", 1, 2);
 
-    testIonParser("M+Cl", "[M+Cl]-", 1, -1, 0);
-    testIonParser("M-HCl+FA", "[M-HCl+CHO2]-", 1, -1, 1);
+    testIonParser("M+Cl", "[M+Cl]-", 1, -1);
+    testIonParser("M-HCl+FA", "[M-HCl+CHO2]-", 1, -1);
 
     // counter intuitve but we expect ions to have a charge and default to 1
-    testIonParser("[M-H2O]", "[M-H2O]+", 1, 1, 1);
+    testIonParser("[M-H2O]", "[M-H2O]+", 1, 1);
   }
 
   @Test
   void testWithCharge() {
-    testIonParser("[M-2H2O+(H+)+(Fe+3)-2(Na+)+H2O]+2", "[M-H2O-2Na+Fe+H]2+", 1, 2, 1);
-    testIonParser("[M  -(H+)\t+ (Fe+3)-2(Na+)+H2O]+", "[M+H2O-H-2Na+Fe]+", 1, 1, 1);
+    testIonParser("[M-2H2O+(H+)+(Fe+3)-2(Na+)+H2O]+2", "[M-H2O-2Na+Fe+H]2+", 1, 2);
+    testIonParser("[M  -(H+)\t+ (Fe+3)-2(Na+)+H2O]+", "[M+H2O-H-2Na+Fe]+", 1, 1);
   }
 
   @Test

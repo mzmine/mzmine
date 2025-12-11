@@ -26,7 +26,7 @@
 package io.github.mzmine.datamodel.identities;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.util.FormulaUtils;
@@ -36,13 +36,13 @@ class IonPartTest {
 
   @Test
   void equalsWithoutCount() {
-    assertTrue(IonParts.H.equalsWithoutCount(new IonPart("H", 1, 2)));
+    assertTrue(IonParts.H.equalsWithoutCount(IonParts.ofFormula("H", 1, 2)));
   }
 
   @Test
   void testEquals() {
-    assertEquals(IonParts.H, new IonPart("H", 1));
-    assertEquals(IonParts.H2_PLUS, new IonPart("H", 1, 2));
+    assertEquals(IonParts.H, IonParts.ofFormula("H", 1));
+    assertEquals(IonParts.H2_PLUS, IonParts.ofFormula("H", 1, 2));
   }
 
   @Test
@@ -57,7 +57,7 @@ class IonPartTest {
         0.000001);
 
     // undefined formula
-    IonPart named = IonPart.ofNamed("TE", 50d, 0);
+    IonPart named = IonParts.ofNamed("TE", 50d, 0);
     changed = named.withSingleCharge(-1);
 
     assertEquals(named.absSingleMass() + 1 * FormulaUtils.electronMass, changed.absSingleMass(),
@@ -66,9 +66,20 @@ class IonPartTest {
     changed = named.withSingleCharge(2);
     assertEquals(Math.abs(named.absSingleMass() - 2 * FormulaUtils.electronMass),
         changed.absSingleMass(), 0.000001);
+  }
 
-    // illegal to change charge state of unknown where formula and mass is undefined
-    assertThrows(IllegalStateException.class,
-        () -> IonPart.ofNamed("unknown", 0d, 0).withSingleCharge(-1));
+  @Test
+  void testIsUnknown() {
+    assertFalse(IonParts.ofNamed("TE", 50d, 0).isUnknown());
+    assertTrue(IonParts.ofNamed("TE", 0, 0).isUnknown());
+    assertTrue(IonParts.ofFormula("TE", 0).isUnknown());
+    assertTrue(IonParts.unknown("TE", 0).isUnknown());
+    assertTrue(IonParts.SILENT_CHARGE.isUnknown());
+  }
+
+  @Test
+  void testSilentCharge() {
+    assertTrue(IonParts.SILENT_CHARGE.isSilentCharge());
+    assertFalse(IonParts.ofNamed("TE", 0, 0).isSilentCharge());
   }
 }

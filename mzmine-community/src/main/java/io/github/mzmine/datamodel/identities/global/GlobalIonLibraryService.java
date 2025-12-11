@@ -333,7 +333,7 @@ public final class GlobalIonLibraryService {
    */
   private void addIonPartDefinitionInternal(@NotNull IonPartDefinition part) {
     // so that Fe might be defined as 2+ or 3+
-    if (part.name().equals(part.formula()) && part.isNeutralModification()) {
+    if (part.name().equals(part.singleFormula()) && part.isNeutralModification()) {
       // name and formula are equal and no charge means this is the default behavior of the parsing.
       // no need to keep an instance of this, so skip
       // only add definitions where name is different from formula or where charge is defined

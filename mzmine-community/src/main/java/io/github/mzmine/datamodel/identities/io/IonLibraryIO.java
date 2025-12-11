@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.SimpleIonLibrary;
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.io.StorableIonLibrary.IonPartID;
 import io.github.mzmine.datamodel.identities.io.StorableIonLibrary.IonPartNoCountDTO;
 import io.github.mzmine.datamodel.identities.io.StorableIonLibrary.IonTypeDTO;
@@ -41,6 +42,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -92,17 +94,25 @@ public class IonLibraryIO {
    * @return ion library
    */
   static @NotNull IonLibrary convert(@NotNull StorableIonLibrary storable) {
+    final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
     // keeps a single instance of each part (including count) like one for 1H+ and 2H+
-    Map<IonPartID, IonPart> actualParts = new HashMap<>();
-
+    // deduplicate
+    Map<IonPart, IonPart> singletonPartsCounted = new HashMap<>();
+    final Map<Integer, IonPartNoCountDTO> partIdMap = storable.parts();
     List<IonType> types = new ArrayList<>();
     for (IonTypeDTO ion : storable.ionTypes()) {
       // con
-      final List<IonPart> ionParts = ion.parts().stream()
-          .map(p -> actualParts.computeIfAbsent(p, _ -> {
-            final IonPartNoCountDTO noCount = storable.parts().get(p.id());
-            return noCount.withCount(p.count());
-          })).toList();
+      final List<IonPart> ionParts = new ArrayList<>(ion.parts().size());
+
+      for (IonPartID partID : ion.parts()) {
+        IonPart part = partIdMap.get(partID.id()).withCount(partID.count());
+        // check if the same part (exact same) is in global then use this instance
+        part = global.deduplicateAvailable(part);
+        // deduplicate with local map in case there is a difference in mass or definition
+        part = singletonPartsCounted.computeIfAbsent(part, Function.identity());
+        // add singleton instance
+        ionParts.add(part);
+      }
 
       types.add(IonType.create(ionParts, ion.molecules()));
     }

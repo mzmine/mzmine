@@ -66,7 +66,9 @@ class IonPartParserTest {
       new Case("+C2ArS-2", -2, 1, "C2ArS"),//
       new Case("+(C2ArS)", 0, 1, "C2ArS"),//
       new Case("+(C2ArS+)", 1, 1, "C2ArS"),//
-      new Case("+(C2ArS-2)", -2, 1, "C2ArS")//
+      new Case("+(C2ArS-2)", -2, 1, "C2ArS"),//
+      new Case("-e", -1, -1, null),//
+      new Case("+e", -1, 1, null)//
   );
 
   @ParameterizedTest
@@ -82,11 +84,30 @@ class IonPartParserTest {
   }
 
   @Test
-  void testParse() {
+  void testParseElectron() {
+    final IonPart part = IonPartParser.parse("+2e");
+    assertNotNull(part);
+    assertEquals("e", part.name());
+    assertEquals(-1, part.singleCharge());
+    assertEquals(2, part.count());
+    assertEquals(IonUtils.ELECTRON_MASS, part.absSingleMass(), 0.000001);
+  }
+
+  @Test
+  void testParse1() {
     final IonPart part = IonPartParser.parse("+3C2ArS+1");
     assertNotNull(part);
     assertEquals("C2ArS", part.name());
     assertEquals(1, part.singleCharge());
+    assertEquals(3, part.count());
+  }
+
+  @Test
+  void testParse2() {
+    final IonPart part = IonPartParser.parse("+3Na-");
+    assertNotNull(part);
+    assertEquals("Na", part.name());
+    assertEquals(-1, part.singleCharge());
     assertEquals(3, part.count());
   }
 
@@ -118,7 +139,7 @@ class IonPartParserTest {
       }
       assertEquals(5, units.size(), "For input: " + input);
 
-      List<IonPart> parts = IonPart.parseMultiple(input);
+      List<IonPart> parts = IonParts.parseMultiple(input);
       assertEquals(5, parts.size(), "For input: " + input);
 
       IonPart part = parts.get(0);
@@ -163,14 +184,14 @@ class IonPartParserTest {
     assertEquals(0d, unknown.absSingleMass(), 0.0001);
     assertEquals(0, unknown.singleCharge());
 
-    final IonPartDefinition def = IonPartDefinition.ofFormula("TE", "T", 1);
+    final IonPartDefinition def = IonPartDefinition.ofFormula("TE", "C3H6", 1);
     global.addPartDefinition(def);
 
     final IonPart known = IonPartParser.parse("+TE");
     assertNotNull(known);
-    assertEquals(def.formula(), known.singleFormula());
-    assertEquals(def.absMass(), known.absSingleMass());
-    assertEquals(def.charge(), known.singleCharge());
+    assertEquals(def.singleFormula(), known.singleFormula());
+    assertEquals(def.absSingleMass(), known.absSingleMass());
+    assertEquals(def.singleCharge(), known.singleCharge());
   }
 
 }
