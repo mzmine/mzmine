@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -51,12 +50,12 @@ package testutils;/*
 import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
@@ -189,6 +188,18 @@ public class MZmineTestUtil {
 
   public static TaskResult importFiles(final List<String> fileNames, long timeoutSeconds,
       @Nullable AdvancedSpectraImportParameters advanced) throws InterruptedException {
+    return importFiles(fileNames, timeoutSeconds, VendorImportParameters.createDefault(), advanced);
+  }
+
+  @Nullable
+  public static RawDataFile getRawFromProject(final String name) {
+    return ProjectService.getProject().getCurrentRawDataFiles().stream()
+        .filter(r -> r.getName().equals(name)).findFirst().orElse(null);
+  }
+
+  public static TaskResult importFiles(final List<String> fileNames, long timeoutSeconds,
+      @NotNull VendorImportParameters vendorParam,
+      @Nullable AdvancedSpectraImportParameters advanced) throws InterruptedException {
     File[] files = fileNames.stream().map(name -> {
       var file = new File(name);
       if (file.exists()) {
@@ -197,14 +208,8 @@ public class MZmineTestUtil {
       return new File(MZmineTestUtil.class.getClassLoader().getResource(name).getFile());
     }).toArray(File[]::new);
 
-    AllSpectralDataImportParameters paramDataImport = new AllSpectralDataImportParameters();
-    paramDataImport.setParameter(AllSpectralDataImportParameters.fileNames, files);
-    paramDataImport.setParameter(SpectralLibraryImportParameters.dataBaseFiles, new File[0]);
-    paramDataImport.setParameter(AllSpectralDataImportParameters.advancedImport, advanced != null);
-    if (advanced != null) {
-      var advancedP = paramDataImport.getParameter(AllSpectralDataImportParameters.advancedImport);
-      advancedP.setEmbeddedParameters(advanced);
-    }
+    final ParameterSet paramDataImport = AllSpectralDataImportParameters.create(vendorParam, files,
+        null, null, advanced);
 
     logger.info("Testing data import of mzML and mzXML without advanced parameters");
     TaskResult finished = MZmineTestUtil.callModuleWithTimeout(timeoutSeconds,
@@ -213,12 +218,6 @@ public class MZmineTestUtil {
     // should have finished by now
     Assertions.assertInstanceOf(TaskResult.FINISHED.class, finished, finished.description());
     return finished;
-  }
-
-  @Nullable
-  public static RawDataFile getRawFromProject(final String name) {
-    return ProjectService.getProject().getCurrentRawDataFiles().stream()
-        .filter(r -> r.getName().equals(name)).findFirst().orElse(null);
   }
 
   @NotNull
