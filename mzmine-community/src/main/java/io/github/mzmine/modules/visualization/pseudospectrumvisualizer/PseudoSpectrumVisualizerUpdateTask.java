@@ -27,6 +27,8 @@ package io.github.mzmine.modules.visualization.pseudospectrumvisualizer;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.datamodel.PseudoSpectrum;
+import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;

@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -675,7 +674,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       spectrumType = MassSpectrumType.CENTROIDED;
     }
     final BuildingMobilityScanStorage buildingMobilityScanStorage = new BuildingMobilityScanStorage(
-        storage, this, processedMobilityScanData);
+        storage, this, processedMobilityScanData, getSpectrumType());
     clearUnusedData();
     return buildingMobilityScanStorage;
   }
@@ -856,5 +855,10 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
 
   public void setScanNumber(int newScanNumber) {
     this.scanNumber = newScanNumber;
+  }
+
+  @Override
+  public void setSpectrumType(@NotNull MassSpectrumType spectrumType) {
+    this.spectrumType = spectrumType;
   }
 }

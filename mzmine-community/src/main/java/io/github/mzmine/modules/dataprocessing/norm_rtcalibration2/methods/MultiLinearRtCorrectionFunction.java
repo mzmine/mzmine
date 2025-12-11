@@ -133,7 +133,7 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
     alsFit[0] = 0d; // ensure the first point is not shifted to keep all RTs > 0
 
     movAvg = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(),
-        MovingAverage.calculate(alsFit, (int) (subtracted.length * initialBandwidth)));
+        MovingAverage.calculate(alsFit, (int) Math.max(1, subtracted.length * initialBandwidth)));
 
     double[] corrected = new double[thisRtValues.size()];
     for (int i = 0; i < thisRtValues.size(); i++) {

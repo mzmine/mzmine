@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -42,6 +41,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExport
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
@@ -171,6 +171,10 @@ public class ParameterUtils {
           && sourceParam instanceof EmbeddedParameter<?, ?, ?> sourceEm) {
         copyParameterValue(sourceEm.getEmbeddedParameter(), targetEm.getEmbeddedParameter());
       }
+      if (targetParam instanceof ScanSelectionParameter target
+          && sourceParam instanceof ScanSelectionParameter source) {
+        target.setValue(source.isActive(), source.getValue());
+      }
     } catch (Exception e) {
       logger.warning(
           "Failed copy parameter value from " + targetParam.getName() + ". " + e.getMessage());
@@ -268,6 +272,17 @@ public class ParameterUtils {
         .findFirst().map(FeatureListAppliedMethod::getParameters)
         .map(parameterSet -> parameterSet.getValue(mzTolParameter));
   }
+
+  @NotNull
+  public static <T extends Parameter<?>> Optional<T> getParameterFromAppliedMethods(
+      Collection<FeatureListAppliedMethod> appliedMethods,
+      Class<? extends ParameterSet> parameterClass, T parameter) {
+    return appliedMethods.stream()
+        .filter(appliedMethod -> appliedMethod.getParameters().getClass().equals(parameterClass))
+        .findFirst().map(FeatureListAppliedMethod::getParameters)
+        .map(parameterSet -> parameterSet.getParameter(parameter));
+  }
+
 
   /**
    * Replaces a file in the first FileNamesParameter of the parameter set. Synchronized method in

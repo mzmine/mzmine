@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class Precision {
 
-  private static DecimalFormat format = new DecimalFormat("0.0E0");
+  private static final DecimalFormat exponentFormat = new DecimalFormat("0.0E0");
 
   /**
    * Checks if difference of a and b is small equal to max difference
@@ -47,15 +47,8 @@ public class Precision {
     if (Math.abs(a - b) <= maxDelta) {
       return true;
     }
-    if (Double.compare(a, b) == 0) {
-      // mainly here to cover infinity, but Double.isInfinite(a) && Double.isInfinite(b) is true
-      // if one is positive and one is negative infinity.
-      return true;
-    }
-    if (Double.isNaN(a) && Double.isNaN(b)) {
-      return true;
-    }
-    return false;
+    // both are NaN or both are - or + INFINITY
+    return Double.compare(a, b) == 0;
   }
 
   /**
@@ -71,15 +64,8 @@ public class Precision {
     if (delta <= maxDelta) {
       return true;
     }
-    if (Float.compare(a, b) == 0) {
-      // mainly here to cover infinity, but Float.isInfinite(a) && Float.isInfinite(b) is true
-      // if one is positive and one is negative infinity.
-      return true;
-    }
-    if (Float.isNaN(a) && Float.isNaN(b)) {
-      return true;
-    }
-    return false;
+    // both are NaN or both are - or + INFINITY
+    return Float.compare(a, b) == 0;
   }
 
   /**
@@ -93,8 +79,23 @@ public class Precision {
    * @return true if Math.abs(a-b) <= maxDelta
    */
   public static boolean equals(double a, double b, double maxDelta, double maxRelativeDelta) {
-    // diff <= max of relative and absolute
-    return Math.abs(a - b) <= Math.max(Math.max(a, b) * maxRelativeDelta, maxDelta);
+    // equal or both are NaN
+    if (Double.compare(a, b) == 0) {
+      return true;
+    }
+    // only one is NaN
+    if (Double.isNaN(a) || Double.isNaN(b)) {
+      return false;
+    }
+    // abs error
+    final double diff = Math.abs(a - b);
+    if (diff <= maxDelta) {
+      return true;
+    }
+
+    final double absoluteMax = Math.max(Math.abs(a), Math.abs(b));
+    final double relativeDifference = Math.abs(diff / absoluteMax);
+    return relativeDifference <= maxRelativeDelta;
   }
 
   /**
@@ -108,8 +109,23 @@ public class Precision {
    * @return true if Math.abs(a-b) <= maxDelta
    */
   public static boolean equals(float a, float b, float maxDelta, float maxRelativeDelta) {
-    // diff <= max of relative and absolute
-    return Math.abs(a - b) <= Math.max(Math.max(a, b) * maxRelativeDelta, maxDelta);
+    // equal or both are NaN
+    if (Float.compare(a, b) == 0) {
+      return true;
+    }
+    // only one is NaN
+    if (Float.isNaN(a) || Float.isNaN(b)) {
+      return false;
+    }
+    // abs error
+    final double diff = Math.abs(a - b);
+    if (diff <= maxDelta) {
+      return true;
+    }
+
+    final double absoluteMax = Math.max(Math.abs(a), Math.abs(b));
+    final double relativeDifference = Math.abs(diff / absoluteMax);
+    return relativeDifference <= maxRelativeDelta;
   }
 
 
@@ -186,82 +202,80 @@ public class Precision {
     if (digits <= maxLength) {
       return str;
     } else {
-      format.setMaximumFractionDigits(maxLength - 1);
-      return format.format(dec);
+      // format as 1E5 notation
+      return exponentFormat.format(dec);
     }
   }
 
-  public static boolean equalDoubleSignificance(final double a, final double b) {
-    return equalSignificance(a, b, 14); // double significance is 15 - 17 digits
-  }
-
-  public static boolean equalSignificance(final double a, final double b, final int sigDigits) {
-    if (Double.isNaN(a) && Double.isNaN(b)) {
-      return true;
-    }
-
-    if (Double.isNaN(a) || Double.isNaN(b)) {
-      return false;
-    }
-
-    if (a == b) {
-      return true;
-    }
-    final BigDecimal aDecimal = new BigDecimal(a);
-    final BigDecimal bDecimal = new BigDecimal(b);
-    final BigDecimal diff = aDecimal.subtract(bDecimal).abs();
-
-    // calculate the allowed difference in significant digits: e.g. 5 sig digits:
-    // 1*10^-5 = 0.00001
-    // then scale to the max of those two values:
-    // 0.00001 * 1234567 = 12.34567
-    // then find the lower power of 10: 12.23467 -> 10
-    // use that as the allowed delta.
-    final BigDecimal scaledSignificance = new BigDecimal("1E-%d".formatted(sigDigits)).multiply(aDecimal.max(bDecimal));
-    final BigDecimal allowedDelta = new BigDecimal("1E%d".formatted((int)Math.log10(scaledSignificance.doubleValue())));
-    return diff.compareTo(allowedDelta) <= 0;
-  }
-
-
-  public static boolean equalFloatSignificance(final float a, final float b) {
-    return equalSignificance(a, b, 6); // float significance is 6 - 7 digits
-  }
-
-  public static boolean equalFloatSignificance(final @Nullable Float a, final @Nullable Float b) {
+  public static boolean equalDoubleSignificance(final @Nullable Number a,
+      final @Nullable Number b) {
     if (a == null && b == null) {
       return true;
     }
     if (a == null || b == null) {
       return false;
     }
-    return equalFloatSignificance(a.floatValue(), b.floatValue());
+    return equalDoubleSignificance(a.doubleValue(), b.doubleValue());
   }
 
-  public static boolean equalSignificance(final float a, final float b, final int sigDigits) {
-    if (Float.isNaN(a) && Float.isNaN(b)) {
+  public static boolean equalFloatSignificance(final @Nullable Number a, final @Nullable Number b) {
+    if (a == null && b == null) {
       return true;
     }
+    if (a == null || b == null) {
+      return false;
+    }
+    return equalFloatSignificance(a.doubleValue(), b.doubleValue());
+  }
 
-    if (Float.isNaN(a) || Float.isNaN(b)) {
+  /**
+   * Uses relative error of 5E-5
+   *
+   * @param a first value
+   * @param b second value
+   * @return true if the relative difference diff/max is <= relative error. true if both values are
+   * NaN, false if only one is NaN
+   */
+  public static boolean equalFloatSignificance(final double a, final double b) {
+    return equalRelativeSignificance(a, b, 5E-6);
+  }
+
+  /**
+   * Uses relative error of 5E-13
+   *
+   * @param a first value
+   * @param b second value
+   * @return true if the relative difference diff/max is <= relative error. true if both values are
+   * NaN, false if only one is NaN
+   */
+  public static boolean equalDoubleSignificance(final double a, final double b) {
+    return equalRelativeSignificance(a, b, 5E-13);
+  }
+
+
+  /**
+   *
+   * @param a             first value
+   * @param b             second value
+   * @param relativeError relative error that is accepted, e.g., 1E-2, 0.01 of 1%
+   * @return true if the relative difference diff/max is <= relative error. true if both values are
+   * NaN, false if only one is NaN
+   */
+  public static boolean equalRelativeSignificance(final double a, final double b,
+      final double relativeError) {
+    // equal or both are NaN
+    if (Double.compare(a, b) == 0) {
+      return true;
+    }
+    // only one is NaN
+    if (Double.isNaN(a) || Double.isNaN(b)) {
       return false;
     }
 
-    if (Float.compare(a, b) == 0) {
-      return true;
-    }
+    final double absoluteMax = Math.max(Math.abs(a), Math.abs(b));
+    final double relativeDifference = Math.abs((a - b) / absoluteMax);
 
-    final BigDecimal aDecimal = new BigDecimal(a);
-    final BigDecimal bDecimal = new BigDecimal(b);
-    final BigDecimal diff = aDecimal.subtract(bDecimal).abs();
-
-    // calculate the allowed difference in significant digits: e.g. 5 sig digits:
-    // 1*10^-5 = 0.00001
-    // then scale to the max of those two values:
-    // 0.00001 * 1234567 = 12.34567
-    // then find the lower power of 10: 12.23467 -> 10
-    // use that as the allowed delta.
-    final BigDecimal scaledSignificance = new BigDecimal("1E-%d".formatted(sigDigits)).multiply(aDecimal.max(bDecimal));
-    final BigDecimal allowedDelta = new BigDecimal("1E%d".formatted((int)Math.log10(scaledSignificance.doubleValue())));
-    return diff.compareTo(allowedDelta) <= 0;
+    // relative difference may be infinite for overflow, but this is handled correctly
+    return relativeDifference <= relativeError;
   }
 }

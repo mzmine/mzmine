@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -25,15 +24,21 @@
 
 package io.github.mzmine.modules.io.export_features_csv_legacy;
 
+import static io.github.mzmine.util.StringUtils.nullToEmpty;
+
 import com.google.common.collect.Lists;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
@@ -354,39 +359,41 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
       FeatureListRow featureListRow) {
     for (RawDataFile dataFile : rawDataFiles) {
       for (int i = 0; i < length; i++) {
-        Feature feature = featureListRow.getFeature(dataFile);
+        ModularFeature feature = (ModularFeature) featureListRow.getFeature(dataFile);
         if (feature != null) {
-          switch (dataFileElements[i]) {
-            case FEATURE_STATUS -> line.append(feature.getFeatureStatus()).append(fieldSeparator);
-            case FEATURE_NAME ->
-                line.append(FeatureUtils.featureToString(feature)).append(fieldSeparator);
-            case FEATURE_MZ -> line.append(feature.getMZ()).append(fieldSeparator);
-            case FEATURE_RT -> append(line, feature.getRT());
-            case FEATURE_ION_MOBILITY -> append(line, feature.getMobility());
-            case FEATURE_ION_MOBILITY_UNIT -> append(line, feature.getMobilityUnit());
-            case FEATURE_CCS -> append(line, feature.getCCS());
-            case FEATURE_RT_START -> line.append(feature.getRawDataPointsRTRange().lowerEndpoint())
-                .append(fieldSeparator);
-            case FEATURE_RT_END -> line.append(feature.getRawDataPointsRTRange().upperEndpoint())
-                .append(fieldSeparator);
+          final String toAppend = switch (dataFileElements[i]) {
+            case FEATURE_STATUS -> feature.getFeatureStatus().toString();
+            case FEATURE_NAME -> FeatureUtils.featureToString(feature);
+            case FEATURE_MZ -> nullToEmpty(feature.getMZ());
+            case FEATURE_RT -> nullToEmpty(feature.getRT());
+            case FEATURE_ION_MOBILITY -> nullToEmpty(feature.getMobility());
+            case FEATURE_ION_MOBILITY_UNIT -> nullToEmpty(feature.getMobilityUnit());
+            case FEATURE_CCS -> nullToEmpty(feature.getCCS());
+            case FEATURE_RT_START -> nullToEmpty(feature.getRawDataPointsRTRange().lowerEndpoint());
+            case FEATURE_RT_END -> nullToEmpty(feature.getRawDataPointsRTRange().upperEndpoint());
             case FEATURE_DURATION ->
-                line.append(RangeUtils.rangeLength(feature.getRawDataPointsRTRange()))
-                    .append(fieldSeparator);
-            case FEATURE_HEIGHT -> line.append(feature.getHeight()).append(fieldSeparator);
-            case FEATURE_AREA -> line.append(feature.getArea()).append(fieldSeparator);
-            case FEATURE_CHARGE -> line.append(feature.getCharge()).append(fieldSeparator);
-            case FEATURE_DATAPOINTS ->
-                line.append(feature.getScanNumbers().size()).append(fieldSeparator);
-            case FEATURE_FWHM -> line.append(feature.getFWHM()).append(fieldSeparator);
-            case FEATURE_TAILINGFACTOR ->
-                line.append(feature.getTailingFactor()).append(fieldSeparator);
-            case FEATURE_ASYMMETRYFACTOR ->
-                line.append(feature.getAsymmetryFactor()).append(fieldSeparator);
-            case FEATURE_MZMIN -> line.append(feature.getRawDataPointsMZRange().lowerEndpoint())
-                .append(fieldSeparator);
-            case FEATURE_MZMAX -> line.append(feature.getRawDataPointsMZRange().upperEndpoint())
-                .append(fieldSeparator);
-          }
+                nullToEmpty(RangeUtils.rangeLength(feature.getRawDataPointsRTRange()));
+            case FEATURE_HEIGHT -> nullToEmpty(feature.getHeight());
+            case FEATURE_AREA -> nullToEmpty(feature.getArea());
+            case FEATURE_CHARGE -> nullToEmpty(feature.getCharge());
+            case FEATURE_DATAPOINTS -> nullToEmpty(feature.getScanNumbers().size());
+            case FEATURE_FWHM -> nullToEmpty(feature.getFWHM());
+            case FEATURE_TAILINGFACTOR -> nullToEmpty(feature.getTailingFactor());
+            case FEATURE_ASYMMETRYFACTOR -> nullToEmpty(feature.getAsymmetryFactor());
+            case FEATURE_MZMIN -> nullToEmpty(feature.getRawDataPointsMZRange().lowerEndpoint());
+            case FEATURE_MZMAX -> nullToEmpty(feature.getRawDataPointsMZRange().upperEndpoint());
+            case FEATURE_UV_AREA -> {
+              List<MsOtherCorrelationResult> corr = feature.get(MsOtherCorrelationResultType.class);
+              if (corr == null || corr.isEmpty()) {
+                yield "";
+              } else {
+                MsOtherCorrelationResult first = corr.getFirst();
+                yield nullToEmpty(first.otherFeature().get(AreaType.class));
+              }
+            }
+          };
+
+          line.append(toAppend).append(fieldSeparator);
         } else {
           if (Objects.requireNonNull(dataFileElements[i])
               == LegacyExportRowDataFileElement.FEATURE_STATUS) {
