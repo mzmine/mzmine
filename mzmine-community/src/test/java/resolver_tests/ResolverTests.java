@@ -7,20 +7,9 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.AdvancedWaveletParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.WaveletResolver;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.WaveletResolverParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.WaveletResolverParameters.NoiseCalculation;
-import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
-import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
-import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
@@ -28,28 +17,22 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import testutils.MZmineTestUtil;
-import testutils.TaskResult;
 
 @Disabled
 public class ResolverTests {
 
-  private static final Logger logger = Logger.getLogger(ResolverTests.class.getName());
-
   static final MemoryMapStorage storage = MemoryMapStorage.forMassList();
-  static final List<FileToImport> filesToImport = List.of(FileToImport.factor5(
+  static final List<FilesToImport> filesToImport = List.of(FilesToImport.factor5(
       "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Thermo\\20 years mzmine\\171103_PMA_TK_PA14_04.mzML"));
+  private static final Logger logger = Logger.getLogger(ResolverTests.class.getName());
   private ModularFeatureList flist = FeatureList.createDummy();
 
   @BeforeAll
   static void importFiles() throws InterruptedException {
     MZmineTestUtil.clearProjectAndLibraries();
-    final Map<AdvancedSpectraImportParameters, List<FileToImport>> filesByImportParam = filesToImport.stream()
-        .collect(Collectors.groupingBy(FileToImport::importParam));
-
-    for (final var paramToFiles : filesByImportParam.entrySet()) {
-      final TaskResult _ = MZmineTestUtil.importFiles(
-          paramToFiles.getValue().stream().map(FileToImport::filePath).distinct().toList(), 10_000,
-          paramToFiles.getKey());
+    for (FilesToImport toImport : filesToImport) {
+      MZmineTestUtil.importFiles(toImport.filePaths(), 5_000, toImport.vendorParam(),
+          toImport.advancedParam());
     }
   }
 
