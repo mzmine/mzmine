@@ -58,10 +58,14 @@ class FormulaUtilsTest {
   }
 
   final static List<Case> cases = List.of( //
-      new Case("[NH4]+", "[H4N]+", 1) //
-      , new Case("NH4", "H4N", null) //
-      , new Case("NH4+", "[H4N]+", 1) //
+      new Case("NH4", "H4N", null) //
+      // default CDK handles without charge without [], which is only used for charged
+      // mzmine parser handles also uncharged [formula]
+      , new Case("[NH4]", "H4N", null) //
       , new Case("COOH", "CHO2", null) //
+      // different ways to define charge
+      , new Case("[NH4]+", "[H4N]+", 1) //
+      , new Case("NH4+", "[H4N]+", 1) //
       , new Case("(NH4)+", "[H4N]+", 1) //
       , new Case("(NH4)-2", "[H4N]2-", -2) //
       // flipped charge only works with []2- not with ()2- as ()2- would mean 2 times what is in ()

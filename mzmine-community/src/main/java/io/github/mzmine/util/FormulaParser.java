@@ -61,6 +61,13 @@ public class FormulaParser {
       // this method adds missing atoms as isotope with atom number 0
       // parsing TEST will result in 1 S atom and 3 atoms with number 0 -> check this to validate parsing
       formula = formula.replaceAll("\\s+", "");
+
+      if (formula.endsWith("]") && formula.startsWith("[")) {
+        // parser uses [CO2]- for charge
+        // but cannot parse [CO2] without charge needs to be CO2
+        formula = formula.substring(1, formula.length() - 1);
+      }
+
       var f = MolecularFormulaManipulator.getMolecularFormula(formula, builder);
 
       if (f == null) {
