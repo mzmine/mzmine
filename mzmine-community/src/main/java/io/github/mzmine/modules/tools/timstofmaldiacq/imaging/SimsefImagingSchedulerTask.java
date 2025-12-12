@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -488,7 +487,7 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
     parametersFile.createNewFile();
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(parametersFile))) {
       for (Parameter<?> parameter : parameters.getParameters()) {
-        writer.write(FeatureListSummaryController.parameterToString(parameter));
+        writer.write(FeatureListSummaryController.parameterToString(parameter, null));
         writer.newLine();
       }
     }
