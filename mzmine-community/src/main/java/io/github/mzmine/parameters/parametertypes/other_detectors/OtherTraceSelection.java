@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.TextUtils;
 import java.util.Collection;
 import java.util.List;
@@ -112,11 +113,11 @@ public record OtherTraceSelection(@Nullable ChromatogramType chromatogramType,
   }
 
   private static String clean(@Nullable String pattern, boolean needsCleaning) {
+    if (StringUtils.isBlank(pattern)) {
+      return null;
+    }
     if (!needsCleaning) {
       return pattern;
-    }
-    if (pattern == null) {
-      return null;
     }
     // clean old versions of this selection that were saved with the pattern
     pattern = pattern.replaceAll("\\^", "");
@@ -187,11 +188,14 @@ public record OtherTraceSelection(@Nullable ChromatogramType chromatogramType,
 
   private boolean matchesTimeSeriesData(OtherTimeSeriesData obj) {
     final String unitRegex =
-        rangeUnitFilter != null ? TextUtils.createRegexFromWildcards(rangeUnitFilter) : null;
+        !StringUtils.isBlank(rangeUnitFilter) ? TextUtils.createRegexFromWildcards(rangeUnitFilter)
+            : null;
     final String labelRegex =
-        rangeLabelFilter != null ? TextUtils.createRegexFromWildcards(rangeLabelFilter) : null;
+        !StringUtils.isBlank(rangeLabelFilter) ? TextUtils.createRegexFromWildcards(
+            rangeLabelFilter) : null;
     final String descriptionRegex =
-        descriptionFilter != null ? TextUtils.createRegexFromWildcards(descriptionFilter) : null;
+        !StringUtils.isBlank(descriptionFilter) ? TextUtils.createRegexFromWildcards(
+            descriptionFilter) : null;
 
     return Objects.nonNull(obj) && (chromatogramType == null
         || obj.getChromatogramType() == chromatogramType) //
@@ -203,7 +207,7 @@ public record OtherTraceSelection(@Nullable ChromatogramType chromatogramType,
 
   private boolean filterName(OtherFeature f) {
     final String nameRegex =
-        nameFilter != null ? TextUtils.createRegexFromWildcards(nameFilter) : null;
+        !StringUtils.isBlank(nameFilter) ? TextUtils.createRegexFromWildcards(nameFilter) : null;
 
     return nameRegex == null || (f.getFeatureData() != null && f.getFeatureData().getName() != null
         && f.getFeatureData().getName().matches(nameRegex));
@@ -237,19 +241,19 @@ public record OtherTraceSelection(@Nullable ChromatogramType chromatogramType,
       b.append(chromatogramType.getDescription());
       b.append("(s), ");
     }
-    if (rangeUnitFilter != null) {
+    if (!StringUtils.isBlank(rangeUnitFilter)) {
       b.append("with range unit: ");
       b.append(inQuotes(rangeUnitFilter)).append(", ");
     }
-    if (rangeUnitFilter != null) {
+    if (!StringUtils.isBlank(rangeUnitFilter)) {
       b.append("with range label: ");
       b.append(inQuotes(rangeUnitFilter)).append(", ");
     }
-    if (descriptionFilter != null) {
+    if (!StringUtils.isBlank(descriptionFilter)) {
       b.append("with description: ");
       b.append(inQuotes(descriptionFilter)).append(", ");
     }
-    if (nameFilter != null) {
+    if (!StringUtils.isBlank(nameFilter)) {
       b.append("with name: ");
       b.append(inQuotes(nameFilter)).append(", ");
     }
