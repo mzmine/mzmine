@@ -28,21 +28,35 @@ package io.github.mzmine.datamodel.identities;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.FieldSource;
 
 class IonPartParserTest {
 
-  record Case(String input, int charge, int count, String formula) {
+  record Case(String input, int charge, int count, @Nullable String formula, @NotNull String name) {
 
+    Case(String input, int charge, int count, @NotNull String formula) {
+      this(input, charge, count, formula, formula);
+    }
   }
 
   final static List<Case> cases = List.of( //
+      // special chars
+      new Case("+α-", -1, 1, null, "α"),//
+      // () needed to capture - in name
+      new Case("+(α-OH-)", -1, 1, null, "α-OH"),//
+      // no () needed
+      new Case("+2Ca(OH)2", 0, 2, "CaH2O2"),//
+      new Case("+2((OH)2Ca)", 0, 2, "CaH2O2"),//
+      //
       new Case("+C2ArS+", 1, 1, "C2ArS"),//
       // check if charge overwrite works
       new Case("+Na-", -1, 1, "Na"),//
@@ -76,8 +90,8 @@ class IonPartParserTest {
       new Case("+C5[13]CH12+2", 2, 1, "C5[13]CH12"),//
       new Case("+(C5[13]CH12+2)", 2, 1, "C5[13]CH12"),//
       // electrons
-      new Case("-e", -1, -1, null),//
-      new Case("+e", -1, 1, null)//
+      new Case("-e", -1, -1, null, "e"),//
+      new Case("+e", -1, 1, null, "e")//
   );
 
   @ParameterizedTest
@@ -89,12 +103,15 @@ class IonPartParserTest {
     assertEquals(c.charge, part.singleCharge(), message);
     assertEquals(c.count, part.count(), message);
     assertEquals(c.formula, part.singleFormula(), message);
-    assertTrue(part.absSingleMass() > 0, message);
+    assertEquals(c.name, part.name(), message);
+    if (c.formula != null) {
+      assertTrue(part.absSingleMass() > 0, message);
+    }
   }
 
   @Test
   void testParseCase() {
-    final Case c = new Case("  + [CH]2+", 2, 1, "CH");
+    final Case c = new Case("+2((OH)2Ca)", 0, 2, "CaH2O2");
     testParse(c);
   }
 
@@ -133,6 +150,16 @@ class IonPartParserTest {
     assertEquals("Na", part.name());
     assertEquals(-1, part.singleCharge());
     assertEquals(3, part.count());
+  }
+
+  @Test
+  void expectExceptionBraces() {
+    assertThrows(IonPartParsingException.class, () -> IonParts.parse("+(OH2)Ca"));
+  }
+
+  @Test
+  void expectExceptionNoCountMultiplier() {
+    assertThrows(IonPartParsingException.class, () -> IonParts.parse("H"));
   }
 
   @Test

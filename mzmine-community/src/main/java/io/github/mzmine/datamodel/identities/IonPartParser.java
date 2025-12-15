@@ -134,6 +134,7 @@ public class IonPartParser {
         if (openParenthesis == 2 && state == State.FIND_START_FORMULA) {
           // formula started with ( after an opening (
           state = State.COLLECTING_FORMULA;
+          startFormula = index;
         }
         processNextChar();
         return;
