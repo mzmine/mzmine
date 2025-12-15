@@ -25,13 +25,12 @@
 
 package io.github.mzmine.datamodel.identities;
 
-import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.FieldSource;
 
 class IonTypeParserTest {
-
-  private static final Logger logger = Logger.getLogger(IonTypeParserTest.class.getName());
 
   private static void testIonParser(final String input, int mol, int charge) {
     testIonParser(input, input, mol, charge);
@@ -48,16 +47,16 @@ class IonTypeParserTest {
     Assertions.assertEquals(formatted, ionType.toString());
   }
 
-  @Test
-  void testIonTypeParsing() {
-    IonType type1 = IonTypes.NH4.asIonType();
-    final String[] string = new String[]{"M +NH4", "M+NH4 ] +", "[M+NH4] +", "[1M +NH4]+",
-        "1M+NH4 ]1+"};
+  final static String[] nh4 = new String[]{"M +NH4", "M+NH4 ] +", "[M+NH4] +", "[1M +NH4]+",
+      "1M+NH4 ]1+", "(+NH4)+", "[M+NH4]", "(+NH4)"};
 
-    for (String s : string) {
-      IonType ionType = IonTypeParser.parse(s);
-      Assertions.assertEquals(type1.toString(), ionType.toString());
-    }
+  @ParameterizedTest
+  @FieldSource("nh4")
+  void testIonTypeParsing(String s) {
+    IonType type1 = IonTypes.NH4.asIonType();
+
+    IonType ionType = IonTypeParser.parse(s);
+    Assertions.assertEquals(type1.toString(), ionType.toString());
   }
 
   @Test
@@ -106,15 +105,17 @@ class IonTypeParserTest {
     testIonParser("2M+", "[2M]+", 2, 1);
     testIonParser("M+", "[M]+", 1, 1);
     testIonParser("M-2H]2-", "[M-2H]2-", 1, -2);
-    testIonParser("M-H-", "[M-H]-", 1, -1);
+    testIonParser("M-H)-", "[M-H]-", 1, -1);
     testIonParser("M+H", "[M+H]+", 1, 1);
     testIonParser("M-H]-1", "[M-H]-", 1, -1);
     testIonParser("[2M+2H+Na]3+", 2, 3);
-    testIonParser("M+Na+2H+3", "[M+2H+Na]3+", 1, 3);
+    testIonParser("M+Na+2H]+3", "[M+2H+Na]3+", 1, 3);
     testIonParser("[M+2Na-H-H2O]+", "[M-H2O-H+2Na]+", 1, 1);
     testIonParser("M+H+", "[M+H]+", 1, 1);
     testIonParser("[M+CH3]+", "[M+CH3]+", 1, 1);
     testIonParser("[M-H+CH3]+", "[M+CH3-H]+", 1, 1);
+    // Fe+3 is added first and therefore is the default charge state
+    testIonParser("[M-H+Fe]", "[M-H+Fe]2+", 1, 2);
     testIonParser("[M-H+Fe]2+", "[M-H+Fe]2+", 1, 2);
     testIonParser("[M-H+Fe]+2", "[M-H+Fe]2+", 1, 2);
     testIonParser("M+e", "[M+e]-", 1, -1);
@@ -133,6 +134,8 @@ class IonTypeParserTest {
   void testWithCharge() {
     testIonParser("[M-2H2O+(H+)+(Fe+3)-2(Na+)+H2O]+2", "[M-H2O-2Na+Fe+H]2+", 1, 2);
     testIonParser("[M  -(H+)\t+ (Fe+3)-2(Na+)+H2O]+", "[M+H2O-H-2Na+Fe]+", 1, 1);
+    testIonParser("[M  -(H+)\t+ (Fe+3)-2(Na+)+H2O] 2+", "[M+H2O-H-2Na+Fe]2+", 1, 2);
+    testIonParser("[M  -(H+)\t+ (Fe+3) -2 (Na+) + H2O] 2+", "[M+H2O-H-2Na+Fe]2+", 1, 2);
   }
 
   @Test
