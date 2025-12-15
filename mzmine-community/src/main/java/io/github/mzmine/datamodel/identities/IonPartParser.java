@@ -27,13 +27,10 @@ package io.github.mzmine.datamodel.identities;
 
 import static io.github.mzmine.util.StringUtils.isDigit;
 import static io.github.mzmine.util.StringUtils.isSign;
-import static io.github.mzmine.util.StringUtils.parseSignAndIntegerOrElse;
 
 import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,26 +42,27 @@ public class IonPartParser {
   // will produce 4 groups with naming pattern
   // uncharged will be group1=count, group2=formula group3=charge
   // charged will be   group1=count, group4=formula group5=parenthesisCharge
-  public static final Pattern PART_PATTERN = Pattern.compile("""
-      (?x)                      # Enable comments/free-spacing mode
-      (?<count>[+-]\\d*)        # count multiplier either +- or with number
-      (?:                       # do not capture the OR| group
-      (?![(])                   # negative lookahead NO ( first case without parentheses just +H2O (optional charge)
-      (?<formula>[\\p{L}\\[]    # start with any unicode letter or [ for isotopes or [formulas] 
-          [\\]\\[!=\\#$:%*@.\\p{L}0-9]* # allow many more characters and special symbols like [] for isotopes
-          [\\p{L}0-9\\]]        # has to end with a letter or number or ] formulas may end with ] for charged version [F]-
-          |[a-zA-Z]             # alternative to the above formula may be only one letter like F
-      )                         # end of formula
-      # charge should be entered with () but can also without
-      ((?<charge>[+-]\\d*)(?=[+-]|$))? # optional charge state when without () then require NO additional +- after
-      | [(]                     # alternative case requires () to enclose charge like +(Fe+3) and special symbols like +-
-      (?<parenthesisFormula>
-      (?:[\\p{L}\\[]
-          [-+\\]\\[!=\\#$:%*@.\\p{L}0-9]*)? # formula has to start with letter, maybe followed by rest of formula
-      (?:[\\p{L}]+[\\p{L}0-9\\]]*|[a-zA-Z]+))  # formulas has to end with letter or letter followed by number
-      (?<parenthesisCharge>[+-]\\d*)?      # optional charge state followed by )
-      [)]                       # ends with )
-      )                         # end of non-capturing group""");
+  // here as a reference. This pattern does not allow whitespaces in names and has other issues with charge states
+//  public static final Pattern PART_PATTERN = Pattern.compile("""
+//      (?x)                      # Enable comments/free-spacing mode
+//      (?<count>[+-]\\d*)        # count multiplier either +- or with number
+//      (?:                       # do not capture the OR| group
+//      (?![(])                   # negative lookahead NO ( first case without parentheses just +H2O (optional charge)
+//      (?<formula>[\\p{L}\\[]    # start with any unicode letter or [ for isotopes or [formulas]
+//          [\\]\\[!=\\#$:%*@.\\p{L}0-9]* # allow many more characters and special symbols like [] for isotopes
+//          [\\p{L}0-9\\]]        # has to end with a letter or number or ] formulas may end with ] for charged version [F]-
+//          |[a-zA-Z]             # alternative to the above formula may be only one letter like F
+//      )                         # end of formula
+//      # charge should be entered with () but can also without
+//      ((?<charge>[+-]\\d*)(?=[+-]|$))? # optional charge state when without () then require NO additional +- after
+//      | [(]                     # alternative case requires () to enclose charge like +(Fe+3) and special symbols like +-
+//      (?<parenthesisFormula>
+//      (?:[\\p{L}\\[]
+//          [-+\\]\\[!=\\#$:%*@.\\p{L}0-9]*)? # formula has to start with letter, maybe followed by rest of formula
+//      (?:[\\p{L}]+[\\p{L}0-9\\]]*|[a-zA-Z]+))  # formulas has to end with letter or letter followed by number
+//      (?<parenthesisCharge>[+-]\\d*)?      # optional charge state followed by )
+//      [)]                       # ends with )
+//      )                         # end of non-capturing group""");
 
 
   private final List<IonPart> result = new ArrayList<>();
@@ -441,56 +439,55 @@ public class IonPartParser {
     return parts.getFirst();
   }
 
-  public static @Nullable IonPart parsePattern(final @NotNull String part) {
-    Matcher matcher = PART_PATTERN.matcher(StringUtils.removeAllWhiteSpace(part));
-    while (matcher.find()) {
-      IonPart ion = fromMatcher(matcher);
-      if (ion != null) {
-        return ion;
-      }
-    }
-    return null;
-  }
-
   @NotNull
   public static List<IonPart> parseMultiple(@NotNull final String input) {
     return new IonPartParser(input).getResult();
   }
 
-  public static List<IonPart> parseMultiplePattern(final String input) {
-    Matcher matcher = PART_PATTERN.matcher(StringUtils.removeAllWhiteSpace(input));
-    List<IonPart> parts = new ArrayList<>();
-    while (matcher.find()) {
-      IonPart ion = fromMatcher(matcher);
-      if (ion != null) {
-        parts.add(ion);
-      }
-    }
-    return parts;
-  }
-
-  @SuppressWarnings("DataFlowIssue")
-  @Nullable
-  private static IonPart fromMatcher(final Matcher matcher) {
-    final String countStr = matcher.group(1);
-    String chargeStr = matcher.group("charge");
-    String formula = matcher.group("formula");
-    if (chargeStr == null) {
-      chargeStr = matcher.group("parenthesisCharge");
-    }
-    if (formula == null) {
-      formula = matcher.group("parenthesisFormula");
-    }
-
-    if (StringUtils.isBlank(formula)) {
-      return null;
-    }
-    final int count = parseSignAndIntegerOrElse(countStr, true, 1);
-    Integer charge = parseSignAndIntegerOrElse(chargeStr, true, null);
-    var ionPart = IonParts.findPartByNameOrFormula(formula, count, charge);
-
-    return ionPart;
-  }
+  // Here as a reference. The pattern has issues to parse whitespaces and () in names and some charge states
+//  public static @Nullable IonPart parsePattern(final @NotNull String part) {
+//    Matcher matcher = PART_PATTERN.matcher(StringUtils.removeAllWhiteSpace(part));
+//    while (matcher.find()) {
+//      IonPart ion = fromMatcher(matcher);
+//      if (ion != null) {
+//        return ion;
+//      }
+//    }
+//    return null;
+//  }
+//  public static List<IonPart> parseMultiplePattern(final String input) {
+//    Matcher matcher = PART_PATTERN.matcher(StringUtils.removeAllWhiteSpace(input));
+//    List<IonPart> parts = new ArrayList<>();
+//    while (matcher.find()) {
+//      IonPart ion = fromMatcher(matcher);
+//      if (ion != null) {
+//        parts.add(ion);
+//      }
+//    }
+//    return parts;
+//  }
+//  @SuppressWarnings("DataFlowIssue")
+//  @Nullable
+//  private static IonPart fromMatcher(final Matcher matcher) {
+//    final String countStr = matcher.group(1);
+//    String chargeStr = matcher.group("charge");
+//    String formula = matcher.group("formula");
+//    if (chargeStr == null) {
+//      chargeStr = matcher.group("parenthesisCharge");
+//    }
+//    if (formula == null) {
+//      formula = matcher.group("parenthesisFormula");
+//    }
+//
+//    if (StringUtils.isBlank(formula)) {
+//      return null;
+//    }
+//    final int count = parseSignAndIntegerOrElse(countStr, true, 1);
+//    Integer charge = parseSignAndIntegerOrElse(chargeStr, true, null);
+//    var ionPart = IonParts.findPartByNameOrFormula(formula, count, charge);
+//
+//    return ionPart;
+//  }
 
 
 }
