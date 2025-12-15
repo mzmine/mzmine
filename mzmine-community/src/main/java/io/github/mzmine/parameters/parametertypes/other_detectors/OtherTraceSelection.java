@@ -118,6 +118,7 @@ public record OtherTraceSelection(@Nullable ChromatogramType chromatogramType,
     if (pattern == null) {
       return null;
     }
+    // clean old versions of this selection that were saved with the pattern
     pattern = pattern.replaceAll("\\^", "");
     pattern = pattern.replaceAll("\\\\Q", "");
     pattern = pattern.replaceAll("\\\\E", "");
