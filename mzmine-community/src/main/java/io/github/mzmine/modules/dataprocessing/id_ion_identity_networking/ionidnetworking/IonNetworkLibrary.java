@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.SimpleIonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonModificationType;
@@ -47,6 +49,13 @@ import org.jetbrains.annotations.Nullable;
 public class IonNetworkLibrary {
 
   private static final Logger LOG = Logger.getLogger(IonNetworkLibrary.class.getName());
+
+  @NotNull
+  public IonLibrary toNewLibrary() {
+    final List<io.github.mzmine.datamodel.identities.IonType> ions = allAdducts.stream()
+        .map(IonType::toNewIonType).toList();
+    return new SimpleIonLibrary("Legacy library imported", ions);
+  }
 
   public enum CheckMode {
     AVGERAGE, ONE_FEATURE, ALL_FEATURES;
