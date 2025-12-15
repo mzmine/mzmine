@@ -47,6 +47,7 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.ui.RectangleInsets;
 
 public class AlignedFeatureReport implements ReportModule {
 
@@ -76,6 +77,7 @@ public class AlignedFeatureReport implements ReportModule {
         .getColumnByName(parameters.getValue(AlignedFeatureReportParameters.grouping));
     theme = new EStandardChartTheme("Aligned feature report");
     parameters.getValue(AlignedFeatureReportParameters.chartThemeParam).applyToChartTheme(theme);
+    theme.setMirrorPlotAxisOffset(new RectangleInsets(0, 0, -2, 0));
   }
 
   @Override
@@ -111,12 +113,12 @@ public class AlignedFeatureReport implements ReportModule {
       }
     }
 
-    if(includeEvidence) {
+    if (includeEvidence) {
       detailSource = new JRCountingBeanCollectionDataSource(detail);
       jasperParameters.put("DETAILED_FEATURES_DATA_SOURCE", detailSource);
     }
 
-    if(includeSummary) {
+    if (includeSummary) {
       summarySource = new JRCountingBeanCollectionDataSource(summary);
       jasperParameters.put("SUMMARY_DATA_SOURCE", summarySource);
     }

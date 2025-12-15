@@ -114,6 +114,7 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
     makeAndAddLipidAnnotationStep(q);
+    makeAndAddFormulaPredictionStep(q);
 
     // networking
     if (applySpectralNetworking) {

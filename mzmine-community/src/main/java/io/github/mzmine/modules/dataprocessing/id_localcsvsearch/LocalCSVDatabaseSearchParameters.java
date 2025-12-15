@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -54,7 +53,6 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.Q3QuantMzType;
-import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -145,7 +143,7 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType<>(true, "neutral_mass", new NeutralMassType()),
       new ImportType<>(true, "mz", new PrecursorMZType()), //
       new ImportType<>(true, "rt", new RTType(), wildcardFloatMapper), //
-      new ImportType<>(true, "ri_record", new RIRecordType()), //
+      new ImportType<>(false, "ri_record", new RIRecordType()), //
       new ImportType<>(true, "formula", new FormulaType()),
       new ImportType<>(true, "smiles", new SmilesStructureType()),
       new ImportType<>(false, "inchi", new InChIStructureType()),

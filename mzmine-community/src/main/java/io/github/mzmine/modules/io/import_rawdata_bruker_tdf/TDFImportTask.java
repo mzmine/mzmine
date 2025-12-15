@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -263,82 +262,85 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
       return;
     }
 
-    final TDFUtils tdfUtils = new TDFUtils();
-    logger.finest(() -> "Opening tdf file " + tdfBin.getAbsolutePath());
-    final long handle = tdfUtils.openFile(tdfBin);
+    try (final TDFUtils tdfUtils = new TDFUtils()) {
+
+      logger.finest(() -> "Opening tdf file " + tdfBin.getAbsolutePath());
+      final long handle = tdfUtils.openFile(tdfBin);
 //    newMZmineFile.setName(rawDataFileName);
-    if (handle == 0L) {
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage("Failed to open the file " + tdfBin + " using the Bruker TDF library");
-      return;
-    }
-
-    loadedFrames = 0;
-    final int numFrames = frameTable.getFrameIdColumn().size();
-
-    logger.finest("Starting frame import.");
-
-    loadedFrames = 0;
-    // collect average spectra for each frame
-    List<SimpleFrame> frames = new ArrayList<>();
-
-    final boolean importProfile = ConfigService.isTdfPseudoProfile();
-
-    try {
-      for (int i = 0; i < numFrames; i++) {
-        int frameId = frameTable.getFrameIdColumn().get(i).intValue();
-        setFinishedPercentage((double) (loadedFrames) / numFrames);
-        setDescription(
-            "Importing " + rawDataFileName + ": Importing Frame " + frameId + "/" + numFrames);
-        final SimpleFrame frame;
-        if (!importProfile) {
-          frame = tdfUtils.extractCentroidScanForTimsFrame(newMZmineFile, frameId, metaDataTable,
-              frameTable, framePrecursorTable, maldiFrameInfoTable, scanProcessorConfig);
-        } else {
-          frame = tdfUtils.extractProfileScanForFrame(newMZmineFile, frameId, metaDataTable,
-              frameTable, framePrecursorTable, maldiFrameInfoTable, scanProcessorConfig);
-        }
-
-        // frame might be null when filtered out - just continue with next
-        if (frame == null) {
-          loadedFrames++;
-          continue;
-        }
-
-        if (scanProcessorConfig.isMassDetectActive(frame.getMSLevel())) {
-          frame.addMassList(new ScanPointerMassList(frame));
-        }
-
-        if (isMaldi && frame instanceof ImagingFrame imgFrame) {
-          final MaldiSpotInfo maldiSpotInfo = maldiFrameInfoTable.getMaldiSpotInfo(
-              frame.getFrameId());
-          imgFrame.setMaldiSpotInfo(maldiSpotInfo);
-        }
-
-        loadMobilityScansForFrame(tdfUtils, frameTable, frame);
-
-        newMZmineFile.addScan(frame);
-        frames.add(frame);
-        loadedFrames++;
-        if (isCanceled()) {
-          tdfUtils.close();
-          return;
-        }
+      if (handle == 0L) {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("Failed to open the file " + tdfBin + " using the Bruker TDF library");
+        return;
       }
-    } catch (IndexOutOfBoundsException e) {
-      // happens on corrupt data
-      logger.warning("Cannot import raw data from " + tdf.getName() + ", data is corrupt.");
-      setStatus(TaskStatus.FINISHED);
-      return;
+
+      loadedFrames = 0;
+      final int numFrames = frameTable.getFrameIdColumn().size();
+
+      logger.finest("Starting frame import.");
+
+      loadedFrames = 0;
+      // collect average spectra for each frame
+      List<SimpleFrame> frames = new ArrayList<>();
+
+      final boolean importProfile = ConfigService.isTdfPseudoProfile();
+
+      try {
+        for (int i = 0; i < numFrames; i++) {
+          int frameId = frameTable.getFrameIdColumn().get(i).intValue();
+          setFinishedPercentage((double) (loadedFrames) / numFrames);
+          setDescription(
+              "Importing " + rawDataFileName + ": Importing Frame " + frameId + "/" + numFrames);
+          final SimpleFrame frame;
+          if (!importProfile) {
+            frame = tdfUtils.extractCentroidScanForTimsFrame(newMZmineFile, frameId, metaDataTable,
+                frameTable, framePrecursorTable, maldiFrameInfoTable, scanProcessorConfig);
+          } else {
+            frame = tdfUtils.extractProfileScanForFrame(newMZmineFile, frameId, metaDataTable,
+                frameTable, framePrecursorTable, maldiFrameInfoTable, scanProcessorConfig);
+          }
+
+          // frame might be null when filtered out - just continue with next
+          if (frame == null) {
+            loadedFrames++;
+            continue;
+          }
+
+          if (scanProcessorConfig.isMassDetectActive(frame.getMSLevel())) {
+            frame.addMassList(new ScanPointerMassList(frame));
+          }
+
+          if (isMaldi && frame instanceof ImagingFrame imgFrame) {
+            final MaldiSpotInfo maldiSpotInfo = maldiFrameInfoTable.getMaldiSpotInfo(
+                frame.getFrameId());
+            imgFrame.setMaldiSpotInfo(maldiSpotInfo);
+          }
+
+          loadMobilityScansForFrame(tdfUtils, frameTable, frame);
+
+          newMZmineFile.addScan(frame);
+          frames.add(frame);
+          loadedFrames++;
+          if (isCanceled()) {
+            tdfUtils.close();
+            return;
+          }
+        }
+      } catch (IndexOutOfBoundsException e) {
+        // happens on corrupt data
+        logger.warning("Cannot import raw data from " + tdf.getName() + ", data is corrupt.");
+        setStatus(TaskStatus.FINISHED);
+        return;
+      }
+
+      // now assign MS/MS infos
+      constructMsMsInfo(newMZmineFile, framePrecursorTable);
+      assignDiaMsMsInfo(newMZmineFile, diaFrameMsMsWindowTable, diaFrameMsMsInfoTable);
+      assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
+      assignTimsAutoMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable);
+
+    } catch (RuntimeException e) {
+      error("Error importing file %s".formatted(fileNameToOpen.getName()), e);
     }
-
-    // now assign MS/MS infos
-    constructMsMsInfo(newMZmineFile, framePrecursorTable);
-    assignDiaMsMsInfo(newMZmineFile, diaFrameMsMsWindowTable, diaFrameMsMsInfoTable);
-    assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
-    assignTimsAutoMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable);
-
-    tdfUtils.close();
 
     if (isCanceled()) {
       return;
@@ -509,14 +511,14 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
             building.getCollisionEnergy(), building.getPrecursorCharge(), parentFrame, frame,
             building.getIsolationWindow());
 
-        ((SimpleFrame)frame).addImsMsMsInfo(info);
+        ((SimpleFrame) frame).addImsMsMsInfo(info);
         constructed++;
       }
     }
 
     Date end = new Date();
     logger.info(
-        "Construced " + constructed + " ImsMsMsInfos for " + file.getFrames().size() + " in " + (
+        "Constructed " + constructed + " ImsMsMsInfos for " + file.getFrames().size() + " in " + (
             end.getTime() - start.getTime()) + " ms");
   }
 
@@ -577,7 +579,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
       final float ce = frameMsMsInfoTable.getCe().get(frameMsMsTableIndex).floatValue();
       final DIAImsMsMsInfoImpl diaImsMsMsInfo = new DIAImsMsMsInfoImpl(
           Range.closed(0, frame.getNumberOfMobilityScans() - 1), ce, frame, mzRange);
-      ((SimpleFrame)frame).addImsMsMsInfo(diaImsMsMsInfo);
+      ((SimpleFrame) frame).addImsMsMsInfo(diaImsMsMsInfo);
     }
   }
 
@@ -608,7 +610,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
 
       final PasefMsMsInfo ddaImsMsMsInfo = frameMsMsInfoTable.getImsAutoMsMsInfo(
           frameMsMsTableIndex, frame, null);
-      ((SimpleFrame)frame).addImsMsMsInfo(ddaImsMsMsInfo);
+      ((SimpleFrame) frame).addImsMsMsInfo(ddaImsMsMsInfo);
     }
   }
 
