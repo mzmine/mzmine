@@ -64,8 +64,8 @@ public class IonParts {
   public static final IonPart K = ofFormula("K", 1);
   public static final IonPart CA = ofFormula("Ca", 2);
   public static final IonPart MG = ofFormula("Mg", 2);
-  public static final IonPart FEII = ofFormula("Fe", 2);
   public static final IonPart FEIII = ofFormula("Fe", 3);
+  public static final IonPart FEII = ofFormula("Fe", 2);
 
   // negative
   public static final IonPart H_MINUS = H.withCount(-1);
@@ -102,8 +102,9 @@ public class IonParts {
 
   public static final List<IonPart> PREDEFINED_PARTS = List.of(H2O, H2O_2, H2O_3, H2O_4, H2O_5, HCL,
       C2H4, H2, NH3, CO, CO2, FORMIC_ACID, ACETIC_ACID, ACN, METHANOL, ETHANOL, ISO_PROPANOL,
-      ACETATE_AC, FORMATE_FA, I, BR, CL, F, H_MINUS, FEII, FEIII, MG, CA, K, NH4, NA2_PLUS, NA, H,
-      H2_PLUS, H3_PLUS, M_MINUS, M_PLUS);
+      ACETATE_AC, FORMATE_FA, I, BR, CL, F, H_MINUS,
+      // adding FEIII first makes it the default charge state for Fe
+      FEIII, FEII, MG, CA, K, NH4, NA2_PLUS, NA, H, H2_PLUS, H3_PLUS, M_MINUS, M_PLUS);
 
 
   /**

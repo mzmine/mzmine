@@ -25,12 +25,20 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.FieldSource;
 
 class IonTypeParserTest {
+
+  record Case(String input, String formatted, int mol, int charge) {
+
+    Case(String input, int mol, int charge) {
+      this(input, input, mol, charge);
+    }
+  }
 
   private static void testIonParser(final String input, int mol, int charge) {
     testIonParser(input, input, mol, charge);
@@ -96,38 +104,47 @@ class IonTypeParserTest {
     Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUnknown));
   }
 
-  @Test
-  void testIonParse() {
-    // this is tricky to format correctly. M- does not write e- and here we want it to be written
-    testIonParser("M-H+e", "[M-H+e]2-", 1, -2);
-    testIonParser("M-H-2e", "[M-H-2e]+", 1, 1);
-    testIonParser("2M+2H-2H2O]", "[2M-2H2O+2H]2+", 2, 2);
-    testIonParser("2M+", "[2M]+", 2, 1);
-    testIonParser("M+", "[M]+", 1, 1);
-    testIonParser("M-2H]2-", "[M-2H]2-", 1, -2);
-    testIonParser("M-H)-", "[M-H]-", 1, -1);
-    testIonParser("M+H", "[M+H]+", 1, 1);
-    testIonParser("M-H]-1", "[M-H]-", 1, -1);
-    testIonParser("[2M+2H+Na]3+", 2, 3);
-    testIonParser("M+Na+2H]+3", "[M+2H+Na]3+", 1, 3);
-    testIonParser("[M+2Na-H-H2O]+", "[M-H2O-H+2Na]+", 1, 1);
-    testIonParser("M+H+", "[M+H]+", 1, 1);
-    testIonParser("[M+CH3]+", "[M+CH3]+", 1, 1);
-    testIonParser("[M-H+CH3]+", "[M+CH3-H]+", 1, 1);
-    // Fe+3 is added first and therefore is the default charge state
-    testIonParser("[M-H+Fe]", "[M-H+Fe]2+", 1, 2);
-    testIonParser("[M-H+Fe]2+", "[M-H+Fe]2+", 1, 2);
-    testIonParser("[M-H+Fe]+2", "[M-H+Fe]2+", 1, 2);
-    testIonParser("M+e", "[M+e]-", 1, -1);
-    testIonParser("M+2e", "[M+2e]2-", 1, -2);
-    testIonParser("M-e", "[M-e]+", 1, 1);
-    testIonParser("M-2e", "[M-2e]2+", 1, 2);
+  static final List<Case> cases = List.of(
+      // this is tricky to format correctly. M- does not write e- and here we want it to be written
+      new Case("M-H+e", "[M-H+e]2-", 1, -2), //
+      new Case("M-H-2e", "[M-H-2e]+", 1, 1), //
+      new Case("2M+2H-2H2O]", "[2M-2H2O+2H]2+", 2, 2), //
+      new Case("2M+", "[2M]+", 2, 1), //
+      new Case("M+", "[M]+", 1, 1), //
+      new Case("M-2H]2-", "[M-2H]2-", 1, -2), //
+      new Case("M-H)-", "[M-H]-", 1, -1), //
+      new Case("M+H", "[M+H]+", 1, 1), //
+      new Case("M-H]-1", "[M-H]-", 1, -1), //
+      new Case("[2M+2H+Na]3+", 2, 3), //
+      new Case("M+Na+2H]+3", "[M+2H+Na]3+", 1, 3), //
+      new Case("[M+2Na-H-H2O]+", "[M-H2O-H+2Na]+", 1, 1), //
+      new Case("M+H+", "[M+H]+", 1, 1), //
+      new Case("[M+CH3]+", "[M+CH3]+", 1, 1), //
+      new Case("[M-H+CH3]+", "[M+CH3-H]+", 1, 1), //
+      // Fe+3 is added first and therefore is the default charge state
+      new Case("[M-H+Fe]", "[M-H+Fe]2+", 1, 2), //
+      new Case("[M-H+Fe]2+", "[M-H+Fe]2+", 1, 2), //
+      new Case("[M-H+Fe]+2", "[M-H+Fe]2+", 1, 2), //
+      new Case("M+e", "[M+e]-", 1, -1), //
+      new Case("M+2e", "[M+2e]2-", 1, -2), //
+      new Case("M-e", "[M-e]+", 1, 1), //
+      new Case("M-2e", "[M-2e]2+", 1, 2), //
 
-    testIonParser("M+Cl", "[M+Cl]-", 1, -1);
-    testIonParser("M-HCl+FA", "[M-HCl+CHO2]-", 1, -1);
+      new Case("M+Cl", "[M+Cl]-", 1, -1), //
+      new Case("M-HCl+FA", "[M-HCl+CHO2]-", 1, -1), //
+      new Case("M - HCl +2 FA", "[M-HCl+2CHO2]2-", 1, -2), //
+      new Case(" - HCl +2 FA", "[M-HCl+2CHO2]2-", 1, -2), //
+      new Case("[ - HCl +2 FA]", "[M-HCl+2CHO2]2-", 1, -2), //
 
-    // counter intuitve but we expect ions to have a charge and default to 1
-    testIonParser("[M-H2O]", "[M-H2O]+", 1, 1);
+      // counter intuitve but we expect ions to have a charge and default to 1
+      new Case("[M-H2O]", "[M-H2O]+", 1, 1) //
+  );
+
+
+  @ParameterizedTest
+  @FieldSource("cases")
+  void testIonParse(Case c) {
+    testIonParser(c.input, c.formatted, c.mol, c.charge);
   }
 
   @Test
