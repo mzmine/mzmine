@@ -36,25 +36,26 @@ import org.jetbrains.annotations.Nullable;
  */
 public class IonLibraries {
 
-  public static final @NotNull String MZMINE_DEFAULT_NAME_DUAL_POLARITIES = "mzmine default (+/-)";
   /**
    * A default library with both positive and negative ions
    */
-  public static final @NotNull IonLibrary MZMINE_DEFAULT_DUAL_POLARITY = new SimpleIonLibrary(
-      MZMINE_DEFAULT_NAME_DUAL_POLARITIES, IonTypes.DEFAULT_VALUES_BOTH_POLARITIES);
-  public static final @NotNull String MZMINE_DEFAULT_NAME_POS = "mzmine default (+)";
-  public static final @NotNull IonLibrary MZMINE_DEFAULT_POS = new SimpleIonLibrary(
-      MZMINE_DEFAULT_NAME_POS, IonTypes.DEFAULT_VALUES_POSITIVE);
-  public static final @NotNull String MZMINE_DEFAULT_NAME_NEG = "mzmine default (-)";
-  public static final @NotNull IonLibrary MZMINE_DEFAULT_NEG = new SimpleIonLibrary(
-      MZMINE_DEFAULT_NAME_NEG, IonTypes.DEFAULT_VALUES_NEGATIVE);
+  public static final @NotNull IonLibrary MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE = new SimpleIonLibrary(
+      "mzmine default comprehensive (+/-)", IonTypes.DEFAULT_VALUES_BOTH_POLARITIES_FULL);
+  public static final @NotNull IonLibrary MZMINE_DEFAULT_DUAL_POLARITY_MAIN = new SimpleIonLibrary(
+      "mzmine default main ions (+/-)", IonTypes.DEFAULT_VALUES_BOTH_POLARITIES_FULL);
+
+  public static final @NotNull IonLibrary MZMINE_DEFAULT_POS_COMPREHENSIVE = new SimpleIonLibrary(
+      "mzmine default comprehensive (+)", IonTypes.DEFAULT_VALUES_POSITIVE);
+  public static final @NotNull IonLibrary MZMINE_DEFAULT_NEG_COMPREHENSIVE = new SimpleIonLibrary(
+      "mzmine default comprehensive (-)", IonTypes.DEFAULT_VALUES_NEGATIVE);
   /**
    * Library names are reserved as they are mzmine internal libraries. Those libraries may change
    * between versions to provide the best possible defaults. For reproducibility, old batches would
    * still use the old library version as they save the library to xml.
    */
   public static final @NotNull List<String> RESERVED_LIBRARY_NAMES = List.of(
-      MZMINE_DEFAULT_NAME_DUAL_POLARITIES, MZMINE_DEFAULT_NAME_POS, MZMINE_DEFAULT_NAME_NEG);
+      MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE.name(), MZMINE_DEFAULT_DUAL_POLARITY_MAIN.name(),
+      MZMINE_DEFAULT_POS_COMPREHENSIVE.name(), MZMINE_DEFAULT_NEG_COMPREHENSIVE.name());
 
   /**
    *
@@ -62,7 +63,8 @@ public class IonLibraries {
    */
   public static List<IonLibrary> createDefaultLibrariesModifiable() {
     return new ArrayList<IonLibrary>(
-        List.of(MZMINE_DEFAULT_DUAL_POLARITY, MZMINE_DEFAULT_POS, MZMINE_DEFAULT_NEG));
+        List.of(MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE, MZMINE_DEFAULT_POS_COMPREHENSIVE,
+            MZMINE_DEFAULT_NEG_COMPREHENSIVE));
   }
 
   /**
