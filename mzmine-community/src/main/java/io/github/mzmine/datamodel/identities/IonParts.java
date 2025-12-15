@@ -201,6 +201,7 @@ public class IonParts {
    * @param count         the singed multiplier of this single item, non-zero. e.g., 2 for +2Na and
    *                      -1 for -H
    */
+  @NotNull
   public static IonPart create(@Nullable String name, @Nullable String singleFormula,
       @Nullable Double absSingleMass, @Nullable Integer singleCharge,
       final @Nullable Integer count) {
@@ -278,6 +279,7 @@ public class IonParts {
    *
    * @param formula used to calculate other fields
    */
+  @NotNull
   public static IonPart ofFormula(@NotNull final String formula,
       final @Nullable Integer singleCharge) {
     return ofFormula(formula, singleCharge, 1);
@@ -286,6 +288,7 @@ public class IonParts {
   /**
    * Name overwriting formula name
    */
+  @NotNull
   public static IonPart ofFormula(@Nullable String name, @NotNull String formula,
       final @Nullable Integer singleCharge) {
     return ofFormula(name, formula, singleCharge, 1);
@@ -296,11 +299,13 @@ public class IonParts {
    *
    * @param formula used to calculate other fields
    */
+  @NotNull
   public static IonPart ofFormula(@NotNull String formula, @Nullable Integer singleCharge,
       final @Nullable Integer count) {
     return ofFormula(null, formula, singleCharge, count);
   }
 
+  @NotNull
   public static IonPart ofFormula(@Nullable String name, @NotNull String formula,
       @Nullable Integer singleCharge, final @Nullable Integer count) {
 
@@ -311,6 +316,7 @@ public class IonParts {
   /**
    * No formula constructor
    */
+  @NotNull
   public static IonPart ofNamed(@NotNull String name, final double singleMass,
       final @Nullable Integer singleCharge) {
     return ofNamed(name, singleMass, singleCharge, 1);
@@ -319,6 +325,7 @@ public class IonParts {
   /**
    * No formula constructor
    */
+  @NotNull
   public static IonPart ofNamed(@NotNull String name, final double singleMass,
       final @Nullable Integer singleCharge, final @Nullable Integer count) {
     return create(name, null, singleMass, singleCharge, count);

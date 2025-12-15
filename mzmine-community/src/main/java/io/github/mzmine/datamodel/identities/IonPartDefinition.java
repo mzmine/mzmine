@@ -132,6 +132,11 @@ public record IonPartDefinition(@NotNull String name, @Nullable String singleFor
     return 0;
   }
 
+  @Override
+  public double totalMass() {
+    return absSingleMass;
+  }
+
   /**
    * Use {@link #equalsWithoutCount(Object)} to check for any match between implementing classes
    * without count

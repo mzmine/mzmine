@@ -31,13 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
-import io.github.mzmine.util.StringUtils;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.FieldSource;
@@ -60,13 +54,28 @@ class IonPartParserTest {
       new Case("+2H", 1, 2, "H"),//
       new Case("+(H)", 1, 1, "H"),//
       new Case("+2(H)", 1, 2, "H"),//
+      // exotic formula for unknown charge and then check spaces
+      new Case("  + CH  +", 1, 1, "CH"),//
+      new Case("  + CH  +2", 2, 1, "CH"),//
+      new Case("  + [CH] +2", 2, 1, "CH"),//
+      new Case("  + [CH]2+", 2, 1, "CH"),//
+      new Case("  + ([CH]2+)", 2, 1, "CH"),//
+      new Case("  + ([CH] +2)", 2, 1, "CH"),//
+      new Case("  + CH2+", 1, 1, "CH2"),//
+      new Case("  + CH2+2", 2, 1, "CH2"),//
       // need to use some more exotic formula to avoid charge being known in predefined parts
       new Case("+C2ArS+1", 1, 1, "C2ArS"),//
       new Case("+C2ArS-2", -2, 1, "C2ArS"),//
       new Case("+C2ArS-2", -2, 1, "C2ArS"),//
       new Case("+(C2ArS)", 0, 1, "C2ArS"),//
       new Case("+(C2ArS+)", 1, 1, "C2ArS"),//
+      new Case("+(C2ArS2+)", 1, 1, "C2ArS2"),//
       new Case("+(C2ArS-2)", -2, 1, "C2ArS"),//
+      // notation of isotopes
+      new Case("+[C5[13]CH12]+2", 2, 1, "C5[13]CH12"),//
+      new Case("+C5[13]CH12+2", 2, 1, "C5[13]CH12"),//
+      new Case("+(C5[13]CH12+2)", 2, 1, "C5[13]CH12"),//
+      // electrons
       new Case("-e", -1, -1, null),//
       new Case("+e", -1, 1, null)//
   );
@@ -81,6 +90,21 @@ class IonPartParserTest {
     assertEquals(c.count, part.count(), message);
     assertEquals(c.formula, part.singleFormula(), message);
     assertTrue(part.absSingleMass() > 0, message);
+  }
+
+  @Test
+  void testParseCase() {
+    final Case c = new Case("  + [CH]2+", 2, 1, "CH");
+    testParse(c);
+  }
+
+  @Test
+  void isotopeFormula() {
+    final IonPart part = IonParts.parse("+[C5[13]CH12]+2");
+//    final IonPart part = IonParts.parse("+2C5[13]CH12+");
+    assertNotNull(part);
+    assertEquals(1, part.count());
+    assertEquals(2, part.singleCharge());
   }
 
   @Test
@@ -112,64 +136,28 @@ class IonPartParserTest {
   }
 
   @Test
-  public void testIonPartRegex() {
-    Pattern pattern = IonPartParser.PART_PATTERN;
-
+  public void testAllowedSpaces() {
     List<String> inputs = List.of( //
         // this input without braces () is not preferred. With charge prefer braces
         "-2H2O + H + +Fe +3  -2Na + + H2O", //
         "-2H2O+H++Fe+3-2Na++H2O", //
         "-2H2O+(H+)+(Fe+3)-2(Na+)+H2O", //
         "\t-2 H2O+( H+)+(Fe+3)-2 (Na+)+H2O", //
-        "   - 2H2O+(H+)+(Fe+3)-2(Na+)+H2O", //
-        "  -2H2O+ (H+) +(Fe+3)-2 (Na+)+(H2O) " //
+        "   -2H2O+(H+)+(Fe+3)-2(Na+)+H2O", //
+        "  -2 H2O+ (H+) +(Fe+3)-2 (Na+)+(H2O) " //
     );
 
+    final List<IonPart> expected = List.of(IonParts.H2O_2, IonParts.H, IonParts.FEIII,
+        IonParts.NA.withCount(-2), IonParts.H2O.withCount(1));
+
     for (String input : inputs) {
-      Matcher matcher = pattern.matcher(StringUtils.removeAllWhiteSpace(input));
-
-      List<String> units = new ArrayList<>();
-
-      while (matcher.find()) {
-        units.add(matcher.group());
-        String allGroups = IntStream.range(0, matcher.groupCount() + 1)
-            .mapToObj(i -> "Group %d=%s".formatted(i, matcher.group(i)))
-            .collect(Collectors.joining(" ; "));
-//      logger.info(allGroups);
-      }
-      assertEquals(5, units.size(), "For input: " + input);
-
       List<IonPart> parts = IonParts.parseMultiple(input);
-      assertEquals(5, parts.size(), "For input: " + input);
 
-      IonPart part = parts.get(0);
-      assertEquals("H2O", part.name(), "For input: " + input);
-      assertEquals(0, part.singleCharge(), "For input: " + input);
-      assertEquals(-2, part.count(), "For input: " + input);
+      assertEquals(expected.size(), parts.size(), input);
 
-      part = parts.get(1);
-      assertEquals("H", part.name(), "For input: " + input);
-      assertEquals(1, part.singleCharge(), "For input: " + input);
-      assertEquals(1, part.count(), "For input: " + input);
-
-      part = parts.get(2);
-      assertEquals("Fe", part.name(), "For input: " + input);
-      assertEquals(3, part.singleCharge(), "For input: " + input);
-      assertEquals(1, part.count(), "For input: " + input);
-
-      part = parts.get(3);
-      assertEquals("Na", part.name(), "For input: " + input);
-      assertEquals(1, part.singleCharge(), "For input: " + input);
-      assertEquals(-2, part.count(), "For input: " + input);
-
-      part = parts.get(4);
-      assertEquals("H2O", part.name(), "For input: " + input);
-      assertEquals(0, part.singleCharge(), "For input: " + input);
-      assertEquals(1, part.count(), "For input: " + input);
-
-//    for (String unit : units) {
-//      logger.info(unit);
-//    }
+      for (int i = 0; i < expected.size(); i++) {
+        assertEquals(expected.get(i), parts.get(i), input);
+      }
     }
   }
 

@@ -462,4 +462,17 @@ public class StringUtils {
   public static String removeAllWhiteSpace(final String input) {
     return input.replaceAll("\\s+", "");
   }
+
+  public static boolean isSignOrDigit(char c) {
+    return Character.isDigit(c) || isSign(c);
+  }
+
+  public static boolean isSign(char c) {
+    return c == '-' || c == '+';
+  }
+
+  public static boolean isDigit(char c) {
+    return Character.isDigit(c);
+  }
+
 }

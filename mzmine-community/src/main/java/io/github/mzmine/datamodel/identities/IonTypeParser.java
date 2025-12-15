@@ -41,26 +41,60 @@ public class IonTypeParser {
 
   private static final Logger logger = Logger.getLogger(IonTypeParser.class.getName());
 
-  /// Charge pattern at the end of string as +- with optional number Options are: Just sign: + -
-  /// sign number: +2 bracket number sign: ]2+ or )2+
-  public static final Pattern CHARGE_PATTERN = Pattern.compile("[])](\\d+[+-])$|([+-]\\d*)$");
+  /// Charge pattern at the end of string as +- with optional number
+  ///
+  /// Options are:
+  /// - Just sign: + -
+  /// - sign number: +2
+  /// - bracket number sign: ]2+ or )2+
+  /// - start of string with sign: +2M or -2M
+  ///
+  public static final Pattern CHARGE_PATTERN = Pattern.compile("(^|[])])(\\d+[+-])$|([+-]\\d*)$");
 
+  /// Charge pattern at the end of string as +- with optional number
+  ///
+  /// Options are:
+  /// - Just sign: + -
+  /// - sign number: +2
+  /// - bracket number sign: ]2+ or )2+
   @Nullable
   public static Integer parseChargeOrElse(@Nullable String input, @Nullable Integer defaultValue) {
     if (input == null) {
       return null;
     }
     input = StringUtils.removeAllWhiteSpace(input);
-    var matcher = CHARGE_PATTERN.matcher(input);
-    if (matcher.find()) {
-      // either in group 1 or in group 2 depending on which alternative pattern matches
-      String charge = matcher.group(1);
-      if (charge == null) {
-        charge = matcher.group(2);
+
+    int signIndex = -1;
+    boolean allowReversedNotation = true; // allowed if input is only number and sign like 2+ without prefix
+    int index = input.length() - 1;
+    for (; index >= 0; index--) {
+      final char c = input.charAt(index);
+      if (StringUtils.isSign(c)) {
+        if (signIndex != -1) {
+          break; // double sign means this belongs to the name
+        }
+        signIndex = index;
+      } else if (c == ']' || c == ')') {
+        allowReversedNotation = true;
+        break;
+      } else if (!StringUtils.isDigit(c)) {
+        allowReversedNotation = false; // no ] ) so reverse is not allowed
+        break;
       }
-      return StringUtils.parseSignAndIntegerOrElse(charge, false, defaultValue);
     }
-    return defaultValue;
+
+    if (signIndex == -1) {
+      return null;
+    }
+
+    if (allowReversedNotation) {
+      index++;
+    } else {
+      index = signIndex;
+    }
+
+    final String chargeStr = input.substring(index);
+    return StringUtils.parseSignAndIntegerOrElse(chargeStr, false, defaultValue);
   }
 
 

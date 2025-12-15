@@ -139,6 +139,8 @@ class IonTypeParserTest {
   void parseChargeOrElse() {
     // flipped charge string needs ) or ] before 2+ charge
     Assertions.assertEquals(-2, IonTypeParser.parseChargeOrElse("Cl2]2-", null));
+    Assertions.assertEquals(-2, IonTypeParser.parseChargeOrElse("2-", null));
+    Assertions.assertEquals(-2, IonTypeParser.parseChargeOrElse("-2 ", null));
     Assertions.assertEquals(-2, IonTypeParser.parseChargeOrElse("Cl2)2-", null));
     // white space allowed after and trimmed
     Assertions.assertEquals(-2, IonTypeParser.parseChargeOrElse("Cl2) 2 -  \t", null));
