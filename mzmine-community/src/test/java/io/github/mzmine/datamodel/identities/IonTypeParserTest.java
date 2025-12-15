@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -177,6 +179,16 @@ class IonTypeParserTest {
 
     Assertions.assertNull(IonTypeParser.parseChargeOrElse("Cl-2nothing after allowed", null));
     Assertions.assertNull(IonTypeParser.parseChargeOrElse("Cl2)2-nothing allowed after", null));
+  }
+
+  @Test
+  void expectExceptionBraces() {
+    assertThrows(IonPartParsingException.class, () -> IonTypeParser.parse("[M+(OH2)Ca]"));
+  }
+
+  @Test
+  void expectExceptionNoCountMultiplier() {
+    assertThrows(IonPartParsingException.class, () -> IonTypeParser.parse("[H]"));
   }
 
   @Test
