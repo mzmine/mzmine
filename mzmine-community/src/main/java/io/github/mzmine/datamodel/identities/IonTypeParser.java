@@ -28,10 +28,7 @@ package io.github.mzmine.datamodel.identities;
 import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.util.StringUtils;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,8 +48,6 @@ import org.jetbrains.annotations.Nullable;
 /// - `M+(H+)`
 public class IonTypeParser {
 
-  private static final Logger logger = Logger.getLogger(IonTypeParser.class.getName());
-
   /// Charge pattern at the end of string as +- with optional number
   ///
   /// Options are:
@@ -61,7 +56,8 @@ public class IonTypeParser {
   /// - bracket number sign: ]2+ or )2+
   /// - start of string with sign: +2M or -2M
   ///
-  public static final Pattern CHARGE_PATTERN = Pattern.compile("(^|[])])(\\d+[+-])$|([+-]\\d*)$");
+  // function now goes through chars for more flexibility
+//  public static final Pattern CHARGE_PATTERN = Pattern.compile("(^|[])])(\\d+[+-])$|([+-]\\d*)$");
 
   /// Charge pattern at the end of string as +- with optional number
   ///
@@ -224,135 +220,5 @@ public class IonTypeParser {
     }
     return molMIndex;
   }
-
-  /**
-   * Do not remove whitespace as this is allowed in part names
-   *
-   * @param str
-   * @return
-   */
-  @Nullable
-  public static IonType parseOld(final @Nullable String str) {
-    if (str == null || str.isBlank()) {
-      return null;
-    }
-    // clean up but keep [] for now
-    String clean = str.replaceAll("[^a-zA-Z0-9+-\\[\\]]", "");
-    String[] splitCharge = clean.split("]");
-    // default charge is 1 - because we are usually looking at charged ions
-    Integer detectedCharge = null;
-    if (splitCharge.length > 1) {
-      // [M+H]+ to [M+H and +
-      detectedCharge = StringUtils.parseSignAndIntegerOrElse(splitCharge[1], true, null);
-      clean = splitCharge[0];
-    } else {
-      // read charge that was not separated by ']' so maybe from M+H or M+H+
-      int lastPlusMinusSignIndex = StringUtils.findLastPlusMinusSignIndex(clean, true);
-      if (lastPlusMinusSignIndex > 0) {
-        detectedCharge = StringUtils.parseSignAndIntegerOrElse(
-            clean.substring(lastPlusMinusSignIndex - 1), true, null);
-        clean = clean.substring(0, lastPlusMinusSignIndex);
-      }
-    }
-
-    // remove all other characters (already cleaned before)
-    clean = clean.replaceAll("[\\[\\]]", "");
-    int starti = 0;
-
-    int molMultiplier = 1;
-    boolean molFound = false;
-    List<IonPart> mods = new ArrayList<>();
-
-    for (int i = 0; i < clean.length(); i++) {
-      char c = clean.charAt(i);
-      if (c == '+') {
-        String mod = clean.substring(starti, i);
-        if (!molFound) {
-          // remove the M from the end of 2M or M
-          molMultiplier = getMolMultiplier(mod, 1);
-          molFound = true;
-        } else {
-          parseAndAddIonModifications(mods, mod);
-        }
-        starti = i;
-      }
-      if (c == '-') {
-        String mod = clean.substring(starti, i);
-        if (!molFound) {
-          // remove the M from the end of 2M or M
-          molMultiplier = getMolMultiplier(mod, 1);
-          molFound = true;
-        } else {
-          parseAndAddIonModifications(mods, mod);
-        }
-        starti = i;
-      }
-    }
-//
-
-    // charge was already removed - remainder is the last modification part
-    String remainder = clean.substring(starti);
-    if (!molFound) {
-      // remove the M from the end of 2M or M
-      molMultiplier = getMolMultiplier(remainder, 1);
-      molFound = true;
-    } else {
-      parseAndAddIonModifications(mods, remainder);
-    }
-
-    IonType ion = IonType.create(mods, molMultiplier);
-
-    int chargeDiff = 0;
-    if (detectedCharge == null && ion.totalCharge() == 0) {
-      // default to charge 1 because we are looking at ions and mostly in positive ion mode
-      // for negative the charge needs to be defined
-      chargeDiff = 1;
-    } else if (detectedCharge != null) {
-      chargeDiff = detectedCharge - ion.totalCharge();
-    }
-    if (chargeDiff != 0) {
-      // if we have a single modification then we can set its charge to the parsed charge
-      if (mods.size() == 1) {
-        final IonPart first = mods.getFirst();
-        final int actualCharge = requireNonNullElse(detectedCharge, chargeDiff);
-        // needs to be dividable by count
-        if (Math.abs(actualCharge) % Math.abs(first.count()) == 0) {
-          final List<IonPart> newChargeMods = List.of(
-              first.withSingleCharge(actualCharge / first.count()));
-          return IonType.create(newChargeMods, molMultiplier);
-        }
-      }
-      // if more parts then add silent charges instead
-      IonPart chargeChanger = IonParts.SILENT_CHARGE.withCount(chargeDiff);
-      mods.add(chargeChanger);
-      return IonType.create(mods, molMultiplier);
-    } else {
-      return ion;
-    }
-  }
-
-  private static void parseAndAddIonModifications(final List<IonPart> mods, String mod) {
-    IonPart part = IonParts.parse(mod);
-    if (part != null) {
-      mods.add(part);
-    }
-  }
-
-  private static int getMolMultiplier(String mod, int defaultValue) {
-    if (StringUtils.isBlank(mod)) {
-      return defaultValue;
-    }
-
-    mod = mod.substring(0, mod.length() - 1);
-    if (!mod.isBlank()) {
-      try {
-        return Integer.parseInt(mod);
-      } catch (Exception ex) {
-        logger.finest("Cannot parse prefix of M in ion notation");
-      }
-    }
-    return defaultValue;
-  }
-
 
 }
