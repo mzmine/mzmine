@@ -38,19 +38,22 @@ class IonLibraryIOTest {
   void fromJson() {
     final IonLibrary library = IonLibraryIO.loadFromJson(expected).library();
 
-    Assertions.assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY.getNumIons(),
+    Assertions.assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE.getNumIons(),
         library.getNumIons());
-    Assertions.assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY.ions(), library.ions());
+    Assertions.assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE.ions(),
+        library.ions());
   }
 
   @Test
   void saveLoad() {
-    final String json = IonLibraryIO.toJson(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY);
+    final String json = IonLibraryIO.toJson(
+        IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE);
     final IonLibrary library = IonLibraryIO.loadFromJson(json).library();
 
-    Assertions.assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY.getNumIons(),
+    Assertions.assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE.getNumIons(),
         library.getNumIons());
-    Assertions.assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY.ions(), library.ions());
+    Assertions.assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE.ions(),
+        library.ions());
   }
 
 }
