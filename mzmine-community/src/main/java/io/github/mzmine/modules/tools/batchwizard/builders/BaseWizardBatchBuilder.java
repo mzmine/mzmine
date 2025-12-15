@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -33,6 +34,8 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.identities.IonLibraries;
+import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.gui.preferences.MZminePreferences;
@@ -760,9 +763,14 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_WITHOUT_MONOMER, true);
 
     // ion library
-    var ionLibraryParam = param.getParameter(IonNetworkingParameters.LIBRARY)
-        .getEmbeddedParameters();
-    createAndSetIonLibrary(ionLibraryParam);
+    final IonLibrary library = switch (polarity) {
+      case No_filter -> IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE;
+      case Positive -> IonLibraries.MZMINE_DEFAULT_POS_COMPREHENSIVE;
+      case Negative -> IonLibraries.MZMINE_DEFAULT_NEG_COMPREHENSIVE;
+    };
+    param.setParameter(IonNetworkingParameters.fullIonLibrary, library);
+    param.setParameter(IonNetworkingParameters.mainIonLibrary, false,
+        IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IonNetworkingModule.class),
         param));
