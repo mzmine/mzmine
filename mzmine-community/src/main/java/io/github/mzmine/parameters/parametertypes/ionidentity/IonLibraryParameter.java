@@ -44,14 +44,21 @@ public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibrar
   private IonLibrary library;
 
   public IonLibraryParameter() {
-    this(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY);
+    this(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE);
   }
 
   public IonLibraryParameter(@Nullable IonLibrary defaultValue) {
-    super("Ion library",
-        "Select an ion library. Ion types and libraries are created in a separate tab, search for module '%s'".formatted(
-            GlobalIonLibrariesModule.NAME));
-    library = defaultValue;
+    this("Ion library", "", defaultValue);
+  }
+
+  public IonLibraryParameter(String name, String description, @Nullable IonLibrary defaultValue) {
+    String fullDescription = "Select an ion library. Ion types and libraries are created in a separate tab, search for module '%s'".formatted(
+        GlobalIonLibrariesModule.NAME);
+    if (description != null) {
+      fullDescription = description + "\n" + fullDescription;
+    }
+
+    super(name, fullDescription, defaultValue);
   }
 
   @Override

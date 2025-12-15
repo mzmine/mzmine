@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.NeutralMolecule;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -40,7 +41,6 @@ import java.util.Objects;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import org.apache.commons.math.MathException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -365,8 +365,8 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
    */
   public boolean isModificationOf(IonType parent) {
     if (!hasMods() || !(parent.getModCount() < getModCount() && mass != parent.mass
-                        && adduct.equals(parent.adduct) && molecules == parent.molecules
-                        && charge == parent.charge)) {
+        && adduct.equals(parent.adduct) && molecules == parent.molecules
+        && charge == parent.charge)) {
       return false;
     } else if (!parent.hasMods()) {
       return true;
@@ -579,5 +579,17 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     }
 
     return (sameMathDifference(a) && adductsEqual(a) && modsEqual(a));
+  }
+
+  @NotNull
+  public io.github.mzmine.datamodel.identities.IonType toNewIonType() {
+    List<IonPart> parts = new ArrayList<>();
+    if (mod != null) {
+      parts.addAll(mod.toNewParts().toList());
+    }
+    if (adduct != null) {
+      parts.addAll(adduct.toNewParts().toList());
+    }
+    return io.github.mzmine.datamodel.identities.IonType.create(parts, molecules);
   }
 }

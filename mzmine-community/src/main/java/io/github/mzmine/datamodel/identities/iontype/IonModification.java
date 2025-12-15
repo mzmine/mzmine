@@ -28,6 +28,8 @@ package io.github.mzmine.datamodel.identities.iontype;
 import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.identities.IonPart;
+import io.github.mzmine.datamodel.identities.IonParts;
 import io.github.mzmine.datamodel.identities.NeutralMolecule;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -321,8 +323,8 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
         .flatMap(Arrays::stream).filter(m -> {
           String sign = m.getAddRemovePartSign();
           return part.equals(sign + m.getName()) || part.equals(sign + m.getMolFormula()) ||
-                 // positive part can also be without sign
-                 (sign.equals("+") && (part.equals(m.getName()) || part.equals(m.getMolFormula())));
+              // positive part can also be without sign
+              (sign.equals("+") && (part.equals(m.getName()) || part.equals(m.getMolFormula())));
         }).findFirst().orElseGet(() -> {
           // if formula fails - cannot know the charge and massDiff - so just default to zero
           // parser will add charges later
@@ -719,5 +721,10 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     return modifications.filter(m -> m.getCharge() != 0)
         .filter(m -> tol.checkWithinTolerance(m.getMZ(neutralMass), mz))
         .min(Comparator.comparingDouble(m -> Math.abs(m.getMZ(neutralMass) - mz))).orElse(null);
+  }
+
+  @NotNull
+  public Stream<? extends IonPart> toNewParts() {
+    return Stream.of(IonParts.create(name, molFormula, mass, charge, getModCount()));
   }
 }

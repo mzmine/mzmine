@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.iontype;
 
+import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.NeutralMolecule;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -62,6 +64,11 @@ public class CombinedIonModification extends IonModification {
     super(type, deltaMZ, charge);
     this.mods = mods;
     this.parsedName = parseName();
+  }
+
+  @Override
+  public @NotNull Stream<? extends IonPart> toNewParts() {
+    return Arrays.stream(mods).flatMap(IonModification::toNewParts);
   }
 
   /**
