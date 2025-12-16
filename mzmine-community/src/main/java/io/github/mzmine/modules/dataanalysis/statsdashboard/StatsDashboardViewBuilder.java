@@ -26,8 +26,8 @@
 package io.github.mzmine.modules.dataanalysis.statsdashboard;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAController;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
@@ -40,7 +40,6 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TreeItem;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
@@ -85,18 +84,14 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
       if (rows.isEmpty()) {
         return;
       }
-      // use filtered row items to only select actually visible rows
-      final TreeItem<ModularFeatureListRow> rowItem = table.getFilteredRowItems().stream()
-          .filter(item -> item.getValue().equals(rows.getFirst())).findFirst().orElse(null);
-      if (rowItem == null) {
-        return;
-      }
-      FeatureTableFXUtil.selectAndScrollTo(rowItem, table);
+      final FeatureListRow row = rows.getFirst();
+      FeatureTableFXUtil.selectAndScrollTo(row, table);
     });
 
     // listen to changes in the selected row, this updates the controllers via a binding in their
     // view builders.
     table.getSelectionModel().selectedItemProperty().addListener((_, old, row) -> {
+      // TODO change so that all rows are put into this list and add property with first selected row
       if (row == null) {
         model.selectedRowsProperty().set(List.of());
       } else if (old == null || (row.getValue() != null && !old.equals(row))) {

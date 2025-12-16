@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,6 +28,7 @@ package io.github.mzmine.util.javafx;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -35,12 +37,11 @@ import javafx.beans.property.StringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.text.Text;
+import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.Nullable;
 
-public class IonTypeTextField extends BorderPane {
+public class IonTypeTextField extends HBox {
 
   private final ObjectProperty<@Nullable IonType> ionTypeProperty = new SimpleObjectProperty<>();
   private static final IonTypeType ionType = new IonTypeType();
@@ -49,7 +50,7 @@ public class IonTypeTextField extends BorderPane {
   private final StringProperty stringProperty = new SimpleStringProperty();
 
   public IonTypeTextField() {
-    super();
+    super(FxLayout.DEFAULT_SPACE);
 
     final StringConverter<IonType> converter = new StringConverter<>() {
       @Override
@@ -78,9 +79,8 @@ public class IonTypeTextField extends BorderPane {
       parsed.setText(converter.toString(newType));
     });
 
-    setCenter(tf);
-    setRight(parsed);
-    BorderPane.setAlignment(parsed, Pos.CENTER_LEFT);
+    setAlignment(Pos.CENTER_LEFT);
+    getChildren().addAll(tf, parsed);
   }
 
   public TextField getTextField() {

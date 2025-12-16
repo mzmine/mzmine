@@ -27,6 +27,9 @@
  .root {
    -error-text-color: #cc0033;
    -warning-text-color: #CC9900;
+    /* set background color of scene root node so that stages have correct color
+     most panes are transparent - so root needs to have base color */
+   -fx-background-color: -jr-base;
  }
 
 .error-label {
@@ -64,7 +67,6 @@ Text.warning-label {
     -fx-background-color: -jr-base;
     /*-fx-effect: dropshadow(gaussian, rgba(183,232,255,0.8), 5, 0.2, 0, 5);*/
 }
-
 
 .notification-bar > .pane {
   -fx-background-color: -jr-base;

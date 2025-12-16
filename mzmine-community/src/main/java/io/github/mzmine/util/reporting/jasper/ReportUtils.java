@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2004-2025 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.util.reporting.jasper;
 
 import com.google.common.collect.Range;
@@ -14,6 +38,7 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
@@ -50,14 +75,17 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Iso
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ContinuousRenderer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.mzmine.reports.FeatureDetail;
 import io.mzmine.reports.FeatureSummary;
+import io.sirius.ms.sdk.model.LipidAnnotation;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -77,6 +105,9 @@ import org.apache.batik.svggen.SVGGraphics2D;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
 import org.openscience.cdk.exception.CDKException;
 import org.w3c.dom.DOMImplementation;
@@ -108,6 +139,7 @@ public class ReportUtils {
   @NotNull
   private final EStandardChartTheme theme;
   private final AbundanceMeasure boxPlotAbundanceMeasure = AbundanceMeasure.Area;
+  private final NumberFormats formats = ConfigService.getGuiFormats();
   /**
    * Bytes of the svg string or BufferedImage
    */
@@ -139,25 +171,36 @@ public class ReportUtils {
     return annotation.map(a -> {
       final Double precursorMz = a.getPrecursorMZ();
       final Double deltaMz = precursorMz != null ? row.getAverageMZ() - precursorMz : null;
+      final Double ppm =
+          precursorMz != null ? MathUtils.getPpmDiff(precursorMz, row.getAverageMZ()) : null;
+
+      final @Nullable String dbEntryId = switch (a) {
+        case SpectralDBAnnotation db -> db.getEntry().getOrElse(DBEntryField.ENTRY_ID, null);
+        case LipidAnnotation l -> "Rule-based annotation";
+        case CompoundDBAnnotation c -> null;
+        default -> null;
+      };
+
       return """
           Exact mass: %s
-          m/z error (abs): %s
+          m/z error: %s Da (%s ppm)
           Name: %s
           Formula: %s
           Internal ID: %s
           CAS: %s
-          Database: %s""".formatted(format.mz(precursorMz), format.mz(deltaMz),
+          Database: %s %s""".formatted(format.mz(precursorMz), format.mz(deltaMz), format.ppm(ppm),
           Objects.requireNonNullElse(a.getCompoundName(), "-"),
           Objects.requireNonNullElse(a.getFormula(), "-"),
           Objects.requireNonNullElse(a.getInternalId(), "-"),
           Objects.requireNonNullElse(a.getCAS(), "-"),
-          Objects.requireNonNullElse(a.getDatabase(), "-"));
+          Objects.requireNonNullElse(a.getDatabase(), "-"),
+          Objects.requireNonNullElse(dbEntryId, ""));
     }).orElse("""
         ID: %s
         m/z: %s
         RT: %s
         CCS: %s
-        Not annotated.""".formatted(id, mz, rt, ccs));
+        Not annotated.""".formatted(id, mz, rt, ccs.isBlank() ? "-" : ccs));
   }
 
   /**
@@ -280,7 +323,8 @@ public class ReportUtils {
 
     final List<DatasetAndRenderer> datasets = new ArrayList<>();
 
-    for (ModularFeature feature : row.getFeatures()) {
+    for (ModularFeature feature : row.streamFeatures()
+        .sorted(Comparator.comparingDouble(Feature::getHeight).reversed()).toList()) {
       final ColoredXYDataset ds = new ColoredXYDataset(new IonTimeSeriesToXYProvider(feature),
           RunOption.THIS_THREAD);
       final ColoredAreaShapeRenderer renderer = new ColoredAreaShapeRenderer();
@@ -405,7 +449,7 @@ public class ReportUtils {
     final org.jfree.data.Range range = RangeUtils.guavaToJFree(mzRange);
 
     final XYDataset isoOrPeak = iso != null ? new IsotopesDataSet(iso, "Isotope pattern")
-        : new ColoredXYDataset(new AnyXYProvider(Color.RED, "Isotope pattern", 1, _ -> f.getMZ(),
+        : new ColoredXYDataset(new AnyXYProvider(Color.RED, "Feature", 1, _ -> f.getMZ(),
             _ -> f.getHeight().doubleValue()), RunOption.THIS_THREAD);
 
     ms1Chart.applyWithNotifyChanges(false, () -> {
@@ -423,8 +467,8 @@ public class ReportUtils {
           false));
       ms1Chart.getXYPlot().getDomainAxis().setRange(range);
       ms1Chart.getXYPlot().getDomainAxis().setDefaultAutoRange(range);
-      ms1Chart.getXYPlot().getRangeAxis()
-          .setRange(new org.jfree.data.Range(0, f.getHeight().doubleValue() * 1.05));
+      ms1Chart.getXYPlot().getRangeAxis().setRange(0, 1.1 * Math.max(f.getHeight().doubleValue(),
+          iso != null ? Objects.requireNonNullElse(iso.getBasePeakIntensity(), 0d) : 0d));
     });
     return true;
   }
@@ -440,8 +484,14 @@ public class ReportUtils {
     }
 
     mirrorChart = MirrorChartFactory.createMirrorPlotFromSpectralDBPeakIdentity(matches.getFirst());
-    theme.apply(mirrorChart);
     mirrorChart.getChart().removeLegend();
+    theme.apply(mirrorChart);
+    CombinedDomainXYPlot xyPlot = (CombinedDomainXYPlot) mirrorChart.getChart().getXYPlot();
+    xyPlot.setGap(1); // best match
+    ((XYPlot) xyPlot.getSubplots().getFirst()).getRangeAxis().setLabel("");
+    ((XYPlot) xyPlot.getSubplots().getLast()).getRangeAxis()
+        .setLabel(formats.unit("           Relative intensity", "%"));
+    xyPlot.getDomainAxis().setLabelInsets(new RectangleInsets(-10, 0, 0, 0));
     return true;
   }
 
