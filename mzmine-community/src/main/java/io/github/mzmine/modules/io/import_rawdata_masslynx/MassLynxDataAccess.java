@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleImagingFrame;
 import io.github.mzmine.datamodel.impl.SimpleImagingScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
@@ -46,7 +47,6 @@ import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
 import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
-import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
@@ -368,7 +368,7 @@ public class MassLynxDataAccess implements AutoCloseable {
 
     final SimpleSpectralArrays dataPoints;
     final MassSpectrumType spectrumType = getProcessedSpectrumType(scanInfo, processor);
-    if (processor != null && processor.isMassDetectActive(scanInfo.msLevel())) {
+    if (processor != null && processor.hasProcessors()) {
       final SimpleSpectralArrays simpleSpectralArrays = new SimpleSpectralArrays(mzs, intensities);
       dataPoints = processor.processor().processScan(metadataScan, simpleSpectralArrays);
     } else {
@@ -382,14 +382,22 @@ public class MassLynxDataAccess implements AutoCloseable {
 
     if (isImagingFile && metadata != null) {
       final Coordinates coordinates = metadata.getCoordinates(scanInfo);
-      return new SimpleImagingScan(file, scan, scanInfo.msLevel(), scanInfo.rt(), 0, 0,
-          dataPoints.mzs(), dataPoints.intensities(), spectrumType, scanInfo.polarityType(),
+      SimpleImagingScan s = new SimpleImagingScan(file, scan, scanInfo.msLevel(), scanInfo.rt(), 0,
+          0, dataPoints.mzs(), dataPoints.intensities(), spectrumType, scanInfo.polarityType(),
           scanDefinition, acqMassRange, coordinates);
+      if (processor.isMassDetectActive(s.getMSLevel())) {
+        s.addMassList(new ScanPointerMassList(s));
+      }
+      return s;
     } else {
-      return new SimpleScan(file, scan, scanInfo.msLevel(), scanInfo.rt(),
+      SimpleScan s = new SimpleScan(file, scan, scanInfo.msLevel(), scanInfo.rt(),
           scanInfo.msLevel() > 1 ? scanInfo.msMsInfo(isDdaFile, isImsFile) : null, dataPoints.mzs(),
           dataPoints.intensities(), spectrumType, scanInfo.polarityType(), scanDefinition,
           acqMassRange);
+      if (processor.isMassDetectActive(s.getMSLevel())) {
+        s.addMassList(new ScanPointerMassList(s));
+      }
+      return s;
     }
   }
 
@@ -439,7 +447,7 @@ public class MassLynxDataAccess implements AutoCloseable {
 
     final SimpleSpectralArrays dataPoints;
     final MassSpectrumType spectrumType = getProcessedSpectrumType(scanInfo, processor);
-    if (processor != null && processor.isMassDetectActive(scanInfo.msLevel())) {
+    if (processor != null && processor.hasProcessors()) {
       final SimpleSpectralArrays simpleSpectralArrays = new SimpleSpectralArrays(mzs, intensities);
       dataPoints = processor.processor().processScan(metadataScan, simpleSpectralArrays);
     } else {
@@ -467,10 +475,14 @@ public class MassLynxDataAccess implements AutoCloseable {
           (IonMobilityMsMsInfo) scanInfo.msMsInfo(isDdaFile, isImsFile)) : null, null);
     }
 
+    if (processor.isMassDetectActive(frame.getMSLevel())) {
+      frame.addMassList(new ScanPointerMassList(frame));
+    }
+
     final List<BuildingMobilityScan> mobScans = readMobilityScansForFrame(function, scan,
         scanInfo.driftScanCount(), scanInfo);
 
-    frame.setMobilityScans(mobScans, false);
+    frame.setMobilityScans(mobScans, processor.isMassDetectActive(frame.getMSLevel()));
     frame.setMobilities(getMobilityValues(function));
     return frame;
   }

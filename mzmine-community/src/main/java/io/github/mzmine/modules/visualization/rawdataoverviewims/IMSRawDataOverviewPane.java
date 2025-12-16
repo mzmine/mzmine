@@ -667,13 +667,13 @@ public class IMSRawDataOverviewPane extends BorderPane {
     updateAxisLabels();
     ionTraceChart.removeAllDatasets();
     aFrame = ((IMSRawDataFile) rawDataFile).getFrames().stream().findFirst().get();
-    if (aFrame.getSpectrumType() == MassSpectrumType.PROFILE) {
-      controlsPanel.setFrameNoiseLevel(0d);
-      frameNoiseLevel = 0;
+    if(aFrame.getSpectrumType() == MassSpectrumType.PROFILE) {
+      controlsPanel.setFrameNoiseLevel(-1d);
+      frameNoiseLevel = -1d;
     }
-    if (aFrame.getMobilityScan(0).getSpectrumType() == MassSpectrumType.PROFILE) {
-      controlsPanel.setMobilityScanNoiseLevel(0);
-      mobilityScanNoiseLevel = 0;
+    if(aFrame.getMobilityScan(0).getSpectrumType() == MassSpectrumType.PROFILE) {
+      controlsPanel.setMobilityScanNoiseLevel(-1d);
+      mobilityScanNoiseLevel = -1d;
     }
     setSelectedFrame(aFrame);
   }

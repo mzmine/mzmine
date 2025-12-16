@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -399,13 +398,20 @@ public class ConversionUtils {
 
     final List<OtherDataFile> otherFiles = new ArrayList<>();
 
-    for (Entry<ChromatogramType, List<MzMLChromatogram>> groupedByChromType : groupedChromatograms.entrySet()
-        .stream().sorted(Comparator.comparing(e -> e.getKey().getDescription())).toList()) {
+    List<Entry<ChromatogramType, List<MzMLChromatogram>>> list = groupedChromatograms.entrySet()
+        .stream().sorted(Comparator.comparing(e -> e.getKey().getDescription())).toList();
+    for (Entry<ChromatogramType, List<MzMLChromatogram>> groupedByChromType : list) {
 
       // group by range unit so we definitely have only one chromatogram type per file.
       final Map<MzMLUnits, List<MzMLChromatogram>> groupedByUnit = groupByUnit(
-          groupedByChromType.getValue(),
-          c -> MzMLUnits.ofAccession(c.getIntensityBinaryDataInfo().getUnitAccession()));
+          groupedByChromType.getValue(), c -> {
+            if (c.getId().contains("CAD")) {
+              // reported as absorbance but is actually pico ampere (at least on Thermo)
+              return MzMLUnits.PICO_AMPERE;
+            } else {
+              return MzMLUnits.ofAccession(c.getIntensityBinaryDataInfo().getUnitAccession());
+            }
+          });
 
       for (Entry<MzMLUnits, List<MzMLChromatogram>> unitChromEntry : groupedByUnit.entrySet()) {
         final MzMLUnits unit = unitChromEntry.getKey();
@@ -519,6 +525,7 @@ public class ConversionUtils {
         .map(chromatogramType -> switch (chromatogramType) {
           case TIC, ABSORPTION -> {
             if (c.getId().contains("CAD")) {
+              // thermo raw file parser reports CAD as absorption
               yield ChromatogramType.ION_CURRENT;
             }
             yield chromatogramType;

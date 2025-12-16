@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -25,7 +24,6 @@
 
 package io.github.mzmine.parameters.parametertypes.other_detectors;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
@@ -48,7 +46,6 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OtherTraceSelectionComponent extends VBox implements
@@ -62,6 +59,7 @@ public class OtherTraceSelectionComponent extends VBox implements
   private final StringProperty rangeUnitFilter = new SimpleStringProperty();
   private final StringProperty rangeLabelFilter = new SimpleStringProperty();
   private final StringProperty descriptionFilter = new SimpleStringProperty();
+  private final StringProperty nameFilter = new SimpleStringProperty();
   private final ObjectProperty<OtherRawOrProcessed> rawOrProcessed = new SimpleObjectProperty<>(
       OtherRawOrProcessed.RAW);
 
@@ -103,11 +101,16 @@ public class OtherTraceSelectionComponent extends VBox implements
     grid.add(FxLabels.newLabel("Description filter: "), 0, 3);
     grid.add(descriptionFilterField, 1, 3);
 
+    final TextField nameFilterField = FxTextFields.newTextField(20, nameFilter, "name filter",
+        "Set an optional name filter using a wildcard '*' to match anything. (e.g. \"*Sig=220*\")");
+    grid.add(FxLabels.newLabel("Name filter: "), 0, 4);
+    grid.add(nameFilterField, 1, 4);
+
     final ComboBox<OtherRawOrProcessed> rawOrProcessedCombo = FxComboBox.createComboBox(
         "Select the type of chromatograms you want to process.", otherRawOrProcessedChoices,
         this.rawOrProcessed);
-    grid.add(FxLabels.newLabel("Trace type:"), 0, 4);
-    grid.add(rawOrProcessedCombo, 1, 4);
+    grid.add(FxLabels.newLabel("Trace type:"), 0, 5);
+    grid.add(rawOrProcessedCombo, 1, 5);
 
     grid.getColumnConstraints().add(new ColumnConstraints(120));
     grid.getColumnConstraints().add(
@@ -115,17 +118,19 @@ public class OtherTraceSelectionComponent extends VBox implements
             true));
 
     value.bind(Bindings.createObjectBinding(this::createValue, chromType, rangeLabelFilter,
-        rangeUnitFilter, descriptionFilter, rawOrProcessed));
+        rangeUnitFilter, descriptionFilter, nameFilter, rawOrProcessed));
   }
 
   private OtherTraceSelection createValue() {
     final ChromatogramType chrom = chromType.get().toChromatogramType();
     final String uf = StringUtils.isBlank(rangeUnitFilter.get()) ? null : rangeUnitFilter.get();
     final String lf = StringUtils.isBlank(rangeLabelFilter.get()) ? null : rangeLabelFilter.get();
-    final String desc = StringUtils.isBlank(rangeLabelFilter.get()) ? null : rangeLabelFilter.get();
+    final String desc =
+        StringUtils.isBlank(descriptionFilter.get()) ? null : descriptionFilter.get();
+    final String name = StringUtils.isBlank(nameFilter.get()) ? null : nameFilter.get();
     final OtherRawOrProcessed raw = rawOrProcessed.get();
 
-    return new OtherTraceSelection(chrom, uf, lf, desc, raw);
+    return new OtherTraceSelection(chrom, uf, lf, desc, name, raw);
   }
 
   @Override
@@ -147,6 +152,8 @@ public class OtherTraceSelectionComponent extends VBox implements
     descriptionFilter.set(
         value.descriptionFilter() != null ? value.descriptionFilter().replaceAll("\\*\\.", "*")
             : "");
+    nameFilter.set(value.nameFilter() != null ? value.nameFilter().replaceAll("\\*\\.", "*") : "");
+
     rawOrProcessed.set(value.rawOrProcessed());
   }
 

@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,6 +26,8 @@ package io.github.mzmine.modules.visualization.pseudospectrumvisualizer;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.PseudoSpectrum;
+import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
@@ -42,13 +43,14 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRe
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
-import io.github.mzmine.modules.dataprocessing.filter_diams2.IsolationWindow;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.rt_corr.IsolationWindow;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -95,6 +97,14 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
+
+    if (!(pseudoScan instanceof PseudoSpectrum pseudo)
+        || pseudo.getPseudoSpectrumType() == PseudoSpectrumType.UNCORRELATED) {
+      error(
+          "Pseudo scan %s is not correlation based. Use All MS/MS or most intense fragment scan visualizers.".formatted(
+              ScanUtils.scanToString(pseudoScan)));
+      return;
+    }
 
     if (getStatus() == TaskStatus.CANCELED) {
       return;
