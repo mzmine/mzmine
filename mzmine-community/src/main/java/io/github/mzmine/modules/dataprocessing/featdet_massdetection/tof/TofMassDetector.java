@@ -49,6 +49,7 @@ public class TofMassDetector implements MassDetector {
   private static final double MZ_WEIGHTING_THRESHOLD = 0.4;
   private static final double VALLEY_FACTOR = 0.7;
   private static final double RISE_FACTOR = 1.3;
+  private static final Weighting mzWeighting = Weighting.LINEAR;
 
   /**
    * Minimum peak length in points including zeros
@@ -57,7 +58,6 @@ public class TofMassDetector implements MassDetector {
 
   private final double noiseLevel;
   private final AbundanceMeasure intensityCalculation;
-  private Weighting mzWeighting = Weighting.POW2;
 
   public TofMassDetector() {
     this(0, AbundanceMeasure.Height);
@@ -115,13 +115,11 @@ public class TofMassDetector implements MassDetector {
 
     final double rangeDetectionNoiseLevel =
         intensityCalculation == AbundanceMeasure.Height ? noiseLevel : noiseLevel / 3;
-    // Initialize absMinIntensity. Check first point.
     double absMinIntensity = Double.MAX_VALUE;
     if (intensities[0] > 0) {
       absMinIntensity = intensities[0];
     }
 
-    // 1. Detect continuous regions and track minimum positive intensity
     int currentRegionStart = 0;
     double lastMz = mzs[0];
     boolean onePointAboveNoise = false;
@@ -163,7 +161,6 @@ public class TofMassDetector implements MassDetector {
       absMinIntensity = 0.0;
     }
 
-    // 2. Process regions to find centroids
     final DoubleArrayList resultMzs = new DoubleArrayList();
     final DoubleArrayList resultIntensities = new DoubleArrayList();
 
@@ -171,7 +168,6 @@ public class TofMassDetector implements MassDetector {
       findAndCentroidPeaks(mzs, intensities, range, absMinIntensity, resultMzs, resultIntensities);
     }
 
-    // 3. Convert results to double[][] format
     final double[][] result = new double[2][];
     result[0] = resultMzs.toDoubleArray();
     result[1] = resultIntensities.toDoubleArray();
@@ -186,14 +182,14 @@ public class TofMassDetector implements MassDetector {
       final IndexRange range, final double minIntensity, final DoubleArrayList resultMzs,
       final DoubleArrayList resultIntensities) {
 
-    // 1. Find all raw local maxima (candidates) in the region above noise
+    // Find all raw local maxima (candidates) in the region above noise
     final IntArrayList candidateIndices = findLocalMaximaIndices(intensities, range);
 
     if (candidateIndices.isEmpty()) {
       return;
     }
 
-    // 2. Filter and merge candidates based on the 0.7 / 1.3 rule
+    // Filter and merge candidates based on the 0.7 / 1.3 rule
     int activePeakIdx = candidateIndices.getInt(0);
     int leftBoundary = range.min(); // Start of the region
 
@@ -232,7 +228,6 @@ public class TofMassDetector implements MassDetector {
       }
     }
 
-    // Process the final confirmed peak
     processSinglePeak(mzs, intensities, activePeakIdx, leftBoundary, range.maxExclusive(),
         minIntensity, resultMzs, resultIntensities);
   }
@@ -300,8 +295,6 @@ public class TofMassDetector implements MassDetector {
 
     final double maxIntensity = intensities[peakMaxIdx];
 
-    // 1. Peak Validity Check
-    // "The noise level only defines the minimum intensity a peak must exceed at least once"
     final double detectionThreshold;
     if (maxIntensity < 5 * absMinIntensity) {
       detectionThreshold = 2 * absMinIntensity;
@@ -313,7 +306,6 @@ public class TofMassDetector implements MassDetector {
       return;
     }*/
 
-    // 2. Prepare for calculation
     // M/z weighting still uses the top 40% logic or the more shallow valley
     final double mzWeightingCutoff = Math.max(maxIntensity * MZ_WEIGHTING_THRESHOLD,
         Math.max((intensities[startIdx] + maxIntensity) * MZ_WEIGHTING_THRESHOLD,
@@ -324,7 +316,7 @@ public class TofMassDetector implements MassDetector {
     double totalArea = 0.0;
     int nonZeroPoints = 0;
 
-    // 3. Integrate Valley-to-Valley
+    // Integrate Valley-to-Valley
     // We iterate strictly from startIdx to endIdx (exclusive), which are the boundaries
     // determined by the peak resolving logic (valleys or region edges).
     for (int i = startIdx; i < endIdx; i++) {
@@ -334,7 +326,6 @@ public class TofMassDetector implements MassDetector {
       // Integration: Sum ALL points in the valley-to-valley region
       totalArea += intensity;
 
-      // Centroid M/Z: Weighted average using ONLY points > 0.4 * maxIntensity
       if (intensity > mzWeightingCutoff) {
         sumMzInt += (mz * mzWeighting.transform(intensity));
         sumIntForMz += mzWeighting.transform(intensity);
