@@ -24,6 +24,8 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
 
+import java.util.Arrays;
+
 /**
  * MovingAverage - A class that calculates the moving average of an array of values. The resulting
  * array will have the same length as the input array. The first and last values of the input array
@@ -52,6 +54,10 @@ public class MovingAverage {
       throw new IllegalArgumentException("Window size cannot exceed array length");
     }
 
+    if (windowSize == 1) {
+      return Arrays.copyOf(values, values.length);
+    }
+
     int n = values.length;
     double[] result = new double[n];
 
@@ -70,7 +76,10 @@ public class MovingAverage {
         actualSize--;
       }
 
-      result[i] = sum / actualSize;
+      result[i] = sum / Math.max(actualSize, 1);
+      if (Double.isNaN(result[i])) {
+        throw new RuntimeException("NaN average");
+      }
     }
 
     // Initialize last value (unchanged)
