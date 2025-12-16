@@ -401,6 +401,10 @@ public final class IonType {
     return molecules;
   }
 
+  public boolean isUndefinedAdduct() {
+    return stream().anyMatch(IonPart::isUnknown);
+  }
+
 
   public enum IonTypeStringFlavor {
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,8 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingTask;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule;
@@ -76,12 +76,12 @@ public class IonIdentity implements Comparable<IonIdentity> {
   }
 
   public String getName() {
-    return ionType.getName();
+    return toString();
   }
 
   @Override
   public String toString() {
-    return ionType.getName();
+    return ionType.toString(IonTypeStringFlavor.SIMPLE_DEFAULT);
   }
 
   public boolean equalsIonType(IonType ion) {
