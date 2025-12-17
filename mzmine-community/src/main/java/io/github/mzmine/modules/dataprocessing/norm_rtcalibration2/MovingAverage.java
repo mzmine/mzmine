@@ -78,6 +78,8 @@ public class MovingAverage {
 
       double sum = 0.0;
 
+      // for now just recompute the window each time. optimizations possible with sliding window
+      // but complex due to handling of edge cases start and end
       for (int j = start; j <= end; j++) {
         sum += values[j];
       }
