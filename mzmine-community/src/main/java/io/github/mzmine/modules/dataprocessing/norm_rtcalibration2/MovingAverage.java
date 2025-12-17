@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,7 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
 
-import java.util.Arrays;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * MovingAverage - A class that calculates the moving average of an array of values. The resulting
@@ -33,60 +36,56 @@ import java.util.Arrays;
  */
 public class MovingAverage {
 
+  private static final Logger logger = Logger.getLogger(MovingAverage.class.getName());
+
   /**
    * Calculates the moving average of an array of double values.
    *
    * @param values     The input array of values
-   * @param windowSize The size of the moving window
+   * @param windowSize The size of the moving window, needs to be odd otherwise the window+1 will be
+   *                   used
    * @return An array of the same size with moving average values
    * @throws IllegalArgumentException If windowSize is not positive or exceeds array length
    */
-  public static double[] calculate(double[] values, int windowSize) {
+  public static double @NotNull [] calculate(double @Nullable [] values, int windowSize) {
     if (values == null || values.length == 0) {
       return new double[0];
     }
-
-    if (windowSize <= 0) {
-      throw new IllegalArgumentException("Window size must be positive");
+    if (windowSize <= 1) {
+      throw new IllegalArgumentException("windowSize must be > 1 and odd");
     }
-
-    if (windowSize > values.length) {
-      throw new IllegalArgumentException("Window size cannot exceed array length");
-    }
-
-    if (windowSize == 1) {
-      return Arrays.copyOf(values, values.length);
+    if (windowSize % 2 == 0) {
+      windowSize++;
+      logger.warning("Window size must be odd, so using window size+1 instead: " + windowSize);
     }
 
     int n = values.length;
     double[] result = new double[n];
+    int halfWindow = windowSize / 2;
 
-    // Initialize first value (unchanged)
-    result[0] = values[0];
-
-    // Calculate middle values with moving average
-    int actualSize = 0;
-    double sum = 0;
-
-    for (int i = 1; i < n - 1; i++) {
-      actualSize++;
-      sum += values[i];
-      if(actualSize >= windowSize) {
-        sum -= values[i-actualSize];
-        actualSize--;
+    for (int i = 0; i < n; i++) {
+      // window is smaller on the edges. data points 0, 1, 2, 3 have half windows 0, 1, 2, 3...
+      int actualHalfWindow = halfWindow;
+      if (i < actualHalfWindow) {
+        actualHalfWindow = i;
+      }
+      if (n - i - 1 < actualHalfWindow) {
+        actualHalfWindow = n - i - 1;
       }
 
-      result[i] = sum / Math.max(actualSize, 1);
-      if (Double.isNaN(result[i])) {
-        throw new RuntimeException("NaN average");
+      int start = i - actualHalfWindow;
+      int end = i + actualHalfWindow;
+
+      double sum = 0.0;
+
+      // for now just recompute the window each time. optimizations possible with sliding window
+      // but complex due to handling of edge cases start and end
+      for (int j = start; j <= end; j++) {
+        sum += values[j];
       }
-    }
 
-    // Initialize last value (unchanged)
-    if (n > 1) {
-      result[n - 1] = values[n - 1];
+      result[i] = sum / (end - start + 1);
     }
-
     return result;
   }
 
