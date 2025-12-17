@@ -113,8 +113,6 @@ public class TofMassDetector implements MassDetector {
 
     final List<IndexRange> consecutiveRanges = new ArrayList<>();
 
-    final double rangeDetectionNoiseLevel =
-        intensityCalculation == AbundanceMeasure.Height ? noiseLevel : noiseLevel / 3;
     double absMinIntensity = Double.MAX_VALUE;
     if (intensities[0] > 0) {
       absMinIntensity = intensities[0];
@@ -132,7 +130,7 @@ public class TofMassDetector implements MassDetector {
         absMinIntensity = thisInt;
       }
 
-      if (thisInt > rangeDetectionNoiseLevel) {
+      if (thisInt > noiseLevel) {
         onePointAboveNoise = true;
       }
 
