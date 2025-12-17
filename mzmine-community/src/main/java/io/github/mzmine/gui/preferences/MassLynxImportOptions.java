@@ -28,13 +28,14 @@ import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
 
 public enum MassLynxImportOptions implements UniqueIdSupplier {
-  NATIVE, MSCONVERT;
+  NATIVE_MZMINE_CENTROIDING, MSCONVERT, NATIVE_WATERS_CENTROIDING;
 
   @Override
   public @NotNull String getUniqueID() {
     return switch (this) {
-      case NATIVE -> "native";
+      case NATIVE_MZMINE_CENTROIDING -> "native";
       case MSCONVERT -> "msconvert";
+      case NATIVE_WATERS_CENTROIDING -> "native_waters_centroiding";
     };
   }
 
@@ -42,8 +43,9 @@ public enum MassLynxImportOptions implements UniqueIdSupplier {
   @Override
   public String toString() {
     return switch (this) {
-      case NATIVE -> "Native";
+      case NATIVE_MZMINE_CENTROIDING -> "Native (mzmine centroiding, fast)";
       case MSCONVERT -> "MSConvert";
+      case NATIVE_WATERS_CENTROIDING -> "Native (Waters centroiding, slow)";
     };
   }
 }
