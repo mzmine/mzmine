@@ -23,33 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations.iin;
+package io.github.mzmine.datamodel.identities.iontype;
 
-import io.github.mzmine.datamodel.features.types.abstr.StringType;
-import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 
-/**
- * All partner FeatureListRows that were correlated, matched, or connected by a specific module.
- * Used in {@link IonNetwork} to relate ion identities of the same molecule
- * <p>
- * Not used anymore after IIN rework as this was redundant information
- */
-@Deprecated
-public class PartnerIdsType extends StringType implements AnnotationType {
-
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "partner_row_ids";
-  }
-
-  @NotNull
-  @Override
-  public String getHeaderString() {
-    return "Partner IDs";
-  }
+public record IonNetworkNode(FeatureListRow row, IonIdentity ion) {
 
 }

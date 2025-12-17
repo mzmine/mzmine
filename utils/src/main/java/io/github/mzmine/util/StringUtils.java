@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -361,14 +362,26 @@ public class StringUtils {
     return s.split(", |[\\t, ]");
   }
 
+  public static <T> String join(final @NotNull T[] values, @NotNull String delimiter) {
+    return join(values, delimiter, Objects::toString);
+  }
+
   public static <T> String join(final @NotNull T[] values, @NotNull String delimiter,
       @NotNull final Function<T, String> mapper) {
     return join(Arrays.stream(values), delimiter, mapper);
   }
 
+  public static <T> String join(final @NotNull List<T> values, @NotNull String delimiter) {
+    return join(values, delimiter, Objects::toString);
+  }
+
   public static <T> String join(final @NotNull List<T> values, @NotNull String delimiter,
       @NotNull final Function<T, String> mapper) {
     return join(values.stream(), delimiter, mapper);
+  }
+
+  public static <T> String join(final @NotNull Stream<T> stream, @NotNull String delimiter) {
+    return join(stream, delimiter, Objects::toString);
   }
 
   public static <T> String join(final @NotNull Stream<T> stream, @NotNull String delimiter,

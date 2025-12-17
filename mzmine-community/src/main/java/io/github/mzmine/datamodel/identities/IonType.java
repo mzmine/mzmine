@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.maths.Precision;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -367,8 +368,22 @@ public final class IonType {
     }
 
     return molecules == ionType.molecules && totalCharge == ionType.totalCharge
-        && Double.compare(totalMass, ionType.totalMass) == 0 && name.equals(ionType.name)
-        && parts.equals(ionType.parts);
+        && Precision.equalFloatSignificance(totalMass, ionType.totalMass) && name.equals(
+        ionType.name) && parts.equals(ionType.parts);
+  }
+
+
+  /**
+   * Mass might be slightly different
+   *
+   * @return true if name mol and charge equals
+   */
+  public boolean equalsName(Object o) {
+    if (!(o instanceof final IonType ionType)) {
+      return false;
+    }
+    return molecules == ionType.molecules && totalCharge == ionType.totalCharge && name.equals(
+        ionType.name);
   }
 
   @Override
