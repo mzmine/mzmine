@@ -190,4 +190,14 @@ public class IonIdentity implements Comparable<IonIdentity> {
     return toString().compareTo(ion.toString());
   }
 
+  /**
+   *
+   * @return likelyhood of this ion ID being true, a score where higher is better
+   */
+  public int getLikelyhood() {
+    if (network == null) {
+      return -1;
+    }
+    return network.size();
+  }
 }

@@ -758,7 +758,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     refinementParam.setParameter(IonNetworkRefinementParameters.TRUE_THRESHOLD, true);
     refinementParam.getParameter(IonNetworkRefinementParameters.TRUE_THRESHOLD)
         .getEmbeddedParameter().setValue(4);
-    refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_SMALL_NO_MAJOR, true);
+    refinementParam.setParameter(IonNetworkRefinementParameters.mainIonLibrary, false,
+        IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN);
     refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_ROWS_WITHOUT_ID, false);
     refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_WITHOUT_MONOMER, true);
 
@@ -769,8 +770,6 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
       case Negative -> IonLibraries.MZMINE_DEFAULT_NEG_COMPREHENSIVE;
     };
     param.setParameter(IonNetworkingParameters.fullIonLibrary, library);
-    param.setParameter(IonNetworkingParameters.mainIonLibrary, false,
-        IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IonNetworkingModule.class),
         param));

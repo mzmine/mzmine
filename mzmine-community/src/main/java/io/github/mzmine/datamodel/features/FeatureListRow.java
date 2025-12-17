@@ -369,7 +369,7 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @return null or the current list. First element is the "preferred" element
    */
-  @Nullable List<IonIdentity> getIonIdentities();
+  @NotNull List<IonIdentity> getIonIdentities();
 
   /**
    * Set the list of ion identities with the first element being the preferred

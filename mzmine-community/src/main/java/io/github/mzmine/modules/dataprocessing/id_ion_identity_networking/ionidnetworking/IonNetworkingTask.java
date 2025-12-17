@@ -34,16 +34,13 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
-import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.datamodel.identities.IonLibrary;
-import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.IonTypePair;
 import io.github.mzmine.datamodel.identities.SearchableIonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkNode;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesTask;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary.CheckMode;
@@ -54,15 +51,13 @@ import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.StringUtils;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -89,11 +84,11 @@ public class IonNetworkingTask extends AbstractTask {
 
   private final MZTolerance mzTolerance;
   private final SearchableIonLibrary library;
-  private final Set<IonType> mainIons;
 
 
   /**
    * Create the task.
+   * TODO decide if minFeaturesFilter should be removed
    *
    * @param parameterSet the parameters.
    */
@@ -118,32 +113,33 @@ public class IonNetworkingTask extends AbstractTask {
     final IonLibrary fullLibrary = parameters.getValue(IonNetworkingParameters.fullIonLibrary);
     library = fullLibrary.toSearchableLibrary(true);
 
-    var mainIonsList = parameters.getEmbeddedParameterValueIfSelectedOrElse(
-            IonNetworkingParameters.mainIonLibrary, IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN)
-        .ions();
-
-    // main ions is a different library and small differences in mass definition may the ions
-    // incomparable to the ones searched in library
-    List<IonType> missing = new ArrayList<>();
-    mainIons = HashSet.newHashSet(mainIonsList.size());
-    for (IonType main : mainIonsList) {
-      boolean found = false;
-      for (IonType full : fullLibrary.ions()) {
-        if (full.equalsName(main)) {
-          mainIons.add(full);
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        missing.add(main);
-      }
-    }
-    if (!missing.isEmpty()) {
-      final String message = "Some ions were defined as main ions but were not searched for in the full ion library:\n%s".formatted(
-          StringUtils.join(missing, ", "));
-      DialogLoggerUtil.showWarningNotification("Main ions missing in full library", message);
-    }
+    // moved to refinement
+//    var mainIonsList = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+//            IonNetworkingParameters.mainIonLibrary, IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN)
+//        .ions();
+//
+//    // main ions is a different library and small differences in mass definition may the ions
+//    // incomparable to the ones searched in library
+//    List<IonType> missing = new ArrayList<>();
+//    mainIons = HashSet.newHashSet(mainIonsList.size());
+//    for (IonType main : mainIonsList) {
+//      boolean found = false;
+//      for (IonType full : fullLibrary.ions()) {
+//        if (full.equalsName(main)) {
+//          mainIons.add(full);
+//          found = true;
+//          break;
+//        }
+//      }
+//      if (!found) {
+//        missing.add(main);
+//      }
+//    }
+//    if (!missing.isEmpty()) {
+//      final String message = "Some ions were defined as main ions but were not searched for in the full ion library:\n%s".formatted(
+//          StringUtils.join(missing, ", "));
+//      DialogLoggerUtil.showWarningNotification("Main ions missing in full library", message);
+//    }
   }
 
   public IonNetworkingTask(final MZmineProject project, final ParameterSet parameterSet,
@@ -260,13 +256,13 @@ public class IonNetworkingTask extends AbstractTask {
     }
 
     // add all networks to rows
-    addIonIdentitiesToRows(results);
+    addIonIdentitiesToRows(results.values());
 
     return annotations;
   }
 
-  private static void addIonIdentitiesToRows(Map<RowIonAnnotation, IonNetwork> results) {
-    final List<IonNetwork> sortedNetworks = results.values().stream()
+  public static void addIonIdentitiesToRows(Collection<IonNetwork> networks) {
+    final List<IonNetwork> sortedNetworks = networks.stream()
         .sorted(Comparator.comparingInt(IonNetwork::size).reversed()).toList();
 
     Map<FeatureListRow, List<IonIdentity>> sortedIons = new HashMap<>();
@@ -284,7 +280,10 @@ public class IonNetworkingTask extends AbstractTask {
 
   private boolean checkRows(Map<RowIonAnnotation, IonNetwork> results, FeatureListRow rowA,
       FeatureListRow rowB) {
+    // search
     List<IonTypePair> matches = library.searchRows(rowA, rowB, mzTolerance);
+
+    // merge results into ion networks
     for (IonTypePair id : matches) {
       final RowIonAnnotation a = new RowIonAnnotation(rowA, id.a());
       final RowIonAnnotation b = new RowIonAnnotation(rowB, id.b());
@@ -323,7 +322,7 @@ public class IonNetworkingTask extends AbstractTask {
     IonNetworkLogic.renumberNetworks(featureList);
 
     // recalc annotation networks
-    IonNetworkLogic.recalcAllAnnotationNetworks(featureList, true);
+    IonNetworkLogic.removeEmptyNetworks(featureList);
 
     if (isCanceled()) {
       return;
@@ -341,7 +340,7 @@ public class IonNetworkingTask extends AbstractTask {
     }
 
     // recalc annotation networks
-    IonNetworkLogic.recalcAllAnnotationNetworks(featureList, true);
+    IonNetworkLogic.removeEmptyNetworks(featureList);
 
     // show all annotations with the highest count of links
     LOG.info("Corr: show most likely annotations");

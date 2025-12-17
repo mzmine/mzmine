@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -86,8 +86,8 @@ public class AddIonNetworkingTask extends AbstractTask {
     mzTolerance = parameterSet.getParameter(AddIonNetworkingParameters.MZ_TOLERANCE).getValue();
     minHeight = parameterSet.getParameter(AddIonNetworkingParameters.MIN_HEIGHT).getValue();
 
-    performAnnotationRefinement =
-        parameterSet.getParameter(AddIonNetworkingParameters.ANNOTATION_REFINEMENTS).getValue();
+    performAnnotationRefinement = parameterSet.getParameter(
+        AddIonNetworkingParameters.ANNOTATION_REFINEMENTS).getValue();
     refineParam = parameterSet.getParameter(AddIonNetworkingParameters.ANNOTATION_REFINEMENTS)
         .getEmbeddedParameters();
   }
@@ -100,7 +100,7 @@ public class AddIonNetworkingTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return "Identification of adducts, in-source fragments and clusters in " + featureList.getName()
-           + " ";
+        + " ";
   }
 
   @Override
@@ -143,7 +143,7 @@ public class AddIonNetworkingTask extends AbstractTask {
       }
     });
     LOG.info("Corr: A total of " + compared.get() + " row2row adduct comparisons with "
-             + annotPairs.get() + " annotation pairs");
+        + annotPairs.get() + " annotation pairs");
 
     refineAndFinishNetworks();
   }
@@ -211,16 +211,14 @@ public class AddIonNetworkingTask extends AbstractTask {
     // create network IDs
     LOG.info("Corr: create annotation network numbers");
     AtomicInteger netID = new AtomicInteger(0);
-    IonNetworkLogic
-        .streamNetworks(featureList,
-            new IonNetworkSorter(SortingProperty.RT, SortingDirection.Ascending), false)
-        .forEach(n -> {
-          n.setMzTolerance(library.getMzTolerance());
-          n.setID(netID.getAndIncrement());
-        });
+    IonNetworkLogic.streamNetworks(featureList,
+        new IonNetworkSorter(SortingProperty.RT, SortingDirection.Ascending), false).forEach(n -> {
+      n.setMzTolerance(library.getMzTolerance());
+      n.setID(netID.getAndIncrement());
+    });
 
     // recalc annotation networks
-    IonNetworkLogic.recalcAllAnnotationNetworks(featureList, true);
+    IonNetworkLogic.removeEmptyNetworks(featureList);
 
     if (isCanceled()) {
       return;
@@ -229,8 +227,8 @@ public class AddIonNetworkingTask extends AbstractTask {
     // refinement
     if (performAnnotationRefinement) {
       LOG.info("Corr: Refine annotations");
-      IonNetworkRefinementTask ref = new IonNetworkRefinementTask(project, refineParam,
-          featureList, getModuleCallDate());
+      IonNetworkRefinementTask ref = new IonNetworkRefinementTask(project, refineParam, featureList,
+          getModuleCallDate());
       ref.refine();
     }
     if (isCanceled()) {
@@ -238,7 +236,7 @@ public class AddIonNetworkingTask extends AbstractTask {
     }
 
     // recalc annotation networks
-    IonNetworkLogic.recalcAllAnnotationNetworks(featureList, true);
+    IonNetworkLogic.removeEmptyNetworks(featureList);
 
     // show all annotations with the highest count of links
     LOG.info("Corr: show most likely annotations");

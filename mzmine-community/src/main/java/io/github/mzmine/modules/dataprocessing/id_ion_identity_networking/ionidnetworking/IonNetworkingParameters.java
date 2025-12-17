@@ -37,7 +37,6 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -53,7 +52,7 @@ public class IonNetworkingParameters extends SimpleParameterSet {
 
   // different depth of settings
   public enum Setup {
-    FULL, SUB, SIMPLE
+    FULL, SUB
   }
 
   // NOT INCLUDED in sub
@@ -81,17 +80,11 @@ public class IonNetworkingParameters extends SimpleParameterSet {
       "Ion identity library", "Adducts, in-source fragments and multimers",
       new LegacyIonLibraryParameterSet());
 
-  public static final IonLibraryParameter fullIonLibrary = new IonLibraryParameter(
-      "Full ion library", """
-      The full ion library contains all adducts, in source fragments, and other ions to be searched.""",
+  public static final IonLibraryParameter fullIonLibrary = new IonLibraryParameter("Ion library",
+      """
+          The full ion library contains all adducts, in source fragments, and other ions to be searched.
+          See ion network refinement to require main adducts in networks.""",
       IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE);
-
-  public static final OptionalParameter<IonLibraryParameter> mainIonLibrary = new OptionalParameter<>(
-      new IonLibraryParameter("Main ions library", """
-          The main ions library describes ions that are well expected in the analysis.
-          Each final ion identity network requires at least 1 main ion.
-          Uses internal default main ions if this parameter is unchecked.""",
-          IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE), false);
 
   // MS MS
   // check for truth MS/MS
@@ -100,7 +93,9 @@ public class IonNetworkingParameters extends SimpleParameterSet {
   // "Check MS/MS for truth of multimers", new IonNetworkMSMSCheckParameters(true));
 
   public static final OptionalModuleParameter<IonNetworkRefinementParameters> ANNOTATION_REFINEMENTS = new OptionalModuleParameter<IonNetworkRefinementParameters>(
-      "Annotation refinement", "", new IonNetworkRefinementParameters(true), true);
+      "Annotation refinement",
+      "Refinement of ion identity networks like minimum network size and main ion types to be required.",
+      new IonNetworkRefinementParameters(true), true);
 
   // setup
   private final Setup setup;
@@ -119,12 +114,9 @@ public class IonNetworkingParameters extends SimpleParameterSet {
     switch (setup) {
       case FULL:
         return new Parameter[]{PEAK_LISTS, MZ_TOLERANCE, CHECK_MODE, MIN_HEIGHT, fullIonLibrary,
-            fullIonLibrary, mainIonLibrary, ANNOTATION_REFINEMENTS};
+            fullIonLibrary, ANNOTATION_REFINEMENTS};
       case SUB:
-        return new Parameter[]{MZ_TOLERANCE, CHECK_MODE, fullIonLibrary, mainIonLibrary,
-            ANNOTATION_REFINEMENTS};
-      case SIMPLE:
-        return new Parameter[]{CHECK_MODE, fullIonLibrary, mainIonLibrary};
+        return new Parameter[]{MZ_TOLERANCE, CHECK_MODE, fullIonLibrary, ANNOTATION_REFINEMENTS};
     }
     return new Parameter[0];
   }
@@ -180,7 +172,9 @@ public class IonNetworkingParameters extends SimpleParameterSet {
 
       IonLibrary newLibrary = library.toNewLibrary();
       setParameter(fullIonLibrary, newLibrary);
-      setParameter(mainIonLibrary, false);
+
+      getParameter(ANNOTATION_REFINEMENTS).getEmbeddedParameters()
+          .setParameter(IonNetworkRefinementParameters.mainIonLibrary, false);
     }
   }
 
