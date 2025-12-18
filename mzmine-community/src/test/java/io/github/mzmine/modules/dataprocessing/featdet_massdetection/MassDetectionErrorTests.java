@@ -50,10 +50,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import resolver_tests.FilesToImport;
 import testutils.MZmineTestUtil;
 
+@Disabled("Only for local testing")
 public class MassDetectionErrorTests {
 
   private static final Logger logger = Logger.getLogger(MassDetectionErrorTests.class.getName());
