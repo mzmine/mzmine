@@ -22,31 +22,59 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_massdetection.tof;
+package io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class TofMassDetectorParameters extends SimpleParameterSet {
+public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
 
   public static final DoubleParameter noiseLevel = CentroidMassDetectorParameters.noiseLevel.cloneParameter();
   public static final AbundanceMeasureParameter intensityCalculation = new AbundanceMeasureParameter(
       "Intensity calculation", "", AbundanceMeasure.values());
 
-  public TofMassDetectorParameters() {
+  public LocalMaxMassDetectorParameters() {
     super(noiseLevel, intensityCalculation);
   }
 
-  public static TofMassDetectorParameters create(final double noiseLevel,
+  public static LocalMaxMassDetectorParameters create(final double noiseLevel,
       @NotNull final AbundanceMeasure intensityCalculation) {
-    ParameterSet param = new TofMassDetectorParameters().cloneParameterSet();
-    param.setParameter(TofMassDetectorParameters.noiseLevel, noiseLevel);
-    param.setParameter(TofMassDetectorParameters.intensityCalculation, intensityCalculation);
-    return (TofMassDetectorParameters) param;
+    ParameterSet param = new LocalMaxMassDetectorParameters().cloneParameterSet();
+    param.setParameter(LocalMaxMassDetectorParameters.noiseLevel, noiseLevel);
+    param.setParameter(LocalMaxMassDetectorParameters.intensityCalculation, intensityCalculation);
+    return (LocalMaxMassDetectorParameters) param;
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 2 ->
+          "The algorithm of the local maximum mass detector was updated. It no longer uses the "
+              + "highest data point but a weighted average. The centroid intensity calculation "
+              + "can be configured to sum or use the highest value.";
+      default -> null;
+    };
+  }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+
+    if (loadedVersion < 2) {
+      setParameter(intensityCalculation, AbundanceMeasure.Height);
+    }
   }
 }

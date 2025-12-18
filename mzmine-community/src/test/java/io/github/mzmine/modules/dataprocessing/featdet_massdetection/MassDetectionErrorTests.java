@@ -34,7 +34,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.tof.TofMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max.LocalMaxMassDetector;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -147,7 +147,7 @@ public class MassDetectionErrorTests {
     final RawDataFile file = brukerImport.runImport().getFirst();
     final Scan scan = file.getScans().getLast();
 
-    final TofMassDetector massDetector = new TofMassDetector(1, AbundanceMeasure.Height);
+    final LocalMaxMassDetector massDetector = new LocalMaxMassDetector(1, AbundanceMeasure.Height);
     double[][] massValues = massDetector.getMassValues(scan);
 
     logger.info(Arrays.toString(massValues));

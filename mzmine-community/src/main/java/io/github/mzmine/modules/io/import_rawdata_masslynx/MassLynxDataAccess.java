@@ -54,7 +54,7 @@ import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.tof.TofMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max.LocalMaxMassDetector;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
@@ -101,7 +101,7 @@ public class MassLynxDataAccess implements AutoCloseable {
    * is of the same type.
    */
   private final MassSpectrumType apiRequestedSpectrumType;
-  private final @Nullable TofMassDetector mzmineCentroider;
+  private final @Nullable LocalMaxMassDetector mzmineCentroider;
 
   private final @NotNull ScanImportProcessorConfig processor;
   private final boolean isDdaFile;
@@ -199,7 +199,7 @@ public class MassLynxDataAccess implements AutoCloseable {
         centroid && importOption == MassLynxImportOptions.NATIVE_WATERS_CENTROIDING
             ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
     if (centroid && apiRequestedSpectrumType == MassSpectrumType.PROFILE) {
-      mzmineCentroider = new TofMassDetector(0, AbundanceMeasure.Area);
+      mzmineCentroider = new LocalMaxMassDetector(0, AbundanceMeasure.Area);
     } else {
       mzmineCentroider = null;
     }

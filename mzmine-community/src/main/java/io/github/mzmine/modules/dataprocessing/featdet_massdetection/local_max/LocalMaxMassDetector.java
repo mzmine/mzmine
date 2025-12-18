@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_massdetection.tof;
+package io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MassSpectrum;
@@ -41,9 +41,9 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TofMassDetector implements MassDetector {
+public class LocalMaxMassDetector implements MassDetector {
 
-  private static final Logger logger = Logger.getLogger(TofMassDetector.class.getName());
+  private static final Logger logger = Logger.getLogger(LocalMaxMassDetector.class.getName());
 
   // Thresholds for peak resolving and centroiding
   private static final double MZ_WEIGHTING_THRESHOLD = 0.4;
@@ -59,11 +59,12 @@ public class TofMassDetector implements MassDetector {
   private final double noiseLevel;
   private final AbundanceMeasure intensityCalculation;
 
-  public TofMassDetector() {
+  public LocalMaxMassDetector() {
     this(0, AbundanceMeasure.Height);
   }
 
-  public TofMassDetector(final double noiseLevel, final AbundanceMeasure intensityCalculation) {
+  public LocalMaxMassDetector(final double noiseLevel,
+      final AbundanceMeasure intensityCalculation) {
     this.noiseLevel = noiseLevel;
     this.intensityCalculation = intensityCalculation;
   }
@@ -83,8 +84,8 @@ public class TofMassDetector implements MassDetector {
 
   @Override
   public MassDetector create(final ParameterSet params) {
-    return new TofMassDetector(params.getValue(TofMassDetectorParameters.noiseLevel),
-        params.getValue(TofMassDetectorParameters.intensityCalculation));
+    return new LocalMaxMassDetector(params.getValue(LocalMaxMassDetectorParameters.noiseLevel),
+        params.getValue(LocalMaxMassDetectorParameters.intensityCalculation));
   }
 
   @Override
@@ -352,12 +353,12 @@ public class TofMassDetector implements MassDetector {
 
   @Override
   public @NotNull String getName() {
-    return "TOF mass detector";
+    return "Local maximum mass detector";
   }
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return TofMassDetectorParameters.class;
+    return LocalMaxMassDetectorParameters.class;
   }
 
   @Override

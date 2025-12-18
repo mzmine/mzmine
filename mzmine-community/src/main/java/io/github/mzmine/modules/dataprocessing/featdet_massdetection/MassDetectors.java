@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,9 +28,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMa
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima.LocalMaxMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.recursive.RecursiveMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.tof.TofMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.WaveletMassDetector;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
@@ -70,8 +67,7 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
   /**
    *
    */
-  WAVELET,
-  TOF_MASS_DETECTOR;
+  WAVELET;
 
   @Override
   public Class<? extends MassDetector> getModuleClass() {
@@ -80,10 +76,10 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
       case AUTO -> AutoMassDetector.class;
       case CENTROID -> CentroidMassDetector.class;
       case EXACT -> ExactMassDetector.class;
-      case LOCAL_MAX -> LocalMaxMassDetector.class;
+      case LOCAL_MAX ->
+          io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max.LocalMaxMassDetector.class;
       case RECURSIVE -> RecursiveMassDetector.class;
       case WAVELET -> WaveletMassDetector.class;
-      case TOF_MASS_DETECTOR -> TofMassDetector.class;
     };
   }
 
@@ -103,7 +99,6 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
       case LOCAL_MAX -> "Local maxima";
       case RECURSIVE -> "Recursive threshold";
       case WAVELET -> "Wavelet transform";
-      case TOF_MASS_DETECTOR -> "TOF";
     };
   }
 
@@ -111,14 +106,13 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
     return switch (this) {
       case CENTROID, FACTOR_OF_LOWEST, AUTO -> true;
       case EXACT, LOCAL_MAX, RECURSIVE, WAVELET -> false;
-      case TOF_MASS_DETECTOR -> false;
     };
   }
 
   public boolean usesProfileData() {
     return switch (this) {
       case CENTROID -> false;
-      case EXACT, LOCAL_MAX, RECURSIVE, WAVELET, FACTOR_OF_LOWEST, AUTO, TOF_MASS_DETECTOR -> true;
+      case EXACT, LOCAL_MAX, RECURSIVE, WAVELET, FACTOR_OF_LOWEST, AUTO -> true;
     };
   }
 

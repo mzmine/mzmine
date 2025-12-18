@@ -30,7 +30,7 @@ import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetectorParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.tof.TofMassDetectorParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max.LocalMaxMassDetectorParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -94,10 +94,10 @@ public record FilesToImport(@NotNull List<String> filePaths,
       double noiseLevelMs2, @NotNull AbundanceMeasure intensityCalc) {
 
     AdvancedSpectraImportParameters advancedParam = AdvancedSpectraImportParameters.create(
-        MassDetectors.TOF_MASS_DETECTOR,
-        TofMassDetectorParameters.create(noiseLevelMs1, intensityCalc),
-        MassDetectors.TOF_MASS_DETECTOR,
-        TofMassDetectorParameters.create(noiseLevelMs2, intensityCalc), null,
+        MassDetectors.LOCAL_MAX,
+        LocalMaxMassDetectorParameters.create(noiseLevelMs1, intensityCalc),
+        MassDetectors.LOCAL_MAX,
+        LocalMaxMassDetectorParameters.create(noiseLevelMs2, intensityCalc), null,
         ScanSelection.ALL_SCANS, false);
 
     return new FilesToImport(fileName, advancedParam, vendorParamNoCentroid);
