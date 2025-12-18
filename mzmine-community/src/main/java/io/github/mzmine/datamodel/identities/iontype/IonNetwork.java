@@ -30,10 +30,12 @@ import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
@@ -93,9 +95,26 @@ public class IonNetwork implements Comparable<IonNetwork> {
     return getNodes().stream().map(IonNetworkNode::ion);
   }
 
+  /**
+   *
+   * @return unmodifiable copy of list
+   */
   public List<IonNetworkNode> getNodes() {
-    return nodes;
+    return Collections.unmodifiableList(nodes);
   }
+
+  /**
+   *
+   * @return a list copy of the rows
+   */
+  public List<FeatureListRow> getRows() {
+    List<FeatureListRow> rows = new ArrayList<>(nodes.size());
+    for (IonNetworkNode node : nodes) {
+      rows.add(node.row());
+    }
+    return rows;
+  }
+
 
   /**
    * Network ID
@@ -448,5 +467,24 @@ public class IonNetwork implements Comparable<IonNetwork> {
     }
 
     fireChanged();
+  }
+
+  public void forEach(BiConsumer<FeatureListRow, IonIdentity> consumer) {
+    for (IonNetworkNode node : nodes) {
+      consumer.accept(node.row(), node.ion());
+    }
+  }
+
+  /**
+   * TODO rename to contains row
+   *
+   */
+  public boolean containsKey(FeatureListRow row) {
+    for (IonNetworkNode node : nodes) {
+      if (node.row().equals(row)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

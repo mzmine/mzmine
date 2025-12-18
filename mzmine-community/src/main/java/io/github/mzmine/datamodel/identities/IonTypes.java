@@ -25,9 +25,11 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 public enum IonTypes {
@@ -124,21 +126,76 @@ public enum IonTypes {
   }
 
   // default values
-  public static final List<IonType> DEFAULT_VALUES_POSITIVE = Stream.of(M_PLUS, M_PLUS_H2O, H,
-          H_H2O, H_2H2O, H_3H2O, H_4H2O, NA, NA_H2O, K, NH4, M_2PLUS, H2_PLUS, H3_PLUS, CA, CA_H_MINUS,
-          FEII, FEII_MINUS_H, FEIII_H_MINUS, FEIII_2H_MINUS, NA_H, NH4_H, K_H, NA2_MINUS_H, M2_H, M2_NA,
-          M2_NH4, M2_H_H2O, M3_H, M3_NA, M4_H).map(IonTypes::asIonType)
-      .sorted(IonTypeSorting.getIonTypeDefault().getComparator()).toList();
+  public static final List<IonType> DEFAULT_POSITIVE_MAIN;
+  public static final List<IonType> DEFAULT_POSITIVE_FULL;
 
-  public static final List<IonType> DEFAULT_VALUES_NEGATIVE = Stream.of(M_MINUS, H_MINUS, CL, BR,
-          FORMATE_FA, ACETATE_AC, H2_MINUS, M2_H_MINUS, M2_CL).map(IonTypes::asIonType)
-      .sorted(IonTypeSorting.getIonTypeDefault().getComparator()).toList();
+  public static final List<IonType> DEFAULT_NEGATIVE_MAIN;
+  public static final List<IonType> DEFAULT_NEGATIVE_FULL;
 
-  public static final @NotNull List<IonType> DEFAULT_VALUES_BOTH_POLARITIES_FULL = Stream.of(
-          // POSITIVE
-          M_PLUS, M_PLUS_H2O, H, H_H2O, NA, K, NH4, M_2PLUS, H2_PLUS, H3_PLUS, NA_H, NA2_MINUS_H, M2_H,
-          M2_NA, M2_NH4, M3_H, M3_NA, M4_H,
-          // NEGATIVE
-          M_MINUS, H_MINUS, CL, BR, FORMATE_FA, ACETATE_AC, H2_MINUS, M2_H_MINUS, M2_CL)
-      .map(IonTypes::asIonType).sorted(IonTypeSorting.getIonTypeDefault().getComparator()).toList();
+  public static final List<IonType> DEFAULT_BOTH_POLARITIES_MAIN;
+  public static final List<IonType> DEFAULT_BOTH_POLARITIES_FULL;
+  public static final List<IonType> DEFAULT_BOTH_POLARITIES_SMALLEST;
+
+  static {
+    // positive
+    DEFAULT_POSITIVE_MAIN = listIons(true, M_PLUS, M_PLUS_H2O, H, H_H2O, NA, K, NH4, M_2PLUS,
+        H2_PLUS, H3_PLUS, M2_H, M2_NA);
+
+    // avoid duplicates
+    DEFAULT_POSITIVE_FULL = combine(DEFAULT_POSITIVE_MAIN,
+        // combine does the sorting
+        listIons(false, H_3H2O, H_4H2O, NA_H2O, K, CA, CA_H_MINUS, FEII, FEII_MINUS_H,
+            FEIII_H_MINUS, FEIII_2H_MINUS, NA_H, NH4_H, K_H, NA2_MINUS_H, M2_NH4, M2_H_H2O, M3_H,
+            M3_NA, M4_H));
+
+    // negative
+    DEFAULT_NEGATIVE_MAIN = listIons(true, M_MINUS, H_MINUS, CL, FORMATE_FA, H2_MINUS, M2_H_MINUS,
+        M2_CL);
+
+    // avoid duplicates
+    DEFAULT_NEGATIVE_FULL = combine(DEFAULT_NEGATIVE_MAIN,
+        // combine sorts ions
+        listIons(false, BR, ACETATE_AC));
+
+    DEFAULT_BOTH_POLARITIES_MAIN = combine(DEFAULT_NEGATIVE_MAIN, DEFAULT_POSITIVE_MAIN);
+    DEFAULT_BOTH_POLARITIES_FULL = combine(DEFAULT_NEGATIVE_FULL, DEFAULT_POSITIVE_FULL);
+
+    DEFAULT_BOTH_POLARITIES_SMALLEST = listIons(true,
+        // positive
+        M_PLUS, H, NA, NH4, H2_PLUS,
+        // negative
+        CL, H_MINUS);
+  }
+
+  @SafeVarargs
+  public static List<IonType> combine(List<IonType>... lists) {
+    int size = 0;
+    for (List<IonType> list : lists) {
+      size += list.size();
+    }
+    // avoid duplicates
+    Set<IonType> full = HashSet.newHashSet(size);
+    for (List<IonType> list : lists) {
+      full.addAll(list);
+    }
+
+    return full.stream().sorted(IonTypeSorting.getIonTypeDefault().getComparator()).toList();
+  }
+
+  /**
+   *
+   * @param sort sort ions
+   * @param ions
+   * @return unmodifiable list
+   */
+  public static @NotNull List<IonType> listIons(boolean sort, IonTypes... ions) {
+    List<IonType> result = new ArrayList<>(ions.length);
+    for (IonTypes ion : ions) {
+      result.add(ion.asIonType());
+    }
+    if (sort) {
+      result.sort(IonTypeSorting.getIonTypeDefault().getComparator());
+    }
+    return List.copyOf(result);
+  }
 }

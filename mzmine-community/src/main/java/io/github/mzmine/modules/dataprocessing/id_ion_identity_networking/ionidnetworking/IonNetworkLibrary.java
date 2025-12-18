@@ -32,11 +32,10 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.SearchableIonLibrary;
 import io.github.mzmine.datamodel.identities.SimpleIonLibrary;
-import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonModificationType;
-import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -44,8 +43,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+/**
+ * Replaced by {@link IonLibrary} and {@link SearchableIonLibrary} for searches. Only used for
+ * loading of old parameters.
+ */
+@Deprecated
 public class IonNetworkLibrary {
 
   private static final Logger LOG = Logger.getLogger(IonNetworkLibrary.class.getName());
@@ -145,108 +148,108 @@ public class IonNetworkLibrary {
     }
   }
 
-  /**
-   * Does find all possible adduct combinations
-   */
-  public @NotNull List<IonIdentity[]> findAdducts(final FeatureList featureList,
-      final FeatureListRow row1, final FeatureListRow row2, final IonNetworkLibrary.CheckMode mode,
-      final double minHeight) {
-    return findAdducts(featureList, row1, row2, row1.getRowCharge(), row2.getRowCharge(), mode,
-        minHeight);
-  }
-
-  /**
-   * Does find all possible adducts between row1 and row2
-   *
-   * @param z1 -1 or 0 if not set (charge state always positive)
-   * @param z2 -1 or 0 if not set (charge state always positive)
-   * @return returns list of adducts for [row1, row2]
-   */
-  public @NotNull List<IonIdentity[]> findAdducts(final FeatureList featureList,
-      final FeatureListRow row1, final FeatureListRow row2, int z1, int z2, final CheckMode mode,
-      final double minHeight) {
-    z1 = Math.abs(z1);
-    z2 = Math.abs(z2);
-    List<IonIdentity[]> list = new ArrayList<>();
-    // check all combinations of adducts
-    for (IonType adduct : allAdducts) {
-      for (IonType adduct2 : allAdducts) {
-        if (adduct.equals(adduct2)) {
-          continue;
-        }
-
-        // do not check if MOL = MOL and MOL>1
-        // only one can be modified
-        // check charge state if absCharge is not -1 or 0 (no charge detected)
-        if (checkMolCount(adduct, adduct2) //
-            && checkMaxMod(adduct, adduct2) //
-            && checkChargeStates(adduct, adduct2, z1, z2) //
-            && checkMultiChargeDifference(adduct, adduct2) //
-            && checkSameAdducts(adduct, adduct2)) {
-          // checks each raw file - only true if all m/z are in range
-          if (checkAdduct(featureList, row1, row2, adduct, adduct2, mode, minHeight)) {
-            // is a2 a modification of a1? (same adducts - different mods
-            if (adduct2.isModificationOf(adduct)) {
-              IonType mod = adduct2.subtractMods(adduct);
-              IonType undefined = new IonType(
-                  IonModification.getUndefinedforCharge(adduct.getCharge()));
-              list.add(IonIdentity.addAdductIdentityToRow(mzTolerance, row1, undefined, row1, mod));
-            } else if (adduct.isModificationOf(adduct2)) {
-              IonType mod = adduct.subtractMods(adduct2);
-              IonType undefined = new IonType(
-                  IonModification.getUndefinedforCharge(adduct2.getCharge()));
-              list.add(IonIdentity.addAdductIdentityToRow(mzTolerance, row1, mod, row2, undefined));
-            } else {
-              // Add adduct identity and notify GUI.
-              // only if not already present
-              list.add(
-                  IonIdentity.addAdductIdentityToRow(mzTolerance, row1, adduct, row2, adduct2));
-            }
-          }
-        }
-      }
-    }
-    // no adduct to be found
-    return list;
-  }
-
-
-  /**
-   * Searches for an IonType for row that matches in network
-   *
-   * @param row    row to check against neutral mass of ionNet
-   * @param ionNet for neutral mass
-   * @return IonIdentity or null if already present in network or if no match available
-   */
-  @Nullable
-  public IonIdentity findAdducts(FeatureListRow row, IonNetwork ionNet) {
-    // already contained
-    if (ionNet.containsKey(row)) {
-      return null;
-    }
-
-    int z = Math.abs(row.getBestFeature().getCharge());
-    List<IonIdentity> list = new ArrayList<>();
-    // check all combinations of adducts
-    for (IonType adduct : allAdducts) {
-      if (!adduct.isUndefinedAdduct()) {
-        if (z == 0 || adduct.getAbsCharge() == z) {
-          double neutralMass = ionNet.getNeutralMass();
-          double mz = row.getAverageMZ();
-          double rowMass = adduct.getMass(mz);
-          if (mzTolerance.checkWithinTolerance(neutralMass, rowMass)) {
-            // add identity
-            IonIdentity a = new IonIdentity(adduct);
-            ionNet.put(row, a);
-            row.addIonIdentity(a, false);
-            return a;
-          }
-        }
-        // no adduct to be found
-      }
-    }
-    return null;
-  }
+//  /**
+//   * Does find all possible adduct combinations
+//   */
+//  public @NotNull List<IonIdentity[]> findAdducts(final FeatureList featureList,
+//      final FeatureListRow row1, final FeatureListRow row2, final IonNetworkLibrary.CheckMode mode,
+//      final double minHeight) {
+//    return findAdducts(featureList, row1, row2, row1.getRowCharge(), row2.getRowCharge(), mode,
+//        minHeight);
+//  }
+//
+//  /**
+//   * Does find all possible adducts between row1 and row2
+//   *
+//   * @param z1 -1 or 0 if not set (charge state always positive)
+//   * @param z2 -1 or 0 if not set (charge state always positive)
+//   * @return returns list of adducts for [row1, row2]
+//   */
+//  public @NotNull List<IonIdentity[]> findAdducts(final FeatureList featureList,
+//      final FeatureListRow row1, final FeatureListRow row2, int z1, int z2, final CheckMode mode,
+//      final double minHeight) {
+//    z1 = Math.abs(z1);
+//    z2 = Math.abs(z2);
+//    List<IonIdentity[]> list = new ArrayList<>();
+//    // check all combinations of adducts
+//    for (IonType adduct : allAdducts) {
+//      for (IonType adduct2 : allAdducts) {
+//        if (adduct.equals(adduct2)) {
+//          continue;
+//        }
+//
+//        // do not check if MOL = MOL and MOL>1
+//        // only one can be modified
+//        // check charge state if absCharge is not -1 or 0 (no charge detected)
+//        if (checkMolCount(adduct, adduct2) //
+//            && checkMaxMod(adduct, adduct2) //
+//            && checkChargeStates(adduct, adduct2, z1, z2) //
+//            && checkMultiChargeDifference(adduct, adduct2) //
+//            && checkSameAdducts(adduct, adduct2)) {
+//          // checks each raw file - only true if all m/z are in range
+//          if (checkAdduct(featureList, row1, row2, adduct, adduct2, mode, minHeight)) {
+//            // is a2 a modification of a1? (same adducts - different mods
+//            if (adduct2.isModificationOf(adduct)) {
+//              IonType mod = adduct2.subtractMods(adduct);
+//              IonType undefined = new IonType(
+//                  IonModification.getUndefinedforCharge(adduct.getCharge()));
+//              list.add(IonIdentity.addAdductIdentityToRow(mzTolerance, row1, undefined, row1, mod));
+//            } else if (adduct.isModificationOf(adduct2)) {
+//              IonType mod = adduct.subtractMods(adduct2);
+//              IonType undefined = new IonType(
+//                  IonModification.getUndefinedforCharge(adduct2.getCharge()));
+//              list.add(IonIdentity.addAdductIdentityToRow(mzTolerance, row1, mod, row2, undefined));
+//            } else {
+//              // Add adduct identity and notify GUI.
+//              // only if not already present
+//              list.add(
+//                  IonIdentity.addAdductIdentityToRow(mzTolerance, row1, adduct, row2, adduct2));
+//            }
+//          }
+//        }
+//      }
+//    }
+//    // no adduct to be found
+//    return list;
+//  }
+//
+//
+//  /**
+//   * Searches for an IonType for row that matches in network
+//   *
+//   * @param row    row to check against neutral mass of ionNet
+//   * @param ionNet for neutral mass
+//   * @return IonIdentity or null if already present in network or if no match available
+//   */
+//  @Nullable
+//  public IonIdentity findAdducts(FeatureListRow row, IonNetwork ionNet) {
+//    // already contained
+//    if (ionNet.containsKey(row)) {
+//      return null;
+//    }
+//
+//    int z = Math.abs(row.getBestFeature().getCharge());
+//    List<IonIdentity> list = new ArrayList<>();
+//    // check all combinations of adducts
+//    for (IonType adduct : allAdducts) {
+//      if (!adduct.isUndefinedAdduct()) {
+//        if (z == 0 || adduct.getAbsCharge() == z) {
+//          double neutralMass = ionNet.getNeutralMass();
+//          double mz = row.getAverageMZ();
+//          double rowMass = adduct.getMass(mz);
+//          if (mzTolerance.checkWithinTolerance(neutralMass, rowMass)) {
+//            // add identity
+//            IonIdentity a = new IonIdentity(adduct);
+//            ionNet.put(row, a);
+//            row.addIonIdentity(a, false);
+//            return a;
+//          }
+//        }
+//        // no adduct to be found
+//      }
+//    }
+//    return null;
+//  }
 
 
   /**

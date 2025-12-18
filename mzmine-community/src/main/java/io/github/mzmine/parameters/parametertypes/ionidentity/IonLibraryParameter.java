@@ -44,7 +44,7 @@ public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibrar
   private IonLibrary library;
 
   public IonLibraryParameter() {
-    this(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE);
+    this(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL);
   }
 
   public IonLibraryParameter(@Nullable IonLibrary defaultValue) {

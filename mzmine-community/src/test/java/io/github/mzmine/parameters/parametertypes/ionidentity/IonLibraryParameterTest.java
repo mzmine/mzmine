@@ -47,29 +47,29 @@ class IonLibraryParameterTest {
   @Test
   void loadValueFromXML() {
     // initialize with wrong ions
-    final IonLibrary initialLibrary = IonLibraries.MZMINE_DEFAULT_NEG_COMPREHENSIVE;
+    final IonLibrary initialLibrary = IonLibraries.MZMINE_DEFAULT_NEG_FULL;
     final IonLibraryParameter param = new IonLibraryParameter(initialLibrary);
     // load xml of dual polarity list, in place operation
     ParameterUtils.loadParameterFromString(param, expectedXml);
     assertNotNull(param.getValue());
     assertNotEquals(initialLibrary, param.getValue());
-    assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE, param.getValue());
+    assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL, param.getValue());
   }
 
   @Test
   void saveLoadValueToXML() {
     final IonLibraryParameter param = new IonLibraryParameter(
-        IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE);
+        IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL);
 
     // save and load from string
     final String xml = ParameterUtils.saveParameterToXMLString(param);
     // load with a different instance to see if loaded is correct
     final var clone = ParameterUtils.loadParameterFromString(
-        new IonLibraryParameter(IonLibraries.MZMINE_DEFAULT_NEG_COMPREHENSIVE), xml);
+        new IonLibraryParameter(IonLibraries.MZMINE_DEFAULT_NEG_FULL), xml);
 
     assertNotNull(clone);
     assertEquals(param.getValue(), clone.getValue());
-    param.setValue(IonLibraries.MZMINE_DEFAULT_NEG_COMPREHENSIVE);
+    param.setValue(IonLibraries.MZMINE_DEFAULT_NEG_FULL);
     assertNotEquals(param.getValue(), clone.getValue());
   }
 
@@ -82,18 +82,18 @@ class IonLibraryParameterTest {
     final String xml = ParameterUtils.saveParameterToXMLString(param);
     // load with a different instance to see if loaded is correct
     final var clone = ParameterUtils.loadParameterFromString(
-        new IonLibraryParameter(IonLibraries.MZMINE_DEFAULT_NEG_COMPREHENSIVE), xml);
+        new IonLibraryParameter(IonLibraries.MZMINE_DEFAULT_NEG_FULL), xml);
 
     assertNotNull(clone);
     assertEquals(param.getValue(), clone.getValue());
-    param.setValue(IonLibraries.MZMINE_DEFAULT_NEG_COMPREHENSIVE);
+    param.setValue(IonLibraries.MZMINE_DEFAULT_NEG_FULL);
     assertNotEquals(param.getValue(), clone.getValue());
   }
 
   @Test
   void cloneParameter() {
     final IonLibraryParameter param = new IonLibraryParameter(
-        IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE);
+        IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL);
     final UserParameter<IonLibrary, IonLibraryComponent> clone = param.cloneParameter();
     assertNotNull(clone);
     assertNotSame(param, clone);

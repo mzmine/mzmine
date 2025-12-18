@@ -109,7 +109,7 @@ class IonTypeDefinitionPane extends BorderPane {
       if (nv == null) {
         unknownParts.clear();
       } else {
-        unknownParts.setAll(nv.stream().filter(IonPart::isUnknown).toList());
+        unknownParts.setAll(nv.stream().filter(IonPart::isUndefinedMass).toList());
       }
     });
   }

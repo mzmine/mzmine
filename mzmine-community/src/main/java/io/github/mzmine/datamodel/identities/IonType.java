@@ -320,7 +320,7 @@ public final class IonType {
    * Checks mass diff
    */
   public boolean sameMassDifference(IonType adduct) {
-    return Double.compare(totalMass, adduct.totalMass) == 0;
+    return Precision.equalRelativeSignificance(totalMass, adduct.totalMass, 5E-9);
   }
 
 
@@ -416,8 +416,41 @@ public final class IonType {
     return molecules;
   }
 
+  /**
+   * TODO Rename to hasUnknownPart
+   *
+   * @return true if this is a [M+?] with or without other part
+   */
   public boolean isUndefinedAdduct() {
-    return stream().anyMatch(IonPart::isUnknown);
+    return stream().anyMatch(IonPart::isUnknownPart);
+  }
+
+  /**
+   * @return true if this is a [M+? +- something]
+   */
+  public boolean isModifiedUndefinedAdduct() {
+    return parts.size() > 1 && isUndefinedAdduct();
+  }
+
+  /**
+   * @return true if undefined mass in any part
+   */
+  public boolean isUndefinedMass() {
+    return stream().anyMatch(IonPart::isUndefinedMass);
+  }
+
+  /**
+   * Has electron
+   *
+   * @return odd number of {@link IonParts#M_MINUS} electrons
+   */
+  public boolean hasOddElectrons() {
+    for (IonPart part : parts) {
+      if (IonParts.M_MINUS.equalsWithoutCount(part)) {
+        return part.count() % 2 == 1;
+      }
+    }
+    return false;
   }
 
 

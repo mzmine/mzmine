@@ -199,7 +199,7 @@ public class AddIonNetworkingTask extends AbstractTask {
   private boolean isCorrelated(RowGroup g, FeatureListRow a, IonNetwork net) {
     int n = net.size();
     int correlated = 0;
-    for (FeatureListRow b : net.keySet()) {
+    for (FeatureListRow b : net.getRows()) {
       if (g.isCorrelated(a, b)) {
         correlated++;
       }

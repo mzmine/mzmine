@@ -69,12 +69,12 @@ class IonPartTest {
   }
 
   @Test
-  void testIsUnknown() {
-    assertFalse(IonParts.ofNamed("TE", 50d, 0).isUnknown());
-    assertTrue(IonParts.ofNamed("TE", 0, 0).isUnknown());
-    assertTrue(IonParts.ofFormula("TE", 0).isUnknown());
-    assertTrue(IonParts.unknown("TE", 0).isUnknown());
-    assertTrue(IonParts.SILENT_CHARGE.isUnknown());
+  void testIsUndefined() {
+    assertFalse(IonParts.ofNamed("TE", 50d, 0).isUndefinedMass());
+    assertTrue(IonParts.ofNamed("TE", 0, 0).isUndefinedMass());
+    assertTrue(IonParts.ofFormula("TE", 0).isUndefinedMass());
+    assertTrue(IonParts.unknown("TE", 0).isUndefinedMass());
+    assertTrue(IonParts.SILENT_CHARGE.isUndefinedMass());
   }
 
   @Test

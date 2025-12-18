@@ -136,7 +136,7 @@ public class DebugCompareFeatureListsTask extends AbstractSimpleToolTask {
             for (int ion = 0; ion < ions1.size(); ion++) {
               var adduct1 = ions1.get(ion);
               var adduct2 = ions2.get(ion);
-              if (!adduct1.equalsAdduct(adduct2.getIonType())) {
+              if (!adduct1.equalsIonType(adduct2.getIonType())) {
                 errors.add("Ion types were different for row i=%d. %s : %s".formatted(i, adduct1,
                     adduct2));
               }

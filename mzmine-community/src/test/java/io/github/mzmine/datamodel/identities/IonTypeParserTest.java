@@ -90,20 +90,20 @@ class IonTypeParserTest {
     IonType ion = IonTypeParser.parse("[M+TEST]+");
     Assertions.assertEquals(1, ion.parts().size());
     Assertions.assertEquals(1, ion.parts().getFirst().singleCharge());
-    Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUnknown));
+    Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUndefinedMass));
 
     // H is known to carry charge
     ion = IonTypeParser.parse("[M+TEST+H]+");
     Assertions.assertEquals(2, ion.parts().size());
     Assertions.assertEquals(0, ion.parts().getFirst().singleCharge());
     Assertions.assertEquals(1, ion.parts().get(1).singleCharge());
-    Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUnknown));
+    Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUndefinedMass));
 
     // two ion types will have silent charge added because we dont know which carries the charge
     ion = IonTypeParser.parse("[M+TEST+OTHERUNKNOWN]+");
     Assertions.assertEquals(3, ion.parts().size());
     Assertions.assertTrue(ion.parts().contains(IonParts.SILENT_CHARGE));
-    Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUnknown));
+    Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUndefinedMass));
   }
 
   static final List<Case> cases = List.of(

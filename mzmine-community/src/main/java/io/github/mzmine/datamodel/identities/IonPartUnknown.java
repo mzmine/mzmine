@@ -73,7 +73,7 @@ record IonPartUnknown(@NotNull String name, int singleCharge, int count) impleme
   }
 
   @Override
-  public boolean isUnknown() {
+  public boolean isUndefinedMass() {
     return true;
   }
 

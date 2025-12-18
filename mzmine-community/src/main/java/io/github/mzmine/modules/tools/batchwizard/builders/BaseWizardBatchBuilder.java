@@ -765,9 +765,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     // ion library
     final IonLibrary library = switch (polarity) {
-      case No_filter -> IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE;
-      case Positive -> IonLibraries.MZMINE_DEFAULT_POS_COMPREHENSIVE;
-      case Negative -> IonLibraries.MZMINE_DEFAULT_NEG_COMPREHENSIVE;
+      case No_filter -> IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL;
+      case Positive -> IonLibraries.MZMINE_DEFAULT_POS_FULL;
+      case Negative -> IonLibraries.MZMINE_DEFAULT_NEG_FULL;
     };
     param.setParameter(IonNetworkingParameters.fullIonLibrary, library);
 

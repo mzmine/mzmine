@@ -84,7 +84,7 @@ public class IonNetworkingParameters extends SimpleParameterSet {
       """
           The full ion library contains all adducts, in source fragments, and other ions to be searched.
           See ion network refinement to require main adducts in networks.""",
-      IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_COMPREHENSIVE);
+      IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL);
 
   // MS MS
   // check for truth MS/MS

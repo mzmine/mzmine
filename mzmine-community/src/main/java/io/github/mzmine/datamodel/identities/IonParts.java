@@ -51,6 +51,10 @@ public class IonParts {
    * The only part allowed with empty name
    */
   public static final IonPart SILENT_CHARGE = new IonPartSilentCharge(1);
+  /**
+   * An unknown part
+   */
+  public static final IonPart UNKNOWN = new IonPartUnknown("?", 0, 1);
 
   public static final IonPart M_MINUS = ofNamed("e", IonUtils.ELECTRON_MASS, -1);
   public static final IonPart M_PLUS = M_MINUS.withCount(-1);

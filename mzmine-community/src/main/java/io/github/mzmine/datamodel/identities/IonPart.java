@@ -110,12 +110,28 @@ public sealed interface IonPart permits IonPartDefinition, IonPartSilentCharge, 
   }
 
 
-  default boolean isUnknown() {
+  /**
+   *
+   * @return true if ion part is undefined by mass
+   */
+  default boolean isUndefinedMass() {
     // name is blank for silent charge - so it is reserved
     // for example for [M]+ (already charged and not -e-)
     // do not treat silent charge as unknown
     return !name().isBlank() && singleFormula() == null && Double.compare(absSingleMass(), 0d) == 0;
   }
+
+  /**
+   *
+   * @return true if the name is ? like for {@link IonParts#UNKNOWN}
+   */
+  default boolean isUnknownPart() {
+    // name is blank for silent charge - so it is reserved
+    // for example for [M]+ (already charged and not -e-)
+    // do not treat silent charge as unknown
+    return name().equals("?") && singleFormula() == null;
+  }
+
 
   default String toString(IonPartStringFlavor flavor) {
     if (name().isBlank()) {
@@ -152,7 +168,7 @@ public sealed interface IonPart permits IonPartDefinition, IonPartSilentCharge, 
     if (singleCharge == null) {
       return this;
     }
-    if (isUnknown()) {
+    if (isUndefinedMass()) {
       throw new IllegalStateException(
           "Cannot change charge of unknown ion part without mass definition");
     }

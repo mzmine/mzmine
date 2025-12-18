@@ -68,7 +68,7 @@ record IonPartSilentCharge(int count) implements IonPart {
   }
 
   @Override
-  public boolean isUnknown() {
+  public boolean isUndefinedMass() {
     return true;
   }
 

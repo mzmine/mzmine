@@ -49,6 +49,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
 
   @NotNull
   private final List<ResultFormula> molFormulas;
+  @NotNull
   private final io.github.mzmine.datamodel.identities.IonType ionType;
   // network id (number)
   private IonNetwork network;
@@ -71,6 +72,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
    *
    * @return
    */
+  @NotNull
   public io.github.mzmine.datamodel.identities.IonType getIonType() {
     return ionType;
   }
