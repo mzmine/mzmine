@@ -43,9 +43,9 @@ public enum MassLynxImportOptions implements UniqueIdSupplier {
   @Override
   public String toString() {
     return switch (this) {
-      case NATIVE_MZMINE_CENTROIDING -> "Native (mzmine centroiding, fast)";
+      case NATIVE_MZMINE_CENTROIDING -> "Native (mzmine as vendor centroiding, recommended)";
       case MSCONVERT -> "MSConvert";
-      case NATIVE_WATERS_CENTROIDING -> "Native (Waters centroiding, slow)";
+      case NATIVE_WATERS_CENTROIDING -> "Native (Waters vendor centroiding)";
     };
   }
 }
