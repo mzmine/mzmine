@@ -89,7 +89,7 @@ public class TofMassDetector implements MassDetector {
 
   @Override
   public boolean filtersActive() {
-    return false;
+    return true;
   }
 
   @Override

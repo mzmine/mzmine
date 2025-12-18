@@ -50,7 +50,7 @@ import org.junit.jupiter.api.condition.OS;
 import testutils.MZmineTestUtil;
 
 @DisabledOnOs({OS.MAC, OS.LINUX})
-public class WatersImportTest {
+public class MassLynxImportTest {
 
   @BeforeAll
   static void init() {
@@ -328,5 +328,48 @@ public class WatersImportTest {
 
     Assertions.assertEquals(380.2170104980469, watersMz, 0.005);
     Assertions.assertEquals(380.21661376953125, mobScanWaters, 0.0015);
+  }
+
+  @Test
+  public void testAlreadyCentroided() throws Exception {
+    final File alreadyCentroided = new File(
+        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Waters\\mse_20180205_0125.raw");
+    if (!alreadyCentroided.exists()) {
+      return;
+    }
+
+    final AllSpectralDataImportParameters mzmineCentroidParam = generateMzmineCentroidingParam(
+        alreadyCentroided);
+    final ScanImportProcessorConfig processorMzmine = AllSpectralDataImportModule.createSpectralProcessors(
+        mzmineCentroidParam.getEmbeddedParametersIfSelectedOrElse(
+            AllSpectralDataImportParameters.advancedImport, null));
+
+    RawDataFileImpl file = new RawDataFileImpl(alreadyCentroided.getName(),
+        alreadyCentroided.getAbsolutePath(), null);
+    final double mzmineMz;
+    try (final var access = new MassLynxDataAccess(alreadyCentroided,
+        (VendorImportParameters) mzmineCentroidParam.getEmbeddedParameterValue(
+            AllSpectralDataImportParameters.vendorOptions), null, processorMzmine)) {
+      SimpleScan scan = access.readScan(file, 0, 30);
+      Assertions.assertEquals(MassSpectrumType.CENTROIDED, scan.getSpectrumType());
+      mzmineMz = scan.getMzValue(30);
+    }
+
+    final AllSpectralDataImportParameters profileImport = generateProfileImportParamMzmine(
+        alreadyCentroided);
+    final ScanImportProcessorConfig profileProcessor = AllSpectralDataImportModule.createSpectralProcessors(
+        profileImport.getEmbeddedParametersIfSelectedOrElse(
+            AllSpectralDataImportParameters.advancedImport, null));
+
+    final double rawMz;
+    try (final var access = new MassLynxDataAccess(alreadyCentroided,
+        (VendorImportParameters) profileImport.getEmbeddedParameterValue(
+            AllSpectralDataImportParameters.vendorOptions), null, profileProcessor)) {
+      SimpleScan scan = access.readScan(file, 0, 30);
+      Assertions.assertEquals(MassSpectrumType.CENTROIDED, scan.getSpectrumType());
+      rawMz = scan.getMzValue(30);
+    }
+
+    Assertions.assertEquals(rawMz, mzmineMz);
   }
 }
