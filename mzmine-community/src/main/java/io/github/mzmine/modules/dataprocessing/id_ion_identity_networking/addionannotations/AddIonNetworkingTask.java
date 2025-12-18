@@ -32,11 +32,12 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
+import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.SearchableIonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkSorter;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -69,7 +70,6 @@ public class AddIonNetworkingTask extends AbstractTask {
   private final IonNetworkRefinementParameters refineParam;
   private final MZTolerance mzTolerance;
   private AtomicDouble stageProgress = new AtomicDouble(0);
-  private IonNetworkLibrary library;
 
   /**
    * Create the task.
@@ -109,9 +109,8 @@ public class AddIonNetworkingTask extends AbstractTask {
       setStatus(TaskStatus.PROCESSING);
       // create library
       LOG.info("Creating annotation library");
-      library = new IonNetworkLibrary(
-          parameters.getParameter(AddIonNetworkingParameters.LIBRARY).getEmbeddedParameters(),
-          mzTolerance);
+      final var library = parameters.getValue(AddIonNetworkingParameters.fullIonLibrary)
+          .toSearchableLibrary(true);
       annotateGroups(library);
 
       setStatus(TaskStatus.FINISHED);
@@ -123,7 +122,7 @@ public class AddIonNetworkingTask extends AbstractTask {
     }
   }
 
-  private void annotateGroups(IonNetworkLibrary library) {
+  private void annotateGroups(SearchableIonLibrary library) {
     LOG.info("Starting adduct detection on groups of peaklist " + featureList.getName());
     // get groups
     List<RowGroup> groups = featureList.getGroups();
@@ -156,7 +155,7 @@ public class AddIonNetworkingTask extends AbstractTask {
    * @param compared
    * @param annotPairs
    */
-  private void annotateGroup(IonNetworkLibrary library, RowGroup g,
+  private void annotateGroup(SearchableIonLibrary library, RowGroup g,
       // AtomicInteger finished,
       AtomicInteger compared, AtomicInteger annotPairs) {
     // all networks of this group
@@ -165,26 +164,26 @@ public class AddIonNetworkingTask extends AbstractTask {
     for (int i = 0; i < g.size(); i++) {
       FeatureListRow row = g.get(i);
       // min height
-      if (g.get(i).getBestFeature().getHeight() >= minHeight) {
+      if (row.getBestFeature().getHeight() >= minHeight) {
         for (IonNetwork net : nets) {
-          if (!net.isUndefined()) {
-            // only if not already in network
-            if (!net.containsKey(row)) {
-              // check against existing networks
-              if (isCorrelated(g, g.get(i), net)) {
-                compared.incrementAndGet();
-                // check for adducts in library
-                IonIdentity id = library.findAdducts(g.get(i), net);
-                if (id != null) {
-                  annotPairs.incrementAndGet();
-                }
-              }
+          // only if not already in network
+          // check against existing networks
+          if (!net.isUndefined() && !net.containsKey(row) && isCorrelated(g, row, net)) {
+            compared.incrementAndGet();
+            // check for adducts in library
+            List<IonType> ions = library.searchRows(row, net.getNeutralMass(), mzTolerance);
+            if (ions.size() == 1) {
+              final IonType first = ions.getFirst();
+              final IonIdentity id = new IonIdentity(first);
+              row.addIonIdentity(id);
+              net.put(row, id);
+              annotPairs.incrementAndGet();
             }
           }
         }
       }
-      // finished.incrementAndGet();
     }
+    // finished.incrementAndGet();
   }
 
 
@@ -213,7 +212,7 @@ public class AddIonNetworkingTask extends AbstractTask {
     AtomicInteger netID = new AtomicInteger(0);
     IonNetworkLogic.streamNetworks(featureList,
         new IonNetworkSorter(SortingProperty.RT, SortingDirection.Ascending), false).forEach(n -> {
-      n.setMzTolerance(library.getMzTolerance());
+      n.setMzTolerance(mzTolerance);
       n.setID(netID.getAndIncrement());
     });
 

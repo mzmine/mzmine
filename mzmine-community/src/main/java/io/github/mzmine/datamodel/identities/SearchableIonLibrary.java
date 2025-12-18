@@ -29,6 +29,7 @@ import static io.github.mzmine.datamodel.identities.IonTypeUtils.checkMolCount;
 import static io.github.mzmine.datamodel.identities.IonTypeUtils.restrictPartsOverlapToMultimers;
 import static java.util.stream.Collectors.groupingBy;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -124,10 +125,53 @@ public class SearchableIonLibrary {
         final double massA = ionA.getMass(a.mz());
         final double absTol = tolerance.getMzToleranceForMass(massA);
 
-        searchPartners(pairs, flippedAB, ionA, massA - absTol, massA + absTol, a, b);
+        searchPartners(pairs, flippedAB, ionA, massA - absTol, massA + absTol, b);
       }
     }
     return pairs;
+  }
+
+
+  /**
+   * Searches for IonTypes that match the neutral mass
+   *
+   * @param row         row to check against neutral mass of ionNet
+   * @param neutralMass to search against
+   * @return a list of matching ion identities
+   */
+  @NotNull
+  public List<IonType> searchRows(FeatureListRow row, double neutralMass, MZTolerance mzTol) {
+    return searchRows(new IonSearchRow(row), neutralMass, mzTol);
+  }
+
+  /**
+   * Searches for IonTypes that match the neutral mass
+   *
+   * @param a           row to check against neutral mass of ionNet
+   * @param neutralMass to search against
+   * @param mzTol
+   * @return a list of matching ion identities
+   */
+  @NotNull
+  public List<IonType> searchRows(IonSearchRow a, double neutralMass, MZTolerance mzTol) {
+    final Range<Double> mzSearchRange = mzTol.getToleranceRange(neutralMass);
+    List<IonType> results = new ArrayList<>();
+
+    // a is always the lower number to make comparison easier
+    for (ChargedIonTypeList ionChargeGroup : ionsSplitByChargeAndMol) {
+      // skip whole groups by row charge and polarity if they were provided
+      if (!matchesGroupChargeState(a, ionChargeGroup)) {
+        continue;
+      }
+
+      for (IonType ionA : ionChargeGroup.list()) {
+        final double massA = ionA.getMass(a.mz());
+        if (mzSearchRange.contains(massA)) {
+          results.add(ionA);
+        }
+      }
+    }
+    return results;
   }
 
   /**
@@ -153,11 +197,10 @@ public class SearchableIonLibrary {
    * @param ionA      the ion of the smaller mz entry
    * @param minMassA  the minimum search range neutral mass
    * @param maxMassA  the maximum search range neutral mass
-   * @param a         the smaller mz
    * @param b         the larger mz
    */
   private void searchPartners(List<IonTypePair> pairs, boolean flippedAB, IonType ionA,
-      double minMassA, double maxMassA, @NotNull IonSearchRow a, @NotNull IonSearchRow b) {
+      double minMassA, double maxMassA, @NotNull IonSearchRow b) {
     final boolean hasNeutralModificationA = IonTypeUtils.hasNeutralModification(ionA);
 
     // each list has the same charge + molecules

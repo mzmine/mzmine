@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,13 +47,15 @@ public class MSMSLogic {
    * @param precursorMZ
    * @param adduct      only the basic information is taken (charge and deltaMass, molecules are
    *                    then added from 1-maxM)
+   * @param molecules
    * @param mzTolerance
    * @return List of identities. The first is always the one for the precursor
    */
-  public static List<MsMsIdentity> checkMultiMolCluster(Scan scan, double precursorMZ, IonType adduct,
-      MZTolerance mzTolerance, double minHeight) {
-    return checkMultiMolCluster(scan, precursorMZ, adduct, adduct.getMolecules(),
-        mzTolerance, minHeight);
+  public static List<MsMsIdentity> checkMultiMolCluster(Scan scan, double precursorMZ,
+      io.github.mzmine.datamodel.identities.IonType adduct, int molecules, MZTolerance mzTolerance,
+      double minHeight) {
+    return checkMultiMolCluster(scan, precursorMZ, adduct, adduct.molecules(), mzTolerance,
+        minHeight);
   }
 
   /**
@@ -67,8 +69,8 @@ public class MSMSLogic {
    * @param mzTolerance
    * @return List of identities. The first is always the one for the precursor
    */
-  public static List<MsMsIdentity> checkMultiMolCluster(Scan scan, double precursorMZ, IonType adduct,
-      int maxM, MZTolerance mzTolerance, double minHeight) {
+  public static List<MsMsIdentity> checkMultiMolCluster(Scan scan, double precursorMZ,
+      IonType adduct, int maxM, MZTolerance mzTolerance, double minHeight) {
     MassList masses = scan.getMassList();
     if (masses == null) {
       return null;
@@ -154,14 +156,15 @@ public class MSMSLogic {
    * @param mzTolerance
    * @return List of identities. The first is always the one for the precursor
    */
-  public static List<MsMsIdentity> checkNeutralLoss(DataPoint[] dps, IonType adduct,
-      MZTolerance mzTolerance, double minHeight) {
+  public static List<MsMsIdentity> checkNeutralLoss(DataPoint[] dps,
+      io.github.mzmine.datamodel.identities.IonType adduct, MZTolerance mzTolerance,
+      double minHeight) {
     if (dps == null || dps.length == 0) {
       return null;
     }
 
     // delta
-    double dmz = adduct.getMassDifference();
+    double dmz = adduct.totalMass();
 
     // result best with the highest number of identities
     List<MsMsIdentity> ident = new ArrayList<>();
@@ -174,8 +177,8 @@ public class MSMSLogic {
       DataPoint loss = findDPAt(dps, mz - dmz, mzTolerance, minHeight);
       if (loss != null) {
         // id found
-        MSMSIonRelationIdentity relation =
-            new MSMSIonRelationIdentity(mzTolerance, loss, adduct, dp);
+        MSMSIonRelationIdentity relation = new MSMSIonRelationIdentity(mzTolerance, loss, adduct,
+            dp);
         ident.add(relation);
       }
     }
@@ -206,9 +209,9 @@ public class MSMSLogic {
       double minHeight) {
     DataPoint best = null;
     for (DataPoint dp : dps) {
-      if (dp.getIntensity() >= minHeight
-          && (best == null || dp.getIntensity() > best.getIntensity())
-          && mzTolerance.checkWithinTolerance(dp.getMZ(), precursorMZ)) {
+      if (dp.getIntensity() >= minHeight && (best == null
+          || dp.getIntensity() > best.getIntensity()) && mzTolerance.checkWithinTolerance(
+          dp.getMZ(), precursorMZ)) {
         best = dp;
       }
     }

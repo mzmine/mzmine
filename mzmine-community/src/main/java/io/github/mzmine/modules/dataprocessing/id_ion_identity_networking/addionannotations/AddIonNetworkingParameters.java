@@ -26,12 +26,17 @@
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations;
 
 
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.identities.IonLibraries;
+import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -46,7 +51,7 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
 
   // different depth of settings
   public enum Setup {
-    FULL, SUB, SIMPLE
+    FULL, SUB
   }
 
   // NOT INCLUDED in sub
@@ -61,7 +66,14 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
       "Minimum height of feature shape (not used for average mode)",
       MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final SubModuleParameter<LegacyIonLibraryParameterSet> LIBRARY = new SubModuleParameter<>(
+
+  public static final IonLibraryParameter fullIonLibrary = new IonLibraryParameter("Ion library",
+      """
+          The full ion library contains all adducts, in source fragments, and other ions to be searched.
+          See ion network refinement to require main adducts in networks.""",
+      IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL);
+
+  private final SubModuleParameter<LegacyIonLibraryParameterSet> LEGACY_LIBRARY = new SubModuleParameter<>(
       "Ion identity library", "Adducts, in-source fragments and multimers",
       new LegacyIonLibraryParameterSet());
 
@@ -91,11 +103,9 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
     switch (setup) {
       case FULL:
         return new Parameter[]{PEAK_LISTS, MZ_TOLERANCE, MIN_HEIGHT, ANNOTATION_REFINEMENTS,
-            LIBRARY};
+            fullIonLibrary};
       case SUB:
         return new Parameter[]{MZ_TOLERANCE, ANNOTATION_REFINEMENTS};
-      case SIMPLE:
-        return new Parameter[]{LIBRARY};
     }
     return new Parameter[0];
   }
@@ -145,6 +155,29 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
     nameParameterMap.put("m/z tolerance", getParameter(MZ_TOLERANCE));
+    nameParameterMap.put(LEGACY_LIBRARY.getName(), LEGACY_LIBRARY);
     return nameParameterMap;
   }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    if (loadedVersion == 1 && loadedParams.containsKey(LEGACY_LIBRARY.getName())) {
+      LegacyIonLibraryParameterSet p = LEGACY_LIBRARY.getEmbeddedParameters();
+      IonNetworkLibrary library = new IonNetworkLibrary(p, PolarityType.ANY,
+          MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA);
+
+      IonLibrary newLibrary = library.toNewLibrary();
+      setParameter(fullIonLibrary, newLibrary);
+
+      getParameter(ANNOTATION_REFINEMENTS).getEmbeddedParameters()
+          .getParameter(IonNetworkRefinementParameters.mainIonLibrary).getEmbeddedParameter()
+          .setValue(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN);
+    }
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
 }

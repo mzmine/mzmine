@@ -174,7 +174,8 @@ public class IonNetworkingParameters extends SimpleParameterSet {
       setParameter(fullIonLibrary, newLibrary);
 
       getParameter(ANNOTATION_REFINEMENTS).getEmbeddedParameters()
-          .setParameter(IonNetworkRefinementParameters.mainIonLibrary, false);
+          .getParameter(IonNetworkRefinementParameters.mainIonLibrary).getEmbeddedParameter()
+          .setValue(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN);
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,8 @@
 package io.github.mzmine.datamodel.identities.ms2;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSDataPointIdentity;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
@@ -35,16 +36,17 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
  */
 public class MSMSIonIdentity extends AbstractMSMSDataPointIdentity {
 
-  protected final IonType type;
+  protected final io.github.mzmine.datamodel.identities.IonType type;
 
-  public MSMSIonIdentity(MZTolerance mzTolerance, DataPoint dp, IonType b) {
+  public MSMSIonIdentity(MZTolerance mzTolerance, DataPoint dp,
+      io.github.mzmine.datamodel.identities.IonType b) {
     super(mzTolerance, dp);
     this.type = b;
   }
 
   @Override
   public String getName() {
-    return type.toString(false);
+    return type.toString(IonTypeStringFlavor.SIMPLE_DEFAULT);
   }
 
   /**
