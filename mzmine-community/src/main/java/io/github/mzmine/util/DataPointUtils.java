@@ -82,6 +82,23 @@ public class DataPointUtils {
 
   /**
    * Used to keep legacy-modules running, not to be used in new modules. Directly access the
+   * underlying DoubleBuffers of Scans or {@link io.github.mzmine.datamodel.featuredata.IonSeries}
+   * and extending classes.
+   *
+   * @return mzs and intensities as arrays
+   */
+  public static SimpleSpectralArrays getDataPointsAsSpectralArrays(List<DataPoint> dataPoints) {
+    double[] mzs = new double[dataPoints.size()];
+    double[] intensities = new double[dataPoints.size()];
+    for (int i = 0; i < dataPoints.size(); i++) {
+      mzs[i] = dataPoints.get(i).getMZ();
+      intensities[i] = dataPoints.get(i).getIntensity();
+    }
+    return new SimpleSpectralArrays(mzs, intensities);
+  }
+
+  /**
+   * Used to keep legacy-modules running, not to be used in new modules. Directly access the
    * underlying DoubleBuffers of Scans or the
    * {@link io.github.mzmine.datamodel.features.ModularFeature}'s
    * {@link io.github.mzmine.datamodel.featuredata.IonSeries} and extending classes.
