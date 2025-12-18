@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,9 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.identities.IonLibraries;
+import io.github.mzmine.datamodel.identities.SimpleIonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
@@ -95,9 +98,13 @@ public class FragDashboardTab extends SimpleTab {
     final IsotopePattern bestIsotopePattern = row.getBestIsotopePattern();
     final Double mz = row.getAverageMZ();
 
-    if (row.getBestIonIdentity() != null && row.getBestIonIdentity().getIonType() != null) {
-      parameters.setParameter(FragmentGraphCalcParameters.adducts,
-          List.of(row.getBestIonIdentity().getIonType().getAdduct()));
+    final IonIdentity bestIon = row.getBestIonIdentity();
+    if (bestIon != null) {
+      parameters.setParameter(FragmentGraphCalcParameters.allowedIons,
+          new SimpleIonLibrary("best ion of row " + row.getID(), List.of(bestIon.getIonType())));
+    } else {
+      parameters.setParameter(FragmentGraphCalcParameters.allowedIons,
+          IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_SMALLEST);
     }
     parameters.setParameter(FragmentGraphCalcParameters.polarity,
         TryCatch.npe(() -> row.getBestFeature().getRepresentativeScan().getPolarity(),
