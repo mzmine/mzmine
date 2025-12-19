@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,7 +28,8 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.ChromatogramFeatureShapeCellFactory;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.ChromatogramFeatureShapeCell;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingChartCellFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
@@ -70,7 +70,7 @@ public class FeatureShapeType extends LinkedGraphicalType {
       @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType) {
     final TreeTableColumn<ModularFeatureListRow, Object> column = super.createColumn(raw,
         parentType);
-    column.setCellFactory(new ChromatogramFeatureShapeCellFactory());
+    column.setCellFactory(new CountingChartCellFactory(ChromatogramFeatureShapeCell::new));
     column.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(cdf.getValue().getValue()));
     return column;
   }

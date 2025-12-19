@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,19 +26,26 @@ package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.util.Callback;
 
-public class ChromatogramFeatureShapeCellFactory implements
+public class CountingChartCellFactory implements
     Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
 
   // uses a counter to label the first cell that seems to be the measurement cell
   public final AtomicInteger counter = new AtomicInteger(0);
+  private final Function<Integer, TreeTableCell<ModularFeatureListRow, Object>> createCell;
+
+  public CountingChartCellFactory(
+      Function<Integer, TreeTableCell<ModularFeatureListRow, Object>> createCell) {
+    this.createCell = createCell;
+  }
 
   @Override
   public TreeTableCell<ModularFeatureListRow, Object> call(
       TreeTableColumn<ModularFeatureListRow, Object> column) {
-    return new ChromatogramFeatureShapeCell(counter.getAndIncrement());
+    return createCell.apply(counter.getAndIncrement());
   }
 }

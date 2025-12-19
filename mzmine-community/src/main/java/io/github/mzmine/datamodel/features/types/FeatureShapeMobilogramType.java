@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,12 +25,15 @@
 package io.github.mzmine.datamodel.features.types;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeMobilogramChart;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingChartCellFactory;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.MobilogramFeatureShapeCell;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import java.util.logging.Logger;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.scene.Node;
+import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,14 +65,19 @@ public class FeatureShapeMobilogramType extends LinkedGraphicalType {
   }
 
   @Override
+  public @Nullable TreeTableColumn<ModularFeatureListRow, Object> createColumn(
+      @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType) {
+    final TreeTableColumn<ModularFeatureListRow, Object> column = super.createColumn(raw,
+        parentType);
+    column.setCellFactory(new CountingChartCellFactory(MobilogramFeatureShapeCell::new));
+    column.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(cdf.getValue().getValue()));
+    return column;
+  }
+
+  @Override
   public @Nullable Node createCellContent(ModularFeatureListRow row, Boolean cellData,
       RawDataFile raw, AtomicDouble progress) {
-    if (row == null || cellData == null || !cellData || row.getRawDataFiles().stream()
-        .filter(file -> (file instanceof IMSRawDataFile)).findAny().isEmpty()) {
-      return null;
-    }
-
-    var chart = new FeatureShapeMobilogramChart(row, progress);
-    return chart;
+    throw new UnsupportedOperationException(
+        "Should use the createColumn method instead of this one.");
   }
 }
