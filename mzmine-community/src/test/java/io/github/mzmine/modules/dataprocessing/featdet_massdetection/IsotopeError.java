@@ -22,37 +22,35 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.preferences;
+package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 
-public enum MassLynxImportOptions implements UniqueIdSupplier {
-  NATIVE_MZMINE_CENTROIDING, MSCONVERT, NATIVE_WATERS_CENTROIDING;
+public record IsotopeError(Scan scan, @NotNull DataPoint mainPeak, @NotNull DataPoint isotope) {
 
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case NATIVE_MZMINE_CENTROIDING -> "native";
-      case MSCONVERT -> "msconvert";
-      case NATIVE_WATERS_CENTROIDING -> "native_waters_centroiding";
-    };
+  public static final double DISTANCE = IsotopePatternCalculator.THIRTHEEN_C_DISTANCE;
+
+  public double mainPeakMz() {
+    return mainPeak.getMZ();
   }
 
-
-  @Override
-  public String toString() {
-    return switch (this) {
-      case NATIVE_MZMINE_CENTROIDING -> "Native (mzmine as vendor centroiding, recommended)";
-      case MSCONVERT -> "MSConvert";
-      case NATIVE_WATERS_CENTROIDING -> "Native (Waters vendor centroiding)";
-    };
+  public double isotopePeakMz() {
+    return isotope.getMZ();
   }
 
-  public boolean isNative() {
-    return switch (this) {
-      case MSCONVERT -> false;
-      case NATIVE_MZMINE_CENTROIDING, NATIVE_WATERS_CENTROIDING -> true;
-    };
+  public double measuredDistance() {
+    return isotopePeakMz() - mainPeakMz();
+  }
+
+  public double absoluteError() {
+    return measuredDistance() - DISTANCE;
+  }
+
+  public double ppmError() {
+    return MathUtils.getPpmDiff(mainPeakMz() + DISTANCE, isotopePeakMz());
   }
 }

@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -139,7 +138,7 @@ public class ImportSpeedTestMain {
     }).toArray(File[]::new);
 
     ParameterSet paramDataImport = AllSpectralDataImportParameters.create(
-        VendorImportParameters.create(true, MassLynxImportOptions.NATIVE, true,
+        VendorImportParameters.create(true, MassLynxImportOptions.NATIVE_MZMINE_CENTROIDING, true,
             WatersLockmassParameters.createDefault(), true), files, null, null, advanced);
 
     logger.info("Testing data import of mzML and mzXML without advanced parameters");
