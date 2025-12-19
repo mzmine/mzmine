@@ -85,6 +85,9 @@ public class ChromatogramFeatureShapeCell extends XyChartCell {
 
     final ModularFeatureListRow row = getTableRow().getItem();
 
+    System.out.println(
+        "shape " + getTableColumn().getWidth() + " " + getWidth() + " " + getMinWidth());
+
     // for selecting a range
     com.google.common.collect.Range<Float> featureRTRange = null;
     Float maxHeight = null;

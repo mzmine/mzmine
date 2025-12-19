@@ -27,7 +27,7 @@ package io.github.mzmine.datamodel.features.types;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingChartCellFactory;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingRowChartCellFactory;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.MobilogramFeatureShapeCell;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import java.util.logging.Logger;
@@ -69,7 +69,7 @@ public class FeatureShapeMobilogramType extends LinkedGraphicalType {
       @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType) {
     final TreeTableColumn<ModularFeatureListRow, Object> column = super.createColumn(raw,
         parentType);
-    column.setCellFactory(new CountingChartCellFactory(MobilogramFeatureShapeCell::new));
+    column.setCellFactory(new CountingRowChartCellFactory(MobilogramFeatureShapeCell::new));
     column.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(cdf.getValue().getValue()));
     return column;
   }

@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -99,7 +98,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   protected static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
   protected final Color legendBg = new Color(0, 0, 0, 0); // bg is transparent
 
-  protected final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
+  protected final ObjectProperty<@Nullable PlotCursorPosition> cursorPositionProperty;
   protected final ObjectProperty<XYItemRenderer> defaultRenderer;
   protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(false);
   protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
@@ -341,8 +340,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   }
 
   @Override
-  public void setCursorPosition(PlotCursorPosition cursorPosition) {
-    if (cursorPosition.equals(cursorPositionProperty().get())) {
+  public void setCursorPosition(@Nullable PlotCursorPosition cursorPosition) {
+    if (Objects.equals(cursorPosition, cursorPositionProperty().get())) {
       return;
     }
     this.cursorPositionProperty.set(cursorPosition);

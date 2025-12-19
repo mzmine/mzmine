@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.ChromatogramFeatureShapeCell;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingChartCellFactory;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingRowChartCellFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
@@ -70,7 +70,7 @@ public class FeatureShapeType extends LinkedGraphicalType {
       @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType) {
     final TreeTableColumn<ModularFeatureListRow, Object> column = super.createColumn(raw,
         parentType);
-    column.setCellFactory(new CountingChartCellFactory(ChromatogramFeatureShapeCell::new));
+    column.setCellFactory(new CountingRowChartCellFactory(ChromatogramFeatureShapeCell::new));
     column.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(cdf.getValue().getValue()));
     return column;
   }

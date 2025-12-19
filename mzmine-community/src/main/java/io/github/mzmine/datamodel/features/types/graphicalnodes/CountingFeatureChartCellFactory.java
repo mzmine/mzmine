@@ -24,40 +24,28 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
-import org.jfree.chart.JFreeChart;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import javafx.scene.control.TreeTableCell;
+import javafx.scene.control.TreeTableColumn;
+import javafx.util.Callback;
 
-/**
- * Basic cell to create a chart for the feature table.
- * <br>
- * Override updateItem so that datasets are set in one call to trigger only one call to
- * {@link JFreeChart#fireChartChanged()}.
- * <br>
- * Check via {@link #isValidCell()} if a plot draw is necessary, as the first cell (id = 0) will be
- * used for measurements and does not require the full update procedure.
- */
-public abstract class XyChartCell extends ChartCell<SimpleXYChart<?>> {
+public class CountingFeatureChartCellFactory implements
+    Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
 
-  public XyChartCell(int id) {
-    super(id);
+  // uses a counter to label the first cell that seems to be the measurement cell
+  public final AtomicInteger counter = new AtomicInteger(0);
+  private final Function<Integer, TreeTableCell<ModularFeatureListRow, Object>> createCell;
+
+  public CountingFeatureChartCellFactory(
+      Function<Integer, TreeTableCell<ModularFeatureListRow, Object>> createCell) {
+    this.createCell = createCell;
   }
 
   @Override
-  protected void updateItem(Object o, boolean visible) {
-    // always need to call super.updateItem
-    super.updateItem(o, visible);
-
-    if (!isValidCell()) {
-      return;
-    }
-
-    // remove crosshair, determined by cursor position in FxXYPlot
-    plot.setCursorPosition(null);
-
-    // clear zoom history because it comes from old data
-    plot.getZoomHistory().clear();
-
-    plot.removeAllDatasets();
+  public TreeTableCell<ModularFeatureListRow, Object> call(
+      TreeTableColumn<ModularFeatureListRow, Object> column) {
+    return createCell.apply(counter.getAndIncrement());
   }
-
 }

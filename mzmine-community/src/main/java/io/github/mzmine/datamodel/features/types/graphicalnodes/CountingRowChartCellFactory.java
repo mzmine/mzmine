@@ -31,14 +31,14 @@ import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.util.Callback;
 
-public class CountingChartCellFactory implements
+public class CountingRowChartCellFactory implements
     Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
 
   // uses a counter to label the first cell that seems to be the measurement cell
   public final AtomicInteger counter = new AtomicInteger(0);
   private final Function<Integer, TreeTableCell<ModularFeatureListRow, Object>> createCell;
 
-  public CountingChartCellFactory(
+  public CountingRowChartCellFactory(
       Function<Integer, TreeTableCell<ModularFeatureListRow, Object>> createCell) {
     this.createCell = createCell;
   }

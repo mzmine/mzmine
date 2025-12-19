@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -273,10 +272,9 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
     model.setChart(chart);
 
     // TODO remove
-    addChartDrawDebugListener(() -> {
-      String id = JFreeChartUtils.createChartLogIdentifier(this, getChart());
-      logger.info("CHART DRAW OF " + id);
-    });
+//    addChartDrawDebugListener(() -> {
+//      String id = JFreeChartUtils.createChartLogIdentifier(this, getChart());
+//    });
 
     // If no chart, end here
     if (chart == null) {
