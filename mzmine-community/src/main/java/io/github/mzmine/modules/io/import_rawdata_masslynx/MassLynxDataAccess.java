@@ -199,7 +199,7 @@ public class MassLynxDataAccess implements AutoCloseable {
         centroid && importOption == MassLynxImportOptions.NATIVE_WATERS_CENTROIDING
             ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
     if (centroid && apiRequestedSpectrumType == MassSpectrumType.PROFILE) {
-      mzmineCentroider = new LocalMaxMassDetector(0, AbundanceMeasure.Area);
+      mzmineCentroider = new LocalMaxMassDetector(0, AbundanceMeasure.Area, 3);
     } else {
       mzmineCentroider = null;
     }

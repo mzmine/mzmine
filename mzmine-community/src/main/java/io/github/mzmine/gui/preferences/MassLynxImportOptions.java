@@ -48,4 +48,11 @@ public enum MassLynxImportOptions implements UniqueIdSupplier {
       case NATIVE_WATERS_CENTROIDING -> "Native (Waters vendor centroiding)";
     };
   }
+
+  public boolean isNative() {
+    return switch (this) {
+      case MSCONVERT -> false;
+      case NATIVE_MZMINE_CENTROIDING, NATIVE_WATERS_CENTROIDING -> true;
+    };
+  }
 }

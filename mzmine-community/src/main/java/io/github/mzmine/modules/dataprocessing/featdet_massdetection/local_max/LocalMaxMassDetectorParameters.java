@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,11 +39,13 @@ import org.jetbrains.annotations.Nullable;
 public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
 
   public static final DoubleParameter noiseLevel = CentroidMassDetectorParameters.noiseLevel.cloneParameter();
+  public static final IntegerParameter minNumberOfDp = new IntegerParameter(
+      "Minimum number of non zero points", "", 3);
   public static final AbundanceMeasureParameter intensityCalculation = new AbundanceMeasureParameter(
-      "Intensity calculation", "", AbundanceMeasure.values());
+      "Intensity calculation", "", AbundanceMeasure.values(), AbundanceMeasure.Height);
 
   public LocalMaxMassDetectorParameters() {
-    super(noiseLevel, intensityCalculation);
+    super(noiseLevel, minNumberOfDp, intensityCalculation);
   }
 
   public static LocalMaxMassDetectorParameters create(final double noiseLevel,

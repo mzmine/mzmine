@@ -149,7 +149,8 @@ public class MassDetectionErrorTests {
     final RawDataFile file = brukerImport.runImport().getFirst();
     final Scan scan = file.getScans().getLast();
 
-    final LocalMaxMassDetector massDetector = new LocalMaxMassDetector(1, AbundanceMeasure.Height);
+    final LocalMaxMassDetector massDetector = new LocalMaxMassDetector(1, AbundanceMeasure.Height,
+        3);
     double[][] massValues = massDetector.getMassValues(scan);
 
     logger.info(Arrays.toString(massValues));
@@ -225,7 +226,7 @@ public class MassDetectionErrorTests {
     WATERS("D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Waters\\LC-MS DDA\\pos\\050325_029.raw",
         100,
         "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Waters\\LC-MS DDA\\pos\\050325_029_copy.raw",
-        30, AbundanceMeasure.Area, "pow2_Waters"), //
+        30, AbundanceMeasure.Area, "Waters"), //
     AGILENT(
         "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Agilent\\Agilent 6546_Zamboni\\mzML\\BEH30mm_5min_LipidMix_DDA.mzML",
         100,

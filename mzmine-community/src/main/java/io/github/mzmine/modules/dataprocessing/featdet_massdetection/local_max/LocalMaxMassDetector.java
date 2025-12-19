@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.SimpleRange.SimpleIntegerRange;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
@@ -48,25 +49,26 @@ public class LocalMaxMassDetector implements MassDetector {
   // Thresholds for peak resolving and centroiding
   private static final double MZ_WEIGHTING_THRESHOLD = 0.4;
   private static final double VALLEY_FACTOR = 0.7;
-  private static final double RISE_FACTOR = 1.3;
+  private static final double RISE_FACTOR = 1 / 0.7;
   private static final Weighting mzWeighting = Weighting.LINEAR;
 
   /**
    * Minimum peak length in points including zeros
    */
-  private final int MIN_PEAK_RANGE_LENGTH = 4; // two points + 2 zeros
+  private final int minNonZeroDp;
 
   private final double noiseLevel;
   private final AbundanceMeasure intensityCalculation;
 
   public LocalMaxMassDetector() {
-    this(0, AbundanceMeasure.Height);
+    this(0, AbundanceMeasure.Height, 3);
   }
 
-  public LocalMaxMassDetector(final double noiseLevel,
-      final AbundanceMeasure intensityCalculation) {
+  public LocalMaxMassDetector(final double noiseLevel, final AbundanceMeasure intensityCalculation,
+      final int minNonZeroDp) {
     this.noiseLevel = noiseLevel;
     this.intensityCalculation = intensityCalculation;
+    this.minNonZeroDp = minNonZeroDp;
   }
 
   private static double getMaxMzDiff(final double[] mzs, final double[] intensities,
@@ -74,10 +76,11 @@ public class LocalMaxMassDetector implements MassDetector {
     for (int i = numPoints - 1; i > 1; i--) {
       // tof mz value distances are proportional to sqrt(m/z)
       // so the biggest mass diff will be at the top of the spectrum
-      if (Double.compare(intensities[i], 0) != 0 || !(intensities[i - 1] > 0)) {
-        continue;
+      if (Double.compare(intensities[i], 0) > 0 && intensities[i - 1] > 0) {
+        // use first two points that are non zero. Who knows if padding zeros are actually spaced
+        // according to the digitizer times.
+        return Math.abs(mzs[i] - mzs[i - 1]);
       }
-      return Math.abs(mzs[i] - mzs[i - 1]);
     }
     return 0.1;
   }
@@ -85,7 +88,8 @@ public class LocalMaxMassDetector implements MassDetector {
   @Override
   public MassDetector create(final ParameterSet params) {
     return new LocalMaxMassDetector(params.getValue(LocalMaxMassDetectorParameters.noiseLevel),
-        params.getValue(LocalMaxMassDetectorParameters.intensityCalculation));
+        params.getValue(LocalMaxMassDetectorParameters.intensityCalculation),
+        params.getValue(LocalMaxMassDetectorParameters.minNumberOfDp));
   }
 
   @Override
@@ -140,7 +144,7 @@ public class LocalMaxMassDetector implements MassDetector {
       // If the gap is too large, we close the current region and start a new one
       if (mzDelta >= maxDiff) {
         // Only add regions that contain enough data points to form a peak (e.g., > 2 points)
-        if (i - currentRegionStart > MIN_PEAK_RANGE_LENGTH && onePointAboveNoise) {
+        if (i - currentRegionStart > minNonZeroDp + 2 && onePointAboveNoise) {
           consecutiveRanges.add(new SimpleIndexRange(currentRegionStart, i - 1));
         }
         currentRegionStart = i;
@@ -151,7 +155,7 @@ public class LocalMaxMassDetector implements MassDetector {
     }
 
     // Add the final region if valid
-    if (numPoints - currentRegionStart > MIN_PEAK_RANGE_LENGTH - 1 && onePointAboveNoise) {
+    if (numPoints - currentRegionStart > minNonZeroDp + 1 && onePointAboveNoise) {
       consecutiveRanges.add(new SimpleIndexRange(currentRegionStart, numPoints - 1));
     }
 
@@ -222,7 +226,7 @@ public class LocalMaxMassDetector implements MassDetector {
         if (nextCandidateInt > activePeakInt) {
           activePeakIdx = nextCandidateIdx;
           // move the left boundary, since it would have been enough of a valley and rise to be a individual peak
-          leftBoundary = valleyIdx;
+//          leftBoundary = valleyIdx;
         }
       }
     }
@@ -239,11 +243,8 @@ public class LocalMaxMassDetector implements MassDetector {
     final int start = range.min();
     final int end = range.maxExclusive();
 
-    for (int i = start; i < end - 1; i++) {
+    for (int i = start; i < end; i++) {
       final double currentInt = intensities[i];
-//      if (currentInt < noiseLevel) {
-//        continue;
-//      }
 
       final double leftInt = (i == start) ? 0 : intensities[i - 1];
       final double rightInt = (i == end - 1) ? 0 : intensities[i + 1];
@@ -287,28 +288,18 @@ public class LocalMaxMassDetector implements MassDetector {
       final int peakMaxIdx, final int startIdx, final int endIdx, final double absMinIntensity,
       final DoubleArrayList resultMzs, final DoubleArrayList resultIntensities) {
 
-    if (endIdx - startIdx
-        < MIN_PEAK_RANGE_LENGTH - 2) { // potentially this peak does not start and end at zero.
+    if (endIdx - startIdx < minNonZeroDp) {
       return;
     }
 
     final double maxIntensity = intensities[peakMaxIdx];
 
-    final double detectionThreshold;
-    if (maxIntensity < 5 * absMinIntensity) {
-      detectionThreshold = 2 * absMinIntensity;
-    } else {
-      detectionThreshold = noiseLevel;
-    }
+    final double detectionThreshold = Math.max(noiseLevel, 2 * absMinIntensity);
 
-    /*if (maxIntensity < detectionThreshold) {
-      return;
-    }*/
-
-    // M/z weighting still uses the top 40% logic or the more shallow valley
-    final double mzWeightingCutoff = Math.max(maxIntensity * MZ_WEIGHTING_THRESHOLD,
-        Math.max((intensities[startIdx] + maxIntensity) * MZ_WEIGHTING_THRESHOLD,
-            (intensities[endIdx] + maxIntensity) * MZ_WEIGHTING_THRESHOLD));
+    final double mzWeightingCutoff = maxIntensity * MZ_WEIGHTING_THRESHOLD;
+    final int minPointsPerEdge = Math.min(peakMaxIdx - startIdx, endIdx - peakMaxIdx);
+    final SimpleIntegerRange peakSymmetryRange = new SimpleIntegerRange(
+        peakMaxIdx - minPointsPerEdge, peakMaxIdx + minPointsPerEdge);
 
     double sumMzInt = 0.0;
     double sumIntForMz = 0.0;
@@ -325,7 +316,7 @@ public class LocalMaxMassDetector implements MassDetector {
       // Integration: Sum ALL points in the valley-to-valley region
       totalArea += intensity;
 
-      if (intensity > mzWeightingCutoff) {
+      if (intensity > mzWeightingCutoff && peakSymmetryRange.contains(i)) {
         sumMzInt += (mz * mzWeighting.transform(intensity));
         sumIntForMz += mzWeighting.transform(intensity);
       }
@@ -335,7 +326,7 @@ public class LocalMaxMassDetector implements MassDetector {
     }
 
     // Safety check if no points met the weighting criteria (unlikely if max > detectionThreshold)
-    if (sumIntForMz == 0 || nonZeroPoints < MIN_PEAK_RANGE_LENGTH - 2) {
+    if (sumIntForMz == 0 || nonZeroPoints < minNonZeroDp) {
       return;
     }
 
@@ -343,12 +334,10 @@ public class LocalMaxMassDetector implements MassDetector {
     final double finalIntensity =
         (intensityCalculation == AbundanceMeasure.Area) ? totalArea : maxIntensity;
 
-    if (finalIntensity < detectionThreshold) {
-      return;
+    if (finalIntensity > detectionThreshold) {
+      resultMzs.add(centroidMz);
+      resultIntensities.add(finalIntensity);
     }
-
-    resultMzs.add(centroidMz);
-    resultIntensities.add(finalIntensity);
   }
 
   @Override

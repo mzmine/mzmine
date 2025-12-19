@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.gui.preferences.MassLynxImportOptions;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -242,7 +241,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final OriginalFeatureListOption handleOriginalFeatureLists;
   // IMS parameter currently all the same
   protected final boolean isImsActive;
-  protected final boolean isNativeIms;
+  protected final boolean imsHasFrameSpectra;
   protected final boolean allMobilityScansCentroided;
   protected final boolean imsSmoothing;
   protected final MobilityType imsInstrumentType;
@@ -317,10 +316,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     final List<RawDataFileType> allFileTypes = Arrays.stream(dataFiles)
         .map(RawDataFileTypeDetector::detectDataFileType).toList();
-    isNativeIms = allFileTypes.stream().allMatch(
+    imsHasFrameSpectra = allFileTypes.stream().allMatch(
         type -> (type == RawDataFileType.BRUKER_TDF || (type == RawDataFileType.WATERS_RAW_IMS
-            && ConfigService.getPreference(MZminePreferences.massLynxImportChoice)
-            == MassLynxImportOptions.NATIVE_MZMINE_CENTROIDING)));
+            && ConfigService.getPreference(MZminePreferences.massLynxImportChoice).isNative())));
     allMobilityScansCentroided = allFileTypes.stream()
         .allMatch(type -> (type == RawDataFileType.BRUKER_TDF));
 
@@ -902,13 +900,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
   protected void makeAndAddMassDetectorSteps(final BatchQueue q) {
     if (isImsActive) {
-      if (isNativeIms) { // == Bruker file
+      if (imsHasFrameSpectra) { // == Bruker file
         makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.FRAMES);
         makeAndAddMassDetectionStep(q, 2, SelectedScanTypes.FRAMES);
       }
       makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.MOBLITY_SCANS);
       makeAndAddMassDetectionStep(q, 2, SelectedScanTypes.MOBLITY_SCANS);
-      if (!isNativeIms) {
+      if (!imsHasFrameSpectra) {
         makeAndAddMobilityScanMergerStep(q);
       }
     } else {
@@ -1103,7 +1101,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(ImsExpanderParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(ImsExpanderParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(ImsExpanderParameters.useRawData, isNativeIms && allMobilityScansCentroided);
+    param.setParameter(ImsExpanderParameters.useRawData,
+        imsHasFrameSpectra && allMobilityScansCentroided);
     param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter().setValue(1E1);
     param.setParameter(ImsExpanderParameters.mzTolerance, mzTolScans);
     // need to set SLIM specifically here, as it looks like TWIMS in the raw data.
