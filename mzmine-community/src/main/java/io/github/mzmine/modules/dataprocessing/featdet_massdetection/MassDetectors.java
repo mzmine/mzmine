@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -90,7 +91,7 @@ public enum MassDetectors implements ModuleOptionsEnum<MassDetector> {
       case AUTO -> "Auto";
       case CENTROID -> "Centroid";
       case EXACT -> "Exact mass";
-      case LOCAL_MAX -> "Local maximum";
+      case LOCAL_MAX -> "Local maximum (beta)";
       case RECURSIVE -> "Recursive threshold";
       case WAVELET -> "Wavelet transform";
     };
