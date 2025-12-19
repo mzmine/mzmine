@@ -120,7 +120,7 @@ public class ChromatogramFeatureShapeCell extends XyChartCell {
     featureRTRange = RangeUtils.withinBounds(featureRTRange, 0f, null);
     final Range rtRange = RangeUtils.guavaToJFree(featureRTRange);
 
-    final float finalMaxHeight = maxHeight;
+    final double finalMaxHeight = maxHeight * 1.2;
     getChart().applyWithNotifyChanges(false, true, () -> {
       getChart().setDatasets(datasets);
 

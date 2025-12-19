@@ -80,9 +80,7 @@ public abstract class XyChartCell extends TreeTableCell<ModularFeatureListRow, O
     // clear zoom history because it comes from old data
     plot.getZoomHistory().clear();
 
-    if (cellHasNoData()) {
-      plot.removeAllDatasets();
-    }
+    plot.removeAllDatasets();
   }
 
   protected boolean cellHasNoData() {

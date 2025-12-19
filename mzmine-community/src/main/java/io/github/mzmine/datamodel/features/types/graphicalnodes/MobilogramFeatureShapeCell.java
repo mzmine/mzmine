@@ -88,13 +88,20 @@ public class MobilogramFeatureShapeCell extends XyChartCell {
     final MobilityType mt = imsFile.getMobilityType();
     getChart().setDomainAxisLabel(mt.getAxisLabel());
 
+    double maxIntensity = 1d;
     final List<DatasetAndRenderer> datasets = new ArrayList<>();
+//    final List<ColoredXYDataset> datasets = new ArrayList<>();
     for (final ModularFeature f : row.getFeatures()) {
       IonTimeSeries<? extends Scan> series = f.getFeatureData();
-      if (series instanceof IonMobilogramTimeSeries) {
+      if (series instanceof IonMobilogramTimeSeries imts) {
         datasets.add(new DatasetAndRenderer(
             new ColoredXYDataset(new SummedMobilogramXYProvider(f), RunOption.THIS_THREAD),
             new ColoredXYLineRenderer()));
+        for (int i = 0; i < imts.getSummedMobilogram().getNumberOfDataPoints(); i++) {
+          maxIntensity = Math.max(imts.getSummedMobilogram().getIntensity(i), maxIntensity);
+        }
+//        datasets.add(
+//            new ColoredXYDataset(new SummedMobilogramXYProvider(f), RunOption.THIS_THREAD));
       }
     }
 
@@ -110,14 +117,17 @@ public class MobilogramFeatureShapeCell extends XyChartCell {
       defaultRange = new Range(0, 1);
     }
 
+    final Range intensityRange = new Range(0, maxIntensity * 1.2);
     getChart().applyWithNotifyChanges(false, () -> {
+      getChart().setDatasetsAndRenderers(datasets);
       try {
+        getChart().getXYPlot().getRangeAxis().setRange(intensityRange);
+        getChart().getXYPlot().getRangeAxis().setDefaultAutoRange(intensityRange);
         getChart().getXYPlot().getDomainAxis().setRange(defaultRange);
         getChart().getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
       } catch (NullPointerException | NoSuchElementException e) {
         // error in jfreechart draw method
       }
-      getChart().setDatasetsAndRenderers(datasets);
     });
   }
 
