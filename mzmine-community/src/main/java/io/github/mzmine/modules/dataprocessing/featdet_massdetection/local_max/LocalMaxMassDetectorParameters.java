@@ -78,6 +78,7 @@ public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
 
     if (loadedVersion < 2) {
       setParameter(intensityCalculation, AbundanceMeasure.Height);
+      setParameter(minNumberOfDp, 3);
     }
   }
 }
