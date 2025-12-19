@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.als.AsymmetricLeastSquaresCorrection;
-import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.MovingAverage;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayFilter;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTMeasure;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RtStandard;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
@@ -45,11 +45,13 @@ import org.w3c.dom.Element;
 
 public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunction {
 
-  private static final Logger logger = Logger.getLogger(MultiLinearRtCorrectionFunction.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      MultiLinearRtCorrectionFunction.class.getName());
 
   private final PolynomialSplineFunction movAvg;
 
-  public MultiLinearRtCorrectionFunction(RawDataFilePlaceholder file, PolynomialSplineFunction function) {
+  public MultiLinearRtCorrectionFunction(RawDataFilePlaceholder file,
+      PolynomialSplineFunction function) {
     super(new RawDataFilePlaceholder(file));
     this.movAvg = function;
   }
@@ -82,7 +84,8 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
 
   public MultiLinearRtCorrectionFunction(@NotNull final RawDataFile file,
       @NotNull final List<RtStandard> rtSortedStandards,
-      @NotNull final MultiLinearRtCorrectionFunction previousRunCalibration, final double previousRunWeight,
+      @NotNull final MultiLinearRtCorrectionFunction previousRunCalibration,
+      final double previousRunWeight,
       @NotNull final MultiLinearRtCorrectionFunction nextRunCalibration, final double nextRunWeight,
       double bandwidth, RTMeasure rtMeasure) {
     super(new RawDataFilePlaceholder(file));
@@ -112,7 +115,8 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
         rtSortedStandards.getLast().standards().get(nextFile).getAverageRT() * nextRunWeight;
     final float lastStandardRt = (float) (previous + next);
 
-    addFinalRt(rtSortedStandards, fullRtRange, lastStandardRt, thisRtValues, standardRtValues, rtMeasure);
+    addFinalRt(rtSortedStandards, fullRtRange, lastStandardRt, thisRtValues, standardRtValues,
+        rtMeasure);
 
     movAvg = getInterpolatorIteratively(bandwidth, standardRtValues, thisRtValues);
   }
@@ -121,19 +125,24 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
   private PolynomialSplineFunction getInterpolatorIteratively(double initialBandwidth,
       DoubleArrayList calibratedRtValues, DoubleArrayList thisRtValues) {
     final RawDataFile file = getRawDataFilePlaceholder().getMatchingFile();
-    PolynomialSplineFunction movAvg = null;
     final double[] subtracted = AsymmetricLeastSquaresCorrection.subtract(
         calibratedRtValues.toDoubleArray(), thisRtValues.toDoubleArray());
     subtracted[0] = 0d; // ensure the first point is not shifted to keep all RTs > 0
 
-    double[] avg = MovingAverage.calculate(subtracted,
+    final int sgWidth = SavitzkyGolayFilter.getClosestFilterWidth(
         Math.max(1, (int) (subtracted.length * initialBandwidth)));
-    double[] alsFit = AsymmetricLeastSquaresCorrection.asymmetricLeastSquaresBaseline(avg, 100,
+    final double[] weights = SavitzkyGolayFilter.getNormalizedWeights(sgWidth);
+    final double[] convolve = SavitzkyGolayFilter.convolve(subtracted, weights);
+    final double[] avg = convolve;
+    final double[] alsFit = AsymmetricLeastSquaresCorrection.asymmetricLeastSquaresBaseline(avg,
+        100,
         0.01, 1);
-    alsFit[0] = 0d; // ensure the first point is not shifted to keep all RTs > 0
 
-    movAvg = new LinearInterpolator().interpolate(thisRtValues.toDoubleArray(),
-        MovingAverage.calculate(alsFit, (int) Math.max(1, subtracted.length * initialBandwidth)));
+    final double[] smoothedAlsFit = SavitzkyGolayFilter.convolve(alsFit, weights);
+    smoothedAlsFit[0] = 0d; // ensure the first point is not shifted to keep all RTs > 0
+
+    PolynomialSplineFunction movAvg = new LinearInterpolator().interpolate(
+        thisRtValues.toDoubleArray(), smoothedAlsFit);
 
     double[] corrected = new double[thisRtValues.size()];
     for (int i = 0; i < thisRtValues.size(); i++) {
@@ -146,6 +155,7 @@ public class MultiLinearRtCorrectionFunction extends AbstractRtCorrectionFunctio
       final double thisCorrectedRt = movAvg.value(thisOriginalRt);
       final float previousRt = file.getScan(i - 1).getRetentionTime();
       final double correctedPreviousRt = movAvg.value(previousRt);
+
       if (thisCorrectedRt <= correctedPreviousRt) {
         logger.warning(
             "Cannot find monotonous calibration for file %s with bandwidth %.3f.".formatted(
