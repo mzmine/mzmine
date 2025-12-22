@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -500,10 +499,8 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
 
   @Override
   public XYDataset getDataset(int index) {
-    if (plotModel == null) {
-      return null;
-    }
-    return plotModel.getDataset(index);
+    // explicitly use super methods to not rely on the state of the model
+    return super.getDataset(index);
   }
 
   @Override
@@ -603,15 +600,14 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
 
   @Override
   public XYItemRenderer getRenderer(int index) {
-    if (plotModel == null) {
-      return null;
-    }
-    return plotModel.getRenderer(index);
+    // explicitly use super methods to not rely on the state of the model
+    return super.getRenderer(index);
   }
 
   @Override
   public XYItemRenderer getRenderer() {
-    return getRenderer(0);
+    // explicitly use super methods to not rely on the state of the model
+    return super.getRenderer();
   }
 
   // MARKERS
