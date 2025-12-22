@@ -25,9 +25,15 @@
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TreeTableCell;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
@@ -41,6 +47,7 @@ public abstract class ChartCell<T extends EChartViewer> extends
   public ChartCell(int id) {
     super();
     plot = createChart();
+    initDoubleClickListener();
     this.id = id;
     view = new StackPane(plot);
 
@@ -73,5 +80,23 @@ public abstract class ChartCell<T extends EChartViewer> extends
 
   protected T getChart() {
     return plot;
+  }
+
+  protected void initDoubleClickListener() {
+    T chart = getChart();
+    chart.getMouseAdapter().addGestureHandler(new ChartGestureHandler(
+        new ChartGesture(Entity.PLOT, Event.DOUBLE_CLICK, GestureButton.BUTTON1), e -> {
+      if (e.getMouseEvent().isFXEvent()) {
+        javafx.scene.input.MouseEvent event = (javafx.scene.input.MouseEvent) e.getMouseEvent()
+            .getEvent();
+
+        // fixme: the zoom history will always consume this event, so we need to make a new one regardless of if it is consumed.
+//        if (!event.isConsumed()) {
+        event.consume();
+        MouseEvent mouseEvent = event.copyFor(event.getSource(), getTreeTableView());
+        getTreeTableView().getOnMouseClicked().handle(mouseEvent);
+//        }
+      }
+    }));
   }
 }

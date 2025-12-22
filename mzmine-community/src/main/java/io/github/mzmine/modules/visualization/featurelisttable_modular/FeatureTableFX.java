@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -951,9 +950,8 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
 
   private void handleClickOnCell(final TreeTablePosition<ModularFeatureListRow, ?> focusedCell,
       final TreeTableColumn<ModularFeatureListRow, ?> tableColumn, final MouseEvent e) {
-    logger.fine("Handle click on table cell");
 
-    if (e.getClickCount() >= 2 && e.getButton() == MouseButton.PRIMARY) {
+    if (e.getClickCount() == 2 && e.getButton() == MouseButton.PRIMARY) {
       if (getFeatureList() == null) {
         return;
       }
@@ -990,6 +988,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
             id.getDataType().equals(dataType) ? null : id.getDataType();
 
         final ModularFeatureListRow row = table.getSelectionModel().getSelectedItem().getValue();
+
         final Runnable runnable = (dataType.getDoubleClickAction(this, row, files, superDataType,
             cellValue));
         if (runnable != null) {

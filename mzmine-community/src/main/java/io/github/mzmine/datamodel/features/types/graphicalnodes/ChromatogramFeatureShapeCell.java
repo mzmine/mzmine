@@ -30,23 +30,15 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
 import java.util.ArrayList;
-import java.util.List;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.Range;
@@ -143,14 +135,6 @@ public class ChromatogramFeatureShapeCell extends XyChartCell {
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
     chart.setLegendItemsVisible(false);
     chart.setPrefWidth(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH);
-
-    // todo: get action from data type
-    chart.getMouseAdapter().addGestureHandler(new ChartGestureHandler(
-        new ChartGesture(Entity.ALL_PLOT_AND_DATA, Event.DOUBLE_CLICK, GestureButton.BUTTON1),
-        _ -> {
-      final ModularFeatureListRow row = getTableRow().getItem();
-      FxThread.runLater(() -> ChromatogramVisualizerModule.visualizeFeatureListRows(List.of(row)));
-    }));
 
     return chart;
   }
