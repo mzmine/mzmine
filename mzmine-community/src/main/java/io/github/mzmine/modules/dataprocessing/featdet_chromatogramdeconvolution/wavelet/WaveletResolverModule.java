@@ -23,30 +23,38 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes;
+package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet;
 
-import java.util.Objects;
-import java.util.function.Supplier;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverModule;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
+import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record OptionalValue<T>(boolean active, T value) {
+public class WaveletResolverModule extends FeatureResolverModule {
 
-  /**
-   * @param defaultValue the default value. may be null.
-   * @return the value if not null or the default value. The default value may be null.
-   */
+  public static final String NAME = "Wavelet feature resolver (experimental)";
+
+  @NotNull
+  @Override
+  public String getName() {
+    return NAME;
+  }
+
   @Nullable
-  public T orElse(@Nullable T defaultValue) {
-    return value != null ? value : defaultValue;
+  @Override
+  public Class<? extends ParameterSet> getParameterSetClass() {
+    return WaveletResolverParameters.class;
   }
 
-  /**
-   * @param defaultValue the default value supplier. may return null.
-   * @return the value if not null or the default value. The default value may be null.
-   */
-  public T orElseGet(@NotNull Supplier<? extends @Nullable T> defaultValue) {
-    return value != null ? value : defaultValue.get();
+  @NotNull
+  @Override
+  public String getDescription() {
+    return "Resolves EICs to features by wavelet transform. Supports retention time and mobility resolving.";
   }
 
+  @Override
+  public @NotNull String getUniqueID() {
+    return "wavelet_resolver";
+  }
 }
