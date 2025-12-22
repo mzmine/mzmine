@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,7 @@ package io.github.mzmine.util.collections;
 /**
  *
  */
-public record SimpleIndexRange(int min, int maxInclusive) implements IndexRange {
+record SimpleIndexRange(int min, int maxInclusive) implements IndexRange {
 
   public int size() {
     return maxExclusive() - min;
