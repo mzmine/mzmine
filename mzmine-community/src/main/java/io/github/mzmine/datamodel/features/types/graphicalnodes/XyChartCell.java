@@ -25,16 +25,12 @@
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
-import org.jfree.chart.JFreeChart;
 
 /**
- * Basic cell to create a chart for the feature table.
- * <br>
- * Override updateItem so that datasets are set in one call to trigger only one call to
- * {@link JFreeChart#fireChartChanged()}.
- * <br>
- * Check via {@link #isValidCell()} if a plot draw is necessary, as the first cell (id = 0) will be
- * used for measurements and does not require the full update procedure.
+ * In addition to {@link ChartCell}, this cell uses a {@link SimpleXYChart} chart and already clears
+ * the plot & markers during {@link #updateItem(Object, boolean)}.
+ *
+ * @see ChartCell
  */
 public abstract class XyChartCell extends ChartCell<SimpleXYChart<?>> {
 

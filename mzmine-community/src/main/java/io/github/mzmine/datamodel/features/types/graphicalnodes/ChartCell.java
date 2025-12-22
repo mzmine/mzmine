@@ -36,7 +36,19 @@ import javafx.scene.control.TreeTableCell;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import org.jfree.chart.JFreeChart;
 
+/**
+ * Basic cell to create a chart for the feature table.
+ * <br>
+ * Override updateItem so that datasets are set in one call to trigger only one call to
+ * {@link JFreeChart#fireChartChanged()}.
+ * <br>
+ * Check via {@link #isValidCell()} if a plot draw is necessary, as the first cell (id = 0) will be
+ * used for measurements and does not require the full update procedure.
+ * <br>
+ * Passes the double click events on charts to the feature table for proper handling.
+ */
 public abstract class ChartCell<T extends EChartViewer> extends
     TreeTableCell<ModularFeatureListRow, Object> {
 
