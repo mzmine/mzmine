@@ -31,8 +31,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.ChromatogramFeatureShapeCell;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingRowChartCellFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import java.util.List;
 import java.util.logging.Logger;
@@ -94,7 +92,7 @@ public class FeatureShapeType extends LinkedGraphicalType {
       DataType<?> superType, @Nullable final Object value) {
 
     return () -> {
-      FxThread.runLater(() -> ChromatogramVisualizerModule.visualizeFeatureListRows(List.of(row)));
+//      FxThread.runLater(() -> ChromatogramVisualizerModule.visualizeFeatureListRows(List.of(row)));
     };
   }
 

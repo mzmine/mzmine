@@ -85,9 +85,6 @@ public class ChromatogramFeatureShapeCell extends XyChartCell {
 
     final ModularFeatureListRow row = getTableRow().getItem();
 
-    System.out.println(
-        "shape " + getTableColumn().getWidth() + " " + getWidth() + " " + getMinWidth());
-
     // for selecting a range
     com.google.common.collect.Range<Float> featureRTRange = null;
     Float maxHeight = null;
@@ -149,7 +146,8 @@ public class ChromatogramFeatureShapeCell extends XyChartCell {
 
     // todo: get action from data type
     chart.getMouseAdapter().addGestureHandler(new ChartGestureHandler(
-        new ChartGesture(Entity.ALL, Event.DOUBLE_CLICK, GestureButton.BUTTON1), _ -> {
+        new ChartGesture(Entity.ALL_PLOT_AND_DATA, Event.DOUBLE_CLICK, GestureButton.BUTTON1),
+        _ -> {
       final ModularFeatureListRow row = getTableRow().getItem();
       FxThread.runLater(() -> ChromatogramVisualizerModule.visualizeFeatureListRows(List.of(row)));
     }));
