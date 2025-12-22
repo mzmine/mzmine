@@ -98,7 +98,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraph
 
   @Override
   public double getColumnWidth() {
-    return DEFAULT_GRAPHICAL_CELL_WIDTH + 50;
+    return LARGE_GRAPHICAL_CELL_WIDTH;
   }
 
   @Nullable
