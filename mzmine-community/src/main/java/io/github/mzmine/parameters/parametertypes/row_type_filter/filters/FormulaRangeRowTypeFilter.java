@@ -59,12 +59,12 @@ class FormulaRangeRowTypeFilter extends AbstractRowTypeFilter {
     }
 
     final String min = split[0].trim();
-    final IMolecularFormula minInternal = FormulaUtils.createMajorIsotopeMolFormula(min);
+    final IMolecularFormula minInternal = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(min);
     if (minInternal == null) {
       throw new QueryFormatException(min + " is not a valid formula");
     }
     final String max = split[1].trim();
-    final IMolecularFormula maxInternal = FormulaUtils.createMajorIsotopeMolFormula(max);
+    final IMolecularFormula maxInternal = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(max);
     if (maxInternal == null) {
       throw new QueryFormatException(max + " is not a valid formula");
     }
@@ -93,7 +93,8 @@ class FormulaRangeRowTypeFilter extends AbstractRowTypeFilter {
   }
 
   private boolean matchesFormula(String formulaStr) {
-    final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
+    final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+        formulaStr);
     if (formula == null) {
       return false;
     }

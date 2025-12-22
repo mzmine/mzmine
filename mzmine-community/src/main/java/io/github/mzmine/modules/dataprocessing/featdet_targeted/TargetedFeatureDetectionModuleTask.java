@@ -48,7 +48,7 @@ import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.ImsGap;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -128,7 +128,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
     final boolean useIonLibrary = parameters.getValue(
         TargetedFeatureDetectionParameters.ionLibrary);
     ionLibrary = useIonLibrary ? new IonNetworkLibrary(
-        (IonLibraryParameterSet) parameters.getEmbeddedParameterValue(
+        (LegacyIonLibraryParameterSet) parameters.getEmbeddedParameterValue(
             TargetedFeatureDetectionParameters.ionLibrary)) : null;
 
     if (dataFile instanceof IMSRawDataFile imsRawDataFile) {

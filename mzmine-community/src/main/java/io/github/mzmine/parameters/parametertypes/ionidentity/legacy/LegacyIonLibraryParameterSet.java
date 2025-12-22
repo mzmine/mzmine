@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,24 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.ionidentity;
+package io.github.mzmine.parameters.parametertypes.ionidentity.legacy;
 
 
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
-public class IonLibraryParameterSet extends SimpleParameterSet {
+public class LegacyIonLibraryParameterSet extends SimpleParameterSet {
 
   public static final IntegerParameter MAX_CHARGE = new IntegerParameter("Maximum charge",
       "Maximum charge to be used for adduct search.", 2, 1, 100);
   public static final IntegerParameter MAX_MOLECULES = new IntegerParameter(
       "Maximum molecules/cluster", "Maximum molecules per cluster (f.e. [2M+Na]+).", 3, 1, 10);
 
-  public static final IonModificationParameter ADDUCTS = new IonModificationParameter("Adducts",
+  public static final LegacyIonModificationParameter ADDUCTS = new LegacyIonModificationParameter(
+      "Adducts",
       "List of adducts, each one refers a specific distance in m/z axis between related peaks");
 
-  public IonLibraryParameterSet() {
+  public LegacyIonLibraryParameterSet() {
     super(MAX_CHARGE, MAX_MOLECULES, ADDUCTS);
   }
 
