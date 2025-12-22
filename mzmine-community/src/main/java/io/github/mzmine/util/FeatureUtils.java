@@ -59,8 +59,8 @@ import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatc
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
+import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.gui.preferences.NumberFormats;

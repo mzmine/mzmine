@@ -154,7 +154,7 @@ public class SearchableIonLibrary {
    */
   @NotNull
   public List<IonType> searchRows(IonSearchRow a, double neutralMass, MZTolerance mzTol) {
-    final Range<Double> mzSearchRange = mzTol.getToleranceRange(neutralMass);
+    final Range<Double> mzSearchRange = mzTol.getToleranceRange(a.mz());
     List<IonType> results = new ArrayList<>();
 
     // a is always the lower number to make comparison easier
@@ -165,8 +165,8 @@ public class SearchableIonLibrary {
       }
 
       for (IonType ionA : ionChargeGroup.list()) {
-        final double massA = ionA.getMass(a.mz());
-        if (mzSearchRange.contains(massA)) {
+        final double mzA = ionA.getMZ(neutralMass);
+        if (mzSearchRange.contains(mzA)) {
           results.add(ionA);
         }
       }

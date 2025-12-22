@@ -271,14 +271,14 @@ public class FormulaUtils {
    * returned assuming charge 1 without knowledge of polarity for subtracting or adding an electron
    */
   public static double calculateMzRatio(@NotNull final IMolecularFormula formula) {
-    double neutralmass = MolecularFormulaManipulator.getMass(formula,
-        MolecularFormulaManipulator.MonoIsotopic);
+    double neutralmass = FormulaUtils.getMonoisotopicMass(formula);
     final Integer charge = formula.getCharge();
     if (charge == null || charge == 0) {
       return neutralmass;
     }
 
-    return (neutralmass - charge * electronMass) / Math.abs(charge);
+    // electrons already subtracted from mass
+    return neutralmass / Math.abs(charge);
   }
 
   public static double calculateExactMass(@NotNull String formula) {

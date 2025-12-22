@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,6 +37,7 @@ import java.util.Objects;
 public class MZTolerance {
 
   public static final MZTolerance FIFTEEN_PPM_OR_FIVE_MDA = new MZTolerance(0.005, 15);
+  public static final MZTolerance WIDE_25_PPM_OR_8_MDA = new MZTolerance(0.01, 25);
 
   // PPM conversion factor.
   private static final double MILLION = 1000000.0;
@@ -131,7 +132,7 @@ public class MZTolerance {
     }
     MZTolerance that = (MZTolerance) o;
     return Double.compare(that.getMzTolerance(), getMzTolerance()) == 0
-           && Double.compare(that.getPpmTolerance(), getPpmTolerance()) == 0;
+        && Double.compare(that.getPpmTolerance(), getPpmTolerance()) == 0;
   }
 
   public static MZTolerance[] getDefaultResolutions() {

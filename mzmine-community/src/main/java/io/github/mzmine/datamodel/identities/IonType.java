@@ -346,9 +346,11 @@ public final class IonType {
     }
 
     // add first then remove
-    stream(false).filter(IonPart::isAddition).forEach(ion -> ion.addToFormula(formula, ionize));
-    stream(false).filter(IonPart::isLoss).forEach(ion -> ion.addToFormula(formula, ionize));
-
+    stream(false).filter(IonPart::isAddition).forEach(ion -> ion.addToFormula(formula, false));
+    stream(false).filter(IonPart::isLoss).forEach(ion -> ion.addToFormula(formula, false));
+    if (ionize) {
+      result.setCharge(totalCharge);
+    }
     return result;
   }
 

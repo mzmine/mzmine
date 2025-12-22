@@ -31,20 +31,15 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.datamodel.identities.SimpleIonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FeatureUtils;
-import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.TryCatch;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -110,33 +105,13 @@ public class FragDashboardTab extends SimpleTab {
         TryCatch.npe(() -> row.getBestFeature().getRepresentativeScan().getPolarity(),
             PolarityType.POSITIVE));
 
-    // if the formula is null, extract a sensible formula
-    if (formula == null) {
-      final FeatureAnnotation annotation = FeatureUtils.getBestFeatureAnnotation(row);
-      if (annotation != null && annotation.getFormula() != null
-          && FormulaUtils.createMajorIsotopeMolFormulaWithCharge(annotation.getFormula()) != null) {
-        //
-        formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(annotation.getFormula());
-        final double neutralMass = FormulaUtils.calculateMzRatio(formula);
-
-        // use the given adduct or guess
-        var adduct = annotation.getAdductType() != null ? annotation.getAdductType() : new IonType(
-            IonModification.getBestIonModification(neutralMass, row.getAverageMZ(),
-                MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA,
-                TryCatch.npe(() -> row.getBestFeature().getRepresentativeScan().getPolarity(),
-                    PolarityType.ANY)));
-        try {
-          formula = adduct.addToFormula(formula);
-        } catch (CloneNotSupportedException e) {
-          // dont set anything that does not make sense, e.g. a neutral molecule
-          formula = null;
-        }
-      }
+    final List<ResultFormula> formulae = ResultFormula.listAllAnnotationIonFormulas(row, true);
+    if (formula == null && !formulae.isEmpty()) {
+      formula = formulae.getFirst().getFormulaAsObject();
     }
 
     controller = new FragDashboardController(parameters);
-    controller.setInput(mz, ms2, bestIsotopePattern, formula,
-        ResultFormula.forAllAnnotations(row, true));
+    controller.setInput(mz, ms2, bestIsotopePattern, formula, formulae);
     setContent(controller.buildView());
     controller.rowProperty().set(row);
   }
