@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -53,7 +54,7 @@ public class LocalMaxMassDetector implements MassDetector {
   private static final Weighting mzWeighting = Weighting.LINEAR;
 
   /**
-   * Minimum peak length in points including zeros
+   * Minimum peak length in points excluding zeros
    */
   private final int minNonZeroDp;
 
@@ -71,18 +72,47 @@ public class LocalMaxMassDetector implements MassDetector {
     this.minNonZeroDp = minNonZeroDp;
   }
 
+  /**
+   * The maximum difference between two consecutive values. Either first 2 non zero values from left
+   * or right, which ever is greater. Also assumes and checks that trailing and leading 0 intensity
+   * values are available. Otherwise, returns a default value.
+   */
   private static double getMaxMzDiff(final double[] mzs, final double[] intensities,
       final int numPoints) {
-    for (int i = numPoints - 1; i > 1; i--) {
+    double maxDistance = -1;
+
+    // TOF and it seems like Orbitrap have highest mass difference between values at the end of the spectrum
+    int top = numPoints - 1;
+    for (; top > 1; top--) {
       // tof mz value distances are proportional to sqrt(m/z)
       // so the biggest mass diff will be at the top of the spectrum
-      if (Double.compare(intensities[i], 0) > 0 && intensities[i - 1] > 0) {
+      if (intensities[top] > 0 && intensities[top - 1] > 0) {
         // use first two points that are non zero. Who knows if padding zeros are actually spaced
         // according to the digitizer times.
-        return Math.abs(mzs[i] - mzs[i - 1]);
+        maxDistance = Math.abs(mzs[top] - mzs[top - 1]);
+        break;
       }
     }
-    return 0.1;
+
+    // some detectors may have highest distance in beginning so better just add check here
+    double leftMaxDistance = -1;
+    for (int i = 1; i < top; i++) {
+      // tof mz value distances are proportional to sqrt(m/z)
+      // so the biggest mass diff will be at the top of the spectrum
+      if (intensities[i] > 0 && intensities[i - 1] > 0) {
+        // use first two points that are non zero. Who knows if padding zeros are actually spaced
+        // according to the digitizer times.
+        leftMaxDistance = Math.abs(mzs[i] - mzs[i - 1]);
+        break;
+      }
+    }
+
+    maxDistance = Math.max(leftMaxDistance, maxDistance);
+    if (Double.compare(-1, maxDistance) == 0) {
+      return 0.1; // nothing found so use default value
+    }
+
+    return maxDistance;
   }
 
   @Override
@@ -100,7 +130,7 @@ public class LocalMaxMassDetector implements MassDetector {
   @Override
   public double[][] getMassValues(final MassSpectrum spectrum) {
     final int numPoints = spectrum.getNumberOfDataPoints();
-    if (numPoints < 3) {
+    if (numPoints < minNonZeroDp) {
       return new double[2][0];
     }
 
@@ -144,7 +174,8 @@ public class LocalMaxMassDetector implements MassDetector {
       // If the gap is too large, we close the current region and start a new one
       if (mzDelta >= maxDiff) {
         // Only add regions that contain enough data points to form a peak (e.g., > 2 points)
-        if (i - currentRegionStart > minNonZeroDp + 2 && onePointAboveNoise) {
+        // data point at i was a jump to a new region so exclude this point
+        if (i - currentRegionStart >= minNonZeroDp && onePointAboveNoise) {
           consecutiveRanges.add(new SimpleIndexRange(currentRegionStart, i - 1));
         }
         currentRegionStart = i;
@@ -155,7 +186,7 @@ public class LocalMaxMassDetector implements MassDetector {
     }
 
     // Add the final region if valid
-    if (numPoints - currentRegionStart > minNonZeroDp + 1 && onePointAboveNoise) {
+    if (numPoints - currentRegionStart >= minNonZeroDp && onePointAboveNoise) {
       consecutiveRanges.add(new SimpleIndexRange(currentRegionStart, numPoints - 1));
     }
 
@@ -192,7 +223,7 @@ public class LocalMaxMassDetector implements MassDetector {
       return;
     }
 
-    // Filter and merge candidates based on the 0.7 / 1.3 rule
+    // Filter and merge candidates based on the * 0.7 to / 0.7 rule
     int activePeakIdx = candidateIndices.getInt(0);
     int leftBoundary = range.min(); // Start of the region
 
@@ -214,8 +245,9 @@ public class LocalMaxMassDetector implements MassDetector {
       if (dropsEnough && risesEnough) {
         // They are separate peaks.
         // The right boundary for the current peak is the valley.
-        processSinglePeak(mzs, intensities, activePeakIdx, leftBoundary, valleyIdx, minIntensity,
-            resultMzs, resultIntensities);
+        // include valleyIdx in this peak and also as potential new peak - similar to belows use of range.maxExclusive
+        processSinglePeak(mzs, intensities, activePeakIdx, leftBoundary, valleyIdx + 1,
+            minIntensity, resultMzs, resultIntensities);
 
         // Move to the next peak
         activePeakIdx = nextCandidateIdx;
@@ -223,10 +255,9 @@ public class LocalMaxMassDetector implements MassDetector {
       } else {
         // They are not resolved enough; merge them.
         // Update the active peak index to be the higher of the two.
+        // left boundary is kept to merge the peaks
         if (nextCandidateInt > activePeakInt) {
           activePeakIdx = nextCandidateIdx;
-          // move the left boundary, since it would have been enough of a valley and rise to be a individual peak
-//          leftBoundary = valleyIdx;
         }
       }
     }
@@ -293,8 +324,14 @@ public class LocalMaxMassDetector implements MassDetector {
     }
 
     final double maxIntensity = intensities[peakMaxIdx];
-
     final double detectionThreshold = Math.max(noiseLevel, 2 * absMinIntensity);
+
+    // check the actual intensity as noise level not the area which is harder to optimize
+    // the peak detection should pick the same peaks for the same noise level no matter
+    // if AREA or HEIGHT is selected for intensity representation
+    if (maxIntensity > detectionThreshold) {
+      return;
+    }
 
     final double mzWeightingCutoff = maxIntensity * MZ_WEIGHTING_THRESHOLD;
     final int minPointsPerEdge = Math.min(peakMaxIdx - startIdx, endIdx - peakMaxIdx);
@@ -326,7 +363,7 @@ public class LocalMaxMassDetector implements MassDetector {
     }
 
     // Safety check if no points met the weighting criteria (unlikely if max > detectionThreshold)
-    if (sumIntForMz == 0 || nonZeroPoints < minNonZeroDp) {
+    if (sumIntForMz == 0.0 || nonZeroPoints < minNonZeroDp) {
       return;
     }
 
@@ -334,10 +371,8 @@ public class LocalMaxMassDetector implements MassDetector {
     final double finalIntensity =
         (intensityCalculation == AbundanceMeasure.Area) ? totalArea : maxIntensity;
 
-    if (finalIntensity > detectionThreshold) {
-      resultMzs.add(centroidMz);
-      resultIntensities.add(finalIntensity);
-    }
+    resultMzs.add(centroidMz);
+    resultIntensities.add(finalIntensity);
   }
 
   @Override

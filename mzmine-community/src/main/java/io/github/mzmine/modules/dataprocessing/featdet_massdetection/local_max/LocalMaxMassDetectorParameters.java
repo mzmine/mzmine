@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -40,7 +41,7 @@ public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
 
   public static final DoubleParameter noiseLevel = CentroidMassDetectorParameters.noiseLevel.cloneParameter();
   public static final IntegerParameter minNumberOfDp = new IntegerParameter(
-      "Minimum number of non zero points", "", 3);
+      "Minimum non-zero points", "Minimum number of data points >0 intensity", 3);
   public static final AbundanceMeasureParameter intensityCalculation = new AbundanceMeasureParameter(
       "Intensity calculation", "", AbundanceMeasure.values(), AbundanceMeasure.Height);
 
