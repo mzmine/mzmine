@@ -26,6 +26,8 @@
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,6 +86,43 @@ public enum PolarityType implements UniqueIdSupplier {
   public static PolarityType fromInt(@Nullable Integer i) {
     // UNKNOWN was the default - maybe has to change to NEUTRAL? but depends on use case
     return fromInt(i, UNKNOWN);
+  }
+
+
+  /**
+   * @return Get polarity from scan selection or if scan selection is undefined, then use data file
+   * polarity from all scans. Either positive, negative, or {@link PolarityType#ANY} for both
+   * polarities. Empty optional if no polarity is defined
+   */
+  @NotNull
+  public static Optional<PolarityType> fromScans(@Nullable ScanSelection scanSelection,
+      @Nullable RawDataFile dataFile) {
+    if (scanSelection != null) {
+      final PolarityType polarity = scanSelection.getPolarity();
+      if (PolarityType.isDefined(polarity)) {
+        return Optional.of(polarity);
+      }
+    }
+    if (dataFile != null) {
+      PolarityType polarity = PolarityType.UNKNOWN;
+      for (Scan scan : dataFile.getScans()) {
+        final PolarityType scanPol = scan.getPolarity();
+        if (PolarityType.isDefined(scanPol)) {
+          if (polarity == PolarityType.UNKNOWN) {
+            // first defined polarity
+            polarity = scanPol;
+          } else if (polarity != scanPol) {
+            // both positive and negative
+            return Optional.of(PolarityType.ANY);
+          }
+        }
+      }
+
+      if (polarity != PolarityType.UNKNOWN) {
+        return Optional.of(polarity);
+      }
+    }
+    return Optional.empty();
   }
 
   /**

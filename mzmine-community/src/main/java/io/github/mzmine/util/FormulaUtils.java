@@ -32,10 +32,11 @@ import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotat
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.identities.IonLibraries;
+import io.github.mzmine.datamodel.identities.IonSearchRow;
+import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.IonUtils;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureInputType;
 import io.github.mzmine.datamodel.structures.StructureParser;
@@ -47,7 +48,6 @@ import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -468,7 +468,7 @@ public class FormulaUtils {
   }
 
   public static boolean isUncharged(@Nullable IMolecularFormula f) {
-    return f == null || f.getCharge() == null || f.getCharge() == 0;
+    return getCharge(f) == 0;
   }
 
   public static boolean isCharged(@Nullable IMolecularFormula f) {
@@ -739,8 +739,8 @@ public class FormulaUtils {
         }
       } while (count > 0 && found);
     }
-    final Integer resultCharge = Objects.requireNonNullElse(result.getCharge(), 0);
-    final Integer subtractCharge = Objects.requireNonNullElse(sub.getCharge(), 0) * subMultiplier;
+    final Integer resultCharge = requireNonNullElse(result.getCharge(), 0);
+    final Integer subtractCharge = requireNonNullElse(sub.getCharge(), 0) * subMultiplier;
     result.setCharge(resultCharge - subtractCharge);
     return result;
   }
@@ -918,29 +918,56 @@ public class FormulaUtils {
       return null;
     }
 
-    IMolecularFormula molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(
+    // check if formula already charged
+    IMolecularFormula molecularFormula = createMajorIsotopeMolFormulaWithCharge(
         annotation.getFormula());
+
+    if (molecularFormula == null) {
+      return null;
+    }
+
+    // TODO add mechanism to check if formula is already charged ion formula
+    // then skip below and just return formula
+    // will need to check the neutral mass and the precursor mz against the formula?
+//    if (getCharge(molecularFormula) > 0) {
+    // expect that formula is already correct if it is charged
+//      return molecularFormula;
+//    }
+
+    // TODO maybe remove this step or at least add checks as this is not always needed
+    // annotation might already be the correct ion formula
+    molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(annotation.getFormula());
     assert molecularFormula != null;
 
     if (annotation.getAdductType() == null && annotation instanceof CompoundDBAnnotation c
         && annotation.getPrecursorMZ() != null && c.get(
         NeutralMassType.class) instanceof Double neutralMass) {
-      final IonModification mod = IonModification.getBestIonModification(neutralMass,
-          annotation.getPrecursorMZ(), MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA, null);
-      c.put(IonTypeType.class, new IonType(mod));
+      final List<IonType> ionMatches = IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN_SEARCHABLE.searchRows(
+          new IonSearchRow(annotation.getPrecursorMZ()), neutralMass,
+          MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA);
+      if (!ionMatches.isEmpty()) {
+        c.put(IonTypeType.class, ionMatches.getFirst());
+      }
     }
 
     if (annotation.getAdductType() == null) {
       return null;
     }
-    try {
-      // ionize formula
-      // considering both 2M etc
-      return annotation.getAdductType().addToFormula(molecularFormula);
-    } catch (CloneNotSupportedException e) {
-      logger.log(Level.WARNING, "Cannot ionize formula");
-      throw new RuntimeException(e);
+    // ionize formula
+    // considering both 2M etc
+    return annotation.getAdductType().addToFormula(molecularFormula, true);
+  }
+
+  /**
+   *
+   * @return 0 for undefined charge or if formula is null otherwise formula.getCharge
+   */
+  public static int getCharge(@Nullable IMolecularFormula f) {
+    if (f == null) {
+      return 0;
     }
+    final Integer c = f.getCharge();
+    return requireNonNullElse(c, 0);
   }
 
   public static boolean isSubFormula(FormulaWithExactMz a, FormulaWithExactMz b) {

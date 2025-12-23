@@ -25,8 +25,10 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import io.github.mzmine.datamodel.PolarityType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface IonLibrary {
 
@@ -40,5 +42,19 @@ public interface IonLibrary {
 
   default SearchableIonLibrary toSearchableLibrary(boolean filterByRowCharge) {
     return new SearchableIonLibrary(ions(), filterByRowCharge);
+  }
+
+  /**
+   * @return a new filtered library or if polarity is undefined then return this instance
+   */
+  @NotNull
+  default IonLibrary filterPolarity(@Nullable PolarityType polarity) {
+    if (!PolarityType.isDefined(polarity)) {
+      return this;
+    }
+
+    final List<IonType> ions = ions().stream().filter(ion -> ion.getPolarity() == polarity)
+        .toList();
+    return new SimpleIonLibrary(name() + " filtered " + polarity.name(), ions);
   }
 }

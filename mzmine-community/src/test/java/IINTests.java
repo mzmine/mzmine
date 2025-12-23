@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.IonTypes;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -59,7 +59,7 @@ public class IINTests {
 
   @Test
   void testIonTypeParsing() {
-    IonType type1 = new IonType(IonModification.NH4);
+    IonType type1 = IonTypes.NH4.asIonType();
     final String[] string = new String[]{"M+NH4", "M+NH4]+", "[M+NH4]+", "[1M+NH4]+", "1M+NH4]1+"};
 
     for (String s : string) {
@@ -120,7 +120,7 @@ public class IINTests {
 
   @Test
   void test() {
-    IonType ionType = new IonType(IonModification.H);
+    IonType ionType = IonTypes.H.asIonType();
     CompoundDBAnnotation annotation = new SimpleCompoundDBAnnotation();
 
     final MZTolerance tol = new MZTolerance(0.000001, .01);

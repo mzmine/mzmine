@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -54,6 +55,7 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.Q3QuantMzType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -66,9 +68,8 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithString
 import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithStringInputValue;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RIToleranceParameter;
@@ -121,10 +122,10 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new PercentParameter("CCS tolerance (%)",
           "Maximum allowed difference (in per cent) for two ccs values.", 0.05), false);
 
-  public static final OptionalModuleParameter<LegacyIonLibraryParameterSet> ionLibrary = new OptionalModuleParameter<>(
-      "Use adducts",
-      "If enabled, m/z values for multiple adducts will be calculated and matched against the feature list.",
-      EmbeddedComponentOptions.VIEW_IN_WINDOW, new LegacyIonLibraryParameterSet());
+  public static final OptionalParameter<IonLibraryParameter> ionLibrary = new OptionalParameter<>(
+      new IonLibraryParameter("Use adducts",
+          "If enabled, m/z values for multiple adducts will be calculated and matched against the feature list.",
+          IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN));
 
   public static final OptionalModuleParameter<IsotopePatternMatcherParameters> isotopePatternMatcher = new OptionalModuleParameter<>(
       "Use isotope matcher",
@@ -282,7 +283,7 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       setParameter(ccsTolerance, ccsFilterEnabled);
     }
 
-    if(loadedVersion < 3) {
+    if (loadedVersion < 3) {
       // need to disable when loading an old parameter set.
       setParameter(riTolerance, false);
     }

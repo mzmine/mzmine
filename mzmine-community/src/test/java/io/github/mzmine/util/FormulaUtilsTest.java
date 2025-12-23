@@ -31,8 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.IonTypes;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -188,7 +187,7 @@ class FormulaUtilsTest {
 
   @Test
   void ionizeFormulaTest() {
-    var adduct = new IonType(IonModification.M_PLUS);
+    var adduct = IonTypes.M_PLUS.asIonType();
     var annotation = new SimpleCompoundDBAnnotation("C");
     var annotationPlus = new SimpleCompoundDBAnnotation("CH+");
     var ion1 = annotation.ionize(adduct);

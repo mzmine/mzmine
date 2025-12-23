@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,13 +41,12 @@ public class FragmentGraphTest {
   private final MassList caffeineSpectrum = new SimpleMassList(null, caffeineMzs,
       caffeineIntensities);
 
-
 //  @Test
 //  void testFormulaGeneration() {
 //
 //    FragGraphPrecursorFormulaTask formulaTask = new FragGraphPrecursorFormulaTask(new FragDashboardModel(), 195.08994,
 //        PolarityType.POSITIVE, 1,
-//        List.of(new IonType(IonModification.H), new IonType(IonModification.NA)), null,
+//        List.of(IonTypes.H.asIonType(), IonTypes.NA.asIonType()), null,
 //        new MZTolerance(0.005, 10), true, true);
 //
 //    final MolecularFormulaGenerator generator = formulaTask.setUpFormulaGenerator();

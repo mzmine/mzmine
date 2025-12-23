@@ -57,6 +57,12 @@ public class IonLibraries {
   public static final @NotNull IonLibrary MZMINE_DEFAULT_DUAL_POLARITY_SMALLEST = new SimpleIonLibrary(
       "mzmine default most common ions (+/-)", IonTypes.DEFAULT_BOTH_POLARITIES_SMALLEST);
 
+  /**
+   * Already searchable library only for the main default both polarity library with polarity filter
+   * activated
+   */
+  public static final @NotNull SearchableIonLibrary MZMINE_DEFAULT_DUAL_POLARITY_MAIN_SEARCHABLE = MZMINE_DEFAULT_DUAL_POLARITY_MAIN.toSearchableLibrary(
+      true);
 
   /**
    *

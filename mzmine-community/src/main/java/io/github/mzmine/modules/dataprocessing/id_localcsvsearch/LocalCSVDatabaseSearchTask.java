@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -33,10 +34,9 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
+import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
-import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RITolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -85,17 +85,16 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final double minIsotopeScore;
   private final ParameterSet parameters;
   private final List<ImportType<?>> importTypes;
-  private final LegacyIonLibraryParameterSet ionLibraryParameterSet;
   private final Boolean filterSamples;
   private final String sampleHeader;
   private final List<RawDataFile> allRawDataFiles;
   private final ExtraColumnHandler extraColumnHandler;
-  private IonNetworkLibrary ionNetworkLibrary;
 
   private List<String[]> databaseValues;
   private int finishedLines = 0;
   private int sampleColIndex = -1;
   private boolean importOtherColumns = true;
+  private IonLibrary ionLibrary;
 
   LocalCSVDatabaseSearchTask(FeatureList[] featureLists, ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
@@ -119,9 +118,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     riTolerance = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         LocalCSVDatabaseSearchParameters.riTolerance, null);
 
-    Boolean calcMz = parameters.getValue(LocalCSVDatabaseSearchParameters.ionLibrary);
-    ionLibraryParameterSet = calcMz != null && calcMz ? parameters.getParameter(
-        LocalCSVDatabaseSearchParameters.ionLibrary).getEmbeddedParameters() : null;
     filterSamples = parameters.getValue(LocalCSVDatabaseSearchParameters.filterSamples);
 
     // all raw data files for a name check if selected
@@ -183,10 +179,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     }
 
     try {
-      ionNetworkLibrary =
-          ionLibraryParameterSet != null ? new IonNetworkLibrary(ionLibraryParameterSet,
-              mzTolerance) : null;
-
       final StringProperty error = new SimpleStringProperty();
       final List<ImportType<?>> lineIds = CSVParsingUtils.findLineIds(importTypes,
           databaseValues.getFirst(), error, true);
@@ -207,6 +199,12 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       // extract rows and sort by mz for binary search
       var mzSortedRows = Arrays.stream(featureLists)
           .map(flist -> flist.getRows().sorted(FeatureListRowSorter.MZ_ASCENDING)).toList();
+
+      // ANY if multiple polarity otherwise defined as positive or negative
+      PolarityType polarity = findPolarity(mzSortedRows);
+
+      var lib = parameters.getOptionalValue(LocalCSVDatabaseSearchParameters.ionLibrary);
+      ionLibrary = lib.map(l -> l.filterPolarity(polarity)).orElse(null);
 
       for (String[] currentLine : databaseValues) {
         if (finishedLines == 0) {
@@ -263,6 +261,25 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
   }
 
+  private static PolarityType findPolarity(List<SortedList<FeatureListRow>> mzSortedRows) {
+    PolarityType polarity = PolarityType.ANY;
+    for (SortedList<FeatureListRow> rows : mzSortedRows) {
+      for (FeatureListRow row : rows) {
+        final PolarityType rowPolarity = row.getRepresentativePolarity();
+        if (!PolarityType.isDefined(rowPolarity)) {
+          continue;
+        }
+        if (polarity == PolarityType.ANY) {
+          polarity = rowPolarity;
+        } else if (polarity != rowPolarity) {
+          polarity = PolarityType.ANY;
+          break;
+        }
+      }
+    }
+    return polarity;
+  }
+
   private void refineAnnotationsByIsotopes(FeatureList flist) {
     DatabaseIsotopeRefinerScanBased.refineAnnotationsByIsotopesDifferentResolutions(flist.getRows(),
         isotopeMzTolerance, minRelativeIsotopeIntensity, minIsotopeScore);
@@ -285,7 +302,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       @NotNull String[] csvHeaders) {
 
     final List<CompoundDBAnnotation> annotations = getCompoundDBAnnotations(values,
-        linesWithIndices, csvHeaders, extraColumnHandler, ionNetworkLibrary);
+        linesWithIndices, csvHeaders, extraColumnHandler, ionLibrary);
 
     IntStream indexStream = IntStream.range(0, featureLists.length);
     if (featureLists.length > 1000) {
@@ -336,8 +353,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   @NotNull
   private List<CompoundDBAnnotation> getCompoundDBAnnotations(final @NotNull String[] values,
       final @NotNull List<ImportType<?>> linesWithIndices, @NotNull String[] headerValues,
-      @NotNull final ExtraColumnHandler extraColumnHandler,
-      @Nullable final IonNetworkLibrary ionLibrary) {
+      @NotNull final ExtraColumnHandler extraColumnHandler, @Nullable final IonLibrary ionLibrary) {
     final CompoundDBAnnotation baseAnnotation = CSVParsingUtils.getCompoundFromLine(headerValues,
         values, linesWithIndices, extraColumnHandler);
     baseAnnotation.put(databaseType, dataBaseFile.getName());

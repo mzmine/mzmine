@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.datamodel.identities.IonLibrary;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.MassLynxImportOptions;
@@ -189,7 +188,6 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.FeatureLimitOpt
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
-import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -216,12 +214,9 @@ import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarityParameters;
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
@@ -773,30 +768,6 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IonNetworkingModule.class),
         param));
-  }
-
-  private void createAndSetIonLibrary(final LegacyIonLibraryParameterSet ionLibraryParam) {
-    Set<IonModification> adducts = new HashSet<>();
-    Set<IonModification> adductChoices = new HashSet<>();
-    // No filter or Positive option --> add positive
-    if (polarity.toScanPolaritySelection().includesPositive()) {
-      // default positive
-      Collections.addAll(adducts, IonModification.H, IonModification.H_H2O_1, IonModification.NA,
-          IonModification.Hneg_NA2, IonModification.K, IonModification.NH4, IonModification.H2plus);
-      Collections.addAll(adductChoices, IonModification.getDefaultValuesPos());
-    }
-    if (polarity.toScanPolaritySelection().includesNegative()) {
-      Collections.addAll(adducts, IonModification.H_NEG, IonModification.FA, IonModification.NA_2H,
-          IonModification.CL);
-      Collections.addAll(adductChoices, IonModification.getDefaultValuesNeg());
-    }
-    IonModification[] modifications = new IonModification[]{};
-    // set choices first then values
-    var modificationChoices = IonModification.getDefaultModifications();
-    var selected = new IonModification[][]{adducts.toArray(IonModification[]::new), modifications};
-
-    ionLibraryParam.setAll(2, 2, adductChoices.toArray(IonModification[]::new), modificationChoices,
-        selected);
   }
 
   /**
@@ -1404,11 +1375,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         ImportType.isDataTypeSelectedInImportTypes(csvColumns, CCSType.class), 0.05);
 
     // define ions
-    var ionLibParams = param.getParameter(LocalCSVDatabaseSearchParameters.ionLibrary)
-        .getEmbeddedParameters();
-    createAndSetIonLibrary(ionLibParams);
+    IonLibrary library = switch (polarity) {
+      case Positive -> IonLibraries.MZMINE_DEFAULT_POS_MAIN;
+      case Negative -> IonLibraries.MZMINE_DEFAULT_NEG_MAIN;
+      case No_filter -> IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN;
+    };
     param.setParameter(LocalCSVDatabaseSearchParameters.ionLibrary,
-        csvMassOptions == MassOptions.MASS_AND_IONS);
+        csvMassOptions == MassOptions.MASS_AND_IONS, library);
 
     param.setParameter(LocalCSVDatabaseSearchParameters.isotopePatternMatcher, false);
 

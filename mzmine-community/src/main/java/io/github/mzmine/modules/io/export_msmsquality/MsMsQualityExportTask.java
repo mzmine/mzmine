@@ -43,7 +43,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetector;
@@ -122,7 +122,7 @@ public class MsMsQualityExportTask extends AbstractTask {
       for (String spotName : spotNames) {
         final Frame ms1Frame = mobScanAccess.getEligibleFrames().stream().filter(
             f -> f instanceof ImagingFrame img && img.getMaldiSpotInfo() != null
-                 && img.getMaldiSpotInfo().spotName().contains(spotName)).findFirst().orElse(null);
+                && img.getMaldiSpotInfo().spotName().contains(spotName)).findFirst().orElse(null);
         if (ms1Frame != null) {
           isolationPurityScore += getPurityForFrame(feature, mobScanAccess, ms1Frame, info, window);
           numMs1++;
@@ -202,7 +202,7 @@ public class MsMsQualityExportTask extends AbstractTask {
           }
 
           if (matchCompoundToFlist && (annotation.getCompoundName() == null
-                                       || !featureList.getName() // annotations may have unsafe characters, flists not
+              || !featureList.getName() // annotations may have unsafe characters, flists not
               .contains(FileAndPathUtil.safePathEncode(annotation.getCompoundName())))) {
             processedRows++;
             continue;
@@ -265,8 +265,8 @@ public class MsMsQualityExportTask extends AbstractTask {
         (molecularFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula)) != null) {
 
       final IonType adductType = annotation.getAdductType();
-      if (adductType.getCDKFormula() != null) {
-        molecularFormula.add(adductType.getCDKFormula());
+      if (adductType != null) {
+        molecularFormula = adductType.addToFormula(molecularFormula, true);
       }
 
       final double[][] filtered = factorOfLowest.getMassValues(msmsScan);

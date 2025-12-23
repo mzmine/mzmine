@@ -35,7 +35,8 @@ import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.IonTypeParser;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.lang.foreign.MemorySegment;
@@ -240,7 +241,7 @@ public class ParsingUtils {
 
   @NotNull
   public static String rangeToString(@Nullable Range<Comparable<?>> range) {
-    if(range == null) {
+    if (range == null) {
       return "";
     }
     return "[" + range.lowerEndpoint() + SEPARATOR + range.upperEndpoint() + "]";
@@ -456,7 +457,7 @@ public class ParsingUtils {
     } catch (Exception e) {
       logger.log(Level.WARNING,
           "Error parsing attribute " + attributeName + "of element " + reader.getLocalName()
-          + " with value " + attributeValue);
+              + " with value " + attributeValue);
       return defaultValue;
     }
   }
@@ -497,8 +498,7 @@ public class ParsingUtils {
   }
 
   public static IonType parseIon(String str) {
-    Pattern.compile("(\\[)?(\\d*)(M)([\\+\\-])([a-zA-Z_0-9\\\\+\\\\-]*)([\\]])?([\\d])?([\\+\\-])");
-    return null;
+    return IonTypeParser.parse(str);
   }
 
   /**

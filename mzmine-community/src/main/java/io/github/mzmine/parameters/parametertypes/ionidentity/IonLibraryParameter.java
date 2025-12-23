@@ -27,16 +27,31 @@ package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.SearchableIonLibrary;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesModule;
 import io.github.mzmine.datamodel.identities.io.IonLibraryIO;
 import io.github.mzmine.datamodel.identities.io.LoadedIonLibrary;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.AbstractParameter;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
+import io.github.mzmine.util.StringUtils;
 import java.util.Collection;
+import java.util.Map;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
+
 /**
- *
+ * An {@link IonLibrary} that can be converted to {@link SearchableIonLibrary} for matching.
+ * <p>
+ * Replaces the {@link LegacyIonLibraryParameterSet} that was typically used as a
+ * {@link ParameterSetParameter} or {@link OptionalModuleParameter} or {@link SubModuleParameter}.
+ * The {@link #loadValueFromXML(Element)} handles the loading of the old parameterset so this is a
+ * drop in replacement.
  */
 public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibraryComponent> {
 
@@ -96,14 +111,42 @@ public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibrar
     return true;
   }
 
+
+  /**
+   * Supports loading of {@link LegacyIonLibraryParameterSet} that was typically used as a
+   * {@link ParameterSetParameter} or {@link OptionalModuleParameter} or {@link SubModuleParameter}.
+   * or
+   */
   @Override
   public void loadValueFromXML(Element xmlElement) {
+    final String version = xmlElement.getAttribute("libraryVersion");
+    if (StringUtils.isBlank(version)) {
+      loadLegacyLibraryParameters(xmlElement);
+      return;
+    }
+
     final LoadedIonLibrary loaded = IonLibraryIO.loadFromXML(xmlElement);
     setValue(loaded == null ? null : loaded.library());
   }
 
+  private void loadLegacyLibraryParameters(Element xmlElement) {
+    final LegacyIonLibraryParameterSet parameters = (LegacyIonLibraryParameterSet) new LegacyIonLibraryParameterSet().cloneParameterSet();
+    final Map<String, Parameter<?>> loaded = parameters.loadValuesFromXML(xmlElement);
+    if (!loaded.containsKey(LegacyIonLibraryParameterSet.ADDUCTS.getName())) {
+      return; // nothing loaded
+    }
+
+    // create library from old to new
+    final IonLibrary library = new IonNetworkLibrary(parameters).toNewLibrary();
+    setValue(library);
+  }
+
   @Override
   public void saveValueToXML(Element xmlElement) {
+    // set libraryVersion to 2 so that we know to load a new {@link IonLibrary} or
+    // via the old {@link LegacyIonLibraryParameterSet}
+    // old libraries did not use libraryVersion so it is unset in this case
+    xmlElement.setAttribute("libraryVersion", "2");
     // save all ions and library name so that a library will reload exactly the same library
     // the local version of this library might change and the component will display a modified symbol
     IonLibraryIO.saveToXML(xmlElement, getValue());

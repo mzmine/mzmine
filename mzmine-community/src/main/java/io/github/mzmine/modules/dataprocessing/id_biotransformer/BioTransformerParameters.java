@@ -30,6 +30,7 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
+import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -40,10 +41,9 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
@@ -75,8 +75,9 @@ public class BioTransformerParameters extends SimpleParameterSet {
       "Filter parameters", "Additional filtering parameters.", new BioTransformerFilterParameters(),
       false);
 
-  public static final ParameterSetParameter ionLibrary = new ParameterSetParameter("Ion library",
-      "Potential ionizations of product molecules.", new LegacyIonLibraryParameterSet());
+  public static final IonLibraryParameter ionLibrary = new IonLibraryParameter("Ion library",
+      "Potential ionizations of product molecules.",
+      IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN);
 
   public static final ComboParameter<SmilesSource> smilesSource = new ComboParameter<>(
       "SMILES source", """

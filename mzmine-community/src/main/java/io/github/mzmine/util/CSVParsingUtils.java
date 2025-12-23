@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util;
 
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriterBuilder;
@@ -38,15 +40,12 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.JsonStringType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
+import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.ExtraColumnHandler;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.HandleExtraColumnsOptions;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithStringInputValue;
 import io.github.mzmine.taskcontrol.TaskStatus;
-
-import static io.github.mzmine.util.StringUtils.inQuotes;
-
 import io.github.mzmine.util.exceptions.MissingColumnException;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CSVUtils;
@@ -164,7 +163,8 @@ public class CSVParsingUtils {
                 () -> "Library file contains two columns called \"" + columnName + "\".");
           }
           importType.setColumnIndex(i);
-          importType.setCsvColumnName(columnName); // need to set to the specific upper/lower case for getCompoundFromLine
+          importType.setCsvColumnName(
+              columnName); // need to set to the specific upper/lower case for getCompoundFromLine
         }
       }
     }
@@ -199,11 +199,10 @@ public class CSVParsingUtils {
    *                       given in the file. Otherwise, all formulas will be ionised by
    *                       {@link
    *                       CompoundDBAnnotation#buildCompoundsWithAdducts(CompoundDBAnnotation,
-   *                       IonNetworkLibrary)}.
+   *                       IonLibrary)}.
    */
   public static CompoundDbLoadResult getAnnotationsFromCsvFile(final File peakListFile,
-      String fieldSeparator, @NotNull List<ImportType<?>> types,
-      @Nullable IonNetworkLibrary ionLibrary) {
+      String fieldSeparator, @NotNull List<ImportType<?>> types, @Nullable IonLibrary ionLibrary) {
     final List<CompoundDBAnnotation> list = new ArrayList<>();
     final ExtraColumnHandler extraColHandler = new ExtraColumnHandler(
         new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IGNORE, null));

@@ -25,9 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_pubchemsearch.gui;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.preferences.Themes;
@@ -44,6 +46,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PubChemResultsController extends FxController<PubChemResultsModel> {
 
@@ -51,11 +54,11 @@ public class PubChemResultsController extends FxController<PubChemResultsModel> 
   private final StringProperty title = new SimpleStringProperty("PubChem search");
 
   public PubChemResultsController(@NotNull FeatureListRow row, @NotNull IonType ionType,
-      @NotNull String formula) {
+      @Nullable String formula) {
     super(new PubChemResultsModel());
     model.selectedRowProperty().set(row);
     model.ionTypeProperty().set(ionType);
-    model.formulaToSearchProperty().set(formula);
+    model.formulaToSearchProperty().set(requireNonNullElse(formula, ""));
 //    onFormulaSearchPressed();
     initTitle();
   }

@@ -40,6 +40,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.stream.XMLStreamException;
@@ -62,6 +64,8 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class IonType {
+
+  private static final Logger logger = Logger.getLogger(IonType.class.getName());
 
   /**
    * handles the sorting and everything for the parts
@@ -337,9 +341,16 @@ public final class IonType {
    * @return The resulting molecule may be neutral if the charge of the molecule and the charge of
    * this adduct are opposite.
    */
-  public IMolecularFormula addToFormula(IMolecularFormula formula, boolean ionize)
-      throws CloneNotSupportedException {
-    IMolecularFormula result = (IMolecularFormula) formula.clone();
+  @NotNull
+  public IMolecularFormula addToFormula(@NotNull IMolecularFormula formula, boolean ionize) {
+    IMolecularFormula result = null;
+    try {
+      result = (IMolecularFormula) formula.clone();
+    } catch (CloneNotSupportedException e) {
+      logger.log(Level.WARNING, "Unexpected exception cloning molecular formula " + e.getMessage(),
+          e);
+      return formula;
+    }
     // add for n molecules the M formula
     for (int i = 2; i <= molecules; i++) {
       FormulaUtils.addFormula(result, formula);

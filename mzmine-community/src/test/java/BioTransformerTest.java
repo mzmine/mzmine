@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,7 +23,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
@@ -38,14 +37,13 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.IonTypes;
+import io.github.mzmine.datamodel.identities.SimpleIonLibrary;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerParameters;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerParameters.TransformationTypes;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerUtil;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -59,6 +57,8 @@ import org.junit.jupiter.api.Test;
 class BioTransformerTest {
 
   private static final Logger logger = Logger.getLogger(BioTransformerTest.class.getName());
+
+  final IonLibrary library = new SimpleIonLibrary("temp lib", List.of(IonTypes.H.asIonType()));
 
   @Test
   void testCmdGeneration() {
@@ -87,15 +87,12 @@ class BioTransformerTest {
     final URL resource = BioTransformerTest.class.getClassLoader()
         .getResource("biotransformer/transformation.csv");
     final File file = new File(resource.getFile());
-    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1,
-        PolarityType.POSITIVE, 1, new IonModification[]{IonModification.H},
-        new IonModification[]{});
     final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(file,
         library);
 
     final CompoundDBAnnotation expected = new SimpleCompoundDBAnnotation();
     expected.put(FormulaType.class, "C23H29N5O");
-    expected.put(IonTypeType.class, new IonType(IonModification.H));
+    expected.put(IonTypeType.class, IonTypes.H.asIonType());
     expected.put(SmilesStructureType.class, "CCCCC(=O)N(CC1=CC=C(C=C1)C2=CC=CC=C2C3=NNN=N3)CC(C)C");
     expected.put(InChIKeyStructureType.class, "QMAQKWMYJDPUDV-UHFFFAOYSA-N");
     expected.put(InChIStructureType.class,
@@ -119,9 +116,6 @@ class BioTransformerTest {
     final URL resource = BioTransformerTest.class.getClassLoader()
         .getResource("biotransformer/transformation_header_only.csv");
     final File file = new File(resource.getFile());
-    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1,
-        PolarityType.POSITIVE, 1, new IonModification[]{IonModification.H},
-        new IonModification[]{});
     final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(file,
         library);
 
@@ -133,9 +127,6 @@ class BioTransformerTest {
     final URL resource = BioTransformerTest.class.getClassLoader()
         .getResource("biotransformer/transformation_empty.csv");
     final File file = new File(resource.getFile());
-    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1,
-        PolarityType.POSITIVE, 1, new IonModification[]{IonModification.H},
-        new IonModification[]{});
     final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(file,
         library);
 
@@ -146,9 +137,6 @@ class BioTransformerTest {
   void praseLibraryThatDoesNotExist() throws IOException {
     final File file = new File("biotransformer/transformation_thisfiledoesnotexist.csv");
     assert !file.exists();
-    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1,
-        PolarityType.POSITIVE, 1, new IonModification[]{IonModification.H},
-        new IonModification[]{});
     final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(file,
         library);
 
@@ -181,16 +169,13 @@ class BioTransformerTest {
     Assertions.assertTrue(
         BioTransformerUtil.runCommandAndWait(biotransformer.getParentFile(), cmdLine));
 
-    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1,
-        PolarityType.POSITIVE, 1, new IonModification[]{IonModification.H},
-        new IonModification[]{});
     final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(
         outputFile, library);
 
     final CompoundDBAnnotation expected = new SimpleCompoundDBAnnotation();
     expected.put(FormulaType.class, "C23H29N5O");
     expected.put(PrecursorMZType.class, 392.244486548d);
-    expected.put(IonTypeType.class, new IonType(IonModification.H));
+    expected.put(IonTypeType.class, IonTypes.H.asIonType());
     expected.put(SmilesStructureType.class, "CCCCC(=O)N(CC1=CC=C(C=C1)C2=CC=CC=C2C3=NNN=N3)CC(C)C");
     expected.put(InChIKeyStructureType.class, "QMAQKWMYJDPUDV-UHFFFAOYSA-N");
     expected.put(InChIStructureType.class,

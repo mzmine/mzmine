@@ -39,8 +39,8 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityList
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.identities.IonTypes;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
@@ -75,8 +75,8 @@ public class IonIdentityTest {
   @Mock
   ResultFormula formula;
 
-  IonType hAdduct = new IonType(IonModification.H);
-  IonType naAdduct = new IonType(IonModification.NA);
+  IonType hAdduct = IonTypes.H.asIonType();
+  IonType naAdduct = IonTypes.NA.asIonType();
 
 
   @Test

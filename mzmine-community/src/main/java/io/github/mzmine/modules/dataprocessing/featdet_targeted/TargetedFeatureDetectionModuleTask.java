@@ -28,6 +28,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
@@ -44,11 +45,10 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
+import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.ImsGap;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -83,7 +83,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
   private final BinningMobilogramDataAccess mobilogramBinning;
   private final ScanSelection scanSelection;
   private final List<Scan> matchingScans;
-  private final IonNetworkLibrary ionLibrary;
+  private final IonLibrary ionLibrary;
 
   private final MZmineProject project;
   private final RawDataFile dataFile;
@@ -125,11 +125,10 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
     mobTol = parameters.getEmbeddedParameterValueIfSelectedOrElseGet(
         TargetedFeatureDetectionParameters.mobilityTolerance, () -> null);
 
-    final boolean useIonLibrary = parameters.getValue(
-        TargetedFeatureDetectionParameters.ionLibrary);
-    ionLibrary = useIonLibrary ? new IonNetworkLibrary(
-        (LegacyIonLibraryParameterSet) parameters.getEmbeddedParameterValue(
-            TargetedFeatureDetectionParameters.ionLibrary)) : null;
+    final PolarityType polarity = PolarityType.fromScans(scanSelection, dataFile)
+        .orElse(PolarityType.ANY);
+    ionLibrary = parameters.getOptionalValue(TargetedFeatureDetectionParameters.ionLibrary)
+        .map(lib -> lib.filterPolarity(polarity)).orElse(null);
 
     if (dataFile instanceof IMSRawDataFile imsRawDataFile) {
       mobilogramBinning = new BinningMobilogramDataAccess(imsRawDataFile,

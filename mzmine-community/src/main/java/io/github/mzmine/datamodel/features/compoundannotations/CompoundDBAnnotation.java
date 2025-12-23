@@ -62,10 +62,10 @@ import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureParser;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RITolerance;
@@ -106,11 +106,10 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
   @NotNull
   static List<CompoundDBAnnotation> buildCompoundsWithAdducts(
-      CompoundDBAnnotation neutralAnnotation, IonNetworkLibrary library) {
+      CompoundDBAnnotation neutralAnnotation, IonLibrary library) {
     final List<CompoundDBAnnotation> annotations = new ArrayList<>();
-    for (IonType adduct : library.getAllAdducts()) {
-      if (adduct.isUndefinedAdduct() || adduct.isUndefinedAdductParent() || adduct.getName()
-          .contains("?")) {
+    for (IonType adduct : library.ions()) {
+      if (adduct.isUndefinedAdduct() || adduct.isUndefinedMass()) {
         continue;
       }
       try {

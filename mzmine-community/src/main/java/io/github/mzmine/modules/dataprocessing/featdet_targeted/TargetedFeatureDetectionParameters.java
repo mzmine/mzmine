@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -46,11 +47,10 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
@@ -81,10 +81,10 @@ public class TargetedFeatureDetectionParameters extends SimpleParameterSet {
   public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerance = new OptionalParameter<>(
       new MobilityToleranceParameter());
 
-  public static final OptionalModuleParameter<LegacyIonLibraryParameterSet> ionLibrary = new OptionalModuleParameter<>(
-      "Calculate adduct masses",
-      "Ion types to search for. Either neutral mass, formula or smiles must be imported for every compound.",
-      new LegacyIonLibraryParameterSet());
+  public static final OptionalParameter<IonLibraryParameter> ionLibrary = new OptionalParameter<>(
+      new IonLibraryParameter("Calculate adduct masses",
+          "Ion types to search for. Either neutral mass, formula or smiles must be imported for every compound.",
+          IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN));
 
   private static final List<ImportType<?>> importTypes = List.of(
       new ImportType<>(true, "neutral mass", new NeutralMassType()),
