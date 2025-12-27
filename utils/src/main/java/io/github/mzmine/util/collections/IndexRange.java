@@ -145,7 +145,7 @@ public sealed interface IndexRange permits EmptyIndexRange, SimpleIndexRange, Si
     if (maxInclusive == min) {
       return new SingleIndexRange(min);
     }
-    return IndexRange.ofInclusive(min, maxInclusive);
+    return new SimpleIndexRange(min, maxInclusive);
   }
 
   int size();
