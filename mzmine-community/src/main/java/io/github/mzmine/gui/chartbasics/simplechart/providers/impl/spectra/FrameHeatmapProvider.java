@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -67,6 +67,7 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
 
   protected PaintScale paintScale;
   private double finishedPercentage;
+  private boolean isComputed = false;
 
   public FrameHeatmapProvider(Frame frame) {
     this.frame = frame;
@@ -132,9 +133,11 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
       finishedPercentage = finishedScans / numScans;
     }
 
-    final double[] quantiles = MathUtils.calcQuantile(zValues.toDoubleArray(), new double[]{0.50, 0.98});
+    final double[] quantiles = MathUtils.calcQuantile(zValues.toDoubleArray(),
+        new double[]{0.50, 0.98});
     paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
         .toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
+    isComputed = true;
   }
 
   public MobilityScan getMobilityScanAtValueIndex(int index) {
@@ -176,5 +179,12 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
   @Override
   public Double getBoxWidth() {
     return null;
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return isComputed;
   }
 }

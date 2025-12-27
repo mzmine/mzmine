@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,6 +50,9 @@ public class SpectraStackVisualizerParameters extends SimpleParameterSet {
       true);
 
 
+  /**
+   * this is a mouse movement crosshair
+   */
   public static final BooleanParameter showCrosshair = new BooleanParameter("Crosshair", "", true);
   public static final BooleanParameter showAllAxes = new BooleanParameter("All axes",
       "Show all or only bottom axis", false);

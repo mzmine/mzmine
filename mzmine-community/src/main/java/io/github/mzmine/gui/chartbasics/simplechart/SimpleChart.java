@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ProviderAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import java.text.NumberFormat;
@@ -34,7 +35,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.XYDataset;
 
@@ -74,8 +74,6 @@ public interface SimpleChart<T extends PlotXYDataProvider> {
 
   public void setDefaultRenderer(XYItemRenderer defaultRenderer);
 
-  public ObjectProperty<XYItemRenderer> defaultRendererProperty();
-
   public void setShowCrosshair(boolean show);
 
   public void setItemLabelsVisible(boolean visible);
@@ -91,11 +89,10 @@ public interface SimpleChart<T extends PlotXYDataProvider> {
 
   public void addContextMenuItem(String title, EventHandler<ActionEvent> ai);
 
+  /**
+   * Uses the {@link FxXYPlot#addDatasetChangeListener(DatasetChangeListener)}
+   *
+   */
   public void addDatasetChangeListener(DatasetChangeListener listener);
 
-  public void removeDatasetChangeListener(DatasetChangeListener listener);
-
-  public void clearDatasetChangeListeners();
-
-  public void notifyDatasetChangeListeners(DatasetChangeEvent event);
 }

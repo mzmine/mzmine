@@ -22,10 +22,50 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-.root {
+
+ /* children of this css can overwrite the color and this will effect the defined classes */
+ .root {
+   -error-text-color: #cc0033;
+   -warning-text-color: #CC9900;
     /* set background color of scene root node so that stages have correct color
      most panes are transparent - so root needs to have base color */
+   -fx-background-color: -jr-base;
+ }
+
+.error-label {
+  -fx-text-fill: -error-text-color;
+  -fx-icon-color: -error-text-color;
+}
+Text.error-label {
+  /* Text uses fill instead of text fill */
+  -fx-fill: -error-text-color;
+}
+
+.warning-label {
+  -fx-text-fill: -warning-text-color;
+  -fx-icon-color: -warning-text-color;
+}
+Text.warning-label {
+  /* Text uses fill instead of text fill */
+  -fx-fill: -warning-text-color;
+}
+
+/* Option to set all Text children in TextFlow to yellow */
+#warningTextFlow > Text {
+  -fx-fill: -warning-text-color;
+}
+#warningTextFlow > Label {
+  -fx-text-fill: -warning-text-color;
+}
+
+.outlined-panel {
+    -fx-border-color: -jr-accent;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px;
     -fx-background-color: -jr-base;
+    /*-fx-effect: dropshadow(gaussian, rgba(183,232,255,0.8), 5, 0.2, 0, 5);*/
 }
 
 .notification-bar > .pane {
@@ -81,7 +121,7 @@
 
 /* controlsfx ValidationSupport uses this */
 .warning {
-    -fx-effect: dropshadow(three-pass-box, gold, 14, 0, 0, 0);
+    -fx-effect: dropshadow(three-pass-box, -warning-text-color, 14, 0, 0, 0);
 }
 
 /* controlsfx ValidationSupport uses this */
@@ -97,8 +137,8 @@
     -fx-border-width: 1;
 
     -fx-background-color: #FBEFEF;
-    -fx-text-fill: #cc0033;
-    -fx-border-color: #cc0033;
+    -fx-text-fill: -error-text-color;
+    -fx-border-color: -error-text-color;
 }
 
 .tooltip-warning {
@@ -108,8 +148,8 @@
     -fx-border-width: 1;
 
     -fx-background-color: #FFFFCC;
-    -fx-text-fill: #CC9900;
-    -fx-border-color: #CC9900;
+    -fx-text-fill: -warning-text-color;
+    -fx-border-color: -warning-text-color;
 }
 
 .tooltip-info {
