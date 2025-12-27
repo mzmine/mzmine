@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -58,19 +59,7 @@ public class ImsHeatmapChartCell extends ChartCell<SimpleXYZScatterPlot<?>> {
   protected void updateItem(Object o, boolean b) {
     super.updateItem(o, b);
 
-    if (!isValidCell()) {
-      return;
-    }
-    // remove crosshair, determined by cursor position in FxXYPlot
-    plot.setCursorPosition(null);
-    // clear zoom history because it comes from old data
-    plot.getZoomHistory().clear();
-    plot.removeAllDatasets();
-
-    System.out.println(
-        "imts " + getTableColumn().getWidth() + " " + getWidth() + " " + getMinWidth());
-
-    if (cellHasNoData()) {
+    if (!isValidCell() || cellHasNoData()) {
       return;
     }
 

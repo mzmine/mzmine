@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -543,6 +544,7 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
    */
   @Override
   public int getRendererCount() {
+    // explicitly use super methods to not rely on the state of the model
     return super.getRendererCount();
   }
 

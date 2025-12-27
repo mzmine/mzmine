@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -49,7 +50,7 @@ import org.jfree.data.Range;
  * The first cell seems to be the measurement cell and is never updated here as there are many calls
  * to update item on cell 0 and just single calls on all other cells.
  */
-public class ChromatogramFeatureShapeCell extends XyChartCell {
+public class ChromatogramFeatureShapeCell extends ChartCell<SimpleXYChart<?>> {
 
   public ChromatogramFeatureShapeCell(int id) {
     super(id);

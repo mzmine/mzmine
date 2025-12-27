@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -31,6 +32,7 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.input.MouseEvent;
@@ -78,6 +80,27 @@ public abstract class ChartCell<T extends EChartViewer> extends
 
   protected boolean cellHasNoData() {
     return getTableRow().getItem() == null || isEmpty();
+  }
+
+
+  @Override
+  protected void updateItem(Object o, boolean visible) {
+    // always need to call super.updateItem
+    super.updateItem(o, visible);
+
+    if (!isValidCell()) {
+      return;
+    }
+
+    // clear zoom history because it comes from old data
+    plot.getZoomHistory().clear();
+
+    // remove crosshair, determined by cursor position in FxXYPlot
+    final JFreeChart chart = plot.getChart();
+    if (chart != null && chart.getXYPlot() instanceof FxXYPlot xyplot) {
+      xyplot.setCursorPosition(null);
+      xyplot.removeAllDatasets();
+    }
   }
 
   /**
