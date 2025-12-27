@@ -26,13 +26,11 @@
 package io.github.mzmine.util.collections;
 
 /**
- *
+ * Uses factories in {@link IndexRange}
  */
-public final class EmptyIndexRange implements IndexRange {
+final class EmptyIndexRange implements IndexRange {
 
-  public static final EmptyIndexRange INSTANCE = new EmptyIndexRange();
-
-  private EmptyIndexRange() {
+  EmptyIndexRange() {
   }
 
   public int size() {

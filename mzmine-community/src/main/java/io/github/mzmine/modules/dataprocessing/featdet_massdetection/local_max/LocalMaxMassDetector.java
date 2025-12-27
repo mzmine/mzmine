@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.collections.IndexRange;
-import io.github.mzmine.util.collections.SimpleIndexRange;
 import io.github.mzmine.util.maths.Weighting;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -176,7 +175,7 @@ public class LocalMaxMassDetector implements MassDetector {
         // Only add regions that contain enough data points to form a peak (e.g., > 2 points)
         // data point at i was a jump to a new region so exclude this point
         if (i - currentRegionStart >= minNonZeroDp && onePointAboveNoise) {
-          consecutiveRanges.add(new SimpleIndexRange(currentRegionStart, i - 1));
+          consecutiveRanges.add(IndexRange.ofInclusive(currentRegionStart, i - 1));
         }
         currentRegionStart = i;
         onePointAboveNoise = false;
@@ -187,7 +186,7 @@ public class LocalMaxMassDetector implements MassDetector {
 
     // Add the final region if valid
     if (numPoints - currentRegionStart >= minNonZeroDp && onePointAboveNoise) {
-      consecutiveRanges.add(new SimpleIndexRange(currentRegionStart, numPoints - 1));
+      consecutiveRanges.add(IndexRange.ofInclusive(currentRegionStart, numPoints - 1));
     }
 
     // Handle case where spectrum was all zeros or empty
