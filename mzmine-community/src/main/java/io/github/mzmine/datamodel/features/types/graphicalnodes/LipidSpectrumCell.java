@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,20 +25,52 @@
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import java.util.concurrent.atomic.AtomicInteger;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
-import javafx.util.Callback;
+import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
+import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidSpectrumPlot;
 
-public class ChromatogramFeatureShapeCellFactory implements
-    Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
+public class LipidSpectrumCell extends ChartCell<LipidSpectrumPlot> {
 
-  // uses a counter to label the first cell that seems to be the measurement cell
-  public final AtomicInteger counter = new AtomicInteger(0);
+  public LipidSpectrumCell(int id) {
+    super(id);
+
+  }
 
   @Override
-  public TreeTableCell<ModularFeatureListRow, Object> call(
-      TreeTableColumn<ModularFeatureListRow, Object> column) {
-    return new ChromatogramFeatureShapeCell(counter.getAndIncrement());
+  protected void updateItem(Object o, boolean b) {
+    super.updateItem(o, b);
+
+    if (!isValidCell()) {
+      return;
+    }
+    if (cellHasNoData()) {
+      getChart().setVisible(false);
+      return;
+    }
+
+    final ModularFeatureListRow row = getTableRow().getItem();
+    if (row == null || row.getLipidMatches().isEmpty()) {
+      getChart().clearPlot();
+      getChart().setVisible(false);
+      return;
+    }
+    getChart().setVisible(true);
+
+    getChart().updateLipidSpectrum(row.getLipidMatches().getFirst(), true, RunOption.THIS_THREAD);
+  }
+
+  @Override
+  protected int getMinCellHeight() {
+    return GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT;
+  }
+
+  @Override
+  protected double getMinCellWidth() {
+    return GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH;
+  }
+
+  @Override
+  protected LipidSpectrumPlot createChart() {
+    return new LipidSpectrumPlot(null, true, RunOption.THIS_THREAD);
   }
 }

@@ -30,28 +30,15 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.Range;
@@ -62,27 +49,20 @@ import org.jfree.data.Range;
  * The first cell seems to be the measurement cell and is never updated here as there are many calls
  * to update item on cell 0 and just single calls on all other cells.
  */
-public class ChromatogramFeatureShapeCell extends TreeTableCell<ModularFeatureListRow, Object> {
-
-  private static final Logger logger = Logger.getLogger(
-      ChromatogramFeatureShapeCell.class.getName());
-
-  private final SimpleXYChart<IonTimeSeriesToXYProvider> plot;
-  private final Region view;
-  private final int id;
+public class ChromatogramFeatureShapeCell extends XyChartCell {
 
   public ChromatogramFeatureShapeCell(int id) {
-    super();
-    this.id = id;
-    setMinWidth(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH);
-    setMinHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+    super(id);
+  }
 
-    plot = createChart();
-    // use stackpane as it is transparent / borderpane is not
-    view = new StackPane(plot);
+  @Override
+  protected int getMinCellHeight() {
+    return GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT;
+  }
 
-    graphicProperty().bind(emptyProperty().map(empty -> empty ? null : view));
+  @Override
+  protected double getMinCellWidth() {
+    return GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH;
   }
 
   @Override
@@ -90,30 +70,19 @@ public class ChromatogramFeatureShapeCell extends TreeTableCell<ModularFeatureLi
     // always need to call super.updateItem
     super.updateItem(o, visible);
 
+    if (!isValidCell() || cellHasNoData()) {
+      // datasets removed and plot cleared in XyChartCell.updateItem
+      return;
+    }
+
     final ModularFeatureListRow row = getTableRow().getItem();
-    // first cell with id 0 seems to be just the measuring cell - no need to put content.
-    // the chart itself already helps measurements
-    if (id == 0) {
-      return;
-    }
-
-    // remove crosshair, determined by cursor position in FxXYPlot
-    plot.setCursorPosition(null);
-
-    if (row == null || isEmpty()) {
-      plot.removeAllDatasets();
-      return;
-    }
-
-    // clear zoom history because it comes from old data
-    plot.getZoomHistory().clear();
 
     // for selecting a range
     com.google.common.collect.Range<Float> featureRTRange = null;
     Float maxHeight = null;
 
     //
-    int size = row.getFilesFeatures().size();
+    final int size = row.getFilesFeatures().size();
     ArrayList<ColoredXYDataset> datasets = new ArrayList<>(size);
     for (ModularFeature f : row.getFeatures()) {
       if (f.getRawDataFile() instanceof ImagingRawDataFile) {
@@ -135,7 +104,7 @@ public class ChromatogramFeatureShapeCell extends TreeTableCell<ModularFeatureLi
     }
 
     if (datasets.isEmpty()) {
-      plot.removeAllDatasets();
+      // datasets removed in XyChartCell.updateItem
       return;
     }
 
@@ -143,11 +112,11 @@ public class ChromatogramFeatureShapeCell extends TreeTableCell<ModularFeatureLi
     featureRTRange = RangeUtils.withinBounds(featureRTRange, 0f, null);
     final Range rtRange = RangeUtils.guavaToJFree(featureRTRange);
 
-    final float finalMaxHeight = maxHeight;
-    plot.applyWithNotifyChanges(false, true, () -> {
-      plot.setDatasets(datasets);
+    final double finalMaxHeight = maxHeight * 1.2;
+    getChart().applyWithNotifyChanges(false, true, () -> {
+      getChart().setDatasets(datasets);
 
-      final XYPlot xyplot = plot.getXYPlot();
+      final XYPlot xyplot = getChart().getXYPlot();
       xyplot.getRangeAxis().setRange(new Range(0, finalMaxHeight), true, false);
       xyplot.getRangeAxis().setUpperMargin(0.025);
       xyplot.getDomainAxis().setRange(rtRange, true, false);
@@ -155,7 +124,8 @@ public class ChromatogramFeatureShapeCell extends TreeTableCell<ModularFeatureLi
     });
   }
 
-  private SimpleXYChart<IonTimeSeriesToXYProvider> createChart() {
+  @Override
+  protected SimpleXYChart<IonTimeSeriesToXYProvider> createChart() {
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
 
     SimpleXYChart<IonTimeSeriesToXYProvider> chart = new SimpleXYChart<>(
@@ -165,12 +135,6 @@ public class ChromatogramFeatureShapeCell extends TreeTableCell<ModularFeatureLi
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
     chart.setLegendItemsVisible(false);
     chart.setPrefWidth(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH);
-
-    chart.getMouseAdapter().addGestureHandler(new ChartGestureHandler(
-        new ChartGesture(Entity.ALL, Event.DOUBLE_CLICK, GestureButton.BUTTON1), _ -> {
-      final ModularFeatureListRow row = getTableRow().getItem();
-      FxThread.runLater(() -> ChromatogramVisualizerModule.visualizeFeatureListRows(List.of(row)));
-    }));
 
     return chart;
   }

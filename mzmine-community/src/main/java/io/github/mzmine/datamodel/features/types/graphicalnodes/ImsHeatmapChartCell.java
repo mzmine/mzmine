@@ -24,11 +24,12 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
@@ -38,25 +39,71 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
-import java.util.NoSuchElementException;
-import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.NumberAxis;
 
-/*
- * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+/**
+ * Currently not used because the dataset needs computation on another thread anyway.
  */
-public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends BufferedChartNode {
+@Deprecated
+public class ImsHeatmapChartCell extends ChartCell<SimpleXYZScatterPlot<?>> {
 
-  public FeatureShapeIonMobilityRetentionTimeHeatMapChart(@NotNull ModularFeature f,
-      AtomicDouble progress) {
-    super(true);
+  private final RawDataFile file;
 
-    final var type = new FeatureShapeIonMobilityRetentionTimeHeatMapType();
+  public ImsHeatmapChartCell(int id, final RawDataFile file) {
+    this.file = file;
+    super(id);
+  }
 
-    SimpleXYZScatterPlot<IonMobilogramTimeSeriesToRtMobilityHeatmapProvider> chart = new SimpleXYZScatterPlot<>();
-    ColoredXYZDataset dataset = new ColoredXYZDataset(
-        new IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(f), RunOption.THIS_THREAD);
-    MobilityType mt = ((IMSRawDataFile) f.getRawDataFile()).getMobilityType();
+  @Override
+  protected void updateItem(Object o, boolean b) {
+    super.updateItem(o, b);
+
+    if (!isValidCell()) {
+      return;
+    }
+    // remove crosshair, determined by cursor position in FxXYPlot
+    plot.setCursorPosition(null);
+    // clear zoom history because it comes from old data
+    plot.getZoomHistory().clear();
+    plot.removeAllDatasets();
+
+    System.out.println(
+        "imts " + getTableColumn().getWidth() + " " + getWidth() + " " + getMinWidth());
+
+    if (cellHasNoData()) {
+      return;
+    }
+
+    final ModularFeatureListRow row = getTableRow().getItem();
+    ModularFeature feature = row.getFeature(file);
+    if (feature != null && feature.getFeatureData() instanceof IonMobilogramTimeSeries) {
+      getChart().setVisible(true);
+      ColoredXYZDataset dataset = new ColoredXYZDataset(
+          new IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(feature), RunOption.THIS_THREAD);
+      getChart().getXYPlot().getDomainAxis()
+          .setRange(RangeUtils.guavaToJFree(feature.getRawDataPointsRTRange()));
+      getChart().getXYPlot().getRangeAxis()
+          .setRange(RangeUtils.guavaToJFree(feature.getMobilityRange()));
+      getChart().setDataset(dataset);
+    } else {
+      getChart().setVisible(false);
+    }
+  }
+
+  @Override
+  protected int getMinCellHeight() {
+    return GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT;
+  }
+
+  @Override
+  protected double getMinCellWidth() {
+    return GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH;
+  }
+
+  @Override
+  protected SimpleXYZScatterPlot<?> createChart() {
+    final SimpleXYZScatterPlot<IonMobilogramTimeSeriesToRtMobilityHeatmapProvider> chart = new SimpleXYZScatterPlot<>();
+    MobilityType mt = ((IMSRawDataFile) file).getMobilityType();
     UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
     chart.setRangeAxisLabel(mt.getAxisLabel());
     chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getMobilityFormat());
@@ -65,25 +112,13 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends BufferedCh
     chart.setLegendNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
     NumberAxis axis = (NumberAxis) chart.getXYPlot().getRangeAxis();
-    chart.setDataset(dataset);
     axis.setAutoRange(true);
     axis.setAutoRangeIncludesZero(false);
     axis.setAutoRangeStickyZero(false);
     axis.setAutoRangeMinimumSize(0.005);
-    setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    setPrefWidth(type.getColumnWidth());
+    chart.setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
+    chart.setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH);
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
-
-    try {
-      chart.getXYPlot().getDomainAxis().setRange(RangeUtils.guavaToJFree(
-          RangeUtils.getPositiveRange(dataset.getDomainValueRange(), 0.001d)), false, true);
-      chart.getXYPlot().getRangeAxis().setRange(RangeUtils.guavaToJFree(
-          RangeUtils.getPositiveRange(dataset.getRangeValueRange(), 0.0001d)), false, true);
-    } catch (NullPointerException | NoSuchElementException e) {
-      // error in jfreechart draw method
-    }
-
-    setChartCreateImage(chart, (int) type.getColumnWidth(),
-        GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
+    return chart;
   }
 }
