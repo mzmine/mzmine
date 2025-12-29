@@ -25,10 +25,6 @@
 
 package io.github.mzmine.gui.mainwindow.workspace;
 
-import static io.github.mzmine.util.javafx.FxMenuUtil.addModuleMenuItem;
-import static io.github.mzmine.util.javafx.FxMenuUtil.addModuleMenuItems;
-import static io.github.mzmine.util.javafx.FxMenuUtil.addSeparator;
-
 import io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra.IntraFeatureRowMs2SimilarityModule;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAModule;
 import io.github.mzmine.modules.dataanalysis.significance.anova.AnovaModule;
@@ -80,6 +76,7 @@ import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModul
 import io.github.mzmine.modules.dataprocessing.norm_ri.RICalculationModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
+import io.github.mzmine.modules.dataprocessing.transform_rttotemperature.RTtoTemperatureModule;
 import io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
@@ -88,13 +85,16 @@ import io.github.mzmine.util.javafx.ModuleMenuItem;
 import io.mzio.mzmine.gui.workspace.WorkspaceMenuHelper;
 import io.mzio.mzmine.gui.workspace.WorkspaceTags;
 import io.mzio.users.user.MZmineUser;
-import java.util.EnumSet;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.EnumSet;
+
+import static io.github.mzmine.util.javafx.FxMenuUtil.*;
 
 public final class AcademicWorkspace extends AbstractWorkspace {
 
@@ -139,11 +139,11 @@ public final class AcademicWorkspace extends AbstractWorkspace {
 
     addModuleMenuItems(menu, "Spectra processing", MassDetectionModule.class,
         MobilityScanMergerModule.class, ShoulderPeaksFilterModule.class,
-        ScanSignalRemovalModule.class, MassCalibrationModule.class);
+            ScanSignalRemovalModule.class, MassCalibrationModule.class, RTtoTemperatureModule.class);
 
     addModuleMenuItems(menu, "Raw data filtering", ScanFiltersModule.class, CropFilterModule.class,
         AlignScansModule.class, ScanSmoothingModule.class,
-        DenormalizeScansMultiplyByInjectTimeModule.class, MaldiPseudoFileGeneratorModule.class);
+            DenormalizeScansMultiplyByInjectTimeModule.class, MaldiPseudoFileGeneratorModule.class, RTtoTemperatureModule.class);
 
     addSeparator(menu);
 
