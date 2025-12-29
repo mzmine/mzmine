@@ -78,6 +78,9 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
       Filters V-shaped dips in the baseline (--v--) that are caused by instable sprays and may behave like an unresolved double peak.
       Default: enable for LC-MS, disable for GC-EI-MS""", DEFAULT_DIP_FILTER);
 
+  public static final BooleanParameter useSurrounding = new BooleanParameter("use surrounding", "",
+      true);
+
   public static final AdvancedParametersParameter<AdvancedWaveletParameters> advancedParameters = new AdvancedParametersParameter<>(
       new AdvancedWaveletParameters());
 
@@ -86,7 +89,7 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_wavelet/wavelet_resolver.html",
         GeneralResolverParameters.PEAK_LISTS, GeneralResolverParameters.dimension,
         GeneralResolverParameters.groupMS2Parameters, snr, topToEdge, minHeight, noiseCalculation,
-        dipFilter,
+        dipFilter, useSurrounding,
 
         GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS, GeneralResolverParameters.SUFFIX,
         GeneralResolverParameters.handleOriginal,
