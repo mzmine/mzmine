@@ -28,6 +28,10 @@
     -fx-background-color: -jr-base;
 }
 
+.root {
+  -chart-plot-background: -jr-background-alt;
+}
+
 .notification-bar > .pane {
   -fx-background-color: -jr-base;
   -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.3), 9, 0, 0, 2);
@@ -188,4 +192,8 @@
 .large-title-pane > .title > .text {
   -fx-font-size: 10.0pt;
   -fx-font-weight: bold;
+}
+
+.chart-plot-background {
+  -fx-background-color: -chart-plot-background;
 }

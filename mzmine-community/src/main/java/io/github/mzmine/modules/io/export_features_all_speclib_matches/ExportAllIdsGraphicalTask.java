@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -241,7 +241,9 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
       // set background for images to lowest intensity color
       final Color background = MZmineCore.getConfiguration().getDefaultPaintScalePalette().get(0);
       exportClone.getParameter(GraphicsExportParameters.chartParameters).getEmbeddedParameters()
-          .setParameter(ExportChartThemeParameters.color, background);
+          .setParameter(ExportChartThemeParameters.chartBackgroundColor, background);
+      exportClone.getParameter(GraphicsExportParameters.chartParameters).getEmbeddedParameters()
+          .setParameter(ExportChartThemeParameters.plotBackgroundColor, false);
       Feature f = row.getFeature(imsFile);
       final ImageChart imageChart = new ImageChart((ModularFeature) f, new AtomicDouble());
       if (imageChart instanceof SimpleChart c) {

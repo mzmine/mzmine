@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,8 @@
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
 
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxFontUtil;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -37,10 +39,9 @@ import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.javafx.util.FxColorUtil;
-import io.github.mzmine.javafx.util.FxFontUtil;
 import java.awt.BasicStroke;
 import java.text.DecimalFormat;
+import java.util.Map;
 import javafx.application.Platform;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -65,8 +66,16 @@ public class ChartThemeParameters extends SimpleParameterSet {
   public static final OptionalParameter<StringParameter> ylabel = new OptionalParameter<>(
       new StringParameter("Change y", "", "y"));
 
-  public static final ColorParameter color = new ColorParameter("Background", "Background color",
-      Color.WHITE);
+  /**
+   * usually chart bg is transparent in the software and we use the plot background color to control
+   * better the visibility of the data on the background color.
+   */
+  public static final ColorParameter chartBackgroundColor = new ColorParameter("Chart background",
+      "Background color of chart", Color.TRANSPARENT);
+
+  public static final OptionalParameter<ColorParameter> plotBackgroundColor = new OptionalParameter<>(
+      new ColorParameter("Plot background", "Background color of the plot data area", Color.WHITE),
+      true);
 
   public static final FontParameter masterFont = new FontParameter("Master",
       "Master font changes all fonts",
@@ -100,8 +109,8 @@ public class ChartThemeParameters extends SimpleParameterSet {
         // chart specific - e.g., for export
         showTitle, changeTitle, showSubtitles, showLegends, xlabel, ylabel,
         // general
-        dataLineWidth, color, masterFont, titleFont, subTitleFont, axisLabelFont, itemLabelFont,
-        xGridPaint, yGridPaint, showXAxis, showYAxis});
+        dataLineWidth, chartBackgroundColor, plotBackgroundColor, masterFont, titleFont,
+        subTitleFont, axisLabelFont, itemLabelFont, xGridPaint, yGridPaint, showXAxis, showYAxis});
     changeTitle.setValue(false);
     xlabel.setValue(false);
     ylabel.setValue(false);
@@ -150,7 +159,9 @@ public class ChartThemeParameters extends SimpleParameterSet {
     FontSpecs subtitleFont = this.getParameter(ChartThemeParameters.subTitleFont).getValue();
     FontSpecs axisLabels = this.getParameter(ChartThemeParameters.axisLabelFont).getValue();
     FontSpecs itemLabels = this.getParameter(ChartThemeParameters.itemLabelFont).getValue();
-    Color bgColor = this.getParameter(ChartThemeParameters.color).getValue();
+    Color chartBgColor = this.getParameter(ChartThemeParameters.chartBackgroundColor).getValue();
+    Color plotBgColor = this.getEmbeddedParameterValueIfSelectedOrElse(
+        ChartThemeParameters.plotBackgroundColor, chartBgColor);
     double dataLineWidth = this.getValue(ChartThemeParameters.dataLineWidth);
 
     theme.setShowTitle(showTitle);
@@ -158,8 +169,8 @@ public class ChartThemeParameters extends SimpleParameterSet {
     theme.setShowLegend(showLegends);
     theme.setTitle(newTitle);
     theme.setChangeTitle(changeTitle);
-    theme.setChartBackgroundPaint(FxColorUtil.fxColorToAWT(bgColor));
-    theme.setPlotBackgroundPaint(FxColorUtil.fxColorToAWT(bgColor));
+    theme.setChartBackgroundPaint(FxColorUtil.fxColorToAWT(chartBgColor));
+    theme.setPlotBackgroundPaint(FxColorUtil.fxColorToAWT(plotBgColor));
 
     theme.setMasterFont(FxFontUtil.fxFontToAWT(master.getFont()));
     theme.setExtraLargeFont(FxFontUtil.fxFontToAWT(titleFont.getFont()));
@@ -192,5 +203,12 @@ public class ChartThemeParameters extends SimpleParameterSet {
     theme.setClrYGrid(FxColorUtil.fxColorToAWT(cygrid));
 
     theme.setDefaultDataStroke(new BasicStroke((float) dataLineWidth));
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    final Map<String, Parameter<?>> map = super.getNameParameterMap();
+    map.put("Background", getParameter(chartBackgroundColor));
+    return map;
   }
 }
