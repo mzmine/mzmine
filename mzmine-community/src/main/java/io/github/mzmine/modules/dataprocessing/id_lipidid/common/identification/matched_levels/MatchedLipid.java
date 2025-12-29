@@ -30,8 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
+import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
@@ -342,7 +341,7 @@ public class MatchedLipid implements FeatureAnnotation {
   @Override
   public @Nullable IonType getAdductType() {
     try {
-      return IonTypeParser.parse(getIonizationType().toString());
+      return getIonizationType().toIonType();
     } catch (Exception e) {
       logger.fine(() -> "Error parsing ion type " + getIonizationType().toString());
       return null;

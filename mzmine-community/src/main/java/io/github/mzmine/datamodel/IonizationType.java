@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,13 +25,23 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.IonTypeParser;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
+/**
+ * This class will be removed in the future and replaced by {@link IonType} and {@link IonLibrary}
+ * <p>
+ * Use {@link #toIonType()} to convert for now and slowly replace usage.
+ */
+@Deprecated
 public enum IonizationType {
 
   NO_IONIZATION("No ionization", "", "", PolarityType.NEUTRAL, -6, 0, 0), //
@@ -162,6 +172,8 @@ public enum IonizationType {
   private final IMolecularFormula addedFormula;
   private final IMolecularFormula removedFormula;
   private final PolarityType polarity;
+  @Nullable
+  private final IonType ion;
   private final double addedMass;
   private final double log10freq;
   private final int numMol;
@@ -188,6 +200,12 @@ public enum IonizationType {
             MolecularFormulaManipulator.MonoIsotopic) : 0d;
 
     this.addedMass = (added - removed - charge * FormulaUtils.electronMass);
+
+    if (numMol == 0 && polarity == PolarityType.NEUTRAL) {
+      ion = null;
+    } else {
+      ion = IonTypeParser.parse(name);
+    }
   }
 
   public String getAdductName() {
@@ -254,5 +272,13 @@ public enum IonizationType {
 
   public IMolecularFormula getAddedFormula() {
     return addedFormula;
+  }
+
+  /**
+   *
+   * @return null if no ionization was selected, otherwise returns the ion.
+   */
+  public @Nullable IonType toIonType() {
+    return ion;
   }
 }
