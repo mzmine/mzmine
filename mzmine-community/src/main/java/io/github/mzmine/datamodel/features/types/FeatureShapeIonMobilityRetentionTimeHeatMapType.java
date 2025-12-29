@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -63,16 +64,6 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraph
     return "Ion mobility trace";
   }
 
-  /*@Override
-  public @Nullable TreeTableColumn<ModularFeatureListRow, Object> createColumn(
-      @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType) {
-    final TreeTableColumn<ModularFeatureListRow, Object> column = super.createColumn(raw,
-        parentType);
-    column.setCellFactory(new CountingFeatureChartCellFactory(i -> new ImsHeatmapChartCell(i, raw)));
-    column.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(cdf.getValue().getValue()));
-    return column;
-  }*/
-
   @Override
   public @Nullable Node createCellContent(ModularFeatureListRow row, Boolean cellData,
       RawDataFile raw, AtomicDouble progress) {
@@ -103,8 +94,9 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraph
 
   @Nullable
   @Override
-  public Runnable getDoubleClickAction(final @Nullable FeatureTableFX table, @NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
+  public Runnable getDoubleClickAction(final @Nullable FeatureTableFX table,
+      @NotNull ModularFeatureListRow row, @NotNull List<RawDataFile> file, DataType<?> superType,
+      @Nullable final Object value) {
     return () -> FxThread.runLater(() -> MZmineCore.getDesktop()
         .addTab(new IMSFeatureVisualizerTab(row.getFeature(file.get(0)))));
   }

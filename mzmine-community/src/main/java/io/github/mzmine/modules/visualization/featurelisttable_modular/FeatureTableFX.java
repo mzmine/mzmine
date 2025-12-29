@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -951,6 +952,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   private void handleClickOnCell(final TreeTablePosition<ModularFeatureListRow, ?> focusedCell,
       final TreeTableColumn<ModularFeatureListRow, ?> tableColumn, final MouseEvent e) {
 
+    // changed to exactly two clicks - otherwise 3 clicks trigger 2 events with 2 and 3 clicks
     if (e.getClickCount() == 2 && e.getButton() == MouseButton.PRIMARY) {
       if (getFeatureList() == null) {
         return;
