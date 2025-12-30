@@ -206,12 +206,8 @@ public class ResultFormula extends MolecularFormulaIdentity {
             }
           }
 
-          try {
-            var ionized = ionType.addToFormula(formula, true);
-            c.accept(new ResultFormula(ionized, row));
-          } catch (CloneNotSupportedException e) {
-            return;
-          }
+          var ionized = ionType.addToFormula(formula, true);
+          c.accept(new ResultFormula(ionized, row));
         }).toList(); // keep only unique formula
 
     if (dropDuplicates) {

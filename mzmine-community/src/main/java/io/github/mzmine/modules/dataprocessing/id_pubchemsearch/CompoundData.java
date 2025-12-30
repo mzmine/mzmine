@@ -130,11 +130,7 @@ public record CompoundData(
     }
 
     if (ionType != null && formula != null) {
-      try {
-        formula = ionType.addToFormula(formula, true);
-      } catch (CloneNotSupportedException e) {
-        //
-      }
+      formula = ionType.addToFormula(formula, true);
     }
 
     if (formula == null) {
