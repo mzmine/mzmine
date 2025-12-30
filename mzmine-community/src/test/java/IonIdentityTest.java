@@ -25,6 +25,7 @@
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -96,8 +97,8 @@ public class IonIdentityTest {
     rowProtonated = spy(rowProtonated);
     rowSodiated = spy(rowSodiated);
     // return some fixed mz and rt
-    doReturn(mz + hAdduct.getMassDifference()).when(rowProtonated).getAverageMZ();
-    doReturn(mz + naAdduct.getMassDifference()).when(rowSodiated).getAverageMZ();
+    doReturn(mz + hAdduct.totalMass()).when(rowProtonated).getAverageMZ();
+    doReturn(mz + naAdduct.totalMass()).when(rowSodiated).getAverageMZ();
 
     // add rows
     flist.addRow(rowProtonated);
@@ -110,9 +111,14 @@ public class IonIdentityTest {
     group.add(rowSodiated);
     flist.setGroups(groups);
 
-    // add ions to rows
-    IonIdentity.addAdductIdentityToRow(new MZTolerance(1, 10), rowProtonated, hAdduct, rowSodiated,
-        naAdduct);
+    // add ions to rows - not really done much as the tasks handle this
+    final IonNetwork network = new IonNetwork(MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA, 1);
+    final IonIdentity ionH = new IonIdentity(hAdduct);
+    ionH.setNetwork(network);
+    rowProtonated.addIonIdentity(ionH);
+    final IonIdentity ionNa = new IonIdentity(naAdduct);
+    ionNa.setNetwork(network);
+    rowSodiated.addIonIdentity(ionNa);
 
     assertNotNull(rowProtonated.get(new IonIdentityListType()));
     assertNotNull(rowProtonated.get(IonIdentityListType.class));
