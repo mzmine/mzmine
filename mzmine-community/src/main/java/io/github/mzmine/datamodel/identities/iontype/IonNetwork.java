@@ -41,6 +41,7 @@ import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An annotation network full of ions that point to the same neutral molecule (neutral mass)
@@ -486,5 +487,17 @@ public class IonNetwork implements Comparable<IonNetwork> {
       }
     }
     return false;
+  }
+
+  public IonIdentity get(@Nullable FeatureListRow row) {
+    if (row == null) {
+      return null;
+    }
+    for (IonNetworkNode node : nodes) {
+      if (row.equals(node.row())) {
+        return node.ion();
+      }
+    }
+    return null;
   }
 }
