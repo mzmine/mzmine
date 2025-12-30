@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.io.export_msmsquality;
 
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.util.io.CSVUtils;
 import java.util.List;
@@ -54,7 +53,7 @@ public record SpectrumMsMsQuality(int rowId, float purity, MSMSScore score, int 
     return Stream.of(Integer.toString(rowId),
             annotation != null ? annotation.getCompoundName() : "",
             annotation != null && annotation.getAdductType() != null ? annotation.getAdductType()
-                .toString(IonTypeStringFlavor.SIMPLE_DEFAULT) : "", Float.toString(purity),
+                .toString() : "", Float.toString(purity),
             (score.explainedIntensity() >= 0 ? String.valueOf(score.explainedIntensity()) : "0"),
             (score.explainedSignals() >= 0 ? String.valueOf(score.explainedSignals()) : "0"),
             Integer.toString(numPeaks), Float.toString(spectralEntropy),

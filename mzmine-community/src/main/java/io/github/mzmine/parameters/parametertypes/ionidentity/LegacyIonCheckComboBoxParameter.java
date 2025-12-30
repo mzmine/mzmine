@@ -26,7 +26,6 @@
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import java.util.List;
 import javafx.util.StringConverter;
@@ -66,13 +65,13 @@ public class LegacyIonCheckComboBoxParameter extends CheckComboParameter<IonType
     combo.setConverter(new StringConverter<>() {
       @Override
       public String toString(final IonType ion) {
-        return ion.toString(IonTypeStringFlavor.SIMPLE_DEFAULT);
+        return ion.toString();
       }
 
       @Override
       public IonType fromString(final String string) {
         for (final IonType choice : choices) {
-          if (choice.toString(IonTypeStringFlavor.SIMPLE_DEFAULT).equals(string)) {
+          if (choice.toString().equals(string)) {
             return choice;
           }
         }

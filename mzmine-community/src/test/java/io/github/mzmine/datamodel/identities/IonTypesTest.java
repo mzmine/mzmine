@@ -25,7 +25,6 @@
 
 package io.github.mzmine.datamodel.identities;
 
-import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -39,8 +38,8 @@ class IonTypesTest {
 
   @Test
   void testIonTypesDuplicates() {
-    final Map<String, List<IonTypes>> duplicates = Arrays.stream(IonTypes.values()).collect(
-        Collectors.groupingBy(ion -> ion.asIonType().toString(IonTypeStringFlavor.SIMPLE_DEFAULT)));
+    final Map<String, List<IonTypes>> duplicates = Arrays.stream(IonTypes.values())
+        .collect(Collectors.groupingBy(ion -> ion.asIonType().toString()));
 
     StringBuilder errors = new StringBuilder();
 

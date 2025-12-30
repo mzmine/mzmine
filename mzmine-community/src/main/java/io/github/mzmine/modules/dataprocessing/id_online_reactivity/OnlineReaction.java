@@ -29,7 +29,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,8 +64,7 @@ public record OnlineReaction(String reactionName, String filenameContains, Strin
         if (eductAdduct.equals(productAdduct)) {
           continue;
         }
-        String suffix = ": " + eductAdduct.toString(IonTypeStringFlavor.SIMPLE_DEFAULT) + " → "
-            + productAdduct.toString(IonTypeStringFlavor.SIMPLE_DEFAULT);
+        String suffix = ": " + eductAdduct.toString() + " → " + productAdduct.toString();
         double deltaMz = productAdduct.totalMass() - eductAdduct.totalMass();
         reactions.add(this.withNameSuffix(suffix, deltaMz));
       }

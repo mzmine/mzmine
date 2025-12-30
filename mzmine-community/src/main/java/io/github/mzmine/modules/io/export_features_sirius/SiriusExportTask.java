@@ -38,7 +38,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
-import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -413,7 +412,7 @@ public class SiriusExportTask extends AbstractTask {
           IonIdentity otherIon = null;
           if (network != null && (otherIon = network.get(groupedRow)) != null) {
             dps.add(new AnnotatedDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight(),
-                otherIon.getIonType().toString(IonTypeStringFlavor.SIMPLE_DEFAULT)));
+                otherIon.toString()));
           } else {
             dps.add(new SimpleDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight()));
           }

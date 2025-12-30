@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.identities.IonTypeParser;
 import io.github.mzmine.datamodel.identities.IonTypes;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -55,7 +54,7 @@ public class IINTests {
         "%s charge was wrong as %d".formatted(input, charge));
     Assertions.assertEquals(mol, ionType.molecules(),
         "%s mol was wrong as %d".formatted(input, mol));
-    Assertions.assertEquals(formatted, ionType.toString(IonTypeStringFlavor.SIMPLE_DEFAULT));
+    Assertions.assertEquals(formatted, ionType.toString());
   }
 
   @Test
@@ -65,8 +64,7 @@ public class IINTests {
 
     for (String s : string) {
       IonType ionType = IonTypeParser.parse(s);
-      Assertions.assertEquals(type1.toString(IonTypeStringFlavor.SIMPLE_DEFAULT),
-          ionType.toString(IonTypeStringFlavor.SIMPLE_DEFAULT));
+      Assertions.assertEquals(type1.toString(), ionType.toString());
     }
   }
 
@@ -77,7 +75,7 @@ public class IINTests {
     for (String s : string) {
       IonType ionType = IonTypeParser.parse(s);
       Assertions.assertNotNull(ionType);
-      Assertions.assertEquals(s, ionType.toString(IonTypeStringFlavor.SIMPLE_DEFAULT));
+      Assertions.assertEquals(s, ionType.toString());
     }
   }
 

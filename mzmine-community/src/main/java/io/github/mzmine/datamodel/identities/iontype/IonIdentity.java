@@ -26,7 +26,6 @@
 package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingTask;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule;
@@ -83,7 +82,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
 
   @Override
   public String toString() {
-    return ionType.toString(IonTypeStringFlavor.SIMPLE_DEFAULT);
+    return ionType.toString();
   }
 
   public boolean equalsIonType(IonType ion) {

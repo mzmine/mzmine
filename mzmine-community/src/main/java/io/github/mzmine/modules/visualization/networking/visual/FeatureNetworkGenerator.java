@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
-import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
@@ -539,8 +538,7 @@ public class FeatureNetworkGenerator {
       // all intensitites of all iontypes
       for (var e : net.getNodes()) {
         IonIdentity ion = e.ion();
-        node.setAttribute(
-            "Intensity(" + ion.getIonType().toString(IonTypeStringFlavor.SIMPLE_DEFAULT) + ")",
+        node.setAttribute("Intensity(" + ion.toString() + ")",
             e.row().getBestFeature().getHeight());
       }
 

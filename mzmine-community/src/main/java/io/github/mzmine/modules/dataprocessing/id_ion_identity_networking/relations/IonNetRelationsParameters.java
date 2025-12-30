@@ -28,7 +28,7 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relat
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonModificationParameter;
+import io.github.mzmine.parameters.parametertypes.ionidentity.LegacyIonModificationParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 

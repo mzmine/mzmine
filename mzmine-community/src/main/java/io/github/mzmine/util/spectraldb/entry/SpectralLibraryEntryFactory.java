@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -225,8 +224,7 @@ public class SpectralLibraryEntryFactory {
     polarity.ifPresent(pol -> entry.putIfNotNull(DBEntryField.POLARITY, pol));
 
     final Optional<IonType> ionType = FeatureUtils.extractBestIonIdentity(match, row);
-    ionType.ifPresent(ion -> entry.putIfNotNull(DBEntryField.ION_TYPE,
-        ion.toString(IonTypeStringFlavor.SIMPLE_DEFAULT)));
+    ionType.ifPresent(ion -> entry.putIfNotNull(DBEntryField.ION_TYPE, ion.toString()));
 
     // online reactivity workflow
     addOnlineReactivityFlags(entry, row);

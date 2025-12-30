@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
@@ -117,7 +116,7 @@ public class IonNetworkRefinementTask extends AbstractTask {
    * @return name as unique id
    */
   private static String uniqueID(IonType n) {
-    return n.toString(IonTypeStringFlavor.SIMPLE_DEFAULT);
+    return n.toString();
   }
 
   @Override

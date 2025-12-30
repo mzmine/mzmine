@@ -27,7 +27,6 @@ package io.github.mzmine.datamodel.identities.ms2;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSDataPointIdentity;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
@@ -46,7 +45,7 @@ public class MSMSIonIdentity extends AbstractMSMSDataPointIdentity {
 
   @Override
   public String getName() {
-    return type.toString(IonTypeStringFlavor.SIMPLE_DEFAULT);
+    return type.toString();
   }
 
   /**

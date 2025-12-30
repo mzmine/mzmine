@@ -38,7 +38,6 @@ import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
-import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
@@ -514,7 +513,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
                 : StringUtils.join(net.getRows(), idSeparator, r -> String.valueOf(r.getID()));
             final int netSize = net == null ? 0 : net.size();
 
-            line.append(ad.getIonType().toString(IonTypeStringFlavor.SIMPLE_DEFAULT)) //
+            line.append(ad.toString()) //
                 .append(fieldSeparator) //
                 .append(msms).append(fieldSeparator) //
                 .append(netSize).append(fieldSeparator) //
