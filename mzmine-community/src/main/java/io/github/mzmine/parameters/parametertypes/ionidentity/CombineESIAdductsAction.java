@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,10 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.actions;
+package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceComponent;
 import java.util.List;
 import javafx.event.ActionEvent;
@@ -35,7 +34,8 @@ import javafx.event.EventHandler;
 /**
  * An action to add custom adducts.
  */
-public class CombineESIAdductsAction implements EventHandler<ActionEvent> {
+@Deprecated
+class CombineESIAdductsAction implements EventHandler<ActionEvent> {
 
   /**
    *
@@ -56,8 +56,7 @@ public class CombineESIAdductsAction implements EventHandler<ActionEvent> {
   public void handle(ActionEvent event) {
     if (parent != null) {
       // Show dialog.
-      CombineIonModificationDialog dialog =
-          new CombineIonModificationDialog(parent.getChoices());
+      CombineIonModificationDialog dialog = new CombineIonModificationDialog(parent.getChoices());
       dialog.showAndWait();
       List<IonModification> add = dialog.getNewTypes();
       if (!add.isEmpty()) {

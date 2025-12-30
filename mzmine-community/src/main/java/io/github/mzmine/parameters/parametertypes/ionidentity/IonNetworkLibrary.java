@@ -23,16 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking;
+package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.identities.SearchableIonLibrary;
 import io.github.mzmine.datamodel.identities.SimpleIonLibrary;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
  * Important: Only used for loading of old parameters.
  */
 @Deprecated
-public class IonNetworkLibrary {
+class IonNetworkLibrary {
 
   private static final Logger LOG = Logger.getLogger(IonNetworkLibrary.class.getName());
 

@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.iontype;
+package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.IonPart;
@@ -52,7 +52,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 @Deprecated
-public class IonType extends NeutralMolecule implements Comparable<IonType> {
+class IonType extends NeutralMolecule implements Comparable<IonType> {
 
   public static final String XML_ELEMENT = "iontype";
   @NotNull

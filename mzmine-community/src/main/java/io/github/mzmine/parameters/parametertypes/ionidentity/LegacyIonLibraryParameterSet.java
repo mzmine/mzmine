@@ -23,14 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.ionidentity.legacy;
+package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
-public class LegacyIonLibraryParameterSet extends SimpleParameterSet {
+@Deprecated
+class LegacyIonLibraryParameterSet extends SimpleParameterSet {
 
   public static final IntegerParameter MAX_CHARGE = new IntegerParameter("Maximum charge",
       "Maximum charge to be used for adduct search.", 2, 1, 100);

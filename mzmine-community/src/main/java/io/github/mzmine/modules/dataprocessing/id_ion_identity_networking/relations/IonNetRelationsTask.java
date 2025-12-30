@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,13 +29,13 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relat
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkCondensedRelation;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkHeteroCondensedRelation;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkModificationRelation;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonModification;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -300,7 +300,7 @@ public class IonNetRelationsTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return "Identification of relationships between ion identity networks in "
-           + featureList.getName() + " ";
+        + featureList.getName() + " ";
   }
 
   @Override
@@ -342,7 +342,7 @@ public class IonNetRelationsTask extends AbstractTask {
       if (searchHeteroCondensed) {
         int counter2 = checkForHeteroCondensed(mzTol, mods, nets);
         logger.info("Found " + counter2
-                    + " condensed molecules (hetero - two different neutral molecules)");
+            + " condensed molecules (hetero - two different neutral molecules)");
       }
 
       // show all as identity

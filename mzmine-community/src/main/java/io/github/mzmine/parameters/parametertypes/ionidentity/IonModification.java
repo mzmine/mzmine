@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.iontype;
+package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 import static java.util.Objects.requireNonNullElse;
 
@@ -53,7 +53,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @Deprecated
-public class IonModification extends NeutralMolecule implements Comparable<IonModification>,
+class IonModification extends NeutralMolecule implements Comparable<IonModification>,
     StringMapParser<IonModification> {
 
   public static Comparator<IonModification> POLARITY_MASS_SORTER = Comparator.comparing(

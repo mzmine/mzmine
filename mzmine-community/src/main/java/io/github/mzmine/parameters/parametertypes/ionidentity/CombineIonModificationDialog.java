@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,11 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.actions;
+package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 
-import io.github.mzmine.datamodel.identities.iontype.CombinedIonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.main.MZmineCore;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +40,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-public class CombineIonModificationDialog extends Stage {
+@Deprecated
+class CombineIonModificationDialog extends Stage {
 
   private final BorderPane mainPane;
 
@@ -123,7 +122,7 @@ public class CombineIonModificationDialog extends Stage {
   }
 
   private void createCombined() {
-    if(combine.getItems().size()>1) {
+    if (combine.getItems().size() > 1) {
       IonModification nt = CombinedIonModification.create(combine.getItems());
       newTypes.add(nt);
       // add to adducts

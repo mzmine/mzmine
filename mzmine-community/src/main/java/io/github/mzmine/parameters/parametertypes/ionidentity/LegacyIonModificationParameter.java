@@ -23,11 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.ionidentity.legacy;
+package io.github.mzmine.parameters.parametertypes.ionidentity;
 
-import io.github.mzmine.datamodel.identities.iontype.CombinedIonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonModificationType;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import java.util.ArrayList;
@@ -50,7 +47,8 @@ import org.w3c.dom.NodeList;
  * @author $Author$
  * @version $Revision$
  */
-public class LegacyIonModificationParameter implements
+@Deprecated
+class LegacyIonModificationParameter implements
     UserParameter<IonModification[][], LegacyIonModificationComponent> {
 
   // Logger.

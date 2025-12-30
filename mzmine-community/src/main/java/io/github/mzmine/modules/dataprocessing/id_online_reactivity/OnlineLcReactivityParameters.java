@@ -25,12 +25,13 @@
 
 package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
 
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.IonTypes;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithExampleExportParameter;
-import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonCheckComboBoxParameter;
+import io.github.mzmine.parameters.parametertypes.ionidentity.LegacyIonCheckComboBoxParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -65,8 +66,7 @@ public class OnlineLcReactivityParameters extends SimpleParameterSet {
       type is either REACTION, EDUCT, PRODUCT""", extensions,
       OnlineLcReactivityParameters::exportExample);
 
-  private static final List<IonModification> adducts = List.of(IonModification.H,
-      IonModification.NA);
+  private static final List<IonType> adducts = IonTypes.listIons(false, IonTypes.H, IonTypes.NA);
 
   public static final LegacyIonCheckComboBoxParameter eductAdducts = new LegacyIonCheckComboBoxParameter(
       "Educt adducts", """

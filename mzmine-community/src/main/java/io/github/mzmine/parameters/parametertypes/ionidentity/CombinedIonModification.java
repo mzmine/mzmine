@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.iontype;
+package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.NeutralMolecule;
@@ -43,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 @Deprecated
-public class CombinedIonModification extends IonModification {
+class CombinedIonModification extends IonModification {
 
   /**
    * Modification parts

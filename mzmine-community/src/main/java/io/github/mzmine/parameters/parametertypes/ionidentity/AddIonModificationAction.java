@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,34 +23,37 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.actions;
+package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonModificationType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.*;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.MultiChoiceComponent;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.SumformulaParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.ArrayList;
+import java.util.Collection;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * An action to add custom adducts.
  *
  */
-public class AddIonModificationAction implements  EventHandler<ActionEvent> {
+@Deprecated
+class AddIonModificationAction implements EventHandler<ActionEvent> {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -70,9 +73,8 @@ public class AddIonModificationAction implements  EventHandler<ActionEvent> {
 
       // Show dialog.
       final AddESIAdductParameters parameters = new AddESIAdductParameters();
-      if (parameters.showSetupDialog(true,
-          IonModificationType.ADDUCT, IonModificationType.CLUSTER, IonModificationType.NEUTRAL_LOSS,
-          IonModificationType.ISOTOPE) == ExitCode.OK) {
+      if (parameters.showSetupDialog(true, IonModificationType.ADDUCT, IonModificationType.CLUSTER,
+          IonModificationType.NEUTRAL_LOSS, IonModificationType.ISOTOPE) == ExitCode.OK) {
 
         //
         int charge = 0;
@@ -99,8 +101,7 @@ public class AddIonModificationAction implements  EventHandler<ActionEvent> {
         final IonModification adduct = new IonModification(type, name, mz, charge);
 
         // Add to list of choices (if not already present).
-        final Collection<IonModification> choices =
-            new ArrayList<>(parent.getChoices());
+        final Collection<IonModification> choices = new ArrayList<>(parent.getChoices());
 
         if (!choices.contains(adduct)) {
           choices.add(adduct);
@@ -120,8 +121,8 @@ public class AddIonModificationAction implements  EventHandler<ActionEvent> {
         "The type of ion modification", IonModificationType.values(), IonModificationType.ADDUCT);
 
     // Adduct name.
-    private static final StringParameter NAME =
-        new StringParameter("Name", "A name to identify the new adduct.", "", false);
+    private static final StringParameter NAME = new StringParameter("Name",
+        "A name to identify the new adduct.", "", false);
 
     // Sum formula
     private static final SumformulaParameter FORMULA = new SumformulaParameter("Sum formula",
@@ -132,11 +133,11 @@ public class AddIonModificationAction implements  EventHandler<ActionEvent> {
     private static final DoubleParameter MASS_DIFFERENCE = new DoubleParameter("Mass difference",
         "Mass difference for the new adduct", MZmineCore.getConfiguration().getMZFormat(), 0d);
 
-    private static final IntegerParameter CHARGE =
-        new IntegerParameter("Charge", "Charge of adduct", 1, false);
+    private static final IntegerParameter CHARGE = new IntegerParameter("Charge",
+        "Charge of adduct", 1, false);
 
     private AddESIAdductParameters() {
-      super(new Parameter[] {TYPE, NAME, FORMULA, MASS_DIFFERENCE, CHARGE});
+      super(new Parameter[]{TYPE, NAME, FORMULA, MASS_DIFFERENCE, CHARGE});
     }
 
     @Override
@@ -144,21 +145,18 @@ public class AddIonModificationAction implements  EventHandler<ActionEvent> {
       return this.showSetupDialog(valueCheckRequired, (IonModificationType[]) null);
     }
 
-    public ExitCode showSetupDialog(boolean valueCheckRequired,
-        IonModificationType... types) {
+    public ExitCode showSetupDialog(boolean valueCheckRequired, IonModificationType... types) {
       ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
 
       // enable
-      TextField com =  dialog.getComponentForParameter(FORMULA);
+      TextField com = dialog.getComponentForParameter(FORMULA);
       com.textProperty().addListener((txt, old, newValue) -> {
-        dialog.getComponentForParameter(MASS_DIFFERENCE)
-            .setDisable(!newValue.isEmpty());
+        dialog.getComponentForParameter(MASS_DIFFERENCE).setDisable(!newValue.isEmpty());
         dialog.getComponentForParameter(CHARGE).setDisable(!newValue.isEmpty());
       });
 
-      ComboBox<IonModificationType> comType =
-          dialog.getComponentForParameter(TYPE);
-      if(comType!=null) {
+      ComboBox<IonModificationType> comType = dialog.getComponentForParameter(TYPE);
+      if (comType != null) {
         if (types != null && types.length > 0 && types[0] != null) {
           comType.setItems(FXCollections.observableArrayList(types));
           comType.getSelectionModel().select(0);

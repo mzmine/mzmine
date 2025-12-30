@@ -23,9 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.ionidentity.legacy;
+package io.github.mzmine.parameters.parametertypes.ionidentity;
 
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import java.util.List;
 import javafx.util.StringConverter;
@@ -35,43 +36,43 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Alternative simple parameter if there are only few adducts or modifications to set
  */
-public class LegacyIonCheckComboBoxParameter extends CheckComboParameter<IonModification> {
+public class LegacyIonCheckComboBoxParameter extends CheckComboParameter<IonType> {
 
   public LegacyIonCheckComboBoxParameter(final String name, final String description,
-      final IonModification[] choices) {
+      final IonType... choices) {
     super(name, description, choices);
   }
 
   public LegacyIonCheckComboBoxParameter(final String name, final String description,
-      final IonModification[] choices, final List<IonModification> defaultValue) {
+      final IonType[] choices, final List<IonType> defaultValue) {
     super(name, description, choices, defaultValue);
   }
 
   public LegacyIonCheckComboBoxParameter(final String name, final String description,
-      final List<IonModification> choices) {
+      final List<IonType> choices) {
     super(name, description, choices);
   }
 
   public LegacyIonCheckComboBoxParameter(final String name, final String description,
-      final List<IonModification> choices, @NotNull final List<IonModification> defaultValue) {
+      final List<IonType> choices, @NotNull final List<IonType> defaultValue) {
     super(name, description, choices, defaultValue);
   }
 
 
   @Override
-  public CheckComboBox<IonModification> createEditingComponent() {
-    CheckComboBox<IonModification> combo = new CheckComboBox<>(choices);
+  public CheckComboBox<IonType> createEditingComponent() {
+    CheckComboBox<IonType> combo = new CheckComboBox<>(choices);
     combo.setShowCheckedCount(true);
     combo.setConverter(new StringConverter<>() {
       @Override
-      public String toString(final IonModification ion) {
-        return ion.toString(false);
+      public String toString(final IonType ion) {
+        return ion.toString(IonTypeStringFlavor.SIMPLE_DEFAULT);
       }
 
       @Override
-      public IonModification fromString(final String string) {
-        for (final IonModification choice : choices) {
-          if (choice.toString(false).equals(string)) {
+      public IonType fromString(final String string) {
+        for (final IonType choice : choices) {
+          if (choice.toString(IonTypeStringFlavor.SIMPLE_DEFAULT).equals(string)) {
             return choice;
           }
         }

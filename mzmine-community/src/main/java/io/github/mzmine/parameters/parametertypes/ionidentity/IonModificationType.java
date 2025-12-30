@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.iontype;
+package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 import java.util.List;
 
@@ -31,7 +31,7 @@ import java.util.List;
  * Type of ion modification.
  */
 @Deprecated
-public enum IonModificationType {
+enum IonModificationType {
   ADDUCT, UNDEFINED_ADDUCT, NEUTRAL_LOSS, CLUSTER, ISOTOPE, UNKNOWN, MIXED;
 
   /**

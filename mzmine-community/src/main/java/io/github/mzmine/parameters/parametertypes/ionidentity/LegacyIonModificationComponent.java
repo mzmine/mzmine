@@ -23,12 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.ionidentity.legacy;
+package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.actions.AddIonModificationAction;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.actions.CombineESIAdductsAction;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceComponent;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +39,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A component for selecting adducts.
  */
-public class LegacyIonModificationComponent extends HBox {
+@Deprecated
+class LegacyIonModificationComponent extends HBox {
 
   protected MultiChoiceComponent<IonModification> adducts;
   protected MultiChoiceComponent<IonModification> mods;
