@@ -130,14 +130,14 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
             create(new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
                 ResolvingDimension.RETENTION_TIME, false, GroupMS2SubParameters.createDefault(), 8,
                 "r", OriginalFeatureListOption.KEEP, 5, null, 3E3,
-                NoiseCalculation.STANDARD_DEVIATION, false, true,
+                NoiseCalculation.STANDARD_DEVIATION, false, false,
                 AdvancedWaveletParameters.createGcDefault())),
         //
         new ModulePreset("GC_EI_Orbitrap", moduleId,
             create(new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
                 ResolvingDimension.RETENTION_TIME, false, GroupMS2SubParameters.createDefault(), 8,
                 "r", OriginalFeatureListOption.KEEP, 5, null, 1E5,
-                NoiseCalculation.STANDARD_DEVIATION, false, true,
+                NoiseCalculation.STANDARD_DEVIATION, false, false,
                 AdvancedWaveletParameters.createGcDefault()))
         );
   }
