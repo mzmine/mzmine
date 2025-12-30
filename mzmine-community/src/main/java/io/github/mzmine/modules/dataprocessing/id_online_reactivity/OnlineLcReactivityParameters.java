@@ -31,7 +31,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithExampleExportParameter;
-import io.github.mzmine.parameters.parametertypes.ionidentity.LegacyIonCheckComboBoxParameter;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonCheckComboBoxParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -68,13 +68,13 @@ public class OnlineLcReactivityParameters extends SimpleParameterSet {
 
   private static final List<IonType> adducts = IonTypes.listIons(false, IonTypes.H, IonTypes.NA);
 
-  public static final LegacyIonCheckComboBoxParameter eductAdducts = new LegacyIonCheckComboBoxParameter(
+  public static final IonCheckComboBoxParameter eductAdducts = new IonCheckComboBoxParameter(
       "Educt adducts", """
       Educt and product adducts define more combinations to check reactivity matches.
       This can be helpful if the ionization changes after the reaction, e.g.,
       Educt ionizes as [M+Na]+ and product as [M+H]+""", adducts, adducts);
 
-  public static final LegacyIonCheckComboBoxParameter productAdducts = new LegacyIonCheckComboBoxParameter(
+  public static final IonCheckComboBoxParameter productAdducts = new IonCheckComboBoxParameter(
       "Product adducts", """
       Educt and product adducts define more combinations to check reactivity matches.
       This can be helpful if the ionization changes after the reaction, e.g.,

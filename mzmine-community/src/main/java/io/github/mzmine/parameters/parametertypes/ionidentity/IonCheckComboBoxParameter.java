@@ -28,57 +28,31 @@ package io.github.mzmine.parameters.parametertypes.ionidentity;
 import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import java.util.List;
-import javafx.util.StringConverter;
-import org.controlsfx.control.CheckComboBox;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Alternative simple parameter if there are only few adducts or modifications to set
+ * Alternative simple parameter if there are only few adducts
  */
-public class LegacyIonCheckComboBoxParameter extends CheckComboParameter<IonType> {
+public class IonCheckComboBoxParameter extends CheckComboParameter<IonType> {
 
-  public LegacyIonCheckComboBoxParameter(final String name, final String description,
+  public IonCheckComboBoxParameter(final String name, final String description,
       final IonType... choices) {
     super(name, description, choices);
   }
 
-  public LegacyIonCheckComboBoxParameter(final String name, final String description,
+  public IonCheckComboBoxParameter(final String name, final String description,
       final IonType[] choices, final List<IonType> defaultValue) {
     super(name, description, choices, defaultValue);
   }
 
-  public LegacyIonCheckComboBoxParameter(final String name, final String description,
+  public IonCheckComboBoxParameter(final String name, final String description,
       final List<IonType> choices) {
     super(name, description, choices);
   }
 
-  public LegacyIonCheckComboBoxParameter(final String name, final String description,
+  public IonCheckComboBoxParameter(final String name, final String description,
       final List<IonType> choices, @NotNull final List<IonType> defaultValue) {
     super(name, description, choices, defaultValue);
-  }
-
-
-  @Override
-  public CheckComboBox<IonType> createEditingComponent() {
-    CheckComboBox<IonType> combo = new CheckComboBox<>(choices);
-    combo.setShowCheckedCount(true);
-    combo.setConverter(new StringConverter<>() {
-      @Override
-      public String toString(final IonType ion) {
-        return ion.toString();
-      }
-
-      @Override
-      public IonType fromString(final String string) {
-        for (final IonType choice : choices) {
-          if (choice.toString().equals(string)) {
-            return choice;
-          }
-        }
-        return null;
-      }
-    });
-    return combo;
   }
 
 }
