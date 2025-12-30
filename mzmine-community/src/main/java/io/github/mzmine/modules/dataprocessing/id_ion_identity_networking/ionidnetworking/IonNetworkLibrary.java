@@ -56,15 +56,6 @@ public class IonNetworkLibrary {
     return new SimpleIonLibrary("Legacy library imported", ions);
   }
 
-  public enum CheckMode {
-    AVGERAGE, ONE_FEATURE, ALL_FEATURES;
-
-    @Override
-    public String toString() {
-      return super.toString().replaceAll("_", " ");
-    }
-  }
-
   private MZTolerance mzTolerance;
   // adducts
   private final IonModification[] selectedAdducts;

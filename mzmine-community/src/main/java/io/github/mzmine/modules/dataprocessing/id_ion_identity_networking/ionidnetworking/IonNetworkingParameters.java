@@ -28,7 +28,6 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionid
 
 import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary.CheckMode;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -60,10 +59,11 @@ public class IonNetworkingParameters extends SimpleParameterSet {
   public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter(
       ToleranceType.INTRA_SAMPLE);
 
-  public static final ComboParameter<CheckMode> CHECK_MODE = new ComboParameter<CheckMode>("Check",
+  public static final ComboParameter<FeatureCheckMode> CHECK_MODE = new ComboParameter<FeatureCheckMode>(
+      "Check",
       "The modes to check for adduct identities. Average compares only the average m/z values (without min. height).\n "
           + "ALL features and SINGLE feature compares the m/z values of features with height>minHeight in raw data files",
-      CheckMode.values(), CheckMode.ONE_FEATURE);
+      FeatureCheckMode.values(), FeatureCheckMode.ONE_FEATURE);
 
   public static final DoubleParameter MIN_HEIGHT = new DoubleParameter("Min height",
       "Minimum height of feature shape (not used for average mode)",

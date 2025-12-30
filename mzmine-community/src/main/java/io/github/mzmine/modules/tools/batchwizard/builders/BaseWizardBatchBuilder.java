@@ -103,7 +103,7 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListParameters;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary.CheckMode;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.FeatureCheckMode;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
@@ -740,7 +740,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(IonNetworkingModule.class).cloneParameterSet();
     param.setParameter(IonNetworkingParameters.MIN_HEIGHT, 0d);
-    param.setParameter(IonNetworkingParameters.CHECK_MODE, CheckMode.ONE_FEATURE);
+    param.setParameter(IonNetworkingParameters.CHECK_MODE, FeatureCheckMode.ONE_FEATURE);
     param.setParameter(IonNetworkingParameters.MZ_TOLERANCE, mzTolFeaturesIntraSample);
     param.setParameter(IonNetworkingParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));

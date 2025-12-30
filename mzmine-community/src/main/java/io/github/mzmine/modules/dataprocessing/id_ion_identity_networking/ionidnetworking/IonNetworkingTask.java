@@ -43,7 +43,6 @@ import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkNode;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesTask;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary.CheckMode;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -73,9 +72,9 @@ public class IonNetworkingTask extends AbstractTask {
   private boolean neverStop = false;
 
   private double minHeight;
-  private IonNetworkLibrary.CheckMode checkMode;
+  private FeatureCheckMode checkMode;
 
-  private CheckMode adductCheckMode;
+  private FeatureCheckMode adductCheckMode;
 
   private boolean performAnnotationRefinement;
   private IonNetworkRefinementParameters refineParam;
