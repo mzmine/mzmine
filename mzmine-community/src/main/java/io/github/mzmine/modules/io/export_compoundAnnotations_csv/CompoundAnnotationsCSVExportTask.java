@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.io.export_compoundAnnotations_csv;
 
-import static io.github.mzmine.util.StringUtils.inQuotes;
-
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
@@ -34,25 +32,24 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.MethodType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.datamodel.features.types.identifiers.CASType;
-import io.github.mzmine.datamodel.features.types.identifiers.EntryIdType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.identifiers.CASType;
+import io.github.mzmine.datamodel.features.types.identifiers.EntryIdType;
 import io.github.mzmine.datamodel.features.types.identifiers.InternalIdType;
 import io.github.mzmine.datamodel.features.types.identifiers.IupacNameType;
 import io.github.mzmine.datamodel.features.types.identifiers.QuerySpectrumUsiType;
-import io.github.mzmine.datamodel.features.types.identifiers.SourceScanUsiType;
 import io.github.mzmine.datamodel.features.types.identifiers.UsiType;
-import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
-import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -228,8 +225,8 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
             String internalId = annotation.getInternalId();
             String queryScan = null;
             if (annotation instanceof SpectralDBAnnotation spec) {
-              queryScan = ScanUtils.extractCompressedUSIRanges(spec.getQueryScan(), "DATASET_ID_PLACEHOLDER").collect(
-                  Collectors.joining(";"));
+              queryScan = ScanUtils.extractCompressedUSIRanges(spec.getQueryScan(),
+                  "DATASET_ID_PLACEHOLDER").collect(Collectors.joining(";"));
             }
 
             String result = Stream.of(rowId, compoundName, adductType, scoreType, precursorMZ,

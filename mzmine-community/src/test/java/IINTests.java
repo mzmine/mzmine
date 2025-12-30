@@ -30,9 +30,10 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
+import io.github.mzmine.datamodel.identities.IonTypeParser;
 import io.github.mzmine.datamodel.identities.IonTypes;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
@@ -50,11 +51,11 @@ public class IINTests {
     IonType ionType = IonTypeParser.parse(input);
 
     Assertions.assertNotNull(ionType, "%s could not be parsed".formatted(input));
-    Assertions.assertEquals(charge, ionType.getCharge(),
+    Assertions.assertEquals(charge, ionType.totalCharge(),
         "%s charge was wrong as %d".formatted(input, charge));
-    Assertions.assertEquals(mol, ionType.getMolecules(),
+    Assertions.assertEquals(mol, ionType.molecules(),
         "%s mol was wrong as %d".formatted(input, mol));
-    Assertions.assertEquals(formatted, ionType.toString(false));
+    Assertions.assertEquals(formatted, ionType.toString(IonTypeStringFlavor.SIMPLE_DEFAULT));
   }
 
   @Test
@@ -64,7 +65,8 @@ public class IINTests {
 
     for (String s : string) {
       IonType ionType = IonTypeParser.parse(s);
-      Assertions.assertEquals(type1.toString(true), ionType.toString(true));
+      Assertions.assertEquals(type1.toString(IonTypeStringFlavor.SIMPLE_DEFAULT),
+          ionType.toString(IonTypeStringFlavor.SIMPLE_DEFAULT));
     }
   }
 
@@ -75,7 +77,7 @@ public class IINTests {
     for (String s : string) {
       IonType ionType = IonTypeParser.parse(s);
       Assertions.assertNotNull(ionType);
-      Assertions.assertEquals(s, ionType.toString(false));
+      Assertions.assertEquals(s, ionType.toString(IonTypeStringFlavor.SIMPLE_DEFAULT));
     }
   }
 

@@ -29,7 +29,7 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.ms2.MSMSIonRelationIdentity;
 import io.github.mzmine.datamodel.identities.ms2.MSMSMultimerIdentity;
 import io.github.mzmine.datamodel.identities.ms2.interf.MsMsIdentity;
@@ -38,6 +38,10 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * TODO rework and figure out how to add msms derived identities to a feature
+ */
+@Deprecated
 public class MSMSLogic {
 
   /**
@@ -47,13 +51,11 @@ public class MSMSLogic {
    * @param precursorMZ
    * @param adduct      only the basic information is taken (charge and deltaMass, molecules are
    *                    then added from 1-maxM)
-   * @param molecules
    * @param mzTolerance
    * @return List of identities. The first is always the one for the precursor
    */
   public static List<MsMsIdentity> checkMultiMolCluster(Scan scan, double precursorMZ,
-      io.github.mzmine.datamodel.identities.IonType adduct, int molecules, MZTolerance mzTolerance,
-      double minHeight) {
+      IonType adduct, MZTolerance mzTolerance, double minHeight) {
     return checkMultiMolCluster(scan, precursorMZ, adduct, adduct.molecules(), mzTolerance,
         minHeight);
   }
@@ -79,7 +81,7 @@ public class MSMSLogic {
     // generate all M adducts 3M+X -> 2M+X -> M+X
     List<IonType> list = new ArrayList<>();
     for (int i = 1; i <= maxM; i++) {
-      IonType m = new IonType(i, adduct);
+      IonType m = adduct.withMolecules(i);
       list.add(m);
     }
 
@@ -156,9 +158,8 @@ public class MSMSLogic {
    * @param mzTolerance
    * @return List of identities. The first is always the one for the precursor
    */
-  public static List<MsMsIdentity> checkNeutralLoss(DataPoint[] dps,
-      io.github.mzmine.datamodel.identities.IonType adduct, MZTolerance mzTolerance,
-      double minHeight) {
+  public static List<MsMsIdentity> checkNeutralLoss(DataPoint[] dps, IonType adduct,
+      MZTolerance mzTolerance, double minHeight) {
     if (dps == null || dps.length == 0) {
       return null;
     }

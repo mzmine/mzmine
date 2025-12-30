@@ -26,8 +26,9 @@
 package io.github.mzmine.util.spectraldb.parser;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
+import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
+import io.github.mzmine.datamodel.identities.IonTypeParser;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -269,7 +270,7 @@ public class GnpsMgfParser extends SpectralDBTextParser {
     // use as adduct
     final IonType adduct = IonTypeParser.parse(adductCandidate);
     if (adduct != null && !adduct.isUndefinedAdduct()) {
-      fields.put(DBEntryField.ION_TYPE, adduct.toString(false));
+      fields.put(DBEntryField.ION_TYPE, adduct.toString(IonTypeStringFlavor.SIMPLE_DEFAULT));
     }
   }
 

@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
+import io.github.mzmine.datamodel.identities.IonTypeParser;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;

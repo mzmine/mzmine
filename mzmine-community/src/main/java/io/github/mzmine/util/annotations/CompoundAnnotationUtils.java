@@ -49,8 +49,8 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
+import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
@@ -213,7 +213,8 @@ public class CompoundAnnotationUtils {
   /**
    * Stream all instances of {@link FeatureAnnotation}
    */
-  public static Stream<FeatureAnnotation> streamFeatureAnnotations(@NotNull final FeatureListRow row) {
+  public static Stream<FeatureAnnotation> streamFeatureAnnotations(
+      @NotNull final FeatureListRow row) {
     return row.streamAllFeatureAnnotations().filter(ann -> ann instanceof FeatureAnnotation)
         .map(FeatureAnnotation.class::cast);
   }
@@ -221,7 +222,8 @@ public class CompoundAnnotationUtils {
   /**
    * First FeatureAnnotation in {@link #streamFeatureAnnotations(FeatureListRow)}
    */
-  public static Optional<FeatureAnnotation> getBestFeatureAnnotation(@NotNull final FeatureListRow row) {
+  public static Optional<FeatureAnnotation> getBestFeatureAnnotation(
+      @NotNull final FeatureListRow row) {
     return CompoundAnnotationUtils.streamFeatureAnnotations(row).findFirst();
   }
 
@@ -277,9 +279,9 @@ public class CompoundAnnotationUtils {
       return OptionalInt.empty();
     }
 
-    IonType adduct = annotation.getAdductType();
+    io.github.mzmine.datamodel.identities.IonType adduct = annotation.getAdductType();
     if (adduct != null) {
-      return OptionalInt.of(adduct.getCharge());
+      return OptionalInt.of(adduct.totalCharge());
     }
 
     Integer annCharge = getTypeValue(annotation, ChargeType.class);

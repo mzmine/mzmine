@@ -29,7 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.IonLibrary;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;

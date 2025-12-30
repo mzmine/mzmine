@@ -27,8 +27,8 @@ package io.github.mzmine.modules.tools.fraggraphdashboard;
 
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.IonTypes;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SignalFormulaeModel;
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SubFormulaEdge;
@@ -70,7 +70,7 @@ public class FragDashboardModel {
   private final ObjectProperty<IonType> ionType = new SimpleObjectProperty<>(
       IonTypes.H.asIonType());
   private final ListProperty<IonType> ionTypes = new SimpleListProperty<>(
-      FXCollections.observableArrayList(IonTypes.H.asIonType(), IonTypes.H_NEG.asIonType()));
+      FXCollections.observableArrayList(IonTypes.H.asIonType(), IonTypes.H_MINUS.asIonType()));
 
   /**
    * A list of possible precursor formulae for the given precursor m/z. Displayed in a table in the

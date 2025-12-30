@@ -50,7 +50,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
   @NotNull
   private final List<ResultFormula> molFormulas;
   @NotNull
-  private final io.github.mzmine.datamodel.identities.IonType ionType;
+  private final IonType ionType;
   // network id (number)
   private IonNetwork network;
   // mark as beeing deleted
@@ -61,7 +61,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
    *
    * @param ionType type of adduct.
    */
-  public IonIdentity(io.github.mzmine.datamodel.identities.IonType ionType) {
+  public IonIdentity(IonType ionType) {
     super();
     this.ionType = ionType;
     molFormulas = FXCollections.observableArrayList();
@@ -73,7 +73,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
    * @return
    */
   @NotNull
-  public io.github.mzmine.datamodel.identities.IonType getIonType() {
+  public IonType getIonType() {
     return ionType;
   }
 
