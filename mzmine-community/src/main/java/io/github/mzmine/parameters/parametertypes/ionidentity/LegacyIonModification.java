@@ -62,101 +62,107 @@ class LegacyIonModification extends NeutralMolecule implements Comparable<Legacy
 
   // use combinations of X adducts (2H++; -H+Na2+) and modifications
   public static final LegacyIonModification M_MINUS = new LegacyIonModification(
-      IonModificationType.ADDUCT, "e", +0.00054858, -1);
+      LegacyIonModificationType.ADDUCT, "e", +0.00054858, -1);
   // NR4+ is already charged, mass might also be charged already
   public static final LegacyIonModification M_MINUS_ALREADY_CHARGED = new LegacyIonModification(
-      IonModificationType.ADDUCT, "e", 0, -1);
+      LegacyIonModificationType.ADDUCT, "e", 0, -1);
   public static final LegacyIonModification H_NEG = new LegacyIonModification(
-      IonModificationType.ADDUCT, "H", "H", -1.007276, -1);
+      LegacyIonModificationType.ADDUCT, "H", "H", -1.007276, -1);
   public static final LegacyIonModification M_PLUS = new LegacyIonModification(
-      IonModificationType.ADDUCT, "e", -0.00054858, 1);
+      LegacyIonModificationType.ADDUCT, "e", -0.00054858, 1);
   // NR4+ is already charged, mass might also be charged already
   public static final LegacyIonModification M_PLUS_ALREADY_CHARGED = new LegacyIonModification(
-      IonModificationType.ADDUCT, "e", 0, 1);
+      LegacyIonModificationType.ADDUCT, "e", 0, 1);
   public static final LegacyIonModification H = new LegacyIonModification(
-      IonModificationType.ADDUCT, "H", "H", 1.007276, 1);
+      LegacyIonModificationType.ADDUCT, "H", "H", 1.007276, 1);
   // water loss
   public static final LegacyIonModification H2O = new LegacyIonModification(
-      IonModificationType.NEUTRAL_LOSS, "H2O", "H2O", -18.010565, 0);
+      LegacyIonModificationType.NEUTRAL_LOSS, "H2O", "H2O", -18.010565, 0);
   //
   public static final LegacyIonModification NA = new LegacyIonModification(
-      IonModificationType.ADDUCT, "Na", "Na", 22.989218, 1);
+      LegacyIonModificationType.ADDUCT, "Na", "Na", 22.989218, 1);
   public static final LegacyIonModification NH4 = new LegacyIonModification(
-      IonModificationType.ADDUCT, "NH4", "NH4", 18.033823, 1);
+      LegacyIonModificationType.ADDUCT, "NH4", "NH4", 18.033823, 1);
   public static final LegacyIonModification K = new LegacyIonModification(
-      IonModificationType.ADDUCT, "K", "K", 38.963158, 1);
+      LegacyIonModificationType.ADDUCT, "K", "K", 38.963158, 1);
   public static final LegacyIonModification FE = new LegacyIonModification(
-      IonModificationType.ADDUCT, "Fe", "Fe", 55.933840, 2);
+      LegacyIonModificationType.ADDUCT, "Fe", "Fe", 55.933840, 2);
   public static final LegacyIonModification CA = new LegacyIonModification(
-      IonModificationType.ADDUCT, "Ca", "Ca", 39.961493820, 2);
+      LegacyIonModificationType.ADDUCT, "Ca", "Ca", 39.961493820, 2);
   public static final LegacyIonModification MG = new LegacyIonModification(
-      IonModificationType.ADDUCT, "Mg", "Mg", 47.96953482, 2);
+      LegacyIonModificationType.ADDUCT, "Mg", "Mg", 47.96953482, 2);
   // combined
-  public static final LegacyIonModification M_PLUS_H2O = CombinedIonModification.create(M_PLUS,
+  public static final LegacyIonModification M_PLUS_H2O = LegacyCombinedIonModification.create(
+      M_PLUS, H2O);
+  public static final LegacyIonModification H_H2O_1 = LegacyCombinedIonModification.create(H, H2O);
+  public static final LegacyIonModification H_H2O_2 = LegacyCombinedIonModification.create(H, H2O,
       H2O);
-  public static final LegacyIonModification H_H2O_1 = CombinedIonModification.create(H, H2O);
-  public static final LegacyIonModification H_H2O_2 = CombinedIonModification.create(H, H2O, H2O);
-  public static final LegacyIonModification H_H2O_3 = CombinedIonModification.create(H, H2O, H2O,
-      H2O);
-  public static final LegacyIonModification H2plus = CombinedIonModification.create(H, H);
-  public static final LegacyIonModification M2plus = CombinedIonModification.create(M_PLUS, M_PLUS);
-  public static final LegacyIonModification NA_H = CombinedIonModification.create(NA, H);
-  public static final LegacyIonModification K_H = CombinedIonModification.create(K, H);
-  public static final LegacyIonModification NH4_H = CombinedIonModification.create(NH4, H);
-  public static final LegacyIonModification Hneg_NA2 = CombinedIonModification.create(NA, NA,
+  public static final LegacyIonModification H_H2O_3 = LegacyCombinedIonModification.create(H, H2O,
+      H2O, H2O);
+  public static final LegacyIonModification H2plus = LegacyCombinedIonModification.create(H, H);
+  public static final LegacyIonModification M2plus = LegacyCombinedIonModification.create(M_PLUS,
+      M_PLUS);
+  public static final LegacyIonModification NA_H = LegacyCombinedIonModification.create(NA, H);
+  public static final LegacyIonModification K_H = LegacyCombinedIonModification.create(K, H);
+  public static final LegacyIonModification NH4_H = LegacyCombinedIonModification.create(NH4, H);
+  public static final LegacyIonModification Hneg_NA2 = LegacyCombinedIonModification.create(NA, NA,
       H_NEG);
-  public static final LegacyIonModification Hneg_CA = CombinedIonModification.create(CA, H_NEG);
-  public static final LegacyIonModification Hneg_FE = CombinedIonModification.create(FE, H_NEG);
-  public static final LegacyIonModification Hneg_MG = CombinedIonModification.create(MG, H_NEG);
+  public static final LegacyIonModification Hneg_CA = LegacyCombinedIonModification.create(CA,
+      H_NEG);
+  public static final LegacyIonModification Hneg_FE = LegacyCombinedIonModification.create(FE,
+      H_NEG);
+  public static final LegacyIonModification Hneg_MG = LegacyCombinedIonModification.create(MG,
+      H_NEG);
 
   // NEGATIVE
   public static final LegacyIonModification CL = new LegacyIonModification(
-      IonModificationType.ADDUCT, "Cl", "Cl", 34.969401, -1);
+      LegacyIonModificationType.ADDUCT, "Cl", "Cl", 34.969401, -1);
   public static final LegacyIonModification BR = new LegacyIonModification(
-      IonModificationType.ADDUCT, "Br", "Br", 78.918886, -1);
+      LegacyIonModificationType.ADDUCT, "Br", "Br", 78.918886, -1);
   public static final LegacyIonModification FA = new LegacyIonModification(
-      IonModificationType.ADDUCT, "FA", "HCO2", 44.99820285, -1);
+      LegacyIonModificationType.ADDUCT, "FA", "HCO2", 44.99820285, -1);
   public static final LegacyIonModification ACETATE = new LegacyIonModification(
-      IonModificationType.ADDUCT, "Acetate", "C2H3O2", 59.013304, -1);
+      LegacyIonModificationType.ADDUCT, "Acetate", "C2H3O2", 59.013304, -1);
   // combined
   // +Na -2H+]-
-  public static final LegacyIonModification NA_2H = CombinedIonModification.create(NA, H_NEG,
+  public static final LegacyIonModification NA_2H = LegacyCombinedIonModification.create(NA, H_NEG,
       H_NEG);
 
   // modifications
   public static final LegacyIonModification H2 = new LegacyIonModification(
-      IonModificationType.NEUTRAL_LOSS, "H2", "H2", -2.015650, 0);
+      LegacyIonModificationType.NEUTRAL_LOSS, "H2", "H2", -2.015650, 0);
   public static final LegacyIonModification C2H4 = new LegacyIonModification(
-      IonModificationType.NEUTRAL_LOSS, "C2H4", "C2H4", -28.031301, 0);
-  public static final LegacyIonModification H2O_2 = CombinedIonModification.create(H2O, H2O);
-  public static final LegacyIonModification H2O_3 = CombinedIonModification.create(H2O, H2O, H2O);
-  public static final LegacyIonModification H2O_4 = CombinedIonModification.create(H2O, H2O, H2O,
+      LegacyIonModificationType.NEUTRAL_LOSS, "C2H4", "C2H4", -28.031301, 0);
+  public static final LegacyIonModification H2O_2 = LegacyCombinedIonModification.create(H2O, H2O);
+  public static final LegacyIonModification H2O_3 = LegacyCombinedIonModification.create(H2O, H2O,
       H2O);
-  public static final LegacyIonModification H2O_5 = CombinedIonModification.create(H2O, H2O, H2O,
+  public static final LegacyIonModification H2O_4 = LegacyCombinedIonModification.create(H2O, H2O,
       H2O, H2O);
+  public static final LegacyIonModification H2O_5 = LegacyCombinedIonModification.create(H2O, H2O,
+      H2O, H2O, H2O);
 
   public static final LegacyIonModification NH3 = new LegacyIonModification(
-      IonModificationType.NEUTRAL_LOSS, "NH3", "NH3", -17.026549, 0);
+      LegacyIonModificationType.NEUTRAL_LOSS, "NH3", "NH3", -17.026549, 0);
   public static final LegacyIonModification CO = new LegacyIonModification(
-      IonModificationType.NEUTRAL_LOSS, "CO", "CO", -27.994915, 0);
+      LegacyIonModificationType.NEUTRAL_LOSS, "CO", "CO", -27.994915, 0);
   public static final LegacyIonModification CO2 = new LegacyIonModification(
-      IonModificationType.NEUTRAL_LOSS, "CO2", "CO2", -43.989829, 0);
+      LegacyIonModificationType.NEUTRAL_LOSS, "CO2", "CO2", -43.989829, 0);
   // cluster
   public static final LegacyIonModification MEOH = new LegacyIonModification(
-      IonModificationType.CLUSTER, "MeOH", "CH3OH", 32.026215, 0);
+      LegacyIonModificationType.CLUSTER, "MeOH", "CH3OH", 32.026215, 0);
   public static final LegacyIonModification HFA = new LegacyIonModification(
-      IonModificationType.CLUSTER, "HFA", "CHOOH", 46.005479, 0);
+      LegacyIonModificationType.CLUSTER, "HFA", "CHOOH", 46.005479, 0);
   public static final LegacyIonModification HAc = new LegacyIonModification(
-      IonModificationType.CLUSTER, "HAc", "CH3COOH", 60.021129, 0);
+      LegacyIonModificationType.CLUSTER, "HAc", "CH3COOH", 60.021129, 0);
   public static final LegacyIonModification ACN = new LegacyIonModification(
-      IonModificationType.CLUSTER, "ACN", "CH3CN", 41.026549, 0);
+      LegacyIonModificationType.CLUSTER, "ACN", "CH3CN", 41.026549, 0);
   public static final LegacyIonModification O = new LegacyIonModification(
-      IonModificationType.CLUSTER, "O", "O", 15.99491462, 0);
+      LegacyIonModificationType.CLUSTER, "O", "O", 15.99491462, 0);
   public static final LegacyIonModification ISOPROP = new LegacyIonModification(
-      IonModificationType.CLUSTER, "IsoProp", "C3H8O", 60.058064, 0);
+      LegacyIonModificationType.CLUSTER, "IsoProp", "C3H8O", 60.058064, 0);
   // isotopes
   public static final LegacyIonModification C13 = new LegacyIonModification(
-      IonModificationType.ISOTOPE, "(13C)", 1.003354838, 0);
+      LegacyIonModificationType.ISOTOPE, "(13C)", 1.003354838, 0);
 
   // default values
   public static final LegacyIonModification[] DEFAULT_VALUES_POSITIVE = {M_PLUS, M_PLUS_H2O, H,
@@ -170,7 +176,7 @@ class LegacyIonModification extends NeutralMolecule implements Comparable<Legacy
   // isotopes
   public static final LegacyIonModification[] DEFAULT_VALUES_ISOTOPES = {C13};
   public static final String XML_ELEMENT = "ionmodification";
-  protected final IonModificationType type;
+  protected final LegacyIonModificationType type;
   protected final int charge;
   // charge
   protected String parsedName;
@@ -183,7 +189,7 @@ class LegacyIonModification extends NeutralMolecule implements Comparable<Legacy
    * @param massDifference
    * @param charge
    */
-  public LegacyIonModification(IonModificationType type, String name, double massDifference,
+  public LegacyIonModification(LegacyIonModificationType type, String name, double massDifference,
       int charge) {
     this(type, name, null, massDifference, charge);
   }
@@ -195,7 +201,7 @@ class LegacyIonModification extends NeutralMolecule implements Comparable<Legacy
    * @param massDifference
    * @param charge
    */
-  public LegacyIonModification(IonModificationType type, String name, String molFormula,
+  public LegacyIonModification(LegacyIonModificationType type, String name, String molFormula,
       double massDifference, int charge) {
     super(name, molFormula, massDifference);
     this.charge = charge;
@@ -204,13 +210,15 @@ class LegacyIonModification extends NeutralMolecule implements Comparable<Legacy
   }
 
   /**
-   * Only for super classes that need to parse their own name (see {@link CombinedIonModification})
+   * Only for super classes that need to parse their own name (see
+   * {@link LegacyCombinedIonModification})
    *
    * @param type
    * @param massDifference
    * @param charge
    */
-  protected LegacyIonModification(IonModificationType type, double massDifference, int charge) {
+  protected LegacyIonModification(LegacyIonModificationType type, double massDifference,
+      int charge) {
     super("", null, massDifference);
     this.charge = charge;
     this.type = type;
@@ -237,7 +245,7 @@ class LegacyIonModification extends NeutralMolecule implements Comparable<Legacy
     String type = reader.getAttributeValue(null, "type");
     String charge = reader.getAttributeValue(null, "charge");
 
-    return new LegacyIonModification(IonModificationType.valueOf(type), name, formula,
+    return new LegacyIonModification(LegacyIonModificationType.valueOf(type), name, formula,
         Double.parseDouble(massDiff), Integer.parseInt(charge));
   }
 
@@ -271,7 +279,7 @@ class LegacyIonModification extends NeutralMolecule implements Comparable<Legacy
    */
   public static LegacyIonModification getUndefinedforCharge(int charge) {
     double mass = LegacyIonModification.M_PLUS.getMass() * charge;
-    return new LegacyIonModification(IonModificationType.UNDEFINED_ADDUCT, "?", mass, charge);
+    return new LegacyIonModification(LegacyIonModificationType.UNDEFINED_ADDUCT, "?", mass, charge);
   }
 
   @Override
@@ -281,13 +289,13 @@ class LegacyIonModification extends NeutralMolecule implements Comparable<Legacy
     }
     String sign = this.getMass() < 0 ? "-" : "+";
     // always +?
-    if (type.equals(IonModificationType.UNDEFINED_ADDUCT)) {
+    if (type.equals(LegacyIonModificationType.UNDEFINED_ADDUCT)) {
       sign = "+";
     }
     return sign + getName();
   }
 
-  public IonModificationType getType() {
+  public LegacyIonModificationType getType() {
     return type;
   }
 
@@ -335,7 +343,7 @@ class LegacyIonModification extends NeutralMolecule implements Comparable<Legacy
           // if formula fails - cannot know the charge and massDiff - so just default to zero
           // parser will add charges later
           return requireNonNullElse(fromFormula(part),
-              new LegacyIonModification(IonModificationType.UNKNOWN, part, 0, 0));
+              new LegacyIonModification(LegacyIonModificationType.UNKNOWN, part, 0, 0));
         });
   }
 
@@ -378,7 +386,7 @@ class LegacyIonModification extends NeutralMolecule implements Comparable<Legacy
     if (formula == null) {
       return null;
     }
-    return new LegacyIonModification(IonModificationType.UNKNOWN, part, part,
+    return new LegacyIonModification(LegacyIonModificationType.UNKNOWN, part, part,
         multiplier * FormulaUtils.getMonoisotopicMass(formula), 0);
   }
 
@@ -438,7 +446,7 @@ class LegacyIonModification extends NeutralMolecule implements Comparable<Legacy
 
   /**
    * @return array of modifications ({@link LegacyIonModification} has one;
-   * {@link CombinedIonModification} has n)
+   * {@link LegacyCombinedIonModification} has n)
    */
   @NotNull
   public LegacyIonModification[] getModifications() {
@@ -455,7 +463,7 @@ class LegacyIonModification extends NeutralMolecule implements Comparable<Legacy
   }
 
   /**
-   * The number of modifications (see {@link CombinedIonModification})
+   * The number of modifications (see {@link LegacyCombinedIonModification})
    *
    * @return
    */
@@ -573,7 +581,7 @@ class LegacyIonModification extends NeutralMolecule implements Comparable<Legacy
    * @return
    */
   public boolean isSubsetOf(LegacyIonModification parent) {
-    if (parent instanceof CombinedIonModification) {
+    if (parent instanceof LegacyCombinedIonModification) {
       // ion modifications all need to be in the mod array of this
       LegacyIonModification[] full = parent.getModifications();
       LegacyIonModification[] subset = this.getModifications();
@@ -599,7 +607,7 @@ class LegacyIonModification extends NeutralMolecule implements Comparable<Legacy
 
   /**
    * Removes all sub types of parameter from this type. See also
-   * {@link CombinedIonModification#remove(LegacyIonModification)}
+   * {@link LegacyCombinedIonModification#remove(LegacyIonModification)}
    *
    * @param type
    * @return
@@ -661,24 +669,25 @@ class LegacyIonModification extends NeutralMolecule implements Comparable<Legacy
           double massdiff = Double.parseDouble(massdiffs[i]);
           int charge = Integer.parseInt(charges[i]);
           String formula = formulas[i];
-          IonModificationType type = IonModificationType.valueOf(types[i]);
+          LegacyIonModificationType type = LegacyIonModificationType.valueOf(types[i]);
 
           LegacyIonModification ion = new LegacyIonModification(type, names[i], formula, massdiff,
               charge);
           mods.add(ion);
         }
-        return CombinedIonModification.create(mods);
+        return LegacyCombinedIonModification.create(mods);
       } catch (Exception ex) {
         return null;
       }
     } else {
-      new LegacyIonModification(IonModificationType.ADDUCT, "NH4", "NH4", 18.033823, 1);
+      new LegacyIonModification(LegacyIonModificationType.ADDUCT, "NH4", "NH4", 18.033823, 1);
       try {
         double massdiff = Double.parseDouble(map.get("Mass Diff"));
         int charge = Integer.parseInt(map.get("Charge"));
         int mod = Integer.parseInt(map.getOrDefault("Max Modification", "-1"));
         String formula = map.getOrDefault("Formula", "");
-        IonModificationType type = IonModificationType.valueOf(map.getOrDefault("Type", ""));
+        LegacyIonModificationType type = LegacyIonModificationType.valueOf(
+            map.getOrDefault("Type", ""));
         return new LegacyIonModification(type, name, formula, massdiff, charge);
       } catch (Exception ex) {
         return null;

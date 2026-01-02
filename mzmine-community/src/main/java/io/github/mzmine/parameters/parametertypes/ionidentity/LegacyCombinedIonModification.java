@@ -43,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 @Deprecated
-class CombinedIonModification extends LegacyIonModification {
+class LegacyCombinedIonModification extends LegacyIonModification {
 
   /**
    * Modification parts
@@ -59,8 +59,8 @@ class CombinedIonModification extends LegacyIonModification {
    * @param deltaMZ delta m/z
    * @param charge  charge state
    */
-  protected CombinedIonModification(@NotNull LegacyIonModification[] mods, IonModificationType type,
-      double deltaMZ, int charge) {
+  protected LegacyCombinedIonModification(@NotNull LegacyIonModification[] mods,
+      LegacyIonModificationType type, double deltaMZ, int charge) {
     super(type, deltaMZ, charge);
     this.mods = mods;
     this.parsedName = parseName();
@@ -89,7 +89,7 @@ class CombinedIonModification extends LegacyIonModification {
     // sort
     LegacyIonModification[] allMods = allModList.toArray(LegacyIonModification[]::new);
     Arrays.sort(allMods);
-    IonModificationType type = IonModificationType.getType(allMods);
+    LegacyIonModificationType type = LegacyIonModificationType.getType(allMods);
 
     double deltaMZ = 0;
     int charge = 0;
@@ -97,7 +97,7 @@ class CombinedIonModification extends LegacyIonModification {
       deltaMZ += mod.getMass();
       charge += mod.getCharge();
     }
-    return new CombinedIonModification(allMods, type, deltaMZ, charge);
+    return new LegacyCombinedIonModification(allMods, type, deltaMZ, charge);
   }
 
   public static LegacyIonModification create(List<LegacyIonModification> modifications) {
@@ -119,7 +119,7 @@ class CombinedIonModification extends LegacyIonModification {
   public LegacyIonModification createOpposite() {
     LegacyIonModification[] mod = Arrays.stream(mods).map(LegacyIonModification::createOpposite)
         .toArray(LegacyIonModification[]::new);
-    return CombinedIonModification.create(mod);
+    return LegacyCombinedIonModification.create(mod);
   }
 
   /**
@@ -178,7 +178,7 @@ class CombinedIonModification extends LegacyIonModification {
     } else if (newList.size() == 1) {
       return newList.get(0);
     } else {
-      return CombinedIonModification.create(newList);
+      return LegacyCombinedIonModification.create(newList);
     }
   }
 
@@ -223,6 +223,6 @@ class CombinedIonModification extends LegacyIonModification {
 
   @Override
   public LegacyIonModification withCharge(final int newCharge) {
-    return new CombinedIonModification(mods, type, mass, newCharge);
+    return new LegacyCombinedIonModification(mods, type, mass, newCharge);
   }
 }

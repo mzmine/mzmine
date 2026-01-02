@@ -31,7 +31,7 @@ import java.util.List;
  * Type of ion modification.
  */
 @Deprecated
-enum IonModificationType {
+enum LegacyIonModificationType {
   ADDUCT, UNDEFINED_ADDUCT, NEUTRAL_LOSS, CLUSTER, ISOTOPE, UNKNOWN, MIXED;
 
   /**
@@ -40,14 +40,14 @@ enum IonModificationType {
    * @param adducts list of ion modifications
    * @return the common type of all modifications - or MIXED
    */
-  public static IonModificationType getType(LegacyIonModification[] adducts) {
+  public static LegacyIonModificationType getType(LegacyIonModification[] adducts) {
     if (adducts == null || adducts.length == 0) {
       return UNKNOWN;
     }
-    IonModificationType t = adducts[0].getType();
+    LegacyIonModificationType t = adducts[0].getType();
     for (int i = 1; i < adducts.length; i++) {
       if (!t.equals(adducts[i].getType())) {
-        return IonModificationType.MIXED;
+        return LegacyIonModificationType.MIXED;
       }
     }
     return t;
@@ -59,14 +59,14 @@ enum IonModificationType {
    * @param adducts list of ion modifications
    * @return the common type of all modifications - or MIXED
    */
-  public static IonModificationType getType(List<LegacyIonModification> adducts) {
+  public static LegacyIonModificationType getType(List<LegacyIonModification> adducts) {
     if (adducts == null || adducts.isEmpty()) {
       return UNKNOWN;
     }
-    IonModificationType t = adducts.get(0).getType();
+    LegacyIonModificationType t = adducts.get(0).getType();
     for (int i = 1; i < adducts.size(); i++) {
       if (!t.equals(adducts.get(i).getType())) {
-        return IonModificationType.MIXED;
+        return LegacyIonModificationType.MIXED;
       }
     }
     return t;

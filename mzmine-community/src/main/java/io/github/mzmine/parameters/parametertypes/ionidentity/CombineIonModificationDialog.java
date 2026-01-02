@@ -123,7 +123,7 @@ class CombineIonModificationDialog extends Stage {
 
   private void createCombined() {
     if (combine.getItems().size() > 1) {
-      LegacyIonModification nt = CombinedIonModification.create(combine.getItems());
+      LegacyIonModification nt = LegacyCombinedIonModification.create(combine.getItems());
       newTypes.add(nt);
       // add to adducts
       ObservableList<LegacyIonModification> addModel = adducts.getItems();

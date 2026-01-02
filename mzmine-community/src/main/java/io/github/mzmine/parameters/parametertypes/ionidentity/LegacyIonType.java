@@ -249,7 +249,7 @@ class LegacyIonType extends NeutralMolecule implements Comparable<LegacyIonType>
 
     for (final LegacyIonModification aa : a) {
       // do not check the ? unknown adduct as this does not count as an adduct overlap
-      if (aa.getType() == IonModificationType.UNDEFINED_ADDUCT) {
+      if (aa.getType() == LegacyIonModificationType.UNDEFINED_ADDUCT) {
         continue;
       }
       if (Arrays.stream(b).anyMatch(ab -> aa.equals(ab))) {
@@ -272,7 +272,7 @@ class LegacyIonType extends NeutralMolecule implements Comparable<LegacyIonType>
       Collections.addAll(allMods, this.mod.getModifications());
     }
 
-    LegacyIonModification combinedIonModification = CombinedIonModification.create(allMods);
+    LegacyIonModification combinedIonModification = LegacyCombinedIonModification.create(allMods);
     return new LegacyIonType(this.molecules, this.adduct, combinedIonModification);
   }
 
@@ -488,7 +488,7 @@ class LegacyIonType extends NeutralMolecule implements Comparable<LegacyIonType>
    * @return
    */
   public boolean isUndefinedAdduct() {
-    return adduct.getType().equals(IonModificationType.UNDEFINED_ADDUCT);
+    return adduct.getType().equals(LegacyIonModificationType.UNDEFINED_ADDUCT);
   }
 
   /**
@@ -497,7 +497,8 @@ class LegacyIonType extends NeutralMolecule implements Comparable<LegacyIonType>
    * @return
    */
   public boolean isUndefinedAdductParent() {
-    return adduct.getType().equals(IonModificationType.UNDEFINED_ADDUCT) && getModCount() == 0;
+    return adduct.getType().equals(LegacyIonModificationType.UNDEFINED_ADDUCT)
+        && getModCount() == 0;
   }
 
   public PolarityType getPolarity() {

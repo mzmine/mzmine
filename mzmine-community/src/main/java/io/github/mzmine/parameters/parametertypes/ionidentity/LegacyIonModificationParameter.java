@@ -147,8 +147,9 @@ class LegacyIonModificationParameter implements UserParameter<LegacyIonModificat
               try {
                 // Create new adduct.
                 LegacyIonModification add = new LegacyIonModification(
-                    IonModificationType.valueOf(typeNode.getNodeValue()), nameNode.getNodeValue(),
-                    molFormulaNode.getNodeValue(), Double.parseDouble(massNode.getNodeValue()),
+                    LegacyIonModificationType.valueOf(typeNode.getNodeValue()),
+                    nameNode.getNodeValue(), molFormulaNode.getNodeValue(),
+                    Double.parseDouble(massNode.getNodeValue()),
                     Integer.parseInt(chargeNode.getNodeValue()));
                 adducts.add(add);
               } catch (NumberFormatException ex) {
@@ -164,7 +165,7 @@ class LegacyIonModificationParameter implements UserParameter<LegacyIonModificat
         if (adducts.size() == 1) {
           adduct = adducts.get(0);
         } else {
-          adduct = CombinedIonModification.create(adducts);
+          adduct = LegacyCombinedIonModification.create(adducts);
         }
 
         // A new choice?
