@@ -293,12 +293,20 @@ public class WaveletResolver extends AbstractResolver {
           DetectedPeak next = IntStream.range(i + 1, secondPassPeaks.size())
               .mapToObj(j -> secondPassPeaks.get(j))
               .filter(p -> p.snr() instanceof SnrResult.Passed).findFirst().orElse(null);
-          DetectedPeak previous = withSnr.isEmpty() ? next : withSnr.getLast();
+          DetectedPeak previous = null;
+          for (int j = withSnr.size() - 1; j >= 0; j--) {
+            if (withSnr.get(j).snr() instanceof Passed) {
+              previous = withSnr.get(j);
+              break;
+            }
+          }
 
           if (next == null && previous == null) {
             continue;
           } else if (next == null && previous != null) {
             next = previous;
+          } else if (next != null && previous == null) {
+            previous = next;
           }
 
           // previous has been re-processed already
@@ -703,8 +711,7 @@ public class WaveletResolver extends AbstractResolver {
         }
         final double fallbackSnr = peak.peakY() / localBaseline;
         if (fallbackSnr > minSnr) {
-          finalPeaks.add(peak.withSNR(SnrResult.passed(fallbackSnr)));
-//
+          finalPeaks.add(peak.withSNR(SnrResult.fallback(fallbackSnr)));
         } else if (useSurrounding) {
           finalPeaks.add(peak.withSNR(SnrResult.surrounded()));
         }

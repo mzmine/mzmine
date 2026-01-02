@@ -24,11 +24,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet;
 
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.SnrResult.Fallback;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.SnrResult.Passed;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.SnrResult.Surrounded;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.SnrResult.Undetermined;
 
-sealed interface SnrResult permits Passed, Surrounded, Undetermined {
+sealed interface SnrResult permits Passed, Fallback, Surrounded, Undetermined {
 
   Undetermined undetermined = new Undetermined();
   Surrounded surrounded = new Surrounded();
@@ -45,7 +46,15 @@ sealed interface SnrResult permits Passed, Surrounded, Undetermined {
     return new Passed(snr);
   }
 
+  static Fallback fallback(double snr) {
+    return new Fallback(snr);
+  }
+
   record Passed(double snr) implements SnrResult {
+
+  }
+
+  record Fallback(double snr) implements SnrResult {
 
   }
 
@@ -56,5 +65,4 @@ sealed interface SnrResult permits Passed, Surrounded, Undetermined {
   record Undetermined() implements SnrResult {
 
   }
-
 }
