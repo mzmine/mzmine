@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,12 +57,12 @@ class AddIonModificationAction implements EventHandler<ActionEvent> {
    */
   private static final long serialVersionUID = 1L;
 
-  private MultiChoiceComponent<IonModification> parent;
+  private MultiChoiceComponent<LegacyIonModification> parent;
 
   /**
    * Create the action.
    */
-  public AddIonModificationAction(MultiChoiceComponent<IonModification> parent) {
+  public AddIonModificationAction(MultiChoiceComponent<LegacyIonModification> parent) {
     super();
     this.parent = parent;
   }
@@ -98,14 +98,14 @@ class AddIonModificationAction implements EventHandler<ActionEvent> {
           charge = parameters.getParameter(AddESIAdductParameters.CHARGE).getValue();
         }
 
-        final IonModification adduct = new IonModification(type, name, mz, charge);
+        final LegacyIonModification adduct = new LegacyIonModification(type, name, mz, charge);
 
         // Add to list of choices (if not already present).
-        final Collection<IonModification> choices = new ArrayList<>(parent.getChoices());
+        final Collection<LegacyIonModification> choices = new ArrayList<>(parent.getChoices());
 
         if (!choices.contains(adduct)) {
           choices.add(adduct);
-          parent.setChoices(choices.toArray(new IonModification[choices.size()]));
+          parent.setChoices(choices.toArray(new LegacyIonModification[choices.size()]));
         }
       }
     }

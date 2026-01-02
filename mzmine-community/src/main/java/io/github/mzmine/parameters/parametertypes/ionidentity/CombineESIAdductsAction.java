@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,12 +42,12 @@ class CombineESIAdductsAction implements EventHandler<ActionEvent> {
    */
   private static final long serialVersionUID = 1L;
 
-  private MultiChoiceComponent<IonModification> parent;
+  private MultiChoiceComponent<LegacyIonModification> parent;
 
   /**
    * Create the action.
    */
-  public CombineESIAdductsAction(MultiChoiceComponent<IonModification> parent) {
+  public CombineESIAdductsAction(MultiChoiceComponent<LegacyIonModification> parent) {
     super();
     this.parent = parent;
   }
@@ -58,16 +58,16 @@ class CombineESIAdductsAction implements EventHandler<ActionEvent> {
       // Show dialog.
       CombineIonModificationDialog dialog = new CombineIonModificationDialog(parent.getChoices());
       dialog.showAndWait();
-      List<IonModification> add = dialog.getNewTypes();
+      List<LegacyIonModification> add = dialog.getNewTypes();
       if (!add.isEmpty()) {
         addAll(add);
       }
     }
   }
 
-  private void addAll(List<IonModification> add) {
+  private void addAll(List<LegacyIonModification> add) {
     // Add to list of choices (if not already present).
-    List<IonModification> choices = parent.getChoices();
+    List<LegacyIonModification> choices = parent.getChoices();
 
     add.stream().filter(a -> !choices.contains(a)).forEach(a -> choices.add(a));
 

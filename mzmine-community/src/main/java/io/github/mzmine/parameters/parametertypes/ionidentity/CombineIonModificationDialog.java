@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,18 +45,18 @@ class CombineIonModificationDialog extends Stage {
 
   private final BorderPane mainPane;
 
-  private ListView<IonModification> adducts;
-  private ListView<IonModification> combine;
+  private ListView<LegacyIonModification> adducts;
+  private ListView<LegacyIonModification> combine;
 
   // new types to be added
-  private List<IonModification> newTypes = new ArrayList<>();
+  private List<LegacyIonModification> newTypes = new ArrayList<>();
 
   public static void main(String[] args) {
     CombineIonModificationDialog d = new CombineIonModificationDialog(List.of());
     d.show();
   }
 
-  public CombineIonModificationDialog(List<IonModification> add) {
+  public CombineIonModificationDialog(List<LegacyIonModification> add) {
 
     mainPane = new BorderPane();
     Scene scene = new Scene(mainPane);
@@ -123,30 +123,30 @@ class CombineIonModificationDialog extends Stage {
 
   private void createCombined() {
     if (combine.getItems().size() > 1) {
-      IonModification nt = CombinedIonModification.create(combine.getItems());
+      LegacyIonModification nt = CombinedIonModification.create(combine.getItems());
       newTypes.add(nt);
       // add to adducts
-      ObservableList<IonModification> addModel = adducts.getItems();
+      ObservableList<LegacyIonModification> addModel = adducts.getItems();
       addModel.add(nt);
     }
   }
 
-  public List<IonModification> getNewTypes() {
+  public List<LegacyIonModification> getNewTypes() {
     return newTypes;
   }
 
-  private void add(List<IonModification> list) {
-    ObservableList<IonModification> model = combine.getItems();
+  private void add(List<LegacyIonModification> list) {
+    ObservableList<LegacyIonModification> model = combine.getItems();
     model.addAll(list);
   }
 
-  private void add(IonModification e) {
-    ObservableList<IonModification> model = combine.getItems();
+  private void add(LegacyIonModification e) {
+    ObservableList<LegacyIonModification> model = combine.getItems();
     model.add(e);
   }
 
-  private void remove(List<IonModification> list) {
-    ObservableList<IonModification> model = combine.getItems();
+  private void remove(List<LegacyIonModification> list) {
+    ObservableList<LegacyIonModification> model = combine.getItems();
     model.removeAll(list);
   }
 

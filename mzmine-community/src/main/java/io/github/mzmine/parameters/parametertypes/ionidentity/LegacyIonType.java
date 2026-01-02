@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,29 +52,29 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 @Deprecated
-class IonType extends NeutralMolecule implements Comparable<IonType> {
+class LegacyIonType extends NeutralMolecule implements Comparable<LegacyIonType> {
 
   public static final String XML_ELEMENT = "iontype";
   @NotNull
-  protected final IonModification adduct;
+  protected final LegacyIonModification adduct;
   @Nullable
-  protected final IonModification mod;
+  protected final LegacyIonModification mod;
   protected final int molecules;
   protected final int charge;
 
-  public IonType(IonModification adduct) {
+  public LegacyIonType(LegacyIonModification adduct) {
     this(adduct, null);
   }
 
-  public IonType(IonModification adduct, IonModification mod) {
+  public LegacyIonType(LegacyIonModification adduct, LegacyIonModification mod) {
     this(1, adduct, mod);
   }
 
-  public IonType(int molecules, IonModification adduct) {
+  public LegacyIonType(int molecules, LegacyIonModification adduct) {
     this(molecules, adduct, null);
   }
 
-  public IonType(int molecules, IonModification adduct, IonModification mod) {
+  public LegacyIonType(int molecules, LegacyIonModification adduct, LegacyIonModification mod) {
     super("", mod != null ? adduct.getMass() + mod.getMass() : adduct.getMass());
     this.adduct = adduct;
     this.mod = mod;
@@ -89,11 +89,11 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
    * @param molecules
    * @param ion
    */
-  public IonType(int molecules, IonType ion) {
+  public LegacyIonType(int molecules, LegacyIonType ion) {
     this(molecules, ion.adduct, ion.mod);
   }
 
-  public static IonType loadFromXML(XMLStreamReader reader) throws XMLStreamException {
+  public static LegacyIonType loadFromXML(XMLStreamReader reader) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException("Current element is not an iontype");
     }
@@ -101,8 +101,8 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
     final int molecules = Integer.parseInt(reader.getAttributeValue(null, "molecules"));
     final int charge = Integer.parseInt(reader.getAttributeValue(null, "charge"));
 
-    IonModification adduct = null;
-    IonModification mod = null;
+    LegacyIonModification adduct = null;
+    LegacyIonModification mod = null;
 
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals("iontype"))) {
@@ -112,24 +112,25 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
       }
 
       if (reader.getLocalName().equals("adduct")) {
-        if (ParsingUtils.progressToStartElement(reader, IonModification.XML_ELEMENT,
+        if (ParsingUtils.progressToStartElement(reader, LegacyIonModification.XML_ELEMENT,
             CONST.XML_DATA_TYPE_ELEMENT)) {
-          adduct = IonModification.loadFromXML(reader);
+          adduct = LegacyIonModification.loadFromXML(reader);
         } else {
           return null;
         }
       }
       if (reader.getLocalName().equals("modification")) {
-        if (ParsingUtils.progressToStartElement(reader, IonModification.XML_ELEMENT,
+        if (ParsingUtils.progressToStartElement(reader, LegacyIonModification.XML_ELEMENT,
             CONST.XML_DATA_TYPE_ELEMENT)) {
-          mod = IonModification.loadFromXML(reader);
+          mod = LegacyIonModification.loadFromXML(reader);
         }
       }
     }
 
     assert adduct != null;
 
-    return mod != null ? new IonType(molecules, adduct, mod) : new IonType(molecules, adduct);
+    return mod != null ? new LegacyIonType(molecules, adduct, mod)
+        : new LegacyIonType(molecules, adduct);
   }
 
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
@@ -155,7 +156,7 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
    *
    * @return all modifications
    */
-  public IonModification getModification() {
+  public LegacyIonModification getModification() {
     return mod;
   }
 
@@ -190,7 +191,7 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
    * @param a
    * @return
    */
-  public boolean nameEquals(IonType a) {
+  public boolean nameEquals(LegacyIonType a) {
     return name.equals(a.name);
   }
 
@@ -200,7 +201,7 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
    * @param a
    * @return
    */
-  public boolean modsEqual(IonType a) {
+  public boolean modsEqual(LegacyIonType a) {
     if (this.mod == a.mod || (mod == null && a.mod == null)) {
       return true;
     }
@@ -216,17 +217,17 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
    *
    * @return true if at least one modification is shared
    */
-  public boolean hasModificationOverlap(IonType ion) {
+  public boolean hasModificationOverlap(LegacyIonType ion) {
     if (!hasMods() || !ion.hasMods()) {
       return false;
     }
-    IonModification[] a = mod.getModifications();
-    IonModification[] b = ion.mod.getModifications();
+    LegacyIonModification[] a = mod.getModifications();
+    LegacyIonModification[] b = ion.mod.getModifications();
     if (a == b) {
       return true;
     }
 
-    for (final IonModification aa : a) {
+    for (final LegacyIonModification aa : a) {
       if (Arrays.stream(b).anyMatch(ab -> aa.equals(ab))) {
         return true;
       }
@@ -239,14 +240,14 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
    *
    * @return true if at least one adduct type is shared
    */
-  public boolean hasAdductOverlap(IonType ion) {
-    IonModification[] a = adduct.getModifications();
-    IonModification[] b = ion.adduct.getModifications();
+  public boolean hasAdductOverlap(LegacyIonType ion) {
+    LegacyIonModification[] a = adduct.getModifications();
+    LegacyIonModification[] b = ion.adduct.getModifications();
     if (a == b) {
       return true;
     }
 
-    for (final IonModification aa : a) {
+    for (final LegacyIonModification aa : a) {
       // do not check the ? unknown adduct as this does not count as an adduct overlap
       if (aa.getType() == IonModificationType.UNDEFINED_ADDUCT) {
         continue;
@@ -263,16 +264,16 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
    *
    * @return modified IonType
    */
-  public IonType createModified(final @NotNull IonModification... newMod) {
-    List<IonModification> allMods = new ArrayList<>();
+  public LegacyIonType createModified(final @NotNull LegacyIonModification... newMod) {
+    List<LegacyIonModification> allMods = new ArrayList<>();
     Collections.addAll(allMods, newMod);
 
     if (this.mod != null) {
       Collections.addAll(allMods, this.mod.getModifications());
     }
 
-    IonModification combinedIonModification = CombinedIonModification.create(allMods);
-    return new IonType(this.molecules, this.adduct, combinedIonModification);
+    LegacyIonModification combinedIonModification = CombinedIonModification.create(allMods);
+    return new LegacyIonType(this.molecules, this.adduct, combinedIonModification);
   }
 
   public String toString(boolean showMass) {
@@ -303,7 +304,7 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
    *
    * @return true if charge, mass difference, and molecules factor is the same
    */
-  public boolean sameMathDifference(IonType adduct) {
+  public boolean sameMathDifference(LegacyIonType adduct) {
     return sameMassDifference(adduct) && charge == adduct.charge && molecules == adduct.molecules;
   }
 
@@ -313,7 +314,7 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
    * @param adduct
    * @return
    */
-  public boolean sameMassDifference(IonType adduct) {
+  public boolean sameMassDifference(LegacyIonType adduct) {
     return Double.compare(mass, adduct.mass) == 0;
   }
 
@@ -327,7 +328,7 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
   /**
    * @return The adduct part of this IonType
    */
-  public IonModification getAdduct() {
+  public LegacyIonModification getAdduct() {
     return adduct;
   }
 
@@ -342,7 +343,7 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
    * sorting
    */
   @Override
-  public int compareTo(IonType a) {
+  public int compareTo(LegacyIonType a) {
     int i = this.getName().compareTo(a.getName());
     if (i == 0) {
       double md1 = getMassDifference();
@@ -363,7 +364,7 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
    * @return true if this is a modification of the parent argument (e.g., this=[M-H2O+H]+; parent=
    * [M+H]+)
    */
-  public boolean isModificationOf(IonType parent) {
+  public boolean isModificationOf(LegacyIonType parent) {
     if (!hasMods() || !(parent.getModCount() < getModCount() && mass != parent.mass
         && adduct.equals(parent.adduct) && molecules == parent.molecules
         && charge == parent.charge)) {
@@ -381,12 +382,12 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
    * @return
    */
   @NotNull
-  public IonType subtractMods(IonType ion) {
+  public LegacyIonType subtractMods(LegacyIonType ion) {
     // return an identity with only the modifications
     if (hasMods() && ion.hasMods()) {
-      IonModification na = this.mod.remove(ion.mod);
+      LegacyIonModification na = this.mod.remove(ion.mod);
       // na can be null
-      return new IonType(this.molecules, this.adduct, na);
+      return new LegacyIonType(this.molecules, this.adduct, na);
     } else {
       return this;
     }
@@ -397,8 +398,8 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
    *
    * @return modifications only or null
    */
-  public IonType getModifiedOnly() {
-    return new IonType(1, IonModification.getUndefinedforCharge(this.charge), mod);
+  public LegacyIonType getModifiedOnly() {
+    return new LegacyIonType(1, LegacyIonModification.getUndefinedforCharge(this.charge), mod);
   }
 
 
@@ -468,7 +469,7 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
    * @param b
    * @return true if no adduct is a duplicate
    */
-  public boolean adductsEqual(IonType b) {
+  public boolean adductsEqual(LegacyIonType b) {
     return adduct.equals(b.adduct);
   }
 
@@ -571,7 +572,7 @@ class IonType extends NeutralMolecule implements Comparable<IonType> {
   @Override
   public boolean equals(final Object obj) {
     if (obj == null || !obj.getClass().equals(this.getClass())
-        || !(obj instanceof final IonType a)) {
+        || !(obj instanceof final LegacyIonType a)) {
       return false;
     }
     if (!super.equals(obj)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,7 +40,7 @@ enum IonModificationType {
    * @param adducts list of ion modifications
    * @return the common type of all modifications - or MIXED
    */
-  public static IonModificationType getType(IonModification[] adducts) {
+  public static IonModificationType getType(LegacyIonModification[] adducts) {
     if (adducts == null || adducts.length == 0) {
       return UNKNOWN;
     }
@@ -59,7 +59,7 @@ enum IonModificationType {
    * @param adducts list of ion modifications
    * @return the common type of all modifications - or MIXED
    */
-  public static IonModificationType getType(List<IonModification> adducts) {
+  public static IonModificationType getType(List<LegacyIonModification> adducts) {
     if (adducts == null || adducts.isEmpty()) {
       return UNKNOWN;
     }

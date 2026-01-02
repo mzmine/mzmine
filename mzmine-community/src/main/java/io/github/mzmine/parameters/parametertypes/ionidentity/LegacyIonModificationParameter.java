@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import javafx.scene.control.Label;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -48,8 +49,7 @@ import org.w3c.dom.NodeList;
  * @version $Revision$
  */
 @Deprecated
-class LegacyIonModificationParameter implements
-    UserParameter<IonModification[][], LegacyIonModificationComponent> {
+class LegacyIonModificationParameter implements UserParameter<LegacyIonModification[][], Label> {
 
   // Logger.
   private static final Logger logger = Logger.getLogger(
@@ -66,10 +66,9 @@ class LegacyIonModificationParameter implements
   private static final String TYPE_ATTRIBUTE = "type";
   private static final String SELECTED_ATTRIBUTE = "selected";
 
-  private final MultiChoiceParameter<IonModification> adducts;
-  private final MultiChoiceParameter<IonModification> modification;
+  private final MultiChoiceParameter<LegacyIonModification> adducts;
+  private final MultiChoiceParameter<LegacyIonModification> modification;
 
-  private LegacyIonModificationComponent comp;
 
   /**
    * Create the parameter.
@@ -79,42 +78,41 @@ class LegacyIonModificationParameter implements
    */
   public LegacyIonModificationParameter(final String name, final String description) {
     super();
-    adducts = new MultiChoiceParameter<>(name, description, 1, new IonModification[0],
-        IonModification.POLARITY_MASS_SORTER);
+    adducts = new MultiChoiceParameter<>(name, description, 1, new LegacyIonModification[0],
+        LegacyIonModification.POLARITY_MASS_SORTER);
     modification = new MultiChoiceParameter<>("Modifications", "Modifications on adducts", 0,
-        new IonModification[0], IonModification.POLARITY_MASS_SORTER);
+        new LegacyIonModification[0], LegacyIonModification.POLARITY_MASS_SORTER);
   }
 
   @Override
-  public LegacyIonModificationComponent createEditingComponent() {
-    comp = new LegacyIonModificationComponent(List.of(adducts.getChoices()),
-        List.of(modification.getChoices()));
-    return comp;
+  public Label createEditingComponent() {
+    throw new UnsupportedOperationException(
+        "Not supported as this parameter is only used to load legacy parameters.");
   }
 
   @Override
   public void loadValueFromXML(final Element xmlElement) {
     // Start with current choices and empty selections.
-    final ArrayList<IonModification> newChoices = new ArrayList<IonModification>();
-    final ArrayList<IonModification> selections = new ArrayList<>();
+    final ArrayList<LegacyIonModification> newChoices = new ArrayList<LegacyIonModification>();
+    final ArrayList<LegacyIonModification> selections = new ArrayList<>();
     // load all adducts
     loadAdducts(xmlElement, ADDUCTS_TAG, newChoices, selections);
     // Set choices and selections (value).
-    adducts.setChoices(newChoices.toArray(new IonModification[newChoices.size()]));
-    adducts.setValue(selections.toArray(new IonModification[selections.size()]));
+    adducts.setChoices(newChoices.toArray(new LegacyIonModification[newChoices.size()]));
+    adducts.setValue(selections.toArray(new LegacyIonModification[selections.size()]));
 
     // Start with current choices and empty selections.
-    final ArrayList<IonModification> newChoicesMod = new ArrayList<>();
-    final ArrayList<IonModification> selectionsMod = new ArrayList<>();
+    final ArrayList<LegacyIonModification> newChoicesMod = new ArrayList<>();
+    final ArrayList<LegacyIonModification> selectionsMod = new ArrayList<>();
     // load all modification
     loadAdducts(xmlElement, MODIFICTAION_TAG, newChoicesMod, selectionsMod);
     // Set choices and selections (value).
-    modification.setChoices(newChoicesMod.toArray(new IonModification[newChoicesMod.size()]));
-    modification.setValue(selectionsMod.toArray(new IonModification[selectionsMod.size()]));
+    modification.setChoices(newChoicesMod.toArray(new LegacyIonModification[newChoicesMod.size()]));
+    modification.setValue(selectionsMod.toArray(new LegacyIonModification[selectionsMod.size()]));
   }
 
   public static void loadAdducts(final Element xmlElement, String TAG,
-      ArrayList<IonModification> newChoices, ArrayList<IonModification> selections) {
+      ArrayList<LegacyIonModification> newChoices, ArrayList<LegacyIonModification> selections) {
     NodeList adductElements = xmlElement.getChildNodes();
     for (int i = 0; i < adductElements.getLength(); i++) {
       Node a = adductElements.item(i);
@@ -128,7 +126,7 @@ class LegacyIonModificationParameter implements
         // sub adduct types that define the total adducttype
         NodeList childs = a.getChildNodes();
 
-        List<IonModification> adducts = new ArrayList<>();
+        List<LegacyIonModification> adducts = new ArrayList<>();
 
         // composite types have multiple child nodes
         for (int c = 0; c < childs.getLength(); c++) {
@@ -148,7 +146,7 @@ class LegacyIonModificationParameter implements
 
               try {
                 // Create new adduct.
-                IonModification add = new IonModification(
+                LegacyIonModification add = new LegacyIonModification(
                     IonModificationType.valueOf(typeNode.getNodeValue()), nameNode.getNodeValue(),
                     molFormulaNode.getNodeValue(), Double.parseDouble(massNode.getNodeValue()),
                     Integer.parseInt(chargeNode.getNodeValue()));
@@ -162,7 +160,7 @@ class LegacyIonModificationParameter implements
           }
         }
         // create adduct as combination of all childs
-        IonModification adduct = null;
+        LegacyIonModification adduct = null;
         if (adducts.size() == 1) {
           adduct = adducts.get(0);
         } else {
@@ -187,14 +185,14 @@ class LegacyIonModificationParameter implements
    * for(ESIAdductType a : adducts) { if(a.equals(na)) return true; } return false; }
    */
 
-  public static void saveIonsToXML(final Element xmlElement, final IonModification[] value,
-      final IonModification[] choices, final String xmlTag) {
-    final List<IonModification> selections = Arrays.asList(
-        value == null ? new IonModification[0] : value);
+  public static void saveIonsToXML(final Element xmlElement, final LegacyIonModification[] value,
+      final LegacyIonModification[] choices, final String xmlTag) {
+    final List<LegacyIonModification> selections = Arrays.asList(
+        value == null ? new LegacyIonModification[0] : value);
 
     if (choices != null) {
       final Document parent = xmlElement.getOwnerDocument();
-      for (final IonModification item : choices) {
+      for (final LegacyIonModification item : choices) {
         final Element element = parent.createElement(xmlTag);
         saveTypeToXML(parent, element, item, selections);
         xmlElement.appendChild(element);
@@ -209,11 +207,11 @@ class LegacyIonModificationParameter implements
    * @param parentElement
    * @param selections
    */
-  public static void saveTypeToXML(Document parent, Element parentElement, IonModification type,
-      List<IonModification> selections) {
+  public static void saveTypeToXML(Document parent, Element parentElement,
+      LegacyIonModification type, List<LegacyIonModification> selections) {
     parentElement.setAttribute(SELECTED_ATTRIBUTE, Boolean.toString(selections.contains(type)));
     // all adducts
-    for (IonModification item : type.getModifications()) {
+    for (LegacyIonModification item : type.getModifications()) {
       final Element element = parent.createElement(ADDUCTS_ITEM_TAG);
       element.setAttribute(NAME_ATTRIBUTE, item.getName());
       element.setAttribute(MASS_ATTRIBUTE, Double.toString(item.getMass()));
@@ -240,7 +238,7 @@ class LegacyIonModificationParameter implements
     return copy;
   }
 
-  public void setChoices(IonModification[] ad, IonModification[] mods) {
+  public void setChoices(LegacyIonModification[] ad, LegacyIonModification[] mods) {
     adducts.setChoices(ad);
     modification.setChoices(mods);
   }
@@ -252,14 +250,14 @@ class LegacyIonModificationParameter implements
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    final IonModification[][] value = getValue();
+    final LegacyIonModification[][] value = getValue();
     if (value == null) {
       errorMessages.add("Adducts is not set properly");
       return false;
     }
 
     adducts.checkValue(errorMessages);
-    final List<IonModification> adductsWithNoCharge = Arrays.stream(adducts.getValue())
+    final List<LegacyIonModification> adductsWithNoCharge = Arrays.stream(adducts.getValue())
         .filter(i -> i.getCharge() == 0).toList();
     if (!adductsWithNoCharge.isEmpty()) {
       errorMessages.add("The adduct(s): " + adductsWithNoCharge
@@ -276,25 +274,19 @@ class LegacyIonModificationParameter implements
   }
 
   @Override
-  public void setValueFromComponent(LegacyIonModificationComponent component) {
-    adducts.setValueFromComponent(component.getAdducts().getCheckListView());
-    modification.setValueFromComponent(component.getMods().getCheckListView());
-    IonModification[][] choices = component.getChoices();
-    adducts.setChoices(choices[0]);
-    modification.setChoices(choices[1]);
-    choices = component.getValue();
-    adducts.setValue(choices[0]);
-    modification.setValue(choices[1]);
+  public void setValueFromComponent(Label component) {
+    throw new UnsupportedOperationException(
+        "Parameter is only valid for loading old parameters - no component.");
   }
 
   @Override
-  public IonModification[][] getValue() {
-    IonModification[][] ad = {adducts.getValue(), modification.getValue()};
+  public LegacyIonModification[][] getValue() {
+    LegacyIonModification[][] ad = {adducts.getValue(), modification.getValue()};
     return ad;
   }
 
   @Override
-  public void setValue(IonModification[][] newValue) {
+  public void setValue(LegacyIonModification[][] newValue) {
     var selectedAdducts = newValue[0];
     var selectedMods = newValue[1];
 
@@ -306,8 +298,8 @@ class LegacyIonModificationParameter implements
     modification.setValue(selectedMods);
   }
 
-  private void ensureAllChoices(final MultiChoiceParameter<IonModification> param,
-      final IonModification[] selected) {
+  private void ensureAllChoices(final MultiChoiceParameter<LegacyIonModification> param,
+      final LegacyIonModification[] selected) {
     if (selected == null) {
       return;
     }
@@ -316,14 +308,14 @@ class LegacyIonModificationParameter implements
       choices = selected;
     } else if (!Set.of(choices).containsAll(List.of(selected))) {
       choices = Stream.of(selected, choices).flatMap(Arrays::stream).distinct()
-          .toArray(IonModification[]::new);
+          .toArray(LegacyIonModification[]::new);
     }
     param.setChoices(choices);
   }
 
   @Override
-  public void setValueToComponent(LegacyIonModificationComponent component,
-      @Nullable IonModification[][] newValue) {
-    component.setValue(newValue);
+  public void setValueToComponent(Label component, @Nullable LegacyIonModification[][] newValue) {
+    throw new UnsupportedOperationException(
+        "Parameter is only valid for loading old parameters - no component.");
   }
 }

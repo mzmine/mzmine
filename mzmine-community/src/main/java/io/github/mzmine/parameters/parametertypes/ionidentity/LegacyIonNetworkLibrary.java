@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,22 +42,22 @@ import org.jetbrains.annotations.NotNull;
  * Important: Only used for loading of old parameters.
  */
 @Deprecated
-class IonNetworkLibrary {
+class LegacyIonNetworkLibrary {
 
-  private static final Logger LOG = Logger.getLogger(IonNetworkLibrary.class.getName());
+  private static final Logger LOG = Logger.getLogger(LegacyIonNetworkLibrary.class.getName());
 
   @NotNull
   public IonLibrary toNewLibrary() {
     final List<io.github.mzmine.datamodel.identities.IonType> ions = allAdducts.stream()
-        .map(IonType::toNewIonType).toList();
+        .map(LegacyIonType::toNewIonType).toList();
     return new SimpleIonLibrary("Legacy library imported", ions);
   }
 
   private MZTolerance mzTolerance;
   // adducts
-  private final IonModification[] selectedAdducts;
-  private final IonModification[] selectedMods;
-  private final List<IonType> allAdducts = new ArrayList<>();
+  private final LegacyIonModification[] selectedAdducts;
+  private final LegacyIonModification[] selectedMods;
+  private final List<LegacyIonType> allAdducts = new ArrayList<>();
   private final PolarityType polarity;
   private final int maxCharge;
   private final int maxMolecules;
@@ -65,16 +65,17 @@ class IonNetworkLibrary {
   /**
    * Set mztolerance later
    */
-  public IonNetworkLibrary(LegacyIonLibraryParameterSet parameterSet) {
+  public LegacyIonNetworkLibrary(LegacyIonLibraryParameterSet parameterSet) {
     this(parameterSet, null);
   }
 
 
-  public IonNetworkLibrary(LegacyIonLibraryParameterSet parameterSet, MZTolerance mzTolerance) {
+  public LegacyIonNetworkLibrary(LegacyIonLibraryParameterSet parameterSet,
+      MZTolerance mzTolerance) {
     this(parameterSet, PolarityType.ANY, mzTolerance);
   }
 
-  public IonNetworkLibrary(LegacyIonLibraryParameterSet parameterSet, PolarityType polarity,
+  public LegacyIonNetworkLibrary(LegacyIonLibraryParameterSet parameterSet, PolarityType polarity,
       MZTolerance mzTolerance) {
     this(mzTolerance, parameterSet.getValue(LegacyIonLibraryParameterSet.MAX_CHARGE), polarity,
         parameterSet.getValue(LegacyIonLibraryParameterSet.MAX_MOLECULES),
@@ -85,8 +86,9 @@ class IonNetworkLibrary {
   /**
    * For simple setup
    */
-  public IonNetworkLibrary(MZTolerance mzTolerance, int maxCharge, PolarityType polarity,
-      int maxMolecules, IonModification[] selectedAdducts, IonModification[] selectedMods) {
+  public LegacyIonNetworkLibrary(MZTolerance mzTolerance, int maxCharge, PolarityType polarity,
+      int maxMolecules, LegacyIonModification[] selectedAdducts,
+      LegacyIonModification[] selectedMods) {
     this.mzTolerance = mzTolerance;
     this.maxCharge = maxCharge;
     this.polarity = polarity;
@@ -108,18 +110,18 @@ class IonNetworkLibrary {
     // [M-H2O+?]c+
     for (int c = 1; c <= maxCharge; c++) {
       if (polarity.includesPositive()) {
-        allAdducts.add(new IonType(1, IonModification.getUndefinedforCharge(c)));
+        allAdducts.add(new LegacyIonType(1, LegacyIonModification.getUndefinedforCharge(c)));
       }
       if (polarity.includesNegative()) {
-        allAdducts.add(new IonType(1, IonModification.getUndefinedforCharge(-c)));
+        allAdducts.add(new LegacyIonType(1, LegacyIonModification.getUndefinedforCharge(-c)));
       }
     }
 
-    for (IonModification a : selectedAdducts) {
+    for (LegacyIonModification a : selectedAdducts) {
       if (polarity.includesCharge(a.getCharge())) {
         if (a.getAbsCharge() <= maxCharge) {
           for (int n = 1; n <= maxMolecules; n++) {
-            allAdducts.add(new IonType(n, a));
+            allAdducts.add(new LegacyIonType(n, a));
           }
         }
       }
@@ -127,7 +129,7 @@ class IonNetworkLibrary {
 
     addModification();
     // print them out
-    for (IonType a : allAdducts) {
+    for (LegacyIonType a : allAdducts) {
       LOG.finest("Adding modification: " + a.toString());
     }
   }
@@ -138,8 +140,8 @@ class IonNetworkLibrary {
   private void addModification() {
     int size = allAdducts.size();
     for (int i = 0; i < size; i++) {
-      for (IonModification a : selectedMods) {
-        IonType ion = allAdducts.get(i);
+      for (LegacyIonModification a : selectedMods) {
+        LegacyIonType ion = allAdducts.get(i);
         if (filter(ion, a)) {
           allAdducts.add(ion.createModified(a));
         }
@@ -155,10 +157,11 @@ class IonNetworkLibrary {
    * @param mod
    * @return
    */
-  private boolean filter(IonType ion, IonModification mod) {
-    IonModification add = ion.getAdduct();
+  private boolean filter(LegacyIonType ion, LegacyIonModification mod) {
+    LegacyIonModification add = ion.getAdduct();
     // specific filters
-    boolean bad = (add.contains(IonModification.NH4) && mod.contains(IonModification.NH3));
+    boolean bad = (add.contains(LegacyIonModification.NH4) && mod.contains(
+        LegacyIonModification.NH3));
 
     return !bad;
   }
@@ -171,15 +174,15 @@ class IonNetworkLibrary {
     return mzTolerance;
   }
 
-  public IonModification[] getSelectedAdducts() {
+  public LegacyIonModification[] getSelectedAdducts() {
     return selectedAdducts;
   }
 
-  public IonModification[] getSelectedMods() {
+  public LegacyIonModification[] getSelectedMods() {
     return selectedMods;
   }
 
-  public List<IonType> getAllAdducts() {
+  public List<LegacyIonType> getAllAdducts() {
     return allAdducts;
   }
 

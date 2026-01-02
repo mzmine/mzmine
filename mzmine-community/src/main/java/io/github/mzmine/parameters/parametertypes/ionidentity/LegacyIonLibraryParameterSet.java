@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,8 +45,8 @@ class LegacyIonLibraryParameterSet extends SimpleParameterSet {
     super(MAX_CHARGE, MAX_MOLECULES, ADDUCTS);
   }
 
-  public void setAll(int maxCharge, int maxMolecules, final IonModification[] adductChoices,
-      final IonModification[] modificationChoices, final IonModification[][] selected) {
+  public void setAll(int maxCharge, int maxMolecules, final LegacyIonModification[] adductChoices,
+      final LegacyIonModification[] modificationChoices, final LegacyIonModification[][] selected) {
     setParameter(MAX_MOLECULES, maxMolecules);
     setParameter(MAX_CHARGE, maxCharge);
     var ionLib = getParameter(ADDUCTS);

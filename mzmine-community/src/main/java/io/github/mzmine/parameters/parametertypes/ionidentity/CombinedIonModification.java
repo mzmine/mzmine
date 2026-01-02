@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,13 +43,13 @@ import org.jetbrains.annotations.NotNull;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 @Deprecated
-class CombinedIonModification extends IonModification {
+class CombinedIonModification extends LegacyIonModification {
 
   /**
    * Modification parts
    */
   @NotNull
-  private final IonModification[] mods;
+  private final LegacyIonModification[] mods;
 
   /**
    * Use the create method to construct combined modifications
@@ -59,7 +59,7 @@ class CombinedIonModification extends IonModification {
    * @param deltaMZ delta m/z
    * @param charge  charge state
    */
-  protected CombinedIonModification(@NotNull IonModification[] mods, IonModificationType type,
+  protected CombinedIonModification(@NotNull LegacyIonModification[] mods, IonModificationType type,
       double deltaMZ, int charge) {
     super(type, deltaMZ, charge);
     this.mods = mods;
@@ -68,7 +68,7 @@ class CombinedIonModification extends IonModification {
 
   @Override
   public @NotNull Stream<? extends IonPart> toNewParts() {
-    return Arrays.stream(mods).flatMap(IonModification::toNewParts);
+    return Arrays.stream(mods).flatMap(LegacyIonModification::toNewParts);
   }
 
   /**
@@ -77,36 +77,36 @@ class CombinedIonModification extends IonModification {
    * @param modifications all modifications
    * @return a combined ion modification or if the argument modification if only one was provided
    */
-  public static IonModification create(@NotNull IonModification... modifications) {
+  public static LegacyIonModification create(@NotNull LegacyIonModification... modifications) {
     if (modifications.length == 1) {
       return modifications[0];
     }
     // all modifications
-    List<IonModification> allModList = new ArrayList<>();
-    for (IonModification modification : modifications) {
+    List<LegacyIonModification> allModList = new ArrayList<>();
+    for (LegacyIonModification modification : modifications) {
       Collections.addAll(allModList, modification.getModifications());
     }
     // sort
-    IonModification[] allMods = allModList.toArray(IonModification[]::new);
+    LegacyIonModification[] allMods = allModList.toArray(LegacyIonModification[]::new);
     Arrays.sort(allMods);
     IonModificationType type = IonModificationType.getType(allMods);
 
     double deltaMZ = 0;
     int charge = 0;
-    for (IonModification mod : allMods) {
+    for (LegacyIonModification mod : allMods) {
       deltaMZ += mod.getMass();
       charge += mod.getCharge();
     }
     return new CombinedIonModification(allMods, type, deltaMZ, charge);
   }
 
-  public static IonModification create(List<IonModification> modifications) {
-    return create(modifications.toArray(IonModification[]::new));
+  public static LegacyIonModification create(List<LegacyIonModification> modifications) {
+    return create(modifications.toArray(LegacyIonModification[]::new));
   }
 
   @NotNull
   @Override
-  public IonModification[] getModifications() {
+  public LegacyIonModification[] getModifications() {
     return mods;
   }
 
@@ -116,9 +116,9 @@ class CombinedIonModification extends IonModification {
   }
 
   @Override
-  public IonModification createOpposite() {
-    IonModification[] mod = Arrays.stream(mods).map(IonModification::createOpposite)
-        .toArray(IonModification[]::new);
+  public LegacyIonModification createOpposite() {
+    LegacyIonModification[] mod = Arrays.stream(mods).map(LegacyIonModification::createOpposite)
+        .toArray(LegacyIonModification[]::new);
     return CombinedIonModification.create(mod);
   }
 
@@ -127,7 +127,7 @@ class CombinedIonModification extends IonModification {
    */
   @Override
   public String[] getRawNames() {
-    return Arrays.stream(mods).map(IonModification::getName).toArray(String[]::new);
+    return Arrays.stream(mods).map(LegacyIonModification::getName).toArray(String[]::new);
   }
 
   @Override
@@ -165,11 +165,11 @@ class CombinedIonModification extends IonModification {
   }
 
   @Override
-  public IonModification remove(IonModification type) {
-    List<IonModification> newList = new ArrayList<>();
+  public LegacyIonModification remove(LegacyIonModification type) {
+    List<LegacyIonModification> newList = new ArrayList<>();
     Collections.addAll(newList, this.getModifications());
 
-    for (IonModification m : type.getModifications()) {
+    for (LegacyIonModification m : type.getModifications()) {
       newList.remove(m);
     }
 
@@ -190,7 +190,7 @@ class CombinedIonModification extends IonModification {
    * @return
    */
   @Override
-  public boolean contains(IonModification mod) {
+  public boolean contains(LegacyIonModification mod) {
     return Arrays.stream(getModifications()).anyMatch(m -> m.equals(mod));
   }
 
@@ -211,17 +211,18 @@ class CombinedIonModification extends IonModification {
         streamModifications().map(NeutralMolecule::getName).collect(Collectors.joining(";")));
     map.put("Mass Diff", streamModifications().map(NeutralMolecule::getMass).map(String::valueOf)
         .collect(Collectors.joining(";")));
-    map.put("Type", streamModifications().map(IonModification::getType).map(Enum::name)
+    map.put("Type", streamModifications().map(LegacyIonModification::getType).map(Enum::name)
         .collect(Collectors.joining(";")));
-    map.put("Charge", streamModifications().map(IonModification::getCharge).map(String::valueOf)
+    map.put("Charge",
+        streamModifications().map(LegacyIonModification::getCharge).map(String::valueOf)
+            .collect(Collectors.joining(";")));
+    map.put("Formula", streamModifications().map(LegacyIonModification::getMolFormula)
         .collect(Collectors.joining(";")));
-    map.put("Formula",
-        streamModifications().map(IonModification::getMolFormula).collect(Collectors.joining(";")));
     return map;
   }
 
   @Override
-  public IonModification withCharge(final int newCharge) {
+  public LegacyIonModification withCharge(final int newCharge) {
     return new CombinedIonModification(mods, type, mass, newCharge);
   }
 }
