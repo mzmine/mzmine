@@ -94,7 +94,6 @@ public class WaveletResolver extends AbstractResolver {
   private final double maxSimilarHeightRatio;
   private final boolean saturationFilter;
   private final double saturationThreshold;
-  private final boolean useSurrounding;
   private double[] yPadded = new double[0];
   private FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.STANDARD);
 
@@ -110,7 +109,6 @@ public class WaveletResolver extends AbstractResolver {
     noiseMethod = parameterSet.getValue(WaveletResolverParameters.noiseCalculation);
     minDataPoints = parameterSet.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
     dipFilter = parameterSet.getValue(WaveletResolverParameters.dipFilter);
-    useSurrounding = parameterSet.getValue(WaveletResolverParameters.useSurrounding);
 
     // advanced param
     final AdvancedParametersParameter<AdvancedWaveletParameters> advanced = parameterSet.getParameter(
@@ -285,48 +283,49 @@ public class WaveletResolver extends AbstractResolver {
         robustnessIteration ? estimateLocalNoiseBaselineAndFilterBySNR(finalDetectedPeaks, x, y,
             minSnr) : finalDetectedPeaks;
 
-    List<DetectedPeak> withSnr = new ArrayList<>();
-    if (useSurrounding) {
-      for (int i = 0; i < secondPassPeaks.size(); i++) {
-        DetectedPeak secondPassPeak = secondPassPeaks.get(i);
-        if (secondPassPeak.snr() instanceof Surrounded) {
-          DetectedPeak next = IntStream.range(i + 1, secondPassPeaks.size())
-              .mapToObj(j -> secondPassPeaks.get(j))
-              .filter(p -> p.snr() instanceof SnrResult.Passed).findFirst().orElse(null);
-          DetectedPeak previous = null;
-          for (int j = withSnr.size() - 1; j >= 0; j--) {
-            if (withSnr.get(j).snr() instanceof Passed) {
-              previous = withSnr.get(j);
-              break;
-            }
-          }
-
-          if (next == null && previous == null) {
-            continue;
-          } else if (next == null && previous != null) {
-            next = previous;
-          } else if (next != null && previous == null) {
-            previous = next;
-          }
-
-          // previous has been re-processed already
-          final double previousNoise = previous.peakY() / ((Passed) previous.snr()).snr();
-          final double nextNoise = next.peakY() / ((Passed) next.snr()).snr();
-          final double noise = (previousNoise + nextNoise) / 2;
-          final double snr = secondPassPeak.peakY() / noise;
-          if (snr > minSnr) {
-            withSnr.add(secondPassPeak.withSNR(SnrResult.passed(snr)));
-          }
-        } else {
-          withSnr.add(secondPassPeak);
-        }
-      }
-    } else {
-      withSnr.addAll(secondPassPeaks);
-    }
+    final List<DetectedPeak> withSnr = filterSurroundedPeaks(secondPassPeaks);
 
     return withSnr.stream().map(p -> p.asRtRange(x))
         .sorted(Comparator.comparing(Range::lowerEndpoint)).toList();
+  }
+
+  private List<DetectedPeak> filterSurroundedPeaks(@NotNull List<DetectedPeak> secondPassPeaks) {
+    final List<DetectedPeak> withSnr = new ArrayList<>();
+    for (int i = 0; i < secondPassPeaks.size(); i++) {
+      DetectedPeak secondPassPeak = secondPassPeaks.get(i);
+      if (secondPassPeak.snr() instanceof Surrounded) {
+        DetectedPeak next = IntStream.range(i + 1, secondPassPeaks.size())
+            .mapToObj(j -> secondPassPeaks.get(j)).filter(p -> p.snr() instanceof Passed)
+            .findFirst().orElse(null);
+        DetectedPeak previous = null;
+        for (int j = withSnr.size() - 1; j >= 0; j--) {
+          if (withSnr.get(j).snr() instanceof Passed) {
+            previous = withSnr.get(j);
+            break;
+          }
+        }
+
+        if (next == null && previous == null) {
+          continue;
+        } else if (next == null && previous != null) {
+          next = previous;
+        } else if (next != null && previous == null) {
+          previous = next;
+        }
+
+        // previous has been re-processed already
+        final double previousNoise = previous.peakY() / ((Passed) previous.snr()).snr();
+        final double nextNoise = next.peakY() / ((Passed) next.snr()).snr();
+        final double noise = (previousNoise + nextNoise) / 2;
+        final double snr = secondPassPeak.peakY() / noise;
+        if (snr > minSnr) {
+          withSnr.add(secondPassPeak.withSNR(SnrResult.passed(snr)));
+        }
+      } else {
+        withSnr.add(secondPassPeak);
+      }
+    }
+    return withSnr;
   }
 
   /**
@@ -712,7 +711,7 @@ public class WaveletResolver extends AbstractResolver {
         final double fallbackSnr = peak.peakY() / localBaseline;
         if (fallbackSnr > minSnr) {
           finalPeaks.add(peak.withSNR(SnrResult.fallback(fallbackSnr)));
-        } else if (useSurrounding) {
+        } else {
           finalPeaks.add(peak.withSNR(SnrResult.surrounded()));
         }
         continue;

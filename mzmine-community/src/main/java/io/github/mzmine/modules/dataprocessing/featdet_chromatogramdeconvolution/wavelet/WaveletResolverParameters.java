@@ -78,9 +78,6 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
       Filters V-shaped dips in the baseline (--v--) that are caused by instable sprays and may behave like an unresolved double peak.
       Default: enable for LC-MS, disable for GC-EI-MS""", DEFAULT_DIP_FILTER);
 
-  public static final BooleanParameter useSurrounding = new BooleanParameter("use surrounding", "",
-      true);
-
   public static final AdvancedParametersParameter<AdvancedWaveletParameters> advancedParameters = new AdvancedParametersParameter<>(
       new AdvancedWaveletParameters());
 
@@ -89,12 +86,43 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_wavelet/wavelet_resolver.html",
         GeneralResolverParameters.PEAK_LISTS, GeneralResolverParameters.dimension,
         GeneralResolverParameters.groupMS2Parameters, snr, topToEdge, minHeight, noiseCalculation,
-        dipFilter, useSurrounding,
+        dipFilter,
 
         GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS, GeneralResolverParameters.SUFFIX,
         GeneralResolverParameters.handleOriginal,
 
         advancedParameters);
+  }
+
+  public static WaveletResolverParameters create(FeatureListsSelection flists,
+      @NotNull ResolvingDimension dimension, boolean enableMs2,
+      @NotNull GroupMS2SubParameters groupMs2, int minDp, @Nullable String suffix,
+      @NotNull OriginalFeatureListOption handleOriginal, double snr, @Nullable Double topToEdge,
+      double minHeight, @NotNull NoiseCalculation noiseCalculation, @Nullable Boolean dipFilter,
+      boolean advancedEnabled, @NotNull AdvancedWaveletParameters advancedParam) {
+
+    final ParameterSet param = new WaveletResolverParameters().cloneParameterSet();
+
+    param.setParameter(WaveletResolverParameters.PEAK_LISTS, flists);
+    param.setParameter(WaveletResolverParameters.dimension, dimension);
+    param.setParameter(WaveletResolverParameters.groupMS2Parameters, enableMs2);
+    param.getParameter(WaveletResolverParameters.groupMS2Parameters)
+        .setEmbeddedParameters(groupMs2);
+    param.setParameter(WaveletResolverParameters.MIN_NUMBER_OF_DATAPOINTS, minDp);
+    param.setParameter(WaveletResolverParameters.SUFFIX, Objects.requireNonNullElse(suffix, "r"));
+    param.setParameter(WaveletResolverParameters.handleOriginal, handleOriginal);
+    param.setParameter(WaveletResolverParameters.snr, snr);
+    param.setParameter(WaveletResolverParameters.topToEdge, topToEdge != null,
+        Objects.requireNonNullElse(topToEdge, 3d));
+    param.setParameter(WaveletResolverParameters.minHeight, minHeight);
+    param.setParameter(WaveletResolverParameters.noiseCalculation, noiseCalculation);
+    param.setParameter(WaveletResolverParameters.dipFilter,
+        Objects.requireNonNullElse(dipFilter, DEFAULT_DIP_FILTER));
+    param.setParameter(WaveletResolverParameters.advancedParameters, advancedEnabled);
+    param.getParameter(WaveletResolverParameters.advancedParameters)
+        .setEmbeddedParameters(advancedParam);
+
+    return (WaveletResolverParameters) param;
   }
 
   @Override
@@ -141,39 +169,12 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
                 ResolvingDimension.RETENTION_TIME, false, GroupMS2SubParameters.createDefault(), 8,
                 "r", OriginalFeatureListOption.KEEP, 5, null, 1E5,
                 NoiseCalculation.STANDARD_DEVIATION, false, false,
-                AdvancedWaveletParameters.createGcDefault()))
-        );
+                AdvancedWaveletParameters.createGcDefault())));
   }
 
-  public static WaveletResolverParameters create(FeatureListsSelection flists,
-      @NotNull ResolvingDimension dimension, boolean enableMs2,
-      @NotNull GroupMS2SubParameters groupMs2, int minDp, @Nullable String suffix,
-      @NotNull OriginalFeatureListOption handleOriginal, double snr, @Nullable Double topToEdge,
-      double minHeight, @NotNull NoiseCalculation noiseCalculation, @Nullable Boolean dipFilter,
-      boolean advancedEnabled, @NotNull AdvancedWaveletParameters advancedParam) {
-
-    final ParameterSet param = new WaveletResolverParameters().cloneParameterSet();
-
-    param.setParameter(WaveletResolverParameters.PEAK_LISTS, flists);
-    param.setParameter(WaveletResolverParameters.dimension, dimension);
-    param.setParameter(WaveletResolverParameters.groupMS2Parameters, enableMs2);
-    param.getParameter(WaveletResolverParameters.groupMS2Parameters)
-        .setEmbeddedParameters(groupMs2);
-    param.setParameter(WaveletResolverParameters.MIN_NUMBER_OF_DATAPOINTS, minDp);
-    param.setParameter(WaveletResolverParameters.SUFFIX, Objects.requireNonNullElse(suffix, "r"));
-    param.setParameter(WaveletResolverParameters.handleOriginal, handleOriginal);
-    param.setParameter(WaveletResolverParameters.snr, snr);
-    param.setParameter(WaveletResolverParameters.topToEdge, topToEdge != null,
-        Objects.requireNonNullElse(topToEdge, 3d));
-    param.setParameter(WaveletResolverParameters.minHeight, minHeight);
-    param.setParameter(WaveletResolverParameters.noiseCalculation, noiseCalculation);
-    param.setParameter(WaveletResolverParameters.dipFilter,
-        Objects.requireNonNullElse(dipFilter, DEFAULT_DIP_FILTER));
-    param.setParameter(WaveletResolverParameters.advancedParameters, advancedEnabled);
-    param.getParameter(WaveletResolverParameters.advancedParameters)
-        .setEmbeddedParameters(advancedParam);
-
-    return (WaveletResolverParameters) param;
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 
   public enum NoiseCalculation implements UniqueIdSupplier {
@@ -194,10 +195,5 @@ public class WaveletResolverParameters extends GeneralResolverParameters {
         case MEDIAN_ABSOLUTE_DEVIATION -> "Median absolute deviation";
       };
     }
-  }
-
-  @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
   }
 }
