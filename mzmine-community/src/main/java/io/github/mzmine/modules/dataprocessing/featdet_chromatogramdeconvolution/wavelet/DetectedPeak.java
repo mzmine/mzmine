@@ -39,18 +39,21 @@ import org.jetbrains.annotations.NotNull;
  * @param contributingScale A representative scale
  * @param leftBoundaryIndex Boundary indices - mutable, initialized to invalid
  */
-record DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale, double snr,
+record DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale,
+                    @NotNull SnrResult snr,
                     int leftBoundaryIndex, int rightBoundaryIndex) {
 
   DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale) {
-    this(peakIndex, peakX, peakY, contributingScale, Double.NaN);
+    this(peakIndex, peakX, peakY, contributingScale, SnrResult.undetermined());
   }
 
-  DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale, double snr) {
+  DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale,
+      @NotNull SnrResult snr) {
     this(peakIndex, peakX, peakY, contributingScale, snr, -1, -1);
   }
 
-  DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale, double snr,
+  DetectedPeak(int peakIndex, double peakX, double peakY, double contributingScale,
+      @NotNull SnrResult snr,
       int leftBoundaryIndex, int rightBoundaryIndex) {
     this.peakIndex = peakIndex;
     this.peakX = peakX;
@@ -74,7 +77,7 @@ record DetectedPeak(int peakIndex, double peakX, double peakY, double contributi
     return new DetectedPeak(peakIndex, peakX, peakY, contributingScale, snr, left, right);
   }
 
-  DetectedPeak withSNR(double snr) {
+  DetectedPeak withSNR(SnrResult snr) {
     return new DetectedPeak(peakIndex, peakX, peakY, contributingScale, snr, leftBoundaryIndex,
         rightBoundaryIndex);
   }
@@ -100,7 +103,7 @@ record DetectedPeak(int peakIndex, double peakX, double peakY, double contributi
   @Override
   public String toString() {
     return "DetectedPeak{idx=" + peakIndex + ", x=" + String.format("%.2f", peakX) + ", y="
-        + String.format("%.2f", peakY) + ", snr=" + String.format("%.2f", snr) + ", scale="
+        + String.format("%.2f", peakY) + ", snr=" + snr.toString() + ", scale="
         + String.format("%.2f", contributingScale) + ", bounds=[" + leftBoundaryIndex + ","
         + rightBoundaryIndex + "]" // Added boundaries
         + "}";
