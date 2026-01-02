@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -100,9 +100,9 @@ public class IonParts {
   public static final IonPart H2O_5 = H2O.withCount(-5);
 
   // default modifications
-  public static final List<IonPart> DEFAULT_VALUES_MODIFICATIONS = List.of(H2O, H2O_2, H2O_3, H2O_4,
-      H2O_5, HCL, NH3, CO, CO2, H2, C2H4, FORMIC_ACID, ACETIC_ACID, ACN, METHANOL, ETHANOL,
-      ISO_PROPANOL);
+  public static final List<IonPart> DEFAULT_VALUES_NEUTRAL_MODIFICATIONS = List.of(H2O, H2O_2,
+      H2O_3, H2O_4, H2O_5, HCL, NH3, CO, CO2, H2, C2H4, FORMIC_ACID, ACETIC_ACID, ACN, METHANOL,
+      ETHANOL, ISO_PROPANOL);
 
   public static final List<IonPart> PREDEFINED_PARTS = List.of(H2O, H2O_2, H2O_3, H2O_4, H2O_5, HCL,
       C2H4, H2, NH3, CO, CO2, FORMIC_ACID, ACETIC_ACID, ACN, METHANOL, ETHANOL, ISO_PROPANOL,

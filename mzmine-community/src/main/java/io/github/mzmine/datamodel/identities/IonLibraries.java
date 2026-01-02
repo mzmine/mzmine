@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,6 +65,12 @@ public class IonLibraries {
       true);
 
   /**
+   * Neutral modifications library
+   */
+  public static final @NotNull IonLibrary MZMINE_DEFAULT_NEUTRAL_MODIFICATIONS = new SimpleIonLibrary(
+      "mzmine default neutral modifications", IonTypes.DEFAULT_NEUTRAL_MODIFICATIONS);
+
+  /**
    *
    * @return a new modifiable list of default libraries
    */
@@ -75,7 +81,9 @@ public class IonLibraries {
         // main
         MZMINE_DEFAULT_DUAL_POLARITY_MAIN, MZMINE_DEFAULT_POS_MAIN, MZMINE_DEFAULT_NEG_MAIN,
         // smallest, used for other tools where less ions are better like formula prediction
-        MZMINE_DEFAULT_DUAL_POLARITY_SMALLEST));
+        MZMINE_DEFAULT_DUAL_POLARITY_SMALLEST,
+        // NEUTRAL modifications
+        MZMINE_DEFAULT_NEUTRAL_MODIFICATIONS));
   }
 
   /**

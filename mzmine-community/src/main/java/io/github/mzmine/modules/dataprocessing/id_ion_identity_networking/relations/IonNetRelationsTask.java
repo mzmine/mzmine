@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,17 +29,20 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relat
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.IonParts;
+import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkCondensedRelation;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkHeteroCondensedRelation;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkModificationRelation;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonModification;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -53,10 +56,11 @@ public class IonNetRelationsTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(IonNetRelationsTask.class.getName());
   private final ModularFeatureList featureList;
   private final AtomicDouble stageProgress = new AtomicDouble(0);
-  private final IonModification[] mods;
   private final MZTolerance mzTol;
   private final boolean searchCondensed;
   private final boolean searchHeteroCondensed;
+  private final List<IonType> mods;
+  private final IonType H2O = IonType.create(IonParts.H2O);
 
   /**
    * Create the task.
@@ -68,7 +72,8 @@ public class IonNetRelationsTask extends AbstractTask {
     super(featureLists.getMemoryMapStorage(), moduleCallDate);
 
     this.featureList = featureLists;
-    mods = parameterSet.getParameter(IonNetRelationsParameters.adducts).getValue()[1];
+    final IonLibrary library = parameterSet.getValue(IonNetRelationsParameters.ionLibrary);
+    mods = library.ions().stream().filter(IonType::isNeutral).toList();
     mzTol = parameterSet.getParameter(IonNetRelationsParameters.mzTol).getValue();
     // tolerances
     searchCondensed = parameterSet.getParameter(IonNetRelationsParameters.searchCondensedMultimer)
@@ -77,12 +82,11 @@ public class IonNetRelationsTask extends AbstractTask {
         IonNetRelationsParameters.searchCondensedHeteroMultimer).getValue();
   }
 
-  public static int checkForModifications(MZTolerance mzTol, IonModification[] mods,
-      IonNetwork[] nets) {
+  public int checkForModifications(IonNetwork[] nets) {
     int counter = 0;
     for (int i = 0; i < nets.length - 1; i++) {
       for (int j = i + 1; j < nets.length; j++) {
-        if (checkForModifications(mzTol, mods, nets[i], nets[j])) {
+        if (checkForModifications(nets[i], nets[j])) {
           counter++;
         }
       }
@@ -90,8 +94,7 @@ public class IonNetRelationsTask extends AbstractTask {
     return counter;
   }
 
-  private static boolean checkForModifications(MZTolerance mzTol, IonModification[] mods,
-      IonNetwork a, IonNetwork b) {
+  private boolean checkForModifications(IonNetwork a, IonNetwork b) {
     // ensure a.mass < b.mass
     if (a.getNeutralMass() > b.getNeutralMass()) {
       IonNetwork tmp = a;
@@ -99,8 +102,7 @@ public class IonNetRelationsTask extends AbstractTask {
       b = tmp;
     }
 
-    IonModification mod = checkForModifications(mzTol, mods, a.getNeutralMass(),
-        b.getNeutralMass());
+    IonType mod = checkForModifications(a.getNeutralMass(), b.getNeutralMass());
     if (mod != null) {
       IonNetworkModificationRelation rel = new IonNetworkModificationRelation(a, b, mod);
       a.addRelation(b, rel);
@@ -111,24 +113,22 @@ public class IonNetRelationsTask extends AbstractTask {
     }
   }
 
-  public static IonModification checkForModifications(MZTolerance mzTol, IonModification[] mods,
-      double neutralMassA, double neutralMassB) {
+  public IonType checkForModifications(double neutralMassA, double neutralMassB) {
     // b > a
-    for (IonModification mod : mods) {
+    for (IonType mod : mods) {
       // e.g. -H2O ~ -18
-      if (mzTol.checkWithinTolerance(neutralMassB, neutralMassA + mod.getAbsMass())) {
+      if (mzTol.checkWithinTolerance(neutralMassB, neutralMassA + mod.absTotalMass())) {
         return mod;
       }
     }
     return null;
   }
 
-  public static int checkForCondensedModifications(MZTolerance mzTol, IonModification[] mods,
-      IonNetwork[] nets) {
+  public int checkForCondensedModifications(IonNetwork[] nets) {
     int counter = 0;
     for (int i = 0; i < nets.length - 1; i++) {
       for (int j = i + 1; j < nets.length; j++) {
-        if (checkForCondensedModifications(mzTol, mods, nets[i], nets[j])) {
+        if (checkForCondensedModifications(nets[i], nets[j])) {
           counter++;
         }
       }
@@ -140,14 +140,11 @@ public class IonNetRelationsTask extends AbstractTask {
    * Search for condensed molecules: e.g., two sugars 2 C6H12O6 --> C12H22O11 + H2O (modifications
    * possible, e.g., when molecules where different (deoxycholic acid + cholic acid: mod= -O)
    *
-   * @param mzTol
-   * @param mods
    * @param a
    * @param b
    * @return
    */
-  public static boolean checkForCondensedModifications(MZTolerance mzTol, IonModification[] mods,
-      IonNetwork a, IonNetwork b) {
+  public boolean checkForCondensedModifications(IonNetwork a, IonNetwork b) {
     // ensure a.mass < b.mass
     if (a.getNeutralMass() > b.getNeutralMass()) {
       IonNetwork tmp = a;
@@ -160,8 +157,7 @@ public class IonNetRelationsTask extends AbstractTask {
       return false;
     }
 
-    IonModification[] mod = checkForCondensedModifications(mzTol, mods, a.getNeutralMass(),
-        b.getNeutralMass());
+    IonType mod = checkForCondensedModifications(a.getNeutralMass(), b.getNeutralMass());
     // always at least water loss
     if (mod != null) {
       IonNetworkCondensedRelation rel = new IonNetworkCondensedRelation(a, b, mod);
@@ -172,8 +168,7 @@ public class IonNetRelationsTask extends AbstractTask {
     return false;
   }
 
-  public static IonModification[] checkForCondensedModifications(MZTolerance mzTol,
-      IonModification[] mods, double massA, double massB) {
+  public IonType checkForCondensedModifications(double massA, double massB) {
     // ensure a.mass < b.mass
     if (massA > massB) {
       double tmp = massA;
@@ -182,16 +177,16 @@ public class IonNetRelationsTask extends AbstractTask {
     }
 
     // condense a and subtract water
-    double calcMassB = massA * 2 - IonModification.H2O.getAbsMass();
+    double calcMassB = massA * 2 - IonParts.H2O.absTotalMass();
     // check -H2O -> diff = 0
     if (mzTol.checkWithinTolerance(massB, calcMassB)) {
-      return new IonModification[]{IonModification.H2O};
+      return H2O;
     }
 
-    for (IonModification mod : mods) {
+    for (IonType mod : mods) {
       // e.g. +O ~ +16 or -O16
-      if (mzTol.checkWithinTolerance(massB, calcMassB + mod.getMass())) {
-        return new IonModification[]{IonModification.H2O, mod};
+      if (mzTol.checkWithinTolerance(massB, calcMassB + mod.totalMass())) {
+        return H2O.merge(mod);
       }
     }
     return null;
@@ -200,18 +195,15 @@ public class IonNetRelationsTask extends AbstractTask {
   /**
    * Checks for any modification of the type X+Y --> XY -H2O (condensation)
    *
-   * @param mzTol
-   * @param mods
    * @param nets
    * @return
    */
-  public static int checkForHeteroCondensed(MZTolerance mzTol, IonModification[] mods,
-      IonNetwork[] nets) {
+  public int checkForHeteroCondensed(IonNetwork[] nets) {
     int counter = 0;
     for (int i = 0; i < nets.length - 2; i++) {
       for (int j = i + 1; j < nets.length - 1; j++) {
         for (int k = j + 1; k < nets.length; k++) {
-          if (checkForHeteroCondensed(mzTol, mods, nets[i], nets[j], nets[k])) {
+          if (checkForHeteroCondensed(nets[i], nets[j], nets[k])) {
             counter++;
           }
         }
@@ -223,15 +215,8 @@ public class IonNetRelationsTask extends AbstractTask {
   /**
    * Checks for any modification of the type X+Y --> XY -H2O (condensation)
    *
-   * @param mzTol
-   * @param mods
-   * @param a
-   * @param b
-   * @param c
-   * @return
    */
-  public static boolean checkForHeteroCondensed(MZTolerance mzTol, IonModification[] mods,
-      IonNetwork a, IonNetwork b, IonNetwork c) {
+  public boolean checkForHeteroCondensed(IonNetwork a, IonNetwork b, IonNetwork c) {
     // ensure c has the highest mass and is the multimer
     if (b.getNeutralMass() > c.getNeutralMass()) {
       IonNetwork tmp = c;
@@ -248,8 +233,8 @@ public class IonNetRelationsTask extends AbstractTask {
       return false;
     }
 
-    IonModification[] mod = checkForHeteroCondensed(mzTol, mods, a.getNeutralMass(),
-        b.getNeutralMass(), c.getNeutralMass());
+    IonType mod = checkForHeteroCondensed(a.getNeutralMass(), b.getNeutralMass(),
+        c.getNeutralMass());
     if (mod != null) {
       IonNetworkHeteroCondensedRelation rel = new IonNetworkHeteroCondensedRelation(a, b, c);
       a.addRelation(c, rel);
@@ -260,8 +245,7 @@ public class IonNetRelationsTask extends AbstractTask {
     return false;
   }
 
-  public static IonModification[] checkForHeteroCondensed(MZTolerance mzTol, IonModification[] mods,
-      double massA, double massB, double massC) {
+  public IonType checkForHeteroCondensed(double massA, double massB, double massC) {
     // ensure c.mass is heighest
     if (massB > massC) {
       double tmp = massC;
@@ -281,12 +265,11 @@ public class IonNetRelationsTask extends AbstractTask {
       return null;
     }
 
-    IonModification water = IonModification.H2O;
     // condense a and subtract water
-    double calcMassC = massA + massB - water.getAbsMass();
+    double calcMassC = massA + massB - H2O.absTotalMass();
     // check -H2O -> calcMassC = 0
     if (mzTol.checkWithinTolerance(massC, calcMassC)) {
-      return new IonModification[]{water};
+      return H2O;
     }
 
     return null;
@@ -327,20 +310,20 @@ public class IonNetRelationsTask extends AbstractTask {
       }
 
       // check for modifications
-      if (mods != null && mods.length > 0) {
-        int counter = checkForModifications(mzTol, mods, nets);
+      if (mods != null && !mods.isEmpty()) {
+        int counter = checkForModifications(nets);
         logger.info("Found " + counter + " modifications");
       }
 
       // check for condensed formulas
       // mass*2 - H2O and - modifications
       if (searchCondensed) {
-        int counter2 = checkForCondensedModifications(mzTol, mods, nets);
+        int counter2 = checkForCondensedModifications(nets);
         logger.info("Found " + counter2 + " condensed molecules");
       }
 
       if (searchHeteroCondensed) {
-        int counter2 = checkForHeteroCondensed(mzTol, mods, nets);
+        int counter2 = checkForHeteroCondensed(nets);
         logger.info("Found " + counter2
             + " condensed molecules (hetero - two different neutral molecules)");
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,14 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relations;
 
+import io.github.mzmine.datamodel.identities.IonLibraries;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.ionidentity.LegacyIonModificationParameter;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import org.jetbrains.annotations.Nullable;
 
 public class IonNetRelationsParameters extends SimpleParameterSet {
 
@@ -38,8 +40,12 @@ public class IonNetRelationsParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTol = new MZToleranceParameter();
 
-  public static final LegacyIonModificationParameter adducts = new LegacyIonModificationParameter(
-      "Adducts", "List of modifications");
+  public static final IonLibraryParameter ionLibrary = new IonLibraryParameter(
+      "Neutral modifications", """
+      A library of neutral modifications between two 'molecules' found by Ion Identity Networking.
+      Only neutral definitions will be used and charged ions will be skipped.""",
+      IonLibraries.MZMINE_DEFAULT_NEUTRAL_MODIFICATIONS);
+
 
   public static final BooleanParameter searchCondensedMultimer = new BooleanParameter(
       "Search condensed multimer",
@@ -53,7 +59,20 @@ public class IonNetRelationsParameters extends SimpleParameterSet {
   public IonNetRelationsParameters() {
     super(
         new Parameter[]{featureLists, mzTol, searchCondensedMultimer, searchCondensedHeteroMultimer,
-            adducts});
+            ionLibrary});
   }
 
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 2 ->
+          "Changed to the new ion library based definition of neutral modifications. Define libraries and use them here to search for neutral modifications.";
+      default -> null;
+    };
+  }
 }

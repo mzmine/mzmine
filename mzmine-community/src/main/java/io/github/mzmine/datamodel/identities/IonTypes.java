@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -126,15 +126,16 @@ public enum IonTypes {
   }
 
   // default values
-  public static final List<IonType> DEFAULT_POSITIVE_MAIN;
-  public static final List<IonType> DEFAULT_POSITIVE_FULL;
+  public static final @NotNull List<IonType> DEFAULT_POSITIVE_MAIN;
+  public static final @NotNull List<IonType> DEFAULT_POSITIVE_FULL;
 
-  public static final List<IonType> DEFAULT_NEGATIVE_MAIN;
-  public static final List<IonType> DEFAULT_NEGATIVE_FULL;
+  public static final @NotNull List<IonType> DEFAULT_NEGATIVE_MAIN;
+  public static final @NotNull List<IonType> DEFAULT_NEGATIVE_FULL;
 
-  public static final List<IonType> DEFAULT_BOTH_POLARITIES_MAIN;
-  public static final List<IonType> DEFAULT_BOTH_POLARITIES_FULL;
-  public static final List<IonType> DEFAULT_BOTH_POLARITIES_SMALLEST;
+  public static final @NotNull List<IonType> DEFAULT_BOTH_POLARITIES_MAIN;
+  public static final @NotNull List<IonType> DEFAULT_BOTH_POLARITIES_FULL;
+  public static final @NotNull List<IonType> DEFAULT_BOTH_POLARITIES_SMALLEST;
+  public static final @NotNull List<IonType> DEFAULT_NEUTRAL_MODIFICATIONS;
 
   static {
     // positive
@@ -165,6 +166,10 @@ public enum IonTypes {
         M_PLUS, H, NA, NH4, H2_PLUS,
         // negative
         CL, H_MINUS);
+
+    // neutral modifications: so far all just a single neutral modification but may also use multiple parts
+    DEFAULT_NEUTRAL_MODIFICATIONS = IonParts.DEFAULT_VALUES_NEUTRAL_MODIFICATIONS.stream()
+        .map(IonType::new).sorted(IonTypeSorting.getIonTypeDefault().getComparator()).toList();
   }
 
   @SafeVarargs

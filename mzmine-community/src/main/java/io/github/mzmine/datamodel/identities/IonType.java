@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,6 +65,15 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 public final class IonType {
 
   private static final Logger logger = Logger.getLogger(IonType.class.getName());
+
+  /**
+   * handles the sorting and everything for the parts
+   *
+   * @param parts
+   */
+  IonType(@NotNull IonPart @NotNull ... parts) {
+    this(List.of(parts), 1);
+  }
 
   /**
    * handles the sorting and everything for the parts
@@ -467,6 +476,40 @@ public final class IonType {
 
   public int getTotalPartsCount() {
     return parts.size();
+  }
+
+  public boolean isNeutral() {
+    return totalCharge == 0;
+  }
+
+  public boolean isCharged() {
+    return !isNeutral();
+  }
+
+  /**
+   * Flips all {@link IonPart} counts.
+   *
+   * @return an opposite ion like -H2O will be +H2O
+   */
+  @NotNull
+  public IonType createOpposite() {
+    List<IonPart> opposites = new ArrayList<>(parts.size());
+    for (IonPart part : parts) {
+      // flip count
+      opposites.add(part.withCount(-part.count()));
+    }
+    return new IonType(opposites, molecules);
+  }
+
+  /**
+   * Merges the parts from this and other ion and uses the minimum molecules count.
+   */
+  @NotNull
+  public IonType merge(@NotNull IonType other) {
+    List<IonPart> merged = new ArrayList<>(other.getTotalPartsCount() + getTotalPartsCount());
+    merged.addAll(parts);
+    merged.addAll(other.parts());
+    return IonType.create(merged, Math.min(molecules, other.molecules));
   }
 
 
