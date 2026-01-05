@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,6 +25,7 @@
 package io.github.mzmine.datamodel.features.compoundannotations;
 
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -34,6 +34,8 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -50,6 +52,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * Describes a common feature annotation. Future implementations should also extend the
@@ -189,6 +192,36 @@ public interface FeatureAnnotation {
   @Nullable Float getRT();
 
   @Nullable Float getScore();
+
+  @Nullable
+  default IsotopePattern calculateIsotopePattern() {
+    String formulaStr = getFormula();
+    final IonType ionType = getAdductType();
+
+    if (ionType == null) {
+      return null;
+    }
+    IMolecularFormula formula = null;
+    if (formulaStr == null) {
+      final MolecularStructure structure = getStructure();
+      if (structure != null) {
+        formula = structure.formula();
+      }
+    } else {
+      formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
+    }
+    if (formula == null) {
+      return null;
+    }
+    try {
+      formula = ionType.addToFormula(formula);
+    } catch (CloneNotSupportedException e) {
+      return null;
+    }
+
+    return IsotopePatternCalculator.calculateIsotopePattern(formula, 0.005, ionType.getAbsCharge(),
+        ionType.getPolarity(), false);
+  }
 
   @Nullable
   default String getScoreString() {

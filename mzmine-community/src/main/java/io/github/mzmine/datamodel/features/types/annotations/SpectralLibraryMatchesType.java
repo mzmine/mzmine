@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -56,7 +55,6 @@ import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
-import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.ExplainedIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
@@ -109,6 +107,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       new CASType(),  //
       new InternalIdType(), //
       new RIDiffType(), //
+      new AnnotationSummaryType(), //
       new JsonStringType()
       );
 
@@ -166,6 +165,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       case InternalIdType _ -> entry.getOrElse(DBEntryField.INTERNAL_ID, null);
       case JsonStringType _ -> entry.getOrElse(DBEntryField.JSON_STRING, null);
       case RIDiffType _ -> match.getRiDiff();
+      case AnnotationSummaryType _ -> match;
       default -> throw new UnsupportedOperationException(
           "DataType %s is not covered in map".formatted(subType.toString()));
     };

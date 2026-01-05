@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -43,6 +42,7 @@ import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.features.types.HeightBoxPlotType;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
+import io.github.mzmine.datamodel.features.types.annotations.AnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
@@ -82,7 +82,8 @@ public class DataTypeUtils {
       MZType.class, MZRangeType.class, //
       HeightType.class, AreaType.class,
       // added CommentType as default in 4.8 to transition away from ManualAnnotationType
-      CommentType.class, FeatureShapeType.class, AreaBoxPlotType.class, HeightBoxPlotType.class);
+      CommentType.class, FeatureShapeType.class, AreaBoxPlotType.class, HeightBoxPlotType.class,
+      AnnotationSummaryType.class);
 
   @NotNull
   public static final List<DataType> DEFAULT_CHROMATOGRAPHIC_FEATURE = List.of(new RawFileType(),
