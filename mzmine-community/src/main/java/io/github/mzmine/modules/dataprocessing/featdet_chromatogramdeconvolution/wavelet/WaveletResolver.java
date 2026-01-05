@@ -752,14 +752,6 @@ public class WaveletResolver extends AbstractResolver {
     return finalPeaks;
   }
 
-//  private int getJaggedness(double[] y, int startInclusive, int endExclusive) {
-//
-//    int
-//    for (int i = startInclusive; i < endExclusive; i++) {
-//
-//    }
-//  }
-
   private double getLocalNoiseEstimate(DetectedPeak peak, DoubleArrayList localBackgroundSamples,
       double localBaseline) {
     return switch (noiseMethod) {
