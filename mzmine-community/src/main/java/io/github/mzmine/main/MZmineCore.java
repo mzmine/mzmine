@@ -301,7 +301,6 @@ public final class MZmineCore {
       logger.info("Starting mzmine GUI");
       FxThread.setIsFxInitialized(true);
       Application.launch(MZmineGUI.class, args);
-//      Application.launch(MicroBarChartTable.class, args);
     } catch (Throwable e) {
       logger.log(Level.SEVERE, "Could not applyArgsToConfig GUI", e);
       System.exit(1);
