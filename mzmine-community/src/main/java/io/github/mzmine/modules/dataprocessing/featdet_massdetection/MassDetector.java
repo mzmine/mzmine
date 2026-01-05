@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -35,11 +34,18 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public interface MassDetector extends MZmineModule {
+
   public static final double[][] EMPTY_DATA = new double[2][0];
 
   MassDetector create(ParameterSet params);
 
+  /**
+   * Specifies if a mass detector transforms the data with the current parameter settings. If the
+   * mass detector is made for profile data, this is always the case. Centroid mass detectors may
+   * return false if the noise level is zero.
+   */
   boolean filtersActive();
+
   /**
    * Returns mass and intensity values detected in given spectrum
    *

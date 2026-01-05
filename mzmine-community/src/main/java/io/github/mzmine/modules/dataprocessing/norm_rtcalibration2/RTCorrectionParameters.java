@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -54,6 +53,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import javafx.application.Platform;
+import org.jetbrains.annotations.Nullable;
 
 public class RTCorrectionParameters extends SimpleParameterSet {
 
@@ -132,5 +132,19 @@ public class RTCorrectionParameters extends SimpleParameterSet {
         this, null, ScanRtCorrectionPreviewPane::new, false);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 2 ->
+          "The correction algorithm was updated in version >4.8.33. Correction results will not match previous algorithm.";
+      default -> null;
+    };
   }
 }

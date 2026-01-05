@@ -33,6 +33,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.SnrResult.Passed;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.SnrResult.Surrounded;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.WaveletResolverParameters.NoiseCalculation;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -53,6 +55,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.stat.descriptive.rank.Median;
@@ -74,8 +77,6 @@ public class WaveletResolver extends AbstractResolver {
    * Complex[]: The fft'ed wavelet conjugate (pre-computed)
    */
   private final Map<Integer, Map<Double, Complex[]>> fftWaveletConjugate = new HashMap<>();
-  private double[] yPadded = new double[0];
-
   private final double[] scales;
   private final double minSnr;
   private final double minPeakHeight;
@@ -89,10 +90,11 @@ public class WaveletResolver extends AbstractResolver {
   private final boolean robustnessIteration;
   private final EdgeDetectors edgeDetector;
   private final boolean dipFilter;
-  private final Integer signChangesEveryNPoints;
+  private final int signChangesEveryNPoints;
   private final double maxSimilarHeightRatio;
   private final boolean saturationFilter;
   private final double saturationThreshold;
+  private double[] yPadded = new double[0];
   private FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.STANDARD);
 
   public WaveletResolver(@NotNull final ModularFeatureList flist,
@@ -126,9 +128,10 @@ public class WaveletResolver extends AbstractResolver {
     edgeDetector = advanced.getValueOrDefault(AdvancedWaveletParameters.edgeDetector,
         EdgeDetectors.ABS_MIN);
     signChangesEveryNPoints = advanced.getValueOrDefault(AdvancedWaveletParameters.signChanges,
-        null);
+        AdvancedWaveletParameters.DEFAULT_SIGN_CHANGE_POINTS);
     maxSimilarHeightRatio = advanced.getValueOrDefault(
-        AdvancedWaveletParameters.maxSimilarHeightRatio, 1d); // ratio of 1 disables this filter
+        AdvancedWaveletParameters.maxSimilarHeightRatio,
+        AdvancedWaveletParameters.DEFAULT_SIM_HEIGHT_RATIO); // ratio of 1 disables this filter
 
     final double dataMaxIntensity = getRawDataFile().getScans().stream()
         .mapToDouble(s -> Objects.requireNonNullElse(s.getBasePeakIntensity(), 0d)).max()
@@ -226,14 +229,12 @@ public class WaveletResolver extends AbstractResolver {
     }
 
     final DetectedPeak peakWithBounds = peak.withBoundaries(leftMin, rightMin);
-    if (signChangesEveryNPoints != null) {
-      // todo: pull this check to a higher level
-      final double jaggedness = QualityParameters.signChangesPerNPoints(
-          peakWithBounds.leftBoundaryIndex(), peakWithBounds.rightBoundaryIndex() + 1, y,
-          signChangesEveryNPoints);
-      if (jaggedness > 1) {
-        return null;
-      }
+    // todo: pull this check to a higher level
+    final double jaggedness = QualityParameters.signChangesPerNPoints(
+        peakWithBounds.leftBoundaryIndex(), peakWithBounds.rightBoundaryIndex() + 1, y,
+        signChangesEveryNPoints);
+    if (jaggedness > 1) {
+      return null;
     }
 
     return peakWithBounds;
@@ -282,8 +283,49 @@ public class WaveletResolver extends AbstractResolver {
         robustnessIteration ? estimateLocalNoiseBaselineAndFilterBySNR(finalDetectedPeaks, x, y,
             minSnr) : finalDetectedPeaks;
 
-    return secondPassPeaks.stream().map(p -> p.asRtRange(x))
+    final List<DetectedPeak> withSnr = filterSurroundedPeaks(secondPassPeaks);
+
+    return withSnr.stream().map(p -> p.asRtRange(x))
         .sorted(Comparator.comparing(Range::lowerEndpoint)).toList();
+  }
+
+  private List<DetectedPeak> filterSurroundedPeaks(@NotNull List<DetectedPeak> secondPassPeaks) {
+    final List<DetectedPeak> withSnr = new ArrayList<>();
+    for (int i = 0; i < secondPassPeaks.size(); i++) {
+      DetectedPeak secondPassPeak = secondPassPeaks.get(i);
+      if (secondPassPeak.snr() instanceof Surrounded) {
+        DetectedPeak next = IntStream.range(i + 1, secondPassPeaks.size())
+            .mapToObj(j -> secondPassPeaks.get(j)).filter(p -> p.snr() instanceof Passed)
+            .findFirst().orElse(null);
+        DetectedPeak previous = null;
+        for (int j = withSnr.size() - 1; j >= 0; j--) {
+          if (withSnr.get(j).snr() instanceof Passed) {
+            previous = withSnr.get(j);
+            break;
+          }
+        }
+
+        if (next == null && previous == null) {
+          continue;
+        } else if (next == null && previous != null) {
+          next = previous;
+        } else if (next != null && previous == null) {
+          previous = next;
+        }
+
+        // previous has been re-processed already
+        final double previousNoise = previous.peakY() / ((Passed) previous.snr()).snr();
+        final double nextNoise = next.peakY() / ((Passed) next.snr()).snr();
+        final double noise = (previousNoise + nextNoise) / 2;
+        final double snr = secondPassPeak.peakY() / noise;
+        if (snr > minSnr) {
+          withSnr.add(secondPassPeak.withSNR(SnrResult.passed(snr)));
+        }
+      } else {
+        withSnr.add(secondPassPeak);
+      }
+    }
+    return withSnr;
   }
 
   /**
@@ -668,7 +710,9 @@ public class WaveletResolver extends AbstractResolver {
         }
         final double fallbackSnr = peak.peakY() / localBaseline;
         if (fallbackSnr > minSnr) {
-          finalPeaks.add(peak.withSNR(fallbackSnr));
+          finalPeaks.add(peak.withSNR(SnrResult.fallback(fallbackSnr)));
+        } else {
+          finalPeaks.add(peak.withSNR(SnrResult.surrounded()));
         }
         continue;
       }
@@ -702,7 +746,7 @@ public class WaveletResolver extends AbstractResolver {
       if (localSnr >= minSnr || (topToEdge != null && localBaseline > 0.0
           && peak.peakY() / localBaseline >= topToEdge)) {
         // Update the SNR on the existing peak object before adding
-        finalPeaks.add(peak.withSNR(localSnr)); // Add the peak that passed
+        finalPeaks.add(peak.withSNR(SnrResult.passed(localSnr))); // Add the peak that passed
       }
     }
     return finalPeaks;

@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,39 +22,47 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.collections;
+package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet;
 
-/**
- * Uses factories in {@link IndexRange}
- */
-final class EmptyIndexRange implements IndexRange {
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.SnrResult.Fallback;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.SnrResult.Passed;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.SnrResult.Surrounded;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet.SnrResult.Undetermined;
 
-  EmptyIndexRange() {
+sealed interface SnrResult permits Passed, Fallback, Surrounded, Undetermined {
+
+  Undetermined undetermined = new Undetermined();
+  Surrounded surrounded = new Surrounded();
+
+  static Undetermined undetermined() {
+    return undetermined;
   }
 
-  public int size() {
-    return 0;
+  static Surrounded surrounded() {
+    return surrounded;
   }
 
-  @Override
-  public int min() {
-    return -1;
+  static Passed passed(double snr) {
+    return new Passed(snr);
   }
 
-  @Override
-  public int maxInclusive() {
-    // muss be lower than min because a loop from min <= i <= maxInclusive should never apply
-    return -2;
+  static Fallback fallback(double snr) {
+    return new Fallback(snr);
   }
 
-  @Override
-  public int maxExclusive() {
-    // same like min so that no loop applies
-    return -1;
+  record Passed(double snr) implements SnrResult {
+
   }
 
-  @Override
-  public String toString() {
-    return "";
+  record Fallback(double snr) implements SnrResult {
+
+  }
+
+  record Surrounded() implements SnrResult {
+
+  }
+
+  record Undetermined() implements SnrResult {
+
   }
 }

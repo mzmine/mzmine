@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -37,7 +36,6 @@ import io.github.mzmine.datamodel.impl.SimpleImagingScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.builders.SimpleBuildingScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
-import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
@@ -154,8 +152,8 @@ public class TSFUtils {
     tsfdata.tsf_index_to_mz(handle, frameId, filtered[0], profileMzArray, numDataPoints);
 
     double[][] mzIntensities = new double[2][];
-    mzIntensities[0] = Arrays.copyOfRange(profileMzArray, 0, numValues.get() - 1);
-    mzIntensities[1] = Arrays.copyOfRange(filtered[1], 0, numValues.get() - 1);
+    mzIntensities[0] = Arrays.copyOfRange(profileMzArray, 0, Math.max(numValues.get() - 1, 0));
+    mzIntensities[1] = Arrays.copyOfRange(filtered[1], 0, Math.max(numValues.get() - 1, 0));
     return mzIntensities;
   }
 
@@ -212,7 +210,7 @@ public class TSFUtils {
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
     final Range<Double> mzRange = metaDataTable.getMzRange();
 
-    final SimpleBuildingScan metadata = new SimpleBuildingScan(frameIndex, msLevel, polarity,
+    final SimpleBuildingScan metadata = new SimpleBuildingScan((int) frameId, msLevel, polarity,
         spectrumType, rt, 0d, 0);
     if (!config.scanFilter().matches(metadata)) {
       return null;
@@ -409,11 +407,13 @@ public class TSFUtils {
       }
     }
 
-    // add a last 0
-    profileDeletedZeroMzs[numValues] = mzs[mzs.length - 1];
-    profileDeletedZeroIntensities[numValues] = 0d;
-    numValues++;
-    outNumValues.set(numValues);
+    if (numValues > 0) {
+      // add a last 0
+      profileDeletedZeroMzs[numValues] = mzs[mzs.length - 1];
+      profileDeletedZeroIntensities[numValues] = 0d;
+      numValues++;
+      outNumValues.set(numValues);
+    }
 
     double[][] filtered = new double[2][];
     filtered[0] = profileDeletedZeroMzs;

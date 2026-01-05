@@ -22,40 +22,35 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.other_detectors;
+package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
-import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
-import java.util.stream.Stream;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 
-public enum OtherRawOrProcessed implements UniqueIdSupplier {
-  RAW, PREPROCESSED, FEATURES;
+public record IsotopeError(Scan scan, @NotNull DataPoint mainPeak, @NotNull DataPoint isotope) {
 
-  public Stream<OtherFeature> streamMatching(OtherTimeSeriesData data) {
-    return switch (this) {
-      case RAW -> data.getRawTraces().stream();
-      case PREPROCESSED -> data.getPreprocessedTraces().stream();
-      case FEATURES -> data.getProcessedFeatures().stream();
-    };
+  public static final double DISTANCE = IsotopePatternCalculator.THIRTHEEN_C_DISTANCE;
+
+  public double mainPeakMz() {
+    return mainPeak.getMZ();
   }
 
-  @Override
-  public String toString() {
-    return switch (this) {
-      case RAW -> "raw";
-      case PREPROCESSED -> "pre-processed";
-      case FEATURES -> "features";
-    };
+  public double isotopePeakMz() {
+    return isotope.getMZ();
   }
 
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case RAW -> "RAW";
-      case PREPROCESSED -> "PREPROCESSED";
-      case FEATURES -> "FEATURES";
-    };
+  public double measuredDistance() {
+    return isotopePeakMz() - mainPeakMz();
+  }
+
+  public double absoluteError() {
+    return measuredDistance() - DISTANCE;
+  }
+
+  public double ppmError() {
+    return MathUtils.getPpmDiff(mainPeakMz() + DISTANCE, isotopePeakMz());
   }
 }

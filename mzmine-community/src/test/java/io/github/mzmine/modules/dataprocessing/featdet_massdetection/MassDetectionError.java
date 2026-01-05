@@ -22,40 +22,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.other_detectors;
+package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
-import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
-import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public enum OtherRawOrProcessed implements UniqueIdSupplier {
-  RAW, PREPROCESSED, FEATURES;
+public record MassDetectionError(@Nullable Double vendorMz, @Nullable Double mz,
+                                 @Nullable Double vendorIntensity, @Nullable Double intensity) {
 
-  public Stream<OtherFeature> streamMatching(OtherTimeSeriesData data) {
-    return switch (this) {
-      case RAW -> data.getRawTraces().stream();
-      case PREPROCESSED -> data.getPreprocessedTraces().stream();
-      case FEATURES -> data.getProcessedFeatures().stream();
-    };
+  String errorAbs() {
+    return vendorMz != null && mz != null ? String.valueOf(mz - vendorMz) : "";
   }
 
-  @Override
-  public String toString() {
-    return switch (this) {
-      case RAW -> "raw";
-      case PREPROCESSED -> "pre-processed";
-      case FEATURES -> "features";
-    };
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case RAW -> "RAW";
-      case PREPROCESSED -> "PREPROCESSED";
-      case FEATURES -> "FEATURES";
-    };
+  String errorPpm() {
+    return vendorMz != null && mz != null ? String.valueOf((mz - vendorMz) / vendorMz * 1E6) : "";
   }
 }
