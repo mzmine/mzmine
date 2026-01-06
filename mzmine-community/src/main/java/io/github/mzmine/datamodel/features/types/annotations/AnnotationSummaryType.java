@@ -34,11 +34,13 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
+import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.List;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -46,6 +48,7 @@ import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.paint.Color;
@@ -76,7 +79,7 @@ public class AnnotationSummaryType extends LinkedGraphicalType {
   public @Nullable TreeTableColumn<ModularFeatureListRow, Object> createColumn(
       @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType, int subColumnIndex) {
 
-    TreeTableColumn<ModularFeatureListRow, FeatureAnnotation> column = new TreeTableColumn<>(
+    final TreeTableColumn<ModularFeatureListRow, FeatureAnnotation> column = new TreeTableColumn<>(
         getHeaderString());
     column.setUserData(this);
     if (parentType != null) {
@@ -92,7 +95,9 @@ public class AnnotationSummaryType extends LinkedGraphicalType {
     }
 
     column.setCellFactory(col -> new MicroChartCell());
-    column.setMinWidth(60);
+    column.setMinWidth(45);
+    column.setPrefWidth(45);
+    column.setMaxWidth(60);
 
     return (TreeTableColumn) column;
   }
@@ -100,39 +105,46 @@ public class AnnotationSummaryType extends LinkedGraphicalType {
   private static class MicroChartCell extends
       TreeTableCell<ModularFeatureListRow, FeatureAnnotation> {
 
-    private static final double BAR_SPACING = 3;
+    private static final double BAR_SPACING = 2;
     private static final double MIN_BAR_WIDTH = 15;
-    // Threshold to switch to two rows
-    private static final double TWO_ROW_THRESHOLD = 75;
+    private static final double TWO_ROW_HEIGHT_THRESHOLD = 75;
 
     private final Canvas canvas = new Canvas();
-    private final Font arial = new Font("Arial", 8);
+    private final Font arial = new Font(Font.getDefault().getName(), 9);
     private final PaintScale palette;
-    // We access values frequently, cache them if possible, or call values() in draw
     private final Scores[] scoreTypes = Scores.values();
+    private final Color bgColor;
+    private final Color textColor;
+    private final Color outlineColor;
+    private final Tooltip tooltip = new Tooltip();
 
     public MicroChartCell() {
       setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
       setGraphic(canvas);
       setMinHeight(50);
-      setMinWidth(getMinChartWidth());
+      setTooltip(tooltip);
+//      setMinWidth(getMinChartWidth());
 
       final SimpleColorPalette defaultPalette = ConfigService.getDefaultColorPalette();
       palette = new SimpleColorPalette(defaultPalette.getNegativeColor(),
-          /*defaultPalette.getNeutralColor(),*/ defaultPalette.getPositiveColor()).toPaintScale(
+          defaultPalette.getNeutralColor(), defaultPalette.getPositiveColor()).toPaintScale(
           PaintScaleTransform.LINEAR, Range.closed(0d, 1d));
-    }
 
-    static double getMinChartWidth() {
-      return 50;
-//      final int numScores = Scores.values().length / 2;
-//      return numScores * BAR_SPACING + numScores * MIN_BAR_WIDTH + 2 * 3;
+      final EStandardChartTheme defaultChartTheme = ConfigService.getConfiguration()
+          .getDefaultChartTheme();
+      final boolean defaultBackgroundTransparent = ColorUtils.isTransparent(
+          FxColorUtil.awtColorToFX(defaultChartTheme.getPlotBackgroundPaint()));
+      textColor = FxColorUtil.awtColorToFX(defaultChartTheme.getAxisLabelPaint());
+      outlineColor = defaultBackgroundTransparent ? textColor.deriveColor(0, 1, 1, 0.3)
+          : FxColorUtil.awtColorToFX(defaultChartTheme.getPlotBackgroundPaint())
+              .deriveColor(0, 1, 1, 0.3);
+      bgColor = defaultBackgroundTransparent ? textColor.deriveColor(0, 1, 1, 0.1)
+          : FxColorUtil.awtColorToFX(defaultChartTheme.getPlotBackgroundPaint());
     }
 
     @Override
     protected void layoutChildren() {
       super.layoutChildren();
-      // Ensure canvas matches cell size
       canvas.setWidth(getWidth() - getGraphicTextGap() * 2);
       canvas.setHeight(getHeight() - getGraphicTextGap() * 2);
       draw();
@@ -146,86 +158,105 @@ public class AnnotationSummaryType extends LinkedGraphicalType {
 
     private void draw() {
       final GraphicsContext gc = canvas.getGraphicsContext2D();
-      final double width = canvas.getWidth();
+
+      final double totalWidth = canvas.getWidth();
+//      final double annotationLevelsSpace = 2 * (arial.getSize() + BAR_SPACING); // option to put levels on the side (ansgar did not like it)
+      final double annotationLevelsSpace = 0;
+
+      final double chartMaxWidth = totalWidth - annotationLevelsSpace;
       final double height = canvas.getHeight();
 
-      // 1. Clear Canvas
-      gc.clearRect(0, 0, width, height);
-
-      if (isEmpty() || getItem() == null || !isVisible()) {
-        return;
-      }
+      gc.clearRect(0, 0, totalWidth, height);
 
       FeatureAnnotation annotation = getItem();
-      if (annotation == null) {
+      if (annotation == null || isEmpty() || !isVisible()) {
         return;
       }
 
       final var annotationSummary = AnnotationSummary.of(getTableRow().getItem(), annotation);
+      tooltip.setText("""
+          Annotation levels:
+          %s
+          %s""".formatted(annotationSummary.deriveSumnerLevel(),
+          annotationSummary.deriveSchymanskiLevel()));
 
-      // 2. Determine Layout Mode (1 Row or 2 Rows)
-      boolean useTwoRows = height > TWO_ROW_THRESHOLD;
+      // 1. Layout Calculations
+      final boolean useTwoRows = height > TWO_ROW_HEIGHT_THRESHOLD;
+      final int totalItems = scoreTypes.length;
+      final int numCols = useTwoRows ? (int) Math.ceil(totalItems / 2.0) : totalItems;
+      final int numRows = useTwoRows ? 2 : 1;
 
-      int totalItems = scoreTypes.length;
-      // If 2 rows, columns is half the items (rounded up), otherwise all items
-      int numCols = useTwoRows ? (int) Math.ceil(totalItems / 2.0) : totalItems;
-      int numRows = useTwoRows ? 2 : 1;
+      final double rowHeight = height / numRows;
+      final double chartHeight = rowHeight - BAR_SPACING;
 
-      // 3. Calculate Dimensions per Cell
-      // How much height does one row get?
-      double rowHeight = height / numRows;
-
-      // Reserve space for text at the bottom of *each* row (approx 10px)
-      final double textHeight = 10;
-      final double chartHeight = rowHeight - textHeight - 2; // -2 for padding
-
-      // Calculate width of a single bar based on available columns
-      final double availableWidth = width - (BAR_SPACING * (numCols - 1));
+      final double availableWidth = chartMaxWidth - (BAR_SPACING * (numCols - 1));
       final double barWidth = availableWidth / numCols;
 
+      gc.setFill(bgColor);
+      gc.fillRect(0, 0, chartMaxWidth, height);
+
       gc.setFont(arial);
-      gc.setTextAlign(TextAlignment.CENTER);
+      // Align LEFT means "Bottom" when rotated -90 degrees
+      gc.setTextAlign(TextAlignment.LEFT);
+      // Center vertically so the text runs exactly up the middle of the bar
+      gc.setTextBaseline(javafx.geometry.VPos.CENTER);
 
-      final Color textColor =
-          ConfigService.getConfiguration().getTheme().isDark() ? Color.WHITE : Color.BLACK;
-
-      // 4. Draw Loop
       for (int i = 0; i < totalItems; i++) {
-        Scores scoreType = scoreTypes[i];
+        final Scores scoreType = scoreTypes[i];
 
-        // Calculate Grid Position
-        int rowIndex = useTwoRows ? (i / numCols) : 0;
-        int colIndex = useTwoRows ? (i % numCols) : i;
+        // Grid Position
+        final int rowIndex = useTwoRows ? (i / numCols) : 0;
+        final int colIndex = useTwoRows ? (i % numCols) : i;
 
-        // Calculate Pixel Offsets
-        double xOffset = colIndex * (barWidth + BAR_SPACING);
-        double yOffset = rowIndex * rowHeight;
+        final double xOffset = colIndex * (barWidth + BAR_SPACING);
+        final double yOffset = rowIndex * rowHeight + (rowIndex * BAR_SPACING);
 
-        // Get Data
         final double score = annotationSummary.score(scoreType);
-
-        // Calculate Bar Geometry relative to the specific Row
         final double barH = score * chartHeight;
-        // The top of the bar is: (Row Start) + (Max Chart Height) - (Actual Bar Height)
         final double topEdge = yOffset + chartHeight - barH;
 
         // Draw Bar
         gc.setFill(getScoreColor(score));
-        gc.fillRect(Math.round(xOffset), Math.round(topEdge), Math.round(barWidth),
-            Math.ceil(barH));
+        // ceil top and height to not leave a pixel free at the bottom of the chart
+        gc.fillRect(Math.round(xOffset), Math.ceil(topEdge), Math.round(barWidth), Math.ceil(barH));
 
-        // Draw Label (bottom of the current row)
-        gc.setFill(textColor);
-        // y position is: Row Start + Row Height - Padding
-        gc.fillText(scoreType.label(), xOffset + (barWidth / 2), yOffset + rowHeight - 2);
+        // Draw Label (Rotated on top of bar)
+        gc.save();
 
-        // Optional: Draw Value on top of bar if it fits
-        // (Check if bar is tall enough AND if we aren't smashing into the row above)
-//        if (barH > 12) {
-//          gc.setFill(Color.WHITE);
-//          gc.fillText(String.format("%.2f", score), xOffset + (barWidth / 2), topEdge + 9, barWidth);
-//        }
+        // Pivot point: Center of the bar width, Bottom of the row
+        final double pivotX = xOffset + (barWidth / 2);
+        final double pivotY = yOffset + rowHeight - 4; // -4 padding from absolute bottom
+        gc.translate(pivotX, pivotY);
+        gc.rotate(-90);
+        // Determine contrast color.
+        // If bar is very short (score < ~0.2), text might float above it on the background.
+        // If bar is tall, text is on the bar.
+        if (score > 0.2) {
+          gc.setFill(Color.WHITE); // Assuming bars are colored/dark
+        } else {
+          gc.setFill(textColor);
+        }
+        // Draw at (0,0) relative to the pivot.
+        // Due to rotation: X moves UP, Y moves RIGHT (which is centered via VPos)
+        gc.fillText(scoreType.label(), 0, 0);
+
+        gc.restore();
       }
+
+      gc.setStroke(outlineColor);
+      gc.strokeRect(0, 0, chartMaxWidth, height);
+
+      /*final double pivotX = chartMaxWidth;
+      final double pivotY = height;
+      gc.save();
+      gc.translate(pivotX, pivotY);
+      gc.rotate(-90);
+      gc.setFill(textColor);
+      gc.fillText(annotationSummary.deriveSchymanskiLevel(), BAR_SPACING,
+          0 + arial.getSize() / 2 + BAR_SPACING);
+      gc.fillText(annotationSummary.deriveSumnerLevel(), BAR_SPACING,
+          arial.getSize() + arial.getSize() / 2 + BAR_SPACING);
+      gc.restore();*/
     }
 
     private Color getScoreColor(double score) {
