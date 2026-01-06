@@ -92,7 +92,7 @@ public class AnnotationSummaryType extends LinkedGraphicalType {
     }
 
     column.setCellFactory(col -> new MicroChartCell());
-    column.setMinWidth(MicroChartCell.getMinChartWidth());
+    column.setMinWidth(60);
 
     return (TreeTableColumn) column;
   }
@@ -102,33 +102,40 @@ public class AnnotationSummaryType extends LinkedGraphicalType {
 
     private static final double BAR_SPACING = 3;
     private static final double MIN_BAR_WIDTH = 15;
+    // Threshold to switch to two rows
+    private static final double TWO_ROW_THRESHOLD = 75;
+
     private final Canvas canvas = new Canvas();
     private final Font arial = new Font("Arial", 8);
     private final PaintScale palette;
+    // We access values frequently, cache them if possible, or call values() in draw
+    private final Scores[] scoreTypes = Scores.values();
 
     public MicroChartCell() {
       setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
       setGraphic(canvas);
       setMinHeight(50);
       setMinWidth(getMinChartWidth());
-      SimpleColorPalette defaultPalette = ConfigService.getDefaultColorPalette();
+
+      final SimpleColorPalette defaultPalette = ConfigService.getDefaultColorPalette();
       palette = new SimpleColorPalette(defaultPalette.getNegativeColor(),
-          defaultPalette.getNeutralColor(), defaultPalette.getPositiveColor()).toPaintScale(
+          /*defaultPalette.getNeutralColor(),*/ defaultPalette.getPositiveColor()).toPaintScale(
           PaintScaleTransform.LINEAR, Range.closed(0d, 1d));
-//      palette = ConfigService.getConfiguration().getDefaultPaintScalePalette().toPaintScale(PaintScaleTransform.LINEAR, Range.closed(0d, 1d));
     }
 
     static double getMinChartWidth() {
-      final int numScores = Scores.values().length;
-      return numScores * BAR_SPACING + numScores * MIN_BAR_WIDTH + 2 * 3;
+      return 50;
+//      final int numScores = Scores.values().length / 2;
+//      return numScores * BAR_SPACING + numScores * MIN_BAR_WIDTH + 2 * 3;
     }
 
     @Override
     protected void layoutChildren() {
       super.layoutChildren();
+      // Ensure canvas matches cell size
       canvas.setWidth(getWidth() - getGraphicTextGap() * 2);
       canvas.setHeight(getHeight() - getGraphicTextGap() * 2);
-      draw(); // Redraw when resized
+      draw();
     }
 
     @Override
@@ -142,7 +149,12 @@ public class AnnotationSummaryType extends LinkedGraphicalType {
       final double width = canvas.getWidth();
       final double height = canvas.getHeight();
 
+      // 1. Clear Canvas
       gc.clearRect(0, 0, width, height);
+
+      if (isEmpty() || getItem() == null || !isVisible()) {
+        return;
+      }
 
       FeatureAnnotation annotation = getItem();
       if (annotation == null) {
@@ -151,58 +163,73 @@ public class AnnotationSummaryType extends LinkedGraphicalType {
 
       final var annotationSummary = AnnotationSummary.of(getTableRow().getItem(), annotation);
 
-      final int count = 6;
-      final double availableWidth = width - (BAR_SPACING * (count - 1));
-      final double barWidth = availableWidth / count;
+      // 2. Determine Layout Mode (1 Row or 2 Rows)
+      boolean useTwoRows = height > TWO_ROW_THRESHOLD;
 
-      // Reserve space for text at the bottom (approx 12px)
+      int totalItems = scoreTypes.length;
+      // If 2 rows, columns is half the items (rounded up), otherwise all items
+      int numCols = useTwoRows ? (int) Math.ceil(totalItems / 2.0) : totalItems;
+      int numRows = useTwoRows ? 2 : 1;
+
+      // 3. Calculate Dimensions per Cell
+      // How much height does one row get?
+      double rowHeight = height / numRows;
+
+      // Reserve space for text at the bottom of *each* row (approx 10px)
       final double textHeight = 10;
-      final double chartHeight = height - textHeight - 2; // -2 for padding
+      final double chartHeight = rowHeight - textHeight - 2; // -2 for padding
+
+      // Calculate width of a single bar based on available columns
+      final double availableWidth = width - (BAR_SPACING * (numCols - 1));
+      final double barWidth = availableWidth / numCols;
 
       gc.setFont(arial);
       gc.setTextAlign(TextAlignment.CENTER);
 
-      // 3. Draw Loop
-      double leftEdge = 0;
+      final Color textColor =
+          ConfigService.getConfiguration().getTheme().isDark() ? Color.WHITE : Color.BLACK;
 
-      for (Scores scoreType : Scores.values()) {
-        // Calculate bar height based on value (0.0 to 1.0)
+      // 4. Draw Loop
+      for (int i = 0; i < totalItems; i++) {
+        Scores scoreType = scoreTypes[i];
+
+        // Calculate Grid Position
+        int rowIndex = useTwoRows ? (i / numCols) : 0;
+        int colIndex = useTwoRows ? (i % numCols) : i;
+
+        // Calculate Pixel Offsets
+        double xOffset = colIndex * (barWidth + BAR_SPACING);
+        double yOffset = rowIndex * rowHeight;
+
+        // Get Data
         final double score = annotationSummary.score(scoreType);
+
+        // Calculate Bar Geometry relative to the specific Row
         final double barH = score * chartHeight;
-        final double topEdge = chartHeight - barH;
+        // The top of the bar is: (Row Start) + (Max Chart Height) - (Actual Bar Height)
+        final double topEdge = yOffset + chartHeight - barH;
 
+        // Draw Bar
         gc.setFill(getScoreColor(score));
-        gc.fillRect(Math.round(leftEdge), Math.round(topEdge), Math.round(barWidth),
+        gc.fillRect(Math.round(xOffset), Math.round(topEdge), Math.round(barWidth),
             Math.ceil(barH));
-//        gc.strokeRect(Math.round(leftEdge), 0, Math.round(barWidth), Math.ceil(chartHeight));
 
-//        gc.setFill(Color.RED);
-//        gc.fillOval(leftEdge, topEdge, 1, 1);
-
-        // Draw Text (Label below bar)
-        gc.setFill(
-            ConfigService.getConfiguration().getTheme().isDark() ? Color.WHITE : Color.BLACK);
-        gc.fillText(scoreType.label(), leftEdge + (barWidth / 2), height - 2);
+        // Draw Label (bottom of the current row)
+        gc.setFill(textColor);
+        // y position is: Row Start + Row Height - Padding
+        gc.fillText(scoreType.label(), xOffset + (barWidth / 2), yOffset + rowHeight - 2);
 
         // Optional: Draw Value on top of bar if it fits
-        if (barH > 15) {
-          gc.setFill(Color.WHITE);
-          gc.fillText(String.format("%.2f", score), leftEdge + (barWidth / 2), topEdge + 10);
-        }
-
-        leftEdge += barWidth + BAR_SPACING;
+        // (Check if bar is tall enough AND if we aren't smashing into the row above)
+//        if (barH > 12) {
+//          gc.setFill(Color.WHITE);
+//          gc.fillText(String.format("%.2f", score), xOffset + (barWidth / 2), topEdge + 9, barWidth);
+//        }
       }
     }
 
     private Color getScoreColor(double score) {
       return FxColorUtil.awtColorToFX(palette.getPaint(score));
-      /*if (score < 0.333) {
-        return palette.getNegativeColor();
-      }
-      if (score < 0.666) {
-        return palette.getNeutralColor();
-      }
-      return palette.getPositiveColor();*/
     }
   }
 
