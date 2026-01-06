@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,6 +28,7 @@ import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
@@ -48,6 +48,7 @@ import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationTyp
 import io.github.mzmine.datamodel.features.types.annotations.PossibleIsomerType;
 import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
@@ -70,6 +71,9 @@ import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -379,5 +383,93 @@ public class AnnotationTypeTests {
     AnovaResult result = new AnovaResult(row, "test_column", 0.03, .98);
     DataTypeTestUtils.testSaveLoad(new AnovaResultsType(), result, project, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(new AnovaResultsType(), null, project, flist, row, null, null);
+  }
+
+  @Test
+  public void testLegacySpeclib() {
+    String xml = """
+        <?xml version='1.0' encoding='UTF-8'?>
+        <atestelelement>
+        <datatype type="spectral_db_matches">
+              <feature_annotation annotation_type="spectral_library_annotation">
+                <spectraldatabaseentry library_file="MoNA-export-LC-MS-MS_Spectra.json (2 spectra)">
+                  <mzs>55.0541;57.0697;67.0542;69.0697;71.0855;81.0699;83.0854;85.1013;95.0855;109.1011;123.1167;268.2637</mzs>
+                  <intensities>1.379018;3.010173;3.222499;2.371836;3.785486;5.42292;1.36387;2.605006;7.595636;3.686055;2.111024;100.0</intensities>
+                  <databasefieldslist>
+                    <entry name="COLLISION_ENERGY">50 % (nominal)</entry>
+                    <entry name="PRINCIPAL_INVESTIGATOR">Liza-Marie Beckers, Werner Brack, Janek-Paul Dann, Martin Krauss, Erik Mueller, Tobias Schulze, Helmholtz Centre for Environmental Research GmbH - UFZ, Leipzig, Germany</entry>
+                    <entry name="RESOLUTION">15000</entry>
+                    <entry name="ION_TYPE">[M]+</entry>
+                    <entry name="MOLWEIGHT">371.3274</entry>
+                    <entry name="INCHIKEY">QGCUAFIULMNFPJ-UHFFFAOYSA-O</entry>
+                    <entry name="MS_LEVEL">MS2</entry>
+                    <entry name="INSTRUMENT">LTQ Orbitrap XL Thermo Scientific</entry>
+                    <entry name="CHEMSPIDER">91247</entry>
+                    <entry name="PUBCHEM">100998</entry>
+                    <entry name="SMILES">CCCCCCCCCCCCCC(=O)NCCC[N+](C)(C)CC(O)=O</entry>
+                    <entry name="POLARITY">positive</entry>
+                    <entry name="NAME">Myristamidopropyl betaine, carboxymethyl-dimethyl-[3-(tetradecanoylamino)propyl]azanium</entry>
+                    <entry name="INCHI">InChI=1S/C21H42N2O3/c1-4-5-6-7-8-9-10-11-12-13-14-16-20(24)22-17-15-18-23(2,3)19-21(25)26/h4-19H2,1-3H3,(H-,22,24,25,26)/p+1</entry>
+                    <entry name="FORMULA">[C21H43N2O3]+</entry>
+                    <entry name="ION_SOURCE">ESI</entry>
+                    <entry name="PRECURSOR_MZ">371.3268</entry>
+                    <entry name="INSTRUMENT_TYPE">LC-ESI-ITFT</entry>
+                    <entry name="EXACT_MASS">371.3274</entry>
+                    <entry name="MONA_ID">UP000250</entry>
+                    <entry name="DATA_COLLECTOR">Liza-Marie Beckers, Werner Brack, Janek-Paul Dann, Martin Krauss, Erik Mueller, Tobias Schulze, Helmholtz Centre for Environmental Research GmbH - UFZ, Leipzig, Germany</entry>
+                  </databasefieldslist>
+                </spectraldatabaseentry>
+                <spectralsimilarity>
+                  <similairtyfunction>Weighted cosine similarity</similairtyfunction>
+                  <overlappingpeaks>8</overlappingpeaks>
+                  <score>0.9415251115351752</score>
+                  <explainedLibraryIntensity>0.9408553450503069</explainedLibraryIntensity>
+                  <libraryspectrum>
+                    <mzs>55.0541;57.0697;67.0542;69.0697;71.0855;81.0699;83.0854;85.1013;95.0855;109.1011;123.1167;268.2637</mzs>
+                    <intensities>1.379018;3.010173;3.222499;2.371836;3.785486;5.42292;1.36387;2.605006;7.595636;3.686055;2.111024;100.0</intensities>
+                  </libraryspectrum>
+                  <queryspectrum>
+                    <mzs>57.070773133356674;58.0658940193675;69.07076263427734;71.0863039721832;81.07044219970703;85.10161530041424;95.0859858314324;109.10144537105035;211.2055137479161;268.2632444835646;382.9527587890625</mzs>
+                    <intensities>1633940.68359375;682458.046875;355739.7216796875;1687846.9921875;646939.1162109375;1050999.08203125;1530973.125;761776.962890625;827457.099609375;5.0200965E7;489632.607421875</intensities>
+                  </queryspectrum>
+                  <alignedspectrumlist numvalues="2">
+                    <alignedspectrum>
+                      <mzs>57.0697;69.0697;71.0855;81.0699;85.1013;95.0855;109.1011;268.2637</mzs>
+                      <intensities>3.010173;2.371836;3.785486;5.42292;2.605006;7.595636;3.686055;100.0</intensities>
+                    </alignedspectrum>
+                    <alignedspectrum>
+                      <mzs>57.070773133356674;69.07076263427734;71.0863039721832;81.07044219970703;85.10161530041424;95.0859858314324;109.10144537105035;268.2632444835646</mzs>
+                      <intensities>1633940.68359375;355739.7216796875;1687846.9921875;646939.1162109375;1050999.08203125;1530973.125;761776.962890625;5.0200965E7</intensities>
+                    </alignedspectrum>
+                  </alignedspectrumlist>
+                </spectralsimilarity>
+                <ccserror>NULL_VALUE</ccserror>
+                <testedmz>371.3269326159603</testedmz>
+                <testedrt>4.0783625</testedrt>
+              </feature_annotation>
+            </datatype>
+            </atestelelement>
+        """;
+
+    final ByteArrayOutputStream os = new ByteArrayOutputStream(xml.getBytes().length);
+    os.writeBytes(xml.getBytes());
+    final ByteArrayInputStream is = new ByteArrayInputStream(os.toByteArray());
+    final ModularFeatureList flist = FeatureList.createDummy();
+    final RawDataFile file = RawDataFile.createDummyFile();
+    final MZmineProject proj = new MZmineProjectImpl();
+    proj.addFile(file);
+    proj.addFeatureList(flist);
+    final ModularFeatureListRow row = new ModularFeatureListRow(flist, 1);
+
+    Object match = DataTypeTestUtils.loadDataTypeFromInputStream(new SpectralLibraryMatchesType(),
+        null, proj, flist, row, null, null, is, os);
+    Assertions.assertTrue(match instanceof List);
+
+    SpectralDBAnnotation first = ((List<SpectralDBAnnotation>) match).getFirst();
+
+    Assertions.assertEquals(first.getSimilarity().getScore(), 0.9415251115351752);
+    Assertions.assertNull(first.getCCSError());
+    Assertions.assertEquals(371.3269326159603, first.getTestedPrecursorMz());
+    Assertions.assertEquals(4.0783625f, first.getTestedRt());
   }
 }
