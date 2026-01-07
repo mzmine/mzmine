@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,6 +28,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
@@ -51,6 +51,8 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends BufferedCh
       AtomicDouble progress) {
     super(true);
 
+    final var type = new FeatureShapeIonMobilityRetentionTimeHeatMapType();
+
     SimpleXYZScatterPlot<IonMobilogramTimeSeriesToRtMobilityHeatmapProvider> chart = new SimpleXYZScatterPlot<>();
     ColoredXYZDataset dataset = new ColoredXYZDataset(
         new IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(f), RunOption.THIS_THREAD);
@@ -69,7 +71,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends BufferedCh
     axis.setAutoRangeStickyZero(false);
     axis.setAutoRangeMinimumSize(0.005);
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    setPrefWidth(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH);
+    setPrefWidth(type.getColumnWidth());
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
     try {
@@ -81,7 +83,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends BufferedCh
       // error in jfreechart draw method
     }
 
-    setChartCreateImage(chart, GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
+    setChartCreateImage(chart, (int) type.getColumnWidth(),
         GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,11 +39,11 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.ToolTipTextProvide
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
@@ -110,8 +110,9 @@ public class ColoredXYDataset extends AbstractTaskXYDataset implements IntervalX
     this.computedItemCount = 0;
     fxColorProperty().addListener(((observable, oldValue, newValue) -> fireDatasetChanged()));
 
+    // already computed will always be on this thread then
     this.runOption = checkRunOption(runOption);
-    handleRunOption(runOption);
+    handleRunOption(this.runOption);
   }
 
   private ColoredXYDataset(XYValueProvider xyValueProvider,
@@ -156,6 +157,12 @@ public class ColoredXYDataset extends AbstractTaskXYDataset implements IntervalX
    * @return a valid run option.
    */
   protected final RunOption checkRunOption(final RunOption runOption) {
+    if (runOption == RunOption.DO_NOT_RUN) {
+      return RunOption.DO_NOT_RUN;
+    }
+    if (xyValueProvider.isComputed()) {
+      return RunOption.THIS_THREAD;
+    }
     if (runOption == RunOption.THIS_THREAD && Platform.isFxApplicationThread()) {
       logger.warning(() -> "Calculation of data set values was started on the JavaFX thread."
           + " Creating a new thread instead. Provider: " + xyValueProvider.getClass().getName());
@@ -343,10 +350,8 @@ public class ColoredXYDataset extends AbstractTaskXYDataset implements IntervalX
   protected void onCalculationsFinished() {
     computed = true;
     setStatus(TaskStatus.FINISHED);
-    if (getRunOption()
-        != RunOption.THIS_THREAD) {  // no need to notify then, dataset will be up to date
-      FxThread.runLater(this::fireDatasetChanged);
-    }
+    // somehow we always need to call dataset changed. Maybe something in the internal construction process keeps the wrong ranges
+    FxThread.runLater(this::fireDatasetChanged);
   }
 
   @Override
