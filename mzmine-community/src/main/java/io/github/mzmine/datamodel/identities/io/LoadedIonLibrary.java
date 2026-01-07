@@ -25,7 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.io;
 
-import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import java.time.LocalDateTime;
 import org.jetbrains.annotations.NotNull;
 

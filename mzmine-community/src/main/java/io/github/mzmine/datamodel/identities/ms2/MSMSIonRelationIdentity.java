@@ -27,7 +27,7 @@ package io.github.mzmine.datamodel.identities.ms2;
 
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +53,7 @@ public class MSMSIonRelationIdentity extends MSMSIonIdentity {
    * @param parentMZ    the parent m/z value
    */
   public MSMSIonRelationIdentity(MZTolerance mzTolerance, DataPoint dp,
-      io.github.mzmine.datamodel.identities.IonType type, double parentMZ) {
+      IonType type, double parentMZ) {
     this(mzTolerance, dp, type, new SimpleDataPoint(parentMZ, 0));
   }
 

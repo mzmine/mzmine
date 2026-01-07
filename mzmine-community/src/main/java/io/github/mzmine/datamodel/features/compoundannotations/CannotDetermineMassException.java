@@ -25,7 +25,7 @@
 
 package io.github.mzmine.datamodel.features.compoundannotations;
 
-import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import java.util.Objects;
 
 /**

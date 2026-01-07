@@ -26,8 +26,8 @@
 package io.github.mzmine.util.javafx;
 
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
-import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonTypeParser;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;

@@ -25,7 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
-import io.github.mzmine.datamodel.identities.IonPart;
+import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

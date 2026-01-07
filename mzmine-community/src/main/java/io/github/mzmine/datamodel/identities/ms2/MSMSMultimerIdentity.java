@@ -26,7 +26,7 @@
 package io.github.mzmine.datamodel.identities.ms2;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.List;

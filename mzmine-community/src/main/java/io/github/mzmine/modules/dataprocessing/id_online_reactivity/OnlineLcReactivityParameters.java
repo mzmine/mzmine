@@ -25,8 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
 
-import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonTypes;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;

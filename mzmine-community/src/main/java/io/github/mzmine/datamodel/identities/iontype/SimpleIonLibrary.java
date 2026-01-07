@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,75 +23,44 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities;
+package io.github.mzmine.datamodel.identities.iontype;
 
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * Used when parsing says there is a charge but it is unknown which part holds the charge
+ * A simple ion library used by the parameter. Use {@link #toSearchableLibrary(boolean)} for an
+ * optimized version for searches.
  */
-record IonPartSilentCharge(int count) implements IonPart {
+public record SimpleIonLibrary(@NotNull String name, @NotNull List<IonType> ions) implements
+    IonLibrary {
 
-  /**
-   * @return empty string for silent ion
-   */
   @Override
-  public @NotNull String name() {
-    return "";
+  @NotNull
+  public List<IonType> ions() {
+    return ions;
   }
 
   @Override
-  public IonPart withSingleCharge(Integer singleCharge) {
-    throw new UnsupportedOperationException(
-        "Cannot change charge of silent single charge part. Rather set the count");
-  }
-
-  @Override
-  public String toString(IonPartStringFlavor flavor) {
-    return toString();
-  }
-
-  @Override
+  @NotNull
   public String toString() {
-    return "";
+    return "%s (%d ions)".formatted(name, ions.size());
   }
 
   @Override
-  public @Nullable String singleFormula() {
-    return null;
-  }
-
-  @Override
-  public boolean isSilentCharge() {
-    return true;
-  }
-
-  @Override
-  public boolean isUndefinedMass() {
-    return true;
-  }
-
-  @Override
-  public double absSingleMass() {
-    return 0d;
-  }
-
-  @Override
-  public int singleCharge() {
-    return 1;
-  }
-
-  @Override
-  public int count() {
-    return count;
-  }
-
-  @Override
-  public IonPart withCount(int count) {
-    if (count == this.count) {
-      return this;
+  public boolean equals(Object o) {
+    if (!(o instanceof SimpleIonLibrary(String oName, List<IonType> oIons))) {
+      return false;
     }
-    return new IonPartSilentCharge(count);
+
+    return name.equals(oName) && ions.size() == oIons.size() && ions.containsAll(oIons)
+        && oIons.containsAll(ions);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = name.hashCode();
+    result = 31 * result + ions.hashCode();
+    return result;
   }
 }

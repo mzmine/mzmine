@@ -29,7 +29,7 @@ import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.preferences.Themes;

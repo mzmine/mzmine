@@ -25,17 +25,17 @@
 
 package io.github.mzmine.datamodel.identities.global;
 
-import io.github.mzmine.datamodel.identities.IonLibraries;
-import io.github.mzmine.datamodel.identities.IonLibrary;
-import io.github.mzmine.datamodel.identities.IonPart;
-import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
-import io.github.mzmine.datamodel.identities.IonPartDefinition;
-import io.github.mzmine.datamodel.identities.IonPartSorting;
-import io.github.mzmine.datamodel.identities.IonParts;
-import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
-import io.github.mzmine.datamodel.identities.IonTypeSorting;
-import io.github.mzmine.datamodel.identities.IonTypes;
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonPart;
+import io.github.mzmine.datamodel.identities.iontype.IonPart.IonPartStringFlavor;
+import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
+import io.github.mzmine.datamodel.identities.iontype.IonPartSorting;
+import io.github.mzmine.datamodel.identities.iontype.IonParts;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonType.IonTypeStringFlavor;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeSorting;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesController;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryChangedEvent.SimpleGlobalIonLibraryChangedEvent;
 import io.github.mzmine.datamodel.identities.io.IonLibraryPreset;

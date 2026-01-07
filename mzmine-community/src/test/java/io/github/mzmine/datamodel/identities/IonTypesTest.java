@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;

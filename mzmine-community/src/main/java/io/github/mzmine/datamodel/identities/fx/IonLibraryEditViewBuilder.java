@@ -32,9 +32,9 @@ import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 import static javafx.geometry.Insets.EMPTY;
 
-import io.github.mzmine.datamodel.identities.IonLibrary;
-import io.github.mzmine.datamodel.identities.IonPartDefinition;
-import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.AddIons;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.ComposeAddLibraries;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.Save;

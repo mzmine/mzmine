@@ -28,8 +28,8 @@ package io.github.mzmine.datamodel.identities.fx;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
 import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_INSETS;
 
-import io.github.mzmine.datamodel.identities.IonPartDefinition;
-import io.github.mzmine.datamodel.identities.IonPartSorting;
+import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
+import io.github.mzmine.datamodel.identities.iontype.IonPartSorting;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.javafx.components.FilterableListView;
 import io.github.mzmine.javafx.components.FilterableListView.MenuControls;

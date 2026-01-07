@@ -27,8 +27,8 @@ package io.github.mzmine.modules.dataprocessing.id_pubchemsearch.gui;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonTypes;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;

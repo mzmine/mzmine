@@ -25,9 +25,9 @@
 
 package io.github.mzmine.datamodel;
 
-import io.github.mzmine.datamodel.identities.IonLibrary;
-import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonTypeParser;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;

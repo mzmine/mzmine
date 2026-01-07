@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement;
 
 
-import io.github.mzmine.datamodel.identities.IonLibraries;
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;

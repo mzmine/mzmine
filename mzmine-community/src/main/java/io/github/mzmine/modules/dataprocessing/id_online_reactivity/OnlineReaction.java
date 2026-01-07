@@ -28,7 +28,7 @@ package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import java.util.ArrayList;
 import java.util.List;
 

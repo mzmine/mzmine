@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities;
+package io.github.mzmine.datamodel.identities.iontype;
 
 import java.util.ArrayList;
 import java.util.Arrays;

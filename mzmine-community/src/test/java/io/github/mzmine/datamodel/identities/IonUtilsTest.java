@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.identities;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import io.github.mzmine.datamodel.identities.iontype.IonUtils;
 import org.junit.jupiter.api.Test;
 
 class IonUtilsTest {

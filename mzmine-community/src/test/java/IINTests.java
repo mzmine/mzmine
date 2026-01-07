@@ -30,9 +30,9 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
-import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonTypeParser;
-import io.github.mzmine.datamodel.identities.IonTypes;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;

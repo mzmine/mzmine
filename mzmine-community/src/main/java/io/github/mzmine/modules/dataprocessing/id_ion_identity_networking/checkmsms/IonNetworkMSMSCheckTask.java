@@ -35,7 +35,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
-import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
@@ -171,7 +171,7 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
       }
 
       IonNetwork net = ad.getNetwork();
-      io.github.mzmine.datamodel.identities.IonType mod = ad.getIonType();
+      IonType mod = ad.getIonType();
 
       // for all rows in network
       List<FeatureListRow> rows = net.getRows();

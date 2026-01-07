@@ -28,7 +28,7 @@ package io.github.mzmine.datamodel.identities.io;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import java.io.IOException;
 
 public class IonLibraryDeserializer extends JsonDeserializer<IonLibrary> {

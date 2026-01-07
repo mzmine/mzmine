@@ -28,7 +28,7 @@ package io.github.mzmine.datamodel.identities.io;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import java.io.IOException;
 
 public class IonLibrarySerializer extends JsonSerializer<IonLibrary> {

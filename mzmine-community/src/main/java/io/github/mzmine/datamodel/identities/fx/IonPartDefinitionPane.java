@@ -40,8 +40,8 @@ import static io.github.mzmine.util.StringUtils.isBlank;
 import static io.github.mzmine.util.StringUtils.requireValueOrElse;
 import static io.github.mzmine.util.components.FormulaTextField.newFormulaTextField;
 
-import io.github.mzmine.datamodel.identities.IonPart.IonPartStringFlavor;
-import io.github.mzmine.datamodel.identities.IonPartDefinition;
+import io.github.mzmine.datamodel.identities.iontype.IonPart.IonPartStringFlavor;
+import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.components.util.FxLayout.GridColumnGrow;

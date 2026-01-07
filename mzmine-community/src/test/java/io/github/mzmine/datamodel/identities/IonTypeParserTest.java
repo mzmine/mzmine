@@ -27,6 +27,12 @@ package io.github.mzmine.datamodel.identities;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.github.mzmine.datamodel.identities.iontype.IonPart;
+import io.github.mzmine.datamodel.identities.iontype.IonPartParsingException;
+import io.github.mzmine.datamodel.identities.iontype.IonParts;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

@@ -26,7 +26,8 @@
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.identities.IonPart;
+import io.github.mzmine.datamodel.identities.iontype.IonPart;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.FormulaUtils;
@@ -583,7 +584,7 @@ class LegacyIonType extends LegacyNeutralMolecule implements Comparable<LegacyIo
   }
 
   @NotNull
-  public io.github.mzmine.datamodel.identities.IonType toNewIonType() {
+  public IonType toNewIonType() {
     List<IonPart> parts = new ArrayList<>();
     if (mod != null) {
       parts.addAll(mod.toNewParts().toList());
@@ -591,6 +592,6 @@ class LegacyIonType extends LegacyNeutralMolecule implements Comparable<LegacyIo
     if (adduct != null) {
       parts.addAll(adduct.toNewParts().toList());
     }
-    return io.github.mzmine.datamodel.identities.IonType.create(parts, molecules);
+    return IonType.create(parts, molecules);
   }
 }

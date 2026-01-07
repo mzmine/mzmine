@@ -25,7 +25,7 @@
 
 package io.github.mzmine.util;
 
-import io.github.mzmine.datamodel.identities.IonTypeParser;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;

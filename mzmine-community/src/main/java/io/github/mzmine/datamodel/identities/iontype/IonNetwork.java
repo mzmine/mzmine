@@ -26,7 +26,6 @@
 package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.identities.IonType;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -90,7 +89,7 @@ public class IonNetwork implements Comparable<IonNetwork> {
    */
   public boolean isUndefined() {
     return streamIons().map(IonIdentity::getIonType)
-        .anyMatch(io.github.mzmine.datamodel.identities.IonType::isUndefinedAdduct);
+        .anyMatch(IonType::isUndefinedAdduct);
   }
 
   private @NotNull Stream<IonIdentity> streamIons() {

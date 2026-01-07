@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,19 +23,38 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities;
+package io.github.mzmine.datamodel.identities.iontype;
 
+import io.github.mzmine.datamodel.PolarityType;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class IonPartParsingException extends RuntimeException {
+public interface IonLibrary {
 
+  @NotNull String name();
+
+  List<IonType> ions();
+
+  default int getNumIons() {
+    return ions().size();
+  }
+
+  default SearchableIonLibrary toSearchableLibrary(boolean filterByRowCharge) {
+    return new SearchableIonLibrary(ions(), filterByRowCharge);
+  }
+
+  /**
+   * @return a new filtered library or if polarity is undefined then return this instance
+   */
   @NotNull
-  private final String input;
-  private final int errorIndex;
+  default IonLibrary filterPolarity(@Nullable PolarityType polarity) {
+    if (!PolarityType.isDefined(polarity)) {
+      return this;
+    }
 
-  public IonPartParsingException(@NotNull String input, int errorIndex, String message) {
-    super("%s for input: %s at index %d".formatted(message, input, errorIndex));
-    this.input = input;
-    this.errorIndex = errorIndex;
+    final List<IonType> ions = ions().stream().filter(ion -> ion.getPolarity() == polarity)
+        .toList();
+    return new SimpleIonLibrary(name() + " filtered " + polarity.name(), ions);
   }
 }

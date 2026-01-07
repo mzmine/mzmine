@@ -28,8 +28,8 @@ package io.github.mzmine.parameters.parametertypes.ionidentity;
 import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.identities.IonPart;
-import io.github.mzmine.datamodel.identities.IonParts;
+import io.github.mzmine.datamodel.identities.iontype.IonPart;
+import io.github.mzmine.datamodel.identities.iontype.IonParts;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;

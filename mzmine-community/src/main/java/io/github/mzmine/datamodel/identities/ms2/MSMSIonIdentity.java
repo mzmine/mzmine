@@ -26,7 +26,7 @@
 package io.github.mzmine.datamodel.identities.ms2;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSDataPointIdentity;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
@@ -35,10 +35,10 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
  */
 public class MSMSIonIdentity extends AbstractMSMSDataPointIdentity {
 
-  protected final io.github.mzmine.datamodel.identities.IonType type;
+  protected final IonType type;
 
   public MSMSIonIdentity(MZTolerance mzTolerance, DataPoint dp,
-      io.github.mzmine.datamodel.identities.IonType b) {
+      IonType b) {
     super(mzTolerance, dp);
     this.type = b;
   }

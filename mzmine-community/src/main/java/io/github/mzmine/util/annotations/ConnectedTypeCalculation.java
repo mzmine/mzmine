@@ -39,8 +39,8 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
-import io.github.mzmine.datamodel.identities.IonLibraries;
-import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.util.FormulaUtils;
@@ -114,7 +114,7 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
         if (neutralMass == null) {
           return null;
         }
-        final List<io.github.mzmine.datamodel.identities.IonType> matchingIons = IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN_SEARCHABLE.searchRows(
+        final List<IonType> matchingIons = IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN_SEARCHABLE.searchRows(
             row, neutralMass, SpectraMerging.defaultMs1MergeTol);
         return matchingIons.isEmpty() ? null : matchingIons.getFirst();
       }));

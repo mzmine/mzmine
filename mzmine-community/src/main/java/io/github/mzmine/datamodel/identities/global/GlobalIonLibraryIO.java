@@ -25,7 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.global;
 
-import io.github.mzmine.datamodel.identities.SimpleIonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.SimpleIonLibrary;
 import io.github.mzmine.datamodel.identities.io.IonLibraryIO;
 import io.github.mzmine.datamodel.identities.io.IonLibraryPreset;
 import io.github.mzmine.datamodel.identities.io.LoadedIonLibrary;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,10 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities;
+package io.github.mzmine.datamodel.identities.iontype;
 
-import static io.github.mzmine.datamodel.identities.IonTypeUtils.checkMolCount;
-import static io.github.mzmine.datamodel.identities.IonTypeUtils.restrictPartsOverlapToMultimers;
+import static io.github.mzmine.datamodel.identities.iontype.IonTypeUtils.checkMolCount;
+import static io.github.mzmine.datamodel.identities.iontype.IonTypeUtils.restrictPartsOverlapToMultimers;
 import static java.util.stream.Collectors.groupingBy;
 
 import com.google.common.collect.Range;

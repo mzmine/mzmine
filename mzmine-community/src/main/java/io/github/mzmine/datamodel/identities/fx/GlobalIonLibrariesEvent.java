@@ -25,7 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
-import io.github.mzmine.datamodel.identities.IonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import org.jetbrains.annotations.NotNull;
 

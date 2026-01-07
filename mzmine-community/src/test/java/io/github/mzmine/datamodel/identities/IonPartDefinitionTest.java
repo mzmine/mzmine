@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.util.FormulaUtils;
 import org.junit.jupiter.api.Test;
 

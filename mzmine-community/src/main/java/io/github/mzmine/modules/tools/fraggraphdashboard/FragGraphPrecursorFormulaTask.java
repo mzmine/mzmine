@@ -28,8 +28,8 @@ package io.github.mzmine.modules.tools.fraggraphdashboard;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.identities.IonLibrary;
-import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
@@ -106,7 +106,7 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
     this.ms2Tolerance = ms2Tolerance;
     try {
       this.elements = (MolecularFormulaRange) elements.clone();
-      for (io.github.mzmine.datamodel.identities.IonType ion : assignedIonTypes.ions()) {
+      for (IonType ion : assignedIonTypes.ions()) {
         FragmentUtils.reflectIonTypeInFormulaRange(ion, this.elements);
       }
     } catch (CloneNotSupportedException e) {
@@ -134,7 +134,7 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
   @Override
   public void process() {
     final boolean couldBeRadical = assignedIonTypes.ions().stream()
-        .anyMatch(io.github.mzmine.datamodel.identities.IonType::hasOddElectrons);
+        .anyMatch(IonType::hasOddElectrons);
 
     generator = setUpFormulaGenerator();
     generateFormulae(couldBeRadical, generator);

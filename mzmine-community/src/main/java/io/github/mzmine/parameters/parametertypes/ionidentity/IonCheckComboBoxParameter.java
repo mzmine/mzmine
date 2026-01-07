@@ -25,7 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
-import io.github.mzmine.datamodel.identities.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;

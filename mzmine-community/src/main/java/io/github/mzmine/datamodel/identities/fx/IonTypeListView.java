@@ -25,9 +25,9 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
-import io.github.mzmine.datamodel.identities.IonType;
-import io.github.mzmine.datamodel.identities.IonType.IonTypeStringFlavor;
-import io.github.mzmine.datamodel.identities.IonTypeSorting;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonType.IonTypeStringFlavor;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeSorting;
 import io.github.mzmine.javafx.components.FilterableListView;
 import io.github.mzmine.javafx.components.MappingListCell;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
