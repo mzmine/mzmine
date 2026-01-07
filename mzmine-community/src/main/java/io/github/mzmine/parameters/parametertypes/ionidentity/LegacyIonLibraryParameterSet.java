@@ -26,12 +26,18 @@
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Deprecated
 class LegacyIonLibraryParameterSet extends SimpleParameterSet {
 
+  private static final Logger logger = Logger.getLogger(
+      LegacyIonLibraryParameterSet.class.getName());
   public static final IntegerParameter MAX_CHARGE = new IntegerParameter("Maximum charge",
       "Maximum charge to be used for adduct search.", 2, 1, 100);
   public static final IntegerParameter MAX_MOLECULES = new IntegerParameter(
@@ -59,4 +65,27 @@ class LegacyIonLibraryParameterSet extends SimpleParameterSet {
     return 2;
   }
 
+  @Override
+  public ParameterSet cloneParameterSet() {
+    return this.cloneParameterSet(false);
+  }
+
+  /**
+   * Need to override as this class is package private and super uses constructor to clone
+   */
+  @Override
+  public ParameterSet cloneParameterSet(boolean keepSelection) {
+    try {
+      LegacyIonLibraryParameterSet newSet = new LegacyIonLibraryParameterSet();
+      // Make a deep copy of the parameters
+      newSet.parameters = ParameterUtils.cloneParameters(parameters, keepSelection);
+      newSet.setModuleNameAttribute(this.getModuleNameAttribute());
+      newSet.helpUrl = helpUrl;
+
+      return newSet;
+    } catch (Throwable e) {
+      logger.log(Level.WARNING, "While cloning parameters: " + e.getMessage(), e);
+      return null;
+    }
+  }
 }
