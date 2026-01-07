@@ -27,7 +27,6 @@ package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.IonPart;
-import io.github.mzmine.datamodel.identities.NeutralMolecule;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.FormulaUtils;
@@ -52,7 +51,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 @Deprecated
-class LegacyIonType extends NeutralMolecule implements Comparable<LegacyIonType> {
+class LegacyIonType extends LegacyNeutralMolecule implements Comparable<LegacyIonType> {
 
   public static final String XML_ELEMENT = "iontype";
   @NotNull

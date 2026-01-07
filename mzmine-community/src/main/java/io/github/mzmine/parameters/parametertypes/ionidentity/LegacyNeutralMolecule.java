@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,7 +24,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities;
+package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 import io.github.mzmine.util.FormulaUtils;
 import java.util.Objects;
@@ -32,7 +32,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-public class NeutralMolecule {
+/**
+ * Only used in old ion types and {@link LegacyIonModification} therefore deprecated and package
+ * private
+ */
+@Deprecated
+class LegacyNeutralMolecule {
 
   @Nullable
   protected final IMolecularFormula cdkFormula;
@@ -42,11 +47,11 @@ public class NeutralMolecule {
   @NotNull
   protected String name;
 
-  public NeutralMolecule(@NotNull String name, double mass) {
+  public LegacyNeutralMolecule(@NotNull String name, double mass) {
     this(name, null, mass);
   }
 
-  public NeutralMolecule(@NotNull String name, @Nullable String molFormula, double mass) {
+  public LegacyNeutralMolecule(@NotNull String name, @Nullable String molFormula, double mass) {
     this.name = name;
     this.molFormula = molFormula;
     if (molFormula != null && molFormula.length() > 0) {
@@ -108,7 +113,7 @@ public class NeutralMolecule {
     if (!obj.getClass().equals(getClass())) {
       return false;
     }
-    NeutralMolecule other = (NeutralMolecule) obj;
+    LegacyNeutralMolecule other = (LegacyNeutralMolecule) obj;
     return Objects.equals(name, other.name) && Objects.equals(mass, other.getMass());
   }
 }

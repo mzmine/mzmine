@@ -26,7 +26,6 @@
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 import io.github.mzmine.datamodel.identities.IonPart;
-import io.github.mzmine.datamodel.identities.NeutralMolecule;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -208,9 +207,10 @@ class LegacyCombinedIonModification extends LegacyIonModification {
   public Map<String, String> getDataMap() {
     Map<String, String> map = new TreeMap<>();
     map.put("Name",
-        streamModifications().map(NeutralMolecule::getName).collect(Collectors.joining(";")));
-    map.put("Mass Diff", streamModifications().map(NeutralMolecule::getMass).map(String::valueOf)
-        .collect(Collectors.joining(";")));
+        streamModifications().map(LegacyNeutralMolecule::getName).collect(Collectors.joining(";")));
+    map.put("Mass Diff",
+        streamModifications().map(LegacyNeutralMolecule::getMass).map(String::valueOf)
+            .collect(Collectors.joining(";")));
     map.put("Type", streamModifications().map(LegacyIonModification::getType).map(Enum::name)
         .collect(Collectors.joining(";")));
     map.put("Charge",

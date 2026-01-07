@@ -30,7 +30,6 @@ import static java.util.Objects.requireNonNullElse;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.IonPart;
 import io.github.mzmine.datamodel.identities.IonParts;
-import io.github.mzmine.datamodel.identities.NeutralMolecule;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -53,12 +52,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @Deprecated
-class LegacyIonModification extends NeutralMolecule implements Comparable<LegacyIonModification>,
-    StringMapParser<LegacyIonModification> {
+class LegacyIonModification extends LegacyNeutralMolecule implements
+    Comparable<LegacyIonModification>, StringMapParser<LegacyIonModification> {
 
   public static Comparator<LegacyIonModification> POLARITY_MASS_SORTER = Comparator.comparing(
           LegacyIonModification::getPolarity).thenComparingInt(LegacyIonModification::getAbsCharge)
-      .thenComparing(NeutralMolecule::getMass);
+      .thenComparing(LegacyNeutralMolecule::getMass);
 
   // use combinations of X adducts (2H++; -H+Na2+) and modifications
   public static final LegacyIonModification M_MINUS = new LegacyIonModification(
