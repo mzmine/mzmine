@@ -951,9 +951,9 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
 
   private void handleClickOnCell(final TreeTablePosition<ModularFeatureListRow, ?> focusedCell,
       final TreeTableColumn<ModularFeatureListRow, ?> tableColumn, final MouseEvent e) {
-    logger.fine("Handle click on table cell");
 
-    if (e.getClickCount() >= 2 && e.getButton() == MouseButton.PRIMARY) {
+    // changed to exactly two clicks - otherwise 3 clicks trigger 2 events with 2 and 3 clicks
+    if (e.getClickCount() == 2 && e.getButton() == MouseButton.PRIMARY) {
       if (getFeatureList() == null) {
         return;
       }
@@ -990,6 +990,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
             id.getDataType().equals(dataType) ? null : id.getDataType();
 
         final ModularFeatureListRow row = table.getSelectionModel().getSelectedItem().getValue();
+
         final Runnable runnable = (dataType.getDoubleClickAction(this, row, files, superDataType,
             cellValue));
         if (runnable != null) {

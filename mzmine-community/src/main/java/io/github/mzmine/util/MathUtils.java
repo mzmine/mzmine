@@ -519,4 +519,64 @@ public class MathUtils {
     }
     return a;
   }
+
+  @Nullable
+  public static Float max(@Nullable Float a, @Nullable Float b) {
+    if (a == null && b == null) {
+      return null;
+    }
+    if (a == null) {
+      return b;
+    }
+    if (b == null) {
+      return a;
+    }
+    return Math.max(a, b);
+  }
+
+  @Nullable
+  public static Double max(@Nullable Double a, @Nullable Double b) {
+    if (a == null && b == null) {
+      return null;
+    }
+    if (a == null) {
+      return b;
+    }
+    if (b == null) {
+      return a;
+    }
+    return Math.max(a, b);
+  }
+
+  @Nullable
+  public static Float min(@Nullable Float a, @Nullable Float b) {
+    if (a == null && b == null) {
+      return null;
+    }
+    if (a == null) {
+      return b;
+    }
+    if (b == null) {
+      return a;
+    }
+    return Math.min(a, b);
+  }
+
+  @Nullable
+  public static Double min(@Nullable Double a, @Nullable Double b) {
+    if (a == null && b == null) {
+      return null;
+    }
+    if (a == null) {
+      return b;
+    }
+    if (b == null) {
+      return a;
+    }
+    return Math.min(a, b);
+  }
+
+  public static double getDistance(double x, double y, double itemX, double itemY) {
+    return Math.sqrt(Math.pow(x - itemX, 2) + Math.pow(y - itemY, 2));
+  }
 }

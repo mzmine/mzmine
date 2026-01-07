@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,12 @@
 
 package io.github.mzmine.modules.visualization.equivalentcarbonnumberplot;
 
+import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import java.util.Arrays;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
@@ -46,7 +46,7 @@ public class EquivalentCarbonNumberChart extends EChartViewer implements XYItemL
 
   public EquivalentCarbonNumberChart(String title, String xAxisLabel, String yAxisLabel,
       EquivalentCarbonNumberDataset dataset) {
-    super(ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset,
+    super(FxChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset,
         PlotOrientation.VERTICAL, false, true, true));
     setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
@@ -94,7 +94,7 @@ public class EquivalentCarbonNumberChart extends EChartViewer implements XYItemL
       return null;
     }
     double originalY = dataset.getYValue(0, item);
-    
+
     //show only annotation with best MS/MS score if available
     for (int i = 0; i < dataset.getItemCount(0); i++) {
       if (dataset.getYValue(0, i) == originalY && i != item) {

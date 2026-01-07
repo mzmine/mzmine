@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,18 +28,28 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.LipidSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.SingleSpectrumProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
+/**
+ * Ideally refactor this away from the spectrum plot, as it does not consistently use the
+ * {@link io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot}.
+ */
+@Deprecated
 public class LipidSpectrumPlot extends SpectraPlot {
 
   public LipidSpectrumPlot(MatchedLipid matchedLipid, boolean showLegend, RunOption runOption) {
@@ -48,35 +57,63 @@ public class LipidSpectrumPlot extends SpectraPlot {
 
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH);
-    List<LipidFragment> matchedFragments = new ArrayList<>(matchedLipid.getMatchedFragments());
-    Scan matchedMsMsScan = matchedFragments.stream().map(LipidFragment::getMsMsScan).findFirst().orElse(null);
-    if (matchedMsMsScan != null) {
-      PlotXYDataProvider spectrumProvider = new SingleSpectrumProvider(matchedMsMsScan,
-          "MS/MS Spectrum",
-          MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor());
-      ColoredXYDataset spectrumDataSet = new ColoredXYDataset(spectrumProvider, runOption);
-      addDataSet(spectrumDataSet,
-          MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColorAWT(), true, null,
-          true);
-    }
-    List<DataPoint> fragmentScanDps = matchedFragments.stream().map(LipidFragment::getDataPoint).toList();
-    if (!fragmentScanDps.isEmpty()) {
-      PlotXYDataProvider fragmentDataProvider = new LipidSpectrumProvider(matchedFragments,
-          fragmentScanDps.stream().mapToDouble(DataPoint::getMZ).toArray(),
-          fragmentScanDps.stream().mapToDouble(DataPoint::getIntensity).toArray(), "Matched Signals",
-          MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT());
-      ColoredXYDataset fragmentDataSet = new ColoredXYDataset(fragmentDataProvider, runOption);
-      MatchedLipidLabelGenerator matchedLipidLabelGenerator = new MatchedLipidLabelGenerator(this,
-          matchedFragments);
-      getXYPlot().getRenderer().setDefaultItemLabelsVisible(true);
-      getXYPlot().getRenderer().setSeriesItemLabelGenerator(1, matchedLipidLabelGenerator);
-      addDataSet(fragmentDataSet,
-          MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), true,
-          matchedLipidLabelGenerator, true);
-      setLegendVisible(showLegend);
-      addPrecursorMarkers(matchedMsMsScan);
-    }
+
     getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
     getXYPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
+
+    updateLipidSpectrum(matchedLipid, showLegend, runOption);
+  }
+
+  public void updateLipidSpectrum(@Nullable MatchedLipid matchedLipid, boolean showLegend,
+      RunOption runOption) {
+
+    if (matchedLipid == null) {
+      clearPlot();
+      return;
+    }
+
+    final List<LipidFragment> matchedFragments = new ArrayList<>(
+        matchedLipid.getMatchedFragments());
+    final Scan matchedMsMsScan = matchedFragments.stream().map(LipidFragment::getMsMsScan)
+        .findFirst().orElse(null);
+
+    final SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+    final List<XYDatasetAndRenderer> datasets = new ArrayList<>();
+    if (matchedMsMsScan != null) {
+      PlotXYDataProvider spectrumProvider = new SingleSpectrumProvider(matchedMsMsScan,
+          "MS/MS Spectrum", palette.getNegativeColor());
+      ColoredXYDataset spectrumDataSet = new ColoredXYDataset(spectrumProvider, runOption);
+      datasets.add(new DatasetAndRenderer(spectrumDataSet, new ColoredXYBarRenderer(true)));
+    }
+
+    List<DataPoint> fragmentScanDps = matchedFragments.stream().map(LipidFragment::getDataPoint)
+        .toList();
+    if (!fragmentScanDps.isEmpty()) {
+      final PlotXYDataProvider fragmentDataProvider = new LipidSpectrumProvider(matchedFragments,
+          fragmentScanDps.stream().mapToDouble(DataPoint::getMZ).toArray(),
+          fragmentScanDps.stream().mapToDouble(DataPoint::getIntensity).toArray(),
+          "Matched Signals", palette.getPositiveColorAWT());
+      final ColoredXYDataset fragmentDataSet = new ColoredXYDataset(fragmentDataProvider,
+          runOption);
+      final MatchedLipidLabelGenerator matchedLipidLabelGenerator = new MatchedLipidLabelGenerator(
+          this, matchedFragments);
+      final ColoredXYBarRenderer matchedRenderer = new ColoredXYBarRenderer(true);
+
+      matchedRenderer.setDefaultItemLabelsVisible(true);
+      matchedRenderer.setSeriesItemLabelGenerator(1, matchedLipidLabelGenerator);
+      datasets.add(new DatasetAndRenderer(fragmentDataSet, matchedRenderer));
+    }
+
+    applyWithNotifyChanges(false, () -> {
+      clearPlot();
+      getXYPlot().setDatasetsRenderers(datasets);
+      setLegendVisible(showLegend);
+      addPrecursorMarkers(matchedMsMsScan);
+    });
+  }
+
+  public void clearPlot() {
+    getXYPlot().removeAllDatasets();
+    getChart().getXYPlot().clearDomainMarkers();
   }
 }

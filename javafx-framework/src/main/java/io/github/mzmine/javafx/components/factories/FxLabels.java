@@ -47,7 +47,7 @@ public class FxLabels {
     REGULAR, BOLD_TITLE, BOLD_SEMI_TITLE, BOLD, ITALIC, // colored
     WARNING, ERROR;
 
-    public void addStyleClass(Label label) {
+    public void addStyleClass(Node label) {
       var style = getStyleClass();
       if (style != null) {
         label.getStyleClass().add(style);

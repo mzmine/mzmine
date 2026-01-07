@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,22 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima;
+package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2;
 
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
+import org.junit.jupiter.api.Test;
 
-  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
-      "Intensities less than this value are interpreted as noise.",
-      MZmineCore.getConfiguration().getIntensityFormat());
+class MovingAverageTest {
 
-  public LocalMaxMassDetectorParameters() {
-    super(new UserParameter[]{noiseLevel},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#local-maxima");
+  @Test
+  void calculateLinearEqual() {
+    double[] data = new double[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    final double[] average = MovingAverage.calculate(data, 3);
+    assertEquals(10, average.length);
+    assertArrayEquals(data, average);
+    assertEquals(data[0], average[0]);
+    assertEquals(data[data.length - 1], average[data.length - 1]);
   }
 
+  @Test
+  void calculate() {
+    double[] data = new double[]{2, 6, 2, 6, 2, 6, 2, 6, 2, 6};
+    final double[] average = MovingAverage.calculate(data, 5);
+    assertEquals(10, average.length);
+    assertEquals(data[0], average[0]);
+    assertEquals(data[data.length - 1], average[data.length - 1]);
+  }
 }
