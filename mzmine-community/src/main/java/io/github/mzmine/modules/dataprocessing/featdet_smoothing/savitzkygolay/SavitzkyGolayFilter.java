@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -25,8 +24,8 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 /**
  * Utilities for the Savitzky-Golay smoother.
@@ -37,22 +36,22 @@ import java.util.Map;
 public class SavitzkyGolayFilter {
 
   // The filter values.
-  private static final Map<Integer, int[]> VALUES = new HashMap<Integer, int[]>(11);
+  private static final TreeMap<Integer, int[]> VALUES = new TreeMap<>();
 
   static {
 
     // Load the values.
-    VALUES.put(5, new int[] {17, 12, -3});
-    VALUES.put(7, new int[] {7, 6, 3, -2});
-    VALUES.put(9, new int[] {59, 54, 39, 14, -21});
-    VALUES.put(11, new int[] {89, 84, 69, 44, 9, -36});
-    VALUES.put(13, new int[] {25, 24, 21, 16, 9, 0, -11});
-    VALUES.put(15, new int[] {167, 162, 147, 122, 87, 42, -13, -78});
-    VALUES.put(17, new int[] {43, 42, 39, 34, 27, 18, 7, -6, -21});
-    VALUES.put(19, new int[] {269, 264, 249, 224, 189, 144, 89, 24, -51, -136});
-    VALUES.put(21, new int[] {329, 324, 309, 284, 249, 204, 149, 84, 9, -76, -171});
-    VALUES.put(23, new int[] {79, 78, 75, 70, 63, 54, 43, 30, 15, -2, -21, -42});
-    VALUES.put(25, new int[] {467, 462, 447, 422, 387, 343, 287, 222, 147, 62, -33, -138, -253});
+    VALUES.put(5, new int[]{17, 12, -3});
+    VALUES.put(7, new int[]{7, 6, 3, -2});
+    VALUES.put(9, new int[]{59, 54, 39, 14, -21});
+    VALUES.put(11, new int[]{89, 84, 69, 44, 9, -36});
+    VALUES.put(13, new int[]{25, 24, 21, 16, 9, 0, -11});
+    VALUES.put(15, new int[]{167, 162, 147, 122, 87, 42, -13, -78});
+    VALUES.put(17, new int[]{43, 42, 39, 34, 27, 18, 7, -6, -21});
+    VALUES.put(19, new int[]{269, 264, 249, 224, 189, 144, 89, 24, -51, -136});
+    VALUES.put(21, new int[]{329, 324, 309, 284, 249, 204, 149, 84, 9, -76, -171});
+    VALUES.put(23, new int[]{79, 78, 75, 70, 63, 54, 43, 30, 15, -2, -21, -42});
+    VALUES.put(25, new int[]{467, 462, 447, 422, 387, 343, 287, 222, 147, 62, -33, -138, -253});
   }
 
   /**
@@ -109,7 +108,7 @@ public class SavitzkyGolayFilter {
    * Convolve a set of weights with a set of intensities.
    *
    * @param intensities the intensities.
-   * @param weights the filter weights.
+   * @param weights     the filter weights.
    * @return the convolution results.
    */
   public static double[] convolve(final double[] intensities, final double[] weights) {
@@ -134,5 +133,20 @@ public class SavitzkyGolayFilter {
     }
 
     return convolved;
+  }
+
+  public static int getClosestFilterWidth(int width) {
+    Entry<Integer, int[]> floorEntry = VALUES.floorEntry(width);
+    Entry<Integer, int[]> ceilEntry = VALUES.ceilingEntry(width);
+
+    if (floorEntry == null && ceilEntry != null) {
+      return ceilEntry.getKey();
+    } else if (floorEntry != null && ceilEntry == null) {
+      return floorEntry.getKey();
+    } else if (floorEntry != null && ceilEntry != null) {
+      return Math.abs(floorEntry.getKey() - width) < Math.abs(ceilEntry.getKey() - width)
+          ? floorEntry.getKey() : ceilEntry.getKey();
+    }
+    throw new IllegalStateException("No filters defined.");
   }
 }

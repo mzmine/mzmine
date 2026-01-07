@@ -27,8 +27,10 @@ package io.github.mzmine.javafx.properties;
 
 import java.time.Instant;
 import javafx.beans.Observable;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 
@@ -37,9 +39,10 @@ import javafx.collections.ObservableList;
  */
 public class LastUpdateProperty extends SimpleObjectProperty<Instant> {
 
-  /**
-   * @param triggers all triggers are bound, on any change the internal Instant is updated
-   */
+  private LastUpdateProperty() {
+
+  }
+
   public LastUpdateProperty(final Observable... triggers) {
     // use listeners and not binding to be able to clear the property
     for (Observable trigger : triggers) {
@@ -62,5 +65,29 @@ public class LastUpdateProperty extends SimpleObjectProperty<Instant> {
     Instant now = Instant.now();
     set(now);
     return now;
+  }
+
+  /**
+   *
+   * @param enabled  only updates if enabled is true
+   * @param triggers any of the triggers or enabled changes value then triggers an update to the
+   *                 instant
+   */
+  public static LastUpdateProperty withEnabledProperty(BooleanProperty enabled,
+      final ObservableValue<?>... triggers) {
+    final LastUpdateProperty lastUpdate = new LastUpdateProperty();
+
+    // for enabled we always trigger a change event
+    enabled.subscribe((_, _) -> lastUpdate.setValue(Instant.now()));
+
+    // binding failed with infinite loop
+    PropertyUtils.onChange(() -> {
+      if (!enabled.get()) {
+        return; // keep old value for now update happened
+      }
+      lastUpdate.setValue(Instant.now()); // update
+    }, triggers);
+
+    return lastUpdate;
   }
 }

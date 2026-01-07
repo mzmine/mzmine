@@ -610,7 +610,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     });
 
     final MenuItem showAllMSMSItem = new ConditionalMenuItem("All MS/MS",
-        () -> hasMs2(selectedRows));
+        () -> hasMs2(selectedRow));
     showAllMSMSItem.setOnAction(e -> onShowAllMsMsClicked());
 
     final MenuItem showIsotopePatternItem = new ConditionalMenuItem("Isotope pattern",
@@ -708,6 +708,10 @@ public class FeatureTableContextMenu extends ContextMenu {
     return selectedRows.stream().anyMatch(FeatureListRow::hasMs2Fragmentation);
   }
 
+  private boolean hasMs2(final ModularFeatureListRow selectedRow) {
+    return selectedRow.hasMs2Fragmentation();
+  }
+
   /**
    * Open molecular network and center on node
    */
@@ -728,7 +732,7 @@ public class FeatureTableContextMenu extends ContextMenu {
       ImageAllMsMsTab.addNewImageAllMsMsTab(table,
           selectedFeature != null ? selectedFeature : selectedRow.getBestFeature(), true, false);
     } else {
-      MultiSpectraVisualizerTab.addNewMultiSpectraVisualizerTab(selectedRows.get(0));
+      MultiSpectraVisualizerTab.addNewMultiSpectraVisualizerTab(selectedRow);
     }
   }
 

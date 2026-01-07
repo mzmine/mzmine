@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,16 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.chartbasics.simplechart;
-
-import java.util.Map;
-import org.jfree.data.xy.XYDataset;
+package io.github.mzmine.gui.chartbasics.gui.javafx.model;
 
 /**
- * Called when a dataset is added or removed from a {@link SimpleChart}.
+ * This is a generic plot model. All plot models should implement this interface like the
+ * {@link FxXYPlotModel} or others for CategoryPlot and CombinedDomainPlot etc.
+ * <p>
+ * The model should abstract away fields and functions from plots, harmonize the behavior, and
+ * trigger updates in the plot.
+ * <p>
+ * Currently only XYPlot is implemented and used in {@link FxXYPlot}.
  */
-@FunctionalInterface
-public interface DatasetsChangedListener {
+public interface FxPlotModel extends FxBaseChartModel {
 
-  public void datasetsChanged(Map<Integer, XYDataset> newDatasets);
 }

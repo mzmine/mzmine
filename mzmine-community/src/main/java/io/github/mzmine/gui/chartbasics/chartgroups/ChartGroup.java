@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,8 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxValueMarker;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.GestureMouseAdapter;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
@@ -41,10 +43,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.event.ChartChangeEventType;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.ui.Layer;
 import org.jfree.data.Range;
 
 /**
@@ -54,13 +58,24 @@ import org.jfree.data.Range;
  */
 public class ChartGroup {
 
+  private static final Logger logger = Logger.getLogger(ChartGroup.class.getName());
   // max range of all charts
   private Range[] maxRange = null;
+
+
+  private static final BasicStroke stroke = new BasicStroke(1f, BasicStroke.CAP_SQUARE,
+      BasicStroke.JOIN_MITER, 1f, new float[]{5f, 3f}, 0f);
+
+  // a special crosshair that synchronizes the mouse movements and shows a special crosshair
+  // in all charts in the group
+  private boolean mouseMovementListenersAdded = false;
+  private final FxValueMarker mouseDomainMarker = new FxValueMarker(stroke);
+  private final FxValueMarker mouseRangeMarker = new FxValueMarker(stroke);
 
   // combine zoom of axes
   private boolean combineRangeAxes = false;
   private boolean combineDomainAxes = false;
-  // click marker
+  // click marker - this is different from the mousemovement crosshair only on clicks and selected items
   private boolean showCrosshairDomain = false;
   private boolean showCrosshairRange = false;
 
@@ -76,6 +91,21 @@ public class ChartGroup {
     this.showCrosshairRange = showClickRangeMarker;
   }
 
+  public void setUseMouseMovementCrosshair(boolean useDomainCrosshair, boolean useRangeCrosshair) {
+    mouseDomainMarker.setVisible(useDomainCrosshair);
+    mouseRangeMarker.setVisible(useRangeCrosshair);
+    if (!mouseMovementListenersAdded && (useDomainCrosshair || useRangeCrosshair)) {
+      // new charts will also add the listeners from now on
+      mouseMovementListenersAdded = true;
+      // add listeners to all charts
+      if (list != null) {
+        for (ChartViewWrapper chart : list) {
+          addMouseMovementCrosshair(chart);
+        }
+      }
+    }
+  }
+
   public void add(ChartViewWrapper chart) {
     if (list == null) {
       list = new ArrayList<>();
@@ -85,7 +115,10 @@ public class ChartGroup {
     // only if selected
     combineAxes(chart.getChart());
     addChartToMaxRange(chart.getChart());
-    addCrosshair(chart);
+
+    if (usesAnyMouseMovementCrosshair()) {
+      addMouseMovementCrosshair(chart);
+    }
   }
 
   public void add(ChartViewWrapper[] charts) {
@@ -108,44 +141,42 @@ public class ChartGroup {
     return list;
   }
 
+  public boolean usesAnyMouseMovementCrosshair() {
+    return mouseMovementListenersAdded;
+  }
+
   /**
    * Click marker to all charts
    *
    * @param chart
    */
-  private void addCrosshair(ChartViewWrapper chart) {
+  private void addMouseMovementCrosshair(ChartViewWrapper chart) {
+    final FxXYPlot fxPlot = chart.getFxPlot();
+    // use the same marker for all plots? or create new ones and bind?
+    if (fxPlot != null) {
+//    final FxValueMarker domainMarker = new FxValueMarker();
+//    final FxValueMarker rangeMarker = new FxValueMarker();
+      fxPlot.addPermanentDomainMarker(0, mouseDomainMarker, Layer.FOREGROUND);
+      fxPlot.addPermanentRangeMarker(0, mouseRangeMarker, Layer.FOREGROUND);
+    } else {
+      final XYPlot plot = chart.getChart().getXYPlot();
+      if (plot == null) {
+        return;
+      }
+      // then just add to a regular plot
+      plot.addDomainMarker(0, mouseDomainMarker, Layer.FOREGROUND);
+      plot.addRangeMarker(0, mouseRangeMarker, Layer.FOREGROUND);
+    }
+
     GestureMouseAdapter m = chart.getGestureAdapter();
     if (m != null) {
       m.addGestureHandler(new ChartGestureHandler(
           new ChartGesture(Entity.PLOT, Event.MOVED, GestureButton.ALL, Key.ALL), e -> {
-        setCrosshair(e.getCoordinates());
+        final Point2D pos = e.getCoordinates();
+        mouseDomainMarker.setValue(pos.getX());
+        mouseRangeMarker.setValue(pos.getY());
       }));
     }
-  }
-
-  private void setCrosshair(Point2D pos) {
-    if (pos == null) {
-      return;
-    }
-
-    BasicStroke stroke = new BasicStroke(1f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 1f,
-        new float[]{5f, 3f}, 0f);
-
-    forAllCharts(chart -> {
-      XYPlot p = chart.getXYPlot();
-      if (showCrosshairDomain) {
-        p.setDomainCrosshairLockedOnData(false);
-        p.setDomainCrosshairValue(pos.getX());
-        p.setDomainCrosshairStroke(stroke);
-        p.setDomainCrosshairVisible(true);
-      }
-      if (showCrosshairRange) {
-        p.setRangeCrosshairLockedOnData(false);
-        p.setRangeCrosshairValue(pos.getY());
-        p.setRangeCrosshairStroke(stroke);
-        p.setRangeCrosshairVisible(true);
-      }
-    });
   }
 
   /**

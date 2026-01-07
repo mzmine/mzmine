@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -89,13 +89,14 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraph
 
   @Override
   public double getColumnWidth() {
-    return DEFAULT_GRAPHICAL_CELL_WIDTH + 50;
+    return LARGE_GRAPHICAL_CELL_WIDTH;
   }
 
   @Nullable
   @Override
-  public Runnable getDoubleClickAction(final @Nullable FeatureTableFX table, @NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
+  public Runnable getDoubleClickAction(final @Nullable FeatureTableFX table,
+      @NotNull ModularFeatureListRow row, @NotNull List<RawDataFile> file, DataType<?> superType,
+      @Nullable final Object value) {
     return () -> FxThread.runLater(() -> MZmineCore.getDesktop()
         .addTab(new IMSFeatureVisualizerTab(row.getFeature(file.get(0)))));
   }
