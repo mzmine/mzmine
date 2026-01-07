@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -469,7 +469,6 @@ public class AnnotationTypeTests {
 
     Assertions.assertEquals(first.getSimilarity().getScore(), 0.9415251115351752);
     Assertions.assertNull(first.getCCSError());
-    Assertions.assertEquals(371.3269326159603, first.getTestedPrecursorMz());
-    Assertions.assertEquals(4.0783625f, first.getTestedRt());
+    Assertions.assertEquals(371.3269326159603 - 371.3268, first.getMzAbsoluteError());
   }
 }

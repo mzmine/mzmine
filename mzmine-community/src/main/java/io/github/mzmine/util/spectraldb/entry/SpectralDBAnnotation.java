@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,16 +37,15 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
-import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
-import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
 import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -90,8 +89,14 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
     this.entry = entry;
     this.similarity = similarity;
     set(CCSRelativeErrorType.class, ccsRelativeError);
-    set(PrecursorMZType.class, testedPrecursorMz);
-    set(RTType.class, testedRt);
+
+    if (testedPrecursorMz != null && entry.getPrecursorMZ() != null) {
+      set(MzAbsoluteDifferenceType.class, testedPrecursorMz - entry.getPrecursorMZ());
+    }
+    if (testedRt != null && entry.getOrElse(DBEntryField.RT, null) != null) {
+      set(RtAbsoluteDifferenceType.class,
+          testedRt - (Float) entry.getOrElse(DBEntryField.RT, null));
+    }
     set(RIDiffType.class, riDiff);
   }
 
@@ -216,7 +221,6 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
     for (DataType type : getTypes()) {
       FeatureListSaveTask.writeDataType(writer, type, get(type), flist, row, null, null);
     }
-
 
     if (queryScan != null) {
       Scan.saveScanToXML(writer, getQueryScan());
@@ -365,16 +369,6 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
     return get(CCSRelativeErrorType.class);
   }
 
-  @Nullable
-  public Double getTestedPrecursorMz() {
-    return get(PrecursorMZType.class);
-  }
-
-  @Nullable
-  public Float getTestedRt() {
-    return get(RTType.class);
-  }
-
   @Override
   @Nullable
   public MolecularStructure getStructure() {
@@ -385,28 +379,20 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
   @Nullable
   public Double getMzPpmError() {
     Double libMz = getPrecursorMZ();
-    if (libMz == null || getTestedPrecursorMz() == null) {
+    if (libMz == null || getMzAbsoluteError() == null) {
       return null;
     }
-    return MathUtils.getPpmDiff(libMz, getTestedPrecursorMz());
+    return getMzAbsoluteError() / libMz * 1E6;
   }
 
   @Nullable
   public Double getMzAbsoluteError() {
-    Double libMz = getPrecursorMZ();
-    if (libMz == null || getTestedPrecursorMz() == null) {
-      return null;
-    }
-    return getTestedPrecursorMz() - libMz;
+    return get(MzAbsoluteDifferenceType.class);
   }
 
   @Nullable
   public Float getRtAbsoluteError() {
-    Float libRt = getRT();
-    if (libRt == null || getTestedRt() == null) {
-      return null;
-    }
-    return getTestedRt() - libRt;
+    return get(RtAbsoluteDifferenceType.class);
   }
 
   @Override
