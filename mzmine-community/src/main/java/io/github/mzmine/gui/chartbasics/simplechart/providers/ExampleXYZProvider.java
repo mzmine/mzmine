@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,6 +53,7 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
 
   private double dataPointWidth;
   private double dataPointHeight;
+  private boolean isComputed = false;
 
   private ExampleXYZProvider(ModularFeatureListRow row, AtomicDouble progress) {
     this.row = row;
@@ -140,6 +141,7 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
           progress.set((double) fi / size);
         }
       }
+      isComputed = true;
     } catch (Exception ex) {
       ex.printStackTrace();
     }
@@ -216,5 +218,12 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
       }
     }
     dataPointWidth = Math.abs(medianRt);
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return isComputed;
   }
 }

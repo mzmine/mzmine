@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,12 +28,13 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import java.util.List;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingRowChartCellFactory;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumCell;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import java.util.logging.Logger;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.scene.Node;
+import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,13 +55,19 @@ public class LipidSpectrumType extends LinkedGraphicalType {
   }
 
   @Override
+  public @Nullable TreeTableColumn<ModularFeatureListRow, Object> createColumn(
+      @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType, int subColumnIndex) {
+    final TreeTableColumn<ModularFeatureListRow, Object> column = super.createColumn(raw,
+        parentType, -1);
+    column.setCellFactory(new CountingRowChartCellFactory(LipidSpectrumCell::new));
+    column.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(cdf.getValue().getValue()));
+    return column;
+  }
+
+  @Override
   public @Nullable Node createCellContent(@NotNull ModularFeatureListRow row, Boolean cellData,
       @Nullable RawDataFile raw, AtomicDouble progress) {
-    List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
-    if (matchedLipids == null || matchedLipids.isEmpty()) {
-      return null;
-    }
-    return new LipidSpectrumChart(row, progress, RunOption.THIS_THREAD, true, false);
+    throw new UnsupportedOperationException();
   }
 
   @Override

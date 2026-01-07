@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.ionmobilitytraceplot;
 
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockRendererSmallBlocks;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
@@ -37,7 +38,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.Arrays;
 import org.jetbrains.annotations.Nullable;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
@@ -62,7 +62,7 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
   public RetentionTimeMobilityHeatMapPlot(XYZDataset dataset, PaintScale paintScale,
       double dataPointWidth, double dataPointHeight, @Nullable MobilityType mobilityType) {
 
-    super(ChartFactory.createScatterPlot("", "Retention time", "Mobility", dataset,
+    super(FxChartFactory.createScatterPlot("", "Retention time", "Mobility", dataset,
         PlotOrientation.VERTICAL, true, true, true));
 
     this.dataPointWidth = dataPointWidth;

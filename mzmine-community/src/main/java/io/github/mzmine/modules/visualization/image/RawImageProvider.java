@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -87,6 +87,7 @@ public class RawImageProvider implements PlotXYZDataProvider {
   // output
   private IonTimeSeries<Scan> series;
   private double finishedPercentage;
+  private boolean isComputed;
 
   public RawImageProvider(ImagingRawDataFile raw, ParameterSet parameters) {
     this.raw = raw;
@@ -199,6 +200,16 @@ public class RawImageProvider implements PlotXYZDataProvider {
         ImagingPlot.DEFAULT_IMAGING_QUANTILES);
     paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
         .toPaintScale(transformation, Range.closed(quantiles[0], quantiles[1]));
+
+    isComputed = true;
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  @Override
+  public boolean isComputed() {
+    return isComputed;
   }
 
   @NotNull

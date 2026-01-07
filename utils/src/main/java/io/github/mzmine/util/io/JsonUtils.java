@@ -119,6 +119,14 @@ public class JsonUtils {
     }
   }
 
+  public static <T> T readValueOrThrow(final String content, final Class<T> clazz) {
+    try {
+      return MAPPER.readValue(content, clazz);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public static <T> T readValueOrThrow(final File file, final Class<T> clazz) {
     try {
       return MAPPER.readValue(file, clazz);
