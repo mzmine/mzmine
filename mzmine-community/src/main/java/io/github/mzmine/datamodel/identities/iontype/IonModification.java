@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,8 @@ package io.github.mzmine.datamodel.identities.iontype;
 import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.identities.IonPart;
+import io.github.mzmine.datamodel.identities.IonParts;
 import io.github.mzmine.datamodel.identities.NeutralMolecule;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -50,6 +52,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@Deprecated
 public class IonModification extends NeutralMolecule implements Comparable<IonModification>,
     StringMapParser<IonModification> {
 
@@ -320,8 +323,8 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
         .flatMap(Arrays::stream).filter(m -> {
           String sign = m.getAddRemovePartSign();
           return part.equals(sign + m.getName()) || part.equals(sign + m.getMolFormula()) ||
-                 // positive part can also be without sign
-                 (sign.equals("+") && (part.equals(m.getName()) || part.equals(m.getMolFormula())));
+              // positive part can also be without sign
+              (sign.equals("+") && (part.equals(m.getName()) || part.equals(m.getMolFormula())));
         }).findFirst().orElseGet(() -> {
           // if formula fails - cannot know the charge and massDiff - so just default to zero
           // parser will add charges later
@@ -365,7 +368,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
         multiplier = -1;
       }
     }
-    var formula = FormulaUtils.createMajorIsotopeMolFormula(part);
+    var formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(part);
     if (formula == null) {
       return null;
     }
@@ -718,5 +721,10 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     return modifications.filter(m -> m.getCharge() != 0)
         .filter(m -> tol.checkWithinTolerance(m.getMZ(neutralMass), mz))
         .min(Comparator.comparingDouble(m -> Math.abs(m.getMZ(neutralMass) - mz))).orElse(null);
+  }
+
+  @NotNull
+  public Stream<? extends IonPart> toNewParts() {
+    return Stream.of(IonParts.create(name, molFormula, mass, charge, getModCount()));
   }
 }
