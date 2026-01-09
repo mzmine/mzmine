@@ -815,12 +815,19 @@ public class FormulaUtils {
   }
 
   /**
-   * @return modifiable list of isotopes
+   * @return modifiable list of isotopes (sorted by element number and then exact mass to make the
+   * result reproducible, isotopes in formula are in a HashMap)
    */
   @NotNull
   public static List<IIsotope> getIsotopes(@NotNull IMolecularFormula formula) {
     List<IIsotope> isotopes = new ArrayList<>(formula.getIsotopeCount());
     formula.isotopes().forEach(isotopes::add);
+    // sort otherwise the order is quite random with
+    isotopes.sort( //
+        Comparator.comparing(
+                IIsotope::getAtomicNumber) // might be null but formula utils usually fills it in
+            .thenComparing(IIsotope::getSymbol)   // then rely on the symbol
+            .thenComparing(IIsotope::getExactMass));
     return isotopes;
   }
 

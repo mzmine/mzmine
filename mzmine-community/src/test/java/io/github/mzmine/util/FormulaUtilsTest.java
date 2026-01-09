@@ -117,6 +117,42 @@ class FormulaUtilsTest {
   }
 
   @Test
+  void checkIsotopeAbundance() {
+    final IMolecularFormula formula = FormulaUtils.parse("C[13]CBr[81]Br");
+
+    final List<IIsotope> isotopes = FormulaUtils.getIsotopes(formula);
+    assertEquals(4, isotopes.size());
+
+    IIsotope iso = isotopes.get(0);
+    assertEquals("C", iso.getSymbol());
+    assertEquals(6, iso.getAtomicNumber());
+    assertEquals(12, iso.getMassNumber());
+    assertEquals(12.0, iso.getExactMass(), 0.0000001d);
+    assertEquals(98.93, iso.getNaturalAbundance(), 0.0001d);
+
+    iso = isotopes.get(1);
+    assertEquals("C", iso.getSymbol());
+    assertEquals(6, iso.getAtomicNumber());
+    assertEquals(13, iso.getMassNumber());
+    assertEquals(13.00335484, iso.getExactMass(), 0.0000001d);
+    assertEquals(1.07, iso.getNaturalAbundance(), 0.0001d);
+
+    iso = isotopes.get(2);
+    assertEquals("Br", iso.getSymbol());
+    assertEquals(35, iso.getAtomicNumber());
+    assertEquals(79, iso.getMassNumber());
+    assertEquals(78.9183371, iso.getExactMass(), 0.0000001d);
+    assertEquals(50.69, iso.getNaturalAbundance(), 0.0001d);
+
+    iso = isotopes.get(3);
+    assertEquals("Br", iso.getSymbol());
+    assertEquals(35, iso.getAtomicNumber());
+    assertEquals(81, iso.getMassNumber());
+    assertEquals(80.9162906, iso.getExactMass(), 0.0000001d);
+    assertEquals(49.31, iso.getNaturalAbundance(), 0.0001d);
+  }
+
+  @Test
   void testNeutralizeFormula() {
     final String gluStr = "C6H12O6";
     final IMolecularFormula neutralGlucose = MolecularFormulaManipulator.getMolecularFormula(gluStr,
