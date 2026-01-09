@@ -65,4 +65,6 @@ public interface IonLibrary {
   default boolean equalContentIgnoreOrder(@NotNull IonLibrary other) {
     return CollectionUtils.equalContentIgnoreOrder(this.ions(), other.ions());
   }
+
+  @NotNull IonLibrary copy();
 }

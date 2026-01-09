@@ -362,6 +362,9 @@ public class FormulaUtils {
   }
 
   /**
+   * The neutral mass corrected by missing or added electrons. This is not the m/z see
+   * {@link #calculateMzRatio(IMolecularFormula)} for this.
+   *
    * @param formula formula maybe with defined isotopes
    * @return mono isotopic mass corrected by electron mass for replaceCharge
    */
@@ -372,6 +375,9 @@ public class FormulaUtils {
   }
 
   /**
+   * The neutral mass corrected by missing or added electrons. This is not the m/z see
+   * {@link #calculateMzRatio(IMolecularFormula)} for this.
+   *
    * @param formula formula maybe with defined isotopes and charge
    * @return mono isotopic mass corrected by electron mass for formula.getCharge
    */
@@ -887,8 +893,8 @@ public class FormulaUtils {
   }
 
   /**
-   * Compare to IIsotope. The method doesn't compare instance but if they have the same symbol,
-   * natural abundance and exact mass. TODO
+   * Compare to IIsotope. The method doesn't compare instance but if they have the same symbol and
+   * mass number
    *
    * @param a The first Isotope to compare
    * @param b The second Isotope to compare
@@ -897,15 +903,6 @@ public class FormulaUtils {
    */
   private static boolean equalElementIsotopes(IIsotope a, IIsotope b) {
     return equalElementSymbols(a, b) && Objects.equals(a.getMassNumber(), b.getMassNumber());
-    // exactMass and naturalAbundance is null when using
-    // createMajorIsotopeMolFormula
-    // // XXX: floating point comparision!
-    // if (!Objects.equals(isotopeOne.getNaturalAbundance(),
-    // isotopeTwo.getNaturalAbundance()))
-    // return false;
-    // if (!Objects.equals(isotopeOne.getExactMass(),
-    // isotopeTwo.getExactMass()))
-    // return false;
   }
 
   /**
@@ -1044,13 +1041,13 @@ public class FormulaUtils {
       return null;
     }
 
-    // TODO add mechanism to check if formula is already charged ion formula
-    // then skip below and just return formula
-    // will need to check the neutral mass and the precursor mz against the formula?
-//    if (getCharge(molecularFormula) > 0) {
-    // expect that formula is already correct if it is charged
-//      return molecularFormula;
-//    }
+    // if the mz of formula already matches the mz of annotation then the formula is the correct
+    // ion formula - otherwise might be neutral molecule formula that needs to be ionized by adduct
+    final Double mz = annotation.getPrecursorMZ();
+    final double formulaMZ = FormulaUtils.calculateMzRatio(molecularFormula);
+    if (mz != null && MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA.checkWithinTolerance(formulaMZ, mz)) {
+      return molecularFormula;
+    }
 
     // TODO maybe remove this step or at least add checks as this is not always needed
     // annotation might already be the correct ion formula
@@ -1058,8 +1055,7 @@ public class FormulaUtils {
     assert molecularFormula != null;
 
     if (annotation.getAdductType() == null && annotation instanceof CompoundDBAnnotation c
-        && annotation.getPrecursorMZ() != null && c.get(
-        NeutralMassType.class) instanceof Double neutralMass) {
+        && mz != null && c.get(NeutralMassType.class) instanceof Double neutralMass) {
       final List<IonType> ionMatches = IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN_SEARCHABLE.searchRows(
           new IonSearchRow(annotation.getPrecursorMZ()), neutralMass,
           MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA);

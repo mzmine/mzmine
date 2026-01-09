@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.iontype;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -82,6 +83,11 @@ public final class SimpleIonLibrary implements IonLibrary {
   @NotNull
   public List<IonType> ions() {
     return ions;
+  }
+
+  @Override
+  public @NotNull IonLibrary copy() {
+    return new SimpleIonLibrary(name, new ArrayList<>(ions));
   }
 
   @Override

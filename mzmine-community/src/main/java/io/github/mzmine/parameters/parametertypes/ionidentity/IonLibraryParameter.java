@@ -25,12 +25,12 @@
 
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
-import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
-import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
-import io.github.mzmine.datamodel.identities.iontype.SearchableIonLibrary;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesModule;
 import io.github.mzmine.datamodel.identities.io.IonLibraryIO;
 import io.github.mzmine.datamodel.identities.io.LoadedIonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.SearchableIonLibrary;
 import io.github.mzmine.parameters.AbstractParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -96,7 +96,12 @@ public class IonLibraryParameter extends AbstractParameter<IonLibrary, IonLibrar
 
   @Override
   public void setValue(IonLibrary newValue) {
-    library = newValue;
+    // make a defensive copy so that the library content is not changed later
+    if (newValue != null) {
+      library = newValue.copy();
+    } else {
+      library = null;
+    }
   }
 
   @Override
