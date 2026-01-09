@@ -26,14 +26,57 @@
 package io.github.mzmine.datamodel.identities.iontype;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A simple ion library used by the parameter. Use {@link #toSearchableLibrary(boolean)} for an
  * optimized version for searches.
  */
-public record SimpleIonLibrary(@NotNull String name, @NotNull List<IonType> ions) implements
-    IonLibrary {
+public final class SimpleIonLibrary implements IonLibrary {
+
+  private static final Logger logger = Logger.getLogger(SimpleIonLibrary.class.getName());
+  private final @NotNull String name;
+  private final @NotNull List<IonType> ions;
+
+  /**
+   * @param skipNameCheck name check can only be skipped by classes in this package to create
+   *                      default libraries. Outside, there will always be a name check.
+   */
+  SimpleIonLibrary(boolean skipNameCheck, @NotNull String name, @NotNull List<IonType> ions) {
+    if (!skipNameCheck && IonLibraries.isInternalLibrary(name)) {
+      // use try catch to get stack trace
+      // users might load a library with mzmine default in name
+      // maybe even old default libraries from former versions that are selected in the parameterset
+      try {
+        throw new IllegalArgumentException(
+            "The chosen name '%s' contains the part '%s', which is reserved for internal default libraries. Will use 'Unnamed' instead.".formatted(
+                name, IonLibraries.RESERVED_NAME));
+      } catch (Exception e) {
+        logger.log(Level.WARNING, e.getMessage(), e);
+      }
+      name = "unnamed library";
+    }
+    this.name = name;
+    this.ions = ions;
+  }
+
+  /**
+   * Create a new library and check if name is valid
+   */
+  public SimpleIonLibrary(@NotNull String name, @NotNull List<IonType> ions) {
+    this(false, name, ions);
+  }
+
+  /**
+   * Option to create internal default libraries within this package
+   */
+  static SimpleIonLibrary createInternal(@NotNull String name, @NotNull List<IonType> ions) {
+    return new SimpleIonLibrary(true, name, ions);
+  }
+
 
   @Override
   @NotNull
@@ -48,19 +91,23 @@ public record SimpleIonLibrary(@NotNull String name, @NotNull List<IonType> ions
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (!(o instanceof SimpleIonLibrary(String oName, List<IonType> oIons))) {
+  public boolean equals(Object other) {
+    if (!(other instanceof SimpleIonLibrary o)) {
       return false;
     }
 
-    return name.equals(oName) && ions.size() == oIons.size() && ions.containsAll(oIons)
-        && oIons.containsAll(ions);
+    return name.equals(o.name) && equalContentIgnoreOrder(o);
+  }
+
+  @Override
+  public @NotNull String name() {
+    return name;
   }
 
   @Override
   public int hashCode() {
-    int result = name.hashCode();
-    result = 31 * result + ions.hashCode();
-    return result;
+    return Objects.hash(name, ions);
   }
+
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -91,7 +91,7 @@ public class FxListViews {
 
     if (enableDeleteKey) {
       view.setOnKeyPressed(event -> {
-        if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE) {
+        if (event.getCode() == KeyCode.DELETE) {
           view.getItems().removeAll(view.getSelectionModel().getSelectedItems());
           view.getSelectionModel().clearSelection();
         }

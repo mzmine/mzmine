@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,8 +53,6 @@ public class IonNetwork implements Comparable<IonNetwork> {
   private final List<IonNetworkNode> nodes = new ArrayList<>();
   // possible formulas for this neutral mass
   private final ObservableList<ResultFormula> molFormulas = FXCollections.observableArrayList();
-  // MZtolerance on MS1 to generate this network
-  private MZTolerance mzTolerance;
   // network id
   private int id;
   // neutral mass of central molecule which is described by all members of this network
@@ -72,14 +70,9 @@ public class IonNetwork implements Comparable<IonNetwork> {
   // marks as modification of:
   private Map<IonNetwork, IonNetworkRelation> relations;
 
-  public IonNetwork(MZTolerance mzTolerance, int id) {
+  public IonNetwork(int id) {
     super();
-    this.mzTolerance = mzTolerance;
     this.id = id;
-  }
-
-  public void setMzTolerance(MZTolerance mzTolerance) {
-    this.mzTolerance = mzTolerance;
   }
 
   /**
@@ -88,8 +81,7 @@ public class IonNetwork implements Comparable<IonNetwork> {
    * @return
    */
   public boolean isUndefined() {
-    return streamIons().map(IonIdentity::getIonType)
-        .anyMatch(IonType::isUndefinedAdduct);
+    return streamIons().map(IonIdentity::getIonType).anyMatch(IonType::isUndefinedAdduct);
   }
 
   private @NotNull Stream<IonIdentity> streamIons() {
@@ -415,17 +407,6 @@ public class IonNetwork implements Comparable<IonNetwork> {
     streamIons().forEach(id -> id.setNetwork(this));
   }
 
-  /**
-   * Checks the calculated neutral mass of the ion annotation against the avg neutral mass
-   *
-   * @param row
-   * @param pid
-   * @return
-   */
-  public boolean checkForAnnotation(FeatureListRow row, IonType pid) {
-    return mzTolerance.checkWithinTolerance(getNeutralMass(), pid.getMass(row.getAverageMZ()));
-  }
-
   public void delete() {
     for (IonNetworkNode node : nodes) {
       node.row().removeIonIdentity(node.ion());
@@ -443,10 +424,6 @@ public class IonNetwork implements Comparable<IonNetwork> {
     return row.getID() == lowestID;
   }
 
-
-  public MZTolerance getMZTolerance() {
-    return mzTolerance;
-  }
 
   @Override
   public int compareTo(IonNetwork net) {

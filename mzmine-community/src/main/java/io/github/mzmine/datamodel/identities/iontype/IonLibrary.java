@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,5 +57,12 @@ public interface IonLibrary {
     final List<IonType> ions = ions().stream().filter(ion -> ion.getPolarity() == polarity)
         .toList();
     return new SimpleIonLibrary(name() + " filtered " + polarity.name(), ions);
+  }
+
+  /**
+   * @return true if other has the same content of ions like this library
+   */
+  default boolean equalContentIgnoreOrder(@NotNull IonLibrary other) {
+    return CollectionUtils.equalContentIgnoreOrder(this.ions(), other.ions());
   }
 }

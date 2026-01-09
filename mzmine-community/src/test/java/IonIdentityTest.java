@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,13 +39,12 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityList
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectManager;
 import java.util.ArrayList;
 import java.util.List;
@@ -112,7 +111,7 @@ public class IonIdentityTest {
     flist.setGroups(groups);
 
     // add ions to rows - not really done much as the tasks handle this
-    final IonNetwork network = new IonNetwork(MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA, 1);
+    final IonNetwork network = new IonNetwork(1);
     final IonIdentity ionH = new IonIdentity(hAdduct);
     ionH.setNetwork(network);
     rowProtonated.addIonIdentity(ionH);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,10 +29,10 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import javafx.collections.FXCollections;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -59,10 +59,10 @@ public class IonIdentity implements Comparable<IonIdentity> {
    *
    * @param ionType type of adduct.
    */
-  public IonIdentity(IonType ionType) {
+  public IonIdentity(@NotNull IonType ionType) {
     super();
     this.ionType = ionType;
-    molFormulas = FXCollections.observableArrayList();
+    molFormulas = new ArrayList<>();
   }
 
   /**
@@ -109,7 +109,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
   }
 
   /**
-   * Score is the network size plus MSMS verifiers
+   * Score is the network size
    *
    * @return
    */

@@ -39,22 +39,22 @@ public class IonLibraries {
   /**
    * A default library with both positive and negative ions
    */
-  public static final @NotNull IonLibrary MZMINE_DEFAULT_DUAL_POLARITY_FULL = new SimpleIonLibrary(
+  public static final @NotNull IonLibrary MZMINE_DEFAULT_DUAL_POLARITY_FULL = SimpleIonLibrary.createInternal(
       "mzmine default comprehensive (+/-)", IonTypes.DEFAULT_BOTH_POLARITIES_FULL);
-  public static final @NotNull IonLibrary MZMINE_DEFAULT_POS_FULL = new SimpleIonLibrary(
+  public static final @NotNull IonLibrary MZMINE_DEFAULT_POS_FULL = SimpleIonLibrary.createInternal(
       "mzmine default comprehensive (+)", IonTypes.DEFAULT_POSITIVE_FULL);
-  public static final @NotNull IonLibrary MZMINE_DEFAULT_NEG_FULL = new SimpleIonLibrary(
+  public static final @NotNull IonLibrary MZMINE_DEFAULT_NEG_FULL = SimpleIonLibrary.createInternal(
       "mzmine default comprehensive (-)", IonTypes.DEFAULT_NEGATIVE_FULL);
 
-  public static final @NotNull IonLibrary MZMINE_DEFAULT_DUAL_POLARITY_MAIN = new SimpleIonLibrary(
+  public static final @NotNull IonLibrary MZMINE_DEFAULT_DUAL_POLARITY_MAIN = SimpleIonLibrary.createInternal(
       "mzmine default main ions (+/-)", IonTypes.DEFAULT_BOTH_POLARITIES_MAIN);
-  public static final @NotNull IonLibrary MZMINE_DEFAULT_POS_MAIN = new SimpleIonLibrary(
+  public static final @NotNull IonLibrary MZMINE_DEFAULT_POS_MAIN = SimpleIonLibrary.createInternal(
       "mzmine default main ions (+)", IonTypes.DEFAULT_POSITIVE_MAIN);
-  public static final @NotNull IonLibrary MZMINE_DEFAULT_NEG_MAIN = new SimpleIonLibrary(
+  public static final @NotNull IonLibrary MZMINE_DEFAULT_NEG_MAIN = SimpleIonLibrary.createInternal(
       "mzmine default main ions (-)", IonTypes.DEFAULT_NEGATIVE_MAIN);
 
 
-  public static final @NotNull IonLibrary MZMINE_DEFAULT_DUAL_POLARITY_SMALLEST = new SimpleIonLibrary(
+  public static final @NotNull IonLibrary MZMINE_DEFAULT_DUAL_POLARITY_SMALLEST = SimpleIonLibrary.createInternal(
       "mzmine default most common ions (+/-)", IonTypes.DEFAULT_BOTH_POLARITIES_SMALLEST);
 
   /**
@@ -67,8 +67,9 @@ public class IonLibraries {
   /**
    * Neutral modifications library
    */
-  public static final @NotNull IonLibrary MZMINE_DEFAULT_NEUTRAL_MODIFICATIONS = new SimpleIonLibrary(
+  public static final @NotNull IonLibrary MZMINE_DEFAULT_NEUTRAL_MODIFICATIONS = SimpleIonLibrary.createInternal(
       "mzmine default neutral modifications", IonTypes.DEFAULT_NEUTRAL_MODIFICATIONS);
+  public static final String RESERVED_NAME = "mzmine default";
 
   /**
    *
@@ -97,6 +98,6 @@ public class IonLibraries {
    * @return true if input is an internal library that may never be changed
    */
   public static boolean isInternalLibrary(@Nullable String name) {
-    return name != null && (name.toLowerCase().contains("mzmine default"));
+    return name != null && (name.toLowerCase().contains(RESERVED_NAME));
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,10 +30,12 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
 import static io.github.mzmine.javafx.components.factories.FxTexts.colored;
 
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesController;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesTab;
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.javafx.components.controls.ListSelectTextField;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -42,14 +44,14 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.ParameterComponent;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Insets;
 import javafx.scene.control.ButtonBase;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Use composite parameter to allow changes later to add more filters like polarity and charge.
@@ -62,40 +64,9 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
   private final StringProperty updateWithGlobalTooltip = new SimpleStringProperty();
   private final BooleanBinding hasConflictWithLocal = conflictWithLocalText.isNotEmpty();
 
-  private final ObjectProperty<IonLibrary> library = new SimpleObjectProperty<>();
+  private final @NotNull ObjectProperty<IonLibrary> library;
 
   public IonLibraryComponent(IonLibrary lib) {
-    library.setValue(lib);
-    library.subscribe((nv) -> {
-      if (nv == null) {
-        selectedName.setValue(null);
-        numIonsText.setValue(null);
-        conflictWithLocalText.set(null);
-        updateWithGlobalTooltip.set(null);
-      } else {
-        // TODO find conflicts with global definition
-        conflictWithLocalText.set(null);
-        // also define tooltip
-        updateWithGlobalTooltip.set("""
-            Exchange this ion list with the one defined in the global ions with the same name: "%s".
-            Generally the current list is fine to use to reproduce results, if this is not required it may be better to update the list to the current version.
-            This ion list differs from the globally defined ion list with the same name or there may be differences in how ion parts are defined, e.g., different delta mass or alternative names.""".formatted(
-            nv.name()));
-
-        final long positives = nv.ions().stream()
-            .filter(type -> type.getPolarity() == PolarityType.POSITIVE).count();
-        final long negatives = nv.ions().stream()
-            .filter(type -> type.getPolarity() == PolarityType.NEGATIVE).count();
-        numIonsText.set(
-            "Num ion types: %d (%d positive / %d negative)".formatted(nv.getNumIons(), positives,
-                negatives));
-
-        selectedName.set(nv.name());
-      }
-    });
-
-    selectedName.subscribe(newName -> handleSelectedNameChange(newName));
-
     final Color negativeColor = ConfigService.getDefaultColorPalette().getNegativeColor();
 
     final var infoBox = FxLayout.newFlowPane(Insets.EMPTY, //
@@ -107,16 +78,18 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
     final String tooltip = """
         Ion libraries are defined globally in the '%s' tab, use the button to open the tab and to define a list of ion types to use.""".formatted(
         GlobalIonLibrariesTab.HEADER);
-    final TextField selectedLibraryField = FxTextFields.newAutoGrowTextField(selectedName,
-        "Select ion library", tooltip, 6, 40);
+    final GlobalIonLibrariesController controller = GlobalIonLibrariesController.getInstance();
+    final var selectedLibraryField = new ListSelectTextField<>(true,
+        controller.librariesProperty());
+    library = selectedLibraryField.selectedItemProperty();
+
+    FxTextFields.applyToField(selectedLibraryField, null, selectedName, "Select ion library",
+        tooltip);
 
     final ButtonBase updateWithGlobalLibrary = FxIconUtil.newIconButton(FxIcons.RELOAD,
-        updateWithGlobalTooltip, this::exchangeIonListForGlobalVersion);
+        updateWithGlobalTooltip, this::exchangeIonLibraryForGlobalVersion);
     updateWithGlobalLibrary.visibleProperty().bind(hasConflictWithLocal);
     updateWithGlobalLibrary.managedProperty().bind(hasConflictWithLocal);
-
-    final GlobalIonLibrariesController controller = GlobalIonLibrariesController.getInstance();
-    FxTextFields.bindAutoCompletion(selectedLibraryField, controller.librariesProperty());
 
     final var topBox = FxLayout.newFlowPane(Insets.EMPTY, //
         selectedLibraryField, //
@@ -126,17 +99,72 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
 
     setTop(topBox);
     setCenter(infoBox);
+    library.setValue(lib);
+
+    library.subscribe((nv) -> {
+      if (nv == null) {
+        numIonsText.setValue(null);
+        conflictWithLocalText.set(null);
+        updateWithGlobalTooltip.set(null);
+      } else {
+        checkConflictWithGlobalLibrary(nv);
+        // also define tooltip
+        updateWithGlobalTooltip.set("""
+            Exchange this ion list with the one defined in the global ions with the same name: "%s".
+            Generally the current list is fine to use to reproduce results, if this is not required it may be better to update the list to the current version.
+            This ion list differs from the globally defined ion list with the same name or there may be differences in how ion parts are defined, e.g., different delta mass or alternative names.""".formatted(
+            nv.name()));
+
+        long positives = 0;
+        long negatives = 0;
+        long neutrals = 0;
+        for (IonType ion : nv.ions()) {
+          switch (ion.getPolarity()) {
+            case POSITIVE -> positives++;
+            case NEGATIVE -> negatives++;
+            case NEUTRAL -> neutrals++;
+          }
+        }
+        numIonsText.set(
+            "Total entries: %d (%d positive / %d negative / %d neutral)".formatted(nv.getNumIons(),
+                positives, negatives, neutrals));
+      }
+    });
   }
 
-  private void exchangeIonListForGlobalVersion() {
-    // TODO implement way to get the global library with that name
-  }
-
-  private void handleSelectedNameChange(String newName) {
-    final IonLibrary currentLibrary = getValue();
-    if (currentLibrary != null && newName.equals(currentLibrary.name())) {
-      // TODO
+  /**
+   * Check for conflicts with global libraries where the name is equal but content is different
+   */
+  private void checkConflictWithGlobalLibrary(@Nullable IonLibrary lib) {
+    if (lib == null) {
+      conflictWithLocalText.set(null);
+      return;
     }
+    String conflict = null;
+
+    final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
+    final IonLibrary existing = global.getLibraryForName(lib.name()).orElse(null);
+    if (existing != null && !existing.equalContentIgnoreOrder(lib)) {
+      conflict = "The ion library '%s' selected in the parameter component differs from the local version. ";
+      if (existing.getNumIons() == lib.getNumIons()) {
+        conflict = "The sizes are the same, but the defined ions may differ slightly.";
+      } else if (existing.getNumIons() < lib.getNumIons()) {
+        conflict = "The local library is smaller than the currently selected.";
+      } else if (existing.getNumIons() < lib.getNumIons()) {
+        conflict = "The local library is larger than the currently selected.";
+      }
+    }
+    conflictWithLocalText.set(conflict);
+  }
+
+  private void exchangeIonLibraryForGlobalVersion() {
+    final IonLibrary current = this.library.getValue();
+    if (current == null) {
+      return;
+    }
+
+    final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
+    global.getLibraryForName(current.name()).ifPresent(library::setValue);
   }
 
   @Override
@@ -146,6 +174,9 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
 
   @Override
   public void setValue(IonLibrary value) {
+    if (value == null) {
+      selectedName.set("");
+    }
     library.set(value);
   }
 }

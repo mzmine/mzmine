@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,10 @@
 
 package io.github.mzmine.datamodel.identities.global;
 
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesController;
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryChangedEvent.SimpleGlobalIonLibraryChangedEvent;
+import io.github.mzmine.datamodel.identities.io.IonLibraryPreset;
+import io.github.mzmine.datamodel.identities.io.IonLibraryPresetStore;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
@@ -36,10 +40,6 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeSorting;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
-import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesController;
-import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryChangedEvent.SimpleGlobalIonLibraryChangedEvent;
-import io.github.mzmine.datamodel.identities.io.IonLibraryPreset;
-import io.github.mzmine.datamodel.identities.io.IonLibraryPresetStore;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.maths.Precision;
@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -295,6 +296,18 @@ public final class GlobalIonLibraryService {
       allLibraries.add(preset.library());
     }
     return allLibraries;
+  }
+
+
+  @NotNull
+  public Optional<IonLibrary> getLibraryForName(@NotNull String name) {
+    final List<IonLibrary> libraries = getIonLibrariesUnmodifiable();
+    for (IonLibrary lib : libraries) {
+      if (lib.name().equalsIgnoreCase(name)) {
+        return Optional.of(lib);
+      }
+    }
+    return Optional.empty();
   }
 
 

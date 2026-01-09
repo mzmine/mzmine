@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -86,7 +86,7 @@ public class FxTextFields {
   public static <T extends TextField> T applyToField(@NotNull final T field,
       final @Nullable Integer columnCount, final @Nullable StringProperty textProperty,
       final @Nullable String tooltip) {
-    return applyToField(field, columnCount, textProperty, null, tooltip);
+    return applyToField(field, columnCount, textProperty, (String) null, tooltip);
   }
 
   public static <T extends TextField> T applyToField(@NotNull final T field,
@@ -103,6 +103,16 @@ public class FxTextFields {
     }
     if (columnCount != null) {
       field.setPrefColumnCount(columnCount);
+    }
+    return field;
+  }
+
+  public static <T extends TextField> T applyToField(@NotNull final T field,
+      final @Nullable Integer columnCount, final @Nullable StringProperty textProperty,
+      final @Nullable String prompt, final @Nullable String tooltip) {
+    applyToField(field, columnCount, textProperty, (StringProperty) null, tooltip);
+    if (prompt != null) {
+      field.setPromptText(prompt);
     }
     return field;
   }

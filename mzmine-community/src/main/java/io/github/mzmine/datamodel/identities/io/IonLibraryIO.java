@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,14 +25,16 @@
 
 package io.github.mzmine.datamodel.identities.io;
 
-import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
-import io.github.mzmine.datamodel.identities.iontype.IonPart;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.SimpleIonLibrary;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.io.StorableIonLibrary.IonPartID;
 import io.github.mzmine.datamodel.identities.io.StorableIonLibrary.IonPartNoCountDTO;
 import io.github.mzmine.datamodel.identities.io.StorableIonLibrary.IonTypeDTO;
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonPart;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.SimpleIonLibrary;
+import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.JsonUtils;
 import java.io.File;
@@ -43,6 +45,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -53,6 +56,8 @@ import org.w3c.dom.NodeList;
  * Load and save ion libraries as json or xml
  */
 public class IonLibraryIO {
+
+  private static final Logger logger = Logger.getLogger(IonLibraryIO.class.getName());
 
   /**
    * @throws RuntimeException if io was not successful
@@ -115,6 +120,25 @@ public class IonLibraryIO {
       }
 
       types.add(IonType.create(ionParts, ion.molecules()));
+    }
+    // use library instance that is already created and known if the content equals
+    IonLibrary existing = global.getLibraryForName(storable.name()).orElse(null);
+    if (existing != null && CollectionUtils.equalContentIgnoreOrder(existing.ions(), types)) {
+      // same library content and name
+      return existing;
+    }
+
+    // handle default libraries that may be loaded and may now have different content
+    if (IonLibraries.isInternalLibrary(storable.name())) {
+      // a loaded library with name default mzmine
+      // this might point to a change of the default library content
+      // use different name instead
+      String newName = storable.name()
+          .replaceAll(IonLibraries.RESERVED_NAME, "updated internal library");
+      logger.fine(
+          "A library named '%s' was loaded but this internal library has now a different content. Using a different name '%s' now to refer to this library.".formatted(
+              storable.name(), newName));
+      return new SimpleIonLibrary(newName, types);
     }
 
     return new SimpleIonLibrary(storable.name(), types);
