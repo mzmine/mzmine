@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,8 +26,10 @@
 package io.github.mzmine.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
@@ -40,6 +42,7 @@ import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.FieldSource;
+import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -255,5 +258,78 @@ class FormulaUtilsTest {
       assertNotNull(f, "Formula for %s is null".formatted(formula));
     }
     return f;
+  }
+
+
+  @Test
+  void containsElement() {
+    final IMolecularFormula hexose = FormulaUtils.parse("C6H12O6");
+    final IMolecularFormula hexose13C2 = FormulaUtils.parse("[13]C2C4H12O6");
+    assertTrue(FormulaUtils.containsElement(hexose, "C"));
+    assertTrue(FormulaUtils.containsElement(hexose13C2, "C"));
+    assertTrue(FormulaUtils.containsElement(hexose, "H"));
+    assertTrue(FormulaUtils.containsElement(hexose, "O"));
+    assertFalse(FormulaUtils.containsElement(hexose, "N"));
+  }
+
+  @Test
+  void countElement() {
+    final IMolecularFormula hexose = FormulaUtils.parse("C6H12O6");
+    final IMolecularFormula hexose13C2 = FormulaUtils.parse("[13]C2C4H12O6");
+    assertEquals(6, FormulaUtils.countElement(hexose, "C"));
+    assertEquals(6, FormulaUtils.countElement(hexose13C2, "C"));
+    assertEquals(12, FormulaUtils.countElement(hexose, "H"));
+    assertEquals(6, FormulaUtils.countElement(hexose, "O"));
+    assertEquals(0, FormulaUtils.countElement(hexose, "N"));
+  }
+
+  @Test
+  void subtractFormula() {
+    final IMolecularFormula hexose = FormulaUtils.parse("C6H12O6");
+    final IMolecularFormula hexose13C2 = FormulaUtils.parse("[13]C2C4H12O6");
+
+    final IMolecularFormula C2H4O = FormulaUtils.parse("C2H4O");
+    final IMolecularFormula C2H4O13C2 = FormulaUtils.parse("[13]C2H4O");
+
+    assertEquals("C2H4O4",
+        FormulaUtils.getFormulaString(FormulaUtils.subtractFormula(hexose, C2H4O, 2, true)));
+    assertEquals("C2H4O4",
+        FormulaUtils.getFormulaString(FormulaUtils.subtractFormula(hexose, C2H4O13C2, 2, true)));
+    assertEquals("[13]C2H4O4",
+        FormulaUtils.getFormulaString(FormulaUtils.subtractFormula(hexose13C2, C2H4O, 2, true)));
+    assertEquals("C2H4O4", FormulaUtils.getFormulaString(
+        FormulaUtils.subtractFormula(hexose13C2, C2H4O13C2, 2, true)));
+
+    // full removal
+    assertEquals("", FormulaUtils.getFormulaString(
+        FormulaUtils.subtractFormula(hexose13C2, C2H4O13C2, 20, true)));
+  }
+
+  @Test
+  void addOrRemoveIsotope() {
+    final IMolecularFormula hexose = FormulaUtils.parse("C6H12O6");
+    for (IIsotope isotope : hexose.isotopes()) {
+      // just to make sure that assumption that -count also works in the future
+      hexose.addIsotope(isotope, -2);
+    }
+    assertEquals("C4H10O4", FormulaUtils.getFormulaString(hexose));
+  }
+
+  @Test
+  void addFormula() {
+    final IMolecularFormula hexose = FormulaUtils.parse("C6H12O6");
+    final IMolecularFormula hexose13C2 = FormulaUtils.parse("[13]C2C4H12O6");
+
+    final IMolecularFormula C2H4O = FormulaUtils.parse("C2H4O");
+    final IMolecularFormula C2H4O13C2 = FormulaUtils.parse("[13]C2H4O");
+
+    assertEquals("C10H20O8",
+        FormulaUtils.getFormulaString(FormulaUtils.addFormula(hexose, C2H4O, 2, true)));
+    assertEquals("C6[13]C4H20O8",
+        FormulaUtils.getFormulaString(FormulaUtils.addFormula(hexose, C2H4O13C2, 2, true)));
+    assertEquals("C8[13]C2H20O8",
+        FormulaUtils.getFormulaString(FormulaUtils.addFormula(hexose13C2, C2H4O, 2, true)));
+    assertEquals("C4[13]C6H20O8",
+        FormulaUtils.getFormulaString(FormulaUtils.addFormula(hexose13C2, C2H4O13C2, 2, true)));
   }
 }

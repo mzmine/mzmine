@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,11 +32,11 @@ import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotat
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonSearchRow;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonUtils;
-import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureInputType;
 import io.github.mzmine.datamodel.structures.StructureParser;
@@ -48,6 +48,7 @@ import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -718,31 +719,109 @@ public class FormulaUtils {
    */
   public static IMolecularFormula subtractFormula(IMolecularFormula result, IMolecularFormula sub,
       int subMultiplier) {
-    for (IIsotope isotope : sub.isotopes()) {
-      int count = sub.getIsotopeCount(isotope) * subMultiplier;
-      boolean found = false;
-      do {
-        found = false;
-        for (IIsotope realIsotope : result.isotopes()) {
-          // there can be different implementations of IIsotope
-          if (equalIsotopes(isotope, realIsotope)) {
-            found = true;
-            int realCount = result.getIsotopeCount(realIsotope);
-            int remaining = realCount - count;
-            result.removeIsotope(realIsotope);
-            if (remaining > 0) {
-              result.addIsotope(realIsotope, remaining);
-            }
-            count -= realCount;
-            break;
-          }
-        }
-      } while (count > 0 && found);
+    return subtractFormula(result, sub, subMultiplier, false);
+  }
+
+  /**
+   *
+   * @param result        the input formula that may be cloned or directly changed
+   * @param sub           subtract this formula * multiplier
+   * @param subMultiplier multiply each isotope in sub by this number
+   * @param clone         clone the input formula to protect input from change. Otherwise do an
+   *                      inplace operation on result
+   * @return the input result formula if clone is false otherwise a copy
+   */
+  public static IMolecularFormula subtractFormula(IMolecularFormula result, IMolecularFormula sub,
+      int subMultiplier, boolean clone) {
+    if (clone) {
+      result = cloneFormula(result);
+    }
+
+    for (IIsotope isotopeToRemove : sub.isotopes()) {
+      int count = sub.getIsotopeCount(isotopeToRemove) * subMultiplier;
+      addOrRemoveIsotope(result, isotopeToRemove, -count, true);
     }
     final Integer resultCharge = requireNonNullElse(result.getCharge(), 0);
     final Integer subtractCharge = requireNonNullElse(sub.getCharge(), 0) * subMultiplier;
     result.setCharge(resultCharge - subtractCharge);
     return result;
+  }
+
+  /**
+   *
+   * @param result                        the resulting formula
+   * @param isotopeToChange               the isotope to remove. May have undefined massNumber or
+   *                                      maybe defined isotope like [13]C
+   * @param count                         count to add or remove from result
+   * @param removeMajorForMissingIsotopes in case isotopeToChange is a defined isotope like [13]C,
+   *                                      first the exact isotope will be removed or if this is not
+   *                                      available the first other isotope, usually the major
+   *                                      isotope will be removed. This is important if the result
+   *                                      formula has no massNumbers defined or only has major
+   *                                      isotopes
+   */
+  public static void addOrRemoveIsotope(IMolecularFormula result, IIsotope isotopeToChange,
+      int count, boolean removeMajorForMissingIsotopes) {
+    boolean adding = count > 0;
+    if (adding) {
+      result.addIsotope(isotopeToChange, count);
+      return;
+    }
+
+    // removing, trying first with the exact isotope like [13]C
+    if (isotopeToChange.getMassNumber() != null) {
+      // use copy to not modify list while looping
+      final List<IIsotope> isotopes = getIsotopes(result);
+      for (IIsotope isotope : isotopes) {
+        if (equalElementIsotopes(isotopeToChange, isotope)) {
+          int realCount = result.getIsotopeCount(isotope);
+          int remaining = realCount + count; // count is negative
+          if (remaining <= 0) {
+            result.removeIsotope(isotope);
+            // reduce count but not all were removed so search for more isotopes that match
+            count = remaining; // negative again
+          } else {
+            // this is captured in a test to make sure this call is valid in the future as well
+            result.addIsotope(isotope, count); // count is negative will remove elements
+            return;
+          }
+        }
+      }
+      if (!removeMajorForMissingIsotopes) {
+        logger.fine(
+            "Could not remove %d of isotope %s from formula %s. Will continue with the formula as is.".formatted(
+                -count, isotopeToChange, FormulaUtils.getFormulaString(result)));
+
+        return;
+      }
+    }
+    // Remove the rest of the count from the first element with the same symbol - does not matter
+    final List<IIsotope> isotopes = getIsotopes(result);
+    for (IIsotope isotope : isotopes) {
+      // only check the symbol here
+      if (equalElementSymbols(isotopeToChange, isotope)) {
+        int realCount = result.getIsotopeCount(isotope);
+        int remaining = realCount + count; // count is negative
+        if (remaining <= 0) {
+          result.removeIsotope(isotope);
+          // reduce count but not all were removed so search for more isotopes that match
+          count = remaining; // negative again
+        } else {
+          result.addIsotope(isotope, count); // count is negative will remove elements
+          return;
+        }
+      }
+    }
+  }
+
+  /**
+   * @return modifiable list of isotopes
+   */
+  @NotNull
+  public static List<IIsotope> getIsotopes(@NotNull IMolecularFormula formula) {
+    List<IIsotope> isotopes = new ArrayList<>(formula.getIsotopeCount());
+    formula.isotopes().forEach(isotopes::add);
+    return isotopes;
   }
 
   /**
@@ -760,6 +839,25 @@ public class FormulaUtils {
    */
   public static IMolecularFormula addFormula(IMolecularFormula result, IMolecularFormula add,
       int addMultiplier) {
+    return addFormula(result, add, addMultiplier, false);
+  }
+
+  /**
+   *
+   * @param result        the input formula to be changed either in place or as a clone
+   * @param add           to be added * times
+   * @param addMultiplier multiply each isotope in add by this number
+   * @param clone         clone the input formula to not change the input otherwise do an in place
+   *                      operation
+   * @return the changed input formula or a copy if clone is active
+   *
+   */
+  public static IMolecularFormula addFormula(IMolecularFormula result, IMolecularFormula add,
+      int addMultiplier, boolean clone) {
+    if (clone) {
+      result = cloneFormula(result);
+    }
+
     for (int i = 0; i < addMultiplier; i++) {
       result.add(add);
     }
@@ -770,15 +868,28 @@ public class FormulaUtils {
   }
 
   /**
+   * Compare to IIsotope only by element symbol. If they are the same element even if different
+   * massNumbers (isotopes) then still true.
+   *
+   * @param a The first Isotope to compare
+   * @param b The second Isotope to compare
+   * @return True, if both isotope are from the same element even it the mass numbers differ.
+   */
+  private static boolean equalElementSymbols(IIsotope a, IIsotope b) {
+    return a.getSymbol().equals(b.getSymbol());
+  }
+
+  /**
    * Compare to IIsotope. The method doesn't compare instance but if they have the same symbol,
    * natural abundance and exact mass. TODO
    *
-   * @param isotopeOne The first Isotope to compare
-   * @param isotopeTwo The second Isotope to compare
-   * @return True, if both isotope are the same
+   * @param a The first Isotope to compare
+   * @param b The second Isotope to compare
+   * @return True, if both isotope are the same so the same element symbol and the same mass number
+   * (or both null as mass numbers)
    */
-  private static boolean equalIsotopes(IIsotope isotopeOne, IIsotope isotopeTwo) {
-    return isotopeOne.getSymbol().equals(isotopeTwo.getSymbol());
+  private static boolean equalElementIsotopes(IIsotope a, IIsotope b) {
+    return equalElementSymbols(a, b) && Objects.equals(a.getMassNumber(), b.getMassNumber());
     // exactMass and naturalAbundance is null when using
     // createMajorIsotopeMolFormula
     // // XXX: floating point comparision!

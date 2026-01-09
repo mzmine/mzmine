@@ -118,7 +118,8 @@ public sealed interface IonPart permits IonPartDefinition, IonPartSilentCharge, 
     // name is blank for silent charge - so it is reserved
     // for example for [M]+ (already charged and not -e-)
     // do not treat silent charge as unknown
-    return !name().isBlank() && singleFormula() == null && Double.compare(absSingleMass(), 0d) == 0;
+    return !name().isBlank() && singleFormula() == null && Precision.equalFloatSignificance(
+        absSingleMass(), 0d);
   }
 
   /**
