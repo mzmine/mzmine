@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,10 @@
 package io.github.mzmine.javafx.components.factories;
 
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.IconCodeSupplier;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Hyperlink;
@@ -34,7 +37,9 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class FxLabels {
 
@@ -73,8 +78,16 @@ public class FxLabels {
     return label;
   }
 
+  public static Label newBoldLabel(ObservableValue<? extends String> name) {
+    return bindText(newBoldLabel(""), name);
+  }
+
   public static Label newBoldLabel(String name) {
     return styled(name, Styles.BOLD.getStyleClass());
+  }
+
+  public static Label newItalicLabel(ObservableValue<? extends String> name) {
+    return bindText(newItalicLabel(""), name);
   }
 
   public static Label newItalicLabel(String name) {
@@ -84,6 +97,15 @@ public class FxLabels {
   public static Label underlined(String name) {
     final Label label = new Label(name);
     label.setUnderline(true);
+    return label;
+  }
+
+  @NotNull
+  public static Label bindText(@NotNull Label label,
+      @Nullable ObservableValue<? extends String> text) {
+    if (text != null) {
+      label.textProperty().bind(text);
+    }
     return label;
   }
 
@@ -124,10 +146,8 @@ public class FxLabels {
   }
 
   public static Label newLabel(Styles style, @Nullable Color color,
-      @Nullable TextAlignment textAlignment, ObservableValue<? extends String> binding) {
-    Label label = newLabel(style, color, textAlignment, "");
-    label.textProperty().bind(binding);
-    return label;
+      @Nullable TextAlignment textAlignment, @Nullable ObservableValue<? extends String> binding) {
+    return bindText(newLabel(style, color, textAlignment, ""), binding);
   }
 
   public static Label newBoldTitle(String text) {
@@ -164,4 +184,16 @@ public class FxLabels {
     hyperlink.setOnAction(_ -> DesktopService.getDesktop().openWebPage(hyperlink.getText()));
     return hyperlink;
   }
+
+  public static Label addIconGraphic(IconCodeSupplier codeSupplier, Label lbl) {
+    final FontIcon fontIcon = FxIconUtil.getFontIcon(codeSupplier);
+    return addIconGraphic(lbl, fontIcon);
+  }
+
+  private static @NotNull Label addIconGraphic(Label lbl, Node fontIcon) {
+    lbl.setGraphic(fontIcon);
+    lbl.setGraphicTextGap(FxLayout.DEFAULT_SPACE);
+    return lbl;
+  }
+
 }

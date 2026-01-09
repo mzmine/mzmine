@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -33,7 +34,8 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.ConfigService;
@@ -100,7 +102,7 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListParameters;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary.CheckMode;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.FeatureCheckMode;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
@@ -185,7 +187,6 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.FeatureLimitOpt
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -212,12 +213,9 @@ import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarityParameters;
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
@@ -740,7 +738,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(IonNetworkingModule.class).cloneParameterSet();
     param.setParameter(IonNetworkingParameters.MIN_HEIGHT, 0d);
-    param.setParameter(IonNetworkingParameters.CHECK_MODE, CheckMode.ONE_FEATURE);
+    param.setParameter(IonNetworkingParameters.CHECK_MODE, FeatureCheckMode.ONE_FEATURE);
     param.setParameter(IonNetworkingParameters.MZ_TOLERANCE, mzTolFeaturesIntraSample);
     param.setParameter(IonNetworkingParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
@@ -753,41 +751,21 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     refinementParam.setParameter(IonNetworkRefinementParameters.TRUE_THRESHOLD, true);
     refinementParam.getParameter(IonNetworkRefinementParameters.TRUE_THRESHOLD)
         .getEmbeddedParameter().setValue(4);
-    refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_SMALL_NO_MAJOR, true);
+    refinementParam.setParameter(IonNetworkRefinementParameters.mainIonLibrary, false,
+        IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN);
     refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_ROWS_WITHOUT_ID, false);
     refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_WITHOUT_MONOMER, true);
 
     // ion library
-    var ionLibraryParam = param.getParameter(IonNetworkingParameters.LIBRARY)
-        .getEmbeddedParameters();
-    createAndSetIonLibrary(ionLibraryParam);
+    final IonLibrary library = switch (polarity) {
+      case No_filter -> IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL;
+      case Positive -> IonLibraries.MZMINE_DEFAULT_POS_FULL;
+      case Negative -> IonLibraries.MZMINE_DEFAULT_NEG_FULL;
+    };
+    param.setParameter(IonNetworkingParameters.fullIonLibrary, library);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IonNetworkingModule.class),
         param));
-  }
-
-  private void createAndSetIonLibrary(final IonLibraryParameterSet ionLibraryParam) {
-    Set<IonModification> adducts = new HashSet<>();
-    Set<IonModification> adductChoices = new HashSet<>();
-    // No filter or Positive option --> add positive
-    if (polarity.toScanPolaritySelection().includesPositive()) {
-      // default positive
-      Collections.addAll(adducts, IonModification.H, IonModification.H_H2O_1, IonModification.NA,
-          IonModification.Hneg_NA2, IonModification.K, IonModification.NH4, IonModification.H2plus);
-      Collections.addAll(adductChoices, IonModification.getDefaultValuesPos());
-    }
-    if (polarity.toScanPolaritySelection().includesNegative()) {
-      Collections.addAll(adducts, IonModification.H_NEG, IonModification.FA, IonModification.NA_2H,
-          IonModification.CL);
-      Collections.addAll(adductChoices, IonModification.getDefaultValuesNeg());
-    }
-    IonModification[] modifications = new IonModification[]{};
-    // set choices first then values
-    var modificationChoices = IonModification.getDefaultModifications();
-    var selected = new IonModification[][]{adducts.toArray(IonModification[]::new), modifications};
-
-    ionLibraryParam.setAll(2, 2, adductChoices.toArray(IonModification[]::new), modificationChoices,
-        selected);
   }
 
   /**
@@ -1396,11 +1374,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         ImportType.isDataTypeSelectedInImportTypes(csvColumns, CCSType.class), 0.05);
 
     // define ions
-    var ionLibParams = param.getParameter(LocalCSVDatabaseSearchParameters.ionLibrary)
-        .getEmbeddedParameters();
-    createAndSetIonLibrary(ionLibParams);
+    IonLibrary library = switch (polarity) {
+      case Positive -> IonLibraries.MZMINE_DEFAULT_POS_MAIN;
+      case Negative -> IonLibraries.MZMINE_DEFAULT_NEG_MAIN;
+      case No_filter -> IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN;
+    };
     param.setParameter(LocalCSVDatabaseSearchParameters.ionLibrary,
-        csvMassOptions == MassOptions.MASS_AND_IONS);
+        csvMassOptions == MassOptions.MASS_AND_IONS, library);
 
     param.setParameter(LocalCSVDatabaseSearchParameters.isotopePatternMatcher, false);
 

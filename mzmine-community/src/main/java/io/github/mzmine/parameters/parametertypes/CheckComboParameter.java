@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,14 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.controlsfx.control.CheckComboBox;
@@ -46,6 +48,8 @@ import org.w3c.dom.NodeList;
  */
 public class CheckComboParameter<ValueType> implements
     UserParameter<List<ValueType>, CheckComboBox<ValueType>> {
+
+  private static final Logger logger = Logger.getLogger(CheckComboParameter.class.getName());
 
   public static String XML_ITEM_TAG = "selected";
   protected final String name;
@@ -146,13 +150,33 @@ public class CheckComboParameter<ValueType> implements
       Node itemElement = itemElements.item(i);
 
       String selected = itemElement.getTextContent();
-      for (ValueType option : choices) {
-        if (option.toString().equals(selected)) {
-          selectedValues.add(option);
-        }
+      final ValueType value = parseValueFromText(selected);
+      if (value != null) {
+        selectedValues.add(value);
+      } else {
+        logger.warning(
+            "Could not find option for value '%s'. Maybe this option was removed or renamed.");
       }
     }
     value = new ArrayList<>(selectedValues);
+  }
+
+  /**
+   * Used to load values from xml. Default implementation just compares the toString or uniqueID.
+   * <p>
+   * Override to handle loading differently.
+   *
+   * @return the value for input text
+   */
+  @Nullable
+  protected ValueType parseValueFromText(@NotNull String text) {
+    for (ValueType option : choices) {
+      if ((option instanceof UniqueIdSupplier uid && uid.getUniqueID().equalsIgnoreCase(text))
+          || option.toString().equalsIgnoreCase(text)) {
+        return option;
+      }
+    }
+    return null;
   }
 
   @Override
@@ -164,7 +188,12 @@ public class CheckComboParameter<ValueType> implements
     final Document parent = xmlElement.getOwnerDocument();
     for (final var item : value) {
       final Element element = parent.createElement(XML_ITEM_TAG);
-      element.setTextContent(item.toString());
+
+      if (item instanceof UniqueIdSupplier uid) {
+        element.setTextContent(uid.getUniqueID());
+      } else {
+        element.setTextContent(item.toString());
+      }
       xmlElement.appendChild(element);
     }
   }

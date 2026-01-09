@@ -184,7 +184,7 @@ public class FeatureNetworkGenerator {
         }
         consensusEdges.clear();
         //
-        for (FeatureListRow row : net.keySet()) {
+        for (FeatureListRow row : net.getRows()) {
           Node rowNode = getRowNode(row, false);
           rowNode.setAttribute("FeatureListNode", row);
           rowNode.edges().forEach(edge -> {
@@ -432,7 +432,7 @@ public class FeatureNetworkGenerator {
       added.incrementAndGet();
     });
     // add all edges between ions
-    List<FeatureListRow> rows = new ArrayList<>(net.keySet());
+    List<FeatureListRow> rows = net.getRows();
     for (int i = 0; i < rows.size() - 1; i++) {
       FeatureListRow row = rows.get(i);
       Node rowNode = getRowNode(row);
@@ -492,8 +492,8 @@ public class FeatureNetworkGenerator {
       return null;
     }
 
-    String name = MessageFormat.format("M (m={0} Da) Net{1} corrID={2}",
-        mzForm.format(net.getNeutralMass()), net.getID(), net.getCorrID());
+    String name = MessageFormat.format("M (m={0} Da) Net{1}", mzForm.format(net.getNeutralMass()),
+        net.getID());
 
     String nodeId = "Net" + net.getID();
     Node node = graph.getNode(nodeId);
@@ -508,7 +508,7 @@ public class FeatureNetworkGenerator {
       node.setAttribute(NodeAtt.NEUTRAL_MASS.toString(), mzForm.format(net.getNeutralMass()));
       node.setAttribute(NodeAtt.MAX_INTENSITY.toString(), intensityForm.format(net.getHeightSum()));
 
-      final SpectralDBAnnotation bestMatch = net.keySet().stream()
+      final SpectralDBAnnotation bestMatch = net.getRows().stream()
           .map(FeatureListRow::getSpectralLibraryMatches).flatMap(List::stream)
           .max(Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
       if (bestMatch != null) {
@@ -522,7 +522,7 @@ public class FeatureNetworkGenerator {
       }
 
       // add best GNPS match to node
-      final GNPSLibraryMatch bestGNPS = net.keySet().stream()
+      final GNPSLibraryMatch bestGNPS = net.getRows().stream()
           .map(row -> row.get(GNPSSpectralLibraryMatchesType.class)).filter(Objects::nonNull)
           .flatMap(List::stream)
           .max(Comparator.comparingDouble(a -> a.getResultOr(ATT.LIBRARY_MATCH_SCORE, 0d)))
@@ -536,10 +536,10 @@ public class FeatureNetworkGenerator {
       }
 
       // all intensitites of all iontypes
-      for (Entry<FeatureListRow, IonIdentity> e : net.entrySet()) {
-        IonIdentity ion = e.getValue();
-        node.setAttribute("Intensity(" + ion.getIonType().toString(false) + ")",
-            e.getKey().getBestFeature().getHeight());
+      for (var e : net.getNodes()) {
+        IonIdentity ion = e.ion();
+        node.setAttribute("Intensity(" + ion.toString() + ")",
+            e.row().getBestFeature().getHeight());
       }
 
       MolecularFormulaIdentity formula = net.getBestMolFormula();

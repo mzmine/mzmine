@@ -372,7 +372,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
    * @return null or the current list. First element is the "preferred" element
    */
   @Override
-  @Nullable
+  @NotNull
   public List<IonIdentity> getIonIdentities() {
     List<IonIdentity> ions = get(IonIdentityListType.class);
     return ions == null ? List.of() : ions;

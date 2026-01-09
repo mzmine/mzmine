@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,17 +31,15 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
+import io.github.mzmine.datamodel.identities.iontype.SimpleIonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FeatureUtils;
-import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.TryCatch;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -95,40 +93,25 @@ public class FragDashboardTab extends SimpleTab {
     final IsotopePattern bestIsotopePattern = row.getBestIsotopePattern();
     final Double mz = row.getAverageMZ();
 
-    if (row.getBestIonIdentity() != null && row.getBestIonIdentity().getIonType() != null) {
-      parameters.setParameter(FragmentGraphCalcParameters.adducts,
-          List.of(row.getBestIonIdentity().getIonType().getAdduct()));
+    final IonIdentity bestIon = row.getBestIonIdentity();
+    if (bestIon != null) {
+      parameters.setParameter(FragmentGraphCalcParameters.allowedIons,
+          new SimpleIonLibrary("best ion of row " + row.getID(), List.of(bestIon.getIonType())));
+    } else {
+      parameters.setParameter(FragmentGraphCalcParameters.allowedIons,
+          IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_SMALLEST);
     }
     parameters.setParameter(FragmentGraphCalcParameters.polarity,
         TryCatch.npe(() -> row.getBestFeature().getRepresentativeScan().getPolarity(),
             PolarityType.POSITIVE));
 
-    // if the formula is null, extract a sensible formula
-    if (formula == null) {
-      final FeatureAnnotation annotation = FeatureUtils.getBestFeatureAnnotation(row);
-      if (annotation != null && annotation.getFormula() != null
-          && FormulaUtils.createMajorIsotopeMolFormula(annotation.getFormula()) != null) {
-        //
-        formula = FormulaUtils.createMajorIsotopeMolFormula(annotation.getFormula());
-        final double neutralMass = FormulaUtils.calculateMzRatio(formula);
-
-        // use the given adduct or guess
-        var adduct = annotation.getAdductType() != null ? annotation.getAdductType() : new IonType(
-            IonModification.getBestIonModification(neutralMass, row.getAverageMZ(),
-                MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA,
-                TryCatch.npe(() -> row.getBestFeature().getRepresentativeScan().getPolarity(),
-                    PolarityType.ANY)));
-        try {
-          formula = adduct.addToFormula(formula);
-        } catch (CloneNotSupportedException e) {
-          // dont set anything that does not make sense, e.g. a neutral molecule
-          formula = null;
-        }
-      }
+    final List<ResultFormula> formulae = ResultFormula.listAllAnnotationIonFormulas(row, true);
+    if (formula == null && !formulae.isEmpty()) {
+      formula = formulae.getFirst().getFormulaAsObject();
     }
 
     controller = new FragDashboardController(parameters);
-    controller.setInput(mz, ms2, bestIsotopePattern, formula, ResultFormula.forAllAnnotations(row, true));
+    controller.setInput(mz, ms2, bestIsotopePattern, formula, formulae);
     setContent(controller.buildView());
     controller.rowProperty().set(row);
   }

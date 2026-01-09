@@ -2577,6 +2577,7 @@ public class ScanUtils {
         && pseudo.getPseudoSpectrumType() == PseudoSpectrumType.GC_EI;
   }
 
+
   /**
    * Binning modes
    */

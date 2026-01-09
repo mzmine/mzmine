@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,7 @@ package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,16 +56,16 @@ public record OnlineReaction(String reactionName, String filenameContains, Strin
    * @return list that contains all adduct crossover reactions - does not include the initial
    * reaction
    */
-  public List<OnlineReaction> createCrossAdductReactions(final List<IonModification> eductAdducts,
-      final List<IonModification> productAdducts) {
+  public List<OnlineReaction> createCrossAdductReactions(final List<IonType> eductAdducts,
+      final List<IonType> productAdducts) {
     List<OnlineReaction> reactions = new ArrayList<>();
-    for (final IonModification eductAdduct : eductAdducts) {
-      for (final IonModification productAdduct : productAdducts) {
+    for (final IonType eductAdduct : eductAdducts) {
+      for (final IonType productAdduct : productAdducts) {
         if (eductAdduct.equals(productAdduct)) {
           continue;
         }
-        String suffix = ": " + eductAdduct.toString(false) + " → " + productAdduct.toString(false);
-        double deltaMz = productAdduct.getMass() - eductAdduct.getMass();
+        String suffix = ": " + eductAdduct.toString() + " → " + productAdduct.toString();
+        double deltaMz = productAdduct.totalMass() - eductAdduct.totalMass();
         reactions.add(this.withNameSuffix(suffix, deltaMz));
       }
     }

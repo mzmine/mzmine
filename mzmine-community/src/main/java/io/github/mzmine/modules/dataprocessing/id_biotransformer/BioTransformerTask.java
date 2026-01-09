@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,9 +34,8 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -72,7 +71,7 @@ public class BioTransformerTask extends AbstractTask {
   private final File bioPath;
   private final MZTolerance mzTolerance;
   private final SmilesSource smilesSource;
-  private final IonNetworkLibrary ionLibrary;
+  private final IonLibrary ionLibrary;
   private final FeatureList flist;
   private final boolean useFilterParam;
   private final boolean eductMustHaveMsMs;
@@ -124,8 +123,7 @@ public class BioTransformerTask extends AbstractTask {
         enableAdvancedFilters ? filterParams.getValue(RtClusterFilterParameters.reRankAnnotions)
             : true;
 
-    var ionLibraryParam = parameters.getParameter(BioTransformerParameters.ionLibrary).getValue();
-    ionLibrary = new IonNetworkLibrary((IonLibraryParameterSet) ionLibraryParam);
+    ionLibrary = parameters.getValue(BioTransformerParameters.ionLibrary);
 
     description = "Biotransformer process";
     this.flist = flist;
@@ -144,8 +142,7 @@ public class BioTransformerTask extends AbstractTask {
   public static List<CompoundDBAnnotation> singleRowPrediction(final int id,
       @NotNull String bestSmiles, @Nullable String prefix, @NotNull File bioTransformerPath,
       @NotNull ParameterSet parameters) throws IOException {
-    var ionLibraryParam = parameters.getParameter(BioTransformerParameters.ionLibrary).getValue();
-    var ionLibrary = new IonNetworkLibrary((IonLibraryParameterSet) ionLibraryParam);
+    var ionLibrary = parameters.getValue(BioTransformerParameters.ionLibrary);
 
     return singleRowPrediction(id, bestSmiles, prefix, bioTransformerPath, parameters, ionLibrary);
   }
@@ -163,7 +160,7 @@ public class BioTransformerTask extends AbstractTask {
   @NotNull
   public static List<CompoundDBAnnotation> singleRowPrediction(final int id,
       @NotNull String bestSmiles, @Nullable String prefix, @NotNull File bioTransformerPath,
-      @NotNull ParameterSet parameters, @NotNull IonNetworkLibrary ionLibrary) throws IOException {
+      @NotNull ParameterSet parameters, @NotNull IonLibrary ionLibrary) throws IOException {
 
     final IMolecularFormula fomulaFromSmiles = FormulaUtils.getFormulaFromSmiles(bestSmiles);
     if (FormulaUtils.getMonoisotopicMass(fomulaFromSmiles) > molecularMassCutoff) {
@@ -233,7 +230,8 @@ public class BioTransformerTask extends AbstractTask {
         final FeatureListRow row = entry.getValue();
         final FeatureAnnotation bestAnnotation = getBestAnnotation(row);
 
-        if (bestAnnotation == null || !bestSmiles.equals(bestAnnotation.getStructure().canonicalSmiles())) {
+        if (bestAnnotation == null || !bestSmiles.equals(
+            bestAnnotation.getStructure().canonicalSmiles())) {
           throw new ConcurrentModificationException(
               "Best smiles of row " + row.getID() + " was altered.");
         }
