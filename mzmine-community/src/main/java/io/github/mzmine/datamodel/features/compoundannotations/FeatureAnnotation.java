@@ -65,15 +65,17 @@ public interface FeatureAnnotation {
   String XML_ELEMENT = "feature_annotation";
   String XML_TYPE_ATTR = "annotation_type";
 
-  static FeatureAnnotation loadFromXML(XMLStreamReader reader, MZmineProject project,
-      ModularFeatureList flist, ModularFeatureListRow row) throws XMLStreamException {
+  static FeatureAnnotation loadFromXML(@NotNull XMLStreamReader reader,
+      @NotNull MZmineProject project, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException("Current element is not a feature annotation element");
     }
 
     return switch (reader.getAttributeValue(null, XML_TYPE_ATTR)) {
       case SpectralDBAnnotation.XML_ATTR ->
-          SpectralDBAnnotation.loadFromXML(reader, project, project.getCurrentRawDataFiles());
+          SpectralDBAnnotation.loadFromXML(reader, project, flist, row,
+              project.getCurrentRawDataFiles());
       case SimpleCompoundDBAnnotation.XML_ATTR ->
           SimpleCompoundDBAnnotation.loadFromXML(reader, project, flist, row);
       case MatchedLipid.XML_ELEMENT ->
