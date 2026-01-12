@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
  * A simple ion library used by the parameter. Use {@link #toSearchableLibrary(boolean)} for an
  * optimized version for searches.
  */
-public final class SimpleIonLibrary implements IonLibrary {
+public class SimpleIonLibrary implements IonLibrary {
 
   private static final Logger logger = Logger.getLogger(SimpleIonLibrary.class.getName());
   private final @NotNull String name;
@@ -74,8 +74,8 @@ public final class SimpleIonLibrary implements IonLibrary {
   /**
    * Option to create internal default libraries within this package
    */
-  static SimpleIonLibrary createInternal(@NotNull String name, @NotNull List<IonType> ions) {
-    return new SimpleIonLibrary(true, name, ions);
+  static UnmodifiableIonLibrary createInternal(@NotNull String name, @NotNull List<IonType> ions) {
+    return new UnmodifiableIonLibrary(new SimpleIonLibrary(true, name, ions));
   }
 
 
