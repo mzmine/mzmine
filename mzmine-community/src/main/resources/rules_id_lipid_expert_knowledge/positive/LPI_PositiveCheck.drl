@@ -4,15 +4,18 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.FoundAdduct;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhases;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.SampleTypes;
 import java.util.List;
 
 // Declare the global list
 global FoundLipid lipid;
 global List mobilePhases;
+global SampleTypes sampleType;
 
 rule "Presence [M+H]+"
 when
     $adduct: FoundAdduct(adductName == "[M+H]+")
+    eval(sampleType == SampleTypes.PLASMA)
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+H]+, ");
@@ -22,6 +25,7 @@ end
 rule "Presence [M+Na]+"
 when
     $adduct: FoundAdduct(adductName == "[M+Na]+")
+    eval(sampleType == SampleTypes.PLASMA)
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+Na]+, ");
@@ -31,6 +35,7 @@ end
 rule "Presence [M+K]+"
 when
     $adduct: FoundAdduct(adductName == "[M+K]+")
+    eval(sampleType == SampleTypes.PLASMA)
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+K]+, ");
@@ -46,6 +51,7 @@ when
     eval($phase2 == MobilePhases.CH3CN)
     $phase3 : MobilePhases() from mobilePhases
     eval($phase3 == MobilePhases.CH3OH)
+    eval(sampleType == SampleTypes.PLASMA)
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+C2H7N2]+, ");
@@ -57,6 +63,7 @@ when
     $adduct: FoundAdduct(adductName == "[M+NH4]+")
     $phase1 : MobilePhases() from mobilePhases
     eval($phase1 == MobilePhases.NH4)
+    eval(sampleType == SampleTypes.PLASMA)
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+NH4]+, ");
@@ -66,6 +73,7 @@ end
 rule "Presence [M+H-H2O]+"
 when
     $adduct: FoundAdduct(adductName == "[M+H-H2O]+")
+    eval(sampleType == SampleTypes.PLASMA)
 then
     lipid.setScore(1);
     lipid.setDescrCorrect("Contains [M+H-H2O]+, ");

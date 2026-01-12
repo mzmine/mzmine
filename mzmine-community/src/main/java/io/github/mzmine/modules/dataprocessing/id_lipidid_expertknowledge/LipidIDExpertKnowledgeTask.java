@@ -334,8 +334,6 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
 
         totalSteps = rows.size();
 
-
-        //OPTION1
         //Group by GroupID of metaCorrelate
         Set<RowGroup> groupRows = new HashSet<>();
         for (FeatureListRow row : rows) {
@@ -344,47 +342,9 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
                 groupRows.add(group);
             }
         }
-        // Keep only rows fully connected (correlated with all others)
-        /*int originalTotalRows = 0;
-        int finalTotalRows = 0;
-        for (RowGroup group : groupRows) {
-            System.out.print("GROUP ID:"+group.getGroupID());
-            System.out.print("---ORIGINAL SIZE:"+group.size());
-            originalTotalRows = originalTotalRows + group.size();
 
-            List<FeatureListRow> originalRows = group.getRows();
-            List<FeatureListRow> filteredRows = new ArrayList<>();
 
-            int size = originalRows.size();
-
-            for (int i = 0; i < size; i++) {
-                boolean correlatedToAll = true;
-
-                for (int j = 0; j < size; j++) {
-                    if (i == j) continue;
-                    if (!group.isCorrelated(i, j)) {
-                        correlatedToAll = false;
-                        break;
-                    }
-                }
-
-                if (correlatedToAll) {
-                    filteredRows.add(originalRows.get(i));
-                }
-            }
-            // Replace group content with only the fully correlated rows
-            originalRows.clear();
-            originalRows.addAll(filteredRows);
-            System.out.print("---GROUP SIZE:"+originalRows.size());
-            finalTotalRows = finalTotalRows + originalRows.size();
-            System.out.println("");
-        }
-
-        System.out.println("---FROM: "+originalTotalRows+" WE KEEP: "+finalTotalRows);
-
-         */
-
-        //OPTION2: create subgroups inside each RowGroup of correlated FeatureListRows
+        //Create subgroups inside each RowGroup of correlated FeatureListRows
         for (RowGroup group : groupRows) {
             int nextSubgroupId = 0;
             List<FeatureListRow> allRows = group.getRows();
@@ -404,7 +364,6 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
                     if (correlated) {
                         subgroup.add(row);
                         added = true;
-                        //System.out.println("Row " + row.getID() + " added to existing subgroup.");
                         break;
                     }
                 }
@@ -412,7 +371,6 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
                     List<FeatureListRow> newSubgroup = new ArrayList<>();
                     newSubgroup.add(row);
                     subgroups.add(newSubgroup);
-                    //System.out.println("Row " + row.getID() + " [hash: " + System.identityHashCode(row) + "] started a new subgroup.");
                 }
             }
             for (List<FeatureListRow> subgroup : subgroups) {
@@ -430,105 +388,17 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
         List<ExpertKnowledge> commonAdductsISF = new ArrayList<>();
         List<FeatureListRow> annotatedRows = new ArrayList<>();
 
-        //Iterate through each row group
-        /*for (RowGroup group : groupRows) {
-            if (group.size() != 0) {
-                annotatedRows.clear();
-                commonAdductsISF.clear();
 
-                //Get polarity of our data
-                PolarityType polarityType = getPolarityType(group);
-
-                commonAdductsISF = new ArrayList<>();
-                if (polarityType.equals(PolarityType.POSITIVE)) {
-                    commonAdductsISF.addAll(Arrays.asList(CommonAdductPositive.values()));
-                    commonAdductsISF.addAll(Arrays.asList(CommonISFPositive.values()));
-                } else if (polarityType.equals(PolarityType.NEGATIVE)) {
-                    commonAdductsISF.addAll(Arrays.asList(CommonAdductNegative.values()));
-                    commonAdductsISF.addAll(Arrays.asList(CommonISFNegative.values()));
-                }
-                //sort by mz
-                commonAdductsISF.sort(Comparator.comparingDouble(ExpertKnowledge::getMz));
-
-                //check and delete adducts that can't appear due to mobile phases
-                if (polarityType.equals(PolarityType.POSITIVE)) {
-                    if (!(mobilePhase.contains(MobilePhases.NH4) && mobilePhase.contains(MobilePhases.CH3CN) && mobilePhase.contains(MobilePhases.CH3OH))) {
-                        commonAdductsISF.remove(CommonAdductPositive.M_PLUS_C2H7N2);
-                        commonAdductsISF.remove(CommonAdductPositive.M_PLUS_NH4);
-                    } else if (!mobilePhase.contains(MobilePhases.NH4)) {
-                        commonAdductsISF.remove(CommonAdductPositive.M_PLUS_NH4);
-                    }
-                } else if (polarityType.equals(PolarityType.NEGATIVE)) {
-                    if (!(mobilePhase.contains(MobilePhases.CH3COO) && mobilePhase.contains(MobilePhases.HCOO))) {
-                        commonAdductsISF.remove(CommonAdductNegative.M_MINUS_H_PLUS_CH3COONa);
-                        commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO);
-                        commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO_PLUS_CH3COONa);
-                        commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO_PLUS_2CH3COONa);
-                        commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO_PLUS_3CH3COONa);
-                        commonAdductsISF.remove(CommonAdductNegative.M_PLUS_HCOO_PLUS_CH3COONa);
-                        commonAdductsISF.remove(CommonAdductNegative.M_PLUS_HCOO);
-                        commonAdductsISF.remove(CommonISFNegative.M_PLUS_CH3COO_MINUS_CH3COOCH3);
-                    } else if (!mobilePhase.contains(MobilePhases.CH3COO)) {
-                        commonAdductsISF.remove(CommonAdductNegative.M_MINUS_H_PLUS_CH3COONa);
-                        commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO);
-                        commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO_PLUS_CH3COONa);
-                        commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO_PLUS_2CH3COONa);
-                        commonAdductsISF.remove(CommonAdductNegative.M_PLUS_CH3COO_PLUS_3CH3COONa);
-                        commonAdductsISF.remove(CommonAdductNegative.M_PLUS_HCOO_PLUS_CH3COONa);
-                        commonAdductsISF.remove(CommonISFNegative.M_PLUS_CH3COO_MINUS_CH3COOCH3);
-                    } else if (!mobilePhase.contains(MobilePhases.HCOO)) {
-                        commonAdductsISF.remove(CommonAdductNegative.M_PLUS_HCOO_PLUS_CH3COONa);
-                        commonAdductsISF.remove(CommonAdductNegative.M_PLUS_HCOO);
-                    }
-                }
-
-                //Find rows that are annotated in the group
-                annotatedRows.addAll(LipidIDExpertKnowledgeSearch.findAnnotatedRows(group));
-                //Find relevant data to find adducts
-                RowInfo rowInfo = LipidIDExpertKnowledgeSearch.findRowInfo(group);
-
-                if (!annotatedRows.isEmpty()) {
-                    String[] positiveNames = {"CAR", "CE", "Cer", "Chol", "DG", "HexCer", "LPC", "LPE", "LPI", "PC", "PE", "PI", "SM", "TG"};
-                    String[] negativeNames = {"Cer", "DG", "FA", "HexCer", "LPC", "LPE", "LPI", "PC", "PE", "PI", "SM"};
-
-                    for (FeatureListRow row : annotatedRows) {
-                        List<MatchedLipid> lipidsMatched = row.getLipidMatches();
-                        for (MatchedLipid matchedLipid : lipidsMatched) {
-                            String abbr = matchedLipid.getLipidAnnotation().getLipidClass().getAbbr();
-                            List<FoundAdduct> foundAdductsAndISF = LipidIDExpertKnowledgeSearch.findAdducts(commonAdductsISF, rowInfo, mzTolerance.getMzTolerance(), row, matchedLipid);
-
-                            if (polarityType.equals(PolarityType.POSITIVE) && Arrays.asList(positiveNames).contains(abbr)) {
-                                LipidIDExpertKnowledgeSearch.findLipidsPositive(row, matchedLipid, foundAdductsAndISF, mobilePhase);
-                            } else if (polarityType.equals(PolarityType.NEGATIVE) && Arrays.asList(negativeNames).contains(abbr)) {
-                                LipidIDExpertKnowledgeSearch.findLipidsNegative(row, matchedLipid, foundAdductsAndISF, mobilePhase);
-                            }
-                        }
-                    }
-                } else {
-                    for (FeatureListRow row : group.getRows()) {
-                        MatchedLipid match = null;
-                        List<FoundAdduct> foundAdductsAndISF = LipidIDExpertKnowledgeSearch.findAdducts(commonAdductsISF, rowInfo, mzTolerance.getMzTolerance(), row, match);
-
-                        FoundLipid foundLipid = new FoundLipid(foundAdductsAndISF);
-                        row.addLipidValidation(foundLipid);
-                    }
-                }
-
-                finishedSteps++;
-            }
-        }*/
         for (RowGroup group : groupRows) {
             if (group.size() == 0) continue;
 
-            // Agrupar filas por subgrupo usando el campo comment
+            // Group rows by "comment" subgroup
             Map<String, List<FeatureListRow>> subgroups = group.getRows().stream()
                     .collect(Collectors.groupingBy(row -> {
                         String comment = row.getComment();
                         return (comment != null && !comment.isEmpty()) ? comment : "unassigned";
                     }));
 
-            //System.out.println("RowGroup ID: " + group.getGroupID() +
-                   // " → Subgroups: " + subgroups.size());
 
             for (Map.Entry<String, List<FeatureListRow>> entry : subgroups.entrySet()) {
                 String subgroup = entry.getKey();
@@ -632,9 +502,9 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
 
                             try {
                                 if (polarityType.equals(PolarityType.POSITIVE) /*&& Arrays.asList(positiveNames).contains(abbr)*/) {
-                                    LipidIDExpertKnowledgeSearch.findLipidsPositive(row, matchedLipid, foundAdductsAndISF, mobilePhase, virtualGroup);
+                                    LipidIDExpertKnowledgeSearch.findLipidsPositive(row, matchedLipid, foundAdductsAndISF, mobilePhase, sampleType, virtualGroup);
                                 } else if (polarityType.equals(PolarityType.NEGATIVE) /*&& Arrays.asList(negativeNames).contains(abbr)*/) {
-                                    LipidIDExpertKnowledgeSearch.findLipidsNegative(row, matchedLipid, foundAdductsAndISF, mobilePhase, virtualGroup);
+                                    LipidIDExpertKnowledgeSearch.findLipidsNegative(row, matchedLipid, foundAdductsAndISF, mobilePhase, sampleType, virtualGroup);
                                 }
                             } catch (IOException e) {
                                 throw new RuntimeException(e);

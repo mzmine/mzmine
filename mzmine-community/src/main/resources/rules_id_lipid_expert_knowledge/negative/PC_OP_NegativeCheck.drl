@@ -4,17 +4,20 @@ package rules_id_lipid_expert_knowledge.negative;
        import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
        import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.FoundAdduct;
        import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhases;
+       import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.SampleTypes;
        import java.util.List;
 
-// Declare the global list
+       // Declare the global list
        global FoundLipid lipid;
        global List mobilePhases;
+       global SampleTypes sampleType;
 
        rule "Presence [M+CH3COO]-"
        when
            $adduct: FoundAdduct(adductName == "[M+CH3COO]-")
            $phase1 : MobilePhases() from mobilePhases
            eval($phase1 == MobilePhases.CH3COO)
+           eval(sampleType == SampleTypes.PLASMA)
        then
            
            lipid.setScore(1);
@@ -26,6 +29,7 @@ package rules_id_lipid_expert_knowledge.negative;
                   not FoundAdduct(adductName == "[M+CH3COO]-")
                   $phase1 : MobilePhases() from mobilePhases
                   eval($phase1 == MobilePhases.CH3COO)
+                  eval(sampleType == SampleTypes.PLASMA)
               then
 
                   lipid.setScore(-1);
@@ -38,6 +42,7 @@ package rules_id_lipid_expert_knowledge.negative;
            $adduct: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
            $phase1 : MobilePhases() from mobilePhases
            eval($phase1 == MobilePhases.CH3COO)
+           eval(sampleType == SampleTypes.PLASMA)
        then
            
            lipid.setScore(1);
@@ -50,6 +55,7 @@ package rules_id_lipid_expert_knowledge.negative;
            $adduct: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)2]-")
            $phase1 : MobilePhases() from mobilePhases
            eval($phase1 == MobilePhases.CH3COO)
+           eval(sampleType == SampleTypes.PLASMA)
        then
            
            lipid.setScore(1);
@@ -63,6 +69,7 @@ package rules_id_lipid_expert_knowledge.negative;
            $adduct: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)3]-")
            $phase1 : MobilePhases() from mobilePhases
            eval($phase1 == MobilePhases.CH3COO)
+           eval(sampleType == SampleTypes.PLASMA)
        then
            
            lipid.setScore(1);
@@ -76,6 +83,7 @@ package rules_id_lipid_expert_knowledge.negative;
            $adduct: FoundAdduct(adductName == "[M+HCOO]-")
            $phase1 : MobilePhases() from mobilePhases
            eval($phase1 == MobilePhases.HCOO)
+           eval(sampleType == SampleTypes.PLASMA)
        then
            
            lipid.setScore(1);
@@ -91,6 +99,7 @@ package rules_id_lipid_expert_knowledge.negative;
            eval($phase1 == MobilePhases.CH3COO)
            $phase2 : MobilePhases() from mobilePhases
            eval($phase2 == MobilePhases.HCOO)
+           eval(sampleType == SampleTypes.PLASMA)
        then
            
            lipid.setScore(1);
@@ -102,6 +111,7 @@ package rules_id_lipid_expert_knowledge.negative;
        rule "Presence [M+Cl]-"
        when
            $adduct: FoundAdduct(adductName == "[M+Cl]-")
+           eval(sampleType == SampleTypes.PLASMA)
        then
            
            lipid.setScore(1);
@@ -115,6 +125,7 @@ package rules_id_lipid_expert_knowledge.negative;
            $adduct: FoundAdduct(adductName == "[M+CH3COO-CH3COOCH3]-")
            $phase1 : MobilePhases() from mobilePhases
            eval($phase1 == MobilePhases.CH3COO)
+           eval(sampleType == SampleTypes.PLASMA)
        then
            
            lipid.setScore(1);
@@ -131,6 +142,7 @@ package rules_id_lipid_expert_knowledge.negative;
            $adduct2: FoundAdduct(adductName == "[M+CH3COO+(CH3COONa)]-")
            $phase1 : MobilePhases() from mobilePhases
            eval($phase1 == MobilePhases.CH3COO)
+           eval(sampleType == SampleTypes.PLASMA)
 
            eval($adduct1.getIntensity() > $adduct2.getIntensity())
        then
@@ -148,6 +160,7 @@ package rules_id_lipid_expert_knowledge.negative;
            eval($phase1 == MobilePhases.CH3COO)
 
            eval($adduct1.getIntensity() > $adduct2.getIntensity())
+           eval(sampleType == SampleTypes.PLASMA)
        then
            
            lipid.setScore(2);
@@ -163,6 +176,7 @@ package rules_id_lipid_expert_knowledge.negative;
            eval($phase1 == MobilePhases.CH3COO)
 
            eval($adduct1.getIntensity() > $adduct2.getIntensity())
+           eval(sampleType == SampleTypes.PLASMA)
        then
            
            lipid.setScore(2);
@@ -178,6 +192,7 @@ package rules_id_lipid_expert_knowledge.negative;
                   eval($phase1 == MobilePhases.CH3COO)
 
                   eval($adduct1.getIntensity() < $adduct2.getIntensity())
+                  eval(sampleType == SampleTypes.PLASMA)
               then
                   
                   lipid.setScore(-2);
@@ -193,6 +208,7 @@ package rules_id_lipid_expert_knowledge.negative;
               eval($phase1 == MobilePhases.CH3COO)
 
               eval($adduct1.getIntensity() < $adduct2.getIntensity())
+              eval(sampleType == SampleTypes.PLASMA)
            then
                   
               lipid.setScore(-2);
@@ -208,6 +224,7 @@ package rules_id_lipid_expert_knowledge.negative;
               eval($phase1 == MobilePhases.CH3COO)
 
               eval($adduct1.getIntensity() < $adduct2.getIntensity())
+              eval(sampleType == SampleTypes.PLASMA)
            then
                   
                lipid.setScore(-2);
@@ -222,6 +239,7 @@ package rules_id_lipid_expert_knowledge.negative;
            eval($phase1 == MobilePhases.CH3COO)
 
            eval($adduct1.getIntensity() > $adduct2.getIntensity())
+           eval(sampleType == SampleTypes.PLASMA)
        then
 
            lipid.setScore(-2);
@@ -235,6 +253,7 @@ package rules_id_lipid_expert_knowledge.negative;
            $phase1 : MobilePhases() from mobilePhases
            eval($phase1 == MobilePhases.CH3COO)
            eval($adduct1.getIntensity() > $adduct2.getIntensity())
+           eval(sampleType == SampleTypes.PLASMA)
        then
 
            lipid.setScore(-2);
