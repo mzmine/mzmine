@@ -70,6 +70,13 @@ class FormulaUtilsTest {
       , new Case("NH4+", "[H4N]+", 1) //
       , new Case("(NH4)+", "[H4N]+", 1) //
       , new Case("(NH4)-2", "[H4N]2-", -2) //
+      // unknown name CH iunknown charge state
+      , new Case("[CH]+", "[CH]+", 1) //
+      , new Case("CH+", "[CH]+", 1) //
+      , new Case("(CH)+", "[CH]+", 1) //
+      , new Case("(CH)-2", "[CH]2-", -2) //
+      , new Case("CH-2", "[CH]2-", -2) //
+      , new Case("[CH]2-", "[CH]2-", -2) //
       // flipped charge only works with []2- not with ()2- as ()2- would mean 2 times what is in ()
       , new Case("NH4-2", "[H4N]2-", -2) //
       , new Case("[NH4]2-", "[H4N]2-", -2) //
