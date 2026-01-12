@@ -29,6 +29,8 @@ import static io.github.mzmine.javafx.components.factories.FxButtons.createButto
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
 import static io.github.mzmine.javafx.components.factories.FxTexts.colored;
+import static io.github.mzmine.javafx.util.FxIconUtil.DEFAULT_LARGE_ICON_SIZE;
+import static io.github.mzmine.javafx.util.FxIconUtil.newIconButtonOpenUrl;
 
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesController;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesTab;
@@ -93,9 +95,12 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
 
     final var topBox = FxLayout.newFlowPane(Insets.EMPTY, //
         selectedLibraryField, //
-        updateWithGlobalLibrary, createButton("Define libraries", FxIcons.GEAR_PREFERENCES, tooltip,
-            GlobalIonLibrariesTab::showTab) //
-    );
+        updateWithGlobalLibrary, //
+        createButton("Define libraries", FxIcons.GEAR_PREFERENCES, tooltip,
+            GlobalIonLibrariesTab::showTab), //
+        newIconButtonOpenUrl(FxIcons.QUESTION_CIRCLE, DEFAULT_LARGE_ICON_SIZE,
+            tooltip + "\nClick to open the documentation.",
+            "https://mzmine.github.io/mzmine_documentation/ions/ions.html"));
 
     setTop(topBox);
     setCenter(infoBox);

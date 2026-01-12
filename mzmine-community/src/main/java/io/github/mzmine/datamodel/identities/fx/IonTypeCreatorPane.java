@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,11 +27,14 @@ package io.github.mzmine.datamodel.identities.fx;
 
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
 import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_INSETS;
+import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Label;
+import javafx.geometry.Insets;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 
@@ -41,7 +44,13 @@ class IonTypeCreatorPane extends BorderPane {
       ObservableList<IonPartDefinition> partsDefinitions) {
     setPadding(DEFAULT_PADDING_INSETS);
 
-    final Label title = newBoldTitle("All currently defined ion types:");
+    final var titlePane = newHBox(Insets.EMPTY,
+        FxIconUtil.newIconButtonOpenUrl(FxIcons.QUESTION_CIRCLE, FxIconUtil.DEFAULT_LARGE_ICON_SIZE,
+            """
+                Define ion types, which combine ion building blocks and a multimer count.
+                Click to open the documentation.""",
+            "https://mzmine.github.io/mzmine_documentation/ions/ions.html#define-types"),
+        newBoldTitle("All currently defined ion types"));
 
     IonTypeListView typesListView = new IonTypeListView(types);
 
@@ -50,7 +59,7 @@ class IonTypeCreatorPane extends BorderPane {
 
     setLeft(typesListView);
     // space is already enough
-    setTop(new VBox(0, title, typesListView.removeTopMenu()));
+    setTop(new VBox(0, titlePane, typesListView.removeTopMenu()));
     setCenter(typeDefPane);
   }
 

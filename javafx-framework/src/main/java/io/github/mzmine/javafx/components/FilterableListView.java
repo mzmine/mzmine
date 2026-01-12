@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -259,6 +259,9 @@ public class FilterableListView<T> extends BorderPane {
   }
 
   public void removeSelectedItems() {
+    if (disableRemove.get()) {
+      return;
+    }
 
     // have to remove items from the original list
     // sorted list and filtered list are immutable

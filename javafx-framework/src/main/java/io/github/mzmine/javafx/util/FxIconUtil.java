@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 import static io.github.mzmine.javafx.components.util.FxLayout.newStackPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder;
 import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder.EventHandling;
 import java.io.IOException;
@@ -68,6 +69,7 @@ public class FxIconUtil {
 
   private static final Logger logger = Logger.getLogger(FxIconUtil.class.getName());
   public static final int DEFAULT_ICON_SIZE = 18;
+  public static final int DEFAULT_LARGE_ICON_SIZE = 24;
 
 
   @NotNull
@@ -228,6 +230,23 @@ public class FxIconUtil {
         .bind(button.selectedProperty().map(selectedToIconFunction).map(IconCodeSupplier::getIkon));
 
     return button;
+  }
+
+  /**
+   * Opens the given url
+   */
+  public static ButtonBase newIconButtonOpenUrl(final IconCodeSupplier fxIcons,
+      @Nullable String tooltip, @NotNull String url) {
+    return newIconButtonOpenUrl(fxIcons, DEFAULT_ICON_SIZE, tooltip, url);
+  }
+
+  /**
+   * Opens the given url
+   */
+  public static ButtonBase newIconButtonOpenUrl(final IconCodeSupplier fxIcons, int size,
+      @Nullable String tooltip, @NotNull String url) {
+    return newIconButton(fxIcons, size, tooltip,
+        () -> DesktopService.getDesktop().openWebPage(url));
   }
 
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, Runnable onAction) {
