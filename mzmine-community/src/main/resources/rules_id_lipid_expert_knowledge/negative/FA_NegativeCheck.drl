@@ -3,18 +3,18 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.FoundAdduct;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhases;
-import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.SampleTypes;
+ 
 import java.util.List;
 
 // Declare the global list
 global FoundLipid lipid;
 global List mobilePhases;
-global SampleTypes sampleType;
+global String sampleType;
 
  rule "Presence [M-H]-"
  when
      $adduct: FoundAdduct(adductName == "[M-H]-")
-     eval(sampleType == SampleTypes.PLASMA)
+      eval(sampleType.equalsIgnoreCase("PLASMA"))
  then
      
      lipid.setScore(1);
@@ -24,7 +24,7 @@ global SampleTypes sampleType;
   rule "No presence [M-H]-"
   when
       not FoundAdduct(adductName == "[M-H]-")
-      eval(sampleType == SampleTypes.PLASMA)
+       eval(sampleType.equalsIgnoreCase("PLASMA"))
   then
 
       lipid.setScore(-1);
@@ -37,7 +37,7 @@ global SampleTypes sampleType;
      $adduct: FoundAdduct(adductName == "[M-H+(CH3COONa)]-")
      $phase1 : MobilePhases() from mobilePhases
      eval($phase1 == MobilePhases.CH3COO)
-     eval(sampleType == SampleTypes.PLASMA)
+      eval(sampleType.equalsIgnoreCase("PLASMA"))
 
  then
      
@@ -56,7 +56,7 @@ when
     $phase1 : MobilePhases() from mobilePhases
     eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
-    eval(sampleType == SampleTypes.PLASMA)
+     eval(sampleType.equalsIgnoreCase("PLASMA"))
 then
     
     lipid.setScore(2);
@@ -71,7 +71,7 @@ when
     $phase1 : MobilePhases() from mobilePhases
     eval($phase1 == MobilePhases.CH3COO)
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
-    eval(sampleType == SampleTypes.PLASMA)
+     eval(sampleType.equalsIgnoreCase("PLASMA"))
 then
     
     lipid.setScore(-2);

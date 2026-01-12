@@ -82,7 +82,6 @@ Allow the use of external Java classes inside rules.
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.FoundLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.adducts.FoundAdduct;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhases;
-import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.SampleTypes;
 import java.util.List;
 ```
 - Additional imports based on polarity:
@@ -103,7 +102,7 @@ Define global variables accessible and modifiable by all rules:
 ```
 global FoundLipid lipid;
 global List mobilePhases;
-global SampleTypes sampleType;
+global String sampleType;
 ```
 
 ### 4. Rules
@@ -144,7 +143,7 @@ We search for the specific adduct name, and we have to take into account that so
 **Examples by Rule Type**
 
 
-(In these rules we check for specific Mobile Phases as well as the use of plasma as biological matrix )
+(In these rules we check for specific Mobile Phases as well as the use of "plasma" as biological matrix )
 
 
 **1. Positive presence:**
@@ -158,7 +157,7 @@ We search for the specific adduct name, and we have to take into account that so
     eval($phase2 == MobilePhases.CH3CN)
     $phase3 : MobilePhases() from mobilePhases
     eval($phase3 == MobilePhases.CH3OH)
-    eval(sampleType == SampleTypes.PLASMA)
+    eval(sampleType.equalsIgnoreCase("PLASMA"))
 ```
 
 **2. Negative presence (absence):**
@@ -168,7 +167,7 @@ We search for the specific adduct name, and we have to take into account that so
     not FoundAdduct(adductName == "[M+NH4]+")
     $phase1 : MobilePhases() from mobilePhases
     eval($phase1 == MobilePhases.NH4)
-    eval(sampleType == SampleTypes.PLASMA)
+    eval(sampleType.equalsIgnoreCase("PLASMA"))
 ```
 
 **3. Correct intensity order:**
@@ -184,7 +183,7 @@ We search for the specific adduct name, and we have to take into account that so
     $phase3 : MobilePhases() from mobilePhases
     eval($phase3 == MobilePhases.CH3OH)
     eval($adduct1.getIntensity() > $adduct2.getIntensity())
-    eval(sampleType == SampleTypes.PLASMA)
+    eval(sampleType.equalsIgnoreCase("PLASMA"))
 ```
 
 **4. Incorrect intensity order:**
@@ -200,7 +199,7 @@ We search for the specific adduct name, and we have to take into account that so
     $phase3 : MobilePhases() from mobilePhases
     eval($phase3 == MobilePhases.CH3OH)
     eval($adduct1.getIntensity() < $adduct2.getIntensity())
-    eval(sampleType == SampleTypes.PLASMA)
+    eval(sampleType.equalsIgnoreCase("PLASMA"))
 ```
 
 #### `then` section

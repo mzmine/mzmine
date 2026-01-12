@@ -12,6 +12,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhase;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhases;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.SampleTypes;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.SampleType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -32,7 +33,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 /**
@@ -71,9 +71,9 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
      */
     private List<MobilePhases> mobilePhase;
     /**
-     * One of the sample types defined in {@link SampleTypes}.
+     * One of the sample types defined in {@link SampleTypes} or custom.
      */
-    private SampleTypes sampleType;
+    private SampleType sampleType;
     /**
      * Feature list the module will be run over.
      */
@@ -103,8 +103,22 @@ public class LipidIDExpertKnowledgeTask extends AbstractTask {
         Object[] selectedMP = parameters.getParameter(LipidIDExpertKnowledgeParameters.mobilePhaseParameter).getValue();
         this.mobilePhase = new ArrayList<>(Arrays.stream(selectedMP).filter(o -> o instanceof MobilePhases).map(o -> (MobilePhases) o).toList());
         //Convert Object to SampleType
-        Object[] selectedST = parameters.getParameter(LipidIDExpertKnowledgeParameters.sampleTypeParameter).getValue();
-        this.sampleType = Arrays.stream(selectedST).filter(o -> o instanceof SampleTypes).map(o -> (SampleTypes) o).findFirst().orElse(null);
+        Object[] selectedST = parameters
+                .getParameter(LipidIDExpertKnowledgeParameters.sampleTypeParameter)
+                .getValue();
+
+        String sampleTypeOpt = parameters
+                .getParameter(LipidIDExpertKnowledgeParameters.sampleTypeOption)
+                .getValue();
+
+        if (selectedST != null && selectedST.length > 0) {
+            // Predefined enum selected
+            SampleTypes st = (SampleTypes) selectedST[0];
+            this.sampleType = SampleType.of(st);
+        } else {
+            // Custom string (validation guarantees it is non-empty)
+            this.sampleType = SampleType.of(sampleTypeOpt.trim());
+        }
 
         @NotNull File[] userFiles = parameters.getParameter(LipidIDExpertKnowledgeParameters.drlFiles).getValue();
         for (File f : userFiles) {

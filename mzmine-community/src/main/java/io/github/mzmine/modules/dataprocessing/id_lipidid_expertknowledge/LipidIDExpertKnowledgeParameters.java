@@ -8,6 +8,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
@@ -64,6 +65,12 @@ public class LipidIDExpertKnowledgeParameters extends SimpleParameterSet {
             "Sample types", "Selection of sample type", SampleTypes.getListOfSampleTypes().toArray());
 
     /**
+     * Sample types the user want to use if it's not in the options.
+     */
+    public static final StringParameter sampleTypeOption = new StringParameter("Sample type",
+            "This string is the sample type chosen when the one we want to use is not in the options.", " ", false );
+
+    /**
      * User-selected DRL rule files.
      */
     public static final FileNamesParameter drlFiles = new FileNamesParameter(
@@ -87,7 +94,7 @@ public class LipidIDExpertKnowledgeParameters extends SimpleParameterSet {
      * Created a new LipidIDExpertKnowledgeParameter object with the specified info.
      */
     public LipidIDExpertKnowledgeParameters() {
-        super(new Parameter[]{featureLists, mzTolerance, mobilePhaseParameter, mobilePhasesFiles, sampleTypeParameter, drlFiles, adductFiles});
+        super(new Parameter[]{featureLists, mzTolerance, mobilePhaseParameter, mobilePhasesFiles, sampleTypeParameter, sampleTypeOption, drlFiles, adductFiles});
     }
 
     /**

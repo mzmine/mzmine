@@ -18,6 +18,8 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.lipids.Lipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.MobilePhases;
 import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.SampleTypes;
+import io.github.mzmine.modules.dataprocessing.id_lipidid_expertknowledge.utils.params.SampleType;
+
 import org.kie.api.KieServices;
 import org.kie.api.io.Resource;
 import org.kie.api.runtime.KieSession;
@@ -211,7 +213,7 @@ public class LipidIDExpertKnowledgeSearch {
      * @param lipid MatchedLipid for the row.
      * @param found List of FoundAdducts for the group the row is part of.
      */
-    public static void findLipidsPositive(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases, SampleTypes sampleType, VirtualRowGroup virtualGroup) throws IOException {
+    public static void findLipidsPositive(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases, SampleType sampleType, VirtualRowGroup virtualGroup) throws IOException {
         // Find matching lipids based on detected adducts, re-direct to drl file depending on LipidMatched
         List<FoundLipid> detectedLipids = new ArrayList<>();
 
@@ -325,7 +327,7 @@ public class LipidIDExpertKnowledgeSearch {
 
             kSession.setGlobal("lipid", lipid_ExpertKnowledge);
             kSession.setGlobal("mobilePhases", mobilePhases);
-            kSession.setGlobal("sampleType", sampleType);
+            kSession.setGlobal("sampleType", sampleType.getName());
 
             for (FoundAdduct adduct : found) {
                 kSession.insert(adduct);
@@ -379,7 +381,7 @@ public class LipidIDExpertKnowledgeSearch {
      * @param lipid MatchedLipid for the row.
      * @param found List of FoundAdducts for the group the row is part of.
      */
-    public static void findLipidsNegative(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases, SampleTypes sampleType, VirtualRowGroup virtualGroup) throws IOException {
+    public static void findLipidsNegative(FeatureListRow row, MatchedLipid lipid, List<FoundAdduct> found, List<MobilePhases> mobilePhases, SampleType sampleType, VirtualRowGroup virtualGroup) throws IOException {
         // Find matching lipids based on detected adducts, re-direct to drl file depending on LipidMatched
         List<FoundLipid> detectedLipids = new ArrayList<>();
 
@@ -482,7 +484,7 @@ public class LipidIDExpertKnowledgeSearch {
 
             kSession.setGlobal("lipid", lipid_ExpertKnowledge);
             kSession.setGlobal("mobilePhases", mobilePhases);
-            kSession.setGlobal("sampleType", sampleType);
+            kSession.setGlobal("sampleType", sampleType.getName());
 
             for (FoundAdduct adduct : found) {
                 kSession.insert(adduct);

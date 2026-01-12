@@ -10,7 +10,13 @@ public enum SampleTypes {
 
     PLASMA ("Plasma"),
     BLOOD("Blood"),
-    CEREBROSPINAL_FLUID("Cerebrospinal fluid");
+    CEREBROSPINAL_FLUID("Cerebrospinal fluid"),
+    URINE("Urine"),
+    SERUM("Serum"),
+    Saliva("Saliva"),
+    FECES("Feces/Stool"),
+    BREATH("Breath/Exhaled air"),
+    AMNIOTIC_FLUID("Amniotic fluid");
 
     /**
      * Name of the sample type.
