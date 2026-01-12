@@ -114,8 +114,8 @@ public class IonParts {
   /**
    * @param nameOrFormula structure or common name
    * @param charge
-   * @return an IonPart either predefined by name, common name {@link CompoundsByNames}, by
-   * structure. Otherwise, {@link IonParts#unknown(String, Integer)}
+   * @return an IonPart either predefined by name, common name {@link IonPartAliases}, by structure.
+   * Otherwise, {@link IonParts#unknown(String, Integer)}
    */
   @NotNull
   public static IonPart findPartByNameOrFormula(@NotNull String nameOrFormula, int count,
@@ -146,7 +146,7 @@ public class IonParts {
     }
 
     // map names or structure by internal known names
-    Optional<IonPart> part = CompoundsByNames.getIonPartByName(nameOrFormula);
+    Optional<IonPart> part = IonPartAliases.getIonPartByName(nameOrFormula);
     if (part.isPresent()) {
       return part.get().withCount(count).withSingleCharge(charge);
     }

@@ -28,7 +28,7 @@ package io.github.mzmine.datamodel.identities.iontype;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
-public class CompoundsByNames {
+public class IonPartAliases {
 
   /**
    * Get ion part for common names
@@ -51,7 +51,7 @@ public class CompoundsByNames {
       case "methanol", "meoh", "CH3OH", "CH4O" -> IonParts.METHANOL;
       case "isoprop", "iso prop", "isopropanol", "iso propanol", "iproh", "ipr" ->
           IonParts.ISO_PROPANOL;
-      case "hydrocholide", "hcl" -> IonParts.HCL;
+      case "hydrochloride", "hcl" -> IonParts.HCL;
       default -> null;
     });
   }

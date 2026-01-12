@@ -58,7 +58,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * <p>
  * If undefined {@link IonPart} are used the following will happen. One undefined part will take up
  * all the remaining charge. If there are two undefined parts the charge will be distributed
- * randomly. Try adding common names to {@link CompoundsByNames}.
+ * randomly. Try adding common names to {@link IonPartAliases}.
  *
  */
 @JsonIgnoreProperties(ignoreUnknown = true)

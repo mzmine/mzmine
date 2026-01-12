@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,6 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -82,7 +81,9 @@ public class FormulaParser {
 
       return FormulaUtils.replaceAllIsotopesWithoutExactMass(f);
     } catch (Exception e) {
-      logger.log(Level.SEVERE, "Cannot create formula for: " + formula, e);
+      // usually do not log as the input is often just wrong
+      // tests already cover
+//      logger.log(Level.SEVERE, "Cannot create formula for: " + formula, e);
       return null;
     }
   }

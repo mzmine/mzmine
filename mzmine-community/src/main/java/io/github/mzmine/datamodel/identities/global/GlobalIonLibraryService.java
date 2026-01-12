@@ -32,21 +32,15 @@ import io.github.mzmine.datamodel.identities.io.IonLibraryPresetStore;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
-import io.github.mzmine.datamodel.identities.iontype.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
-import io.github.mzmine.datamodel.identities.iontype.IonPartSorting;
 import io.github.mzmine.datamodel.identities.iontype.IonParts;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.IonType.IonTypeStringFlavor;
-import io.github.mzmine.datamodel.identities.iontype.IonTypeSorting;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
-import io.github.mzmine.util.maths.Precision;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -538,95 +532,94 @@ public final class GlobalIonLibraryService {
     return singletonParts.size();
   }
 
-  private static List<IonPart> mergeParts(final List<IonPart> first, final List<IonPart> second) {
-    ArrayList<IonPart> merged = new ArrayList<>(first.size() + second.size());
-    // handle conflicts like same name but different mass - or different ion parts
-    merged.addAll(first);
-
-    //
-    final Map<String, IonPart> existingNameMap = HashMap.newHashMap(first.size());
-    for (final IonPart part : first) {
-      final String chargedName = part.toString(IonPartStringFlavor.SIMPLE_WITH_CHARGE);
-      final IonPart old = existingNameMap.computeIfAbsent(chargedName, k -> part);
-      if (old != part) {
-        logger.warning(
-            "Ion part was already present. This may point to a duplicate in the first ion part list: %s and %s (using the first one)".formatted(
-                part.toString(IonPartStringFlavor.FULL_WITH_MASS),
-                old.toString(IonPartStringFlavor.FULL_WITH_MASS)));
-      }
-    }
-
-    for (final IonPart part : second) {
-      final IonPart potentialConflict = existingNameMap.get(
-          part.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE));
-      if (potentialConflict != null) {
-        if (!Objects.equals(potentialConflict, part)) {
-          // TODO conflict resolution
-          boolean massDiff = Precision.equalDoubleSignificance(part.totalMass(),
-              potentialConflict.totalMass());
-
-          logger.warning(
-              "Detected conflict between two ion parts: %s and %s (mass within precisions=%s). Will use the first one.".formatted(
-                  part.toString(IonPartStringFlavor.FULL_WITH_MASS),
-                  potentialConflict.toString(IonPartStringFlavor.FULL_WITH_MASS), massDiff));
-        }
-        // otherwise its equal and nothing to do then
-      } else {
-        merged.add(part);
-      }
-    }
-
-    // sort
-    merged.sort(IonPartSorting.DEFAULT_NEUTRAL_THEN_LOSSES_THEN_ADDED.getComparator());
-    merged.trimToSize();
-    return merged;
-  }
-
-  private static List<IonType> mergeTypes(final @NotNull List<IonType> first,
-      final @NotNull List<IonType> second) {
-    // TODO maybe remap all parts to the global parts list to unify them
-
-    ArrayList<IonType> merged = new ArrayList<>(first.size() + second.size());
-    // handle conflicts like same name but different mass - or different ion parts
-    merged.addAll(first);
-    final Map<String, IonType> existingNameMap = HashMap.newHashMap(first.size());
-    for (final IonType ion : first) {
-      final IonType old = existingNameMap.computeIfAbsent(ion.name(), k -> ion);
-      if (old != ion) {
-        logger.warning(
-            "Ion type was already present. This may point to a duplicate in the first ion type list: %s and %s (using the first one)".formatted(
-                ion.toString(IonTypeStringFlavor.FULL_WITH_MASS),
-                old.toString(IonTypeStringFlavor.FULL_WITH_MASS)));
-      }
-    }
-
-    // add those from second list check for conflicts
-    for (IonType ion : second) {
-      final IonType potentialConflict = existingNameMap.get(ion.name());
-      if (potentialConflict != null) {
-        // otherwise its equal, nothing to do then
-        if (!Objects.equals(potentialConflict, ion)) {
-          // TODO conflict resolution
-          boolean massDiff = Precision.equalDoubleSignificance(ion.totalMass(),
-              potentialConflict.totalMass());
-
-          logger.warning(
-              "Detected conflict between two ion types: %s and %s (mass within precisions=%s). Will use the first one.".formatted(
-                  ion.toString(IonTypeStringFlavor.FULL_WITH_MASS),
-                  potentialConflict.toString(IonTypeStringFlavor.FULL_WITH_MASS), massDiff));
-        }
-      } else {
-        merged.add(ion);
-      }
-    }
-
-    // sort by mz etc
-    merged.sort(IonTypeSorting.getIonTypeDefault().getComparator());
-
-    // trim
-    merged.trimToSize();
-    return merged;
-  }
+  // TODO need to see if this is still neeeded. Was the first version of how to safe the global lib
+//  private static List<IonPart> mergeParts(final List<IonPart> first, final List<IonPart> second) {
+//    ArrayList<IonPart> merged = new ArrayList<>(first.size() + second.size());
+//    // handle conflicts like same name but different mass - or different ion parts
+//    merged.addAll(first);
+//
+//    //
+//    final Map<String, IonPart> existingNameMap = HashMap.newHashMap(first.size());
+//    for (final IonPart part : first) {
+//      final String chargedName = part.toString(IonPartStringFlavor.SIMPLE_WITH_CHARGE);
+//      final IonPart old = existingNameMap.computeIfAbsent(chargedName, k -> part);
+//      if (old != part) {
+//        logger.warning(
+//            "Ion part was already present. This may point to a duplicate in the first ion part list: %s and %s (using the first one)".formatted(
+//                part.toString(IonPartStringFlavor.FULL_WITH_MASS),
+//                old.toString(IonPartStringFlavor.FULL_WITH_MASS)));
+//      }
+//    }
+//
+//    for (final IonPart part : second) {
+//      final IonPart potentialConflict = existingNameMap.get(
+//          part.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE));
+//      if (potentialConflict != null) {
+//        if (!Objects.equals(potentialConflict, part)) {
+//          // TODO conflict resolution
+//          boolean massDiff = Precision.equalDoubleSignificance(part.totalMass(),
+//              potentialConflict.totalMass());
+//
+//          logger.warning(
+//              "Detected conflict between two ion parts: %s and %s (mass within precisions=%s). Will use the first one.".formatted(
+//                  part.toString(IonPartStringFlavor.FULL_WITH_MASS),
+//                  potentialConflict.toString(IonPartStringFlavor.FULL_WITH_MASS), massDiff));
+//        }
+//        // otherwise its equal and nothing to do then
+//      } else {
+//        merged.add(part);
+//      }
+//    }
+//
+//    // sort
+//    merged.sort(IonPartSorting.DEFAULT_NEUTRAL_THEN_LOSSES_THEN_ADDED.getComparator());
+//    merged.trimToSize();
+//    return merged;
+//  }
+//
+//  private static List<IonType> mergeTypes(final @NotNull List<IonType> first,
+//      final @NotNull List<IonType> second) {
+//    ArrayList<IonType> merged = new ArrayList<>(first.size() + second.size());
+//    // handle conflicts like same name but different mass - or different ion parts
+//    merged.addAll(first);
+//    final Map<String, IonType> existingNameMap = HashMap.newHashMap(first.size());
+//    for (final IonType ion : first) {
+//      final IonType old = existingNameMap.computeIfAbsent(ion.name(), k -> ion);
+//      if (old != ion) {
+//        logger.warning(
+//            "Ion type was already present. This may point to a duplicate in the first ion type list: %s and %s (using the first one)".formatted(
+//                ion.toString(IonTypeStringFlavor.FULL_WITH_MASS),
+//                old.toString(IonTypeStringFlavor.FULL_WITH_MASS)));
+//      }
+//    }
+//
+//    // add those from second list check for conflicts
+//    for (IonType ion : second) {
+//      final IonType potentialConflict = existingNameMap.get(ion.name());
+//      if (potentialConflict != null) {
+//        // otherwise its equal, nothing to do then
+//        if (!Objects.equals(potentialConflict, ion)) {
+//          // TODO conflict resolution
+//          boolean massDiff = Precision.equalDoubleSignificance(ion.totalMass(),
+//              potentialConflict.totalMass());
+//
+//          logger.warning(
+//              "Detected conflict between two ion types: %s and %s (mass within precisions=%s). Will use the first one.".formatted(
+//                  ion.toString(IonTypeStringFlavor.FULL_WITH_MASS),
+//                  potentialConflict.toString(IonTypeStringFlavor.FULL_WITH_MASS), massDiff));
+//        }
+//      } else {
+//        merged.add(ion);
+//      }
+//    }
+//
+//    // sort by mz etc
+//    merged.sort(IonTypeSorting.getIonTypeDefault().getComparator());
+//
+//    // trim
+//    merged.trimToSize();
+//    return merged;
+//  }
 
   public static void loadGlobalLibrary() {
     GlobalIonLibraryIO.loadGlobalIonLibrary();
