@@ -88,8 +88,10 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
     this.queryScan = queryScan;
     this.entry = entry;
     this.similarity = similarity;
-    set(CCSRelativeErrorType.class, ccsRelativeError);
 
+    if (ccsRelativeError != null) {
+      set(CCSRelativeErrorType.class, ccsRelativeError);
+    }
     if (testedPrecursorMz != null && entry.getPrecursorMZ() != null) {
       set(MzAbsoluteDifferenceType.class, testedPrecursorMz - entry.getPrecursorMZ());
     }
@@ -97,7 +99,9 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
       set(RtAbsoluteDifferenceType.class,
           testedRt - (Float) entry.getOrElse(DBEntryField.RT, null));
     }
-    set(RIDiffType.class, riDiff);
+    if (riDiff != null) {
+      set(RIDiffType.class, riDiff);
+    }
   }
 
   public SpectralDBAnnotation(@NotNull SpectralLibraryEntry entry,
