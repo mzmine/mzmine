@@ -104,6 +104,16 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
     }
   }
 
+  /**
+   *
+   * @param map A map of {@link DataType} -> Object mappings. These types are added to this
+   *            {@link SpectralDBAnnotation}, not the {@link SpectralLibraryEntry}.
+   *            <br>
+   *            This annotation should only contain mappings that reference between the static types
+   *            of the spectral library entry and the
+   *            {@link io.github.mzmine.datamodel.features.FeatureListRow}. E.g. Errors such as
+   *            {@link RIDiffType} or {@link RtAbsoluteDifferenceType}.
+   */
   public SpectralDBAnnotation(@NotNull SpectralLibraryEntry entry,
       @NotNull SpectralSimilarity similarity, @Nullable Scan queryScan,
       @Nullable Map<DataType, Object> map) {
@@ -465,5 +475,17 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
   @Override
   public Map<DataType, Object> getMap() {
     return map;
+  }
+
+  /**
+   * This annotation should only contain mappings that reference between the static types of the
+   * spectral library entry and the {@link io.github.mzmine.datamodel.features.FeatureListRow}. E.g.
+   * Errors such as {@link RIDiffType} or {@link RtAbsoluteDifferenceType}.
+   *
+   * @see ModularDataModelMap#set(DataType, Object)
+   */
+  @Override
+  public <T> boolean set(DataType<T> type, T value) {
+    return super.set(type, value);
   }
 }
