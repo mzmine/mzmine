@@ -27,12 +27,15 @@ package io.github.mzmine.datamodel.features.types.annotations;
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.compoundannotations.AnnotationSummary;
 import io.github.mzmine.datamodel.features.compoundannotations.AnnotationSummary.Scores;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
@@ -43,7 +46,9 @@ import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.List;
+import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -57,7 +62,8 @@ import javafx.scene.text.TextAlignment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AnnotationSummaryType extends LinkedGraphicalType {
+public class AnnotationSummaryType extends DataType<FeatureAnnotation> implements
+    GraphicalColumType<FeatureAnnotation> {
 
   @Override
   public @NotNull String getUniqueID() {
@@ -67,12 +73,6 @@ public class AnnotationSummaryType extends LinkedGraphicalType {
   @Override
   public @NotNull String getHeaderString() {
     return "AS";
-  }
-
-  @Override
-  public @Nullable Node createCellContent(@NotNull ModularFeatureListRow row, Boolean cellData,
-      @Nullable RawDataFile raw, AtomicDouble progress) {
-    throw new IllegalStateException("Statement should be unreachable due to custom cell factory.");
   }
 
   @Override
@@ -100,6 +100,22 @@ public class AnnotationSummaryType extends LinkedGraphicalType {
     column.setMaxWidth(60);
 
     return (TreeTableColumn) column;
+  }
+
+  @Override
+  public Property<FeatureAnnotation> createProperty() {
+    return new SimpleObjectProperty<>();
+  }
+
+  @Override
+  public Class<FeatureAnnotation> getValueClass() {
+    return FeatureAnnotation.class;
+  }
+
+  @Override
+  public @Nullable Node createCellContent(@NotNull ModularFeatureListRow row,
+      FeatureAnnotation cellData, @Nullable RawDataFile raw, AtomicDouble progress) {
+    throw new IllegalStateException("Statement should be unreachable due to custom cell factory.");
   }
 
   private static class MicroChartCell extends
