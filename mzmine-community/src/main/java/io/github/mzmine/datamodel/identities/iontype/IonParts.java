@@ -239,9 +239,10 @@ public class IonParts {
         if (name == null) {
           name = cleanFormula;
         }
-        if (absSingleMass == null) {
-          absSingleMass = FormulaUtils.getMonoisotopicMass(parsedFormula, singleCharge);
-        }
+
+        // always replace mass with formula mass - otherwise mass might be a bit different
+        // when loading legacy library parameter
+        absSingleMass = FormulaUtils.getMonoisotopicMass(parsedFormula, singleCharge);
       } else {
         // parsing failed
         if (name == null) {
