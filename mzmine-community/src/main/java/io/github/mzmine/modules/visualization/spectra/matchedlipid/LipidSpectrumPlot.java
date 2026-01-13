@@ -83,7 +83,7 @@ public class LipidSpectrumPlot extends SpectraPlot {
     final List<XYDatasetAndRenderer> datasets = new ArrayList<>();
     if (matchedMsMsScan != null) {
       PlotXYDataProvider spectrumProvider = new SingleSpectrumProvider(matchedMsMsScan,
-          "MS/MS Spectrum", palette.getNegativeColor());
+          "MS2 Spectrum", palette.getNegativeColor());
       ColoredXYDataset spectrumDataSet = new ColoredXYDataset(spectrumProvider, runOption);
       datasets.add(new DatasetAndRenderer(spectrumDataSet, new ColoredXYBarRenderer(true)));
     }

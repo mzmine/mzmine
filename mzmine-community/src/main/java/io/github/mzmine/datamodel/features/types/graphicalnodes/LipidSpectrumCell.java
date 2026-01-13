@@ -53,11 +53,18 @@ public class LipidSpectrumCell extends ChartCell<LipidSpectrumPlot> {
 
     final ModularFeatureListRow row = getTableRow().getItem();
     final List<MatchedLipid> matches = row.getLipidMatches();
-    if (row == null || matches.isEmpty() || matches.getFirst().getMatchedFragments().isEmpty()) {
+    if (row == null || matches.isEmpty()) {
       getChart().clearPlot();
       getChart().setVisible(false);
       return;
+    } else if (matches.getFirst().getMatchedFragments().isEmpty()) {
+      getChart().clearPlot();
+      getChart().setVisible(false);
+      setText("No MS2 verification");
+      return;
     }
+
+    setText(null);
     getChart().setVisible(true);
 
     getChart().updateLipidSpectrum(matches.getFirst(), true, RunOption.THIS_THREAD);
