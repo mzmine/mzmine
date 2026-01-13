@@ -99,6 +99,7 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.ExternalCCSCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule;
+import io.github.mzmine.modules.dataprocessing.id_diffms.DiffMSModule;
 import io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations.AddIonNetworkingModule;
@@ -392,6 +393,7 @@ public class BatchModeModulesList {
           PrecursorDBSearchModule.class, //
           SpectralLibrarySearchModule.class, //
           BioTransformerModule.class, //
+          DiffMSModule.class, //
           SiriusApiResultsImportModule.class, //
           SiriusApiFingerIdModule.class, //
 
