@@ -27,6 +27,7 @@ package io.github.mzmine.util.spectraldb.entry;
 import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -487,5 +488,13 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
   @Override
   public <T> boolean set(DataType<T> type, T value) {
     return super.set(type, value);
+  }
+
+  @Override
+  public @Nullable IsotopePattern getIsotopePattern() {
+    // store the isotope pattern? Ideally the match shouldn't store it, but the entry. currently no
+    // DBEntry field for an isotope pattern. and if we make one it is saved to libraries, which also
+    // seems unnecessary
+    return entry.calculateIsotopePattern();
   }
 }

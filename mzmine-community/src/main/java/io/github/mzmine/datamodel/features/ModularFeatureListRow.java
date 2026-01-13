@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -55,6 +54,7 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaList
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.annotations.online_reaction.OnlineLcReactionMatchType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
@@ -668,6 +668,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   @Override
+  @Nullable
   public Object getPreferredAnnotation() {
     return streamAllFeatureAnnotations().findFirst().orElse(null);
   }
@@ -725,5 +726,13 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   @Override
   public String toString() {
     return FeatureUtils.rowToString(this);
+  }
+
+  @Override
+  public <T> @Nullable T get(DataType<T> key) {
+    if (key instanceof MappingType<?> mt) {
+      return (T) mt.getValue(this);
+    }
+    return super.get(key);
   }
 }

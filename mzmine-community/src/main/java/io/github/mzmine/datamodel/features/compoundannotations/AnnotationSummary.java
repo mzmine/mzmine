@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -85,8 +85,8 @@ public class AnnotationSummary {
       return 0;
     }
 
-    Double rowMz = row.getAverageMZ();
-    Double precursorMZ = annotation.getPrecursorMZ();
+    final Double rowMz = row.getAverageMZ();
+    final Double precursorMZ = annotation.getPrecursorMZ();
 
     if (rowMz != null && precursorMZ != null) {
       return 1
@@ -100,8 +100,8 @@ public class AnnotationSummary {
       return 0;
     }
 
-    Float rowRt = row.getAverageRT();
-    Float precursorRt = annotation.getRT();
+    final Float rowRt = row.getAverageRT();
+    final Float precursorRt = annotation.getRT();
 
     if (rowRt != null && precursorRt != null) {
       return 1 - Math.min(Math.abs(rowRt - precursorRt), maxRtDiff) / maxRtDiff;
@@ -114,8 +114,8 @@ public class AnnotationSummary {
       return 0;
     }
 
-    Float averageCCS = row.getAverageCCS();
-    Float ccs = annotation.getCCS();
+    final Float averageCCS = row.getAverageCCS();
+    final Float ccs = annotation.getCCS();
 
     if (averageCCS != null && ccs != null) {
       return getScore(averageCCS / ccs, maxCcsDev);
@@ -150,8 +150,8 @@ public class AnnotationSummary {
       return 0;
     }
 
-    IsotopePattern bestIsotopePattern = row.getBestIsotopePattern();
-    IsotopePattern predictedIp = annotation.calculateIsotopePattern();
+    final IsotopePattern bestIsotopePattern = row.getBestIsotopePattern();
+    final IsotopePattern predictedIp = annotation.getIsotopePattern();
     if (bestIsotopePattern == null || predictedIp == null) {
       return 0d;
     }

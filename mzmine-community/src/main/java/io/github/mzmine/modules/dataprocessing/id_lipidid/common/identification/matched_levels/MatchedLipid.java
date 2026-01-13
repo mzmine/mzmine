@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,6 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels;
 
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -66,13 +66,18 @@ public class MatchedLipid implements FeatureAnnotation {
   private static final String XML_COMMENT = "comment";
   private static final String XML_STATUS = "status";
 
-  private ILipidAnnotation lipidAnnotation;
-  private Double accurateMz;
-  private IonizationType ionizationType;
-  private Set<LipidFragment> matchedFragments;
-  private Double msMsScore;
+  private final ILipidAnnotation lipidAnnotation;
+  private final Double accurateMz;
+  private final IonizationType ionizationType;
+  private final Set<LipidFragment> matchedFragments;
+  private final Double msMsScore;
+  private final MatchedLipidStatus status;
   private String comment;
-  private MatchedLipidStatus status;
+  /**
+   * Pattern could be stored in ILipidAnnotation, but it seems unnecessary to calculate it, unless
+   * we have a match
+   */
+  private final IsotopePattern pattern;
 
   public MatchedLipid(ILipidAnnotation lipidAnnotation, Double accurateMz,
       IonizationType ionizationType, Set<LipidFragment> matchedFragments, Double msMsScore) {
@@ -90,6 +95,7 @@ public class MatchedLipid implements FeatureAnnotation {
     this.msMsScore = msMsScore;
     this.status = status;
     this.comment = status.getComment();
+    this.pattern = calculateIsotopePattern();
   }
 
   public static MatchedLipid loadFromXML(XMLStreamReader reader,
@@ -192,40 +198,20 @@ public class MatchedLipid implements FeatureAnnotation {
     return lipidAnnotation;
   }
 
-  public void setLipidAnnotation(ILipidAnnotation lipidAnnotation) {
-    this.lipidAnnotation = lipidAnnotation;
-  }
-
   public Double getAccurateMz() {
     return accurateMz;
-  }
-
-  public void setAccurateMz(Double accurateMz) {
-    this.accurateMz = accurateMz;
   }
 
   public IonizationType getIonizationType() {
     return ionizationType;
   }
 
-  public void setIonizationType(IonizationType ionizationType) {
-    this.ionizationType = ionizationType;
-  }
-
   public Set<LipidFragment> getMatchedFragments() {
     return matchedFragments;
   }
 
-  public void setMatchedFragments(Set<LipidFragment> matchedFragments) {
-    this.matchedFragments = matchedFragments;
-  }
-
   public Double getMsMsScore() {
     return msMsScore;
-  }
-
-  public void setMsMsScore(Double msMsScore) {
-    this.msMsScore = msMsScore;
   }
 
   @Override
@@ -239,10 +225,6 @@ public class MatchedLipid implements FeatureAnnotation {
 
   public MatchedLipidStatus getStatus() {
     return status;
-  }
-
-  public void setStatus(MatchedLipidStatus status) {
-    this.status = status;
   }
 
   @Override
@@ -367,6 +349,11 @@ public class MatchedLipid implements FeatureAnnotation {
   @Override
   public @Nullable Float getScore() {
     return getMsMsScore() != null ? getMsMsScore().floatValue() : null;
+  }
+
+  @Override
+  public @Nullable IsotopePattern getIsotopePattern() {
+    return pattern;
   }
 
   @Override

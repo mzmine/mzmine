@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,15 +27,13 @@ package io.github.mzmine.datamodel.features.types.annotations;
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.compoundannotations.AnnotationSummary;
 import io.github.mzmine.datamodel.features.compoundannotations.AnnotationSummary.Scores;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
+import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
@@ -63,16 +61,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AnnotationSummaryType extends DataType<FeatureAnnotation> implements
-    GraphicalColumType<FeatureAnnotation> {
+    GraphicalColumType<FeatureAnnotation>, NoTextColumn {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "annotation_summary";
+    return "annotation_quality_summary";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "AS";
+    return "AQS";
   }
 
   @Override
@@ -83,12 +81,14 @@ public class AnnotationSummaryType extends DataType<FeatureAnnotation> implement
         getHeaderString());
     column.setUserData(this);
     if (parentType != null) {
+      // parent type set -> is a sub type of an annotation/list type. get annotation from there
       column.setCellValueFactory(cdf -> {
         var value = (List<? extends FeatureAnnotation>) cdf.getValue().getValue()
             .get((DataType<?>) parentType);
         return new ReadOnlyObjectWrapper<>(value != null ? value.getFirst() : null);
       });
     } else {
+      // parent type not set -> is the "summary"/best annotation in the row -> get best annotation and grab summary from there
       column.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(
           CompoundAnnotationUtils.getBestFeatureAnnotation(cdf.getValue().getValue())
               .orElse(null)));
