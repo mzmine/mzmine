@@ -113,11 +113,11 @@ public class IonIdentityTest {
     // add ions to rows - not really done much as the tasks handle this
     final IonNetwork network = new IonNetwork(1);
     final IonIdentity ionH = new IonIdentity(hAdduct);
-    ionH.setNetwork(network);
     rowProtonated.addIonIdentity(ionH);
     final IonIdentity ionNa = new IonIdentity(naAdduct);
-    ionNa.setNetwork(network);
     rowSodiated.addIonIdentity(ionNa);
+    network.put(rowProtonated, ionH);
+    network.put(rowSodiated, ionNa);
 
     assertNotNull(rowProtonated.get(new IonIdentityListType()));
     assertNotNull(rowProtonated.get(IonIdentityListType.class));
