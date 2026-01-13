@@ -220,28 +220,33 @@ public class IonParts {
     }
 
     if (singleFormula != null) {
-      if (name == null) {
-        // name before removing whitespace
-        name = singleFormula;
-      }
-      singleFormula = StringUtils.removeAllWhiteSpace(singleFormula);
+      // try parse formula but keep single formula in case parsing fails it will be the name
+      // keeping all spaces
+      String cleanFormula = StringUtils.removeAllWhiteSpace(singleFormula);
       // try parse formula
       final IMolecularFormula parsedFormula =
-          singleCharge == null ? FormulaUtils.createMajorIsotopeMolFormulaWithCharge(singleFormula)
-              : FormulaUtils.createMajorIsotopeMolFormulaWithCharge(singleFormula, singleCharge);
+          singleCharge == null ? FormulaUtils.createMajorIsotopeMolFormulaWithCharge(cleanFormula)
+              : FormulaUtils.createMajorIsotopeMolFormulaWithCharge(cleanFormula, singleCharge);
 
       if (parsedFormula != null) {
         // parsing successful
+        cleanFormula = FormulaUtils.getFormulaString(parsedFormula, false);
+        singleFormula = cleanFormula;
+
         if (singleCharge == null) {
           singleCharge = requireNonNullElse(parsedFormula.getCharge(), 0);
         }
-        singleFormula = FormulaUtils.getFormulaString(parsedFormula, false);
-
+        if (name == null) {
+          name = cleanFormula;
+        }
         if (absSingleMass == null) {
           absSingleMass = FormulaUtils.getMonoisotopicMass(parsedFormula, singleCharge);
         }
       } else {
         // parsing failed
+        if (name == null) {
+          name = singleFormula; // name allowing whitespace
+        }
         singleFormula = null;
       }
     }

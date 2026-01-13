@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -92,7 +92,7 @@ public class FormulaStringConverter {
 
   public static String getString(IMolecularFormula formula, boolean skipMajorMassNumber,
       boolean showCharge) {
-    final double skipMassNumberForMajorPercent = 0.6;
+    final double skipMassNumberForMajorPercent = 0.55;
 
     if (skipMassNumberForMajorPercent < 0.5) {
       throw new IllegalArgumentException(

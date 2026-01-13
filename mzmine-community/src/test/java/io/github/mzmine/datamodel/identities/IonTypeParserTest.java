@@ -155,8 +155,8 @@ class IonTypeParserTest {
 
       // braces for names with - or +
       new Case("[M+2(α-OH-)]2-", "[M+2(α-OH)]2-", 1, -2),//
-      new Case("[M+2Ca(OH)2+H]+", "[M+2Ca(OH)2+H]+", 1, 1),//
-      new Case("[M+2((OH)2Ca)+H]+", "[M+2(OH)2Ca+H]+", 1, 1),//
+      new Case("[M+2Ca(OH)2+H]+", "[M+2CaH2O2+H]+", 1, 1),//
+      new Case("[M+2((OH)2Ca)+H]+", "[M+2CaH2O2+H]+", 1, 1),//
 
       new Case("[M-H2O]", "[M-H2O]", 1, 0) //
   );
