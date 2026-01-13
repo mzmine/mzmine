@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -86,6 +86,9 @@ public class StringUtils {
   public static Integer parseIntegerOrElse(String str, boolean onlyUseDigits,
       @Nullable Integer defaultValue) {
     try {
+      if (StringUtils.isBlank(str)) {
+        return defaultValue;
+      }
       return Integer.parseInt(onlyUseDigits ? getDigits(str) : str);
     } catch (Exception ex) {
       // silent

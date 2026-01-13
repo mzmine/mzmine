@@ -68,11 +68,16 @@ public final class IonType {
 
   /**
    * handles the sorting and everything for the parts
-   *
-   * @param parts
    */
   IonType(@NotNull IonPart @NotNull ... parts) {
-    this(List.of(parts), 1);
+    this(1, parts);
+  }
+
+  /**
+   * handles the sorting and everything for the parts
+   */
+  IonType(int molecules, @NotNull IonPart @NotNull ... parts) {
+    this(List.of(parts), molecules);
   }
 
   /**

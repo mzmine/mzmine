@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -46,7 +47,10 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 public class IonParts {
 
   public static final String XML_ELEMENT = "ionpart";
-
+  /**
+   * Contains at least one - or + and does not already start and end with braces
+   */
+  public static final Pattern REQUIRES_BRACES_PATTERN = Pattern.compile("^(?!\\().*[+-].*(?!\\))$");
   /**
    * The only part allowed with empty name
    */
@@ -216,19 +220,17 @@ public class IonParts {
     }
 
     if (singleFormula != null) {
+      if (name == null) {
+        // name before removing whitespace
+        name = singleFormula;
+      }
       singleFormula = StringUtils.removeAllWhiteSpace(singleFormula);
       // try parse formula
       final IMolecularFormula parsedFormula =
           singleCharge == null ? FormulaUtils.createMajorIsotopeMolFormulaWithCharge(singleFormula)
               : FormulaUtils.createMajorIsotopeMolFormulaWithCharge(singleFormula, singleCharge);
 
-      if (parsedFormula == null) {
-        if (name == null) {
-          name = singleFormula;
-        }
-        // remain unknown as formula was not parsed - mass 0 and formula null
-        return unknown(name, requireNonNullElse(singleCharge, 0), count);
-      } else {
+      if (parsedFormula != null) {
         // parsing successful
         if (singleCharge == null) {
           singleCharge = requireNonNullElse(parsedFormula.getCharge(), 0);
@@ -238,6 +240,9 @@ public class IonParts {
         if (absSingleMass == null) {
           absSingleMass = FormulaUtils.getMonoisotopicMass(parsedFormula, singleCharge);
         }
+      } else {
+        // parsing failed
+        singleFormula = null;
       }
     }
     if (absSingleMass == null) {
@@ -248,7 +253,11 @@ public class IonParts {
       throw new IllegalArgumentException("name or singleFormula must be defined");
     }
 
-    name = requireNonNullElse(name, singleFormula).trim();
+    name = name.trim();
+
+    if (REQUIRES_BRACES_PATTERN.matcher(name).matches()) {
+      name = "(" + name + ")";
+    }
 
     // SILENT_CHARGE has empty name check that mass is null
     if (name.isEmpty()) {

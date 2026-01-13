@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -60,7 +60,8 @@ class IonTypeParserTest {
         "%s charge was wrong as %d".formatted(input, charge));
     Assertions.assertEquals(mol, ionType.molecules(),
         "%s mol was wrong as %d".formatted(input, mol));
-    Assertions.assertEquals(formatted, ionType.toString());
+    Assertions.assertEquals(formatted, ionType.toString(),
+        "%s input wrong output format".formatted(input));
   }
 
   final static String[] nh4 = new String[]{"M +NH4", "M+NH4 ] +", "[M+NH4] +", "[1M +NH4]+",
@@ -113,12 +114,16 @@ class IonTypeParserTest {
   }
 
   static final List<Case> cases = List.of(
-      // this is tricky to format correctly. M- does not write e- and here we want it to be written
+      // this is tricky to format correctly.
+      new Case("M+", "[M-e]+", 1, 1), //
+      new Case("2M-2", "[2M+2e]2-", 2, -2), //
+      new Case("M-e", "[M-e]+", 1, 1), //
+      new Case("[M]+", "[M]+", 1, 1), //
+      new Case("[M]+", "[M]+", 1, 1), //
       new Case("M-H+e", "[M-H+e]2-", 1, -2), //
       new Case("M-H-2e", "[M-H-2e]+", 1, 1), //
       new Case("2M+2H-2H2O]", "[2M-2H2O+2H]2+", 2, 2), //
-      new Case("2M+", "[2M]+", 2, 1), //
-      new Case("M+", "[M]+", 1, 1), //
+      new Case("2M+", "[2M-e]+", 2, 1), //
       new Case("M-2H]2-", "[M-2H]2-", 1, -2), //
       new Case("M-H)-", "[M-H]-", 1, -1), //
       new Case("M+H", "[M+H]+", 1, 1), //
@@ -143,9 +148,17 @@ class IonTypeParserTest {
       new Case("M - HCl +2 FA", "[M-HCl+2CHO2]2-", 1, -2), //
       new Case(" - HCl +2 FA", "[M-HCl+2CHO2]2-", 1, -2), //
       new Case("[ - HCl +2 FA]", "[M-HCl+2CHO2]2-", 1, -2), //
+      // sorting
+      new Case("[M+H-C12H20O9]+", "[M-C12H20O9+H]+", 1, 1), //
+      new Case("[M+NOT Defined]+", "[M+NOT Defined]+", 1, 1), //
+      new Case("[M+(NOT Defined)]+", "[M+NOT Defined]+", 1, 1), //
 
-      // counter intuitve but we expect ions to have a charge and default to 1
-      new Case("[M-H2O]", "[M-H2O]+", 1, 1) //
+      // braces for names with - or +
+      new Case("[M+2(α-OH-)]2-", "[M+2(α-OH)]2-", 1, -2),//
+      new Case("[M+2Ca(OH)2+H]+", "[M+2Ca(OH)2+H]+", 1, 1),//
+      new Case("[M+2((OH)2Ca)+H]+", "[M+2(OH)2Ca+H]+", 1, 1),//
+
+      new Case("[M-H2O]", "[M-H2O]", 1, 0) //
   );
 
 
@@ -199,29 +212,10 @@ class IonTypeParserTest {
 
   @Test
   void test() {
-//    IonType ionType = IonTypes.H.asIonType();
-//    CompoundDBAnnotation annotation = new SimpleCompoundDBAnnotation();
-//
-//    final MZTolerance tol = new MZTolerance(0.000001, .01);
-//
-//    annotation.put(SmilesStructureType.class, "C1CCN(C1)C(=O)C=CC=CC2=CC3=C(C=C2)OCO3");
-//    double mzFromSmiles = CompoundDBAnnotation.calcMzForAdduct(annotation, ionType);
-//
-//    annotation.put(FormulaType.class, "C16H17NO3");
-//    double mzFromFormula = CompoundDBAnnotation.calcMzForAdduct(annotation, ionType);
-//
-//    annotation.put(PrecursorMZType.class, 272.1281199);
-//    annotation.put(NewIonTypeType.class, ionType);
-//    double mzFromMz = CompoundDBAnnotation.calcMzForAdduct(annotation, ionType);
-//
-//    annotation.put(NeutralMassType.class, 271.1208434);
-//    double mzFromNeutral = CompoundDBAnnotation.calcMzForAdduct(annotation, ionType);
-//
-//    logger.info(
-//        () -> "Smiles: " + mzFromSmiles + "\tFormula: " + mzFromFormula + "\tPrecursor: " + mzFromMz
-//              + "\tNeutral: " + mzFromNeutral);
-//    Assertions.assertTrue(tol.checkWithinTolerance(mzFromFormula, mzFromNeutral));
-//    Assertions.assertTrue(tol.checkWithinTolerance(mzFromMz, mzFromNeutral));
-//    Assertions.assertTrue(tol.checkWithinTolerance(mzFromSmiles, mzFromNeutral));
+    testIonParse(new Case("M+", "[M-e]+", 1, 1));
+
+    final Case c = new Case("[M+2(α-OH-)]2-", "[M+2(α-OH)]2-", 1, -2);
+    testIonParse(c);
   }
+
 }
