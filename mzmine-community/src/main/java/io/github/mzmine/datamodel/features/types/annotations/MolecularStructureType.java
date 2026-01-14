@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -30,6 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
@@ -114,11 +114,23 @@ public class MolecularStructureType extends DataType<MolecularStructure> impleme
     if (!(value instanceof MolecularStructure structure)) {
       return null;
     }
+
+    final DataType<?> mainType = switch (superType) {
+      case PreferredAnnotationType pt -> {
+        List<FeatureAnnotation> annotations = row.get(pt);
+        if (annotations != null && !annotations.isEmpty()) {
+          yield annotations.getFirst().getAnnotationPriority().getAnnotationType();
+        }
+        yield superType;
+      }
+      case null, default -> superType;
+    };
+
     return () -> FxThread.runLater(() -> {
-      if (superType instanceof CompoundDatabaseMatchesType) {
+      if (mainType instanceof CompoundDatabaseMatchesType) {
         CompoundDatabaseMatchTab tab = new CompoundDatabaseMatchTab(table);
         MZmineCore.getDesktop().addTab(tab);
-      } else if (superType instanceof SpectralLibraryMatchesType) {
+      } else if (mainType instanceof SpectralLibraryMatchesType) {
         MZmineCore.getDesktop().addTab(new SpectralIdentificationResultsTab(table));
       } else {
         new MolStructureViewer("", structure.structure()).show();
