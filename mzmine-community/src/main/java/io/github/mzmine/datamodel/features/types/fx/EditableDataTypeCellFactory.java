@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,6 +26,7 @@ package io.github.mzmine.datamodel.features.types.fx;
 
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,7 +58,11 @@ public class EditableDataTypeCellFactory implements
   @Override
   public TreeTableCell<ModularFeatureListRow, Object> call(
       TreeTableColumn<ModularFeatureListRow, Object> param) {
-    TextFieldTreeTableCell<ModularFeatureListRow, Object> cell = new TextFieldTreeTableCell<>();
+    TextFieldTreeTableCell<ModularFeatureListRow, Object> cell = new TextFieldTreeTableCell<>() {
+      {
+        setWrapText(type instanceof StringType);
+      }
+    };
 
     if (type instanceof StringParser) {
       cell.setConverter(((StringParser) type).getStringConverter());
