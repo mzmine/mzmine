@@ -67,6 +67,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerMod
 import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
 import io.github.mzmine.modules.dataprocessing.id_addmanualcomp.CompoundAnnotationController;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
+import io.github.mzmine.modules.dataprocessing.id_diffms.DiffMSModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
@@ -384,6 +385,11 @@ public class FeatureTableContextMenu extends ContextMenu {
     formulaPredictionItem.setOnAction(
         e -> FormulaPredictionModule.showSingleRowIdentificationDialog(selectedRows.get(0)));
 
+    final MenuItem diffmsSelectedRows = new ConditionalMenuItem("DiffMS (MS/MS → structure)",
+        () -> selectedRows.size() >= 1);
+    diffmsSelectedRows.setOnAction(
+        e -> DiffMSModule.showSelectedRowsDialog(new ArrayList<>(selectedRows), table, Instant.now()));
+
     final MenuItem fragmentDashboardItem = new ConditionalMenuItem(
         "Open in fragmentation dashboard",
         () -> selectedRow != null && selectedRow.getMostIntenseFragmentScan() != null);
@@ -430,7 +436,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     siriusSubMenu.getItems().addAll(sendToSirius, runFingerId, rankUsingFingerId);
 
     searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
-        formulaPredictionItem, fragmentDashboardItem, new SeparatorMenuItem(), masstSearch,
+        formulaPredictionItem, diffmsSelectedRows, fragmentDashboardItem, new SeparatorMenuItem(), masstSearch,
         new SeparatorMenuItem(), searchMassPubChem, searchFormulaPubChem, new SeparatorMenuItem(),
         siriusSubMenu);
   }

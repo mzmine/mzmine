@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -47,29 +48,35 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DiffMSTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(DiffMSTask.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
+  private static final Pattern MSMS_ANN_LOSS = Pattern.compile("^\\[M-(.+)]$");
+  private static final Pattern MSMS_ANN_FORMULA = Pattern.compile("^\\[(.+)]$");
+  private static final Pattern RUNNER_PROGRESS = Pattern.compile("^MZMINE_DIFFMS_PROGRESS (\\d+)/(\\d+)$");
+  private static final Pattern RUNNER_STAGE = Pattern.compile("^MZMINE_DIFFMS_STAGE (.+)$");
 
   private final @NotNull FeatureList flist;
+  private final @Nullable List<ModularFeatureListRow> rowsOverride;
   private final @NotNull DiffMSParameters.Device device;
   private final int topK;
   private final int maxMs2Peaks;
@@ -83,10 +90,19 @@ public class DiffMSTask extends AbstractTask {
   private int totalRows;
   private int doneRows;
 
-  public DiffMSTask(@NotNull final MZmineProject project, @NotNull final io.github.mzmine.parameters.ParameterSet parameters,
+  public DiffMSTask(@NotNull final MZmineProject project,
+      @NotNull final io.github.mzmine.parameters.ParameterSet parameters,
       @NotNull final FeatureList flist, @NotNull final Instant moduleCallDate) {
+    this(project, parameters, flist, null, moduleCallDate);
+  }
+
+  public DiffMSTask(@NotNull final MZmineProject project,
+      @NotNull final io.github.mzmine.parameters.ParameterSet parameters,
+      @NotNull final FeatureList flist, @Nullable final List<ModularFeatureListRow> rowsOverride,
+      @NotNull final Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.flist = flist;
+    this.rowsOverride = rowsOverride == null ? null : List.copyOf(rowsOverride);
     this.pythonExe = parameters.getValue(DiffMSParameters.pythonExecutable);
     this.diffmsDir = parameters.getValue(DiffMSParameters.diffmsDir);
     this.checkpoint = parameters.getValue(DiffMSParameters.checkpoint);
@@ -137,7 +153,8 @@ public class DiffMSTask extends AbstractTask {
     final Map<Integer, String> formulaByRowId = new HashMap<>();
     final List<Map<String, Object>> input = new ArrayList<>();
 
-    final List<FeatureListRow> rows = flist.getRows();
+    final List<? extends FeatureListRow> rows =
+        rowsOverride != null ? rowsOverride : flist.getRows();
     totalRows = 0;
     doneRows = 0;
     int skippedNoFormula = 0;
@@ -147,12 +164,16 @@ public class DiffMSTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
+      if (!Objects.equals(row.getFeatureList(), flist)) {
+        throw new IllegalStateException("Selected rows must be from the same feature list.");
+      }
       if (!(row instanceof ModularFeatureListRow mrow)) {
         throw new IllegalStateException("Unexpected row type.");
       }
 
       final String formula = resolveFormula(mrow);
       final List<Scan> ms2 = mrow.getAllFragmentScans();
+      final String adduct = resolveAdduct(mrow);
       if (formula == null) {
         skippedNoFormula++;
         continue;
@@ -197,9 +218,10 @@ public class DiffMSTask extends AbstractTask {
 
       rowsById.put(row.getID(), mrow);
       formulaByRowId.put(row.getID(), formula);
-      input.add(Map.of("rowId", row.getID(), "formula", formula, "mzs", mzOut, "intensities", intOut,
-          "polarity", polarity == PolarityType.NEGATIVE ? "NEGATIVE" : "POSITIVE"));
-      doneRows++;
+      final List<Map<String, Object>> sub = resolveSubformulas(mrow, formula);
+      input.add(Map.of("rowId", row.getID(), "formula", formula, "adduct", adduct, "mzs", mzOut,
+          "intensities", intOut, "subformulas", sub, "polarity",
+          polarity == PolarityType.NEGATIVE ? "NEGATIVE" : "POSITIVE"));
     }
 
     if (input.isEmpty()) {
@@ -225,6 +247,9 @@ public class DiffMSTask extends AbstractTask {
       throw new IllegalStateException("Cannot write DiffMS input JSON.", e);
     }
 
+    doneRows = 0;
+    description = "DiffMS: loading model";
+
     final List<String> cmd = new ArrayList<>();
     cmd.add(pythonExe.getAbsolutePath());
     cmd.add(runner.getAbsolutePath());
@@ -247,7 +272,7 @@ public class DiffMSTask extends AbstractTask {
     cmd.add("--device");
     cmd.add(device.toArg());
 
-    runOrThrow(diffmsDir, cmd);
+    runOrThrowWithProgress(diffmsDir, cmd);
 
     final List<Map<String, Object>> outputs;
     try {
@@ -258,7 +283,11 @@ public class DiffMSTask extends AbstractTask {
 
     for (var out : outputs) {
       final int rowId = (Integer) out.get("rowId");
-      final List<String> smiles = (List<String>) out.get("smiles");
+      final Object rawSmiles = out.get("smiles");
+      if (!(rawSmiles instanceof List<?> rawList)) {
+        continue;
+      }
+      final List<String> smiles = rawList.stream().map(Object::toString).toList();
       final ModularFeatureListRow row = rowsById.get(rowId);
       if (row == null) {
         continue;
@@ -281,19 +310,28 @@ public class DiffMSTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private static void runOrThrow(final File workDir, final List<String> cmd) {
+  private void runOrThrowWithProgress(final File workDir, final List<String> cmd) {
     try {
       final ProcessBuilder b = new ProcessBuilder(cmd);
       b.directory(workDir);
+      b.redirectErrorStream(true);
       final Process p = b.start();
       final StringBuilder err = new StringBuilder();
-      try (var outReader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-          var errReader = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+      try (var outReader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
         String line;
         while ((line = outReader.readLine()) != null) {
-          logger.finest(line);
-        }
-        while ((line = errReader.readLine()) != null) {
+          final Matcher pm = RUNNER_PROGRESS.matcher(line);
+          if (pm.matches()) {
+            doneRows = Integer.parseInt(pm.group(1));
+            totalRows = Integer.parseInt(pm.group(2));
+            description = "DiffMS: " + doneRows + "/" + totalRows;
+            continue;
+          }
+          final Matcher sm = RUNNER_STAGE.matcher(line);
+          if (sm.matches()) {
+            description = "DiffMS: " + sm.group(1);
+            continue;
+          }
           err.append(line).append('\n');
         }
       }
@@ -337,6 +375,116 @@ public class DiffMSTask extends AbstractTask {
     }
 
     return null;
+  }
+
+  private static String resolveAdduct(final ModularFeatureListRow row) {
+    final var ion = FeatureUtils.extractBestIonIdentity(null, row).orElse(null);
+    if (ion == null) {
+      throw new IllegalStateException(
+          "Missing adduct/ion type for row " + row.getID()
+              + " (run Ion Identity Networking / set Ion identity / ensure annotations include an adduct).");
+    }
+    if (ion.getPolarity() == PolarityType.NEGATIVE) {
+      throw new IllegalStateException(
+          "Negative polarity ion types are not supported by the DiffMS ion list: " + ion);
+    }
+    return ion.toString();
+  }
+
+  private static List<Map<String, Object>> resolveSubformulas(final ModularFeatureListRow row,
+      final String parentFormula) {
+    final List<ResultFormula> formulas = row.getFormulas();
+    if (formulas.isEmpty()) {
+      return List.of();
+    }
+    final ResultFormula rf = formulas.stream()
+        .filter(f -> Objects.equals(f.getFormulaAsString(), parentFormula))
+        .findFirst()
+        .orElse(formulas.getFirst());
+    final var ann = rf.getMSMSannotation();
+    if (ann == null || ann.isEmpty()) {
+      return List.of();
+    }
+
+    return ann.entrySet().stream()
+        .sorted(Comparator.comparingDouble((Map.Entry<DataPoint, String> e) -> e.getKey()
+            .getIntensity()).reversed())
+        .limit(200)
+        .map(e -> {
+          final String v = e.getValue();
+          if (v == null || v.isBlank()) {
+            return null;
+          }
+          final String fragment = toFragmentFormula(parentFormula, v.trim());
+          if (fragment == null || fragment.isBlank()) {
+            return null;
+          }
+          return Map.<String, Object>of("formula", fragment, "intensity", e.getKey().getIntensity());
+        })
+        .filter(Objects::nonNull)
+        .toList();
+  }
+
+  private static @Nullable String toFragmentFormula(final String parentFormula,
+      final String msmsAnnotation) {
+    final Matcher mLoss = MSMS_ANN_LOSS.matcher(msmsAnnotation);
+    if (mLoss.matches()) {
+      final String loss = mLoss.group(1);
+      return subtractFormula(parentFormula, loss);
+    }
+    final Matcher mF = MSMS_ANN_FORMULA.matcher(msmsAnnotation);
+    if (mF.matches()) {
+      final String f = mF.group(1);
+      return f == null ? null : f.trim();
+    }
+    return null;
+  }
+
+  private static @Nullable String subtractFormula(final String parent, final String loss) {
+    final Map<String, Integer> p = parseFormulaCounts(parent);
+    final Map<String, Integer> l = parseFormulaCounts(loss);
+    if (p.isEmpty() || l.isEmpty()) {
+      return null;
+    }
+    for (var e : l.entrySet()) {
+      final String el = e.getKey();
+      final int v = e.getValue() == null ? 0 : e.getValue();
+      p.put(el, p.getOrDefault(el, 0) - v);
+    }
+    final StringBuilder sb = new StringBuilder();
+    for (var e : p.entrySet()) {
+      final int n = e.getValue();
+      if (n < 0) {
+        return null;
+      }
+      if (n == 0) {
+        continue;
+      }
+      sb.append(e.getKey());
+      if (n != 1) {
+        sb.append(n);
+      }
+    }
+    return sb.isEmpty() ? null : sb.toString();
+  }
+
+  private static Map<String, Integer> parseFormulaCounts(final String formula) {
+    if (formula == null) {
+      return Map.of();
+    }
+    final var s = formula.trim();
+    if (s.isEmpty()) {
+      return Map.of();
+    }
+    final Map<String, Integer> out = new HashMap<>();
+    final Matcher m = Pattern.compile("([A-Z][a-z]*)(\\d*)").matcher(s);
+    while (m.find()) {
+      final String el = m.group(1);
+      final String n = m.group(2);
+      final int v = n == null || n.isEmpty() ? 1 : Integer.parseInt(n);
+      out.put(el, out.getOrDefault(el, 0) + v);
+    }
+    return out;
   }
 }
 

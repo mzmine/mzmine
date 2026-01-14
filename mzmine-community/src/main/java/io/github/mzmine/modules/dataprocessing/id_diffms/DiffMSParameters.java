@@ -69,8 +69,12 @@ public class DiffMSParameters extends SimpleParameterSet {
       "Beam size for approximate subformula assignment.", 25, 1, 200);
 
   public DiffMSParameters() {
-    super(flists, pythonExecutable, diffmsDir, checkpoint, device, topK, maxMs2Peaks, subformulaTolDa,
-        subformulaBeam);
+    this(new io.github.mzmine.parameters.Parameter[]{flists, pythonExecutable, diffmsDir, checkpoint,
+        device, topK, maxMs2Peaks, subformulaTolDa, subformulaBeam});
+  }
+
+  protected DiffMSParameters(final io.github.mzmine.parameters.Parameter[] parameters) {
+    super(parameters);
   }
 
   public enum Device {

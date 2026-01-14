@@ -11,7 +11,7 @@ def main() -> int:
     p.add_argument("--python", default=sys.executable)
     p.add_argument("--diffms-dir", required=True)
     p.add_argument("--checkpoint", required=True)
-    p.add_argument("--device", default="mps")
+    p.add_argument("--device", default="cpu")
     p.add_argument("--top-k", type=int, default=3)
     args = p.parse_args()
 

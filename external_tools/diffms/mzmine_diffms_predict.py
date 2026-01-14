@@ -144,6 +144,33 @@ def _build_graph_from_formula(formula: str):
     return Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
 
 
+def _cdk_friendly_smiles(mol: "Chem.Mol") -> Optional[str]:
+    if mol is None:
+        return None
+    try:
+        frags = Chem.GetMolFrags(mol, asMols=True, sanitizeFrags=True)
+    except Exception:
+        frags = ()
+    if not frags:
+        frags = (mol,)
+    best = max(frags, key=lambda m: int(m.GetNumHeavyAtoms()))
+    if best is None or best.GetNumHeavyAtoms() <= 0:
+        return None
+    try:
+        s = Chem.MolToSmiles(best, isomericSmiles=False, kekuleSmiles=True)
+        if s and "." not in s:
+            return s
+    except Exception:
+        pass
+    try:
+        s = Chem.MolToSmiles(best, isomericSmiles=False)
+        if s and "." not in s:
+            return s
+    except Exception:
+        pass
+    return None
+
+
 def _load_diffms_from_dir(diffms_dir: Path):
     diffms_dir = diffms_dir.resolve()
     sys.path.insert(0, str(diffms_dir))
@@ -164,6 +191,7 @@ def _load_diffms_from_dir(diffms_dir: Path):
         element_to_ind,
         ELEMENT_TO_MASS,
         ION_LST,
+        ion_remap,
         get_ion_idx,
         get_instr_idx,
     )
@@ -181,10 +209,27 @@ def _load_diffms_from_dir(diffms_dir: Path):
         "element_to_ind": element_to_ind,
         "ELEMENT_TO_MASS": ELEMENT_TO_MASS,
         "ION_LST": ION_LST,
+        "ion_remap": ion_remap,
         "get_ion_idx": get_ion_idx,
         "get_instr_idx": get_instr_idx,
         "ATOM_TO_VALENCY": ATOM_TO_VALENCY,
     }
+
+
+def _normalize_ion(raw: str, ion_lst: List[str], ion_remap: Dict[str, str]) -> str:
+    s = "" if raw is None else str(raw).strip()
+    if not s:
+        raise ValueError("missing adduct/ion type")
+    if s in ion_lst:
+        return s
+    if s in ion_remap and ion_remap[s] in ion_lst:
+        return ion_remap[s]
+    s2 = s.replace(" ", "")
+    if s2 in ion_lst:
+        return s2
+    if s2 in ion_remap and ion_remap[s2] in ion_lst:
+        return ion_remap[s2]
+    raise ValueError(f"unsupported adduct/ion type for DiffMS: {s}")
 
 
 def _load_weights(model, ckpt_path: Path):
@@ -257,6 +302,7 @@ def main():
     PeakFormula = mod["PeakFormula"]
     ELEMENT_TO_MASS = mod["ELEMENT_TO_MASS"]
     ION_LST = mod["ION_LST"]
+    ion_remap = mod["ion_remap"]
     get_ion_idx = mod["get_ion_idx"]
     get_instr_idx = mod["get_instr_idx"]
     ATOM_TO_VALENCY = mod["ATOM_TO_VALENCY"]
@@ -380,6 +426,9 @@ def main():
         subform_dir.mkdir(parents=True, exist_ok=True)
 
         results = []
+        n_total = len(req)
+        print("MZMINE_DIFFMS_STAGE model_ready", file=sys.stderr, flush=True)
+        print(f"MZMINE_DIFFMS_PROGRESS 0/{n_total}", file=sys.stderr, flush=True)
 
         peak_featurizer = PeakFormula(
             subform_folder=str(subform_dir),
@@ -396,9 +445,11 @@ def main():
         instr = "Unknown (LCMS)"
         instr_idx = get_instr_idx(instr)
 
+        done = 0
         for item in req:
             row_id = int(item["rowId"])
             formula = str(item["formula"])
+            root_ion = _normalize_ion(item.get("adduct"), ION_LST, ion_remap)
             mzs = item["mzs"]
             intens = item["intensities"]
             if len(mzs) != len(intens):
@@ -407,9 +458,6 @@ def main():
             polarity = str(item.get("polarity", "POSITIVE")).upper()
             if polarity != "POSITIVE":
                 raise ValueError("only POSITIVE polarity is supported by DiffMS ion list")
-            root_ion = "[M+H]+"
-            if root_ion not in ION_LST:
-                raise RuntimeError("root ion not supported")
 
             root_counts = _parse_formula_counts(formula)
             mzs_np = np.asarray(mzs, dtype=np.float64)
@@ -425,13 +473,40 @@ def main():
             frag_forms = []
             frag_ints = []
             frag_ions = []
-            for m, inten in zip(mzs_np, intens_np):
-                frag = _best_subformula_for_mass(float(m), root_counts, ELEMENT_TO_MASS, tol=float(args.subformula_tol), beam=int(args.subformula_beam))
-                if frag is None:
-                    continue
-                frag_forms.append(frag)
-                frag_ints.append(float(inten))
-                frag_ions.append(root_ion)
+            provided = item.get("subformulas")
+            if isinstance(provided, list) and len(provided) > 0:
+                for sf in provided:
+                    if not isinstance(sf, dict):
+                        continue
+                    f = sf.get("formula")
+                    inten = sf.get("intensity")
+                    if f is None or inten is None:
+                        continue
+                    f = str(f).strip()
+                    if not f:
+                        continue
+                    frag_forms.append(f)
+                    frag_ints.append(float(inten))
+                    frag_ions.append(root_ion)
+            else:
+                for m, inten in zip(mzs_np, intens_np):
+                    frag = _best_subformula_for_mass(
+                        float(m),
+                        root_counts,
+                        ELEMENT_TO_MASS,
+                        tol=float(args.subformula_tol),
+                        beam=int(args.subformula_beam),
+                    )
+                    if frag is None:
+                        continue
+                    frag_forms.append(frag)
+                    frag_ints.append(float(inten))
+                    frag_ions.append(root_ion)
+
+            if frag_ints:
+                imax = max(frag_ints)
+                if imax > 0:
+                    frag_ints = [x / imax for x in frag_ints]
 
             tree = {"cand_form": formula, "cand_ion": root_ion,
                     "output_tbl": {"formula": frag_forms, "ms2_inten": frag_ints, "ions": frag_ions}}
@@ -465,11 +540,13 @@ def main():
                     mol = model.sample_batch(data_batch)[0]
                     if mol is None:
                         continue
-                    smi = Chem.MolToSmiles(mol, isomericSmiles=False)
+                    smi = _cdk_friendly_smiles(mol)
                     if smi:
                         smiles_out.append(smi)
 
             results.append({"rowId": row_id, "smiles": smiles_out})
+            done += 1
+            print(f"MZMINE_DIFFMS_PROGRESS {done}/{n_total}", file=sys.stderr, flush=True)
 
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(json.dumps(results))

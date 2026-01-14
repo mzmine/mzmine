@@ -26,17 +26,41 @@
 package io.github.mzmine.modules.dataprocessing.id_diffms;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DiffMSModule implements MZmineProcessingModule {
+
+  public static void showSelectedRowsDialog(final List<FeatureListRow> rows, final FeatureTableFX table,
+      @NotNull final Instant moduleCallDate) {
+    final ParameterSet parameters = new SelectedRowsDiffMSParameters();
+    if (parameters.showSetupDialog(true) != ExitCode.OK) {
+      return;
+    }
+    final var flist = table.getFeatureList();
+    final var selected = rows.stream().map(r -> {
+      if (r instanceof ModularFeatureListRow mr) {
+        return mr;
+      }
+      throw new IllegalStateException("DiffMS selected-rows requires ModularFeatureListRow.");
+    }).toList();
+    MZmineCore.getTaskController().addTask(
+        new DiffMSTask(ProjectService.getProjectManager().getCurrentProject(), parameters, flist,
+            selected, moduleCallDate));
+  }
 
   @Override
   public @NotNull String getName() {
