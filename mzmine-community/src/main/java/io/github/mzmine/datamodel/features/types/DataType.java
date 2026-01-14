@@ -56,6 +56,7 @@ import java.util.logging.Logger;
 import javafx.beans.property.Property;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import javafx.scene.layout.Region;
 import javafx.util.Callback;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -92,6 +93,8 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
         type.getHeaderString());
     col.setUserData(type);
     col.setSortable(true);
+    // at least a bit of size needed - equals roughly a single character, e.g. charge
+    col.setMinWidth(20);
     if (type.getPrefColumnWidth() > 0) {
       col.setPrefWidth(type.getPrefColumnWidth());
     }
@@ -245,8 +248,8 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
   /**
    * @return -1 if off, otherwise defines the max column width
    */
-  public int getPrefColumnWidth() {
-    return -1; // generally off because columns may be resized usually
+  public double getPrefColumnWidth() {
+    return Region.USE_COMPUTED_SIZE; // generally off because columns may be resized usually
   }
 
   /**

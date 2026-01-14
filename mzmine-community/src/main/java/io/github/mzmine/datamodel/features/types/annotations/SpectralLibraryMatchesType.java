@@ -56,7 +56,6 @@ import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
-import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.ExplainedIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
@@ -109,8 +108,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       new CASType(),  //
       new InternalIdType(), //
       new RIDiffType(), //
-      new JsonStringType()
-      );
+      new JsonStringType());
 
   @NotNull
   @Override
@@ -244,7 +242,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
 
 
   @Override
-  public int getPrefColumnWidth() {
+  public double getPrefColumnWidth() {
     return 150;
   }
 }
