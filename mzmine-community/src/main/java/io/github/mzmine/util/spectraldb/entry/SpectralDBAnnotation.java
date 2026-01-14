@@ -497,4 +497,9 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
     // seems unnecessary
     return entry.calculateIsotopePattern();
   }
+
+  @Override
+  public @NotNull String getAnnotationMethodName() {
+    return "Spectral library";
+  }
 }

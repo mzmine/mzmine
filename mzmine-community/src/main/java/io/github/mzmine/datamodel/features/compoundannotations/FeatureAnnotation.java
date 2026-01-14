@@ -281,6 +281,8 @@ public interface FeatureAnnotation {
     return getXmlAttributeKey();
   }
 
+  @NotNull String getAnnotationMethodName();
+
   /**
    * @return A unique identifier for saving any sub-class of this interface to XML.
    */

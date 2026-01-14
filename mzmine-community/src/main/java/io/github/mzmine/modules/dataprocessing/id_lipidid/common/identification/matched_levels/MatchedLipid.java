@@ -365,4 +365,9 @@ public class MatchedLipid implements FeatureAnnotation {
   public @NotNull String getXmlAttributeKey() {
     return XML_ELEMENT;
   }
+
+  @Override
+  public @NotNull String getAnnotationMethodName() {
+    return "Rule-based lipid annotation";
+  }
 }
