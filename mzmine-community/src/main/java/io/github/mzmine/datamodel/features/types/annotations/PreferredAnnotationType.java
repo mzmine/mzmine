@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
@@ -45,7 +46,7 @@ public class PreferredAnnotationType extends ListWithSubsType<FeatureAnnotation>
   @Override
   public @NotNull List<DataType> getSubDataTypes() {
     return DataTypes.getAll(CompoundNameType.class, AnnotationSummaryType.class,
-        PrecursorMZType.class, MolecularStructureType.class, ScoreType.class,
+        PrecursorMZType.class, MolecularStructureType.class, ScoreType.class, IonTypeType.class,
         AnnotationMethodType.class);
   }
 
@@ -61,6 +62,7 @@ public class PreferredAnnotationType extends ListWithSubsType<FeatureAnnotation>
       case MolecularStructureType _ -> parentItem.getStructure();
       case ScoreType _ -> parentItem.getScore();
       case AnnotationMethodType _ -> parentItem.getAnnotationMethodName();
+      case IonTypeType _ -> parentItem.getAdductType();
       default -> null;
     };
   }

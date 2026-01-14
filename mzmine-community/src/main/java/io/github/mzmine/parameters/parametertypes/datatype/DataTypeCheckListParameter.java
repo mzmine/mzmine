@@ -71,6 +71,7 @@ public class DataTypeCheckListParameter implements
     this.desc = description;
     this.value = new HashMap<>();
     defaultDisableColumns();
+    defaultEnableColumns();
   }
 
   private static @NotNull String getKey(boolean isFeatureType, Class<? extends DataType<?>> parent,

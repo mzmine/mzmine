@@ -48,10 +48,10 @@ import io.github.mzmine.datamodel.features.types.annotations.AnnotationSummaryTy
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidSpectrumType;
 import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
-import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.ConsensusFormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaMassType;
@@ -69,11 +69,9 @@ import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
-import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.SizeType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
@@ -233,6 +231,8 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
         _ -> toggleAlignmentColumns());
     addContextMenuItem(contextMenuHelper, "Toggle ion identities", _ -> toggleIonIdentities());
     addContextMenuItem(contextMenuHelper, "Toggle library matches", _ -> toggleAnnotations());
+    addContextMenuItem(contextMenuHelper, "Toggle lipid annotations",
+        _ -> toggleLipidAnnotations(true));
     addContextMenuItem(contextMenuHelper, "Show only preferred annotation",
         _ -> showPreferredAnnotationOnly());
 
@@ -451,6 +451,25 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     applyVisibilityParametersToAllColumns();
   }
 
+  private void toggleLipidAnnotations(boolean applyVisibility) {
+    final var lipidMatches = getMainColumnEntry(LipidMatchListType.class);
+    if (lipidMatches == null) {
+      return;
+    }
+    final boolean visible = !rowTypesParameter.isDataTypeVisible(lipidMatches.getValue());
+
+    setColumnVisibilityAndSubColumns(lipidMatches.getValue(), false, false);
+
+    setVisible(ColumnType.ROW_TYPE, LipidMatchListType.class, LipidMatchListType.class, visible);
+    setVisible(ColumnType.ROW_TYPE, LipidMatchListType.class, AnnotationSummaryType.class, visible);
+    setVisible(ColumnType.ROW_TYPE, LipidMatchListType.class, LipidSpectrumType.class, visible);
+    setVisible(ColumnType.ROW_TYPE, LipidMatchListType.class, IonAdductType.class, visible);
+
+    if (applyVisibility) {
+      applyVisibilityParametersToAllColumns();
+    }
+  }
+
   private Boolean toggleSpectralLibAnnotations(boolean applyVisibility) {
     final var columnEntry = getMainColumnEntry(SpectralLibraryMatchesType.class);
     if (columnEntry == null) {
@@ -468,14 +487,9 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     // basic
     setVisible(ColumnType.ROW_TYPE, parentType, SpectralLibraryMatchesType.class, toggledState);
     setVisible(ColumnType.ROW_TYPE, parentType, IonAdductType.class, toggledState);
-    setVisible(ColumnType.ROW_TYPE, parentType, FormulaType.class, toggledState);
-    setVisible(ColumnType.ROW_TYPE, parentType, SmilesStructureType.class, toggledState);
-    setVisible(ColumnType.ROW_TYPE, parentType, PrecursorMZType.class, toggledState);
-    setVisible(ColumnType.ROW_TYPE, parentType, NeutralMassType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, parentType, MolecularStructureType.class, toggledState);
     setVisible(ColumnType.ROW_TYPE, parentType, SimilarityType.class, toggledState);
-    setVisible(ColumnType.ROW_TYPE, parentType, MatchingSignalsType.class, toggledState);
-
-    // csv compound database
+    setVisible(ColumnType.ROW_TYPE, parentType, AnnotationSummaryType.class, toggledState);
 
     if (applyVisibility) {
       applyVisibilityParametersToAllColumns();
@@ -507,10 +521,8 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     setVisible(ColumnType.ROW_TYPE, mainType, CompoundAnnotationScoreType.class, toggledState);
     setVisible(ColumnType.ROW_TYPE, mainType, FormulaType.class, toggledState);
     setVisible(ColumnType.ROW_TYPE, mainType, IonTypeType.class, toggledState);
-    setVisible(ColumnType.ROW_TYPE, mainType, SmilesStructureType.class, toggledState);
-    setVisible(ColumnType.ROW_TYPE, mainType, PrecursorMZType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, mainType, MolecularStructureType.class, toggledState);
     setVisible(ColumnType.ROW_TYPE, mainType, MzPpmDifferenceType.class, toggledState);
-    setVisible(ColumnType.ROW_TYPE, mainType, NeutralMassType.class, toggledState);
 
     if (applyVisibility) {
       applyVisibilityParametersToAllColumns();
