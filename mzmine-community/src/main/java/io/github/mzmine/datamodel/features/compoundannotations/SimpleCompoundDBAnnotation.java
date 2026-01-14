@@ -25,6 +25,7 @@
 package io.github.mzmine.datamodel.features.compoundannotations;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -170,11 +171,6 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     String inchi = getInChI();
     structure = StructureParser.silent().parseStructure(smiles, inchi);
     return structure;
-  }
-
-  @Override
-  public @NotNull String getAnnotationMethodName() {
-    return "Compound database";
   }
 
   @Override
@@ -376,6 +372,11 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   @Override
   public int hashCode() {
     return Objects.hash(data);
+  }
+
+  @Override
+  public @NotNull FeatureAnnotationPriority getAnnotationPriority() {
+    return FeatureAnnotationPriority.EXACT_COMPOUND;
   }
 }
 

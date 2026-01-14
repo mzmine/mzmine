@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
@@ -367,7 +368,7 @@ public class MatchedLipid implements FeatureAnnotation {
   }
 
   @Override
-  public @NotNull String getAnnotationMethodName() {
-    return "Rule-based lipid annotation";
+  public @NotNull FeatureAnnotationPriority getAnnotationPriority() {
+    return FeatureAnnotationPriority.LIPID;
   }
 }

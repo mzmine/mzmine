@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.ModularDataModelMap;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -499,7 +500,7 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
   }
 
   @Override
-  public @NotNull String getAnnotationMethodName() {
-    return "Spectral library";
+  public @NotNull FeatureAnnotationPriority getAnnotationPriority() {
+    return FeatureAnnotationPriority.SPECTRAL_LIBRARY;
   }
 }

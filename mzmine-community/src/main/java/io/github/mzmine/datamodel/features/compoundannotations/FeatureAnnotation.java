@@ -27,9 +27,12 @@ package io.github.mzmine.datamodel.features.compoundannotations;
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.main.MZmineCore;
@@ -281,7 +284,20 @@ public interface FeatureAnnotation {
     return getXmlAttributeKey();
   }
 
-  @NotNull String getAnnotationMethodName();
+  default @NotNull String getAnnotationMethodName() {
+    return DataTypes.get(getDataType()).getHeaderString();
+  }
+
+  /**
+   *
+   * @return The data type that represents this annotation in the feature table
+   * ({@link FeatureAnnotationPriority#getAnnotationType()}
+   */
+  default @NotNull Class<? extends DataType> getDataType() {
+    return getAnnotationPriority().getAnnotationType().getClass();
+  }
+
+  @NotNull FeatureAnnotationPriority getAnnotationPriority();
 
   /**
    * @return A unique identifier for saving any sub-class of this interface to XML.
