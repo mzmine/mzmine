@@ -155,6 +155,6 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
 
   @Override
   public boolean getDefaultVisibility() {
-    return true;
+    return false;
   }
 }

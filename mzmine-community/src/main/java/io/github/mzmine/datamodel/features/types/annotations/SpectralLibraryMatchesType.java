@@ -239,7 +239,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
 
   @Override
   public boolean getDefaultVisibility() {
-    return true;
+    return false;
   }
 
 
