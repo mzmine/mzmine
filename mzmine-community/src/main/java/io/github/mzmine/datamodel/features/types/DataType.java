@@ -93,6 +93,8 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
         type.getHeaderString());
     col.setUserData(type);
     col.setSortable(true);
+    // at least a bit of size needed - equals roughly a single character, e.g. charge
+    col.setMinWidth(20);
     if (type.getPrefColumnWidth() > 0) {
       col.setPrefWidth(type.getPrefColumnWidth());
     }

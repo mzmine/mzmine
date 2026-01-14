@@ -82,6 +82,7 @@ public class EditComboCellFactory implements
         textWrapper.setPrefHeight(USE_COMPUTED_SIZE);
         textWrapper.setAlignment(Pos.CENTER);
         setMaxHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
+        setWrapText(true);
       }
 
       @Override
@@ -147,8 +148,8 @@ public class EditComboCellFactory implements
             String formatted = type.getFormattedStringCheckType(list);
             textValue.setText(formatted);
             setTooltip(new Tooltip(formatted));
-            setText(null);
-            setGraphic(textWrapper);
+            setText(formatted);
+            setGraphic(null);
           }
         }
         if (type instanceof NumberFormatType) {
