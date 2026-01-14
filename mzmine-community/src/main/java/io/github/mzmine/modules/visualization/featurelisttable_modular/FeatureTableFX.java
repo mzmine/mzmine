@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -44,7 +43,13 @@ import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
+import io.github.mzmine.datamodel.features.types.annotations.AnnotationMethodType;
+import io.github.mzmine.datamodel.features.types.annotations.AnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
@@ -76,6 +81,7 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CombinedScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
@@ -220,13 +226,15 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     // create custom button context menu to select columns
     contextMenuHelper = new FeatureTableColumnMenuHelper(this);
     // Adding additional menu options
-    addContextMenuItem(contextMenuHelper, "Compact table", e -> showCompactChromatographyColumns());
-    addContextMenuItem(contextMenuHelper, "Toggle sample columns", e -> toggleSampleColumns());
-    addContextMenuItem(contextMenuHelper, "Toggle shape columns", e -> toggleShapeColumns());
+    addContextMenuItem(contextMenuHelper, "Compact table", _ -> showCompactChromatographyColumns());
+    addContextMenuItem(contextMenuHelper, "Toggle sample columns", _ -> toggleSampleColumns());
+    addContextMenuItem(contextMenuHelper, "Toggle shape columns", _ -> toggleShapeColumns());
     addContextMenuItem(contextMenuHelper, "Toggle alignment columns",
-        e -> toggleAlignmentColumns());
-    addContextMenuItem(contextMenuHelper, "Toggle ion identities", e -> toggleIonIdentities());
-    addContextMenuItem(contextMenuHelper, "Toggle library matches", e -> toggleAnnotations());
+        _ -> toggleAlignmentColumns());
+    addContextMenuItem(contextMenuHelper, "Toggle ion identities", _ -> toggleIonIdentities());
+    addContextMenuItem(contextMenuHelper, "Toggle library matches", _ -> toggleAnnotations());
+    addContextMenuItem(contextMenuHelper, "Show only preferred annotation",
+        _ -> showPreferredAnnotationOnly());
 
     final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C,
         KeyCombination.CONTROL_ANY);
@@ -508,6 +516,34 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
       applyVisibilityParametersToAllColumns();
     }
     return toggledState;
+  }
+
+  public void showPreferredAnnotationOnly() {
+    final var dbMatches = getMainColumnEntry(CompoundDatabaseMatchesType.class);
+    if (dbMatches != null) {
+      setColumnVisibilityAndSubColumns(dbMatches.getValue(), false, false);
+    }
+    final var specMatches = getMainColumnEntry(SpectralLibraryMatchesType.class);
+    if (specMatches != null) {
+      setColumnVisibilityAndSubColumns(specMatches.getValue(), false, false);
+    }
+    final var lipidMatches = getMainColumnEntry(LipidMatchListType.class);
+    if (lipidMatches != null) {
+      setColumnVisibilityAndSubColumns(lipidMatches.getValue(), false, false);
+    }
+    final var preferredAnnotations = getMainColumnEntry(PreferredAnnotationType.class);
+    if (preferredAnnotations != null) {
+      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, CompoundNameType.class, true);
+      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, AnnotationSummaryType.class,
+          true);
+      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, MolecularStructureType.class,
+          true);
+      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, ScoreType.class, true);
+      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, AnnotationMethodType.class,
+          true);
+    }
+
+    applyVisibilityParametersToAllColumns();
   }
 
   private void addContextMenuItem(FeatureTableColumnMenuHelper contextMenuHelper, String title,

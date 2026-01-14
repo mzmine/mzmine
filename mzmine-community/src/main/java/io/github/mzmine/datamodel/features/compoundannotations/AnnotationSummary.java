@@ -26,9 +26,7 @@ package io.github.mzmine.datamodel.features.compoundannotations;
 
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
 import io.github.mzmine.datamodel.features.types.numbers.RIType;
-import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SiriusCsiScoreType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
@@ -41,7 +39,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AnnotationSummary {
+public class AnnotationSummary implements Comparable<AnnotationSummary> {
 
   private static final double maxPpmDiff = 15;
   private static final double maxRtDiff = 0.3;
@@ -175,37 +173,37 @@ public class AnnotationSummary {
    * https://pmc.ncbi.nlm.nih.gov/articles/PMC3772505/
    */
   @NotNull
-  public String deriveSumnerLevel() {
+  public SumnerLevel deriveSumnerLevel() {
     if (annotation == null) {
-      return "";
+      return SumnerLevel.LEVEL_4;
     }
 
-    return "Sumner: " + switch (annotation) {
+    return switch (annotation) {
       case MatchedLipid l -> {
         if (l.getMsMsScore() != null && l.getMsMsScore() > 0d) {
           switch (l.getLipidAnnotation()) {
             case MolecularSpeciesLevelAnnotation _ -> {
-              yield "2";
+              yield SumnerLevel.LEVEL_2;
             }
             case SpeciesLevelAnnotation _ -> {
-              yield "3";
+              yield SumnerLevel.LEVEL_3;
             }
             case null, default -> {
             }
           }
         }
-        yield "4";
+        yield SumnerLevel.LEVEL_4;
       }
-      case SpectralDBAnnotation _ -> "2";
+      case SpectralDBAnnotation _ -> SumnerLevel.LEVEL_2;
       case CompoundDBAnnotation c -> {
-        if (c.get(RtAbsoluteDifferenceType.class) != null || c.get(RIDiffType.class) != null) {
-          yield "2";
+        if (rtScore() > 0 || riScore() > 0) {
+          yield SumnerLevel.LEVEL_2;
         } else if (c.get(SiriusCsiScoreType.class) != null) {
-          yield "3";
+          yield SumnerLevel.LEVEL_3;
         }
-        yield "4";
+        yield SumnerLevel.LEVEL_4;
       }
-      default -> "";
+      default -> SumnerLevel.LEVEL_4;
     };
   }
 
@@ -213,43 +211,94 @@ public class AnnotationSummary {
    * https://pubs.acs.org/doi/10.1021/es5002105
    */
   @NotNull
-  public String deriveSchymanskiLevel() {
+  public SchymanskiLevel deriveSchymanskiLevel() {
     final double ipScoreMatchThreshold = 0.75;
 
     if (annotation == null) {
-      return "";
+      return SchymanskiLevel.LEVEL_5;
     }
 
-    return "Schymanski: " + switch (annotation) {
+    return switch (annotation) {
       case MatchedLipid l -> {
         if (l.getMsMsScore() != null && l.getMsMsScore() > 0d) {
           switch (l.getLipidAnnotation()) {
             case MolecularSpeciesLevelAnnotation _ -> {
-              yield "2a";
+              yield SchymanskiLevel.LEVEL_2a;
             }
             case SpeciesLevelAnnotation _ -> {
-              yield "2b";
+              yield SchymanskiLevel.LEVEL_2b;
             }
             case null, default -> {
             }
           }
         }
         // lipids are hard to judge by isotope scores so default to level 5
-        yield "5";
+        yield SchymanskiLevel.LEVEL_5;
       }
       case SpectralDBAnnotation s ->
-          s.getRiDiff() != null || s.getRtAbsoluteError() != null ? "1" : "2a";
+          riScore() > 0 || rtScore() > 0 ? SchymanskiLevel.LEVEL_1 : SchymanskiLevel.LEVEL_2a;
       case CompoundDBAnnotation c -> {
         if (c.get(SiriusCsiScoreType.class) != null) {
-          yield "3";
+          yield SchymanskiLevel.LEVEL_3;
         } else if (isotopeScore() >= ipScoreMatchThreshold) {
-          yield "4";
+          yield SchymanskiLevel.LEVEL_4;
         } else {
-          yield "5";
+          yield SchymanskiLevel.LEVEL_5;
         }
       }
-      default -> "";
+      default -> SchymanskiLevel.LEVEL_5;
     };
+  }
+
+  @Override
+  public int compareTo(@NotNull AnnotationSummary o) {
+
+    if (annotation == null) {
+      if (o.annotation == null) {
+        return 0;
+      } else {
+        return -1;
+      }
+    } else if (o.annotation == null) {
+      return 1;
+    }
+
+    final int compareSchymanski = deriveSchymanskiLevel().compareTo(o.deriveSchymanskiLevel()) * -1;
+    if (compareSchymanski != 0) {
+      return compareSchymanski;
+    }
+
+    final int ms2Compare = Double.compare(ms2Score(), o.ms2Score());
+    if (ms2Compare != 0) {
+      return ms2Compare;
+    }
+
+    final int isotopeCompare = Double.compare(isotopeScore(), o.isotopeScore());
+    if (isotopeCompare != 0) {
+      return isotopeCompare;
+    }
+
+    final int mzCompare = Double.compare(mzScore(), o.mzScore());
+    if (mzCompare != 0) {
+      return mzCompare;
+    }
+
+    final int rtCompare = Double.compare(rtScore(), o.rtScore());
+    if (rtCompare != 0) {
+      return rtCompare;
+    }
+
+    final int riCompare = Double.compare(riScore(), o.riScore());
+    if (riCompare != 0) {
+      return riCompare;
+    }
+
+    final int ccsCompare = Double.compare(ccsScore(), o.ccsScore());
+    if (ccsCompare != 0) {
+      return ccsCompare;
+    }
+
+    return 0;
   }
 
   public enum Scores {

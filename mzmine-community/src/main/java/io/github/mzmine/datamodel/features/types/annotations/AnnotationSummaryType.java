@@ -60,8 +60,8 @@ import javafx.scene.text.TextAlignment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AnnotationSummaryType extends DataType<FeatureAnnotation> implements
-    GraphicalColumType<FeatureAnnotation>, NoTextColumn {
+public class AnnotationSummaryType extends DataType<AnnotationSummary> implements
+    GraphicalColumType<AnnotationSummary>, NoTextColumn {
 
   @Override
   public @NotNull String getUniqueID() {
@@ -77,7 +77,7 @@ public class AnnotationSummaryType extends DataType<FeatureAnnotation> implement
   public @Nullable TreeTableColumn<ModularFeatureListRow, Object> createColumn(
       @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType, int subColumnIndex) {
 
-    final TreeTableColumn<ModularFeatureListRow, FeatureAnnotation> column = new TreeTableColumn<>(
+    final TreeTableColumn<ModularFeatureListRow, AnnotationSummary> column = new TreeTableColumn<>(
         getHeaderString());
     column.setUserData(this);
     if (parentType != null) {
@@ -85,13 +85,15 @@ public class AnnotationSummaryType extends DataType<FeatureAnnotation> implement
       column.setCellValueFactory(cdf -> {
         var value = (List<? extends FeatureAnnotation>) cdf.getValue().getValue()
             .get((DataType<?>) parentType);
-        return new ReadOnlyObjectWrapper<>(value != null ? value.getFirst() : null);
+        return new ReadOnlyObjectWrapper<>(
+            value != null && !value.isEmpty() ? AnnotationSummary.of(cdf.getValue().getValue(),
+                value.getFirst()) : null);
       });
     } else {
       // parent type not set -> is the "summary"/best annotation in the row -> get best annotation and grab summary from there
       column.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(
           CompoundAnnotationUtils.getBestFeatureAnnotation(cdf.getValue().getValue())
-              .orElse(null)));
+              .map(a -> AnnotationSummary.of(cdf.getValue().getValue(), a)).orElse(null)));
     }
 
     column.setCellFactory(col -> new MicroChartCell());
@@ -103,23 +105,23 @@ public class AnnotationSummaryType extends DataType<FeatureAnnotation> implement
   }
 
   @Override
-  public Property<FeatureAnnotation> createProperty() {
+  public Property<AnnotationSummary> createProperty() {
     return new SimpleObjectProperty<>();
   }
 
   @Override
-  public Class<FeatureAnnotation> getValueClass() {
-    return FeatureAnnotation.class;
+  public Class<AnnotationSummary> getValueClass() {
+    return AnnotationSummary.class;
   }
 
   @Override
   public @Nullable Node createCellContent(@NotNull ModularFeatureListRow row,
-      FeatureAnnotation cellData, @Nullable RawDataFile raw, AtomicDouble progress) {
+      AnnotationSummary cellData, @Nullable RawDataFile raw, AtomicDouble progress) {
     throw new IllegalStateException("Statement should be unreachable due to custom cell factory.");
   }
 
   private static class MicroChartCell extends
-      TreeTableCell<ModularFeatureListRow, FeatureAnnotation> {
+      TreeTableCell<ModularFeatureListRow, AnnotationSummary> {
 
     private static final double BAR_SPACING = 2;
     private static final double MIN_BAR_WIDTH = 15;
@@ -167,7 +169,7 @@ public class AnnotationSummaryType extends DataType<FeatureAnnotation> implement
     }
 
     @Override
-    protected void updateItem(FeatureAnnotation item, boolean empty) {
+    protected void updateItem(AnnotationSummary item, boolean empty) {
       super.updateItem(item, empty);
       draw();
     }
@@ -184,12 +186,13 @@ public class AnnotationSummaryType extends DataType<FeatureAnnotation> implement
 
       gc.clearRect(0, 0, totalWidth, height);
 
-      FeatureAnnotation annotation = getItem();
-      if (annotation == null || isEmpty() || !isVisible()) {
+      AnnotationSummary annotationSummary = getItem();
+      if (annotationSummary == null || isEmpty() || !isVisible()) {
+        tooltip.setText(null);
+        setTooltip(null);
         return;
       }
 
-      final var annotationSummary = AnnotationSummary.of(getTableRow().getItem(), annotation);
       tooltip.setText("""
           Annotation levels:
           %s

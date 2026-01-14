@@ -44,7 +44,6 @@ import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
-import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
@@ -82,8 +81,7 @@ public class DataTypeUtils {
       MZType.class, MZRangeType.class, //
       HeightType.class, AreaType.class,
       // added CommentType as default in 4.8 to transition away from ManualAnnotationType
-      CommentType.class, FeatureShapeType.class, AreaBoxPlotType.class, HeightBoxPlotType.class,
-      PreferredAnnotationType.class);
+      CommentType.class, FeatureShapeType.class, AreaBoxPlotType.class, HeightBoxPlotType.class);
 
   @NotNull
   public static final List<DataType> DEFAULT_CHROMATOGRAPHIC_FEATURE = List.of(new RawFileType(),

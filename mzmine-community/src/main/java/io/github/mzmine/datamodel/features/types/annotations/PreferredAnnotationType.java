@@ -31,26 +31,23 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
-import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
-import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class PreferredAnnotationType extends ListWithSubsType<FeatureAnnotation> implements
-    MappingType<Object> {
+    MappingType<List<? extends FeatureAnnotation>> {
 
   @Override
   public @NotNull List<DataType> getSubDataTypes() {
     return List.of(DataTypes.get(CompoundNameType.class),
         DataTypes.get(AnnotationSummaryType.class), DataTypes.get(PrecursorMZType.class),
-        DataTypes.get(MzAbsoluteDifferenceType.class), DataTypes.get(MolecularStructureType.class),
-        DataTypes.get(RTType.class), DataTypes.get(RtAbsoluteDifferenceType.class),
-        DataTypes.get(ScoreType.class), DataTypes.get(AnnotationMethodType.class));
+        DataTypes.get(MolecularStructureType.class), DataTypes.get(ScoreType.class),
+        DataTypes.get(AnnotationMethodType.class));
   }
 
   @Override
@@ -62,12 +59,9 @@ public class PreferredAnnotationType extends ListWithSubsType<FeatureAnnotation>
       case CompoundNameType _ -> parentItem.getCompoundName();
       case AnnotationSummaryType _ -> parentItem;
       case PrecursorMZType _ -> parentItem.getPrecursorMZ();
-      case MzAbsoluteDifferenceType _ -> null;
       case MolecularStructureType _ -> parentItem.getStructure();
-      case RTType _ -> parentItem.getRT();
-      case RtAbsoluteDifferenceType _ -> null;
       case ScoreType _ -> parentItem.getScore();
-      case AnnotationMethodType _ -> parentItem.getAnnotationMethodUniqueId();
+      case AnnotationMethodType _ -> parentItem.getAnnotationMethodName();
       default -> null;
     };
   }
@@ -83,16 +77,27 @@ public class PreferredAnnotationType extends ListWithSubsType<FeatureAnnotation>
   }
 
   @Override
-  public @Nullable Object getValue(@NotNull ModularDataModel model) {
+  public @Nullable List<? extends FeatureAnnotation> getValue(@NotNull ModularDataModel model) {
 
     DataType<?> preferredAnnotationType = FeatureAnnotationPriority.getPreferredAnnotationType(
         model);
-    if (preferredAnnotationType == null) {
-      return null;
+    switch (preferredAnnotationType) {
+      case ManualAnnotationType _, FormulaListType _ -> {
+        // not a feature annotation
+        return null;
+      }
+      case null -> {
+        return null;
+      }
+      default -> {
+      }
     }
     if (model instanceof ModularFeatureListRow row) {
       Object preferredAnnotation = row.get(preferredAnnotationType);
-      return preferredAnnotation;
+      if (preferredAnnotation instanceof List<?> l && (l.isEmpty()
+          || l.getFirst() instanceof FeatureAnnotation)) {
+        return (List<? extends FeatureAnnotation>) l;
+      }
     }
     return null;
   }
