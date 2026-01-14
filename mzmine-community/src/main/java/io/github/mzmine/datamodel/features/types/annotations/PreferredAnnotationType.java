@@ -44,10 +44,9 @@ public class PreferredAnnotationType extends ListWithSubsType<FeatureAnnotation>
 
   @Override
   public @NotNull List<DataType> getSubDataTypes() {
-    return List.of(DataTypes.get(CompoundNameType.class),
-        DataTypes.get(AnnotationSummaryType.class), DataTypes.get(PrecursorMZType.class),
-        DataTypes.get(MolecularStructureType.class), DataTypes.get(ScoreType.class),
-        DataTypes.get(AnnotationMethodType.class));
+    return DataTypes.getAll(CompoundNameType.class, AnnotationSummaryType.class,
+        PrecursorMZType.class, MolecularStructureType.class, ScoreType.class,
+        AnnotationMethodType.class);
   }
 
   @Override

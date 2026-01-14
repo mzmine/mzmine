@@ -302,7 +302,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
   }
 
   public enum Scores {
-    MZ, RT, RI, MS2, ISOTOPE, CCS;
+    MS2, ISOTOPE, MZ, RT, RI, CCS;
 
     public String label() {
       return switch (this) {

@@ -99,7 +99,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
     column.setCellFactory(col -> new MicroChartCell());
     column.setMinWidth(45);
     column.setPrefWidth(45);
-    column.setMaxWidth(60);
+//    column.setMaxWidth(60);
 
     return (TreeTableColumn) column;
   }
@@ -198,9 +198,10 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
           %s
           %s""".formatted(annotationSummary.deriveSumnerLevel(),
           annotationSummary.deriveSchymanskiLevel()));
+      setTooltip(tooltip);
 
       // 1. Layout Calculations
-      final boolean useTwoRows = height > TWO_ROW_HEIGHT_THRESHOLD;
+      final boolean useTwoRows = height > TWO_ROW_HEIGHT_THRESHOLD && totalWidth < 100;
       final int totalItems = scoreTypes.length;
       final int numCols = useTwoRows ? (int) Math.ceil(totalItems / 2.0) : totalItems;
       final int numRows = useTwoRows ? 2 : 1;
@@ -238,6 +239,9 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
         gc.setFill(getScoreColor(score));
         // ceil top and height to not leave a pixel free at the bottom of the chart
         gc.fillRect(Math.round(xOffset), Math.ceil(topEdge), Math.round(barWidth), Math.ceil(barH));
+
+//        gc.setStroke(outlineColor);
+//        gc.strokeRect(Math.round(xOffset), Math.ceil(yOffset), Math.round(barWidth), Math.ceil(chartHeight));
 
         // Draw Label (Rotated on top of bar)
         gc.save();
