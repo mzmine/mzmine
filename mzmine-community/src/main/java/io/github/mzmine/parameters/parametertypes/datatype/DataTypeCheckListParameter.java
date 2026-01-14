@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -28,7 +27,9 @@ package io.github.mzmine.parameters.parametertypes.datatype;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
@@ -283,6 +284,23 @@ public class DataTypeCheckListParameter implements
       value.put(getKey(false, CompoundDatabaseMatchesType.class, CCSType.class), false);
 
       value.put(getKey(false, LipidMatchListType.class, FormulaType.class), false);
+    }
+
+    if (getName().toLowerCase().contains("feature")) {
+      // add types here in the future
+    }
+  }
+
+  /**
+   * enable some types by default that are disabled by default but do make sense to show in specific
+   * cases. For example, the {@link CompoundNameType} would not be shown in the
+   * {@link  PreferredAnnotationType}, because it does not make sense to show it in all
+   * {@link io.github.mzmine.datamodel.features.types.ListWithSubsType} as the name is shown in the
+   * main list cell. However, the {@link PreferredAnnotationType} is not a list type.
+   */
+  private void defaultEnableColumns() {
+    if (getName().toLowerCase().contains("row")) {
+      value.put(getKey(false, PreferredAnnotationType.class, CompoundNameType.class), true);
     }
 
     if (getName().toLowerCase().contains("feature")) {
