@@ -52,14 +52,14 @@ public class AreaShareType extends LinkedGraphicalType {
   public @Nullable Node createCellContent(@NotNull ModularFeatureListRow row, Boolean cellData,
       @Nullable RawDataFile raw, AtomicDouble progress) {
 
-    if(row.getNumberOfFeatures() > 1) {
+    if (row.getNumberOfFeatures() > 1) {
       return new AreaShareChart(row, progress);
-    };
+    }
     return null;
   }
 
   @Override
-  public double getColumnWidth() {
+  public double getPrefColumnWidth() {
     return 150;
   }
 }

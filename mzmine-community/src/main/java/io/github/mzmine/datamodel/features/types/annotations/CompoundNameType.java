@@ -33,8 +33,8 @@ import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
 import org.jetbrains.annotations.NotNull;
 
-public class CompoundNameType extends StringType
-    implements EditableColumnType, StringParser<String>, AnnotationType {
+public class CompoundNameType extends StringType implements EditableColumnType,
+    StringParser<String>, AnnotationType {
 
   private StringConverter<String> converter = new DefaultStringConverter();
 
@@ -66,7 +66,7 @@ public class CompoundNameType extends StringType
   }
 
   @Override
-  public int getPrefColumnWidth() {
+  public double getPrefColumnWidth() {
     return 350;
   }
 }

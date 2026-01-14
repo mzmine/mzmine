@@ -137,9 +137,9 @@ public class EditComboCellFactory implements
             }
           }
 
+          getTableColumn().setPrefWidth(type.getPrefColumnWidth());
           if (type instanceof GraphicalColumType graphType) {
             Node node = graphType.getCellNode(this, param, type, list, raw);
-            getTableColumn().setMinWidth(graphType.getColumnWidth());
             setGraphic(node);
             setText(null);
             setTooltip(new Tooltip(type.getFormattedStringCheckType(list)));
