@@ -83,8 +83,7 @@ public enum FeatureAnnotationPriority {
       orderedTypes.put(missingValueType, c);
     }
 
-    return Comparator.comparing(orderedTypes::get,
-        Comparator.nullsLast(Comparator.naturalOrder()));
+    return Comparator.comparing(orderedTypes::get, Comparator.nullsLast(Comparator.naturalOrder()));
   }
 
   /**
@@ -155,8 +154,10 @@ public enum FeatureAnnotationPriority {
     for (FeatureAnnotationPriority annotationPriority : values()) {
       Object value = model.get(annotationPriority.getAnnotationType());
       if (value != null) {
-        if (value instanceof List list && !list.isEmpty()) {
-          return annotationPriority.getAnnotationType();
+        if (value instanceof List list) {
+          if (!list.isEmpty()) {
+            return annotationPriority.getAnnotationType();
+          }
         } else {
           return annotationPriority.getAnnotationType();
         }
