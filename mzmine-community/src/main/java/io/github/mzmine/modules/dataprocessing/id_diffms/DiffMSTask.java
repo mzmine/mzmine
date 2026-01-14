@@ -45,6 +45,7 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.ConsensusFo
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -64,16 +65,22 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DiffMSTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(DiffMSTask.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final Pattern MSMS_ANN_LOSS = Pattern.compile("^\\[M-(.+)]$");
   private static final Pattern MSMS_ANN_FORMULA = Pattern.compile("^\\[(.+)]$");
   private static final Pattern RUNNER_PROGRESS = Pattern.compile("^MZMINE_DIFFMS_PROGRESS (\\d+)/(\\d+)$");
   private static final Pattern RUNNER_STAGE = Pattern.compile("^MZMINE_DIFFMS_STAGE (.+)$");
+  private static final String RUNNER_LOG_PREFIX = "MZMINE_DIFFMS_LOG ";
+  private static final double ETA_EMA_ALPHA = 0.20; // smoother ETA, less jumpy
 
   private final @NotNull FeatureList flist;
   private final @Nullable List<ModularFeatureListRow> rowsOverride;
@@ -89,6 +96,12 @@ public class DiffMSTask extends AbstractTask {
   private String description = "DiffMS structure generation";
   private int totalRows;
   private int doneRows;
+
+  // ETA estimation based on observed per-row timing from runner progress.
+  private long runnerStartNanos = -1;
+  private long lastProgressNanos = -1;
+  private int lastProgressDone = 0;
+  private double emaSecondsPerRow = 0d;
 
   public DiffMSTask(@NotNull final MZmineProject project,
       @NotNull final io.github.mzmine.parameters.ParameterSet parameters,
@@ -159,6 +172,11 @@ public class DiffMSTask extends AbstractTask {
     doneRows = 0;
     int skippedNoFormula = 0;
     int skippedNoMs2 = 0;
+    int skippedBadPolarity = 0;
+    int skippedBadAdduct = 0;
+
+    logger.info(() -> "DiffMS: preparing inputs for " + rows.size() + " rows from feature list '"
+        + flist.getName() + "'" + (rowsOverride != null ? " (selected rows)" : ""));
 
     for (FeatureListRow row : rows) {
       if (isCanceled()) {
@@ -173,13 +191,22 @@ public class DiffMSTask extends AbstractTask {
 
       final String formula = resolveFormula(mrow);
       final List<Scan> ms2 = mrow.getAllFragmentScans();
-      final String adduct = resolveAdduct(mrow);
       if (formula == null) {
         skippedNoFormula++;
         continue;
       }
       if (ms2.isEmpty()) {
         skippedNoMs2++;
+        continue;
+      }
+
+      final String adduct;
+      try {
+        adduct = resolveAdduct(mrow);
+      } catch (IllegalStateException e) {
+        skippedBadAdduct++;
+        logger.info(() -> "DiffMS: skipping row " + row.getID() + " due to adduct issue: "
+            + e.getMessage());
         continue;
       }
 
@@ -215,19 +242,83 @@ public class DiffMSTask extends AbstractTask {
       if (polarity == null) {
         throw new IllegalStateException("Missing polarity for row " + row.getID());
       }
+      if (polarity == PolarityType.NEGATIVE) {
+        skippedBadPolarity++;
+        logger.info(() -> "DiffMS: skipping row " + row.getID()
+            + " because negative polarity is not supported by DiffMS ion list");
+        // do NOT count this row as eligible for DiffMS
+        totalRows--;
+        continue;
+      }
 
       rowsById.put(row.getID(), mrow);
       formulaByRowId.put(row.getID(), formula);
       final List<Map<String, Object>> sub = resolveSubformulas(mrow, formula);
-      input.add(Map.of("rowId", row.getID(), "formula", formula, "adduct", adduct, "mzs", mzOut,
-          "intensities", intOut, "subformulas", sub, "polarity",
-          polarity == PolarityType.NEGATIVE ? "NEGATIVE" : "POSITIVE"));
+
+      final Scan firstMs2 = ms2.get(0);
+      final MsMsInfo msmsInfo = firstMs2.getMsMsInfo();
+      final Double precursorMz = firstMs2.getPrecursorMz();
+      final Integer precursorCharge = firstMs2.getPrecursorCharge();
+      final Float activationEnergy = msmsInfo == null ? null : msmsInfo.getActivationEnergy();
+      final String activationMethod = msmsInfo == null ? null : msmsInfo.getActivationMethod().name();
+      final String scanDefinition = firstMs2.getScanDefinition();
+      final String instrument = resolveInstrumentString(firstMs2);
+
+      final Map<String, Object> item = new HashMap<>();
+      item.put("rowId", row.getID());
+      item.put("formula", formula);
+      item.put("adduct", adduct);
+      item.put("mzs", mzOut);
+      item.put("intensities", intOut);
+      item.put("polarity", "POSITIVE");
+      item.put("subformulas", sub);
+      // additional optional conditioning/debug info
+      item.put("instrument", instrument);
+      item.put("scanDefinition", scanDefinition);
+      if (activationEnergy != null) {
+        item.put("collisionEnergy", activationEnergy.doubleValue());
+      }
+      if (activationMethod != null) {
+        item.put("activationMethod", activationMethod);
+      }
+      if (precursorMz != null) {
+        item.put("precursorMz", precursorMz);
+      } else {
+        item.put("precursorMz", row.getAverageMZ());
+      }
+      if (precursorCharge != null) {
+        item.put("precursorCharge", precursorCharge);
+      }
+
+      input.add(item);
+
+      final int subCount = sub == null ? 0 : sub.size();
+      final String subExample = sub == null || sub.isEmpty() ? ""
+          : sub.stream().limit(5)
+              .map(m -> Objects.toString(m.get("formula"), "?"))
+              .collect(Collectors.joining(", "));
+      final String msg = "DiffMS input rowId=" + row.getID()
+          + " formula=" + formula
+          + " adduct=" + adduct
+          + " ms2Scans=" + ms2.size()
+          + " mergedPeaks=" + n
+          + " topPeaksSent=" + take
+          + " subformulas=" + subCount
+          + (subExample.isBlank() ? "" : " subformulasExample=[" + subExample + "]")
+          + " instrument='" + instrument + "'"
+          + " collisionEnergy=" + (activationEnergy == null ? "null" : activationEnergy)
+          + " activationMethod=" + (activationMethod == null ? "null" : activationMethod)
+          + " precursorMz=" + (precursorMz == null ? "null" : precursorMz)
+          + " precursorCharge=" + (precursorCharge == null ? "null" : precursorCharge);
+      logger.info(msg);
     }
 
     if (input.isEmpty()) {
       throw new IllegalStateException(
           "No rows eligible for DiffMS. Skipped rows without Formula: " + skippedNoFormula
-              + ", without MS/MS: " + skippedNoMs2);
+              + ", without MS/MS: " + skippedNoMs2
+              + ", bad adduct: " + skippedBadAdduct
+              + ", negative polarity: " + skippedBadPolarity);
     }
 
     final File inFile;
@@ -271,6 +362,12 @@ public class DiffMSTask extends AbstractTask {
     cmd.add(String.valueOf(subformulaBeam));
     cmd.add("--device");
     cmd.add(device.toArg());
+
+    logger.info(() -> "DiffMS: running python runner with " + input.size() + " items. "
+        + "Input JSON: " + inFile.getAbsolutePath() + ", output JSON: " + outFile.getAbsolutePath());
+    if (logger.isLoggable(Level.FINE)) {
+      logger.fine(() -> "DiffMS: runner command: " + String.join(" ", cmd));
+    }
 
     runOrThrowWithProgress(diffmsDir, cmd);
 
@@ -316,23 +413,56 @@ public class DiffMSTask extends AbstractTask {
       b.directory(workDir);
       b.redirectErrorStream(true);
       final Process p = b.start();
+      runnerStartNanos = System.nanoTime();
+      lastProgressNanos = runnerStartNanos;
+      lastProgressDone = 0;
+      emaSecondsPerRow = 0d;
       final StringBuilder err = new StringBuilder();
       try (var outReader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
         String line;
         while ((line = outReader.readLine()) != null) {
           final Matcher pm = RUNNER_PROGRESS.matcher(line);
           if (pm.matches()) {
-            doneRows = Integer.parseInt(pm.group(1));
-            totalRows = Integer.parseInt(pm.group(2));
-            description = "DiffMS: " + doneRows + "/" + totalRows;
+            final int newDone = Integer.parseInt(pm.group(1));
+            final int newTotal = Integer.parseInt(pm.group(2));
+
+            totalRows = newTotal;
+            doneRows = newDone;
+
+            // Update ETA estimate only when progress advances.
+            if (newDone > lastProgressDone) {
+              final long now = System.nanoTime();
+              final int delta = newDone - lastProgressDone;
+              final long dtNanos = now - lastProgressNanos;
+              final double sec = dtNanos / 1e9;
+              if (sec > 0d && delta > 0) {
+                final double secPerRow = sec / delta;
+                emaSecondsPerRow =
+                    emaSecondsPerRow <= 0 ? secPerRow
+                        : (ETA_EMA_ALPHA * secPerRow + (1d - ETA_EMA_ALPHA) * emaSecondsPerRow);
+              }
+              lastProgressNanos = now;
+              lastProgressDone = newDone;
+            }
+
+            description = formatProgressDescription();
             continue;
           }
           final Matcher sm = RUNNER_STAGE.matcher(line);
           if (sm.matches()) {
-            description = "DiffMS: " + sm.group(1);
+            description = "DiffMS: " + sm.group(1) + formatEtaSuffix();
             continue;
           }
-          err.append(line).append('\n');
+          if (line.startsWith(RUNNER_LOG_PREFIX)) {
+            final String msg = line.substring(RUNNER_LOG_PREFIX.length());
+            logger.info(() -> "DiffMS runner: " + msg);
+          } else {
+            logger.fine("DiffMS runner: " + line);
+          }
+          // keep some output for error messages
+          if (err.length() < 50_000) {
+            err.append(line).append('\n');
+          }
         }
       }
       final int code = p.waitFor();
@@ -342,6 +472,49 @@ public class DiffMSTask extends AbstractTask {
     } catch (IOException | InterruptedException e) {
       throw new IllegalStateException("Failed to run DiffMS runner.", e);
     }
+  }
+
+  private String formatProgressDescription() {
+    // Prefer a stable "i/N" plus ETA once we have enough timing signal.
+    final String base = "DiffMS: " + doneRows + "/" + totalRows;
+    return base + formatEtaSuffix();
+  }
+
+  private String formatEtaSuffix() {
+    if (totalRows <= 0 || doneRows <= 0) {
+      return "";
+    }
+    if (emaSecondsPerRow <= 0d || Double.isNaN(emaSecondsPerRow) || Double.isInfinite(
+        emaSecondsPerRow)) {
+      return "";
+    }
+    final int remaining = Math.max(0, totalRows - doneRows);
+    final long etaSec = Math.round(remaining * emaSecondsPerRow);
+    final double rowsPerMin = 60d / emaSecondsPerRow;
+    return " (%.1f rows/min, ETA %s)".formatted(rowsPerMin, formatDurationSeconds(etaSec));
+  }
+
+  private static String formatDurationSeconds(final long sec) {
+    final long s = Math.max(0L, sec);
+    final long h = s / 3600;
+    final long m = (s % 3600) / 60;
+    final long r = s % 60;
+    if (h > 0) {
+      return "%d:%02d:%02d".formatted(h, m, r);
+    }
+    return "%d:%02d".formatted(m, r);
+  }
+
+  private static String resolveInstrumentString(final Scan scan) {
+    // MZmine does not expose a unified "instrument name" across all importers; scan definition is
+    // the most widely available field. Keep it short to avoid breaking downstream instrument mapping.
+    final String def = scan.getScanDefinition();
+    if (def != null && !def.isBlank()) {
+      // truncate extremely long scan definitions
+      final String s = def.trim();
+      return s.length() > 120 ? s.substring(0, 120) : s;
+    }
+    return "Unknown (LCMS)";
   }
 
   private static String resolveFormula(final ModularFeatureListRow row) {

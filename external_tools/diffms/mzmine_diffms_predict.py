@@ -232,6 +232,27 @@ def _normalize_ion(raw: str, ion_lst: List[str], ion_remap: Dict[str, str]) -> s
     raise ValueError(f"unsupported adduct/ion type for DiffMS: {s}")
 
 
+def _pick_instrument(raw: Optional[object], get_instr_idx) -> str:
+    """
+    DiffMS/MIST expects instrument names from a fixed vocabulary. We try to use what MZmine provides
+    (scan definition / instrument string), but fall back to a known-safe default.
+    """
+    default = "Unknown (LCMS)"
+    if raw is None:
+        return default
+    s = str(raw).strip()
+    if not s:
+        return default
+    # keep the string short to improve matching stability
+    if len(s) > 120:
+        s = s[:120]
+    try:
+        _ = get_instr_idx(s)
+        return s
+    except Exception:
+        return default
+
+
 def _load_weights(model, ckpt_path: Path):
     import torch
 
@@ -443,7 +464,8 @@ def main():
         )
 
         instr = "Unknown (LCMS)"
-        instr_idx = get_instr_idx(instr)
+        # instrument might be updated per-row; keep a default that always works
+        _ = get_instr_idx(instr)
 
         done = 0
         for item in req:
@@ -458,6 +480,14 @@ def main():
             polarity = str(item.get("polarity", "POSITIVE")).upper()
             if polarity != "POSITIVE":
                 raise ValueError("only POSITIVE polarity is supported by DiffMS ion list")
+
+            # Optional metadata/conditioning signals from MZmine (best-effort).
+            instr_raw = item.get("instrument") or item.get("scanDefinition")
+            instr = _pick_instrument(instr_raw, get_instr_idx)
+            collision_energy = item.get("collisionEnergy")
+            activation_method = item.get("activationMethod")
+            precursor_mz = item.get("precursorMz")
+            precursor_charge = item.get("precursorCharge")
 
             root_counts = _parse_formula_counts(formula)
             mzs_np = np.asarray(mzs, dtype=np.float64)
@@ -480,6 +510,8 @@ def main():
                         continue
                     f = sf.get("formula")
                     inten = sf.get("intensity")
+                    # optional per-fragment ion type; fallback to root ion
+                    ion = sf.get("ion")
                     if f is None or inten is None:
                         continue
                     f = str(f).strip()
@@ -487,7 +519,7 @@ def main():
                         continue
                     frag_forms.append(f)
                     frag_ints.append(float(inten))
-                    frag_ions.append(root_ion)
+                    frag_ions.append(_normalize_ion(ion, ION_LST, ion_remap) if ion else root_ion)
             else:
                 for m, inten in zip(mzs_np, intens_np):
                     frag = _best_subformula_for_mass(
@@ -516,13 +548,48 @@ def main():
                 peak_featurizer.spec_name_to_subform_file[str(row_id)] = str(subform_file)
 
             class _Spec:
-                def __init__(self, name: str, instrument: str):
+                def __init__(
+                    self,
+                    name: str,
+                    instrument: str,
+                    collision_energy: Optional[object],
+                    activation_method: Optional[object],
+                    precursor_mz: Optional[object],
+                    precursor_charge: Optional[object],
+                ):
                     self._name = name
                     self._instrument = instrument
+                    self._collision_energy = collision_energy
+                    self._activation_method = activation_method
+                    self._precursor_mz = precursor_mz
+                    self._precursor_charge = precursor_charge
                 def get_spec_name(self, **_): return self._name
                 def get_instrument(self): return self._instrument
+                # best-effort hooks (PeakFormula may or may not use these)
+                def get_collision_energy(self): return self._collision_energy
+                def get_activation_method(self): return self._activation_method
+                def get_precursor_mz(self): return self._precursor_mz
+                def get_precursor_charge(self): return self._precursor_charge
 
-            spec = _Spec(str(row_id), instr)
+            print(
+                f"MZMINE_DIFFMS_LOG rowId={row_id} formula={formula} adduct={root_ion} "
+                f"instrument={instr} collisionEnergy={collision_energy} activationMethod={activation_method} "
+                f"precursorMz={precursor_mz} precursorCharge={precursor_charge} "
+                f"ms2Peaks={int(mzs_np.size)} subformulasProvided={isinstance(provided, list) and len(provided) > 0} "
+                f"subformulasUsed={len(frag_forms)} "
+                f"subformulasExample={','.join(frag_forms[:5])}",
+                file=sys.stderr,
+                flush=True,
+            )
+
+            spec = _Spec(
+                str(row_id),
+                instr,
+                collision_energy,
+                activation_method,
+                precursor_mz,
+                precursor_charge,
+            )
             feat = peak_featurizer.featurize(spec)
             batch = PeakFormula.collate_fn([feat])
             batch = {k: (v.to(device) if hasattr(v, "to") else v) for k, v in batch.items()}
