@@ -43,6 +43,6 @@ public enum FormulaStringFlavor {
   }
 
   public String getInputExample() {
-    return showCharge() ? "[Fe]+2" : "Fe";
+    return showCharge() ? "[Fe]+2 or [[13]CHO2]-" : "Fe or [13]C";
   }
 }

@@ -34,7 +34,6 @@ import static io.github.mzmine.javafx.components.factories.FxTextFields.newNumbe
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newTextField;
 import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_INSETS;
 import static io.github.mzmine.javafx.components.util.FxLayout.gridRow;
-import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 import static io.github.mzmine.util.FormulaUtils.getFormulaString;
 import static io.github.mzmine.util.StringUtils.isBlank;
 import static io.github.mzmine.util.StringUtils.requireValueOrElse;
@@ -46,11 +45,9 @@ import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.components.util.FxLayout.GridColumnGrow;
 import io.github.mzmine.javafx.properties.PropertyUtils;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.validation.FxValidation;
 import io.github.mzmine.util.FormulaStringFlavor;
-import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.text.DecimalFormat;
@@ -65,7 +62,6 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.geometry.Insets;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -83,8 +79,6 @@ public class IonPartDefinitionPane extends BorderPane {
   private static final Logger logger = Logger.getLogger(IonPartDefinitionPane.class.getName());
 
   private final ValidationSupport validator = FxValidation.newValidationSupport();
-
-  private final StringProperty ionPartStrToParse = new SimpleStringProperty();
 
   // creating a new IonPart
   private final StringProperty name = new SimpleStringProperty();
@@ -106,24 +100,10 @@ public class IonPartDefinitionPane extends BorderPane {
 
     var mzFormat = new DecimalFormat("0.########");
 
-    var txtParsedIonPart = newTextField(8, this.ionPartStrToParse, "Format: Cu+2", """
-        Use singleFormula to parse ion parts name and charge, e.g., Fe+2 for doubly charged iron.
-        This field is only used as a quick definition, the fields below define the full ion building block.""");
-    FxTextFields.autoGrowFitText(txtParsedIonPart, 12, 100);
-
-    var btnParseIonPart = createDisabledButton("Parse", FxIcons.INFO_CIRCLE, """
-            Parse ion part from singleFormula and set other fields based on it, e.g., +Fe+3 or -2Cl-.
-            This field is only used as a quick definition, the fields below define the full ion building block.""",
-        this.ionPartStrToParse.isEmpty(),
-        () -> parsePartStringFillFields(this.ionPartStrToParse.get()));
-
-    var btnUseFormulaMass = FxIconUtil.newIconButton(FxIcons.INFO_CIRCLE,
-        "Use the calculated mass of the current formula", this::useFormulaMass);
-
-    var txtName = newTextField(8, name, "Name, often the singleFormula");
+    var txtName = newTextField(8, name, "Optional name (use formula)", "Optional name or empty to use the formula");
     FxTextFields.autoGrowFitText(txtName, 12, 100);
 
-    var txtFormula = newFormulaTextField(FormulaStringFlavor.DEFAULT_CHARGED, false, rawFormulaStr);
+    var txtFormula = newFormulaTextField(FormulaStringFlavor.DEFAULT_NO_CHARGE, false, rawFormulaStr);
     FxTextFields.autoGrowFitText(txtFormula, 12, 100);
     singleFormula = txtFormula.formulaProperty();
 
@@ -140,10 +120,10 @@ public class IonPartDefinitionPane extends BorderPane {
         part.map(p -> p.toString(IonPartStringFlavor.FULL_WITH_MASS)).orElse("Cannot parse input"));
 
     var btnAdd = createDisabledButton("Add", FxIcons.ADD,
-        "Add new ion part based on name, singleFormula, and charge", part.isNull(),
+        "Add new ion part based on name, formula, and charge", part.isNull(),
         () -> addPart(false));
     var btnAddAndClear = createDisabledButton("Add & clear", FxIcons.ADD,
-        "Add new ion part based on name, singleFormula, and charge, then clear inputs",
+        "Add new ion part based on name, formula, and charge, then clear inputs",
         part.isNull(), () -> addPart(true));
     FxLayout.bindManagedToVisible(btnAddAndClear);
     btnAddAndClear.setVisible(showAddAndClear);
@@ -151,13 +131,9 @@ public class IonPartDefinitionPane extends BorderPane {
     // layout in grid
     final GridPane ionCreationGrid = FxLayout.newGrid2Col(GridColumnGrow.NONE,
         DEFAULT_PADDING_INSETS,
-        // parse singleFormula and set other fields with button. Button disabled if singleFormula invalid
-        newBoldLabel("Ion part: "), newHBox(Insets.EMPTY, txtParsedIonPart, btnParseIonPart),
-        // spacer
-        new Separator(),
-        // other fields
-        newLabel("Name: "), txtName, //
+        // formula is most important, name optional
         newLabel("Formula: "), txtFormula, //
+        newLabel("Name: "), txtName, //
         newLabel("Charge: "), spinCharge, //
         newLabel("Δmass: "), txtMass, //
         new Separator(), //
@@ -171,27 +147,16 @@ public class IonPartDefinitionPane extends BorderPane {
     partUpdateDelay.setOnFinished(_ -> updateCurrentPart());
     PropertyUtils.onChange(partUpdateDelay::playFromStart, name, singleFormula, charge, mass);
 
-    // validate the direct parsing of a full ion part from single text
-    FxValidation.registerErrorValidator(validator, txtParsedIonPart,
-        Bindings.createStringBinding(() -> {
-          String value = ionPartStrToParse.getValue();
-          if (!StringUtils.isBlank(value) && IonPartDefinition.parse(value) == null) {
-            return "Cannot parse ion part. Input correct format, e.g., Fe+3 or Cl-";
-          }
-          return null; // no error
-        }, txtParsedIonPart.textProperty(), ionPartStrToParse));
-
     final StringBinding formulaNameError = Bindings.createStringBinding(() -> {
       String name = this.name.getValue();
       IMolecularFormula singleFormula = this.singleFormula.getValue();
       if (isBlank(name) && singleFormula == null) {
-        return "Enter a name or a valid singleFormula, one is required, both are possible";
+        return "Enter a name or a valid formula, one is required, both are possible";
       }
       return null; // no error
     }, singleFormula, name);
 
     // use the same for both singleFormula and name
-    FxValidation.registerErrorValidator(validator, txtFormula, formulaNameError);
     FxValidation.registerErrorValidator(validator, txtName, formulaNameError);
 
     final StringBinding formulaMassError = Bindings.createStringBinding(() -> {
@@ -203,19 +168,18 @@ public class IonPartDefinitionPane extends BorderPane {
 
       if (mass == null) {
         return """
-            Enter a valid singleFormula or neutral mass.
-            Mass input is only available if singleFormula field is empty.
-            Otherwise the mass is calculated from the singleFormula.""";
+            Enter a valid formula or neutral mass.
+            Mass input is only available if formula field is empty.
+            Otherwise the mass is calculated from the formula.""";
       } else if (Precision.equalFloatSignificance(mass, 0d)) {
         return """
-            Enter a valid singleFormula or neutral mass.
+            Enter a valid formula or neutral mass.
             Neutral mass must be >0""";
       }
       return null; // no error
     }, singleFormula, mass);
 
-    // use the same for both singleFormula and name
-    FxValidation.registerErrorValidator(validator, txtFormula, formulaMassError);
+    // use the same for both formula and name
     FxValidation.registerErrorValidator(validator, txtMass, formulaMassError);
 
     setCenter(ionCreationGrid);
@@ -287,45 +251,7 @@ public class IonPartDefinitionPane extends BorderPane {
     onAddPart.accept(part);
   }
 
-  private void useFormulaMass() {
-    final IMolecularFormula current = singleFormula.get();
-    final Integer charge = this.charge.get();
-    if (current == null || charge == null) {
-      return;
-    }
-    final double mass = FormulaUtils.getMonoisotopicMass(current, charge);
-    this.mass.set(mass);
-  }
-
-  /**
-   * Parse ion part from string and fill all fields
-   *
-   * @param ionPart ion part string as +Fe+2 or -2Cl-
-   * @return true only if part was parsed successfully. Blank or null input results in false but is
-   * considered a non-issue
-   */
-  private boolean parsePartStringFillFields(String ionPart) {
-    if (StringUtils.isBlank(ionPart)) {
-      return false;
-    }
-    try {
-      var part = IonPartDefinition.parse(ionPart);
-      if (part == null) {
-        return false;
-      }
-      name.set(part.name());
-      charge.set(part.singleCharge());
-      mass.set(part.absSingleMass());
-      rawFormulaStr.set(part.singleFormula());
-      return true;
-    } catch (Exception ex) {
-      return false;
-    }
-  }
-
-
   private void clearInputs() {
-    ionPartStrToParse.set("");
     name.set("");
     mass.set(null);
     rawFormulaStr.set(null);

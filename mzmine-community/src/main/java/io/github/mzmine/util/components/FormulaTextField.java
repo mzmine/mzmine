@@ -78,6 +78,8 @@ public class FormulaTextField extends CustomTextField {
         "Enter a formula formatted like: %s (%s)".formatted(flavor.getInputExample(),
             requireValue ? "value required" : "empty allowed")));
 
+    setPromptText("Formula like: "+flavor.getInputExample());
+
     textProperty().subscribe(this::parseFormula);
     parsedFormula.bind(formula.map(f -> {
       if (f == null) {
@@ -132,6 +134,9 @@ public class FormulaTextField extends CustomTextField {
     if (formula.get() == null) {
       String error = "Cannot parse formula, required format: " + format;
       parsingError.set(error);
+    } else {
+      // clear error on success
+      parsingError.set(null);
     }
   }
 
