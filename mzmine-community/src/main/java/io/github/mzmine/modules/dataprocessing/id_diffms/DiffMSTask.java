@@ -98,12 +98,6 @@ public class DiffMSTask extends AbstractTask {
   private int totalRows;
   private int doneRows;
 
-  // ETA estimation based on observed per-row timing from runner progress.
-  private long runnerStartNanos = -1;
-  private long lastProgressNanos = -1;
-  private int lastProgressDone = 0;
-  private double emaSecondsPerRow = 0d;
-
   public DiffMSTask(@NotNull final MZmineProject project,
       @NotNull final io.github.mzmine.parameters.ParameterSet parameters,
       @NotNull final FeatureList flist, @NotNull final Instant moduleCallDate) {
@@ -415,10 +409,11 @@ public class DiffMSTask extends AbstractTask {
       b.directory(workDir);
       b.redirectErrorStream(true);
       final Process p = b.start();
-      runnerStartNanos = System.nanoTime();
-      lastProgressNanos = runnerStartNanos;
-      lastProgressDone = 0;
-      emaSecondsPerRow = 0d;
+
+      long lastProgressNanos = System.nanoTime();
+      int lastProgressDone = 0;
+      double emaSecondsPerRow = 0d;
+
       final StringBuilder err = new StringBuilder();
       try (var outReader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
         String line;
@@ -447,12 +442,12 @@ public class DiffMSTask extends AbstractTask {
               lastProgressDone = newDone;
             }
 
-            description = formatProgressDescription();
+            description = formatProgressDescription(emaSecondsPerRow);
             continue;
           }
           final Matcher sm = RUNNER_STAGE.matcher(line);
           if (sm.matches()) {
-            description = "DiffMS: " + sm.group(1) + formatEtaSuffix();
+            description = "DiffMS: " + sm.group(1) + formatEtaSuffix(emaSecondsPerRow);
             continue;
           }
           if (line.startsWith(RUNNER_LOG_PREFIX)) {
@@ -476,13 +471,13 @@ public class DiffMSTask extends AbstractTask {
     }
   }
 
-  private String formatProgressDescription() {
+  private String formatProgressDescription(final double emaSecondsPerRow) {
     // Prefer a stable "i/N" plus ETA once we have enough timing signal.
     final String base = "DiffMS: " + doneRows + "/" + totalRows;
-    return base + formatEtaSuffix();
+    return base + formatEtaSuffix(emaSecondsPerRow);
   }
 
-  private String formatEtaSuffix() {
+  private String formatEtaSuffix(final double emaSecondsPerRow) {
     if (totalRows <= 0 || doneRows <= 0) {
       return "";
     }
