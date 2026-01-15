@@ -358,14 +358,12 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
 
   private void setColumnVisibilityAndSubColumns(final ColumnID mainColumn, final boolean visible,
       boolean applyVisibility) {
-    rowTypesParameter.setDataTypeVisible(mainColumn, visible);
-    final String parentHeader = mainColumn.getCombinedHeaderString();
 
     // apply to all sub columns
+    rowTypesParameter.setDataTypeVisible(mainColumn, visible);
     if (mainColumn.getDataType() instanceof SubColumnsFactory subFact) {
       for (int i = 0; i < subFact.getNumberOfSubColumns(); i++) {
-        var header = subFact.getHeader(i);
-        setVisible(ColumnType.ROW_TYPE, parentHeader, header, visible);
+        setVisible(ColumnType.ROW_TYPE, mainColumn.getDataType(), subFact.getType(i), visible);
       }
     }
 
@@ -1226,22 +1224,21 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     applyVisibilityParametersToAllColumns();
   }
 
-  private void setVisible(ColumnType columnType, @NotNull String parentUniqueId,
-      @Nullable String subColUniqueId, boolean visible) {
-    String key = ColumnID.buildUniqueIdString(columnType, parentUniqueId, subColUniqueId);
+  private void setVisible(ColumnType columnType, @NotNull Class<? extends DataType<?>> parentType,
+      @Nullable Class<? extends DataType<?>> subtype, boolean visible) {
+    setVisible(columnType, DataTypes.get(parentType),
+        subtype != null ? DataTypes.get(subtype) : null, visible);
+  }
+
+  private void setVisible(ColumnType columnType, @NotNull DataType<?> parentType,
+      @Nullable DataType<?> subtype, boolean visible) {
+    String key = ColumnID.buildUniqueIdString(columnType, parentType.getUniqueID(),
+        subtype != null ? subtype.getUniqueID() : null);
     if (columnType == ColumnType.ROW_TYPE) {
       rowTypesParameter.setDataTypeVisible(key, visible);
     } else {
       featureTypesParameter.setDataTypeVisible(key, visible);
     }
-  }
-
-  private void setVisible(ColumnType columnType, @NotNull Class<? extends DataType<?>> parentClass,
-      @Nullable Class<? extends DataType<?>> subtype, boolean visible) {
-    final DataType<?> subType = subtype != null ? DataTypes.get(subtype) : null;
-    final DataType<?> parentType = DataTypes.get(parentClass);
-    setVisible(columnType, parentType.getUniqueID(), subType != null ? subType.getUniqueID() : null,
-        visible);
   }
 
   public void closeTable() {
