@@ -205,13 +205,16 @@ public class DiffMSTask extends AbstractTask {
         continue;
       }
 
-      totalRows++;
       final var merged = SpectraMerging.mergeSpectra(ms2, SpectraMerging.defaultMs2MergeTol,
           io.github.mzmine.datamodel.MergedMassSpectrum.MergingType.ALL_ENERGIES, null);
       final int n = merged.getNumberOfDataPoints();
       if (n == 0) {
-        throw new IllegalStateException("Empty merged MS/MS spectrum for row " + row.getID());
+        skippedNoMs2++;
+        logger.info(() -> "DiffMS: skipping row " + row.getID() + " because merged MS/MS spectrum is empty");
+        continue;
       }
+
+      totalRows++;
 
       final double[] mzs = new double[n];
       final double[] ints = new double[n];
