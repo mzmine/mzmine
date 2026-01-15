@@ -58,7 +58,7 @@
                 <TableColumn fx:id="statusColumn" editable="false" maxWidth="60.0" minWidth="60.0"
                   prefWidth="60.0" text="Status"/>
                 <TableColumn fx:id="fragmentsPosColumn" editable="false" prefWidth="75.0"
-                  text="MS/MS fragments"/>
+                  text="MS2 fragments"/>
               </columns>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

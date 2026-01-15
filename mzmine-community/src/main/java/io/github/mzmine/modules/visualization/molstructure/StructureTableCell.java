@@ -50,6 +50,6 @@ public class StructureTableCell<S> extends TreeTableCell<S, Object> {
         () -> !isEmpty() && itemProperty().get() != null ? molViewer : null, itemProperty(),
         emptyProperty()));
     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-    setMinWidth(DataTypes.get(MolecularStructureType.class).getColumnWidth());
+    setMinWidth(DataTypes.get(MolecularStructureType.class).getPrefColumnWidth());
   }
 }

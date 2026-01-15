@@ -76,12 +76,19 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements Sub
       } else {
         // create all other columns
         var col = type.createColumn(raw, this, index);
-          // override type in CellValueFactory with this parent type
-          cols.add(col);
+        // override type in CellValueFactory with this parent type
+        cols.add(col);
       }
     }
 
     return cols;
+  }
+
+  @Override
+  public double getPrefColumnWidth() {
+    // this types uses a wrapping text and therefore needs to set the preferred width
+    // otherwise the size is the minimum
+    return 100;
   }
 
   @Override
@@ -197,7 +204,7 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements Sub
    * This method extracts the sub column value K from the parentItem, which is usually an item with
    * the list of this {@link ListWithSubsType}. This could be one annotation of a list of
    * annotations.
-   *
+   * <p>
    * This way one can retrieve the formatted value of a sub columns like below:
    *
    * <pre>

@@ -71,7 +71,7 @@ public class LipidSpectrumType extends LinkedGraphicalType {
   }
 
   @Override
-  public double getColumnWidth() {
+  public double getPrefColumnWidth() {
     return DEFAULT_GRAPHICAL_CELL_WIDTH;
   }
 

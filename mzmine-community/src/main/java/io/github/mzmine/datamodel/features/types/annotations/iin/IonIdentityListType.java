@@ -86,6 +86,11 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
   }
 
   @Override
+  public double getPrefColumnWidth() {
+    return 100;
+  }
+
+  @Override
   public <K> @Nullable K map(@NotNull final DataType<K> subType, final IonIdentity ion) {
     final IonNetwork net = ion.getNetwork();
     return (K) switch (subType) {

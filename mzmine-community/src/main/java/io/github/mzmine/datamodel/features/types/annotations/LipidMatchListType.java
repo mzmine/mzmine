@@ -74,6 +74,11 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
   }
 
   @Override
+  public double getPrefColumnWidth() {
+    return 120;
+  }
+
+  @Override
   public <K> @Nullable K map(@NotNull final DataType<K> subType, final MatchedLipid match) {
     return (K) switch (subType) {
       case LipidMatchListType __ -> match;

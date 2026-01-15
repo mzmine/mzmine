@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,11 +33,12 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
-import javafx.scene.control.ContentDisplay;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.TextAlignment;
 import org.jfree.chart.JFreeChart;
 
 /**
@@ -61,16 +62,19 @@ public abstract class ChartCell<T extends EChartViewer> extends
   public ChartCell(int id) {
     super();
     plot = createChart();
+    FxLayout.bindManagedToVisible(plot);
     initDoubleClickListener();
     this.id = id;
     view = new StackPane(plot);
 
     setMinWidth(getMinCellWidth());
     setMinHeight(getMinCellHeight());
-    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+    // use default graphic and text
+    // LipidSpectrumCell turns graphic invisible and shows text in some cases
+//    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+    setTextAlignment(TextAlignment.CENTER);
 
     // use stackpane as it is transparent / borderpane is not
-
     graphicProperty().bind(emptyProperty().map(empty -> empty ? null : view));
   }
 

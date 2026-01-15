@@ -175,7 +175,8 @@ public class ReportUtils {
           precursorMz != null ? MathUtils.getPpmDiff(precursorMz, row.getAverageMZ()) : null;
 
       final @Nullable String dbEntryId = switch (a) {
-        case SpectralDBAnnotation db -> db.getEntry().getOrElse(DBEntryField.ENTRY_ID, null);
+        case SpectralDBAnnotation db ->
+            db.getEntry().getField(DBEntryField.ENTRY_ID).map(Object::toString).orElse(null);
         case LipidAnnotation l -> "Rule-based annotation";
         case CompoundDBAnnotation c -> null;
         default -> null;
@@ -592,25 +593,23 @@ public class ReportUtils {
     final Color uvColor = ColorUtils.getContrastPaletteColorAWT(bestFeatureFile.getColorAWT(),
         palette);
 
-    uvMsOverlay.applyWithNotifyChanges(false, () -> {
-      uvMsOverlay.removeAllDatasets();
-      final float otherFeatureNormFactor = 1 / correlatedFeature.get(HeightType.class);
-      final float msFeatureNormFactor = 1 / bestFeature.getHeight();
+    uvMsOverlay.removeAllDatasets();
+    final float otherFeatureNormFactor = 1 / correlatedFeature.get(HeightType.class);
+    final float msFeatureNormFactor = 1 / bestFeature.getHeight();
 
-      uvMsOverlay.addDataset(new ColoredXYDataset(
-          new OtherFeatureDataProvider(correlatedFeature, uvColor, otherFeatureNormFactor),
-          RunOption.THIS_THREAD), new ColoredAreaShapeRenderer());
-      uvMsOverlay.addDataset(new ColoredXYDataset(
-          new IntensityTimeSeriesToXYProvider(trimmedPreProcessed, uvColor, null,
-              otherFeatureNormFactor), RunOption.THIS_THREAD), new ColoredXYLineRenderer());
+    uvMsOverlay.addDataset(new ColoredXYDataset(
+        new OtherFeatureDataProvider(correlatedFeature, uvColor, otherFeatureNormFactor),
+        RunOption.THIS_THREAD), new ColoredAreaShapeRenderer());
+    uvMsOverlay.addDataset(new ColoredXYDataset(
+        new IntensityTimeSeriesToXYProvider(trimmedPreProcessed, uvColor, null,
+            otherFeatureNormFactor), RunOption.THIS_THREAD), new ColoredXYLineRenderer());
 
-      uvMsOverlay.addDataset(new ColoredXYDataset(
-          new IonTimeSeriesToXYProvider(msChrom, "EIC", bestFeatureFile.getColorAWT(),
-              msFeatureNormFactor), RunOption.THIS_THREAD), new ColoredXYLineRenderer());
-      uvMsOverlay.addDataset(new ColoredXYDataset(
-          new IonTimeSeriesToXYProvider(msFeature, "MS feature", bestFeatureFile.getColorAWT(),
-              msFeatureNormFactor), RunOption.THIS_THREAD), new ColoredXYLineRenderer());
-    });
+    uvMsOverlay.addDataset(new ColoredXYDataset(
+        new IonTimeSeriesToXYProvider(msChrom, "EIC", bestFeatureFile.getColorAWT(),
+            msFeatureNormFactor), RunOption.THIS_THREAD), new ColoredXYLineRenderer());
+    uvMsOverlay.addDataset(new ColoredXYDataset(
+        new IonTimeSeriesToXYProvider(msFeature, "MS feature", bestFeatureFile.getColorAWT(),
+            msFeatureNormFactor), RunOption.THIS_THREAD), new ColoredXYLineRenderer());
 
     return true;
   }

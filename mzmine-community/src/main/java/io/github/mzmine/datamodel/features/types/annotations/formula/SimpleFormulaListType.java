@@ -34,8 +34,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A list of molecular formulas
  */
-public class SimpleFormulaListType extends ListDataType<ResultFormula>
-    implements AnnotationType, EditableColumnType {
+public class SimpleFormulaListType extends ListDataType<ResultFormula> implements AnnotationType,
+    EditableColumnType {
 
 
   @NotNull
@@ -51,4 +51,8 @@ public class SimpleFormulaListType extends ListDataType<ResultFormula>
     return "Formula";
   }
 
+  @Override
+  public double getPrefColumnWidth() {
+    return 120;
+  }
 }

@@ -35,8 +35,8 @@ import org.jetbrains.annotations.NotNull;
  * A list of {@link IonIdentity}. The first is generally the active element. A simple list without
  * all the other sub columns that might be used in other types.
  */
-public class SimpleIonIdentityListType extends ListDataType<IonIdentity>
-    implements AnnotationType, EditableColumnType {
+public class SimpleIonIdentityListType extends ListDataType<IonIdentity> implements AnnotationType,
+    EditableColumnType {
 
   @NotNull
   @Override
@@ -49,5 +49,10 @@ public class SimpleIonIdentityListType extends ListDataType<IonIdentity>
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
     return "ion_identities_simple";
+  }
+
+  @Override
+  public double getPrefColumnWidth() {
+    return 100;
   }
 }
