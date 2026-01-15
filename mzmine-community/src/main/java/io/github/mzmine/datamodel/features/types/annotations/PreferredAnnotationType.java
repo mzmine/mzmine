@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,14 +25,14 @@
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
-import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationPriority;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
-import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
@@ -80,19 +81,9 @@ public class PreferredAnnotationType extends ListWithSubsType<FeatureAnnotation>
   @Override
   public @Nullable List<? extends FeatureAnnotation> getValue(@NotNull ModularDataModel model) {
 
-    DataType<?> preferredAnnotationType = FeatureAnnotationPriority.getPreferredAnnotationType(
-        model);
-    switch (preferredAnnotationType) {
-      case ManualAnnotationType _, FormulaListType _ -> {
-        // not a feature annotation
-        return null;
-      }
-      case null -> {
-        return null;
-      }
-      default -> {
-      }
-    }
+    final DataType<?> preferredAnnotationType = AnnotationPriority.getBestAnnotationType(
+        (FeatureListRow) model);
+
     if (model instanceof ModularFeatureListRow row) {
       Object preferredAnnotation = row.get(preferredAnnotationType);
       if (preferredAnnotation instanceof List<?> l && (l.isEmpty()

@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -25,13 +26,13 @@
 package io.github.mzmine.datamodel.features.compoundannotations;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
@@ -171,6 +172,11 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     String inchi = getInChI();
     structure = StructureParser.silent().parseStructure(smiles, inchi);
     return structure;
+  }
+
+  @Override
+  public @NotNull Class<? extends DataType> getDataType() {
+    return CompoundDatabaseMatchesType.class;
   }
 
   @Override
@@ -374,9 +380,5 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     return Objects.hash(data);
   }
 
-  @Override
-  public @NotNull FeatureAnnotationPriority getAnnotationPriority() {
-    return FeatureAnnotationPriority.EXACT_COMPOUND;
-  }
 }
 

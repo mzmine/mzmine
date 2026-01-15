@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,6 +30,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationPriority;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
@@ -197,9 +199,8 @@ public class ModularFeatureList implements FeatureList {
     });
 
     rowsSchema.addDataTypesChangeListener((added, _) -> {
-      if (added.stream().filter(AnnotationType.class::isInstance).filter(
-          t -> FeatureAnnotationPriority.getPriority((DataType<?> & AnnotationType) t)
-              < FeatureAnnotationPriority.values().length).findAny().isPresent()) {
+      if (added.stream().filter(AnnotationType.class::isInstance)
+          .anyMatch(t -> AnnotationPriority.types.contains(t))) {
         // as soon as we have an annotation that is handled by the preferred annotation, add the type automatically
         addRowType(DataTypes.get(PreferredAnnotationType.class));
       }

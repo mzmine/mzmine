@@ -30,10 +30,11 @@ import static java.util.Objects.requireNonNullElse;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
@@ -366,12 +367,13 @@ public class MatchedLipid implements FeatureAnnotation {
   }
 
   @Override
+  public @NotNull Class<? extends DataType> getDataType() {
+    return LipidMatchListType.class;
+  }
+
+  @Override
   public @NotNull String getXmlAttributeKey() {
     return XML_ELEMENT;
   }
 
-  @Override
-  public @NotNull FeatureAnnotationPriority getAnnotationPriority() {
-    return FeatureAnnotationPriority.LIPID;
-  }
 }

@@ -292,4 +292,12 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
       };
     }
   }
+
+  public @NotNull FeatureListRow row() {
+    return row;
+  }
+
+  public @Nullable FeatureAnnotation annotation() {
+    return annotation;
+  }
 }

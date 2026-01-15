@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,9 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationPriority;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
@@ -542,21 +544,23 @@ public interface FeatureListRow extends ModularDataModel {
   boolean hasIsotopePattern();
 
   /**
-   * Uses {@link FeatureAnnotationPriority} to find the best annotation from different methods
+   * Uses {@link AnnotationPriority} to find the best annotation from different methods
    *
    * @return the preferred annotation or null
    */
-  @Nullable Object getPreferredAnnotation();
+  default @Nullable FeatureAnnotation getPreferredAnnotation() {
+    return AnnotationPriority.getBestFeatureAnnotation(this);
+  }
 
 
   @NotNull
-  default Stream<Object> streamAllFeatureAnnotations() {
-    return new FeatureAnnotationIterator(this).stream();
+  default Stream<FeatureAnnotation> streamAllFeatureAnnotations() {
+    return getAllFeatureAnnotations().stream();
   }
 
   @NotNull
-  default List<Object> getAllFeatureAnnotations() {
-    return streamAllFeatureAnnotations().toList();
+  default List<FeatureAnnotation> getAllFeatureAnnotations() {
+    return AnnotationPriority.getAllFeatureAnnotationsByDescendingConfidence(this);
   }
 
   /**

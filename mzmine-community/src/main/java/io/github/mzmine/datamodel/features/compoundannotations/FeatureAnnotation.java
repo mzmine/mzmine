@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,10 +28,10 @@ package io.github.mzmine.datamodel.features.compoundannotations;
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationPriority;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
@@ -291,13 +292,9 @@ public interface FeatureAnnotation {
   /**
    *
    * @return The data type that represents this annotation in the feature table
-   * ({@link FeatureAnnotationPriority#getAnnotationType()}
+   * ({@link AnnotationPriority#types}
    */
-  default @NotNull Class<? extends DataType> getDataType() {
-    return getAnnotationPriority().getAnnotationType().getClass();
-  }
-
-  @NotNull FeatureAnnotationPriority getAnnotationPriority();
+  @NotNull Class<? extends DataType> getDataType();
 
   /**
    * @return A unique identifier for saving any sub-class of this interface to XML.

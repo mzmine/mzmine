@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -67,7 +68,6 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
@@ -669,20 +669,12 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
 
   @Override
   @Nullable
-  public Object getPreferredAnnotation() {
-    return streamAllFeatureAnnotations().findFirst().orElse(null);
-  }
-
-  @Override
   public String getPreferredAnnotationName() {
-    Object annotation = getPreferredAnnotation();
-    return switch (annotation) {
-      case FeatureAnnotation ann -> ann.getCompoundName();
-      case ManualAnnotation ann -> ann.getCompoundName();
-      case MolecularFormulaIdentity ann -> ann.getFormulaAsString();
-      case null -> null;
-      default -> throw new IllegalStateException("Unexpected value: " + annotation);
-    };
+    FeatureAnnotation annotation = getPreferredAnnotation();
+    if (annotation != null) {
+      return annotation.getCompoundName();
+    }
+    return null;
   }
 
   @Override
