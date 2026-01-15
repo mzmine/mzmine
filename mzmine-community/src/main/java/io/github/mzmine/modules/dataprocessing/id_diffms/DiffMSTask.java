@@ -50,8 +50,10 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormul
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.io.BufferedReader;
 import java.io.File;
@@ -59,6 +61,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -224,24 +227,15 @@ public class DiffMSTask extends AbstractTask {
 
       totalRows++;
 
-      final double[] mzs = new double[n];
-      final double[] ints = new double[n];
-      merged.getMzValues(mzs);
-      merged.getIntensityValues(ints);
+      final DataPoint[] dps = ScanUtils.extractDataPoints(merged, true);
+      Arrays.sort(dps, DataPointSorter.DEFAULT_INTENSITY);
 
-      final List<Integer> idx = new ArrayList<>(n);
-      for (int i = 0; i < n; i++) {
-        idx.add(i);
-      }
-      idx.sort(Comparator.comparingDouble((Integer i) -> ints[i]).reversed());
-
-      final int take = Math.min(maxMs2Peaks, n);
+      final int take = Math.min(maxMs2Peaks, dps.length);
       final List<Double> mzOut = new ArrayList<>(take);
       final List<Double> intOut = new ArrayList<>(take);
-      for (int k = 0; k < take; k++) {
-        final int i = idx.get(k);
-        mzOut.add(mzs[i]);
-        intOut.add(ints[i]);
+      for (int i = 0; i < take; i++) {
+        mzOut.add(dps[i].getMZ());
+        intOut.add(dps[i].getIntensity());
       }
 
       final PolarityType polarity = ms2.get(0).getPolarity();
