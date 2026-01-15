@@ -31,7 +31,7 @@ public class SelectedRowsDiffMSParameters extends DiffMSParameters {
 
   public SelectedRowsDiffMSParameters() {
     super(new Parameter[]{pythonExecutable, diffmsDir, checkpoint, device, topK, maxMs2Peaks,
-        subformulaTolDa, subformulaBeam});
+        subformulaTol, subformulaBeam});
   }
 }
 

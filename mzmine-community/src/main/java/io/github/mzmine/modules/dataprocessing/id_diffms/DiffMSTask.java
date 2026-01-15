@@ -47,6 +47,7 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.Database
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
@@ -87,7 +88,7 @@ public class DiffMSTask extends AbstractTask {
   private final @NotNull DiffMSParameters.Device device;
   private final int topK;
   private final int maxMs2Peaks;
-  private final double subformulaTolDa;
+  private final @NotNull MZTolerance subformulaTol;
   private final int subformulaBeam;
   private final @NotNull File pythonExe;
   private final @NotNull File diffmsDir;
@@ -122,7 +123,7 @@ public class DiffMSTask extends AbstractTask {
     this.device = parameters.getValue(DiffMSParameters.device);
     this.topK = parameters.getValue(DiffMSParameters.topK);
     this.maxMs2Peaks = parameters.getValue(DiffMSParameters.maxMs2Peaks);
-    this.subformulaTolDa = parameters.getValue(DiffMSParameters.subformulaTolDa);
+    this.subformulaTol = parameters.getValue(DiffMSParameters.subformulaTol);
     this.subformulaBeam = parameters.getValue(DiffMSParameters.subformulaBeam);
   }
 
@@ -358,7 +359,7 @@ public class DiffMSTask extends AbstractTask {
     cmd.add("--max-ms2-peaks");
     cmd.add(String.valueOf(maxMs2Peaks));
     cmd.add("--subformula-tol");
-    cmd.add(String.valueOf(subformulaTolDa));
+    cmd.add(String.valueOf(subformulaTol.getMzTolerance()));
     cmd.add("--subformula-beam");
     cmd.add(String.valueOf(subformulaBeam));
     cmd.add("--device");

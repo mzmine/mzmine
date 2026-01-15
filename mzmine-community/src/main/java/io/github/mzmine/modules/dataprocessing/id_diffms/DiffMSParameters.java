@@ -27,13 +27,12 @@ package io.github.mzmine.modules.dataprocessing.id_diffms;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import java.text.NumberFormat;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -61,16 +60,16 @@ public class DiffMSParameters extends SimpleParameterSet {
   public static final IntegerParameter maxMs2Peaks = new IntegerParameter("Max MS/MS peaks",
       "Top-N peaks (by intensity) exported per feature (merged MS/MS).", 50, 5, 500);
 
-  public static final DoubleParameter subformulaTolDa = new DoubleParameter("Subformula tolerance (Da)",
-      "Absolute tolerance for matching a subformula mass to an MS/MS peak m/z.",
-      NumberFormat.getNumberInstance(), 0.02, 0.0, 1.0);
+  public static final MZToleranceParameter subformulaTol = new MZToleranceParameter(
+      "Subformula tolerance",
+      "Absolute tolerance for matching a subformula mass to an MS/MS peak m/z.", 0.02, 10.0);
 
   public static final IntegerParameter subformulaBeam = new IntegerParameter("Subformula beam",
       "Beam size for approximate subformula assignment.", 25, 1, 200);
 
   public DiffMSParameters() {
     this(new io.github.mzmine.parameters.Parameter[]{flists, pythonExecutable, diffmsDir, checkpoint,
-        device, topK, maxMs2Peaks, subformulaTolDa, subformulaBeam});
+        device, topK, maxMs2Peaks, subformulaTol, subformulaBeam});
   }
 
   protected DiffMSParameters(final io.github.mzmine.parameters.Parameter[] parameters) {
