@@ -66,7 +66,7 @@ class LipidMsOneLevelTest {
 
   @Test
   void molecularFormulaLevelTestCAR() {
-    testLipid("C17H29NO4", LipidClasses.FATTYACYLCARNITINES, 10, 2);
+    testLipid("C17H30NO4", LipidClasses.FATTYACYLCARNITINES, 10, 2);
   }
 
   //Glycerolipids
