@@ -83,6 +83,9 @@ public class PreferredAnnotationType extends ListWithSubsType<FeatureAnnotation>
 
     final DataType<?> preferredAnnotationType = AnnotationPriority.getBestAnnotationType(
         (FeatureListRow) model);
+    if (preferredAnnotationType == null) {
+      return null;
+    }
 
     if (model instanceof ModularFeatureListRow row) {
       Object preferredAnnotation = row.get(preferredAnnotationType);

@@ -34,16 +34,22 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMat
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AnnotationPriority {
 
-  public static List<DataType> types = DataTypes.getAll(SpectralLibraryMatchesType.class,
-      LipidMatchListType.class, CompoundDatabaseMatchesType.class);
+  /// This list does **not** represent an absolute order of annotation priorities, but may be used
+  /// for rough pre-grouping if required.
+  public static final List<DataType> types = DataTypes.getAll(CompoundDatabaseMatchesType.class,
+      LipidMatchListType.class, SpectralLibraryMatchesType.class);
 
   /**
    *
@@ -78,6 +84,15 @@ public class AnnotationPriority {
       }
     }
     return results;
+  }
+
+  /**
+   *
+   * @return A list of all feature annotations in no particular order.
+   */
+  public static @NotNull List<@NotNull FeatureAnnotation> getAllFeatureAnnotations(
+      @Nullable ModularDataModel row) {
+    return getFeatureAnnotations(row, Integer.MAX_VALUE);
   }
 
   /**
@@ -129,6 +144,34 @@ public class AnnotationPriority {
   public static @NotNull List<@NotNull FeatureAnnotation> getAllFeatureAnnotationsByDescendingConfidence(
       @Nullable final FeatureListRow row) {
     return getFeatureAnnotationsByDescendingConfidence(row, Integer.MAX_VALUE);
+  }
+
+  public static @NotNull Stream<@NotNull AnnotationSummary> streamBestAnnotationSummaries(
+      @NotNull List<@NotNull FeatureListRow> rows, final boolean includeUnannotated) {
+    return rows.stream().map(row -> Objects.requireNonNullElse(getBestAnnotationSummary(row),
+        AnnotationSummary.of(row, null))).filter(s -> s.annotation() != null || includeUnannotated);
+  }
+
+  public static Map<@NotNull FeatureListRow, @NotNull AnnotationSummary> mapRowsToBestAnnotationSummary(
+      @NotNull List<@NotNull FeatureListRow> rows, final boolean includeUnannotated) {
+    return AnnotationPriority.streamBestAnnotationSummaries(rows, includeUnannotated)
+        .collect(Collectors.toMap(AnnotationSummary::row, a -> a));
+  }
+
+  public static <T> Map<@NotNull T, @NotNull AnnotationSummary> mapRowsToBestAnnotationSummary(
+      @NotNull List<@NotNull T> data, @NotNull Function<T, @NotNull FeatureListRow> mapper,
+      final boolean includeUnannotated) {
+
+    final Map<T, AnnotationSummary> result = new HashMap<>();
+    for (T d : data) {
+      AnnotationSummary summary = getBestAnnotationSummary(mapper.apply(d));
+      if (summary == null && !includeUnannotated) {
+        continue;
+      }
+      result.put(d, summary);
+    }
+
+    return result;
   }
 }
 

@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.ModularDataModelMap;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -504,10 +503,5 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
     // DBEntry field for an isotope pattern. and if we make one it is saved to libraries, which also
     // seems unnecessary
     return entry.calculateIsotopePattern();
-  }
-
-  @Override
-  public @NotNull FeatureAnnotationPriority getAnnotationPriority() {
-    return FeatureAnnotationPriority.SPECTRAL_LIBRARY;
   }
 }

@@ -83,7 +83,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
   }
 
   public static AnnotationSummary of(@NotNull final FeatureListRow row,
-      @NotNull final FeatureAnnotation annotation) {
+      @Nullable final FeatureAnnotation annotation) {
     return new AnnotationSummary(row, annotation);
   }
 

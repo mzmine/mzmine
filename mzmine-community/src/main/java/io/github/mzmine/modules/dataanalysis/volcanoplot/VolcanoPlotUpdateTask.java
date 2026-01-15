@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
-import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationPriority;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
@@ -38,7 +38,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
@@ -112,15 +112,16 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
 
     final Map<DataType<?>, List<RowSignificanceTestResult>> dataTypeMap = DataTypeUtils.groupByBestDataType(
         rowSignificanceTestResults, RowSignificanceTestResult::row, true,
-        FeatureAnnotationPriority.getDataTypesInOrder());
+        AnnotationPriority.types.toArray(DataType[]::new));
 
     if (!(test instanceof UnivariateRowSignificanceTest<?> ttest)) {
       return;
     }
 
-    final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
+    final SimpleColorPalette colors = ConfigService.getConfiguration().getDefaultColorPalette()
+        .clone(true);
     temporaryDatasets = new ArrayList<>();
-    colors.resetColorCounter(); // set color index to 0
+
     for (Entry<DataType<?>, List<RowSignificanceTestResult>> entry : dataTypeMap.entrySet()) {
 
       final DataType<?> type = entry.getKey();

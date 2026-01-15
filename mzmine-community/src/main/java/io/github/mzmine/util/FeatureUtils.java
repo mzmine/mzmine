@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,12 +43,12 @@ import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationPriority;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -84,7 +84,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -866,20 +865,8 @@ public class FeatureUtils {
   }
 
   public static List<IonType> extractAllIonTypes(FeatureListRow row) {
-    final List<IonType> allIonTypes = Arrays.stream(FeatureAnnotationPriority.values())
-        .flatMap(type -> {
-          final Object o = row.get(type.getAnnotationType());
-          if (!(o instanceof List<?> annotations)) {
-            return Stream.empty();
-          }
-          return switch (type) {
-            case MANUAL, LIPID, FORMULA -> Stream.empty();
-            case SPECTRAL_LIBRARY, EXACT_COMPOUND -> {
-              List<FeatureAnnotation> featureAnnotations = (List<FeatureAnnotation>) annotations;
-              yield featureAnnotations.stream().map(FeatureAnnotation::getAdductType);
-            }
-          };
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+    final List<IonType> allIonTypes = AnnotationPriority.getAllFeatureAnnotations(row).stream()
+        .map(FeatureAnnotation::getAdductType).filter(Objects::nonNull).toList();
 
     if (row.getBestIonIdentity() != null) {
       final IonType ionType = row.getBestIonIdentity().getIonType();
