@@ -604,7 +604,10 @@ def main():
             smiles_out: List[str] = []
             with torch.no_grad():
                 for _ in range(int(args.top_k)):
-                    mol = model.sample_batch(data_batch)[0]
+                    mols = model.sample_batch(data_batch)
+                    if not mols:
+                        continue
+                    mol = mols[0]
                     if mol is None:
                         continue
                     smi = _cdk_friendly_smiles(mol)
