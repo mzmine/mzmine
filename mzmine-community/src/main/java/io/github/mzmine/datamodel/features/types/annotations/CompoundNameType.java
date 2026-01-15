@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -32,8 +33,8 @@ import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
 import org.jetbrains.annotations.NotNull;
 
-public class CompoundNameType extends StringType
-    implements EditableColumnType, StringParser<String>, AnnotationType {
+public class CompoundNameType extends StringType implements EditableColumnType,
+    StringParser<String>, AnnotationType {
 
   private StringConverter<String> converter = new DefaultStringConverter();
 
@@ -65,7 +66,7 @@ public class CompoundNameType extends StringType
   }
 
   @Override
-  public int getPrefColumnWidth() {
+  public double getPrefColumnWidth() {
     return 120;
   }
 }

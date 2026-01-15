@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,6 +24,8 @@
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels;
+
+import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -208,7 +211,7 @@ public class MatchedLipid implements FeatureAnnotation {
   }
 
   public Set<LipidFragment> getMatchedFragments() {
-    return matchedFragments;
+    return requireNonNullElse(matchedFragments, Set.of());
   }
 
   public Double getMsMsScore() {

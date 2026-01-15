@@ -83,7 +83,7 @@ public class MolecularStructureType extends DataType<MolecularStructure> impleme
   }
 
   @Override
-  public double getColumnWidth() {
+  public double getPrefColumnWidth() {
     return DEFAULT_GRAPHICAL_CELL_WIDTH;
   }
 
