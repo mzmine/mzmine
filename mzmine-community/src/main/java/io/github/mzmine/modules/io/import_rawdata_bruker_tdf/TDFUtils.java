@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -47,6 +48,7 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMa
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
+import io.github.mzmine.util.StringUtils;
 import io.mzio.general.Result;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
@@ -67,6 +69,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -215,29 +219,19 @@ public class TDFUtils implements AutoCloseable {
     // currently disabled as it's not working as expected ~SteffenHeu
     /*final Boolean applyPressureComp = MZmineCore.getConfiguration().getPreferences()
         .getValue(MZminePreferences.applyTimsPressureCompensation)*/
-    int pressureCompensation = applyPressureComp == null || !applyPressureComp ? 0 : 2;
+    final int pressureCompensation = applyPressureComp == null || !applyPressureComp ? 0 : 2;
 
-    if (path.isFile()) {
-      logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
-      handle = tdfLib.tims_open_v2(path.getParentFile().getAbsolutePath(), useRecalibratedState,
-          pressureCompensation);
-      if (handle == 0) {
-        printLastError(0).throwOnError();
-      }
-      logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
-          + tdfLib.tims_has_recalibrated_state(handle));
-      return handle;
-    } else {
-      logger.finest(() -> "Opening tdf path " + path.getAbsolutePath());
-      handle = tdfLib.tims_open_v2(path.getAbsolutePath(), useRecalibratedState,
-          pressureCompensation);
-      if (handle == 0) {
-        printLastError(0).throwOnError();
-      }
-      logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
-          + tdfLib.tims_has_recalibrated_state(handle));
-      return handle;
+    logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
+    final String dirToOpen =
+        path.isFile() ? path.getParentFile().getAbsolutePath() : path.getAbsolutePath();
+    handle = tdfLib.tims_open_v2(dirToOpen, useRecalibratedState, pressureCompensation);
+
+    if (handle == 0) {
+      printLastError(0).throwOnError();
     }
+    logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
+        + tdfLib.tims_has_recalibrated_state(handle));
+    return handle;
   }
 
   /**
@@ -786,9 +780,25 @@ public class TDFUtils implements AutoCloseable {
           return Result.warning("Error reading tdf raw data. " + errorMessage);
         } else if (errorMessage.contains("no error")) {
           return Result.ok();
+        } else if (errorMessage.contains("Invalid UTF-8 code unit")) {
+          Pattern indexPattern = Pattern.compile("[.*]?+unit at index ([\\d]+):");
+          Matcher matcher = indexPattern.matcher(errorMessage);
+          if (matcher.find()) {
+            String group = matcher.group(1);
+            int index = Integer.parseInt(group);
+            char invalid = file.getAbsolutePath().charAt(index);
+            return Result.error(
+                "Error while importing TDF file %s. %s. Invalid character is %s".formatted(
+                    file.getAbsolutePath(), errorMessage,
+                    StringUtils.inQuotes(String.valueOf(invalid))));
+          }
+          return Result.error(
+              "Error while importing TDF file %s. %s".formatted(file.getAbsolutePath(),
+                  errorMessage));
         } else {
           return Result.error(
-              "Error while importing TDF file %s. %s".formatted(file.getName(), errorMessage));
+              "Error while importing TDF file %s. %s".formatted(file.getAbsolutePath(),
+                  errorMessage));
         }
       } catch (UnsupportedEncodingException e) {
         logger.log(Level.WARNING, e.getMessage(), e);
