@@ -260,7 +260,8 @@ public class DiffMSTask extends AbstractTask {
       final Double precursorMz = firstMs2.getPrecursorMz();
       final Integer precursorCharge = firstMs2.getPrecursorCharge();
       final Float activationEnergy = msmsInfo == null ? null : msmsInfo.getActivationEnergy();
-      final String activationMethod = msmsInfo == null ? null : msmsInfo.getActivationMethod().name();
+      final var method = msmsInfo == null ? null : msmsInfo.getActivationMethod();
+      final String activationMethod = method == null ? null : method.name();
       final String scanDefinition = firstMs2.getScanDefinition();
       final String instrument = resolveInstrumentString(firstMs2);
 

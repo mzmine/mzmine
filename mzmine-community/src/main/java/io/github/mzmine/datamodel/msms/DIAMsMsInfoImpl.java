@@ -58,14 +58,15 @@ public class DIAMsMsInfoImpl implements MsMsInfo {
     this.activationEnergy = activationEnergy;
     this.msMsScan = msMsScan;
     this.msLevel = msLevel;
-    this.method = method;
+    this.method = method != null ? method : ActivationMethod.UNKNOWN;
     this.isolationWindow = SimpleRange.ofDouble(isolationWindow);
   }
 
   public DIAMsMsInfoImpl(DDAMsMsInfo msMsInfo) {
     this.activationEnergy = msMsInfo.getActivationEnergy();
     this.msLevel = msMsInfo.getMsLevel();
-    this.method = msMsInfo.getActivationMethod();
+    final var m = msMsInfo.getActivationMethod();
+    this.method = m != null ? m : ActivationMethod.UNKNOWN;
     this.isolationWindow = SimpleRange.ofDouble(msMsInfo.getIsolationWindow());
     this.msMsScan = msMsInfo.getMsMsScan();
   }
