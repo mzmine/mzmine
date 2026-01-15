@@ -100,6 +100,8 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
     column.setCellFactory(col -> new MicroChartCell());
     column.setMinWidth(45);
     column.setPrefWidth(45);
+    column.setSortable(true);
+    column.setComparator(AnnotationSummary.LOW_TO_HIGH_CONFIDENCE);
 //    column.setMaxWidth(60);
 
     return (TreeTableColumn) column;

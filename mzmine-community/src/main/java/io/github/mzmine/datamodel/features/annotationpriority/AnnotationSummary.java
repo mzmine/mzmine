@@ -39,6 +39,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
+import java.util.Comparator;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,6 +55,21 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
   private final FeatureListRow row;
   @Nullable
   private final FeatureAnnotation annotation;
+
+  private static final Comparator<@NotNull AnnotationSummary> LOW_TO_HIGH_NON_NULL = Comparator.comparing(
+          AnnotationSummary::deriveSchymanskiLevel, Comparator.nullsFirst(Comparator.reverseOrder()))
+      .thenComparing(AnnotationSummary::ms2Score, Comparator.nullsFirst(Comparator.naturalOrder()))
+      .thenComparing(AnnotationSummary::isotopeScore,
+          Comparator.nullsFirst(Comparator.naturalOrder()))
+      .thenComparing(AnnotationSummary::mzScore, Comparator.nullsFirst(Comparator.naturalOrder()))
+      .thenComparing(AnnotationSummary::rtScore, Comparator.nullsFirst(Comparator.naturalOrder()))
+      .thenComparing(AnnotationSummary::riScore, Comparator.nullsFirst(Comparator.naturalOrder()))
+      .thenComparing(AnnotationSummary::ccsScore, Comparator.nullsFirst(Comparator.naturalOrder()));
+
+  public static final Comparator<@Nullable AnnotationSummary> LOW_TO_HIGH_CONFIDENCE = Comparator.comparing(
+      Function.identity(), Comparator.nullsFirst(LOW_TO_HIGH_NON_NULL));
+
+  public static final Comparator<@Nullable AnnotationSummary> HIGH_TO_LOW_CONFIDENCE = LOW_TO_HIGH_CONFIDENCE.reversed();
 
   private AnnotationSummary(@NotNull final FeatureListRow row,
       @Nullable final FeatureAnnotation annotation) {
@@ -255,55 +272,12 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
 
   @Override
   public int compareTo(@NotNull AnnotationSummary o) {
-
-    if (annotation == null) {
-      if (o.annotation == null) {
-        return 0;
-      } else {
-        return -1;
-      }
-    } else if (o.annotation == null) {
-      return 1;
-    }
-
-    final int compareSchymanski = deriveSchymanskiLevel().compareTo(o.deriveSchymanskiLevel()) * -1;
-    if (compareSchymanski != 0) {
-      return compareSchymanski;
-    }
-
-    final int ms2Compare = Double.compare(ms2Score(), o.ms2Score());
-    if (ms2Compare != 0) {
-      return ms2Compare;
-    }
-
-    final int isotopeCompare = Double.compare(isotopeScore(), o.isotopeScore());
-    if (isotopeCompare != 0) {
-      return isotopeCompare;
-    }
-
-    final int mzCompare = Double.compare(mzScore(), o.mzScore());
-    if (mzCompare != 0) {
-      return mzCompare;
-    }
-
-    final int rtCompare = Double.compare(rtScore(), o.rtScore());
-    if (rtCompare != 0) {
-      return rtCompare;
-    }
-
-    final int riCompare = Double.compare(riScore(), o.riScore());
-    if (riCompare != 0) {
-      return riCompare;
-    }
-
-    final int ccsCompare = Double.compare(ccsScore(), o.ccsScore());
-    if (ccsCompare != 0) {
-      return ccsCompare;
-    }
-
-    return 0;
+    return LOW_TO_HIGH_CONFIDENCE.compare(this, o);
   }
 
+  /**
+   * Order in this enum also defines the order of the cells in the feature table chart.
+   */
   public enum Scores {
     MS2, ISOTOPE, MZ, RT, RI, CCS;
 
