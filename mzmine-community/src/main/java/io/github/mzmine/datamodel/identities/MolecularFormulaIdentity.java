@@ -76,7 +76,7 @@ public class MolecularFormulaIdentity {
   }
 
   public double getExactMass() {
-    return MolecularFormulaManipulator.getTotalExactMass(cdkFormula);
+    return FormulaUtils.getMonoisotopicMass(cdkFormula);
   }
 
   public float getPpmDiff(double neutralMass) {
@@ -177,8 +177,7 @@ public class MolecularFormulaIdentity {
     Double mass = ParsingUtils.stringToDouble(
         reader.getAttributeValue(null, SEARCHED_NEUTRAL_MASS_ATTR));
     final String formula = reader.getElementText();
-    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-    var molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
+    var molFormula = FormulaUtils.parse(formula);
 
     return new MolecularFormulaIdentity(molFormula, Objects.requireNonNull(mass));
   }

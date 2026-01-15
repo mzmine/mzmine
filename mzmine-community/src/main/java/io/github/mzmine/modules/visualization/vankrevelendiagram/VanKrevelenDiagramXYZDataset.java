@@ -138,7 +138,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
   private String getFormulaFromAnnotation(Object annotation) {
     return switch (annotation) {
       case MatchedLipid lipid ->
-          MolecularFormulaManipulator.getString(lipid.getLipidAnnotation().getMolecularFormula());
+          FormulaUtils.getFormulaString(lipid.getLipidAnnotation().getMolecularFormula());
       case FeatureAnnotation ann -> ann.getFormula();
       case ManualAnnotation ann -> ann.getFormula();
       case MolecularFormulaIdentity ann -> ann.getFormulaAsString();

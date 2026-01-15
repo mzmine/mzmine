@@ -70,6 +70,7 @@ import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -345,13 +346,9 @@ public class AnnotationTypeTests {
 
   @Test
   void formulaListTypeTest() {
-    final IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-    final IMolecularFormula form1 = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-        "C15H28F2O2", builder);
-    final IMolecularFormula form2 = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-        "C18H34O2", builder);
-    final IMolecularFormula form3 = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-        "GdC50H80O10N4", builder);
+    final IMolecularFormula form1 = FormulaUtils.parse("C15H28F2O2");
+    final IMolecularFormula form2 = FormulaUtils.parse("C18H34O2");
+    final IMolecularFormula form3 = FormulaUtils.parse("GdC50H80O10N4");
 
     ResultFormula formula1 = new ResultFormula(form1,
         IsotopePatternCalculator.calculateIsotopePattern(form1, 0.01, 1, PolarityType.POSITIVE),

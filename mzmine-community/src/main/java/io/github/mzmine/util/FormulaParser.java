@@ -45,7 +45,8 @@ public class FormulaParser {
    * calculation over the CDK version, which generates formulas without an exact mass)
    * <p>
    * Keeps specifically defined isotopes as is: If the formula string contains specific isotopes
-   * like C5[13C] then one 13C isotope will be retained and not exchanged for the major isotope.
+   * like C5[13C] or C5[13]C then one 13C isotope will be retained and not exchanged for the major
+   * isotope.
    *
    * @return the formula or null on error
    */

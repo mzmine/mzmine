@@ -202,13 +202,13 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
 
         // Mass is ok, so test other constraints
         if (checkConstraints(cdkFormula) == true) {
-          String formula = MolecularFormulaManipulator.getString(cdkFormula);
+          String formula = FormulaUtils.getFormulaString(cdkFormula);
 
           // calc rel mass deviation
           Double relMassDev = ((((massList[0][i] - //
                                   ionType.getAddedMass()) / charge)//
                                 - (FormulaUtils.calculateExactMass(//
-              MolecularFormulaManipulator.getString(cdkFormula))) / charge) / ((massList[0][i] //
+              FormulaUtils.getFormulaString(cdkFormula))) / charge) / ((massList[0][i] //
                                                                                 - ionType
                                                                                     .getAddedMass())
                                                                                / charge)) * 1000000;

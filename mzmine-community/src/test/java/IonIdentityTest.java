@@ -25,7 +25,6 @@
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -96,8 +95,8 @@ public class IonIdentityTest {
     rowProtonated = spy(rowProtonated);
     rowSodiated = spy(rowSodiated);
     // return some fixed mz and rt
-    doReturn(mz + hAdduct.totalMass()).when(rowProtonated).getAverageMZ();
-    doReturn(mz + naAdduct.totalMass()).when(rowSodiated).getAverageMZ();
+//    doReturn(mz + hAdduct.totalMass()).when(rowProtonated).getAverageMZ();
+//    doReturn(mz + naAdduct.totalMass()).when(rowSodiated).getAverageMZ();
 
     // add rows
     flist.addRow(rowProtonated);

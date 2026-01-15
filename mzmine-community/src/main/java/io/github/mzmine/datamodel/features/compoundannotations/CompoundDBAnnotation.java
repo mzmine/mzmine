@@ -184,8 +184,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
             : FormulaUtils.neutralizeFormulaWithHydrogen(FormulaUtils.getFormulaFromSmiles(smiles));
 
     if (neutralFormula != null) {
-      return MolecularFormulaManipulator.getMass(neutralFormula,
-          MolecularFormulaManipulator.MonoIsotopic);
+      return FormulaUtils.getMonoisotopicMass(neutralFormula);
     }
     return null;
   }

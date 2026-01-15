@@ -69,7 +69,7 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
       new ConnectedTypeCalculation<>(DataTypes.get(FormulaType.class), (row, db) -> {
         final MolecularStructure structure = db.getStructure();
         if (structure != null) {
-          return MolecularFormulaManipulator.getString(structure.formula());
+          return FormulaUtils.getFormulaString(structure.formula());
         }
         return null;
       }),

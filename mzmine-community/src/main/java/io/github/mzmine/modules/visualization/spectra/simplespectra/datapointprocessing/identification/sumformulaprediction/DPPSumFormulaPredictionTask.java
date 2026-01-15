@@ -250,13 +250,13 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
         continue;
       }
 
-      String formula = MolecularFormulaManipulator.getString(cdkFormula);
+      String formula = FormulaUtils.getFormulaString(cdkFormula);
 
       // calc rel mass deviation
       double relMassDev = ((((dp.getMZ() - //
                               ionType.getAddedMass()) / charge)//
                             - (FormulaUtils.calculateExactMass(//
-          MolecularFormulaManipulator.getString(cdkFormula))) / charge) / ((dp.getMZ() //
+          FormulaUtils.getFormulaString(cdkFormula))) / charge) / ((dp.getMZ() //
                                                                             - ionType
                                                                                 .getAddedMass())
                                                                            / charge)) * 1000000;

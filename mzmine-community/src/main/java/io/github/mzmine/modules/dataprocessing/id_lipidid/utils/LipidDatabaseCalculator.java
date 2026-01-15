@@ -35,6 +35,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidCl
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClassDescription;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.FormulaUtils;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -114,14 +115,13 @@ public class LipidDatabaseCalculator {
           Set<IonizationType> ionizationTypes = fragmentationRules.stream()
               .map(LipidFragmentationRule::getIonizationType).collect(Collectors.toSet());
           for (IonizationType ionizationType : ionizationTypes) {
-            double mz = MolecularFormulaManipulator.getMass(lipid.getMolecularFormula(),
-                AtomContainerManipulator.MonoIsotopic) + ionizationType.getAddedMass();
+            double mz = FormulaUtils.getMonoisotopicMass(lipid.getMolecularFormula()) + ionizationType.getAddedMass();
             exactMassSB.append(ionizationType.getAdductName()).append(" ")
                 .append(MZmineCore.getConfiguration().getMZFormat().format(mz)).append("\n");
           }
           tableData.add(new LipidClassDescription(String.valueOf(id), // id
               selectedLipid.getName(), // lipid class
-              MolecularFormulaManipulator.getString(lipid.getMolecularFormula()), // molecular
+              FormulaUtils.getFormulaString(lipid.getMolecularFormula()), // molecular
               // formula
               lipid.getAnnotation(),
               // abbr

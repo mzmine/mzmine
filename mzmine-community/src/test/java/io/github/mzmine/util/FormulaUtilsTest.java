@@ -105,19 +105,17 @@ class FormulaUtilsTest {
   @Test
   void testIonizationType() {
     final String nacetylglucosamine = "C8H15NO6";
-    final double neutralMass = MolecularFormulaManipulator.getMass(
-        MolecularFormulaManipulator.getMolecularFormula(nacetylglucosamine,
-            SilentChemObjectBuilder.getInstance()), MolecularFormulaManipulator.MonoIsotopic);
+    final double neutralMass = FormulaUtils.getMonoisotopicMass(
+        FormulaUtils.parse(nacetylglucosamine));
     for (IonizationType it : IonizationType.values()) {
       if (it == IonizationType.NO_IONIZATION) {
         continue;
       }
-      final IMolecularFormula glucose = MolecularFormulaManipulator.getMolecularFormula(
-          nacetylglucosamine, SilentChemObjectBuilder.getInstance());
+      final IMolecularFormula glucose = FormulaUtils.parse(nacetylglucosamine);
 
       it.ionizeFormula(glucose);
 
-      logger.info(it + " " + MolecularFormulaManipulator.getString(glucose));
+      logger.info(it + " " + FormulaUtils.getFormulaString(glucose));
       Assert.assertEquals(Math.abs((neutralMass + it.getAddedMass()) / it.getCharge()),
           FormulaUtils.calculateMzRatio(glucose), 0.0000001d);
     }
@@ -162,8 +160,7 @@ class FormulaUtilsTest {
   @Test
   void testNeutralizeFormula() {
     final String gluStr = "C6H12O6";
-    final IMolecularFormula neutralGlucose = MolecularFormulaManipulator.getMolecularFormula(gluStr,
-        SilentChemObjectBuilder.getInstance());
+    final IMolecularFormula neutralGlucose = FormulaUtils.parse(gluStr);
 
     final IMolecularFormula n1 = FormulaUtils.neutralizeFormulaWithHydrogen(gluStr);
     final IMolecularFormula n2 = FormulaUtils.neutralizeFormulaWithHydrogen("C6H13O6+");
@@ -188,8 +185,7 @@ class FormulaUtilsTest {
   @Test
   void testCalcMz() {
     // M - H + 2Na
-    final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMolecularFormula(
-        "[C6H11O6Na2]+", SilentChemObjectBuilder.getInstance());
+    final IMolecularFormula molecularFormula = FormulaUtils.parse("[C6H11O6Na2]+");
 
     assertEquals((float) 225.0345531, (float) FormulaUtils.calculateMzRatio(molecularFormula));
   }
@@ -245,6 +241,11 @@ class FormulaUtilsTest {
 
   @Test
   void getMonoisotopicMass() {
+    // is the exact mass with the isotopes defined by the formula or the most abundant if not defined
+    assertEquals(55.9349375, FormulaUtils.getMonoisotopicMass(formula("Fe")), 0.000001);
+    assertEquals(53.9396105, FormulaUtils.getMonoisotopicMass(formula("[54]Fe")), 0.000001);
+    assertEquals(55.9349375, FormulaUtils.getMonoisotopicMass(formula("[56]Fe")), 0.000001);
+    assertEquals(2.015650064, FormulaUtils.getMonoisotopicMass(formula("H2")), 0.000001);
     assertEquals(4.028203556, FormulaUtils.getMonoisotopicMass(formula("[2]H2")), 0.000001);
     assertEquals(4.028203556, FormulaUtils.getMonoisotopicMass(formula("[2H]2")), 0.000001);
     assertEquals(86.00670968, FormulaUtils.getMonoisotopicMass(formula("C5[13]C2")), 0.000001);

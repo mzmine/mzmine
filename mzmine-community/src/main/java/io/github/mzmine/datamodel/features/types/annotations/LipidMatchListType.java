@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.ExplainedIntensityPercentType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
@@ -78,7 +79,7 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
       case LipidMatchListType __ -> match;
       case IonAdductType __ -> match.getIonizationType().getAdductName();
       case FormulaType __ ->
-          MolecularFormulaManipulator.getString(match.getLipidAnnotation().getMolecularFormula());
+          FormulaUtils.getFormulaString(match.getLipidAnnotation().getMolecularFormula());
       case CommentType __ -> match.getComment() != null ? match.getComment() : "";
       case ExplainedIntensityPercentType __ -> match.getMsMsScore().floatValue();
       case LipidSpectrumType __ -> true;

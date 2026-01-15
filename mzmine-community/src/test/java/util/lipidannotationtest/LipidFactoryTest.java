@@ -80,7 +80,7 @@ public class LipidFactoryTest {
     IMolecularFormula testChain = LIPID_CHAIN_FACTORY.buildLipidChainFormula(chainType, carbonAtoms,
         doubleBonds);
     assertEquals(NUMBER_FORMAT.format(expectedMass), NUMBER_FORMAT.format(
-        MolecularFormulaManipulator.getMass(testChain, AtomContainerManipulator.MonoIsotopic)));
+        FormulaUtils.getMonoisotopicMass(testChain)));
   }
 
 }

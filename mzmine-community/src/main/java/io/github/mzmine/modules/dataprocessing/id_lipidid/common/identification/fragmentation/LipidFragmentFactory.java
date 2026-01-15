@@ -220,7 +220,7 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
   @NotNull
   private List<LipidFragment> findLipidFragmentFromIonFormula(LipidFragmentationRule rule,
       ILipidAnnotation lipidAnnotation, Scan msMsScan, IMolecularFormula ionFormula) {
-    String ionFormulaString = MolecularFormulaManipulator.getString(ionFormula);
+    String ionFormulaString = FormulaUtils.getFormulaString(ionFormula);
     Double mzExact = FormulaUtils.calculateMzRatio(ionFormulaString);
     BestDataPoint bestDataPoint = getBestDataPoint(mzExact);
     if (bestDataPoint.fragmentMatched()) {
@@ -280,7 +280,7 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
       int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
       matchedFragments.add(new LipidFragment(rule.getLipidFragmentationRuleType(),
           rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
-          mzExact, MolecularFormulaManipulator.getString(ionizedFragmentFormula),
+          mzExact, FormulaUtils.getFormulaString(ionizedFragmentFormula),
           new SimpleDataPoint(bestDataPoint.mzValue(), bestDataPoint.intensity()),
           lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
           lipidChain.getNumberOfOxygens(), lipidChain.getLipidChainType(), msMsScan));
@@ -353,7 +353,7 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
       if (bestDataPoint.fragmentMatched()) {
         matchedFragments.add(new LipidFragment(rule.getLipidFragmentationRuleType(),
             rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
-            mzExact, MolecularFormulaManipulator.getString(ionizedFragmentFormula),
+            mzExact, FormulaUtils.getFormulaString(ionizedFragmentFormula),
             new SimpleDataPoint(bestDataPoint.mzValue(), bestDataPoint.intensity()),
             lipidAnnotation.getLipidClass(), combinedFattyAcylChain.getNumberOfCarbons(),
             combinedFattyAcylChain.getNumberOfDBEs(), combinedFattyAcylChain.getNumberOfOxygens(),

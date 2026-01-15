@@ -144,7 +144,7 @@ public class MSMSScoreCalculator {
 
       IMolecularFormula formula = msmsEngine.getNextFormula();
       if (formula != null) {
-        String formulaString = MolecularFormulaManipulator.getString(formula);
+        String formulaString = FormulaUtils.getFormulaString(formula);
         msmsAnnotations.put(dp, String.format("[M-%s]", formulaString));
         interpretedMSMSpeaks++;
         explainedIntensity += dp.getIntensity();
@@ -209,7 +209,7 @@ public class MSMSScoreCalculator {
       FormulaWithExactMz closestFormula = FormulaUtils.getClosestFormula(mass, formulasMzSorted);
       if (closestFormula != null && mzTol.checkWithinTolerance(closestFormula.mz(), mass)) {
         // match
-        String formulaString = MolecularFormulaManipulator.getString(closestFormula.formula());
+        String formulaString = FormulaUtils.getFormulaString(closestFormula.formula());
         String annotation = matchType == SignalSelection.MZ_SIGNALS ? "[%s]" : "[M-%s]";
         annotation = annotation.formatted(formulaString);
         msmsAnnotations.put(dp, annotation);
