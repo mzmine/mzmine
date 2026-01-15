@@ -25,63 +25,31 @@
 
 package io.github.mzmine.datamodel.features.annotationpriority;
 
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
-public final class SchymanskiLevel implements Comparable<SchymanskiLevel> {
+public enum SchymanskiLevel {
 
-  public static final SchymanskiLevel LEVEL_1 = new SchymanskiLevel(1);
-  public static final SchymanskiLevel LEVEL_2a = new SchymanskiLevel(2, "a");
-  public static final SchymanskiLevel LEVEL_2b = new SchymanskiLevel(2, "b");
-  public static final SchymanskiLevel LEVEL_3 = new SchymanskiLevel(3);
-  public static final SchymanskiLevel LEVEL_4 = new SchymanskiLevel(4);
-  public static final SchymanskiLevel LEVEL_5 = new SchymanskiLevel(5);
+  LEVEL_1(1), LEVEL_2a(2, "a"), LEVEL_2b(2, "b"), LEVEL_3(3), LEVEL_4(4), LEVEL_5(5);
+
   private final int numberLevel;
   private final @NotNull String letterLevel;
 
-  private SchymanskiLevel(int numberLevel, @NotNull String letterLevel) {
+  SchymanskiLevel(int numberLevel, @NotNull String letterLevel) {
     this.numberLevel = numberLevel;
     this.letterLevel = letterLevel;
   }
 
-  private SchymanskiLevel(int numberLevel) {
+  SchymanskiLevel(int numberLevel) {
     this(numberLevel, "");
-  }
-
-  @Override
-  public int compareTo(@NotNull SchymanskiLevel o) {
-    final int cmpNumber = Integer.compare(numberLevel, o.numberLevel);
-    if (cmpNumber != 0) {
-      return cmpNumber;
-    }
-
-    return letterLevel.toLowerCase().compareTo(o.letterLevel.toLowerCase());
   }
 
   public int numberLevel() {
     return numberLevel;
   }
 
+  // ... existing code ...
   public @NotNull String letterLevel() {
     return letterLevel;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == this) {
-      return true;
-    }
-    if (obj == null || obj.getClass() != this.getClass()) {
-      return false;
-    }
-    var that = (SchymanskiLevel) obj;
-    return this.numberLevel == that.numberLevel && Objects.equals(this.letterLevel,
-        that.letterLevel);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(numberLevel, letterLevel);
   }
 
   @Override

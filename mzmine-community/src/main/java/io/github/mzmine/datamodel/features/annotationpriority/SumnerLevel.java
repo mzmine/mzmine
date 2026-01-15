@@ -25,25 +25,14 @@
 
 package io.github.mzmine.datamodel.features.annotationpriority;
 
-import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
+public enum SumnerLevel {
 
-public final class SumnerLevel implements Comparable<SumnerLevel> {
-
-  public static final SumnerLevel LEVEL_1 = new SumnerLevel(1);
-  public static final SumnerLevel LEVEL_2 = new SumnerLevel(2);
-  public static final SumnerLevel LEVEL_3 = new SumnerLevel(3);
-  public static final SumnerLevel LEVEL_4 = new SumnerLevel(4);
+  LEVEL_1(1), LEVEL_2(2), LEVEL_3(3), LEVEL_4(4);
 
   private final int numberLevel;
 
-  public SumnerLevel(int numberLevel) {
+  SumnerLevel(int numberLevel) {
     this.numberLevel = numberLevel;
-  }
-
-  @Override
-  public int compareTo(@NotNull SumnerLevel o) {
-    return Integer.compare(numberLevel, o.numberLevel);
   }
 
   public int numberLevel() {
@@ -51,25 +40,7 @@ public final class SumnerLevel implements Comparable<SumnerLevel> {
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (obj == this) {
-      return true;
-    }
-    if (obj == null || obj.getClass() != this.getClass()) {
-      return false;
-    }
-    var that = (SumnerLevel) obj;
-    return this.numberLevel == that.numberLevel;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(numberLevel);
-  }
-
-  @Override
   public String toString() {
     return "Sumner level " + numberLevel;
   }
-
 }
