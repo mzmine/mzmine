@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,8 @@
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels;
+
+import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -211,8 +213,9 @@ public class MatchedLipid implements FeatureAnnotation {
     this.ionizationType = ionizationType;
   }
 
+  @NotNull
   public Set<LipidFragment> getMatchedFragments() {
-    return matchedFragments;
+    return requireNonNullElse(matchedFragments, Set.of());
   }
 
   public void setMatchedFragments(Set<LipidFragment> matchedFragments) {

@@ -34,11 +34,11 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * This annotation type stores a list of formulas that were predicted as consensus formulas for
- * multiple feature list rows (e.g., in Ion Identity Networking, see {@link
- * IonNetwork#getMolFormulas()}) or for multiple different methods
+ * multiple feature list rows (e.g., in Ion Identity Networking, see
+ * {@link IonNetwork#getMolFormulas()}) or for multiple different methods
  */
-public class ConsensusFormulaListType extends ListDataType<ResultFormula>
-    implements AnnotationType, EditableColumnType {
+public class ConsensusFormulaListType extends ListDataType<ResultFormula> implements AnnotationType,
+    EditableColumnType {
 
   @NotNull
   @Override
@@ -52,4 +52,8 @@ public class ConsensusFormulaListType extends ListDataType<ResultFormula>
     return "Consensus formula";
   }
 
+  @Override
+  public double getPrefColumnWidth() {
+    return 120;
+  }
 }
