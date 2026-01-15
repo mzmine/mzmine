@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -22,31 +23,47 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.compoundannotations;
+package io.github.mzmine.datamodel.features.annotationpriority;
 
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
-public final class SumnerLevel implements Comparable<SumnerLevel> {
+public final class SchymanskiLevel implements Comparable<SchymanskiLevel> {
 
-  public static final SumnerLevel LEVEL_1 = new SumnerLevel(1);
-  public static final SumnerLevel LEVEL_2 = new SumnerLevel(2);
-  public static final SumnerLevel LEVEL_3 = new SumnerLevel(3);
-  public static final SumnerLevel LEVEL_4 = new SumnerLevel(4);
-
+  public static final SchymanskiLevel LEVEL_1 = new SchymanskiLevel(1);
+  public static final SchymanskiLevel LEVEL_2a = new SchymanskiLevel(2, "a");
+  public static final SchymanskiLevel LEVEL_2b = new SchymanskiLevel(2, "b");
+  public static final SchymanskiLevel LEVEL_3 = new SchymanskiLevel(3);
+  public static final SchymanskiLevel LEVEL_4 = new SchymanskiLevel(4);
+  public static final SchymanskiLevel LEVEL_5 = new SchymanskiLevel(5);
   private final int numberLevel;
+  private final @NotNull String letterLevel;
 
-  public SumnerLevel(int numberLevel) {
+  private SchymanskiLevel(int numberLevel, @NotNull String letterLevel) {
     this.numberLevel = numberLevel;
+    this.letterLevel = letterLevel;
+  }
+
+  private SchymanskiLevel(int numberLevel) {
+    this(numberLevel, "");
   }
 
   @Override
-  public int compareTo(@NotNull SumnerLevel o) {
-    return Integer.compare(numberLevel, o.numberLevel);
+  public int compareTo(@NotNull SchymanskiLevel o) {
+    final int cmpNumber = Integer.compare(numberLevel, o.numberLevel);
+    if (cmpNumber != 0) {
+      return cmpNumber;
+    }
+
+    return letterLevel.toLowerCase().compareTo(o.letterLevel.toLowerCase());
   }
 
   public int numberLevel() {
     return numberLevel;
+  }
+
+  public @NotNull String letterLevel() {
+    return letterLevel;
   }
 
   @Override
@@ -57,18 +74,18 @@ public final class SumnerLevel implements Comparable<SumnerLevel> {
     if (obj == null || obj.getClass() != this.getClass()) {
       return false;
     }
-    var that = (SumnerLevel) obj;
-    return this.numberLevel == that.numberLevel;
+    var that = (SchymanskiLevel) obj;
+    return this.numberLevel == that.numberLevel && Objects.equals(this.letterLevel,
+        that.letterLevel);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(numberLevel);
+    return Objects.hash(numberLevel, letterLevel);
   }
 
   @Override
   public String toString() {
-    return "Sumner level " + numberLevel;
+    return "Schymanski level " + numberLevel + letterLevel;
   }
-
 }
