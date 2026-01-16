@@ -53,6 +53,7 @@ import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
@@ -270,7 +271,15 @@ public class DiffMSTask extends AbstractTask {
       rowsById.put(row.getID(), mrow);
       formulaByRowId.put(row.getID(), formula);
       adductByRowId.put(row.getID(), adduct);
-      final List<DiffMSSubformula> sub = resolveSubformulas(mrow, formula, adduct, merged);
+
+      final double[] subMzs = new double[take];
+      final double[] subIntens = new double[take];
+      for (int i = 0; i < take; i++) {
+        subMzs[i] = dps[i].getMZ();
+        subIntens[i] = dps[i].getIntensity();
+      }
+      final var topNms2 = new SimpleMassSpectrum(subMzs, subIntens);
+      final List<DiffMSSubformula> sub = resolveSubformulas(mrow, formula, adduct, topNms2);
 
       final Scan firstMs2 = ms2.get(0);
       final MsMsInfo msmsInfo = firstMs2.getMsMsInfo();
@@ -601,7 +610,7 @@ public class DiffMSTask extends AbstractTask {
   }
 
   private List<DiffMSSubformula> resolveSubformulas(final ModularFeatureListRow row,
-      final String parentFormulaStr, final IonType adduct, final Scan mergedMs2) {
+      final String parentFormulaStr, final IonType adduct, final MassSpectrum mergedMs2) {
     try {
       final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(parentFormulaStr);
       if (formula == null) {
