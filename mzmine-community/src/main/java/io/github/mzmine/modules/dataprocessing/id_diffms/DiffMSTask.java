@@ -554,11 +554,6 @@ public class DiffMSTask extends AbstractTask {
       }
     }
 
-    final String direct = row.get(FormulaType.class);
-    if (direct != null && !direct.isBlank()) {
-      return direct;
-    }
-
     final List<ResultFormula> consensus = row.get(ConsensusFormulaListType.class);
     if (consensus != null && !consensus.isEmpty()) {
       final String f = consensus.get(0).getFormulaAsString();
