@@ -64,6 +64,11 @@ public class PreferredAnnotationType extends ListWithSubsType<FeatureAnnotation>
       case ScoreType _ -> parentItem.getScore();
       case AnnotationMethodType _ -> parentItem.getAnnotationMethodName();
       case IonTypeType _ -> parentItem.getAdductType();
+      // attention! important to not throw here as in other types. during csv export,
+      // the indexing will find CompoundDBAnnotations, SpectralDBAnnotations and MatchedLipids.
+      // All these have different sub types and their map methods do not cover the types of the others.
+      // This means that currently only the mapped types are exported.
+      // We could call map in a try-catch to export them.
       default -> null;
     };
   }
