@@ -78,6 +78,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -383,6 +384,10 @@ public class DiffMSTask extends AbstractTask {
 
     runOrThrowWithProgress(diffmsDir, cmd);
 
+    if (isCanceled()) {
+      return;
+    }
+
     final List<Map<String, Object>> outputs;
     try {
       outputs = mapper.readValue(outFile, new TypeReference<>() {});
@@ -423,11 +428,12 @@ public class DiffMSTask extends AbstractTask {
   }
 
   private void runOrThrowWithProgress(final File workDir, final List<String> cmd) {
+    Process p = null;
     try {
       final ProcessBuilder b = new ProcessBuilder(cmd);
       b.directory(workDir);
       b.redirectErrorStream(true);
-      final Process p = b.start();
+      p = b.start();
 
       long lastProgressNanos = System.nanoTime();
       int lastProgressDone = 0;
@@ -437,6 +443,9 @@ public class DiffMSTask extends AbstractTask {
       try (var outReader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
         String line;
         while ((line = outReader.readLine()) != null) {
+          if (isCanceled()) {
+            return;
+          }
           final Matcher pm = RUNNER_PROGRESS.matcher(line);
           if (pm.matches()) {
             final int newDone = Integer.parseInt(pm.group(1));
@@ -486,7 +495,14 @@ public class DiffMSTask extends AbstractTask {
         throw new IllegalStateException("DiffMS runner failed (" + code + "):\n" + err);
       }
     } catch (IOException | InterruptedException e) {
+      if (isCanceled()) {
+        return;
+      }
       throw new IllegalStateException("Failed to run DiffMS runner.", e);
+    } finally {
+      if (p != null && p.isAlive()) {
+        p.destroyForcibly();
+      }
     }
   }
 
