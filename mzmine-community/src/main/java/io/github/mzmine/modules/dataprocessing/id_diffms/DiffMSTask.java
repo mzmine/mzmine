@@ -27,10 +27,11 @@ package io.github.mzmine.modules.dataprocessing.id_diffms;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IonType;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -41,10 +42,11 @@ import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.ConsensusFormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -52,6 +54,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -162,6 +165,7 @@ public class DiffMSTask extends AbstractTask {
 
     final Map<Integer, ModularFeatureListRow> rowsById = new HashMap<>();
     final Map<Integer, String> formulaByRowId = new HashMap<>();
+    final Map<Integer, IonType> adductByRowId = new HashMap<>();
     final List<Map<String, Object>> input = new ArrayList<>();
 
     final List<? extends FeatureListRow> rows =
@@ -198,7 +202,7 @@ public class DiffMSTask extends AbstractTask {
         continue;
       }
 
-      final String adduct;
+      final IonType adduct;
       try {
         adduct = resolveAdduct(mrow);
       } catch (IllegalStateException e) {
@@ -253,6 +257,7 @@ public class DiffMSTask extends AbstractTask {
 
       rowsById.put(row.getID(), mrow);
       formulaByRowId.put(row.getID(), formula);
+      adductByRowId.put(row.getID(), adduct);
       final List<Map<String, Object>> sub = resolveSubformulas(mrow, formula);
 
       final Scan firstMs2 = ms2.get(0);
@@ -268,7 +273,7 @@ public class DiffMSTask extends AbstractTask {
       final Map<String, Object> item = new HashMap<>();
       item.put("rowId", row.getID());
       item.put("formula", formula);
-      item.put("adduct", adduct);
+      item.put("adduct", adduct.toString());
       item.put("mzs", mzOut);
       item.put("intensities", intOut);
       item.put("polarity", "POSITIVE");
@@ -392,14 +397,17 @@ public class DiffMSTask extends AbstractTask {
       }
 
       final String formula = formulaByRowId.get(rowId);
+      final IonType adduct = adductByRowId.get(rowId);
       int rank = 1;
       for (String smi : smiles) {
         final SimpleCompoundDBAnnotation ann = new SimpleCompoundDBAnnotation();
         ann.put(DatabaseNameType.class, "DiffMS");
         ann.put(CompoundNameType.class, "DiffMS #" + rank);
         ann.put(FormulaType.class, formula);
+        ann.put(IonTypeType.class, adduct);
         ann.put(SmilesStructureType.class, smi);
         ann.put(CommentType.class, "DiffMS");
+        CompoundAnnotationUtils.calculateBoundTypes(ann, row);
         row.addCompoundAnnotation(ann);
         rank++;
       }
@@ -552,7 +560,7 @@ public class DiffMSTask extends AbstractTask {
     return null;
   }
 
-  private static String resolveAdduct(final ModularFeatureListRow row) {
+  private static IonType resolveAdduct(final ModularFeatureListRow row) {
     final var ion = FeatureUtils.extractBestIonIdentity(null, row).orElse(null);
     if (ion == null) {
       throw new IllegalStateException(
@@ -563,7 +571,7 @@ public class DiffMSTask extends AbstractTask {
       throw new IllegalStateException(
           "Negative polarity ion types are not supported by the DiffMS ion list: " + ion);
     }
-    return ion.toString();
+    return ion.getIonType();
   }
 
   private static List<Map<String, Object>> resolveSubformulas(final ModularFeatureListRow row,
