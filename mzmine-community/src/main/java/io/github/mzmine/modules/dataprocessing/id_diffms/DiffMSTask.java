@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.id_diffms;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.datamodel.DataPoint;
@@ -174,7 +176,7 @@ public class DiffMSTask extends AbstractTask {
     final Map<Integer, ModularFeatureListRow> rowsById = new HashMap<>();
     final Map<Integer, String> formulaByRowId = new HashMap<>();
     final Map<Integer, IonType> adductByRowId = new HashMap<>();
-    final List<Map<String, Object>> input = new ArrayList<>();
+    final List<DiffMSInputItem> input = new ArrayList<>();
 
     final List<? extends FeatureListRow> rows =
         rowsOverride != null ? rowsOverride : flist.getRows();
@@ -266,7 +268,7 @@ public class DiffMSTask extends AbstractTask {
       rowsById.put(row.getID(), mrow);
       formulaByRowId.put(row.getID(), formula);
       adductByRowId.put(row.getID(), adduct);
-      final List<Map<String, Object>> sub = resolveSubformulas(mrow, formula, adduct, merged);
+      final List<DiffMSSubformula> sub = resolveSubformulas(mrow, formula, adduct, merged);
 
       final Scan firstMs2 = ms2.get(0);
       final MsMsInfo msmsInfo = firstMs2.getMsMsInfo();
@@ -278,38 +280,17 @@ public class DiffMSTask extends AbstractTask {
       final String scanDefinition = firstMs2.getScanDefinition();
       final String instrument = resolveInstrumentString(firstMs2);
 
-      final Map<String, Object> item = new HashMap<>();
-      item.put("rowId", row.getID());
-      item.put("formula", formula);
-      item.put("adduct", adduct.toString());
-      item.put("mzs", mzOut);
-      item.put("intensities", intOut);
-      item.put("polarity", "POSITIVE");
-      item.put("subformulas", sub);
-      // additional optional conditioning/debug info
-      item.put("instrument", instrument);
-      item.put("scanDefinition", scanDefinition);
-      if (activationEnergy != null) {
-        item.put("collisionEnergy", activationEnergy.doubleValue());
-      }
-      if (activationMethod != null) {
-        item.put("activationMethod", activationMethod);
-      }
-      if (precursorMz != null) {
-        item.put("precursorMz", precursorMz);
-      } else {
-        item.put("precursorMz", row.getAverageMZ());
-      }
-      if (precursorCharge != null) {
-        item.put("precursorCharge", precursorCharge);
-      }
+      final DiffMSInputItem item = new DiffMSInputItem(row.getID(), formula, adduct.toString(),
+          mzOut, intOut, "POSITIVE", sub, instrument, scanDefinition,
+          activationEnergy == null ? null : activationEnergy.doubleValue(), activationMethod,
+          precursorMz != null ? precursorMz : row.getAverageMZ(), precursorCharge);
 
       input.add(item);
 
       final int subCount = sub == null ? 0 : sub.size();
       final String subExample = sub == null || sub.isEmpty() ? ""
           : sub.stream().limit(5)
-              .map(m -> Objects.toString(m.get("formula"), "?"))
+              .map(DiffMSSubformula::formula)
               .collect(Collectors.joining(", "));
       final String msg = "DiffMS input rowId=" + row.getID()
           + " formula=" + formula
@@ -625,7 +606,7 @@ public class DiffMSTask extends AbstractTask {
             + " (run Ion Identity Networking / set Ion identity / ensure annotations include an adduct).");
   }
 
-  private List<Map<String, Object>> resolveSubformulas(final ModularFeatureListRow row,
+  private List<DiffMSSubformula> resolveSubformulas(final ModularFeatureListRow row,
       final String parentFormulaStr, final IonType adduct, final Scan mergedMs2) {
     try {
       final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(parentFormulaStr);
@@ -637,12 +618,26 @@ public class DiffMSTask extends AbstractTask {
           ionFormula, mergedMs2, SpectralSignalFilter.DEFAULT_NO_PRECURSOR, subformulaTol);
 
       return peaksWithFormulae.stream().flatMap(swf -> swf.formulae().stream().map(
-          f -> Map.<String, Object>of("formula", f.formulaString(), "intensity",
-              swf.peak().getIntensity()))).toList();
+          f -> new DiffMSSubformula(f.formulaString(), swf.peak().getIntensity()))).toList();
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not resolve subformulas for row " + row.getID(), e);
       return List.of();
     }
+  }
+
+  @JsonInclude(Include.NON_NULL)
+  private record DiffMSSubformula(String formula, double intensity) {
+
+  }
+
+  @JsonInclude(Include.NON_NULL)
+  private record DiffMSInputItem(int rowId, String formula, String adduct, List<Double> mzs,
+                                 List<Double> intensities, String polarity,
+                                 List<DiffMSSubformula> subformulas, String instrument,
+                                 String scanDefinition, @Nullable Double collisionEnergy,
+                                 @Nullable String activationMethod, double precursorMz,
+                                 @Nullable Integer precursorCharge) {
+
   }
 }
 
