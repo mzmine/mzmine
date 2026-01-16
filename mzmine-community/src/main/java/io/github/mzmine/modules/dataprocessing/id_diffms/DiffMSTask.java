@@ -222,15 +222,15 @@ public class DiffMSTask extends AbstractTask {
         continue;
       }
 
-      final var ms2MassLists = ms2.stream().map(Scan::getMassList).filter(Objects::nonNull).toList();
-      if (ms2MassLists.isEmpty()) {
+      final var ms2WithMassList = ms2.stream().filter(s -> s.getMassList() != null).toList();
+      if (ms2WithMassList.isEmpty()) {
         skippedNoMs2++;
         logger.info(() -> "DiffMS: skipping row " + row.getID()
             + " because no MS/MS scans have mass lists (apply mass detection first)");
         continue;
       }
 
-      final var merged = SpectraMerging.mergeSpectra(ms2MassLists, SpectraMerging.defaultMs2MergeTol,
+      final var merged = SpectraMerging.mergeSpectra(ms2WithMassList, SpectraMerging.defaultMs2MergeTol,
           io.github.mzmine.datamodel.MergedMassSpectrum.MergingType.ALL_ENERGIES, null);
       final int n = merged.getNumberOfDataPoints();
       if (n == 0) {
@@ -582,7 +582,7 @@ public class DiffMSTask extends AbstractTask {
         throw new IllegalStateException(
             "Negative polarity ion types are not supported by the DiffMS ion list: " + ion);
       }
-      return ion.getIonType();
+      return ion;
     }
 
     // Try to guess from formula and precursor m/z
@@ -590,7 +590,7 @@ public class DiffMSTask extends AbstractTask {
       final double neutralMass = FormulaUtils.calculateExactMass(formula);
       final double mz = row.getAverageMZ();
       final IonModification mod = IonModification.getBestIonModification(neutralMass, mz,
-          SpectraMerging.defaultMs2MergeTol, 1);
+          SpectraMerging.defaultMs2MergeTol, PolarityType.POSITIVE);
       if (mod != null) {
         if (mod.getPolarity() == PolarityType.NEGATIVE) {
           throw new IllegalStateException(
