@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonType;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -48,12 +49,17 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaList
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.FragmentUtils;
+import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.SignalWithFormulae;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
@@ -72,20 +78,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class DiffMSTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(DiffMSTask.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
-  private static final Pattern MSMS_ANN_LOSS = Pattern.compile("^\\[M-(.+)]$");
-  private static final Pattern MSMS_ANN_FORMULA = Pattern.compile("^\\[(.+)]$");
   private static final Pattern RUNNER_PROGRESS = Pattern.compile("^MZMINE_DIFFMS_PROGRESS (\\d+)/(\\d+)$");
   private static final Pattern RUNNER_STAGE = Pattern.compile("^MZMINE_DIFFMS_STAGE (.+)$");
   private static final String RUNNER_LOG_PREFIX = "MZMINE_DIFFMS_LOG ";
@@ -260,7 +264,7 @@ public class DiffMSTask extends AbstractTask {
       rowsById.put(row.getID(), mrow);
       formulaByRowId.put(row.getID(), formula);
       adductByRowId.put(row.getID(), adduct);
-      final List<Map<String, Object>> sub = resolveSubformulas(mrow, formula);
+      final List<Map<String, Object>> sub = resolveSubformulas(mrow, formula, adduct, merged);
 
       final Scan firstMs2 = ms2.get(0);
       final MsMsInfo msmsInfo = firstMs2.getMsMsInfo();
@@ -587,100 +591,24 @@ public class DiffMSTask extends AbstractTask {
     return ion.getIonType();
   }
 
-  private static List<Map<String, Object>> resolveSubformulas(final ModularFeatureListRow row,
-      final String parentFormula) {
-    final List<ResultFormula> formulas = row.getFormulas();
-    if (formulas.isEmpty()) {
+  private List<Map<String, Object>> resolveSubformulas(final ModularFeatureListRow row,
+      final String parentFormulaStr, final IonType adduct, final Scan mergedMs2) {
+    try {
+      final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(parentFormulaStr);
+      if (formula == null) {
+        return List.of();
+      }
+      final IMolecularFormula ionFormula = adduct.addToFormula(formula);
+      final List<SignalWithFormulae> peaksWithFormulae = FragmentUtils.getPeaksWithFormulae(
+          ionFormula, mergedMs2, SpectralSignalFilter.DEFAULT_NO_PRECURSOR, subformulaTol);
+
+      return peaksWithFormulae.stream().flatMap(swf -> swf.formulae().stream().map(
+          f -> Map.<String, Object>of("formula", f.formulaString(), "intensity",
+              swf.peak().getIntensity()))).toList();
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Could not resolve subformulas for row " + row.getID(), e);
       return List.of();
     }
-    final ResultFormula rf = formulas.stream()
-        .filter(f -> Objects.equals(f.getFormulaAsString(), parentFormula))
-        .findFirst()
-        .orElse(formulas.getFirst());
-    final var ann = rf.getMSMSannotation();
-    if (ann == null || ann.isEmpty()) {
-      return List.of();
-    }
-
-    return ann.entrySet().stream()
-        .sorted(Comparator.comparingDouble((Map.Entry<DataPoint, String> e) -> e.getKey()
-            .getIntensity()).reversed())
-        .limit(200)
-        .map(e -> {
-          final String v = e.getValue();
-          if (v == null || v.isBlank()) {
-            return null;
-          }
-          final String fragment = toFragmentFormula(parentFormula, v.trim());
-          if (fragment == null || fragment.isBlank()) {
-            return null;
-          }
-          return Map.<String, Object>of("formula", fragment, "intensity", e.getKey().getIntensity());
-        })
-        .filter(Objects::nonNull)
-        .toList();
-  }
-
-  private static @Nullable String toFragmentFormula(final String parentFormula,
-      final String msmsAnnotation) {
-    final Matcher mLoss = MSMS_ANN_LOSS.matcher(msmsAnnotation);
-    if (mLoss.matches()) {
-      final String loss = mLoss.group(1);
-      return subtractFormula(parentFormula, loss);
-    }
-    final Matcher mF = MSMS_ANN_FORMULA.matcher(msmsAnnotation);
-    if (mF.matches()) {
-      final String f = mF.group(1);
-      return f == null ? null : f.trim();
-    }
-    return null;
-  }
-
-  private static @Nullable String subtractFormula(final String parent, final String loss) {
-    final Map<String, Integer> p = parseFormulaCounts(parent);
-    final Map<String, Integer> l = parseFormulaCounts(loss);
-    if (p.isEmpty() || l.isEmpty()) {
-      return null;
-    }
-    for (var e : l.entrySet()) {
-      final String el = e.getKey();
-      final int v = e.getValue() == null ? 0 : e.getValue();
-      p.put(el, p.getOrDefault(el, 0) - v);
-    }
-    final StringBuilder sb = new StringBuilder();
-    for (var e : p.entrySet()) {
-      final int n = e.getValue();
-      if (n < 0) {
-        return null;
-      }
-      if (n == 0) {
-        continue;
-      }
-      sb.append(e.getKey());
-      if (n != 1) {
-        sb.append(n);
-      }
-    }
-    return sb.isEmpty() ? null : sb.toString();
-  }
-
-  private static Map<String, Integer> parseFormulaCounts(final String formula) {
-    if (formula == null) {
-      return Map.of();
-    }
-    final var s = formula.trim();
-    if (s.isEmpty()) {
-      return Map.of();
-    }
-    final Map<String, Integer> out = new HashMap<>();
-    final Matcher m = Pattern.compile("([A-Z][a-z]*)(\\d*)").matcher(s);
-    while (m.find()) {
-      final String el = m.group(1);
-      final String n = m.group(2);
-      final int v = n == null || n.isEmpty() ? 1 : Integer.parseInt(n);
-      out.put(el, out.getOrDefault(el, 0) + v);
-    }
-    return out;
   }
 }
 
