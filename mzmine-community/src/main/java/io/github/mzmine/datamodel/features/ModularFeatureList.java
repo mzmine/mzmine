@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.annotationpriority.AnnotationPriority;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
@@ -52,6 +51,7 @@ import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -200,7 +200,7 @@ public class ModularFeatureList implements FeatureList {
 
     rowsSchema.addDataTypesChangeListener((added, _) -> {
       if (added.stream().filter(AnnotationType.class::isInstance)
-          .anyMatch(t -> AnnotationPriority.types.contains(t))) {
+          .anyMatch(t -> CompoundAnnotationUtils.annotationTypePriority.contains(t))) {
         // as soon as we have an annotation that is handled by the preferred annotation, add the type automatically
         addRowType(DataTypes.get(PreferredAnnotationType.class));
       }

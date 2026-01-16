@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.annotationpriority.AnnotationPriority;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
@@ -40,6 +39,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -292,7 +292,7 @@ public interface FeatureAnnotation {
   /**
    *
    * @return The data type that represents this annotation in the feature table
-   * ({@link AnnotationPriority#types}
+   * ({@link CompoundAnnotationUtils#annotationTypePriority}
    */
   @NotNull Class<? extends DataType> getDataType();
 

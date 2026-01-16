@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.annotationpriority.AnnotationPriority;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
@@ -45,6 +44,7 @@ import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignifica
 import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.util.ArrayList;
@@ -112,7 +112,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
 
     final Map<DataType<?>, List<RowSignificanceTestResult>> dataTypeMap = DataTypeUtils.groupByBestDataType(
         rowSignificanceTestResults, RowSignificanceTestResult::row, true,
-        AnnotationPriority.types.toArray(DataType[]::new));
+        CompoundAnnotationUtils.annotationTypePriority.toArray(DataType[]::new));
 
     if (!(test instanceof UnivariateRowSignificanceTest<?> ttest)) {
       return;

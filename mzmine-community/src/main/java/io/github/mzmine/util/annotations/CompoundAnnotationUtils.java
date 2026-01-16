@@ -26,20 +26,23 @@
 package io.github.mzmine.util.annotations;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.annotationpriority.AnnotationPriority;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
@@ -61,6 +64,7 @@ import io.github.mzmine.util.collections.SortOrder;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -70,6 +74,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -77,6 +82,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CompoundAnnotationUtils {
+
+  /**
+   * This list does <b>not</b> represent an absolute order of annotation priorities, but may be used
+   * for rough pre-grouping if required.
+   */
+  public static final List<DataType> annotationTypePriority = DataTypes.getAll(
+      CompoundDatabaseMatchesType.class, LipidMatchListType.class,
+      SpectralLibraryMatchesType.class);
 
   private static final Logger logger = Logger.getLogger(CompoundAnnotationUtils.class.getName());
 
@@ -95,7 +108,7 @@ public class CompoundAnnotationUtils {
     final MissingValueType notAnnotatedType =
         mapMissingValues ? DataTypes.get(MissingValueType.class) : null;
 
-    final Map<@NotNull FeatureListRow, @NotNull AnnotationSummary> rowsToBestAnnotationSummary = AnnotationPriority.mapRowsToBestAnnotationSummary(
+    final Map<@NotNull FeatureListRow, @NotNull AnnotationSummary> rowsToBestAnnotationSummary = mapRowsToBestAnnotationSummary(
         rows, true);
 
     Map<FeatureListRow, DataType<?>> map = new HashMap<>();
@@ -118,16 +131,18 @@ public class CompoundAnnotationUtils {
   /**
    * @param types can contain duplicates or nulls - that are filtered out
    * @param order order either ascending from missing to best match or reverse
-   * @return map of DataType to their index in {@link AnnotationPriority#types}. If
-   * {@link MissingValueType} is found, it is added as the last rank priority to the map
+   * @return map of DataType to their index in
+   * {@link CompoundAnnotationUtils#annotationTypePriority}. If {@link MissingValueType} is found,
+   * it is added as the last rank priority to the map
    */
   @NotNull
   public static Map<DataType<?>, Integer> rankUniqueAnnotationTypes(Collection<DataType<?>> types,
       @NotNull final SortOrder order) {
     var sortedUniqueTypes = types.stream().filter(Objects::nonNull).distinct()
         .filter(CompoundAnnotationUtils::isAnnotationOrMissingType).sorted(
-            (d1, d2) -> order.intComparator().compare(AnnotationPriority.types.indexOf(d1),
-                AnnotationPriority.types.indexOf(d2))).toList();
+            (d1, d2) -> order.intComparator()
+                .compare(annotationTypePriority.indexOf(d1), annotationTypePriority.indexOf(d2)))
+        .toList();
     return CollectionUtils.indexMapOrdered(sortedUniqueTypes);
   }
 
@@ -135,9 +150,8 @@ public class CompoundAnnotationUtils {
    * @return true if type is either annotation type or {@link MissingValueType}
    */
   public static boolean isAnnotationOrMissingType(final DataType<?> type) {
-    return type instanceof MissingValueType || AnnotationPriority.types.contains(type);
+    return type instanceof MissingValueType || annotationTypePriority.contains(type);
   }
-
 
   /**
    * A list of matches where each entry has a different compound name.
@@ -195,30 +209,26 @@ public class CompoundAnnotationUtils {
   }
 
   /**
-   * max score first, score descending
+   * max score first, score descending. Sorts by {@link FeatureAnnotation#getScore()}, which may be
+   * of different nature. (e.g. Compound match score and cosine). Consider using
+   * {@link CompoundAnnotationUtils#getAllFeatureAnnotationsByDescendingConfidence(FeatureListRow)}
+   * or {@link CompoundAnnotationUtils#streamBestAnnotationSummaries(List, boolean)} and sort using
+   * {@link AnnotationSummary#HIGH_TO_LOW_CONFIDENCE} and
+   * {@link AnnotationSummary#LOW_TO_HIGH_CONFIDENCE}
    *
    * @return sorter
    */
-  public static Comparator<FeatureAnnotation> getSorterMaxScoreFirst() {
+  public static Comparator<@NotNull FeatureAnnotation> getSorterMaxScoreFirst() {
     return Comparator.comparing(FeatureAnnotation::getScore,
         Comparator.nullsLast(Comparator.reverseOrder()));
   }
 
   /**
-   * Stream all instances of {@link FeatureAnnotation}
-   */
-  public static Stream<FeatureAnnotation> streamFeatureAnnotations(
-      @NotNull final FeatureListRow row) {
-    return row.streamAllFeatureAnnotations().filter(ann -> ann instanceof FeatureAnnotation)
-        .map(FeatureAnnotation.class::cast);
-  }
-
-  /**
-   * First FeatureAnnotation in {@link #streamFeatureAnnotations(FeatureListRow)}
+   * @return {@link Optional#ofNullable(Object)} of {@link FeatureListRow#getPreferredAnnotation()}
    */
   public static Optional<FeatureAnnotation> getBestFeatureAnnotation(
       @NotNull final FeatureListRow row) {
-    return CompoundAnnotationUtils.streamFeatureAnnotations(row).findFirst();
+    return Optional.ofNullable(getBestAnnotationSummary(row)).map(AnnotationSummary::annotation);
   }
 
   public static void calculateBoundTypes(CompoundDBAnnotation annotation, FeatureListRow row) {
@@ -339,7 +349,7 @@ public class CompoundAnnotationUtils {
   }
 
   public static @Nullable String getBestFormula(@NotNull ModularFeatureListRow row) {
-    return streamFeatureAnnotations(row).sorted(getSorterMaxScoreFirst())
+    return getAllFeatureAnnotationsByDescendingConfidence(row).stream()
         .map(FeatureAnnotation::getFormula).filter(Objects::nonNull).findFirst().orElseGet(() -> {
           final List<ResultFormula> formulas = row.getFormulas();
           return formulas.isEmpty() ? null : formulas.getFirst().getFormulaAsString();
@@ -358,5 +368,155 @@ public class CompoundAnnotationUtils {
       case MatchedLipid db -> null;
       default -> null;
     };
+  }
+
+  /**
+   *
+   * @param topN The maximum number of annotations per type.
+   * @return A list of all feature annotations in no particular order.
+   */
+  public static @NotNull List<@NotNull FeatureAnnotation> getFeatureAnnotations(
+      @Nullable ModularDataModel row, int topN) {
+    if (row == null || row.isEmpty()) {
+      return List.of();
+    }
+
+    final List<@NotNull FeatureAnnotation> results = new ArrayList<>(annotationTypePriority.size());
+    for (final DataType type : annotationTypePriority) {
+      final Object value = row.get(type);
+      if (value == null) {
+        continue;
+      }
+
+      if (value instanceof List list) {
+        if (list.isEmpty()) {
+          continue;
+        }
+        for (int i = 0; i < list.size() && i < topN; i++) {
+          Object o = list.get(i);
+          if (o instanceof FeatureAnnotation a) {
+            results.add(a);
+          }
+        }
+      } else if (value instanceof FeatureAnnotation a) {
+        results.add(a);
+      }
+    }
+    return results;
+  }
+
+  /**
+   *
+   * @return A list of all feature annotations in no particular order.
+   */
+  public static @NotNull List<@NotNull FeatureAnnotation> getAllFeatureAnnotations(
+      @Nullable ModularDataModel row) {
+    return getFeatureAnnotations(row, Integer.MAX_VALUE);
+  }
+
+  /**
+   *
+   * @return A list of the top annotation per type. Not sorted by overall confidence.
+   */
+  public static @NotNull List<@NotNull FeatureAnnotation> getTopAnnotationsPerType(
+      @Nullable final ModularDataModel model) {
+    return getFeatureAnnotations(model, 1);
+  }
+
+  /**
+   *
+   * @return A map of {@link FeatureAnnotation#getDataType()} -> {@link FeatureAnnotation} for the
+   * given row.
+   */
+  public static @NotNull Map<@NotNull Class<? extends DataType>, @NotNull FeatureAnnotation> getTopAnnotationsPerTypeMap(
+      @Nullable ModularDataModel model) {
+    return getTopAnnotationsPerType(model).stream()
+        .collect(Collectors.toMap(FeatureAnnotation::getDataType, a -> a));
+  }
+
+  public static @Nullable AnnotationSummary getBestAnnotationSummary(
+      @Nullable final FeatureListRow model) {
+    if (model == null) {
+      return null;
+    }
+    return getTopAnnotationsPerType(model).stream().map(a -> AnnotationSummary.of(model, a))
+        .min(AnnotationSummary.HIGH_TO_LOW_CONFIDENCE).orElse(null);
+  }
+
+  /**
+   * @return The data type of the best {@link FeatureAnnotation} or null if no annotation exists.
+   */
+  public static @Nullable DataType<?> getBestAnnotationType(@Nullable FeatureListRow row) {
+    return getBestFeatureAnnotation(row).map(a -> DataTypes.get(a.getDataType())).orElse(null);
+  }
+
+  /**
+   *
+   * @param topN Number of annotations <b>per</b> annotation type.
+   * @return Annotation types sorted by descending confidence as defined by
+   * {@link AnnotationSummary#HIGH_TO_LOW_CONFIDENCE}
+   */
+  public static @NotNull List<@NotNull FeatureAnnotation> getFeatureAnnotationsByDescendingConfidence(
+      @Nullable final FeatureListRow row, int topN) {
+    if (row == null) {
+      return List.of();
+    }
+    return getFeatureAnnotations(row, topN).stream().map(a -> AnnotationSummary.of(row, a))
+        .sorted(AnnotationSummary.HIGH_TO_LOW_CONFIDENCE).map(AnnotationSummary::annotation)
+        //.filter(Objects::nonNull) // cannot be null because input is not null
+        .toList();
+  }
+
+  /**
+   *
+   * @return Annotation types sorted by descending confidence as defined by
+   * {@link AnnotationSummary#HIGH_TO_LOW_CONFIDENCE}
+   */
+  public static @NotNull List<@NotNull FeatureAnnotation> getAllFeatureAnnotationsByDescendingConfidence(
+      @Nullable final FeatureListRow row) {
+    return getFeatureAnnotationsByDescendingConfidence(row, Integer.MAX_VALUE);
+  }
+
+  /**
+   * @param includeUnannotated if false, not annotated rows are dropped in the returned stream.
+   * @return A stream of the highest ranked {@link AnnotationSummary}s per row.
+   */
+  public static @NotNull Stream<@NotNull AnnotationSummary> streamBestAnnotationSummaries(
+      @NotNull List<@NotNull FeatureListRow> rows, final boolean includeUnannotated) {
+    return rows.stream().map(row -> Objects.requireNonNullElse(getBestAnnotationSummary(row),
+        AnnotationSummary.of(row, null))).filter(s -> s.annotation() != null || includeUnannotated);
+  }
+
+  /**
+   *
+   * @param includeUnannotated if false, not annotated rows are dropped from the returned map.
+   * @return Mapping of row -> annotation summary. {@link AnnotationSummary#annotation()} may be
+   * null.
+   */
+  public static Map<@NotNull FeatureListRow, @NotNull AnnotationSummary> mapRowsToBestAnnotationSummary(
+      @NotNull List<@NotNull FeatureListRow> rows, final boolean includeUnannotated) {
+    return CompoundAnnotationUtils.streamBestAnnotationSummaries(rows, includeUnannotated)
+        .collect(Collectors.toMap(AnnotationSummary::row, a -> a));
+  }
+
+  /**
+   * Convenience method to map anything that references a row to the best annotation summary.
+   *
+   * @see this#mapRowsToBestAnnotationSummary(List, boolean)
+   */
+  public static <T> Map<@NotNull T, @NotNull AnnotationSummary> mapRowsToBestAnnotationSummary(
+      @NotNull List<@NotNull T> data, @NotNull Function<T, @NotNull FeatureListRow> mapper,
+      final boolean includeUnannotated) {
+
+    final Map<T, AnnotationSummary> result = new HashMap<>();
+    for (T d : data) {
+      AnnotationSummary summary = getBestAnnotationSummary(mapper.apply(d));
+      if (summary == null && !includeUnannotated) {
+        continue;
+      }
+      result.put(d, summary);
+    }
+
+    return result;
   }
 }

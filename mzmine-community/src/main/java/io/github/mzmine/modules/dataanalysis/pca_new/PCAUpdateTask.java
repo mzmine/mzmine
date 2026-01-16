@@ -28,7 +28,6 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.annotationpriority.AnnotationPriority;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
 import io.github.mzmine.datamodel.statistics.DataTableUtils;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
@@ -40,6 +39,7 @@ import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -118,7 +118,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 
     Comparator<@Nullable AnnotationSummary> annotationSummarySorter = AnnotationSummary.LOW_TO_HIGH_CONFIDENCE;
     // change sorting
-    final Map<@NotNull FeatureListRow, @NotNull AnnotationSummary> rowsMappedToBestSummary = AnnotationPriority.mapRowsToBestAnnotationSummary(
+    final Map<@NotNull FeatureListRow, @NotNull AnnotationSummary> rowsMappedToBestSummary = CompoundAnnotationUtils.mapRowsToBestAnnotationSummary(
         rows, true);
     final Comparator<FeatureListRow> finalRowSorter = (r1, r2) -> annotationSummarySorter.compare(
         rowsMappedToBestSummary.get(r1), rowsMappedToBestSummary.get(r2));

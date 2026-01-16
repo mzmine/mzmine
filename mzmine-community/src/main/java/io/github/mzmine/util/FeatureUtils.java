@@ -48,7 +48,6 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.annotationpriority.AnnotationPriority;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -242,10 +241,8 @@ public class FeatureUtils {
       return false;
     }
 
-    final List<FeatureAnnotation> matches1 = CompoundAnnotationUtils.streamFeatureAnnotations(row1)
-        .toList();
-    final List<FeatureAnnotation> matches2 = CompoundAnnotationUtils.streamFeatureAnnotations(row2)
-        .toList();
+    final List<FeatureAnnotation> matches1 = row1.getAllFeatureAnnotations();
+    final List<FeatureAnnotation> matches2 = row2.getAllFeatureAnnotations();
 
     if (matches1.isEmpty() && matches2.isEmpty()) {
       // no annotations available is still true
@@ -865,7 +862,7 @@ public class FeatureUtils {
   }
 
   public static List<IonType> extractAllIonTypes(FeatureListRow row) {
-    final List<IonType> allIonTypes = AnnotationPriority.getAllFeatureAnnotations(row).stream()
+    final List<IonType> allIonTypes = CompoundAnnotationUtils.getAllFeatureAnnotations(row).stream()
         .map(FeatureAnnotation::getAdductType).filter(Objects::nonNull).toList();
 
     if (row.getBestIonIdentity() != null) {
@@ -932,8 +929,8 @@ public class FeatureUtils {
       }
       // try to get from match - but only if match was not defined
       if (match == null) {
-        return CompoundAnnotationUtils.streamFeatureAnnotations(row)
-            .map(FeatureAnnotation::getAdductType).filter(Objects::nonNull).findFirst();
+        return row.streamAllFeatureAnnotations().map(FeatureAnnotation::getAdductType)
+            .filter(Objects::nonNull).findFirst();
       }
     }
     return Optional.empty();

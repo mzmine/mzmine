@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -186,7 +186,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     totalRows = Arrays.stream(flists).mapToLong(ModularFeatureList::getNumberOfRows).sum();
 
     FileAndPathUtil.createDirectory(outFile.getParentFile());
-    
+
     try (var writer = Files.newBufferedWriter(outFile.toPath(), StandardCharsets.UTF_8,
         WriterOptions.REPLACE.toOpenOption())) {
       for (ModularFeatureList flist : flists) {
@@ -268,7 +268,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     var featureList = row.getFeatureList();
     // might filter matches for compound name in feature list name
     // only if this option is active
-    List<FeatureAnnotation> matches = CompoundAnnotationUtils.streamFeatureAnnotations(row)
+    List<FeatureAnnotation> matches = row.streamAllFeatureAnnotations()
         .filter(match -> msMsQualityChecker.matchesName(match, featureList)).toList();
 
     if (scans.isEmpty() || matches.isEmpty()) {

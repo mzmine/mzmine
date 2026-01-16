@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.annotationpriority.AnnotationPriority;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
@@ -44,6 +43,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -544,12 +544,15 @@ public interface FeatureListRow extends ModularDataModel {
   boolean hasIsotopePattern();
 
   /**
-   * Uses {@link AnnotationPriority} to find the best annotation from different methods
+   * Uses
+   * {@link
+   * io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary#HIGH_TO_LOW_CONFIDENCE}
+   * to find the best annotation from different methods
    *
    * @return the preferred annotation or null
    */
   default @Nullable FeatureAnnotation getPreferredAnnotation() {
-    return AnnotationPriority.getBestFeatureAnnotation(this);
+    return CompoundAnnotationUtils.getBestFeatureAnnotation(this).orElse(null);
   }
 
 
@@ -560,7 +563,7 @@ public interface FeatureListRow extends ModularDataModel {
 
   @NotNull
   default List<FeatureAnnotation> getAllFeatureAnnotations() {
-    return AnnotationPriority.getAllFeatureAnnotationsByDescendingConfidence(this);
+    return CompoundAnnotationUtils.getAllFeatureAnnotationsByDescendingConfidence(this);
   }
 
   /**

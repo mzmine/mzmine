@@ -28,7 +28,6 @@ package io.github.mzmine.datamodel.features.types.annotations;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.annotationpriority.AnnotationPriority;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -37,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +86,7 @@ public class PreferredAnnotationType extends ListWithSubsType<FeatureAnnotation>
   @Override
   public @Nullable List<? extends FeatureAnnotation> getValue(@NotNull ModularDataModel model) {
 
-    final DataType<?> preferredAnnotationType = AnnotationPriority.getBestAnnotationType(
+    final DataType<?> preferredAnnotationType = CompoundAnnotationUtils.getBestAnnotationType(
         (FeatureListRow) model);
     if (preferredAnnotationType == null) {
       return null;

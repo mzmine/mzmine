@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,7 +52,6 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -466,8 +465,8 @@ public class RowsFilterTask extends AbstractTask {
     if (filterByIdentityText) {
       boolean foundText = false;
       if (!foundText && !row.getCompoundAnnotations().isEmpty()) {
-        if (CompoundAnnotationUtils.streamFeatureAnnotations(row)
-            .map(FeatureAnnotation::getCompoundName).filter(Objects::nonNull)
+        if (row.streamAllFeatureAnnotations().map(FeatureAnnotation::getCompoundName)
+            .filter(Objects::nonNull)
             .anyMatch(name -> name.toLowerCase().trim().contains(searchText))) {
           foundText = true;
         }
