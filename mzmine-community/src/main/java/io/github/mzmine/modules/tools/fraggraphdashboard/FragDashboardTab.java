@@ -107,9 +107,9 @@ public class FragDashboardTab extends SimpleTab {
     if (formula == null) {
       final FeatureAnnotation annotation = FeatureUtils.getBestFeatureAnnotation(row);
       if (annotation != null && annotation.getFormula() != null
-          && FormulaUtils.createMajorIsotopeMolFormula(annotation.getFormula()) != null) {
+          && FormulaUtils.createMajorIsotopeMolFormulaWithCharge(annotation.getFormula()) != null) {
         //
-        formula = FormulaUtils.createMajorIsotopeMolFormula(annotation.getFormula());
+        formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(annotation.getFormula());
         final double neutralMass = FormulaUtils.calculateMzRatio(formula);
 
         // use the given adduct or guess
@@ -128,7 +128,8 @@ public class FragDashboardTab extends SimpleTab {
     }
 
     controller = new FragDashboardController(parameters);
-    controller.setInput(mz, ms2, bestIsotopePattern, formula, ResultFormula.forAllAnnotations(row, true));
+    controller.setInput(mz, ms2, bestIsotopePattern, formula,
+        ResultFormula.forAllAnnotations(row, true));
     setContent(controller.buildView());
     controller.rowProperty().set(row);
   }

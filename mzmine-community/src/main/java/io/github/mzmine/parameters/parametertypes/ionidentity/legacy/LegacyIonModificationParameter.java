@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.ionidentity;
+package io.github.mzmine.parameters.parametertypes.ionidentity.legacy;
 
 import io.github.mzmine.datamodel.identities.iontype.CombinedIonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
@@ -50,11 +50,12 @@ import org.w3c.dom.NodeList;
  * @author $Author$
  * @version $Revision$
  */
-public class IonModificationParameter implements
-    UserParameter<IonModification[][], IonModificationComponent> {
+public class LegacyIonModificationParameter implements
+    UserParameter<IonModification[][], LegacyIonModificationComponent> {
 
   // Logger.
-  private static final Logger logger = Logger.getLogger(IonModificationParameter.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      LegacyIonModificationParameter.class.getName());
 
   // XML tags.
   private static final String MODIFICTAION_TAG = "modification_type";
@@ -70,7 +71,7 @@ public class IonModificationParameter implements
   private final MultiChoiceParameter<IonModification> adducts;
   private final MultiChoiceParameter<IonModification> modification;
 
-  private IonModificationComponent comp;
+  private LegacyIonModificationComponent comp;
 
   /**
    * Create the parameter.
@@ -78,7 +79,7 @@ public class IonModificationParameter implements
    * @param name        name of the parameter.
    * @param description description of the parameter.
    */
-  public IonModificationParameter(final String name, final String description) {
+  public LegacyIonModificationParameter(final String name, final String description) {
     super();
     adducts = new MultiChoiceParameter<>(name, description, 1, new IonModification[0],
         IonModification.POLARITY_MASS_SORTER);
@@ -87,8 +88,8 @@ public class IonModificationParameter implements
   }
 
   @Override
-  public IonModificationComponent createEditingComponent() {
-    comp = new IonModificationComponent(List.of(adducts.getChoices()),
+  public LegacyIonModificationComponent createEditingComponent() {
+    comp = new LegacyIonModificationComponent(List.of(adducts.getChoices()),
         List.of(modification.getChoices()));
     return comp;
   }
@@ -233,8 +234,9 @@ public class IonModificationParameter implements
   }
 
   @Override
-  public IonModificationParameter cloneParameter() {
-    final IonModificationParameter copy = new IonModificationParameter(getName(), getDescription());
+  public LegacyIonModificationParameter cloneParameter() {
+    final LegacyIonModificationParameter copy = new LegacyIonModificationParameter(getName(),
+        getDescription());
     copy.setChoices(adducts.getChoices(), modification.getChoices());
     copy.setValue(getValue());
     return copy;
@@ -261,8 +263,9 @@ public class IonModificationParameter implements
     adducts.checkValue(errorMessages);
     final List<IonModification> adductsWithNoCharge = Arrays.stream(adducts.getValue())
         .filter(i -> i.getCharge() == 0).toList();
-    if(!adductsWithNoCharge.isEmpty()) {
-      errorMessages.add("The adduct(s): " + adductsWithNoCharge + " have no charge. Use \"Modifcations\" for neutral modifications.");
+    if (!adductsWithNoCharge.isEmpty()) {
+      errorMessages.add("The adduct(s): " + adductsWithNoCharge
+          + " have no charge. Use \"Modifcations\" for neutral modifications.");
     }
     modification.checkValue(errorMessages);
 
@@ -275,7 +278,7 @@ public class IonModificationParameter implements
   }
 
   @Override
-  public void setValueFromComponent(IonModificationComponent component) {
+  public void setValueFromComponent(LegacyIonModificationComponent component) {
     adducts.setValueFromComponent(component.getAdducts().getCheckListView());
     modification.setValueFromComponent(component.getMods().getCheckListView());
     IonModification[][] choices = component.getChoices();
@@ -321,7 +324,7 @@ public class IonModificationParameter implements
   }
 
   @Override
-  public void setValueToComponent(IonModificationComponent component,
+  public void setValueToComponent(LegacyIonModificationComponent component,
       @Nullable IonModification[][] newValue) {
     component.setValue(newValue);
   }

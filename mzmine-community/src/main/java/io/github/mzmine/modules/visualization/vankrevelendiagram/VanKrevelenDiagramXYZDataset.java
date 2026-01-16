@@ -121,10 +121,10 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
         String formula = getFormulaFromAnnotation(preferredAnnotation);
         if (formula != null) {
           int elementOneCount = MolecularFormulaManipulator.getElementCount(
-              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormula(formula)),
+              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula)),
               elementOne);
           int elementTwoCount = MolecularFormulaManipulator.getElementCount(
-              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormula(formula)),
+              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula)),
               elementTwo);
           values[i] = (elementOneCount > 0 && elementTwoCount > 0) ? (double) elementOneCount
                                                                      / elementTwoCount : 0.0;
