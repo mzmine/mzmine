@@ -28,7 +28,6 @@ package io.github.mzmine.modules.dataprocessing.id_diffms;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.IonType;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
@@ -48,6 +47,8 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.ConsensusFo
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
@@ -211,7 +212,7 @@ public class DiffMSTask extends AbstractTask {
 
       final IonType adduct;
       try {
-        adduct = resolveAdduct(mrow);
+        adduct = resolveAdduct(mrow, formula);
       } catch (IllegalStateException e) {
         skippedBadAdduct++;
         logger.info(() -> "DiffMS: skipping row " + row.getID() + " due to adduct issue: "
@@ -593,18 +594,35 @@ public class DiffMSTask extends AbstractTask {
     return null;
   }
 
-  private static IonType resolveAdduct(final ModularFeatureListRow row) {
+  private static IonType resolveAdduct(final ModularFeatureListRow row, final String formula) {
     final var ion = FeatureUtils.extractBestIonIdentity(null, row).orElse(null);
-    if (ion == null) {
-      throw new IllegalStateException(
-          "Missing adduct/ion type for row " + row.getID()
-              + " (run Ion Identity Networking / set Ion identity / ensure annotations include an adduct).");
+    if (ion != null) {
+      if (ion.getPolarity() == PolarityType.NEGATIVE) {
+        throw new IllegalStateException(
+            "Negative polarity ion types are not supported by the DiffMS ion list: " + ion);
+      }
+      return ion.getIonType();
     }
-    if (ion.getPolarity() == PolarityType.NEGATIVE) {
-      throw new IllegalStateException(
-          "Negative polarity ion types are not supported by the DiffMS ion list: " + ion);
+
+    // Try to guess from formula and precursor m/z
+    if (formula != null) {
+      final double neutralMass = FormulaUtils.calculateExactMass(formula);
+      final double mz = row.getAverageMZ();
+      final IonModification mod = IonModification.getBestIonModification(neutralMass, mz,
+          SpectraMerging.defaultMs2MergeTol, 1);
+      if (mod != null) {
+        if (mod.getPolarity() == PolarityType.NEGATIVE) {
+          throw new IllegalStateException(
+              "Guessed negative polarity ion modification is not supported by the DiffMS ion list: "
+                  + mod);
+        }
+        return new IonType(mod);
+      }
     }
-    return ion.getIonType();
+
+    throw new IllegalStateException(
+        "Missing adduct/ion type for row " + row.getID()
+            + " (run Ion Identity Networking / set Ion identity / ensure annotations include an adduct).");
   }
 
   private List<Map<String, Object>> resolveSubformulas(final ModularFeatureListRow row,
