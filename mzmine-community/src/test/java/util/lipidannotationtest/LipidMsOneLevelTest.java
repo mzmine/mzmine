@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -72,7 +72,7 @@ class LipidMsOneLevelTest {
 
   @Test
   void molecularFormulaLevelTestCAR() {
-    Double mzExact = FormulaUtils.calculateExactMass("C17H29NO4");
+    Double mzExact = FormulaUtils.calculateExactMass("C17H30NO4");
     IMolecularFormula testSpeciesMG = LIPID_FACTORY.buildSpeciesLevelLipid(
         LipidClasses.FATTYACYLCARNITINES, 10, 2, 0).getMolecularFormula();
     assertEquals(NUMBER_FORMAT.format(mzExact), NUMBER_FORMAT.format(
