@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,31 +22,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
+package io.github.mzmine.datamodel.features.types.modifiers;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
-import java.util.function.Function;
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.types.DataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class AnnotationAsStringRowTypeFilter extends AbstractStringRowTypeFilter {
+/**
+ *
+ * @param <T> Must be the same as the {@link DataType <T>}
+ */
+public interface MappingType<T> {
 
-  private final Function<FeatureAnnotation, @Nullable Object> valueFunction;
-
-  public AnnotationAsStringRowTypeFilter(@NotNull RowTypeFilterOption selectedType,
-      @NotNull MatchingMode matchingMode, @NotNull String query, boolean caseSensitive,
-      @NotNull Function<FeatureAnnotation, @Nullable Object> valueFunction) {
-    super(selectedType, matchingMode, query, caseSensitive);
-    this.valueFunction = valueFunction;
-  }
-
-  @Override
-  public boolean matches(FeatureListRow row) {
-    return row.streamAllFeatureAnnotations().map(valueFunction)
-        .anyMatch(this::matchesString);
-  }
-
+  @Nullable T getValue(@NotNull ModularDataModel model);
 }

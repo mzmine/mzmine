@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -107,7 +108,9 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       new CASType(),  //
       new InternalIdType(), //
       new RIDiffType(), //
-      new JsonStringType());
+      new AnnotationSummaryType(), //
+      new JsonStringType() //
+      );
 
   @NotNull
   @Override
@@ -163,6 +166,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       case InternalIdType _ -> entry.getOrElse(DBEntryField.INTERNAL_ID, null);
       case JsonStringType _ -> entry.getOrElse(DBEntryField.JSON_STRING, null);
       case RIDiffType _ -> match.getRiDiff();
+      case AnnotationSummaryType _ -> null; // created on demand in cell factory
       default -> throw new UnsupportedOperationException(
           "DataType %s is not covered in map".formatted(subType.toString()));
     };
@@ -236,7 +240,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
 
   @Override
   public boolean getDefaultVisibility() {
-    return true;
+    return false;
   }
 
 

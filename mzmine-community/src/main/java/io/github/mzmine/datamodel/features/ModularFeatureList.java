@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,7 +35,10 @@ import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureL
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
+import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
@@ -48,6 +51,7 @@ import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -191,6 +195,14 @@ public class ModularFeatureList implements FeatureList {
     featuresSchema.addDataTypesChangeListener((added, removed) -> {
       for (DataType dataType : added) {
         addRowBinding(dataType.createDefaultRowBindings());
+      }
+    });
+
+    rowsSchema.addDataTypesChangeListener((added, _) -> {
+      if (added.stream().filter(AnnotationType.class::isInstance)
+          .anyMatch(t -> CompoundAnnotationUtils.annotationTypePriority.contains(t))) {
+        // as soon as we have an annotation that is handled by the preferred annotation, add the type automatically
+        addRowType(DataTypes.get(PreferredAnnotationType.class));
       }
     });
   }

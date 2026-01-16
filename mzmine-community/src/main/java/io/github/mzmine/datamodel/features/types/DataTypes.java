@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -38,6 +37,7 @@ import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureTy
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.SplashType;
@@ -216,9 +216,9 @@ public class DataTypes {
         GNPSClusterUrlType.class, CompoundDatabaseMatchesType.class, CommentType.class,
         // combined types with sub columns
         AlignmentMainType.class, NetworkStatsType.class, IonIdentityListType.class,
-        SpectralLibraryMatchesType.class, CompoundDatabaseMatchesType.class,
-        LipidMatchListType.class, ConsensusFormulaListType.class, SimpleFormulaListType.class,
-        FormulaListType.class, ManualAnnotationType.class,
+        PreferredAnnotationType.class, SpectralLibraryMatchesType.class,
+        CompoundDatabaseMatchesType.class, LipidMatchListType.class, ConsensusFormulaListType.class,
+        SimpleFormulaListType.class, FormulaListType.class, ManualAnnotationType.class,
         // graphical columns
         FeatureShapeType.class, FeatureShapeMobilogramType.class,
         FeatureShapeIonMobilityRetentionTimeHeatMapType.class, ImageType.class);

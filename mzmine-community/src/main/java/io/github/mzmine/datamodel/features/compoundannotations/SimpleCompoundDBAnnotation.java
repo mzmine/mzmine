@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
@@ -171,6 +172,11 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     String inchi = getInChI();
     structure = StructureParser.silent().parseStructure(smiles, inchi);
     return structure;
+  }
+
+  @Override
+  public @NotNull Class<? extends DataType> getDataType() {
+    return CompoundDatabaseMatchesType.class;
   }
 
   @Override
@@ -373,5 +379,6 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   public int hashCode() {
     return Objects.hash(data);
   }
+
 }
 

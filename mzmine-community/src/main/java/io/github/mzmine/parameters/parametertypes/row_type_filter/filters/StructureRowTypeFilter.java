@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.structures.SubstructureMatcher.StructureMatchM
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.QueryFormatException;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
-import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import org.jetbrains.annotations.NotNull;
 
 final class StructureRowTypeFilter extends AbstractRowTypeFilter {
@@ -74,8 +73,8 @@ final class StructureRowTypeFilter extends AbstractRowTypeFilter {
 
   @Override
   public boolean matches(FeatureListRow row) {
-    return CompoundAnnotationUtils.streamFeatureAnnotations(row)
-        .map(FeatureAnnotation::getStructure).anyMatch(matcher::matches);
+    return row.streamAllFeatureAnnotations().map(FeatureAnnotation::getStructure)
+        .anyMatch(matcher::matches);
   }
 
 }

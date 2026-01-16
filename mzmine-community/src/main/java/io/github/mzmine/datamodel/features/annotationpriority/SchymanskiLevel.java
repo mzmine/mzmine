@@ -23,31 +23,37 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
+package io.github.mzmine.datamodel.features.annotationpriority;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
-import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-class AnnotationAsStringRowTypeFilter extends AbstractStringRowTypeFilter {
+public enum SchymanskiLevel {
 
-  private final Function<FeatureAnnotation, @Nullable Object> valueFunction;
+  LEVEL_1(1), LEVEL_2a(2, "a"), LEVEL_2b(2, "b"), LEVEL_3(3), LEVEL_4(4), LEVEL_5(5);
 
-  public AnnotationAsStringRowTypeFilter(@NotNull RowTypeFilterOption selectedType,
-      @NotNull MatchingMode matchingMode, @NotNull String query, boolean caseSensitive,
-      @NotNull Function<FeatureAnnotation, @Nullable Object> valueFunction) {
-    super(selectedType, matchingMode, query, caseSensitive);
-    this.valueFunction = valueFunction;
+  private final int numberLevel;
+  private final @NotNull String letterLevel;
+
+  SchymanskiLevel(int numberLevel, @NotNull String letterLevel) {
+    this.numberLevel = numberLevel;
+    this.letterLevel = letterLevel;
+  }
+
+  SchymanskiLevel(int numberLevel) {
+    this(numberLevel, "");
+  }
+
+  public int numberLevel() {
+    return numberLevel;
+  }
+
+  // ... existing code ...
+  public @NotNull String letterLevel() {
+    return letterLevel;
   }
 
   @Override
-  public boolean matches(FeatureListRow row) {
-    return row.streamAllFeatureAnnotations().map(valueFunction)
-        .anyMatch(this::matchesString);
+  public String toString() {
+    return "Schymanski level " + numberLevel + letterLevel;
   }
-
 }

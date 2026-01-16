@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,6 +28,7 @@ package io.github.mzmine.util.spectraldb.entry;
 import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -36,6 +38,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
@@ -362,7 +365,12 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
 
   @Override
   public @Nullable String getDatabase() {
-    return null;
+    return entry.getLibraryName();
+  }
+
+  @Override
+  public @NotNull Class<? extends DataType> getDataType() {
+    return SpectralLibraryMatchesType.class;
   }
 
   @Override
@@ -487,5 +495,13 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
   @Override
   public <T> boolean set(DataType<T> type, T value) {
     return super.set(type, value);
+  }
+
+  @Override
+  public @Nullable IsotopePattern getIsotopePattern() {
+    // store the isotope pattern? Ideally the match shouldn't store it, but the entry. currently no
+    // DBEntry field for an isotope pattern. and if we make one it is saved to libraries, which also
+    // seems unnecessary
+    return entry.calculateIsotopePattern();
   }
 }

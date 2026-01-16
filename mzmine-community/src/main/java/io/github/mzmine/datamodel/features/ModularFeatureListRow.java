@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,6 +55,7 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaList
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.annotations.online_reaction.OnlineLcReactionMatchType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
@@ -67,7 +68,6 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
@@ -668,20 +668,13 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   @Override
-  public Object getPreferredAnnotation() {
-    return streamAllFeatureAnnotations().findFirst().orElse(null);
-  }
-
-  @Override
+  @Nullable
   public String getPreferredAnnotationName() {
-    Object annotation = getPreferredAnnotation();
-    return switch (annotation) {
-      case FeatureAnnotation ann -> ann.getCompoundName();
-      case ManualAnnotation ann -> ann.getCompoundName();
-      case MolecularFormulaIdentity ann -> ann.getFormulaAsString();
-      case null -> null;
-      default -> throw new IllegalStateException("Unexpected value: " + annotation);
-    };
+    FeatureAnnotation annotation = getPreferredAnnotation();
+    if (annotation != null) {
+      return annotation.getCompoundName();
+    }
+    return null;
   }
 
   @Override
@@ -725,5 +718,13 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   @Override
   public String toString() {
     return FeatureUtils.rowToString(this);
+  }
+
+  @Override
+  public <T> @Nullable T get(DataType<T> key) {
+    if (key instanceof MappingType<?> mt) {
+      return (T) mt.getValue(this);
+    }
+    return super.get(key);
   }
 }
