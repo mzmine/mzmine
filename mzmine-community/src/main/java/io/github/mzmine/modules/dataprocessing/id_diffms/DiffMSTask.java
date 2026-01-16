@@ -546,6 +546,14 @@ public class DiffMSTask extends AbstractTask {
   }
 
   private static String resolveFormula(final ModularFeatureListRow row) {
+    final List<ResultFormula> fromAnnotations = ResultFormula.forAllAnnotations(row, true);
+    if (!fromAnnotations.isEmpty()) {
+      final String f = fromAnnotations.get(0).getFormulaAsString();
+      if (f != null && !f.isBlank()) {
+        return f;
+      }
+    }
+
     final String direct = row.get(FormulaType.class);
     if (direct != null && !direct.isBlank()) {
       return direct;
@@ -562,14 +570,6 @@ public class DiffMSTask extends AbstractTask {
     final List<ResultFormula> formulas = row.get(FormulaListType.class);
     if (formulas != null && !formulas.isEmpty()) {
       final String f = formulas.get(0).getFormulaAsString();
-      if (f != null && !f.isBlank()) {
-        return f;
-      }
-    }
-
-    final List<ResultFormula> fromAnnotations = ResultFormula.forAllAnnotations(row, true);
-    if (!fromAnnotations.isEmpty()) {
-      final String f = fromAnnotations.get(0).getFormulaAsString();
       if (f != null && !f.isBlank()) {
         return f;
       }
