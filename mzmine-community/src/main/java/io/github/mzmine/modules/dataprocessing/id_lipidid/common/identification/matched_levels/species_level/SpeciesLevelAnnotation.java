@@ -121,8 +121,8 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
     }
     SpeciesLevelAnnotation that = (SpeciesLevelAnnotation) o;
     return numberOfCarbons == that.numberOfCarbons && numberOfDBEs == that.numberOfDBEs
-        && numberOfOxygens == that.numberOfOxygens && Objects.equals(lipidClass, that.lipidClass)
-        && Objects.equals(annotation, that.annotation) && Objects.equals(molecularFormula,
+           && numberOfOxygens == that.numberOfOxygens && Objects.equals(lipidClass, that.lipidClass)
+           && Objects.equals(annotation, that.annotation) && Objects.equals(molecularFormula,
         that.molecularFormula);
   }
 
@@ -172,8 +172,8 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
     Integer numberOfCarbons = null;
     Integer numberOfDBEs = null;
     Integer numberOfOxygens = null;
-    while (reader.hasNext()
-        && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(XML_ELEMENT))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
@@ -193,11 +193,12 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
           annotation = reader.getElementText();
           break;
         case XML_LIPID_ANNOTAION_LEVEL:
-          lipidAnnotationLevel =
-                  LipidParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(reader.getElementText());
+          lipidAnnotationLevel = LipidParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(
+              reader.getElementText());
           break;
         case XML_LIPID_FORMULA:
-          molecularFormula = FormulaUtils.createMajorIsotopeMolFormula(reader.getElementText());
+          molecularFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+              reader.getElementText());
           break;
         case XML_NUMBER_OF_CARBONS:
           numberOfCarbons = Integer.parseInt(reader.getElementText());
@@ -213,8 +214,8 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
       }
     }
 
-    if (lipidAnnotationLevel != null
-        && lipidAnnotationLevel.equals(LipidAnnotationLevel.SPECIES_LEVEL)) {
+    if (lipidAnnotationLevel != null && lipidAnnotationLevel.equals(
+        LipidAnnotationLevel.SPECIES_LEVEL)) {
       return new SpeciesLevelAnnotation(lipidClass, annotation, molecularFormula, numberOfCarbons,
           numberOfDBEs, numberOfOxygens);
     }

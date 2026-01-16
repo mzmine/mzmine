@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -250,7 +250,7 @@ public class SiriusExportTask extends AbstractTask {
       // maybe no MS1 data?
       logger.warning(
           "Cannot export MS1 data for this feature list. This maybe due to missing MS1 data or unsupported workflow. mzmine will skip MS1 scan of row "
-          + FeatureUtils.rowToString(row));
+              + FeatureUtils.rowToString(row));
       return null;
     }
 
@@ -299,7 +299,7 @@ public class SiriusExportTask extends AbstractTask {
       return false;
     }
 
-    return !excludeMultimers || adduct == null || adduct.getIonType().getMolecules() <= 1;
+    return !excludeMultimers || adduct == null || adduct.getIonType().molecules() <= 1;
   }
 
   @Nullable
@@ -409,9 +409,10 @@ public class SiriusExportTask extends AbstractTask {
         // this writes the data points of the row we want to export and all grouped rows + their isotope patterns.
         if (row.equals(groupedRow) || group.isCorrelated(row, groupedRow)) {
           // if we have an annotation, export the annotation
-          if (network != null && network.get(groupedRow) != null) {
+          IonIdentity otherIon = null;
+          if (network != null && (otherIon = network.get(groupedRow)) != null) {
             dps.add(new AnnotatedDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight(),
-                network.get(groupedRow).getAdduct()));
+                otherIon.toString()));
           } else {
             dps.add(new SimpleDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight()));
           }

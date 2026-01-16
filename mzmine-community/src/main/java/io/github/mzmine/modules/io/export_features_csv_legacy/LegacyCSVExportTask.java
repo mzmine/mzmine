@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -38,6 +39,7 @@ import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
@@ -48,6 +50,7 @@ import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.StringUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -504,17 +507,16 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
             line.append(fieldSeparator).append(fieldSeparator).append(fieldSeparator)
                 .append(fieldSeparator);
           } else {
+            final IonNetwork net = ad.getNetwork();
             String msms = "";
-            if (ad.getMSMSModVerify() > 0) {
-              msms = "MS/MS verified: nloss";
-            }
-            if (ad.getMSMSMultimerCount() > 0) {
-              msms += msms.isEmpty() ? "MS/MS verified: xmer" : (idSeparator + " xmer");
-            }
-            String partners = ad.getPartnerRowsString(idSeparator);
-            line.append(ad.getIonType().toString(false)).append(fieldSeparator) //
+            String partners = net == null ? ""
+                : StringUtils.join(net.getRows(), idSeparator, r -> String.valueOf(r.getID()));
+            final int netSize = net == null ? 0 : net.size();
+
+            line.append(ad.toString()) //
+                .append(fieldSeparator) //
                 .append(msms).append(fieldSeparator) //
-                .append(ad.getPartnerRows().toArray().length).append(fieldSeparator) //
+                .append(netSize).append(fieldSeparator) //
                 .append(partners).append(fieldSeparator);
           }
           break;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,10 +26,9 @@
 package io.github.mzmine.datamodel.identities.iontype.networks;
 
 
-import io.github.mzmine.datamodel.identities.iontype.CombinedIonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Relationship between two IonNetworks
@@ -39,18 +38,10 @@ public class IonNetworkModificationRelation extends AbstractIonNetworkRelation {
   // the linked network
   private final IonNetwork a;
   private final IonNetwork b;
-  private final IonModification modA;
-  private final IonModification modB;
+  private final IonType modA;
+  private final IonType modB;
 
-  public IonNetworkModificationRelation(IonNetwork a, IonNetwork link, List<IonModification> mods) {
-    this(a, link, CombinedIonModification.create(mods));
-  }
-
-  public IonNetworkModificationRelation(IonNetwork a, IonNetwork link, IonModification[] mods) {
-    this(a, link, CombinedIonModification.create(mods));
-  }
-
-  public IonNetworkModificationRelation(IonNetwork a, IonNetwork link, IonModification mod) {
+  public IonNetworkModificationRelation(IonNetwork a, IonNetwork link, IonType mod) {
     // a is smaller neutral mass
     if (a.getNeutralMass() < link.getNeutralMass()) {
       this.a = a;
@@ -60,7 +51,7 @@ public class IonNetworkModificationRelation extends AbstractIonNetworkRelation {
       this.a = link;
     }
 
-    if (mod.getMass() <= 0) {
+    if (mod.totalMass() <= 0) {
       this.modA = mod;
       this.modB = mod.createOpposite();
     } else {
@@ -69,7 +60,7 @@ public class IonNetworkModificationRelation extends AbstractIonNetworkRelation {
     }
   }
 
-  public IonModification getMods() {
+  public IonType getMods() {
     return modA;
   }
 
@@ -79,30 +70,13 @@ public class IonNetworkModificationRelation extends AbstractIonNetworkRelation {
 
   @Override
   public String getName(IonNetwork ionNetwork) {
-    return String.format("M%d+%s→M%d", a.getID(), modA.getName(), b.getID());
-  }
-
-  private String parseNameA() {
-    String name = "M(" + b.getID() + ")";
-    if (modA != null) {
-      name += modA.parseName();
-    }
-    return name;
-  }
-
-  private String parseNameB() {
-    String name = "M(" + a.getID() + ")";
-    if (modB != null) {
-      name += modB.parseName();
-    }
-    return name;
+    return String.format("M%d+%s→M%d", a.getID(), modA.toString(), b.getID());
   }
 
   @Override
+  @NotNull
   public String getDescription() {
-    String desc = "";
-    desc += modB.parseName();
-    return desc;
+    return modB.toString();
   }
 
   @Override

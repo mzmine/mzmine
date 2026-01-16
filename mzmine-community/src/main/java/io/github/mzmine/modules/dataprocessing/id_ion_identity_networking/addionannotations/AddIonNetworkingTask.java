@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,11 +32,12 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.SearchableIonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkSorter;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -69,7 +70,6 @@ public class AddIonNetworkingTask extends AbstractTask {
   private final IonNetworkRefinementParameters refineParam;
   private final MZTolerance mzTolerance;
   private AtomicDouble stageProgress = new AtomicDouble(0);
-  private IonNetworkLibrary library;
 
   /**
    * Create the task.
@@ -86,8 +86,8 @@ public class AddIonNetworkingTask extends AbstractTask {
     mzTolerance = parameterSet.getParameter(AddIonNetworkingParameters.MZ_TOLERANCE).getValue();
     minHeight = parameterSet.getParameter(AddIonNetworkingParameters.MIN_HEIGHT).getValue();
 
-    performAnnotationRefinement =
-        parameterSet.getParameter(AddIonNetworkingParameters.ANNOTATION_REFINEMENTS).getValue();
+    performAnnotationRefinement = parameterSet.getParameter(
+        AddIonNetworkingParameters.ANNOTATION_REFINEMENTS).getValue();
     refineParam = parameterSet.getParameter(AddIonNetworkingParameters.ANNOTATION_REFINEMENTS)
         .getEmbeddedParameters();
   }
@@ -100,7 +100,7 @@ public class AddIonNetworkingTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return "Identification of adducts, in-source fragments and clusters in " + featureList.getName()
-           + " ";
+        + " ";
   }
 
   @Override
@@ -109,9 +109,8 @@ public class AddIonNetworkingTask extends AbstractTask {
       setStatus(TaskStatus.PROCESSING);
       // create library
       LOG.info("Creating annotation library");
-      library = new IonNetworkLibrary(
-          parameters.getParameter(AddIonNetworkingParameters.LIBRARY).getEmbeddedParameters(),
-          mzTolerance);
+      final var library = parameters.getValue(AddIonNetworkingParameters.fullIonLibrary)
+          .toSearchableLibrary(true);
       annotateGroups(library);
 
       setStatus(TaskStatus.FINISHED);
@@ -123,7 +122,7 @@ public class AddIonNetworkingTask extends AbstractTask {
     }
   }
 
-  private void annotateGroups(IonNetworkLibrary library) {
+  private void annotateGroups(SearchableIonLibrary library) {
     LOG.info("Starting adduct detection on groups of peaklist " + featureList.getName());
     // get groups
     List<RowGroup> groups = featureList.getGroups();
@@ -143,7 +142,7 @@ public class AddIonNetworkingTask extends AbstractTask {
       }
     });
     LOG.info("Corr: A total of " + compared.get() + " row2row adduct comparisons with "
-             + annotPairs.get() + " annotation pairs");
+        + annotPairs.get() + " annotation pairs");
 
     refineAndFinishNetworks();
   }
@@ -156,7 +155,7 @@ public class AddIonNetworkingTask extends AbstractTask {
    * @param compared
    * @param annotPairs
    */
-  private void annotateGroup(IonNetworkLibrary library, RowGroup g,
+  private void annotateGroup(SearchableIonLibrary library, RowGroup g,
       // AtomicInteger finished,
       AtomicInteger compared, AtomicInteger annotPairs) {
     // all networks of this group
@@ -165,26 +164,26 @@ public class AddIonNetworkingTask extends AbstractTask {
     for (int i = 0; i < g.size(); i++) {
       FeatureListRow row = g.get(i);
       // min height
-      if (g.get(i).getBestFeature().getHeight() >= minHeight) {
+      if (row.getBestFeature().getHeight() >= minHeight) {
         for (IonNetwork net : nets) {
-          if (!net.isUndefined()) {
-            // only if not already in network
-            if (!net.containsKey(row)) {
-              // check against existing networks
-              if (isCorrelated(g, g.get(i), net)) {
-                compared.incrementAndGet();
-                // check for adducts in library
-                IonIdentity id = library.findAdducts(g.get(i), net);
-                if (id != null) {
-                  annotPairs.incrementAndGet();
-                }
-              }
+          // only if not already in network
+          // check against existing networks
+          if (!net.isUndefined() && !net.containsKey(row) && isCorrelated(g, row, net)) {
+            compared.incrementAndGet();
+            // check for adducts in library
+            List<IonType> ions = library.searchRows(row, net.getNeutralMass(), mzTolerance);
+            if (ions.size() == 1) {
+              final IonType first = ions.getFirst();
+              final IonIdentity id = new IonIdentity(first);
+              row.addIonIdentity(id);
+              net.put(row, id);
+              annotPairs.incrementAndGet();
             }
           }
         }
       }
-      // finished.incrementAndGet();
     }
+    // finished.incrementAndGet();
   }
 
 
@@ -199,7 +198,7 @@ public class AddIonNetworkingTask extends AbstractTask {
   private boolean isCorrelated(RowGroup g, FeatureListRow a, IonNetwork net) {
     int n = net.size();
     int correlated = 0;
-    for (FeatureListRow b : net.keySet()) {
+    for (FeatureListRow b : net.getRows()) {
       if (g.isCorrelated(a, b)) {
         correlated++;
       }
@@ -211,16 +210,14 @@ public class AddIonNetworkingTask extends AbstractTask {
     // create network IDs
     LOG.info("Corr: create annotation network numbers");
     AtomicInteger netID = new AtomicInteger(0);
-    IonNetworkLogic
-        .streamNetworks(featureList,
-            new IonNetworkSorter(SortingProperty.RT, SortingDirection.Ascending), false)
-        .forEach(n -> {
-          n.setMzTolerance(library.getMzTolerance());
-          n.setID(netID.getAndIncrement());
-        });
+    IonNetworkLogic.streamNetworks(featureList,
+        new IonNetworkSorter(SortingProperty.RT, SortingDirection.Ascending), false).forEach(n -> {
+      n.setMzTolerance(mzTolerance);
+      n.setID(netID.getAndIncrement());
+    });
 
     // recalc annotation networks
-    IonNetworkLogic.recalcAllAnnotationNetworks(featureList, true);
+    IonNetworkLogic.removeEmptyNetworks(featureList);
 
     if (isCanceled()) {
       return;
@@ -229,8 +226,8 @@ public class AddIonNetworkingTask extends AbstractTask {
     // refinement
     if (performAnnotationRefinement) {
       LOG.info("Corr: Refine annotations");
-      IonNetworkRefinementTask ref = new IonNetworkRefinementTask(project, refineParam,
-          featureList, getModuleCallDate());
+      IonNetworkRefinementTask ref = new IonNetworkRefinementTask(project, refineParam, featureList,
+          getModuleCallDate());
       ref.refine();
     }
     if (isCanceled()) {
@@ -238,7 +235,7 @@ public class AddIonNetworkingTask extends AbstractTask {
     }
 
     // recalc annotation networks
-    IonNetworkLogic.recalcAllAnnotationNetworks(featureList, true);
+    IonNetworkLogic.removeEmptyNetworks(featureList);
 
     // show all annotations with the highest count of links
     LOG.info("Corr: show most likely annotations");

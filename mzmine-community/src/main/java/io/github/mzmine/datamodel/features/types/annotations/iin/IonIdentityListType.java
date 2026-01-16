@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -64,7 +64,7 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
   private static final List<DataType> subTypes = List.of(new IonNetworkIDType(),
       // start with netID
       new IonIdentityListType(), // add self type to have a column
-      new SizeType(), new NeutralMassType(), new PartnerIdsType(), new MsMsMultimerVerifiedType(),
+      new SizeType(), new NeutralMassType(),
       // all realtionship types
       new IINRelationshipsType(), new IINRelationshipsSummaryType(),
       // all formula types
@@ -98,11 +98,6 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
       case IonNetworkIDType __ -> net != null ? ion.getNetID() : null;
       case SizeType __ -> net != null ? net.size() : null;
       case NeutralMassType __ -> net != null ? net.getNeutralMass() : null;
-      case PartnerIdsType __ -> ion.getPartnerRowsString(";");
-      case MsMsMultimerVerifiedType __ -> {
-        int msmsMultimerCount = ion.getMSMSMultimerCount();
-        yield msmsMultimerCount == -1 ? null : msmsMultimerCount > 0;
-      }
       // list of relationships has no order
       case IINRelationshipsType __ ->
           net != null ? new ArrayList<>(net.getRelations().entrySet()) : null;

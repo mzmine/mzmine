@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,15 +25,18 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
+import io.github.mzmine.datamodel.identities.iontype.SearchableIonLibrary;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
@@ -43,7 +46,6 @@ import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
-import io.github.mzmine.util.TryCatch;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -124,7 +126,6 @@ public class ResultFormula extends MolecularFormulaIdentity {
 
   /**
    * Creates a result formula from the row and the given ionic formula.
-   *
    */
   public ResultFormula(IMolecularFormula ionFormula, FeatureListRow row) {
     super(ionFormula, row.getAverageMZ());
@@ -136,9 +137,9 @@ public class ResultFormula extends MolecularFormulaIdentity {
     this.isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(predictedIsotopePattern,
         measuredPattern, MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA, 0);
 
-    if(row.hasMs2Fragmentation()) {
-      var msmsScore1 = MSMSScoreCalculator.evaluateMSMS(ionFormula, row.getMostIntenseFragmentScan(),
-          MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA, 50);
+    if (row.hasMs2Fragmentation()) {
+      var msmsScore1 = MSMSScoreCalculator.evaluateMSMS(ionFormula,
+          row.getMostIntenseFragmentScan(), MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA, 50);
       this.msmsScore = msmsScore1.explainedIntensity();
       this.msmsAnnotation = msmsScore1.annotation();
     } else {
@@ -147,36 +148,66 @@ public class ResultFormula extends MolecularFormulaIdentity {
     }
   }
 
-  public static List<ResultFormula> forAllAnnotations(FeatureListRow row, boolean dropDuplicates) {
+  /**
+   * Lists all ion formulas from all annotations. Applies the adduct to neutral formulas and
+   * searches for ion types if the ion is unknonw. already charged formulas with matching mass will
+   * be returned directly.
+   *
+   * @return List of charged formulas
+   */
+  public static List<ResultFormula> listAllAnnotationIonFormulas(FeatureListRow row,
+      boolean dropDuplicates) {
+    final PolarityType polarity = row.getRepresentativePolarity();
+    final IonLibrary library = switch (polarity) {
+      case POSITIVE -> IonLibraries.MZMINE_DEFAULT_POS_MAIN;
+      case NEGATIVE -> IonLibraries.MZMINE_DEFAULT_NEG_MAIN;
+      case null, default -> IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN;
+    };
+    final SearchableIonLibrary searchLibrary = library.toSearchableLibrary(true);
+    // use a wide tolerance to check if reported formula matches the row mz
+    final MZTolerance wideMzTol = MZTolerance.WIDE_25_PPM_OR_8_MDA;
+    final Range<Double> rowMzRange = wideMzTol.getToleranceRange(row.getAverageMZ());
+
     var formulae = row.streamAllFeatureAnnotations().filter(a -> a instanceof FeatureAnnotation)
         .map(a -> (FeatureAnnotation) a).filter(a -> a.getFormula() != null)
         .<ResultFormula>mapMulti((a, c) -> {
 
-          final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(
+          final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
               a.getFormula());
           if (formula == null) {
             return;
           }
-
-          IonType ionType = a.getAdductType();
-          if (ionType == null) {
-            final IonModification adduct = IonModification.getBestIonModification(
-                FormulaUtils.calculateMzRatio(formula), row.getAverageMZ(),
-                MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA,
-                TryCatch.npe(() -> row.getBestFeature().getRepresentativeScan().getPolarity(),
-                    PolarityType.ANY));
-            if (adduct == null) {
-              return;
-            }
-            ionType = new IonType(adduct);
-          }
-
-          try {
-            var ionized = ionType.addToFormula(formula);
-            c.accept(new ResultFormula(ionized, row));
-          } catch (CloneNotSupportedException e) {
+          // maybe the mass already matches the charged formula?
+          final double formulaMass = FormulaUtils.getMonoisotopicMass(formula);
+          if (rowMzRange.contains(formulaMass)) {
+            // already charged ion formula
+            c.accept(new ResultFormula(formula, row));
             return;
           }
+
+          IonType ionType = a.getAdductType();
+          // decided to not check if adduct type matches the correct mass because if it is reported
+          // it should be ok - and for low resolution MS the default even with wide mz tolerance
+          // might be too narrow
+          // check if reported ion type matches mz
+//          if (ionType != null && !rowMzRange.contains(ionType.getMZ(formulaMass))) {
+          // have to find different ion type
+//            ionType = null;
+//          }
+
+          if (ionType == null) {
+            // use more narrow tolerance to search for ion types for formula
+            final List<IonType> matchingTypes = searchLibrary.searchRows(row, formulaMass,
+                MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA);
+            if (!matchingTypes.isEmpty()) {
+              ionType = matchingTypes.getFirst();
+            } else {
+              return;
+            }
+          }
+
+          var ionized = ionType.addToFormula(formula, true);
+          c.accept(new ResultFormula(ionized, row));
         }).toList(); // keep only unique formula
 
     if (dropDuplicates) {
