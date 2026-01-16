@@ -598,21 +598,23 @@ def main():
             y = model.merge_function(enc_out)
 
             g = _build_graph_from_formula(formula)
-            data_batch = Batch.from_data_list([g]).to(device)
-            data_batch.y = y
+            # Create a batch of top_k graphs to process in parallel
+            top_k = int(args.top_k)
+            graphs = [g] * top_k
+            data_batch = Batch.from_data_list(graphs).to(device)
+            # Repeat the spectrum embedding for each graph in the batch
+            data_batch.y = y.repeat(top_k, 1)
 
             smiles_out: List[str] = []
             with torch.no_grad():
-                for _ in range(int(args.top_k)):
-                    mols = model.sample_batch(data_batch)
-                    if not mols:
-                        continue
-                    mol = mols[0]
-                    if mol is None:
-                        continue
-                    smi = _cdk_friendly_smiles(mol)
-                    if smi:
-                        smiles_out.append(smi)
+                mols = model.sample_batch(data_batch)
+                if mols:
+                    for mol in mols:
+                        if mol is None:
+                            continue
+                        smi = _cdk_friendly_smiles(mol)
+                        if smi:
+                            smiles_out.append(smi)
 
             results.append({"rowId": row_id, "smiles": smiles_out})
             done += 1

@@ -49,6 +49,8 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.ConsensusFo
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
+import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -66,6 +68,7 @@ import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
+import io.github.mzmine.util.annotations.ConnectedTypeCalculation;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -85,7 +88,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -286,26 +288,6 @@ public class DiffMSTask extends AbstractTask {
           precursorMz != null ? precursorMz : row.getAverageMZ(), precursorCharge);
 
       input.add(item);
-
-      final int subCount = sub == null ? 0 : sub.size();
-      final String subExample = sub == null || sub.isEmpty() ? ""
-          : sub.stream().limit(5)
-              .map(DiffMSSubformula::formula)
-              .collect(Collectors.joining(", "));
-      final String msg = "DiffMS input rowId=" + row.getID()
-          + " formula=" + formula
-          + " adduct=" + adduct
-          + " ms2Scans=" + ms2.size()
-          + " mergedPeaks=" + n
-          + " topPeaksSent=" + take
-          + " subformulas=" + subCount
-          + (subExample.isBlank() ? "" : " subformulasExample=[" + subExample + "]")
-          + " instrument='" + instrument + "'"
-          + " collisionEnergy=" + (activationEnergy == null ? "null" : activationEnergy)
-          + " activationMethod=" + (activationMethod == null ? "null" : activationMethod)
-          + " precursorMz=" + (precursorMz == null ? "null" : precursorMz)
-          + " precursorCharge=" + (precursorCharge == null ? "null" : precursorCharge);
-      logger.info(msg);
     }
 
     if (input.isEmpty()) {
@@ -315,6 +297,11 @@ public class DiffMSTask extends AbstractTask {
               + ", bad adduct: " + skippedBadAdduct
               + ", negative polarity: " + skippedBadPolarity);
     }
+
+    logger.info(
+        "DiffMS: prepared %d rows for prediction. Skipped: %d (no formula), %d (no MS/MS), %d (bad adduct), %d (bad polarity)"
+            .formatted(input.size(), skippedNoFormula, skippedNoMs2, skippedBadAdduct,
+                skippedBadPolarity));
 
     final File inFile;
     final File outFile;
@@ -400,7 +387,14 @@ public class DiffMSTask extends AbstractTask {
         ann.put(IonTypeType.class, adduct);
         ann.put(SmilesStructureType.class, smi);
         ann.put(CommentType.class, "DiffMS");
-        CompoundAnnotationUtils.calculateBoundTypes(ann, row);
+        // manually call calculations to avoid RT absolute error log if RT is missing
+        ConnectedTypeCalculation.LIST.forEach(calc -> {
+          if (calc.typeToCalculate() instanceof RtAbsoluteDifferenceType
+              || calc.typeToCalculate() instanceof CCSRelativeErrorType) {
+            return;
+          }
+          calc.calculateIfAbsent(row, ann);
+        });
         row.addCompoundAnnotation(ann);
         rank++;
       }
@@ -526,25 +520,25 @@ public class DiffMSTask extends AbstractTask {
     if (type != null) {
       switch (type) {
         case THERMO_RAW -> {
-          return "orbitrap";
+          return "Orbitrap (LCMS)";
         }
         case BRUKER_TDF, BRUKER_TSF, BRUKER_BAF, WATERS_RAW, WATERS_RAW_IMS, SCIEX_WIFF, SCIEX_WIFF2,
              SHIMADZU_LCD, AGILENT_D, AGILENT_D_IMS, MBI -> {
-          return "qtof";
+          return "Q-ToF (LCMS)";
         }
       }
     }
 
     // Fallback to scan definition
     final String def = scan.getScanDefinition().toLowerCase();
-    if (def.contains("orbitrap")) {
-      return "orbitrap";
+    if (def.contains("orbitrap") || def.contains("ftms")) {
+      return "Orbitrap (LCMS)";
     }
     if (def.contains("qtof") || def.contains("q-tof") || def.contains("tof")) {
-      return "qtof";
+      return "Q-ToF (LCMS)";
     }
 
-    return "unknown";
+    return "Unknown (LCMS)";
   }
 
   private static String resolveFormula(final ModularFeatureListRow row) {
