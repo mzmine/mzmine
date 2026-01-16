@@ -54,6 +54,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.RawDataFileType;
+import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -516,15 +518,31 @@ public class DiffMSTask extends AbstractTask {
   }
 
   private static String resolveInstrumentString(final Scan scan) {
-    // MZmine does not expose a unified "instrument name" across all importers; scan definition is
-    // the most widely available field. Keep it short to avoid breaking downstream instrument mapping.
-    final String def = scan.getScanDefinition();
-    if (def != null && !def.isBlank()) {
-      // truncate extremely long scan definitions
-      final String s = def.trim();
-      return s.length() > 120 ? s.substring(0, 120) : s;
+    final File file = scan.getDataFile().getAbsoluteFilePath();
+    final RawDataFileType type = RawDataFileTypeDetector.detectDataFileType(file);
+
+    if (type != null) {
+      switch (type) {
+        case THERMO_RAW -> {
+          return "orbitrap";
+        }
+        case BRUKER_TDF, BRUKER_TSF, BRUKER_BAF, WATERS_RAW, WATERS_RAW_IMS, SCIEX_WIFF, SCIEX_WIFF2,
+             SHIMADZU_LCD, AGILENT_D, AGILENT_D_IMS, MBI -> {
+          return "qtof";
+        }
+      }
     }
-    return "Unknown (LCMS)";
+
+    // Fallback to scan definition
+    final String def = scan.getScanDefinition().toLowerCase();
+    if (def.contains("orbitrap")) {
+      return "orbitrap";
+    }
+    if (def.contains("qtof") || def.contains("q-tof") || def.contains("tof")) {
+      return "qtof";
+    }
+
+    return "unknown";
   }
 
   private static String resolveFormula(final ModularFeatureListRow row) {
