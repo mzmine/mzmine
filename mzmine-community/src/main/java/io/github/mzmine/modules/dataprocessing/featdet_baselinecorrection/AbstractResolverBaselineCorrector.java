@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,9 +26,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Arrays;
 import java.util.List;
@@ -41,11 +38,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class AbstractResolverBaselineCorrector extends AbstractBaselineCorrector {
 
-  protected final MinimumSearchFeatureResolver resolver;
+  protected final Resolver resolver;
 
   public AbstractResolverBaselineCorrector(@Nullable final MemoryMapStorage storage,
       final double samplePercentage, @NotNull final String suffix,
-      @Nullable final MinimumSearchFeatureResolver resolver) {
+      @Nullable final Resolver resolver) {
     super(storage, samplePercentage, suffix);
     this.resolver = resolver;
   }
@@ -97,16 +94,6 @@ public abstract class AbstractResolverBaselineCorrector extends AbstractBaseline
     } else {
       subSampleAndCorrect(buffer.xBuffer(), buffer.yBuffer(), buffer.numValues(), addPreview);
     }
-  }
-
-
-  protected @NotNull MinimumSearchFeatureResolver initializeLocalMinResolver(
-      ModularFeatureList flist) {
-
-    final MinimumSearchFeatureResolver resolver = new MinimumSearchFeatureResolver(flist,
-        ResolvingDimension.RETENTION_TIME, 0.5, 0.04, 0.005, 1, 2.5, Range.closed(0d, 50d), 5);
-
-    return resolver;
   }
 
   @Override
