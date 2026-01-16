@@ -289,6 +289,134 @@ def _infer_encoder_hidden_dim(state_dict: Dict[str, "torch.Tensor"]) -> int:
         return 256
 
 
+# Setup globals for workers
+global _worker_ctx
+_worker_ctx = {}
+
+def init_worker(diffms_dir_str, loaded_data_dict=None):
+    # If we passed the data directly (fork), use it. 
+    # Otherwise (spawn), reload it.
+    if loaded_data_dict:
+        _worker_ctx.update(loaded_data_dict)
+        return
+
+    diffms_dir = Path(diffms_dir_str)
+    mod = _load_diffms_from_dir(diffms_dir)
+    _worker_ctx.update(mod)
+
+def process_item_worker(item, subform_dir_str, args_ns):
+    # Unpack globals
+    ELEMENT_TO_MASS = _worker_ctx["ELEMENT_TO_MASS"]
+    ION_LST = _worker_ctx["ION_LST"]
+    ion_remap = _worker_ctx["ion_remap"]
+    get_ion_idx = _worker_ctx["get_ion_idx"]
+    get_instr_idx = _worker_ctx["get_instr_idx"]
+
+    row_id = int(item["rowId"])
+    formula = str(item["formula"])
+    root_ion = _normalize_ion(item.get("adduct"), ION_LST, ion_remap)
+    mzs = item["mzs"]
+    intens = item["intensities"]
+    
+    # ... logic ...
+    if len(mzs) != len(intens):
+        raise ValueError(f"row {row_id}: mzs/intensities length mismatch")
+
+    polarity = str(item.get("polarity", "POSITIVE")).upper()
+    if polarity != "POSITIVE":
+            raise ValueError(f"row {row_id}: only POSITIVE polarity is supported")
+
+    instr_raw = item.get("instrument") or item.get("scanDefinition")
+    instr = _pick_instrument(instr_raw, get_instr_idx)
+    
+    # ... preparation ...
+    root_counts = _parse_formula_counts(formula)
+    mzs_np = np.asarray(mzs, dtype=np.float64)
+    intens_np = np.asarray(intens, dtype=np.float64)
+    if mzs_np.size == 0:
+        raise ValueError(f"row {row_id}: empty spectrum")
+        
+    order = np.argsort(intens_np)[::-1][: args_ns.max_ms2_peaks]
+    mzs_np = mzs_np[order]
+    intens_np = intens_np[order]
+    if intens_np.max() > 0:
+        intens_np = intens_np / intens_np.max()
+
+    frag_forms = []
+    frag_ints = []
+    frag_ions = []
+    provided = item.get("subformulas")
+    
+    if isinstance(provided, list) and len(provided) > 0:
+        for sf in provided:
+            if not isinstance(sf, dict): continue
+            f = sf.get("formula")
+            inten = sf.get("intensity")
+            ion = sf.get("ion")
+            if f is None or inten is None: continue
+            f = str(f).strip()
+            if not f: continue
+            frag_forms.append(f)
+            frag_ints.append(float(inten))
+            frag_ions.append(_normalize_ion(ion, ION_LST, ion_remap) if ion else root_ion)
+    else:
+        # CPU intensive part
+        for m, inten in zip(mzs_np, intens_np):
+            frag = _best_subformula_for_mass(
+                float(m),
+                root_counts,
+                ELEMENT_TO_MASS,
+                tol=float(args_ns.subformula_tol),
+                beam=int(args_ns.subformula_beam),
+            )
+            if frag is None: continue
+            frag_forms.append(frag)
+            frag_ints.append(float(inten))
+            frag_ions.append(root_ion)
+
+    if frag_ints:
+        imax = max(frag_ints)
+        if imax > 0:
+            frag_ints = [x / imax for x in frag_ints]
+
+    # Write result
+    tree = {"cand_form": formula, "cand_ion": root_ion,
+            "output_tbl": {"formula": frag_forms, "ms2_inten": frag_ints, "ions": frag_ions}}
+    
+    subform_dir = Path(subform_dir_str)
+    subform_file = subform_dir / f"{row_id}.json"
+    subform_file.write_text(json.dumps(tree))
+    
+    # Build graph (PyTorch)
+    # Note: torch objects across processes usually require spawn or careful handling.
+    # But Data object is just tensors.
+    g = _build_graph_from_formula(formula)
+    
+    # Return everything needed to reconstruction _Spec and for later steps
+    # We return a dict to avoid pickle issues with custom classes if any
+    # We preserve the item but updated/normalized
+    
+    # We need the normalized instrument, etc. for _Spec
+    meta = {
+        "rowId": row_id,
+        "formula": formula,
+        "root_ion": root_ion,
+        "instr": instr,
+        "collision_energy": item.get("collisionEnergy"),
+        "activation_method": item.get("activationMethod"),
+        "precursor_mz": item.get("precursorMz"),
+        "precursor_charge": item.get("precursorCharge"),
+        
+        # Logging info
+        "ms2Peaks": int(mzs_np.size),
+        "subformulasProvided": isinstance(provided, list) and len(provided) > 0,
+        "subformulasUsed": len(frag_forms),
+        "subformulasExample": ",".join(frag_forms[:5])
+    }
+    
+    return meta, g
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--diffms-dir", required=True)
@@ -299,6 +427,7 @@ def main():
     p.add_argument("--max-ms2-peaks", type=int, default=50)
     p.add_argument("--subformula-tol", type=float, default=0.02)
     p.add_argument("--subformula-beam", type=int, default=25)
+    p.add_argument("--batch-size", type=int, default=8)
     p.add_argument("--device", default="cpu")
     args = p.parse_args()
 
@@ -329,10 +458,14 @@ def main():
     ATOM_TO_VALENCY = mod["ATOM_TO_VALENCY"]
 
     import torch
-    from torch_geometric.data import Batch
+    from torch_geometric.data import Batch, Data
     from omegaconf import OmegaConf
+    from concurrent.futures import ProcessPoolExecutor
+    import multiprocessing
 
     device = torch.device(args.device)
+
+    # Workers are now defined at top-level
 
     state_dict = _load_state_dict(ckpt_path)
     enc_hidden = _infer_encoder_hidden_dim(state_dict)
@@ -467,147 +600,147 @@ def main():
         # instrument might be updated per-row; keep a default that always works
         _ = get_instr_idx(instr)
 
+        # Initialize worker context for main process too, just in case or for sequential fallback
+        _worker_ctx.update(mod)
+
+        n_total = len(req)
+        valid_data_list = []
+
+        # Heuristic: for very few items, multiprocessing overhead (spawn) outweighs benefits.
+        if n_total < 8:
+             print(f"MZMINE_DIFFMS_STAGE preprocessing_sequential", file=sys.stderr, flush=True)
+             for i, item in enumerate(req):
+                 try:
+                     # Passing args (Namespace) is fine
+                     res = process_item_worker(item, str(subform_dir), args)
+                     valid_data_list.append(res)
+                 except Exception as e:
+                     row_id = item.get("rowId", "unknown")
+                     print(f"MZMINE_DIFFMS_LOG Failed to preprocess row {row_id}: {e}", file=sys.stderr, flush=True)
+        else:
+            # Pre-process all items in parallel to utilize CPU
+            import multiprocessing
+            # Use 80% of CPUs or at least 1
+            num_workers = max(1, int(os.cpu_count() * 0.8))
+            
+            print(f"MZMINE_DIFFMS_STAGE preprocessing_with_{num_workers}_workers", file=sys.stderr, flush=True)
+            
+            # We need to determine if we are forking or spawning
+            ctx = multiprocessing.get_context('spawn') 
+            
+            with ProcessPoolExecutor(max_workers=num_workers, mp_context=ctx, 
+                                     initializer=init_worker, 
+                                     initargs=(str(diffms_dir), None)) as executor:
+                
+                # Submit all
+                futures = [executor.submit(process_item_worker, item, str(subform_dir), args) for item in req]
+                
+                for i, fut in enumerate(futures):
+                    try:
+                        res = fut.result()
+                        # res is (meta, graph)
+                        valid_data_list.append(res)
+                        
+                        # Optional: Log progress of preprocessing
+                        if (i + 1) % 10 == 0:
+                             print(f"MZMINE_DIFFMS_LOG Preprocessed {i+1}/{n_total} items", file=sys.stderr, flush=True)
+
+                    except Exception as e:
+                        # Log failure but continue?
+                        # We should probably skip this row
+                        row_id = req[i].get("rowId", "unknown")
+                        print(f"MZMINE_DIFFMS_LOG Failed to preprocess row {row_id}: {e}", file=sys.stderr, flush=True)
+                        continue
+
+        print("MZMINE_DIFFMS_STAGE inference", file=sys.stderr, flush=True)
+
         done = 0
-        for item in req:
-            row_id = int(item["rowId"])
-            formula = str(item["formula"])
-            root_ion = _normalize_ion(item.get("adduct"), ION_LST, ion_remap)
-            mzs = item["mzs"]
-            intens = item["intensities"]
-            if len(mzs) != len(intens):
-                raise ValueError("mzs/intensities length mismatch")
+        batch_size = args.batch_size
+        
+        # Now process the valid items in batches for inference
+        # valid_data_list contains tuples (meta, graph)
+        
+        for batch_start in range(0, len(valid_data_list), batch_size):
+            batch_tuples = valid_data_list[batch_start : batch_start + batch_size]
+            
+            feats = []
+            graphs = []
+            batch_metas = []
 
-            polarity = str(item.get("polarity", "POSITIVE")).upper()
-            if polarity != "POSITIVE":
-                raise ValueError("only POSITIVE polarity is supported by DiffMS ion list")
-
-            # Optional metadata/conditioning signals from MZmine (best-effort).
-            instr_raw = item.get("instrument") or item.get("scanDefinition")
-            instr = _pick_instrument(instr_raw, get_instr_idx)
-            collision_energy = item.get("collisionEnergy")
-            activation_method = item.get("activationMethod")
-            precursor_mz = item.get("precursorMz")
-            precursor_charge = item.get("precursorCharge")
-
-            root_counts = _parse_formula_counts(formula)
-            mzs_np = np.asarray(mzs, dtype=np.float64)
-            intens_np = np.asarray(intens, dtype=np.float64)
-            if mzs_np.size == 0:
-                raise ValueError("empty spectrum")
-            order = np.argsort(intens_np)[::-1][: args.max_ms2_peaks]
-            mzs_np = mzs_np[order]
-            intens_np = intens_np[order]
-            if intens_np.max() > 0:
-                intens_np = intens_np / intens_np.max()
-
-            frag_forms = []
-            frag_ints = []
-            frag_ions = []
-            provided = item.get("subformulas")
-            if isinstance(provided, list) and len(provided) > 0:
-                for sf in provided:
-                    if not isinstance(sf, dict):
-                        continue
-                    f = sf.get("formula")
-                    inten = sf.get("intensity")
-                    # optional per-fragment ion type; fallback to root ion
-                    ion = sf.get("ion")
-                    if f is None or inten is None:
-                        continue
-                    f = str(f).strip()
-                    if not f:
-                        continue
-                    frag_forms.append(f)
-                    frag_ints.append(float(inten))
-                    frag_ions.append(_normalize_ion(ion, ION_LST, ion_remap) if ion else root_ion)
-            else:
-                for m, inten in zip(mzs_np, intens_np):
-                    frag = _best_subformula_for_mass(
-                        float(m),
-                        root_counts,
-                        ELEMENT_TO_MASS,
-                        tol=float(args.subformula_tol),
-                        beam=int(args.subformula_beam),
+            for meta, g in batch_tuples:
+                row_id = meta["rowId"]
+                
+                # Register the subformula file for this row (already written by worker)
+                subform_file = subform_dir / f"{row_id}.json"
+                if hasattr(peak_featurizer, "spec_name_to_subform_file"):
+                    peak_featurizer.spec_name_to_subform_file[str(row_id)] = str(subform_file)
+                
+                # Define _Spec class locally if needed, or reuse one. 
+                # Since we are in main loop now, we can define it or reuse.
+                # To keep it simple, we define a quick object or class.
+                class _Spec:
+                    def __init__(self, m): self.m = m
+                    def get_spec_name(self, **_): return str(self.m["rowId"])
+                    def get_instrument(self): return self.m["instr"]
+                    def get_collision_energy(self): return self.m["collision_energy"]
+                    def get_activation_method(self): return self.m["activation_method"]
+                    def get_precursor_mz(self): return self.m["precursor_mz"]
+                    def get_precursor_charge(self): return self.m["precursor_charge"]
+                
+                spec = _Spec(meta)
+                
+                # Featurize (fast enough to be sequential usually, or at least hard to pickle)
+                try:
+                    feat = peak_featurizer.featurize(spec)
+                    feats.append(feat)
+                    graphs.append(g)
+                    batch_metas.append(meta)
+                    
+                    # Log as before
+                    print(
+                        f"MZMINE_DIFFMS_LOG rowId={row_id} formula={meta['formula']} adduct={meta['root_ion']} "
+                        f"instrument={meta['instr']} "
+                        f"ms2Peaks={meta['ms2Peaks']} subformulasProvided={meta['subformulasProvided']} "
+                        f"subformulasUsed={meta['subformulasUsed']} ",
+                        file=sys.stderr,
+                        flush=True,
                     )
-                    if frag is None:
-                        continue
-                    frag_forms.append(frag)
-                    frag_ints.append(float(inten))
-                    frag_ions.append(root_ion)
+                except Exception as e:
+                     print(f"MZMINE_DIFFMS_LOG Failed to featurize row {row_id}: {e}", file=sys.stderr, flush=True)
+                     continue
 
-            if frag_ints:
-                imax = max(frag_ints)
-                if imax > 0:
-                    frag_ints = [x / imax for x in frag_ints]
+            if not feats:
+                continue
 
-            tree = {"cand_form": formula, "cand_ion": root_ion,
-                    "output_tbl": {"formula": frag_forms, "ms2_inten": frag_ints, "ions": frag_ions}}
-            subform_file = subform_dir / f"{row_id}.json"
-            subform_file.write_text(json.dumps(tree))
-            if hasattr(peak_featurizer, "spec_name_to_subform_file"):
-                peak_featurizer.spec_name_to_subform_file[str(row_id)] = str(subform_file)
+            # Batch Processing
+            feat_batch = PeakFormula.collate_fn(feats)
+            feat_batch = {k: (v.to(device) if hasattr(v, "to") else v) for k, v in feat_batch.items()}
+            
+            enc_out, _ = model.encoder(feat_batch)
+            y_batch = model.merge_function(enc_out)
 
-            class _Spec:
-                def __init__(
-                    self,
-                    name: str,
-                    instrument: str,
-                    collision_energy: Optional[object],
-                    activation_method: Optional[object],
-                    precursor_mz: Optional[object],
-                    precursor_charge: Optional[object],
-                ):
-                    self._name = name
-                    self._instrument = instrument
-                    self._collision_energy = collision_energy
-                    self._activation_method = activation_method
-                    self._precursor_mz = precursor_mz
-                    self._precursor_charge = precursor_charge
-                def get_spec_name(self, **_): return self._name
-                def get_instrument(self): return self._instrument
-                # best-effort hooks (PeakFormula may or may not use these)
-                def get_collision_energy(self): return self._collision_energy
-                def get_activation_method(self): return self._activation_method
-                def get_precursor_mz(self): return self._precursor_mz
-                def get_precursor_charge(self): return self._precursor_charge
-
-            print(
-                f"MZMINE_DIFFMS_LOG rowId={row_id} formula={formula} adduct={root_ion} "
-                f"instrument={instr} collisionEnergy={collision_energy} activationMethod={activation_method} "
-                f"precursorMz={precursor_mz} precursorCharge={precursor_charge} "
-                f"ms2Peaks={int(mzs_np.size)} subformulasProvided={isinstance(provided, list) and len(provided) > 0} "
-                f"subformulasUsed={len(frag_forms)} "
-                f"subformulasExample={','.join(frag_forms[:5])}",
-                file=sys.stderr,
-                flush=True,
-            )
-
-            spec = _Spec(
-                str(row_id),
-                instr,
-                collision_energy,
-                activation_method,
-                precursor_mz,
-                precursor_charge,
-            )
-            feat = peak_featurizer.featurize(spec)
-            batch = PeakFormula.collate_fn([feat])
-            batch = {k: (v.to(device) if hasattr(v, "to") else v) for k, v in batch.items()}
-
-            enc_out, _ = model.encoder(batch)
-            y = model.merge_function(enc_out)
-
-            g = _build_graph_from_formula(formula)
-            # Create a batch of top_k graphs to process in parallel
             top_k = int(args.top_k)
-            graphs = [g] * top_k
-            data_batch = Batch.from_data_list(graphs).to(device)
-            # Repeat the spectrum embedding for each graph in the batch
-            data_batch.y = y.repeat(top_k, 1)
+            all_graphs = []
+            for g in graphs:
+                all_graphs.extend([g] * top_k)
+            
+            data_batch = Batch.from_data_list(all_graphs).to(device)
+            # y_batch is [B, dim], we need [B*top_k, dim]
+            data_batch.y = y_batch.repeat_interleave(top_k, dim=0)
 
-            smiles_out: List[str] = []
             with torch.no_grad():
-                mols = model.sample_batch(data_batch)
+                mols_flat = model.sample_batch(data_batch)
+
+            # Distribute results
+            for i, meta in enumerate(batch_metas):
+                row_id = meta["rowId"]
+                
+                start_idx = i * top_k
+                end_idx = (i + 1) * top_k
+                
+                mols = mols_flat[start_idx:end_idx] if mols_flat else []
+                smiles_out: List[str] = []
+                
                 if mols:
                     for mol in mols:
                         if mol is None:
@@ -616,9 +749,11 @@ def main():
                         if smi:
                             smiles_out.append(smi)
 
-            results.append({"rowId": row_id, "smiles": smiles_out})
-            done += 1
-            print(f"MZMINE_DIFFMS_PROGRESS {done}/{n_total}", file=sys.stderr, flush=True)
+                res_item = {"rowId": row_id, "smiles": smiles_out}
+                results.append(res_item)
+                print(f"MZMINE_DIFFMS_RESULT_JSON {json.dumps(res_item)}", file=sys.stderr, flush=True)
+                done += 1
+                print(f"MZMINE_DIFFMS_PROGRESS {done}/{n_total}", file=sys.stderr, flush=True)
 
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(json.dumps(results))

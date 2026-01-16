@@ -97,8 +97,12 @@ public class DiffMSTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(DiffMSTask.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
+  static {
+    mapper.configure(com.fasterxml.jackson.core.JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
+  }
   private static final Pattern RUNNER_PROGRESS = Pattern.compile("^MZMINE_DIFFMS_PROGRESS (\\d+)/(\\d+)$");
   private static final Pattern RUNNER_STAGE = Pattern.compile("^MZMINE_DIFFMS_STAGE (.+)$");
+  private static final Pattern RUNNER_RESULT = Pattern.compile("^MZMINE_DIFFMS_RESULT_JSON (.+)$");
   private static final String RUNNER_LOG_PREFIX = "MZMINE_DIFFMS_LOG ";
   private static final double ETA_EMA_ALPHA = 0.20; // smoother ETA, less jumpy
 
@@ -112,6 +116,10 @@ public class DiffMSTask extends AbstractTask {
   private final @NotNull File pythonExe;
   private final @NotNull File diffmsDir;
   private final @NotNull File checkpoint;
+
+  private final Map<Integer, ModularFeatureListRow> rowsById = new HashMap<>();
+  private final Map<Integer, String> formulaByRowId = new HashMap<>();
+  private final Map<Integer, IonType> adductByRowId = new HashMap<>();
 
   private String description = "DiffMS structure generation";
   private int totalRows;
@@ -176,9 +184,6 @@ public class DiffMSTask extends AbstractTask {
           "DiffMS runner not found. Expected external_tools/diffms/mzmine_diffms_predict.py");
     }
 
-    final Map<Integer, ModularFeatureListRow> rowsById = new HashMap<>();
-    final Map<Integer, String> formulaByRowId = new HashMap<>();
-    final Map<Integer, IonType> adductByRowId = new HashMap<>();
     final List<DiffMSInputItem> input = new ArrayList<>();
 
     final List<? extends FeatureListRow> rows =
@@ -332,6 +337,9 @@ public class DiffMSTask extends AbstractTask {
     doneRows = 0;
     description = "DiffMS: loading model";
 
+    // We do not rely on the output file anymore for results, but still pass it as argument
+    // to keep the interface compatible if we wanted to read it at the end.
+    // However, we now process results incrementally.
     final List<String> cmd = new ArrayList<>();
     cmd.add(pythonExe.getAbsolutePath());
     cmd.add(runner.getAbsolutePath());
@@ -360,56 +368,62 @@ public class DiffMSTask extends AbstractTask {
       logger.fine(() -> "DiffMS: runner command: " + String.join(" ", cmd));
     }
 
+    final long startTime = System.nanoTime();
     runOrThrowWithProgress(diffmsDir, cmd);
 
+    final long endTime = System.nanoTime();
+    final double totalSec = (endTime - startTime) / 1e9;
+    final double avgSecPerRow = totalRows > 0 ? totalSec / totalRows : 0;
+
+    logger.info(
+        "DiffMS: finished in %.1f s (avg %.2f s/row) for %d rows".formatted(totalSec, avgSecPerRow,
+            totalRows));
+
+    // Results are processed incrementally via processResultItem called from runOrThrowWithProgress
     if (isCanceled()) {
       return;
     }
 
-    final List<Map<String, Object>> outputs;
-    try {
-      outputs = mapper.readValue(outFile, new TypeReference<>() {});
-    } catch (IOException e) {
-      throw new IllegalStateException("Cannot read DiffMS output JSON.", e);
-    }
-
-    for (var out : outputs) {
-      final int rowId = (Integer) out.get("rowId");
-      final Object rawSmiles = out.get("smiles");
-      if (!(rawSmiles instanceof List<?> rawList)) {
-        continue;
-      }
-      final List<String> smiles = rawList.stream().map(Object::toString).toList();
-      final ModularFeatureListRow row = rowsById.get(rowId);
-      if (row == null) {
-        continue;
-      }
-
-      final String formula = formulaByRowId.get(rowId);
-      final IonType adduct = adductByRowId.get(rowId);
-      int rank = 1;
-      for (String smi : smiles) {
-        final SimpleCompoundDBAnnotation ann = new SimpleCompoundDBAnnotation();
-        ann.put(DatabaseNameType.class, "DiffMS");
-        ann.put(CompoundNameType.class, "DiffMS #" + rank);
-        ann.put(FormulaType.class, formula);
-        ann.put(IonTypeType.class, adduct);
-        ann.put(SmilesStructureType.class, smi);
-        ann.put(CommentType.class, "DiffMS");
-        // manually call calculations to avoid RT absolute error log if RT is missing
-        ConnectedTypeCalculation.LIST.forEach(calc -> {
-          if (calc.typeToCalculate() instanceof RtAbsoluteDifferenceType
-              || calc.typeToCalculate() instanceof CCSRelativeErrorType) {
-            return;
-          }
-          calc.calculateIfAbsent(row, ann);
-        });
-        row.addCompoundAnnotation(ann);
-        rank++;
-      }
-    }
-
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void processResultItem(DiffMSResultItem res) {
+    if (isCanceled()) {
+      return;
+    }
+    final int rowId = res.rowId();
+    final List<String> smiles = res.smiles();
+    if (smiles == null || smiles.isEmpty()) {
+      return;
+    }
+
+    final ModularFeatureListRow row = rowsById.get(rowId);
+    if (row == null) {
+      return;
+    }
+
+    final String formula = formulaByRowId.get(rowId);
+    final IonType adduct = adductByRowId.get(rowId);
+    int rank = 1;
+    for (String smi : smiles) {
+      final SimpleCompoundDBAnnotation ann = new SimpleCompoundDBAnnotation();
+      ann.put(DatabaseNameType.class, "DiffMS");
+      ann.put(CompoundNameType.class, "DiffMS #" + rank);
+      ann.put(FormulaType.class, formula);
+      ann.put(IonTypeType.class, adduct);
+      ann.put(SmilesStructureType.class, smi);
+      ann.put(CommentType.class, "DiffMS");
+      // manually call calculations to avoid RT absolute error log if RT is missing
+      ConnectedTypeCalculation.LIST.forEach(calc -> {
+        if (calc.typeToCalculate() instanceof RtAbsoluteDifferenceType
+            || calc.typeToCalculate() instanceof CCSRelativeErrorType) {
+          return;
+        }
+        calc.calculateIfAbsent(row, ann);
+      });
+      row.addCompoundAnnotation(ann);
+      rank++;
+    }
   }
 
   private void runOrThrowWithProgress(final File workDir, final List<String> cmd) {
@@ -460,7 +474,23 @@ public class DiffMSTask extends AbstractTask {
           }
           final Matcher sm = RUNNER_STAGE.matcher(line);
           if (sm.matches()) {
-            description = "DiffMS: " + sm.group(1) + formatEtaSuffix(emaSecondsPerRow);
+            final String stage = sm.group(1);
+            description = "DiffMS: " + stage + formatEtaSuffix(emaSecondsPerRow);
+            if (stage.contains("inference")) {
+              lastProgressNanos = System.nanoTime();
+              lastProgressDone = doneRows;
+              emaSecondsPerRow = 0d;
+            }
+            continue;
+          }
+          final Matcher resM = RUNNER_RESULT.matcher(line);
+          if (resM.matches()) {
+            try {
+              final DiffMSResultItem res = mapper.readValue(resM.group(1), DiffMSResultItem.class);
+              processResultItem(res);
+            } catch (IOException e) {
+              logger.log(Level.WARNING, "DiffMS: cannot parse result JSON: " + resM.group(1), e);
+            }
             continue;
           }
           if (line.startsWith(RUNNER_LOG_PREFIX)) {
@@ -626,6 +656,11 @@ public class DiffMSTask extends AbstractTask {
       logger.log(Level.WARNING, "Could not resolve subformulas for row " + row.getID(), e);
       return List.of();
     }
+  }
+
+  @JsonInclude(Include.NON_NULL)
+  private record DiffMSResultItem(int rowId, List<String> smiles) {
+
   }
 
   @JsonInclude(Include.NON_NULL)
