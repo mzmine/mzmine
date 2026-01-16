@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.identities.iontype;
 
 import static java.util.Objects.requireNonNullElse;
 
+import com.sun.xml.bind.v2.TODO;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
@@ -261,7 +262,8 @@ public class IonParts {
 
     name = name.trim();
 
-    if (REQUIRES_BRACES_PATTERN.matcher(name).matches()) {
+    // starts with number or contains + - symbol - needs braces
+    if (Character.isDigit(name.charAt(0)) || REQUIRES_BRACES_PATTERN.matcher(name).matches()) {
       name = "(" + name + ")";
     }
 

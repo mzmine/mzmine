@@ -104,7 +104,7 @@ public class IonPartDefinitionPane extends BorderPane {
     FxTextFields.autoGrowFitText(txtName, 12, 100);
 
     var txtFormula = newFormulaTextField(FormulaStringFlavor.DEFAULT_NO_CHARGE, false, rawFormulaStr);
-    FxTextFields.autoGrowFitText(txtFormula, 12, 100);
+//    FxTextFields.autoGrowFitText(txtFormula, 12, 100);
     singleFormula = txtFormula.formulaProperty();
 
     var spinCharge = newSpinner(charge,

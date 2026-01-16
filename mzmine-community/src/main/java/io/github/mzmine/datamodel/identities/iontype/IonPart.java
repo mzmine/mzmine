@@ -145,10 +145,10 @@ public sealed interface IonPart permits IonPartDefinition, IonPartSilentCharge, 
       case SIMPLE_WITH_CHARGE ->
         // use single charge here to allow saving loading in json
         // use charge as in +2 or - with trailing number
-          "%s(%s%s)".formatted(base, name(), IonUtils.getSignedNumberOmit1(singleCharge()));
+          "%s%s%s".formatted(base, name(), IonUtils.getSignedNumberOmit1(singleCharge()));
       case FULL_WITH_MASS ->
         // use single charge here
-          "%s(%s%s) (%s Da)".formatted(base, name(), IonUtils.getSignedNumberOmit1(singleCharge()),
+          "%s%s%s (%s Da)".formatted(base, name(), IonUtils.getSignedNumberOmit1(singleCharge()),
               ConfigService.getExportFormats().mz(totalMass()));
     };
   }
