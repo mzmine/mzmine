@@ -25,27 +25,34 @@
 
 package io.github.mzmine.modules.visualization.molstructure;
 
+import static java.util.Objects.requireNonNullElse;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.scene.canvas.Canvas;
 import org.jfree.fx.FXGraphics2D;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
+import org.openscience.cdk.renderer.BoundsCalculator;
 import org.openscience.cdk.renderer.RendererModel;
 import org.openscience.cdk.renderer.color.CDK2DAtomColors;
+import org.openscience.cdk.renderer.elements.IRenderingElement;
 import org.openscience.cdk.renderer.font.AWTFontManager;
 import org.openscience.cdk.renderer.generators.BasicSceneGenerator;
 import org.openscience.cdk.renderer.generators.IGenerator;
 import org.openscience.cdk.renderer.generators.standard.StandardGenerator;
 import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
 
-public class Structure2DRenderer {
+/**
+ * One renderer can be reused to draw on many graphics objects
+ */
+public class Structure2DRenderer extends AtomContainerRenderer {
 
-  private final AtomContainerRenderer renderer;
 
   public Structure2DRenderer(final Font font) {
     // Generators make the image elements
@@ -54,11 +61,16 @@ public class Structure2DRenderer {
     generators.add(new StandardGenerator(font));
 
     // Renderer needs to have a toolkit-specific font manager
-    renderer = new AtomContainerRenderer(generators, new AWTFontManager());
+    super(generators, new AWTFontManager());
 
     // Set default atom colors for the renderer
-    RendererModel rendererModel = renderer.getRenderer2DModel();
+    RendererModel rendererModel = getRenderer2DModel();
     rendererModel.set(StandardGenerator.AtomColor.class, new CDK2DAtomColors());
+
+    // Set a fixed bond length (in screen pixels when scale is 1.0)
+//    rendererModel.set(BasicSceneGenerator.BondLength.class, 40.0);
+    // space between atom label and bond line
+    rendererModel.set(StandardGenerator.SymbolMarginRatio.class, 2.1d);
   }
 
   /**
@@ -80,13 +92,39 @@ public class Structure2DRenderer {
     }
     final Rectangle drawArea = new Rectangle(width, height);
     // needs to be synchronized here to avoid concurrent access
-    synchronized (renderer) {
-      renderer.setup(molecule, drawArea);
-      renderer.paint(molecule, new AWTDrawVisitor(g2), drawArea, true);
-    }
-  }
+    synchronized (this) {
+      final AWTDrawVisitor visitor = new AWTDrawVisitor(g2);
+//      visitor.setRounding(false);
+      // this makes the minimum line width smaller and they may disappear if very small
+      // but looks a bit clearer
+//      final AWTDrawVisitor visitor = AWTDrawVisitor.forVectorGraphics(g2);
 
-  public AtomContainerRenderer getRenderer() {
-    return renderer;
+      // zoom important to see structure
+      setZoom(0.5);
+      setup(molecule, drawArea);
+
+      // try paint with fixed size and see how large it is
+      Rectangle2D modelBounds = BoundsCalculator.calculateBounds(molecule);
+      setupTransformNatural(modelBounds);
+      IRenderingElement diagram = generateDiagram(molecule);
+      Rectangle diagramSize = convertToDiagramBounds(modelBounds);
+
+
+      if (diagramSize.getWidth() > width || diagramSize.getHeight() > height) {
+        g2.setBackground(Color.WHITE);
+        g2.clearRect(-5, -5, width + 10, height + 10);
+        paint(molecule, visitor, drawArea, true);
+      } else {
+        // paint with fixed bond length and atom labels because it fits
+        // actual bounds are a bit different
+        modelBounds = requireNonNullElse(getBounds(diagram), modelBounds);
+
+        // recenter molecule otherwise it is a bit off center
+        this.setDrawCenter(drawArea.getCenterX(), drawArea.getCenterY());
+        this.setModelCenter(modelBounds.getCenterX(), modelBounds.getCenterY());
+
+        this.paint(visitor, diagram);
+      }
+    }
   }
 }

@@ -112,12 +112,12 @@ public class Structure2DComponent extends Canvas {
 
   @Override
   public double minWidth(double height) {
-    return 100d;
+    return 25d;
   }
 
   @Override
   public double minHeight(double width) {
-    return 50d;
+    return 25d;
   }
 
   @Override
