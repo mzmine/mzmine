@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf;
 
 import com.google.common.collect.Range;
+import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -63,10 +64,14 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -224,7 +229,10 @@ public class TDFUtils implements AutoCloseable {
     logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
     final String dirToOpen =
         path.isFile() ? path.getParentFile().getAbsolutePath() : path.getAbsolutePath();
-    handle = tdfLib.tims_open_v2(dirToOpen, useRecalibratedState, pressureCompensation);
+
+    // UTF8 required to load files from paths with special chars like ü
+    final byte[] fileBytes = Native.toByteArray(dirToOpen, StandardCharsets.UTF_8);
+    handle = tdfLib.tims_open_v2(fileBytes, useRecalibratedState, pressureCompensation);
 
     if (handle == 0) {
       printLastError(0).throwOnError();
