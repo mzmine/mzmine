@@ -35,6 +35,7 @@ import io.github.mzmine.parameters.EmbeddedParameterComponentProvider;
 import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
 import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.RestoreDefaults;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.util.presets.PresetsButton;
 import java.util.Map;
@@ -48,6 +49,7 @@ import javafx.geometry.Insets;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
@@ -60,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
  *
  */
 public class OptionalModuleComponent extends BorderPane implements EstimatedComponentHeightProvider,
-    EstimatedComponentWidthProvider, EmbeddedParameterComponentProvider {
+    EstimatedComponentWidthProvider, EmbeddedParameterComponentProvider, RestoreDefaults {
 
   // null if shown in dialog
   protected final @Nullable ParameterSetupPane paramPane;
@@ -162,6 +164,12 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
     } else {
       topPane = FxLayout.newHBox(Insets.EMPTY, checkBox, setButton);
     }
+    // may add a reset default button
+    if (embeddedParameters instanceof RestoreDefaults) {
+      final ButtonBase restoreButton = this.createRestoreButton();
+      topPane.getChildren().add(restoreButton);
+    }
+
     if(presetButton != null) {
       topPane.getChildren().add(presetButton);
     }
@@ -236,5 +244,13 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
   public @Nullable Map<String, Node> getParametersAndComponents() {
     return getEmbeddedParameterPane() != null
         ? getEmbeddedParameterPane().getParametersAndComponents() : null;
+  }
+
+  @Override
+  public void restoreDefaults() {
+    if (embeddedParameters instanceof RestoreDefaults restoreDefaults) {
+      restoreDefaults.restoreDefaults();
+      setParameterValuesToComponents(embeddedParameters);
+    }
   }
 }

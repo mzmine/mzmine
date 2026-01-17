@@ -39,8 +39,10 @@ import io.github.mzmine.javafx.components.util.FxLayout.GridColumnGrow;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.color.ColorScaleUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.MirrorChartFactory;
@@ -290,7 +292,10 @@ public class SpectralMatchPanelFX extends GridPane {
     // try to draw the component
     if (molecule != null) {
       try {
-        newComponent = new Structure2DComponent(molecule.structure());
+        final Structure2DComponent structureViewer = new Structure2DComponent(molecule.structure());
+        // larger structures here because more space and single structure
+        structureViewer.setRenderConfig(ConfigService.getStructureRenderConfig().multiplyZoom(2));
+        newComponent = structureViewer;
       } catch (Exception e) {
         String errorMessage = "Could not load 2D structure\n" + "Exception: ";
         logger.log(Level.WARNING, errorMessage, e);
@@ -558,28 +563,23 @@ public class SpectralMatchPanelFX extends GridPane {
 
     // this is so unbelievably dirty
     // i'm so sorry ~SteffenHeu
-    final JFrame[] frame = new JFrame[1];
-    logger.info("Creating dummy window for spectral match export...");
-    SpectralMatchPanel[] swingPanel = new SpectralMatchPanel[1];
-    SwingUtilities.invokeLater(() -> {
-      frame[0] = new JFrame();
-      swingPanel[0] = new SpectralMatchPanel(hit);
-      frame[0].setContentPane(swingPanel[0]);
-      frame[0].revalidate();
-      frame[0].setVisible(true);
-      frame[0].toBack();
-      swingPanel[0].calculateAndSetSize();
-    });
-
-    // get file
     File file = chooser.showSaveDialog(null);
     if (file != null) {
-      swingPanel[0].exportToGraphics(format, file);
+      logger.info("Creating dummy window for spectral match export...");
+      SwingUtilities.invokeLater(() -> {
+        var frame = new JFrame();
+        var swingPanel = new SpectralMatchPanel(hit);
+        frame.setContentPane(swingPanel);
+        frame.revalidate();
+        frame.setVisible(true);
+        frame.toBack();
+        swingPanel.calculateAndSetSize();
+        swingPanel.exportToGraphics(format, file);
+        logger.info("Disposing dummy window for spectral match export...");
+        frame.dispose();
+      });
+
     }
-
-    logger.info("Disposing dummy window for spectral match export...");
-    SwingUtilities.invokeLater(() -> frame[0].dispose());
-
     // it works though, until we figure something out
   }
 

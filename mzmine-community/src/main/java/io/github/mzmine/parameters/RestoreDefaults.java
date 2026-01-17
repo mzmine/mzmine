@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,29 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.molstructure;
+package io.github.mzmine.parameters;
 
-import java.awt.Font;
+import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.control.ButtonBase;
+import org.jetbrains.annotations.NotNull;
 
-public class StructureRenderService {
+/**
+ * Interface to tag parametersets and other classes that they can restore defaults
+ */
+public interface RestoreDefaults {
 
-  // looks better than verdana more round O fits better into formula, bounds are clearer
-  public static final Font FONT = new Font("Helvetica", Font.PLAIN, 14);
-//  public static final Font FONT = new Font("Arial", Font.PLAIN, 24);
-//  public static final Font FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 24);
-//  public static final Font FONT = new Font("Verdana", Font.PLAIN, 24);
+  void restoreDefaults();
 
-  public static final Structure2DRenderer DEFAULT_RENDERER = createDefaultRenderer();
-
-  public static Structure2DRenderer createRenderer(Font font) {
-    return new Structure2DRenderer(font);
+  default @NotNull ButtonBase createRestoreButton() {
+    final ButtonBase button = FxIconUtil.newIconButton(FxIcons.RELOAD,
+        "Restore default parameters", this::restoreDefaults);
+    return button;
   }
 
-  public static Structure2DRenderer createDefaultRenderer() {
-    return createRenderer(FONT);
-  }
-
-  public static Structure2DRenderer getGlobalStructureRenderer() {
-    return DEFAULT_RENDERER;
-  }
 }
