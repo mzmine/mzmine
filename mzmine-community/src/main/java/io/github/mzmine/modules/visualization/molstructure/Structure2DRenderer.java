@@ -78,7 +78,12 @@ public class Structure2DRenderer extends AtomContainerRenderer {
     rendererModel.set(StandardGenerator.AtomColor.class, new CDK2DAtomColors());
 
     // space between atom label and bond line
-    rendererModel.set(StandardGenerator.SymbolMarginRatio.class, 0.5d);
+    rendererModel.set(StandardGenerator.SymbolMarginRatio.class, 1d); // smaller space label bond
+    rendererModel.set(StandardGenerator.BondSeparation.class, 0.24d); // further apart
+    rendererModel.set(StandardGenerator.HashSpacing.class, 2.75d); // bonds | | | spacing
+//    rendererModel.set(StandardGenerator.WaveSpacing.class, 2.75d); //
+    rendererModel.set(StandardGenerator.WedgeRatio.class, 6d); // end width of > < bonds
+
   }
 
   /**
