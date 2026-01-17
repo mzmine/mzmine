@@ -27,7 +27,6 @@ package io.github.mzmine.gui.preferences;
 
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig.Sizing;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -39,7 +38,7 @@ import java.util.List;
  * Uses {@link ParameterSetParameter} to allow additional parameters that are extra compared to the
  * ones defined for {@link Structure2DRenderConfig}
  */
-public class StructureRenderParameter extends ParameterSetParameter<ParameterSet> {
+public class StructureRenderParameters extends SimpleParameterSet {
 
   public static final ComboParameter<Structure2DRenderConfig.Sizing> mode = new ComboParameter<>(
       "Mode",
@@ -56,29 +55,17 @@ public class StructureRenderParameter extends ParameterSetParameter<ParameterSet
       Structure2DRenderConfig.DEFAUlT_ZOOM, 0.01, null);
 
 
-  public StructureRenderParameter() {
-    super("Molecular structure rendering",
-        "Options to control the default rendering of molecular structures. Some views may add a separate zoom factor on top of the base zoom.",
-        new SimpleParameterSet(mode, bondLength, baseZoom));
-  }
-
-  private StructureRenderParameter(StructureRenderParameter p) {
-    super(p.getName(), p.getDescription(), p.getEmbeddedParameters().cloneParameterSet());
-  }
-
-  @Override
-  public ParameterSetParameter<ParameterSet> cloneParameter() {
-    return new StructureRenderParameter(this);
+  public StructureRenderParameters() {
+    super(mode, bondLength, baseZoom);
   }
 
   /**
    * @return the render config with the base zoom
    */
   public Structure2DRenderConfig createConfig() {
-    final ParameterSet params = getEmbeddedParameters();
-    final Sizing sizing = params.getValue(mode);
-    final double bonds = params.getValue(bondLength);
-    final double zoom = params.getValue(baseZoom);
+    final Sizing sizing = this.getValue(mode);
+    final double bonds = this.getValue(bondLength);
+    final double zoom = this.getValue(baseZoom);
     return new Structure2DRenderConfig(sizing, zoom, bonds);
   }
 }
