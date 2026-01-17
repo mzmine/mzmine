@@ -27,6 +27,7 @@ package io.github.mzmine.gui.preferences;
 
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig.Sizing;
+import io.github.mzmine.parameters.RestoreDefaults;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -38,7 +39,7 @@ import java.util.List;
  * Uses {@link ParameterSetParameter} to allow additional parameters that are extra compared to the
  * ones defined for {@link Structure2DRenderConfig}
  */
-public class StructureRenderParameters extends SimpleParameterSet {
+public class StructureRenderParameters extends SimpleParameterSet implements RestoreDefaults {
 
   public static final ComboParameter<Structure2DRenderConfig.Sizing> mode = new ComboParameter<>(
       "Mode",
@@ -68,4 +69,12 @@ public class StructureRenderParameters extends SimpleParameterSet {
     final double zoom = this.getValue(baseZoom);
     return new Structure2DRenderConfig(sizing, zoom, bonds);
   }
+
+  @Override
+  public void restoreDefaults() {
+    setParameter(mode, Sizing.getDefault());
+    setParameter(bondLength, Structure2DRenderConfig.DEFAULT_BOND_LENGTH);
+    setParameter(baseZoom, Structure2DRenderConfig.DEFAUlT_ZOOM);
+  }
+
 }
