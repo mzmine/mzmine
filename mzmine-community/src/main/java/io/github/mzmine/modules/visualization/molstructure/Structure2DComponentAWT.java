@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.molstructure;
 
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig.Sizing;
 import java.awt.Color;
 import java.awt.Font;
@@ -40,8 +41,7 @@ public class Structure2DComponentAWT extends JComponent {
 
   private final Structure2DRenderer renderer;
   // higher zoom than default to have bigger structures
-  private Structure2DRenderConfig renderConfig = new Structure2DRenderConfig(Sizing.getDefault(), 1.2,
-      Structure2DRenderConfig.DEFAULT_BOND_LENGTH);
+  private Structure2DRenderConfig renderConfig = ConfigService.getStructureRenderConfig();
   private IAtomContainer molecule;
 
   public Structure2DComponentAWT(IAtomContainer container) throws CDKException {

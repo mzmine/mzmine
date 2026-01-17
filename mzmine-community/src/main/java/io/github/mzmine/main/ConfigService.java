@@ -27,9 +27,12 @@ package io.github.mzmine.main;
 
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.gui.preferences.StructureRenderParameter;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -121,5 +124,14 @@ public final class ConfigService {
 
   public static void setIgnoreParameterWarningsInBatch(boolean ignoreParameterWarningsInBatch) {
     ConfigService.ignoreParameterWarningsInBatch = ignoreParameterWarningsInBatch;
+  }
+
+  public static Structure2DRenderConfig getStructureRenderConfig() {
+    final StructureRenderParameter param = getStructureRenderParameter();
+    return param.createConfig();
+  }
+
+  private static StructureRenderParameter getStructureRenderParameter() {
+    return getPreferences().getParameter(MZminePreferences.structureRendering);
   }
 }

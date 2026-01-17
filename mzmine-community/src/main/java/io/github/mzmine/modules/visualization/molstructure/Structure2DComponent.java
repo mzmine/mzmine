@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.molstructure;
 
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.main.ConfigService;
 import java.awt.Font;
 import java.io.IOException;
 import java.io.StringReader;
@@ -46,7 +47,8 @@ public class Structure2DComponent extends Canvas {
   private static final Logger logger = Logger.getLogger(Structure2DComponent.class.getName());
   private final Structure2DRenderer renderer;
   private final Property<IAtomContainer> molecule = new SimpleObjectProperty<>();
-  private final ObjectProperty<Structure2DRenderConfig> renderConfig = new SimpleObjectProperty<>(Structure2DRenderConfig.DEFAULT_CONFIG);
+  private final ObjectProperty<Structure2DRenderConfig> renderConfig = new SimpleObjectProperty<>(
+      ConfigService.getStructureRenderConfig());
 
   public static Structure2DComponent create(String structure) throws CDKException, IOException {
 

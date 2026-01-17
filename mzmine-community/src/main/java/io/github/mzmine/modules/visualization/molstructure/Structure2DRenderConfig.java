@@ -49,6 +49,14 @@ public record Structure2DRenderConfig(Sizing mode, double zoom, double bondLengt
     this(Sizing.getDefault(), zoom, bondLength);
   }
 
+  public Structure2DRenderConfig multiplyZoom(int zoom) {
+    return this.withZoom(this.zoom * zoom);
+  }
+
+  private Structure2DRenderConfig withZoom(double zoom) {
+    return new Structure2DRenderConfig(this.mode, zoom, this.bondLength);
+  }
+
   public enum Sizing implements UniqueIdSupplier {
     FIT_TO_SIZE, FIXED_SIZES_IN_BOUNDS, FIXED_SIZES_ALWAYS;
 

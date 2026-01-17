@@ -36,6 +36,7 @@ import io.github.mzmine.gui.framework.CustomTextPane;
 import io.github.mzmine.gui.framework.ScrollablePanel;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.color.ColorScaleUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponentAWT;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
@@ -199,7 +200,8 @@ public class SpectralMatchPanel extends JPanel {
       try {
         final Structure2DComponentAWT structureViewer = new Structure2DComponentAWT(
             structure.structure(), StructureRenderService.FONT);
-        structureViewer.setRenderConfig(new Structure2DRenderConfig(1.2));
+        // use larger structure here because more space
+        structureViewer.setRenderConfig(ConfigService.getStructureRenderConfig().multiplyZoom(2));
         newComponent = structureViewer;
       } catch (Exception e) {
         String errorMessage = "Could not load 2D structure\n" + "Exception: ";

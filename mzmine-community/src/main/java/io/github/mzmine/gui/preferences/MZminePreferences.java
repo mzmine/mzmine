@@ -156,6 +156,9 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final ParameterSetParameter<ChartThemeParameters> chartParam = new ParameterSetParameter<>(
       "Chart parameters", "The default chart parameters to be used throughout MZmine",
       new ChartThemeParameters());
+
+  public static final StructureRenderParameter structureRendering = new StructureRenderParameter();
+
   public static final ComboParameter<Themes> theme = new ComboParameter<>("Theme",
       "Select JavaFX style to theme the MZmine window.", Themes.values(), Themes.JABREF_LIGHT);
   public static final BooleanParameter presentationMode = new BooleanParameter("Presentation mode",
@@ -271,7 +274,7 @@ public class MZminePreferences extends SimpleParameterSet {
             // how to format unit strings
             unitFormat,
             // other preferences
-            defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
+            defaultColorPalette, defaultPaintScale, chartParam, structureRendering, theme, presentationMode,
             imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
             windowSettings, useTabSubtitles,
             // silent parameters without controls
@@ -310,7 +313,7 @@ public class MZminePreferences extends SimpleParameterSet {
         new ParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
             intensityFormat, ppmFormat, scoreFormat, percentFormat, unitFormat), //
         new ParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
-            chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
+            chartParam, structureRendering, theme, presentationMode, showPrecursorWindow, imageTransformation,
             imageNormalization, windowSettings), //
         new ParameterGroup("MS data import", applyVendorCentroiding, massLynxImportChoice,
             watersLockmass, msConvertPath, keepConvertedFile, thermoRawFileParserPath,

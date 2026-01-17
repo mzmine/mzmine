@@ -130,7 +130,7 @@ public class Structure2DRenderer extends AtomContainerRenderer {
     // needs to be synchronized here to avoid concurrent access
     synchronized (this) {
       final AWTDrawVisitor visitor = new AWTDrawVisitor(g2);
-//      visitor.setRounding(false);
+      visitor.setRounding(false);
       // this makes the minimum line width smaller and they may disappear if very small
       // but looks a bit clearer
 //      final AWTDrawVisitor visitor = AWTDrawVisitor.forVectorGraphics(g2);

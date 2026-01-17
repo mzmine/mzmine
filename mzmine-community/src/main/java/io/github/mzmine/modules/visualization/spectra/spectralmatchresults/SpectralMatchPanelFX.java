@@ -39,6 +39,7 @@ import io.github.mzmine.javafx.components.util.FxLayout.GridColumnGrow;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.color.ColorScaleUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
@@ -292,7 +293,8 @@ public class SpectralMatchPanelFX extends GridPane {
     if (molecule != null) {
       try {
         final Structure2DComponent structureViewer = new Structure2DComponent(molecule.structure());
-        structureViewer.setRenderConfig(new Structure2DRenderConfig(1.2));
+        // larger structures here because more space and single structure
+        structureViewer.setRenderConfig(ConfigService.getStructureRenderConfig().multiplyZoom(2));
         newComponent = structureViewer;
       } catch (Exception e) {
         String errorMessage = "Could not load 2D structure\n" + "Exception: ";
