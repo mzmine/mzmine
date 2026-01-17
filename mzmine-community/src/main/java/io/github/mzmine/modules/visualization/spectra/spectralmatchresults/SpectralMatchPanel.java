@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 // import io.github.mzmine.util.swing.IconUtil;
 // import io.github.mzmine.util.swing.SwingExportUtil;
 
+import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
@@ -37,6 +38,8 @@ import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.color.ColorScaleUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponentAWT;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
+import io.github.mzmine.modules.visualization.molstructure.StructureRenderService;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -85,7 +88,6 @@ import org.openscience.cdk.smiles.SmilesParser;
 
 public class SpectralMatchPanel extends JPanel {
 
-  public static final Font FONT = new Font("Verdana", Font.PLAIN, 24);
   public static final int META_WIDTH = 500;
   public static final int ENTRY_HEIGHT = 500;
   // colors
@@ -173,7 +175,6 @@ public class SpectralMatchPanel extends JPanel {
     boxTitle.add(boxTitlePanel);
 
     // structure preview
-    IAtomContainer molecule;
     JPanel preview2DPanel = new JPanel(new BorderLayout());
     preview2DPanel.setPreferredSize(new Dimension(META_WIDTH, 150));
     preview2DPanel.setMinimumSize(new Dimension(META_WIDTH, 150));
@@ -192,24 +193,14 @@ public class SpectralMatchPanel extends JPanel {
 
     JComponent newComponent = null;
 
-    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A").toString();
-    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("N/A").toString();
-
-    // check for INCHI
-    if (inchiString != "N/A") {
-      molecule = parseInChi(hit);
-    }
-    // check for smiles
-    else if (smilesString != "N/A") {
-      molecule = parseSmiles(hit);
-    } else {
-      molecule = null;
-    }
-
+    final MolecularStructure structure = hit.getStructure();
     // try to draw the component
-    if (molecule != null) {
+    if (structure != null) {
       try {
-        newComponent = new Structure2DComponentAWT(molecule, FONT);
+        final Structure2DComponentAWT structureViewer = new Structure2DComponentAWT(
+            structure.structure(), StructureRenderService.FONT);
+        structureViewer.setRenderConfig(new Structure2DRenderConfig(1.2));
+        newComponent = structureViewer;
       } catch (Exception e) {
         String errorMessage = "Could not load 2D structure\n" + "Exception: ";
         logger.log(Level.WARNING, errorMessage, e);
@@ -470,46 +461,6 @@ public class SpectralMatchPanel extends JPanel {
     pn1.add(pn, BorderLayout.NORTH);
     pn1.setBackground(Color.WHITE);
     return pn1;
-  }
-
-  private IAtomContainer parseInChi(SpectralDBAnnotation hit) {
-    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A").toString();
-    InChIGeneratorFactory factory;
-    IAtomContainer molecule;
-    if (inchiString != "N/A") {
-      try {
-        factory = InChIGeneratorFactory.getInstance();
-        // Get InChIToStructure
-        InChIToStructure inchiToStructure = factory.getInChIToStructure(inchiString,
-            DefaultChemObjectBuilder.getInstance());
-        molecule = inchiToStructure.getAtomContainer();
-        return molecule;
-      } catch (CDKException e) {
-        String errorMessage = "Could not load 2D structure\n" + "Exception: ";
-        logger.log(Level.WARNING, errorMessage, e);
-        return null;
-      }
-    } else {
-      return null;
-    }
-  }
-
-  private IAtomContainer parseSmiles(SpectralDBAnnotation hit) {
-    SmilesParser smilesParser = new SmilesParser(DefaultChemObjectBuilder.getInstance());
-    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("N/A").toString();
-    IAtomContainer molecule;
-    if (smilesString != "N/A") {
-      try {
-        molecule = smilesParser.parseSmiles(smilesString);
-        return molecule;
-      } catch (InvalidSmilesException e1) {
-        String errorMessage = "Could not load 2D structure\n" + "Exception: ";
-        logger.log(Level.WARNING, errorMessage, e1);
-        return null;
-      }
-    } else {
-      return null;
-    }
   }
 
   /**
