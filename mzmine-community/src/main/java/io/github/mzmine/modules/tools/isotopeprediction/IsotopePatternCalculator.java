@@ -28,7 +28,6 @@ package io.github.mzmine.modules.tools.isotopeprediction;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -92,7 +91,8 @@ public class IsotopePatternCalculator implements MZmineModule {
 
   public static IsotopePattern calculateIsotopePattern(IMolecularFormula cdkFormula,
       double minAbundance, int charge, PolarityType polarity, boolean storeFormula) {
-    return calculateIsotopePattern(cdkFormula, minAbundance, 0.00005f, charge, polarity, false);
+    return calculateIsotopePattern(cdkFormula, minAbundance, 0.00005f, charge, polarity,
+        storeFormula);
   }
 
   public static IsotopePattern calculateIsotopePattern(IMolecularFormula cdkFormula,
