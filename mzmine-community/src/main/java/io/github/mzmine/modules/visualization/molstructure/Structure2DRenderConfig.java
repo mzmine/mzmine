@@ -38,6 +38,8 @@ public record Structure2DRenderConfig(Sizing mode, double zoom, double bondLengt
 
   public static final double DEFAULT_BOND_LENGTH = 16;
   public static final double DEFAUlT_ZOOM = 1;
+  public static final Structure2DRenderConfig DEFAULT_CONFIG = new Structure2DRenderConfig(
+      DEFAUlT_ZOOM);
 
   public Structure2DRenderConfig(double zoom) {
     this(zoom, DEFAULT_BOND_LENGTH);

@@ -27,7 +27,6 @@ package io.github.mzmine.main;
 
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
-import io.github.mzmine.gui.preferences.StructureRenderParameters;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
@@ -125,12 +124,12 @@ public final class ConfigService {
     ConfigService.ignoreParameterWarningsInBatch = ignoreParameterWarningsInBatch;
   }
 
+  /**
+   * Centralizes the default structure render config. Might introduce parameters in the future to
+   * control how structures are rendered.
+   */
   public static Structure2DRenderConfig getStructureRenderConfig() {
-    final StructureRenderParameters param = getStructureRenderParameter();
-    return param.createConfig();
+    return Structure2DRenderConfig.DEFAULT_CONFIG;
   }
 
-  private static StructureRenderParameters getStructureRenderParameter() {
-    return getPreferences().getValue(MZminePreferences.structureRendering);
-  }
 }
