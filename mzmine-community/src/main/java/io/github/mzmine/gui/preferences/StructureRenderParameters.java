@@ -72,9 +72,14 @@ public class StructureRenderParameters extends SimpleParameterSet implements Res
 
   @Override
   public void restoreDefaults() {
-    setParameter(mode, Sizing.getDefault());
-    setParameter(bondLength, Structure2DRenderConfig.DEFAULT_BOND_LENGTH);
-    setParameter(baseZoom, Structure2DRenderConfig.DEFAUlT_ZOOM);
+    setAll(Sizing.getDefault(), Structure2DRenderConfig.DEFAULT_BOND_LENGTH,
+        Structure2DRenderConfig.DEFAUlT_ZOOM);
+  }
+
+  public void setAll(Sizing mode, double bondLength, double baseZoom) {
+    setParameter(StructureRenderParameters.mode, mode);
+    setParameter(StructureRenderParameters.bondLength, bondLength);
+    setParameter(StructureRenderParameters.baseZoom, baseZoom);
   }
 
 }
