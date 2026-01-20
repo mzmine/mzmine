@@ -44,6 +44,8 @@ import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxColorUtil;
@@ -702,35 +704,11 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
   public void displayMessage(String title, String msg, @Nullable String url) {
     logger.info(() -> String.format("%s - %s - %s", title, msg, url));
 
-    FxThread.runLater(() -> {
-
-      Dialog<ButtonType> dialog = new Dialog<>();
-      Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
-      stage.getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-      stage.getIcons().add(mzMineIcon);
-      dialog.setTitle(title);
-
-      TextFlow flow = new TextFlow(new Text(msg + " "));
-      if (url != null) {
-        Hyperlink href = new Hyperlink(url);
-        flow.getChildren().add(href);
-        href.setOnAction(_ -> DesktopService.getDesktop().openWebPage(url));
-      }
-
-      var scroll = new ScrollPane(flow);
-      scroll.setFitToWidth(true);
-      scroll.setFitToHeight(true);
-      var parent = new BorderPane(scroll);
-      flow.setMaxWidth(720);
-      stage.setMaxWidth(750);
-      stage.setMaxHeight(500);
-      dialog.getDialogPane().setMaxWidth(730);
-      dialog.getDialogPane().setContent(parent);
-      dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
-      dialog.setResizable(true);
-      dialog.showAndWait();
-    });
+    TextFlow node = FxTextFlows.newTextFlow(FxTexts.text(msg));
+    if(url != null) {
+      node.getChildren().addAll(FxTexts.text(" "), FxTexts.hyperlinkText(url));
+    }
+    DialogLoggerUtil.showMessageDialog(title, node);
   }
 
   @Override
