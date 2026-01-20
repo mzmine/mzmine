@@ -78,12 +78,18 @@ public class Structure2DRenderer extends AtomContainerRenderer {
     rendererModel.set(StandardGenerator.AtomColor.class, new CDK2DAtomColors());
 
     // space between atom label and bond line
-    rendererModel.set(StandardGenerator.SymbolMarginRatio.class, 1d); // smaller space label bond
-    rendererModel.set(StandardGenerator.BondSeparation.class, 0.24d); // further apart
+    rendererModel.set(StandardGenerator.SymbolMarginRatio.class, 1.5d); // smaller space label bond
+    rendererModel.set(StandardGenerator.BondSeparation.class, 0.20d); // further apart
     rendererModel.set(StandardGenerator.HashSpacing.class, 2.75d); // bonds | | | spacing
 //    rendererModel.set(StandardGenerator.WaveSpacing.class, 2.75d); //
     rendererModel.set(StandardGenerator.WedgeRatio.class, 6d); // end width of > < bonds
 
+    // custom colors
+    rendererModel.set(StandardGenerator.AtomColor.class, new MZmine2DAtomColors());
+
+    // bond width usually similar to | pipe symbol thickness
+    // bold font makes bonds to thick so use a smaller ratio
+    rendererModel.set(StandardGenerator.StrokeRatio.class, 0.95d);
   }
 
   /**
@@ -134,11 +140,11 @@ public class Structure2DRenderer extends AtomContainerRenderer {
     final Rectangle drawArea = new Rectangle(width, height);
     // needs to be synchronized here to avoid concurrent access
     synchronized (this) {
-      final AWTDrawVisitor visitor = new AWTDrawVisitor(g2);
-      visitor.setRounding(false);
       // this makes the minimum line width smaller and they may disappear if very small
       // but looks a bit clearer
 //      final AWTDrawVisitor visitor = AWTDrawVisitor.forVectorGraphics(g2);
+      final AWTDrawVisitor visitor = new AWTDrawVisitor(g2);
+      visitor.setRounding(true);
 
       rendererModel.set(BasicSceneGenerator.BondLength.class, config.bondLength());
       setup(molecule, drawArea);

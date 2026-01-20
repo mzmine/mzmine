@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public record Structure2DRenderConfig(Sizing mode, double zoom, double bondLength) {
 
-  public static final double DEFAULT_BOND_LENGTH = 16;
+  public static final double DEFAULT_BOND_LENGTH = 19d;
   public static final double DEFAUlT_ZOOM = 1;
   public static final Structure2DRenderConfig DEFAULT_CONFIG = new Structure2DRenderConfig(
       DEFAUlT_ZOOM);
