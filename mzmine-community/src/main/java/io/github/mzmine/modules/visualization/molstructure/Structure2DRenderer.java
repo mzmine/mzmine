@@ -40,7 +40,6 @@ import java.util.logging.Logger;
 import javafx.scene.canvas.Canvas;
 import javax.vecmath.Point2d;
 import org.jetbrains.annotations.Nullable;
-import org.jfree.fx.FXGraphics2D;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -55,6 +54,7 @@ import org.openscience.cdk.renderer.generators.BasicSceneGenerator;
 import org.openscience.cdk.renderer.generators.IGenerator;
 import org.openscience.cdk.renderer.generators.standard.StandardGenerator;
 import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
+import org.openscience.cdk.renderer.visitor.AbstractAWTDrawVisitor;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 /**
@@ -101,8 +101,10 @@ public class Structure2DRenderer extends AtomContainerRenderer {
    */
   public void drawStructure(final Canvas canvas, final IAtomContainer molecule,
       Structure2DRenderConfig config) {
-    Graphics2D g2 = new FXGraphics2D(canvas.getGraphicsContext2D());
-    drawStructure(g2, canvas.getWidth(), canvas.getHeight(), molecule, config);
+    final JavaFxStructureDrawVisitor visitor = new JavaFxStructureDrawVisitor(canvas);
+    visitor.setRounding(true);
+    canvas.getGraphicsContext2D().clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+    drawStructure(visitor, (int) canvas.getWidth(), (int) canvas.getHeight(), molecule, config);
   }
 
 
@@ -117,22 +119,24 @@ public class Structure2DRenderer extends AtomContainerRenderer {
    */
   public void drawStructure(final Graphics2D g2, double width, double height,
       final IAtomContainer molecule, Structure2DRenderConfig config) {
-    drawStructure(g2, (int) width, (int) height, molecule, config);
+    final AWTDrawVisitor visitor = new AWTDrawVisitor(g2);
+    visitor.setRounding(true);
+    g2.setColor(Color.WHITE);
+    g2.fillRect(0, 0, (int) width + 1, (int) height + 1);
+    drawStructure(visitor, (int) width, (int) height, molecule, config);
   }
 
   /**
    * Thread safe structure draw
    *
-   * @param g2
+   * @param visitor
    * @param width
    * @param height
    * @param molecule to draw
    * @param config
    */
-  public void drawStructure(final Graphics2D g2, int width, int height,
+  public void drawStructure(AbstractAWTDrawVisitor visitor, int width, int height,
       final IAtomContainer molecule, Structure2DRenderConfig config) {
-    g2.setColor(Color.WHITE);
-    g2.fillRect(0, 0, width + 1, height + 1);
 
     if (molecule == null) {
       return;
@@ -143,8 +147,6 @@ public class Structure2DRenderer extends AtomContainerRenderer {
       // this makes the minimum line width smaller and they may disappear if very small
       // but looks a bit clearer
 //      final AWTDrawVisitor visitor = AWTDrawVisitor.forVectorGraphics(g2);
-      final AWTDrawVisitor visitor = new AWTDrawVisitor(g2);
-      visitor.setRounding(true);
 
       rendererModel.set(BasicSceneGenerator.BondLength.class, config.bondLength());
       setup(molecule, drawArea);
@@ -163,7 +165,11 @@ public class Structure2DRenderer extends AtomContainerRenderer {
       IRenderingElement diagram = generateDiagram(molecule);
       Rectangle diagramSize = convertToDiagramBounds(modelBounds);
 
-      if (config.mode() != Sizing.FIXED_SIZES_ALWAYS && (diagramSize.getWidth() > width || diagramSize.getHeight() > height)) {
+      // use boarder margin to start scaling the structures earlier
+      double margin = this.rendererModel.get(BasicSceneGenerator.Margin.class) * 2;
+
+      if (config.mode() != Sizing.FIXED_SIZES_ALWAYS && (diagramSize.getWidth() + margin > width
+          || diagramSize.getHeight() + margin > height)) {
         // too large - draw with resizing to size
         paint(molecule, visitor, drawArea, true);
       } else {

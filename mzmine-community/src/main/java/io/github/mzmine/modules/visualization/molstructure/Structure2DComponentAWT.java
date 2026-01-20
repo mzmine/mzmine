@@ -26,8 +26,6 @@
 package io.github.mzmine.modules.visualization.molstructure;
 
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig.Sizing;
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -57,9 +55,6 @@ public class Structure2DComponentAWT extends JComponent {
   @Override
   protected void paintComponent(Graphics g) {
     Graphics2D g2 = (Graphics2D) g;
-    g2.setColor(Color.WHITE);
-    g2.fillRect(0, 0, getWidth(), getHeight());
-
     renderer.drawStructure(g2, getWidth(), getHeight(), molecule, renderConfig);
   }
 
