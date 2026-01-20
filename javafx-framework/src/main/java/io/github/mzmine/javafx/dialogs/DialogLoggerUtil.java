@@ -27,8 +27,11 @@ package io.github.mzmine.javafx.dialogs;
 
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.JavaFxDesktop;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxTextUtils;
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +39,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -47,10 +53,10 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.layout.HBox;
-import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
@@ -104,11 +110,18 @@ public class DialogLoggerUtil {
     if (DesktopService.isHeadLess()) {
       return;
     }
-
     if (modal) {
-      FxThread.runOnFxThreadAndWait(() -> {
+      if (Platform.isFxApplicationThread()) {
+        // directly call modal show
+        // this way the dialog appear on screen even if long
         createAlert(AlertType.INFORMATION, null, title, content).showAndWait();
-      });
+      } else {
+        // calling from a different thread
+        // very long dialogs may appear off screen because the thread is blocked right away
+        FxThread.runOnFxThreadAndWait(() -> {
+          createAlert(AlertType.INFORMATION, null, title, content).showAndWait();
+        });
+      }
     } else {
       // non blocking
       FxThread.runLater(() -> {
@@ -127,9 +140,17 @@ public class DialogLoggerUtil {
     }
 
     if (modal) {
-      FxThread.runOnFxThreadAndWait(() -> {
+      if (Platform.isFxApplicationThread()) {
+        // directly call modal show
+        // this way the dialog appear on screen even if long
         createAlert(AlertType.INFORMATION, null, title, message).showAndWait();
-      });
+      } else {
+        // calling from a different thread
+        // very long dialogs may appear off screen because the thread is blocked right away
+        FxThread.runOnFxThreadAndWait(() -> {
+          createAlert(AlertType.INFORMATION, null, title, message).showAndWait();
+        });
+      }
     } else {
       // non blocking
       FxThread.runLater(() -> {
@@ -259,10 +280,15 @@ public class DialogLoggerUtil {
     }
     if (blockingModal) {
       final AtomicReference<Optional<ButtonType>> result = new AtomicReference<>();
-      FxThread.runOnFxThreadAndWait(() -> {
+      if (Platform.isFxApplicationThread()) {
         var alert = createAlert(type, owner, title, message, buttons);
         result.set(alert.showAndWait());
-      });
+      } else {
+        FxThread.runOnFxThreadAndWait(() -> {
+          var alert = createAlert(type, owner, title, message, buttons);
+          result.set(alert.showAndWait());
+        });
+      }
       return result.get();
     } else {
       // non blocking
@@ -278,12 +304,18 @@ public class DialogLoggerUtil {
    */
   private static @NotNull Alert createAlert(final AlertType type, final @Nullable Window owner,
       final String title, final String message, @Nullable final ButtonType... buttons) {
+
+    final TextFlow node = FxTextFlows.newTextFlow(FxTexts.text(message));
+    final ScrollPane scrollPane = new ScrollPane(node);
+    scrollPane.setFitToWidth(true);
+    scrollPane.setFitToHeight(true);
     // seems like a good size for the dialog message when an old batch is loaded into new version
-    Text label = new Text(message);
-    label.setWrappingWidth(415);
-    HBox box = new HBox(label);
-    box.setPadding(new Insets(5));
-    return createAlert(type, owner, title, box, buttons);
+    scrollPane.setPrefWidth(500);
+    scrollPane.setMaxWidth(800);
+    scrollPane.setMaxHeight(800);
+    scrollPane.setPannable(true);
+
+    return createAlert(type, owner, title, scrollPane, buttons);
   }
 
   /**
@@ -297,11 +329,75 @@ public class DialogLoggerUtil {
     } else {
       alert.initOwner(owner);
     }
-
     alert.setTitle(title);
     alert.setHeaderText(title);
     alert.getDialogPane().setContent(content);
+    alert.getDialogPane().setMaxHeight(800);
+    alert.getDialogPane().setMaxWidth(800);
+    // Center on screen after layout is complete
+    alert.setOnShown(_ -> {
+
+      // sometimes NaN when modal dialog with showAndWait
+      if (Double.isNaN(alert.getX())) {
+        PropertyUtils.onChange(() -> {
+          centerAlertOnWindow(alert);
+        }, alert.xProperty(), alert.yProperty(), alert.widthProperty(), alert.heightProperty());
+      } else {
+        centerAlertOnWindow(alert);
+      }
+    });
+
     return alert;
+  }
+
+  private static void centerAlertOnWindow(Alert alert) {
+    final Window owner2 = alert.getOwner();
+    final Screen screen = getCurrentScreen(owner2);
+
+    if (isOnScreen(screen, alert)) {
+      return;
+    }
+
+    if (alert.getWidth() > 800) {
+      alert.setWidth(800);
+    }
+    if (alert.getHeight() > 800) {
+      alert.setHeight(800);
+    }
+    if (owner2 != null) {
+      alert.setX(owner2.getX() + (owner2.getWidth() - alert.getWidth()) / 2);
+      alert.setY(owner2.getY() + (owner2.getHeight() - alert.getHeight()) / 2);
+    } else {
+      alert.setX(100);
+      alert.setY(100);
+    }
+  }
+
+  /**
+   * @return true if alert is fully on screen
+   */
+  private static boolean isOnScreen(Screen screen, Alert alert) {
+    final Rectangle2D bounds = screen.getBounds();
+    return !Double.isNaN(alert.getX()) && !Double.isNaN(alert.getY()) && //
+        !Double.isNaN(alert.getWidth()) && !Double.isNaN(alert.getHeight()) && //
+        bounds.contains(alert.getX(), alert.getY()) && //
+        bounds.contains(alert.getX() + alert.getWidth(), alert.getY() + alert.getHeight());
+  }
+
+  /**
+   * @return first screen that contains center or the primary screen otherwise
+   */
+  @NotNull
+  public static Screen getCurrentScreen(@NotNull Window stage) {
+    final ObservableList<Screen> screens = Screen.getScreens();
+    for (int i = 0; i < screens.size(); i++) {
+      Screen screen = screens.get(i);
+      if (screen.getBounds()
+          .contains(stage.getX() + stage.getWidth() / 2, stage.getY() + stage.getHeight() / 2)) {
+        return screen;
+      }
+    }
+    return Screen.getPrimary();
   }
 
   /**
