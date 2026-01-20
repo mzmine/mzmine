@@ -85,6 +85,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.logging.Level;
@@ -105,6 +106,7 @@ public class DiffMSTask extends AbstractTask {
   private static final Pattern RUNNER_RESULT = Pattern.compile("^MZMINE_DIFFMS_RESULT_JSON (.+)$");
   private static final String RUNNER_LOG_PREFIX = "MZMINE_DIFFMS_LOG ";
   private static final double ETA_EMA_ALPHA = 0.20; // smoother ETA, less jumpy
+  private static final Set<String> DIFFMS_SUPPORTED_ELEMENTS = Set.of("C", "H", "N", "O", "P", "S", "Cl", "F");
 
   private final @NotNull FeatureList flist;
   private final @Nullable List<ModularFeatureListRow> rowsOverride;
@@ -194,6 +196,7 @@ public class DiffMSTask extends AbstractTask {
     int skippedNoMs2 = 0;
     int skippedBadPolarity = 0;
     int skippedBadAdduct = 0;
+    int skippedUnsupportedElements = 0;
 
     logger.info(() -> "DiffMS: preparing inputs for " + rows.size() + " rows from feature list '"
         + flist.getName() + "'" + (rowsOverride != null ? " (selected rows)" : ""));
@@ -210,6 +213,18 @@ public class DiffMSTask extends AbstractTask {
       }
 
       final String formula = resolveFormula(mrow);
+      if (formula != null) {
+        final Map<String, Integer> parsedFormula = FormulaUtils.parseFormula(formula);
+        final List<String> unsupportedElements = parsedFormula.keySet().stream()
+            .filter(e -> !DIFFMS_SUPPORTED_ELEMENTS.contains(e)).toList();
+        if (!unsupportedElements.isEmpty()) {
+          skippedUnsupportedElements++;
+          logger.info(() -> "DiffMS: skipping row " + row.getID() + " due to unsupported elements: "
+              + unsupportedElements);
+          continue;
+        }
+      }
+
       final List<Scan> ms2 = mrow.getAllFragmentScans();
       if (formula == null) {
         skippedNoFormula++;
@@ -309,13 +324,14 @@ public class DiffMSTask extends AbstractTask {
           "No rows eligible for DiffMS. Skipped rows without Formula: " + skippedNoFormula
               + ", without MS/MS: " + skippedNoMs2
               + ", bad adduct: " + skippedBadAdduct
-              + ", negative polarity: " + skippedBadPolarity);
+              + ", negative polarity: " + skippedBadPolarity
+              + ", unsupported elements: " + skippedUnsupportedElements);
     }
 
     logger.info(
-        "DiffMS: prepared %d rows for prediction. Skipped: %d (no formula), %d (no MS/MS), %d (bad adduct), %d (bad polarity)"
+        "DiffMS: prepared %d rows for prediction. Skipped: %d (no formula), %d (no MS/MS), %d (bad adduct), %d (bad polarity), %d (unsupported elements)"
             .formatted(input.size(), skippedNoFormula, skippedNoMs2, skippedBadAdduct,
-                skippedBadPolarity));
+                skippedBadPolarity, skippedUnsupportedElements));
 
     final File inFile;
     final File outFile;
@@ -369,7 +385,14 @@ public class DiffMSTask extends AbstractTask {
     }
 
     final long startTime = System.nanoTime();
-    runOrThrowWithProgress(diffmsDir, cmd);
+    try {
+      runOrThrowWithProgress(diffmsDir, cmd);
+    } catch (Exception e) {
+      if (isCanceled()) {
+        return;
+      }
+      logger.log(Level.SEVERE, "DiffMS: runner failed. Partial results might be available.", e);
+    }
 
     final long endTime = System.nanoTime();
     final double totalSec = (endTime - startTime) / 1e9;
