@@ -30,10 +30,10 @@ import java.awt.Font;
 public class StructureRenderService {
 
   // looks better than verdana more round O fits better into formula, bounds are clearer
-  public static final Font FONT = new Font("Helvetica", Font.PLAIN, 14);
-//  public static final Font FONT = new Font("Arial", Font.PLAIN, 24);
-//  public static final Font FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 24);
-//  public static final Font FONT = new Font("Verdana", Font.PLAIN, 24);
+  public static final Font FONT = new Font("Helvetica", Font.BOLD, 14);
+//  public static final Font FONT = new Font("Arial", Font.BOLD, 24);
+//  public static final Font FONT = new Font(Font.SANS_SERIF, Font.BOLD, 24);
+//  public static final Font FONT = new Font("Verdana", Font.BOLD, 24);
 
   public static final Structure2DRenderer DEFAULT_RENDERER = createDefaultRenderer();
 

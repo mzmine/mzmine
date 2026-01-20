@@ -139,7 +139,7 @@ public class JavaFxStructureDrawVisitor extends AbstractAWTDrawVisitor {
    * @param canvas to which will be drawn
    */
   public JavaFxStructureDrawVisitor(Canvas canvas) {
-    this(canvas, true, 1f);
+    this(canvas, true, 1.25f);
   }
 
   /**
