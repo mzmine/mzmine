@@ -26,7 +26,6 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.base.Strings;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.project.ProjectService;
@@ -37,6 +36,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 public class RawDataFilesSelection implements Cloneable {
 
@@ -44,7 +44,7 @@ public class RawDataFilesSelection implements Cloneable {
 
   private RawDataFilesSelectionType selectionType;
   private String namePattern;
-  private RawDataFile[] batchLastFiles;
+  private RawDataFilePlaceholder[] batchLastFiles;
   private RawDataFilePlaceholder[] specificFiles;
   private RawDataFilePlaceholder[] evaluatedSelection = null;
 
@@ -71,8 +71,7 @@ public class RawDataFilesSelection implements Cloneable {
   public RawDataFile[] getMatchingRawDataFiles() {
 
     if (evaluatedSelection != null) {
-      var value = Arrays.stream(evaluatedSelection).map(RawDataFilePlaceholder::getMatchingFile)
-          .toArray(RawDataFile[]::new);
+      var value = RawDataFilePlaceholder.getMatchingFilesNullable(evaluatedSelection);
       for (var raw : value) {
         if (raw == null) {
           throw new IllegalStateException(
@@ -100,25 +99,20 @@ public class RawDataFilesSelection implements Cloneable {
         RawDataFile[] allDataFiles = ProjectService.getProjectManager().getCurrentProject()
             .getDataFiles();
 
-        fileCheck:
-        for (RawDataFile file : allDataFiles) {
+        final String regex = TextUtils.createRegexFromWildcards(namePattern);
 
+        for (RawDataFile file : allDataFiles) {
           final String fileName = file.getName();
 
-          final String regex = TextUtils.createRegexFromWildcards(namePattern);
-
           if (fileName.matches(regex)) {
-            if (matchingDataFiles.contains(file)) {
-              continue;
+            if (!matchingDataFiles.contains(file)) {
+              matchingDataFiles.add(file);
             }
-            matchingDataFiles.add(file);
-            continue fileCheck;
           }
         }
         matchingFiles = matchingDataFiles.toArray(new RawDataFile[0]);
       }
-      case BATCH_LAST_FILES ->
-          matchingFiles = Objects.requireNonNullElseGet(batchLastFiles, () -> new RawDataFile[0]);
+      case BATCH_LAST_FILES -> matchingFiles = getBatchLastFiles();
       default -> throw new IllegalStateException("Unexpected value: " + selectionType);
     }
 
@@ -153,36 +147,12 @@ public class RawDataFilesSelection implements Cloneable {
   }
 
   RawDataFile[] getSpecificFiles() {
-    MZmineProject currentProject = ProjectService.getProjectManager().getCurrentProject();
-    if (currentProject == null) {
-      return new RawDataFile[0];
-    }
-
-    if (specificFiles == null) {
-      return new RawDataFile[0];
-    }
-
-    return Arrays.stream(specificFiles).<RawDataFile>mapMulti((specificFile, c) -> {
-      for (RawDataFile file : ProjectService.getProjectManager().getCurrentProject()
-          .getCurrentRawDataFiles()) {
-        if (file.getName().equals(specificFile.getName()) && (file.getAbsolutePath() == null
-            || specificFile.getAbsolutePath() == null || file.getAbsolutePath()
-            .equals(specificFile.getAbsolutePath()))) {
-          c.accept(file);
-          break;
-        }
-      }
-    }).toArray(RawDataFile[]::new);
+    return RawDataFilePlaceholder.getMatchingFilesFilterNull(specificFiles);
   }
 
   public void setSpecificFiles(RawDataFile[] specificFiles) {
     resetSelection();
-    RawDataFilePlaceholder[] placeholder = new RawDataFilePlaceholder[specificFiles.length];
-    for (int i = 0; i < specificFiles.length; i++) {
-      RawDataFile specificFile = specificFiles[i];
-      placeholder[i] = new RawDataFilePlaceholder(specificFile);
-    }
-    this.specificFiles = placeholder;
+    this.specificFiles = RawDataFilePlaceholder.of(specificFiles);
   }
 
   public void setSpecificFiles(RawDataFilePlaceholder[] specificFiles) {
@@ -205,14 +175,25 @@ public class RawDataFilesSelection implements Cloneable {
 
   public void setBatchLastFiles(RawDataFile[] batchLastFiles) {
     resetSelection();
-    this.batchLastFiles = batchLastFiles;
+    this.batchLastFiles = RawDataFilePlaceholder.of(batchLastFiles);
+  }
+
+  /**
+   * @return the matching raw data files set in batch last files
+   */
+  @NotNull RawDataFile[] getBatchLastFiles() {
+    return RawDataFilePlaceholder.getMatchingFilesFilterNull(batchLastFiles);
   }
 
   public RawDataFilesSelection clone() {
     RawDataFilesSelection newSelection = new RawDataFilesSelection();
     newSelection.selectionType = selectionType;
+    // needs to keep specific files in all cases
+    // selection is only cleared for the evaluatedSelection to decouple preview dialogs and task run
+    // and applied methods from each other
     newSelection.specificFiles = specificFiles;
     newSelection.namePattern = namePattern;
+    // batchLastFiles are never cloned and this should be fine as they are always set by batch
     return newSelection;
   }
 
@@ -222,6 +203,7 @@ public class RawDataFilesSelection implements Cloneable {
     newSelection.specificFiles = specificFiles;
     newSelection.namePattern = namePattern;
     newSelection.evaluatedSelection = evaluatedSelection;
+    // batchLastFiles are never cloned and this should be fine as they are always set by batch
     return newSelection;
   }
 
