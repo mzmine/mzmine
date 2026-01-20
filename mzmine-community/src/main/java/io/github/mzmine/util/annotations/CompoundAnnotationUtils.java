@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.AnnotationMethodType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
@@ -247,15 +248,29 @@ public class CompoundAnnotationUtils {
    */
   public static <T> @Nullable T getTypeValue(@NotNull FeatureAnnotation annotation,
       @NotNull Class<? extends DataType<T>> type) {
+    return getTypeValue(annotation, DataTypes.get(type));
+  }
+
+  /**
+   * Get value from annotation by {@link DataType} key. {@link SpectralDBAnnotation} currently does
+   * not use DataTypes, but {@link DBEntryField#fromDataTypeClass(Class)} allows mapping between the
+   * keys.
+   *
+   * @param annotation to extract value from
+   * @param type       key to extract value
+   * @param <T>        Type of value
+   * @return The mapped value for this annotation and key or null if there is no mapping.
+   */
+  public static <T> @Nullable T getTypeValue(@NotNull FeatureAnnotation annotation,
+      @NotNull DataType<T> type) {
     return switch (annotation) {
       case CompoundDBAnnotation db -> db.get(type);
       case SpectralDBAnnotation db ->
-          db.getEntry().getOrElse(DBEntryField.fromDataTypeClass(type), null);
+          db.getEntry().getOrElse(DBEntryField.fromDataType(type), null);
 //      Matched lipids currently uses the default case.
 //      case MatchedLipid db -> ;
       default -> {
-        DataType<T> dataType = DataTypes.get(type);
-        yield (T) switch (dataType) {
+        yield (T) switch (type) {
           case PrecursorMZType _, MZType _ -> annotation.getPrecursorMZ();
           case SmilesStructureType _ -> annotation.getSmiles();
           case CompoundNameType _ -> annotation.getCompoundName();
@@ -269,6 +284,7 @@ public class CompoundAnnotationUtils {
           case ScoreType _ -> annotation.getScore();
           case RTType _ -> annotation.getRT();
           case DatabaseNameType _ -> annotation.getDatabase();
+          case AnnotationMethodType _ -> annotation.getAnnotationMethodName();
           default -> null;
         };
       }

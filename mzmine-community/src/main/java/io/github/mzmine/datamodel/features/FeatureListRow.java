@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
+import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
@@ -552,6 +553,11 @@ public interface FeatureListRow extends ModularDataModel {
    * @return the preferred annotation or null
    */
   default @Nullable FeatureAnnotation getPreferredAnnotation() {
+    FeatureAnnotation featureAnnotation = get(PreferredAnnotationType.class);
+    if (featureAnnotation != null) {
+      return featureAnnotation;
+    }
+    // this type is only set through user action, so don't cache here
     return CompoundAnnotationUtils.getBestFeatureAnnotation(this).orElse(null);
   }
 

@@ -25,53 +25,37 @@
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.abstr.SimpleSubColumnsType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
+import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
+import java.util.ArrayList;
 import java.util.List;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PreferredAnnotationType extends ListWithSubsType<FeatureAnnotation> implements
-    MappingType<List<? extends FeatureAnnotation>> {
+/**
+ * This type is only set through user action, so don't set this programmatically.
+ */
+public class PreferredAnnotationType extends SimpleSubColumnsType<FeatureAnnotation> implements
+    MappingType<FeatureAnnotation> {
 
-  @Override
-  public @NotNull List<DataType> getSubDataTypes() {
-    return DataTypes.getAll(CompoundNameType.class, AnnotationSummaryType.class,
-        PrecursorMZType.class, MolecularStructureType.class, ScoreType.class, IonTypeType.class,
-        AnnotationMethodType.class);
-  }
-
-  @Override
-  public <K> @Nullable K map(@NotNull DataType<K> subType, FeatureAnnotation parentItem) {
-    if (parentItem == null) {
-      return null;
-    }
-    return (K) switch (subType) {
-      case CompoundNameType _ -> parentItem.getCompoundName();
-      case AnnotationSummaryType _ -> parentItem;
-      case PrecursorMZType _ -> parentItem.getPrecursorMZ();
-      case MolecularStructureType _ -> parentItem.getStructure();
-      case ScoreType _ -> parentItem.getScore();
-      case AnnotationMethodType _ -> parentItem.getAnnotationMethodName();
-      case IonTypeType _ -> parentItem.getAdductType();
-      // attention! important to not throw here as in other types. during csv export,
-      // the indexing will find CompoundDBAnnotations, SpectralDBAnnotations and MatchedLipids.
-      // All these have different sub types and their map methods do not cover the types of the others.
-      // This means that currently only the mapped types are exported.
-      // We could call map in a try-catch to export them.
-      default -> null;
-    };
-  }
+  public static final List<DataType> subTypes = DataTypes.getAll(CompoundNameType.class,
+      AnnotationSummaryType.class, PrecursorMZType.class, MolecularStructureType.class,
+      ScoreType.class, IonTypeType.class, AnnotationMethodType.class);
 
   @Override
   public @NotNull String getUniqueID() {
@@ -84,26 +68,73 @@ public class PreferredAnnotationType extends ListWithSubsType<FeatureAnnotation>
   }
 
   @Override
-  public @Nullable List<? extends FeatureAnnotation> getValue(@NotNull ModularDataModel model) {
+  public @Nullable FeatureAnnotation getValue(@NotNull ModularDataModel model) {
 
-    final DataType<?> preferredAnnotationType = CompoundAnnotationUtils.getBestAnnotationType(
-        (FeatureListRow) model);
-    if (preferredAnnotationType == null) {
-      return null;
-    }
-
-    if (model instanceof ModularFeatureListRow row) {
-      Object preferredAnnotation = row.get(preferredAnnotationType);
-      if (preferredAnnotation instanceof List<?> l && (l.isEmpty()
-          || l.getFirst() instanceof FeatureAnnotation)) {
-        return (List<? extends FeatureAnnotation>) l;
-      }
-    }
     return null;
   }
 
   @Override
   public boolean getDefaultVisibility() {
     return true;
+  }
+
+  @Override
+  public Property<FeatureAnnotation> createProperty() {
+    return new SimpleObjectProperty<>();
+  }
+
+  @Override
+  public Class<FeatureAnnotation> getValueClass() {
+    return FeatureAnnotation.class;
+  }
+
+  @Override
+  public @NotNull List<DataType> getSubDataTypes() {
+    return subTypes;
+  }
+
+
+  @Override
+  public @NotNull List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
+      @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType) {
+    // add column for each sub data type
+    List<TreeTableColumn<ModularFeatureListRow, Object>> cols = new ArrayList<>();
+
+    List<DataType> subTypes = getSubDataTypes();
+    // create column per name
+    for (int index = 0; index < subTypes.size(); index++) {
+      DataType type = subTypes.get(index);
+      if (type instanceof NullColumnType) {
+        continue;
+      }
+      if (this.equals(type)) {
+        // create a special column for this type that actually represents the list of data
+        cols.add(DataType.createStandardColumn(type, raw, this, index));
+
+        TreeTableColumn<ModularFeatureListRow, FeatureAnnotation> mainCol = new TreeTableColumn<>(
+            getHeaderString());
+        mainCol.setCellFactory();
+      } else {
+        // create all other columns
+        var col = type.createColumn(raw, this, index);
+        // override type in CellValueFactory with this parent type
+        cols.add(col);
+      }
+    }
+    return cols;
+  }
+
+  @Override
+  public @Nullable Object getSubColValue(DataType sub, Object value) {
+    if (!(value instanceof FeatureAnnotation a)) {
+      return null;
+    }
+    return CompoundAnnotationUtils.getTypeValue(a, sub);
+  }
+
+  @Override
+  public @Nullable Object getSubColValue(int subcolumn, Object cellData) {
+    DataType dataType = subTypes.get(subcolumn);
+    return getSubColValue(dataType, cellData);
   }
 }

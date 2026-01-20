@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,7 @@ package io.github.mzmine.datamodel.features.types.networking;
 
 import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.abstr.SimpleSubColumnsType;
+import io.github.mzmine.datamodel.features.types.abstr.ModularSubColumnsType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import java.util.List;
 import javafx.beans.property.Property;
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Main type that holds alignment scores
  */
-public class NetworkStatsType extends SimpleSubColumnsType<NetworkStats> implements
+public class NetworkStatsType extends ModularSubColumnsType<NetworkStats> implements
     SubColumnsFactory {
 
   @NotNull
