@@ -358,11 +358,19 @@ public class DialogLoggerUtil {
       // sometimes NaN when modal dialog with showAndWait
       if (Double.isNaN(alert.getX())) {
         BooleanProperty onceCenteredOnWindow = new SimpleBooleanProperty(false);
-        final Subscription subscription = PropertyUtils.onChangeSubscription(() -> {
-          centerAlertOnWindow(alert);
-        }, alert.xProperty(), alert.yProperty(), alert.widthProperty(), alert.heightProperty());
+        // use delayed subscription because there are many changes to xy width height
+        // in the construction of the layout and within the centering
+        final Subscription subscription = PropertyUtils.onChangeDelayedSubscription(() -> {
+          boolean centered = centerAlertOnWindow(alert);
+          if (centered) {
+            onceCenteredOnWindow.set(centered);
+          }
+        }, Duration.millis(100),  alert.xProperty(), alert.yProperty(), alert.widthProperty(), alert.heightProperty());
         // remove subscription so that the dialog is not changed all the time
-        onceCenteredOnWindow.subscribe(state -> subscription.unsubscribe());
+        // otherwise it would be stuck on one screen
+        onceCenteredOnWindow.subscribe(state -> {
+          if(state) subscription.unsubscribe();
+        });
       } else {
         centerAlertOnWindow(alert);
       }
@@ -371,10 +379,16 @@ public class DialogLoggerUtil {
     return alert;
   }
 
+  /**
+   * @return true if the alert was already centered or is now centered
+   */
   private static boolean centerAlertOnWindow(Alert alert) {
     final Window owner = alert.getOwner();
     final Screen screen = getCurrentScreen(owner);
 
+    if (!definedSizeCoords(alert)) {
+      return false;
+    }
     if (isOnScreen(screen, alert)) {
       return true;
     }
@@ -402,10 +416,14 @@ public class DialogLoggerUtil {
    */
   private static boolean isOnScreen(Screen screen, Alert alert) {
     final Rectangle2D bounds = screen.getBounds();
-    return !Double.isNaN(alert.getX()) && !Double.isNaN(alert.getY()) && //
-        !Double.isNaN(alert.getWidth()) && !Double.isNaN(alert.getHeight()) && //
+    return definedSizeCoords(alert) && //
         bounds.contains(alert.getX(), alert.getY()) && //
         bounds.contains(alert.getX() + alert.getWidth(), alert.getY() + alert.getHeight());
+  }
+
+  private static boolean definedSizeCoords(Alert alert) {
+    return !Double.isNaN(alert.getX()) && !Double.isNaN(alert.getY()) && //
+        !Double.isNaN(alert.getWidth()) && !Double.isNaN(alert.getHeight());
   }
 
   /**
