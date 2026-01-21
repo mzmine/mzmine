@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -104,6 +104,8 @@ public class Structure2DRenderer extends AtomContainerRenderer {
     final JavaFxStructureDrawVisitor visitor = new JavaFxStructureDrawVisitor(canvas);
     visitor.setRounding(true);
     canvas.getGraphicsContext2D().clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+    canvas.getGraphicsContext2D().setFill(javafx.scene.paint.Color.WHITE);
+    canvas.getGraphicsContext2D().fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
     drawStructure(visitor, (int) canvas.getWidth(), (int) canvas.getHeight(), molecule, config);
   }
 
