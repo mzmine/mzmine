@@ -39,10 +39,12 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.BlankSubtractionAnnotationType;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -67,9 +69,10 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
    * always set and always >=1
    */
   private final double foldChange;
-  private final BlankSubtractionOptions keepBackgroundFeatures;
+  private final BlankSubtractionOptions subtractionOption;
   private final RatioType ratioType;
   private final AbundanceMeasure quantType;
+  private final OriginalFeatureListOption handleOriginal;
 
   private AtomicInteger processedRows = new AtomicInteger(0);
   private MZmineProject project;
@@ -85,6 +88,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
 
     this.project = project;
     this.parameters = parameters;
+    this.handleOriginal = parameters.getValue(FeatureListBlankSubtractionParameters.handleOriginal);
     this.blankSelection = parameters.getParameter(
         FeatureListBlankSubtractionParameters.blankRawDataFiles).getValue();
     this.blankRaws = List.of(blankSelection.getMatchingRawDataFiles().clone());
@@ -93,8 +97,8 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         .getMatchingFeatureLists()[0];
     this.minBlankDetections = Math.max(1,
         parameters.getParameter(FeatureListBlankSubtractionParameters.minBlanks).getValue());
-    this.keepBackgroundFeatures = parameters.getParameter(
-        FeatureListBlankSubtractionParameters.keepBackgroundFeatures).getValue();
+    this.subtractionOption = parameters.getParameter(
+        FeatureListBlankSubtractionParameters.subtractionOption).getValue();
     this.suffix = parameters.getParameter(FeatureListBlankSubtractionParameters.suffix).getValue();
     this.createDeletedFeatureList = parameters.getParameter(
         FeatureListBlankSubtractionParameters.createDeleted).getValue();
@@ -148,31 +152,13 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         + " raw data files not classified as blank.");
 
     // create the feature list for the blank subtraction
-    final ModularFeatureList notBackgroundAlignedFeaturesList = new ModularFeatureList(
-        originalFeatureList.getName() + " " + suffix, getMemoryMapStorage(),
-        keepBackgroundFeatures == BlankSubtractionOptions.KEEP
-            ? originalFeatureList.getRawDataFiles() : nonBlankRaws);
-    originalFeatureList.getRowTypes().forEach(notBackgroundAlignedFeaturesList::addRowType);
-
-    // use all samples that are not defined as blanks
-    // if keepBackgroundFeatures is true, also include blank samples (i.e., all samples)
-    if (keepBackgroundFeatures == BlankSubtractionOptions.KEEP) {
-      originalFeatureList.getRawDataFiles().forEach(
-          f -> notBackgroundAlignedFeaturesList.setSelectedScans(f,
-              originalFeatureList.getSeletedScans(f)));
-    } else {
-      nonBlankRaws.forEach(f -> notBackgroundAlignedFeaturesList.setSelectedScans(f,
-          originalFeatureList.getSeletedScans(f)));
-    }
+    // blanks are always removed
+    final ModularFeatureList notBackgroundAlignedFeaturesList = FeatureListUtils.createCopyWithoutRows(
+        originalFeatureList, suffix, getMemoryMapStorage(), nonBlankRaws, null, null);
 
     // create feature list containing all background features and all samples
-    final ModularFeatureList backgroundAlignedFeaturesList = new ModularFeatureList(
-        originalFeatureList.getName() + " subtractedBackground", getMemoryMapStorage(),
-        originalFeatureList.getRawDataFiles());
-    originalFeatureList.getRowTypes().forEach(backgroundAlignedFeaturesList::addRowType);
-    originalFeatureList.getRawDataFiles().forEach(
-        f -> backgroundAlignedFeaturesList.setSelectedScans(f,
-            originalFeatureList.getSeletedScans(f)));
+    final ModularFeatureList backgroundAlignedFeaturesList =  FeatureListUtils.createCopyWithoutRows(
+        originalFeatureList, "subtractedBackground", getMemoryMapStorage(), null, null);
 
     final List<FeatureListRow> notBackgroundAlignedFeaturesListRows = new ArrayList<>();
     final List<FeatureListRow> backgroundAlignedFeaturesListRows = new ArrayList<>();
@@ -193,7 +179,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
       if (foundInNBlanks < minBlankDetections || blankAbundance <= 0d) {
         // keep whole row because detections in blank is unused
         featuresToKeep.addAll(notBackgroundFeaturesOfCurrentRow);
-      } else if (keepBackgroundFeatures == BlankSubtractionOptions.KEEP) {
+      } else if (subtractionOption == BlankSubtractionOptions.KEEP) {
         // if one feature is higher than blanks keep all features in that row
         double maxFeatureAbundance = getAbundance(notBackgroundFeaturesOfCurrentRow, quantType,
             RatioType.MAXIMUM);
@@ -202,7 +188,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         } else {
           featuresToRemove.addAll(notBackgroundFeaturesOfCurrentRow);
         }
-      } else if (keepBackgroundFeatures == BlankSubtractionOptions.REMOVE) {
+      } else if (subtractionOption == BlankSubtractionOptions.REMOVE) {
         // check the intensity of each feature in samples
         for (Feature nonBlankFeature : notBackgroundFeaturesOfCurrentRow) {
           // check if feature is more abundant than the blank samples
@@ -280,11 +266,10 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     notBackgroundAlignedFeaturesListRows.sort(FeatureListRowSorter.DEFAULT_RT);
     notBackgroundAlignedFeaturesListRows.forEach(notBackgroundAlignedFeaturesList::addRow);
 
-    notBackgroundAlignedFeaturesList.getAppliedMethods()
-        .addAll(originalFeatureList.getAppliedMethods());
-    notBackgroundAlignedFeaturesList.getAppliedMethods().add(
-        new SimpleFeatureListAppliedMethod(FeatureListBlankSubtractionModule.class, parameters,
-            getModuleCallDate()));
+    final SimpleFeatureListAppliedMethod appliedMethod = new SimpleFeatureListAppliedMethod(
+        FeatureListBlankSubtractionModule.class, parameters, getModuleCallDate());
+
+    notBackgroundAlignedFeaturesList.getAppliedMethods().add(appliedMethod);
     project.addFeatureList(notBackgroundAlignedFeaturesList);
 
     // Secondary feature list result
@@ -294,12 +279,12 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
       backgroundAlignedFeaturesListRows.sort(FeatureListRowSorter.DEFAULT_RT);
       backgroundAlignedFeaturesListRows.forEach(backgroundAlignedFeaturesList::addRow);
 
-      backgroundAlignedFeaturesList.getAppliedMethods()
-          .addAll(originalFeatureList.getAppliedMethods());
-      backgroundAlignedFeaturesList.getAppliedMethods().add(
-          new SimpleFeatureListAppliedMethod(FeatureListBlankSubtractionModule.class, parameters,
-              getModuleCallDate()));
+      backgroundAlignedFeaturesList.getAppliedMethods().add(appliedMethod);
       project.addFeatureList(backgroundAlignedFeaturesList);
+    }
+
+    if (handleOriginal == OriginalFeatureListOption.REMOVE) {
+      project.removeFeatureList(originalFeatureList);
     }
 
     setStatus(TaskStatus.FINISHED);
@@ -375,11 +360,14 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     return true;
   }
 
-  enum BlankSubtractionOptions {
+  /**
+   * Used in parameter
+   */
+  public enum BlankSubtractionOptions {
     KEEP("KEEP - Keep all features in that row"), REMOVE(
         "REMOVE - Only keep features above fold change");
 
-    private String description;
+    private final String description;
 
     BlankSubtractionOptions(String description) {
       this.description = description;
