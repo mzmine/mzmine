@@ -84,11 +84,15 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
     if (parentType != null) {
       // parent type set -> is a sub type of an annotation/list type. get annotation from there
       column.setCellValueFactory(cdf -> {
-        var value = (List<? extends FeatureAnnotation>) cdf.getValue().getValue()
-            .get((DataType<?>) parentType);
-        return new ReadOnlyObjectWrapper<>(
-            value != null && !value.isEmpty() ? AnnotationSummary.of(cdf.getValue().getValue(),
-                value.getFirst()) : null);
+        final Object value = cdf.getValue().getValue().get((DataType<?>) parentType);
+        if (value instanceof List list) {
+          return new ReadOnlyObjectWrapper<>(
+              list != null && !list.isEmpty() ? AnnotationSummary.of(cdf.getValue().getValue(),
+                  (FeatureAnnotation) list.getFirst()) : null);
+        } else if (value instanceof FeatureAnnotation a) {
+          return new ReadOnlyObjectWrapper<>(AnnotationSummary.of(cdf.getValue().getValue(), a));
+        }
+        return new ReadOnlyObjectWrapper<>();
       });
     } else {
       // parent type not set -> is the "summary"/best annotation in the row -> get best annotation and grab summary from there

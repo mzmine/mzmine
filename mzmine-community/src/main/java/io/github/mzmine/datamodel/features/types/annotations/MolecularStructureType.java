@@ -119,9 +119,9 @@ public class MolecularStructureType extends DataType<MolecularStructure> impleme
 
     final DataType<?> mainType = switch (superType) {
       case PreferredAnnotationType pt -> {
-        List<FeatureAnnotation> annotations = row.get(pt);
-        if (annotations != null && !annotations.isEmpty()) {
-          yield DataTypes.get(annotations.getFirst().getDataType());
+        FeatureAnnotation annotation = row.getPreferredAnnotation();
+        if (annotation != null) {
+          yield DataTypes.get(annotation.getDataType());
         }
         yield superType;
       }

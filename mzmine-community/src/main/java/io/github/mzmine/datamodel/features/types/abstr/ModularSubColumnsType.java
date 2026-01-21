@@ -96,7 +96,7 @@ public abstract class ModularSubColumnsType<T extends ModularDataRecord> extends
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    SimpleModularDataModel model = SubColumnsFactory.super.loadSubColumnsFromXML(reader, project,
+    SimpleModularDataModel model = super.loadSubColumnsFromXML(reader, project,
         flist, row, feature, file);
     return model.isEmpty() ? null : createRecord(model);
   }

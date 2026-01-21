@@ -229,7 +229,9 @@ public class CompoundAnnotationUtils {
    */
   public static Optional<FeatureAnnotation> getBestFeatureAnnotation(
       @NotNull final FeatureListRow row) {
-    return Optional.ofNullable(getBestAnnotationSummary(row)).map(AnnotationSummary::annotation);
+    // specifically use the row method and dont get the best annotations and sort, as the best
+    // annotation may also be user-defined
+    return Optional.ofNullable(row.getPreferredAnnotation());
   }
 
   public static void calculateBoundTypes(CompoundDBAnnotation annotation, FeatureListRow row) {
@@ -263,31 +265,38 @@ public class CompoundAnnotationUtils {
    */
   public static <T> @Nullable T getTypeValue(@NotNull FeatureAnnotation annotation,
       @NotNull DataType<T> type) {
-    return switch (annotation) {
+    switch (annotation) {
       case CompoundDBAnnotation db -> db.get(type);
-      case SpectralDBAnnotation db ->
-          db.getEntry().getOrElse(DBEntryField.fromDataType(type), null);
-//      Matched lipids currently uses the default case.
-//      case MatchedLipid db -> ;
-      default -> {
-        yield (T) switch (type) {
-          case PrecursorMZType _, MZType _ -> annotation.getPrecursorMZ();
-          case SmilesStructureType _ -> annotation.getSmiles();
-          case CompoundNameType _ -> annotation.getCompoundName();
-          case IonTypeType _ -> annotation.getAdductType();
-          case FormulaType _ -> annotation.getFormula();
-          case InChIStructureType _ -> annotation.getInChI();
-          case InChIKeyStructureType _ -> annotation.getInChIKey();
-          case MolecularStructureType _ -> annotation.getStructure();
-          case CCSType _ -> annotation.getCCS();
-          case MobilityType _ -> annotation.getMobility();
-          case ScoreType _ -> annotation.getScore();
-          case RTType _ -> annotation.getRT();
-          case DatabaseNameType _ -> annotation.getDatabase();
-          case AnnotationMethodType _ -> annotation.getAnnotationMethodName();
-          default -> null;
-        };
+      case SpectralDBAnnotation db -> {
+        DBEntryField f = DBEntryField.fromDataType(type);
+        if (f != DBEntryField.UNSPECIFIED) {
+          // types like MolecularStructureType have no mapping in DBEntryField, so only use
+          // fromDataType in case we get something useful. Otherwise, fallback to default mapping below
+          return db.getEntry().getOrElse(f, null);
+        }
       }
+//      Matched lipids currently uses the default case below
+      default -> {
+      }
+    }
+    ;
+
+    return (T) switch (type) {
+      case PrecursorMZType _, MZType _ -> annotation.getPrecursorMZ();
+      case SmilesStructureType _ -> annotation.getSmiles();
+      case CompoundNameType _ -> annotation.getCompoundName();
+      case IonTypeType _ -> annotation.getAdductType();
+      case FormulaType _ -> annotation.getFormula();
+      case InChIStructureType _ -> annotation.getInChI();
+      case InChIKeyStructureType _ -> annotation.getInChIKey();
+      case MolecularStructureType _ -> annotation.getStructure();
+      case CCSType _ -> annotation.getCCS();
+      case MobilityType _ -> annotation.getMobility();
+      case ScoreType _ -> annotation.getScore();
+      case RTType _ -> annotation.getRT();
+      case DatabaseNameType _ -> annotation.getDatabase();
+      case AnnotationMethodType _ -> annotation.getAnnotationMethodName();
+      default -> null;
     };
   }
 

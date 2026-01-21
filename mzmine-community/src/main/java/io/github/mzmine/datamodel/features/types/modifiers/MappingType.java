@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -30,6 +31,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
+ * <b>WARNING</b> Types extending this interface MUST NOT call
+ * {@link io.github.mzmine.datamodel.features.ModularFeatureListRow#get(DataType)} with themself as
+ * an argument, as this is exactly where {@link this#getValue(ModularDataModel)} is called, which
+ * would lead to a stack overflow. Should such a case be necessary, we recommend to directly use
+ * {@link
+ * io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelRow#get(DataType)}
+ * instead.
  *
  * @param <T> Must be the same as the {@link DataType <T>}
  */
