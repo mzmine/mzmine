@@ -40,6 +40,8 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Rectangle2D;
@@ -54,12 +56,15 @@ import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.layout.Region;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
+import javafx.util.Subscription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -305,21 +310,17 @@ public class DialogLoggerUtil {
   private static @NotNull Alert createAlert(final AlertType type, final @Nullable Window owner,
       final String title, final String message, @Nullable final ButtonType... buttons) {
 
+    // inner method will automatically wrap TextFlow in ScrollPane
     final TextFlow node = FxTextFlows.newTextFlow(FxTexts.text(message));
-    final ScrollPane scrollPane = new ScrollPane(node);
-    scrollPane.setFitToWidth(true);
-    scrollPane.setFitToHeight(true);
-    // seems like a good size for the dialog message when an old batch is loaded into new version
-    scrollPane.setPrefWidth(500);
-    scrollPane.setMaxWidth(800);
-    scrollPane.setMaxHeight(800);
-    scrollPane.setPannable(true);
 
-    return createAlert(type, owner, title, scrollPane, buttons);
+    return createAlert(type, owner, title, node, buttons);
   }
 
   /**
-   * Internal method to create an alert. use {@link #showDialog}
+   * Internal method to create an alert. use {@link #showDialog}.
+   * <p>
+   * This method will wrap TextFlow and TextArea content nodes into a scroll pane to ensure it fits
+   * the maximum sizes
    */
   public static @NotNull Alert createAlert(final AlertType type, final @Nullable Window owner,
       final String title, final Node content, @Nullable final ButtonType... buttons) {
@@ -331,17 +332,37 @@ public class DialogLoggerUtil {
     }
     alert.setTitle(title);
     alert.setHeaderText(title);
-    alert.getDialogPane().setContent(content);
     alert.getDialogPane().setMaxHeight(800);
     alert.getDialogPane().setMaxWidth(800);
+
+    final Region mainPane;
+    if (content instanceof TextFlow || content instanceof TextArea) {
+      final ScrollPane scrollPane = new ScrollPane(content);
+      scrollPane.setFitToWidth(true);
+      scrollPane.setFitToHeight(true);
+      // seems like a good size for the dialog message when an old batch is loaded into new version
+      scrollPane.setPrefWidth(500);
+      scrollPane.setMaxWidth(800);
+      scrollPane.setMaxHeight(800);
+      scrollPane.setPannable(true);
+      mainPane = scrollPane;
+    } else {
+      mainPane = null;
+    }
+
+    alert.getDialogPane().setContent(mainPane);
+
     // Center on screen after layout is complete
     alert.setOnShown(_ -> {
 
       // sometimes NaN when modal dialog with showAndWait
       if (Double.isNaN(alert.getX())) {
-        PropertyUtils.onChange(() -> {
+        BooleanProperty onceCenteredOnWindow = new SimpleBooleanProperty(false);
+        final Subscription subscription = PropertyUtils.onChangeSubscription(() -> {
           centerAlertOnWindow(alert);
         }, alert.xProperty(), alert.yProperty(), alert.widthProperty(), alert.heightProperty());
+        // remove subscription so that the dialog is not changed all the time
+        onceCenteredOnWindow.subscribe(state -> subscription.unsubscribe());
       } else {
         centerAlertOnWindow(alert);
       }
@@ -350,12 +371,12 @@ public class DialogLoggerUtil {
     return alert;
   }
 
-  private static void centerAlertOnWindow(Alert alert) {
-    final Window owner2 = alert.getOwner();
-    final Screen screen = getCurrentScreen(owner2);
+  private static boolean centerAlertOnWindow(Alert alert) {
+    final Window owner = alert.getOwner();
+    final Screen screen = getCurrentScreen(owner);
 
     if (isOnScreen(screen, alert)) {
-      return;
+      return true;
     }
 
     if (alert.getWidth() > 800) {
@@ -364,13 +385,16 @@ public class DialogLoggerUtil {
     if (alert.getHeight() > 800) {
       alert.setHeight(800);
     }
-    if (owner2 != null) {
-      alert.setX(owner2.getX() + (owner2.getWidth() - alert.getWidth()) / 2);
-      alert.setY(owner2.getY() + (owner2.getHeight() - alert.getHeight()) / 2);
+    if (owner != null) {
+      alert.setX(owner.getX() + (owner.getWidth() - alert.getWidth()) / 2);
+      alert.setY(owner.getY() + (owner.getHeight() - alert.getHeight()) / 2);
+    return true;
     } else {
       alert.setX(100);
       alert.setY(100);
     }
+    // not really centered could mean that width and other xy might not fully be set
+    return false;
   }
 
   /**
@@ -388,10 +412,12 @@ public class DialogLoggerUtil {
    * @return first screen that contains center or the primary screen otherwise
    */
   @NotNull
-  public static Screen getCurrentScreen(@NotNull Window stage) {
+  public static Screen getCurrentScreen(@Nullable Window stage) {
+    if (stage == null) {
+      return Screen.getPrimary();
+    }
     final ObservableList<Screen> screens = Screen.getScreens();
-    for (int i = 0; i < screens.size(); i++) {
-      Screen screen = screens.get(i);
+    for (Screen screen : screens) {
       if (screen.getBounds()
           .contains(stage.getX() + stage.getWidth() / 2, stage.getY() + stage.getHeight() / 2)) {
         return screen;

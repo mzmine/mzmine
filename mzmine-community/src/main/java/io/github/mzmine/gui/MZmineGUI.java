@@ -110,11 +110,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -705,16 +702,11 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     logger.info(() -> String.format("%s - %s - %s", title, msg, url));
 
     final TextFlow node = FxTextFlows.newTextFlow(FxTexts.text(msg));
-    if(url != null) {
+    if (url != null) {
       node.getChildren().addAll(FxTexts.text(" "), FxTexts.hyperlinkText(url));
     }
-    final ScrollPane scrollPane = new ScrollPane(node);
-    scrollPane.setFitToWidth(true);
-    scrollPane.setFitToHeight(true);
-    scrollPane.setMaxWidth(800);
-    scrollPane.setMaxHeight(800);
-    scrollPane.setPannable(true);
-    DialogLoggerUtil.showMessageDialog(title, scrollPane);
+    // will wrap TextFlow into scrollpane
+    DialogLoggerUtil.showMessageDialog(title, node);
   }
 
   @Override
