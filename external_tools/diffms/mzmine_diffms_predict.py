@@ -54,73 +54,6 @@ def _formula_string(counts: Dict[str, int]) -> str:
     return "".join(parts)
 
 
-def _best_subformula_for_mass(
-    target_mass: float,
-    root_counts: Dict[str, int],
-    element_to_mass: Dict[str, float],
-    tol: float,
-    beam: int,
-) -> Optional[str]:
-    if target_mass <= 0:
-        return None
-
-    h_mass = element_to_mass.get("H")
-    if h_mass is None:
-        raise RuntimeError("H mass not available")
-    h_max = root_counts.get("H", 0)
-
-    els = [e for e in root_counts.keys() if e != "H" and root_counts.get(e, 0) > 0]
-    els.sort(key=lambda e: element_to_mass.get(e, 0.0), reverse=True)
-    if not els:
-        return None
-
-    states: List[Tuple[float, Dict[str, int]]] = [(0.0, {})]
-    for el in els:
-        m = float(element_to_mass[el])
-        max_c = int(root_counts.get(el, 0))
-        new_states: List[Tuple[float, Dict[str, int]]] = []
-        for mass, cnts in states:
-            rem = target_mass - mass
-            base = int(round(rem / m)) if m > 0 else 0
-            candidates = {0, base, base - 1, base + 1, base - 2, base + 2}
-            for c in candidates:
-                if c < 0 or c > max_c:
-                    continue
-                nmass = mass + c * m
-                if nmass > target_mass + tol + h_max * h_mass:
-                    continue
-                ncnts = cnts if c == 0 else {**cnts, el: c}
-                new_states.append((nmass, ncnts))
-        new_states.sort(key=lambda s: abs(target_mass - s[0]))
-        states = new_states[:beam] if len(new_states) > beam else new_states
-        if not states:
-            return None
-
-    best = None
-    best_err = float("inf")
-    for mass, cnts in states:
-        rem = target_mass - mass
-        h = int(round(rem / h_mass))
-        if h < 0:
-            h = 0
-        if h > h_max:
-            h = h_max
-        fmass = mass + h * h_mass
-        err = abs(fmass - target_mass)
-        if err < best_err:
-            best_err = err
-            best = (cnts, h)
-
-    if best is None or best_err > tol:
-        return None
-
-    cnts, h = best
-    out = dict(cnts)
-    if h > 0:
-        out["H"] = h
-    return _formula_string(out)
-
-
 def _build_graph_from_formula(formula: str):
     import torch
     from torch_geometric.data import Data
@@ -306,7 +239,6 @@ def init_worker(diffms_dir_str, loaded_data_dict=None):
 
 def process_item_worker(item, subform_dir_str, args_ns):
     # Unpack globals
-    ELEMENT_TO_MASS = _worker_ctx["ELEMENT_TO_MASS"]
     ION_LST = _worker_ctx["ION_LST"]
     ion_remap = _worker_ctx["ion_remap"]
     get_ion_idx = _worker_ctx["get_ion_idx"]
@@ -330,7 +262,6 @@ def process_item_worker(item, subform_dir_str, args_ns):
     instr = _pick_instrument(instr_raw, get_instr_idx)
     
     # ... preparation ...
-    root_counts = _parse_formula_counts(formula)
     mzs_np = np.asarray(mzs, dtype=np.float64)
     intens_np = np.asarray(intens, dtype=np.float64)
     if mzs_np.size == 0:
@@ -359,20 +290,6 @@ def process_item_worker(item, subform_dir_str, args_ns):
             frag_forms.append(f)
             frag_ints.append(float(inten))
             frag_ions.append(_normalize_ion(ion, ION_LST, ion_remap) if ion else root_ion)
-    else:
-        # CPU intensive part
-        for m, inten in zip(mzs_np, intens_np):
-            frag = _best_subformula_for_mass(
-                float(m),
-                root_counts,
-                ELEMENT_TO_MASS,
-                tol=float(args_ns.subformula_tol),
-                beam=int(args_ns.subformula_beam),
-            )
-            if frag is None: continue
-            frag_forms.append(frag)
-            frag_ints.append(float(inten))
-            frag_ions.append(root_ion)
 
     if frag_ints:
         imax = max(frag_ints)
@@ -426,7 +343,6 @@ def main():
     p.add_argument("--top-k", type=int, default=10)
     p.add_argument("--max-ms2-peaks", type=int, default=50)
     p.add_argument("--subformula-tol", type=float, default=0.02)
-    p.add_argument("--subformula-beam", type=int, default=25)
     p.add_argument("--batch-size", type=int, default=8)
     p.add_argument("--device", default="cpu")
     args = p.parse_args()
@@ -450,7 +366,6 @@ def main():
     DistributionNodes = mod["DistributionNodes"]
     MolecularVisualization = mod["MolecularVisualization"]
     PeakFormula = mod["PeakFormula"]
-    ELEMENT_TO_MASS = mod["ELEMENT_TO_MASS"]
     ION_LST = mod["ION_LST"]
     ion_remap = mod["ion_remap"]
     get_ion_idx = mod["get_ion_idx"]

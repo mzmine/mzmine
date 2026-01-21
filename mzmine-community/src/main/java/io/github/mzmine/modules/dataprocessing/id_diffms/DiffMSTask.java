@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataprocessing.id_diffms;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -65,10 +64,8 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
-import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.annotations.ConnectedTypeCalculation;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -80,7 +77,6 @@ import java.io.InputStreamReader;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,7 +101,7 @@ public class DiffMSTask extends AbstractTask {
   private static final Pattern RUNNER_STAGE = Pattern.compile("^MZMINE_DIFFMS_STAGE (.+)$");
   private static final Pattern RUNNER_RESULT = Pattern.compile("^MZMINE_DIFFMS_RESULT_JSON (.+)$");
   private static final String RUNNER_LOG_PREFIX = "MZMINE_DIFFMS_LOG ";
-  private static final double ETA_EMA_ALPHA = 0.20; // smoother ETA, less jumpy
+  private static final double ETA_EMA_ALPHA = 0.20;
   private static final Set<String> DIFFMS_SUPPORTED_ELEMENTS = Set.of("C", "H", "N", "O", "P", "S", "Cl", "F");
 
   private final @NotNull FeatureList flist;
@@ -114,7 +110,6 @@ public class DiffMSTask extends AbstractTask {
   private final int topK;
   private final int maxMs2Peaks;
   private final @NotNull MZTolerance subformulaTol;
-  private final int subformulaBeam;
   private final @NotNull File pythonExe;
   private final @NotNull File diffmsDir;
   private final @NotNull File checkpoint;
@@ -147,7 +142,6 @@ public class DiffMSTask extends AbstractTask {
     this.topK = parameters.getValue(DiffMSParameters.topK);
     this.maxMs2Peaks = parameters.getValue(DiffMSParameters.maxMs2Peaks);
     this.subformulaTol = parameters.getValue(DiffMSParameters.subformulaTol);
-    this.subformulaBeam = parameters.getValue(DiffMSParameters.subformulaBeam);
   }
 
   @Override
@@ -373,8 +367,6 @@ public class DiffMSTask extends AbstractTask {
     cmd.add(String.valueOf(maxMs2Peaks));
     cmd.add("--subformula-tol");
     cmd.add(String.valueOf(subformulaTol.getMzTolerance()));
-    cmd.add("--subformula-beam");
-    cmd.add(String.valueOf(subformulaBeam));
     cmd.add("--device");
     cmd.add(device.toArg());
 

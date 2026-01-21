@@ -64,12 +64,9 @@ public class DiffMSParameters extends SimpleParameterSet {
       "Subformula tolerance",
       "Absolute tolerance for matching a subformula mass to an MS/MS peak m/z.", 0.02, 10.0);
 
-  public static final IntegerParameter subformulaBeam = new IntegerParameter("Subformula beam",
-      "Beam size for approximate subformula assignment.", 25, 1, 200);
-
   public DiffMSParameters() {
     this(new io.github.mzmine.parameters.Parameter[]{flists, pythonExecutable, diffmsDir, checkpoint,
-        device, topK, maxMs2Peaks, subformulaTol, subformulaBeam});
+        device, topK, maxMs2Peaks, subformulaTol});
   }
 
   protected DiffMSParameters(final io.github.mzmine.parameters.Parameter[] parameters) {
