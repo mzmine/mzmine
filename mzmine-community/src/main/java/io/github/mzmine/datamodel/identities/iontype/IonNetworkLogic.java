@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.Nullable;
 
+@Deprecated
 public class IonNetworkLogic {
 
   private static final Logger LOG = Logger.getLogger(IonNetworkLogic.class.getName());
@@ -574,7 +575,7 @@ public class IonNetworkLogic {
           // filter that all PeakListRows have this set to best Ion identity
           .filter(net -> net.keySet().stream().allMatch(
               r -> r.hasIonIdentity() && r.getBestIonIdentity().getNetwork() != null
-                  && r.getBestIonIdentity().getNetwork().getID() == net.getID()));
+                   && r.getBestIonIdentity().getNetwork().getID() == net.getID()));
     }
     // get all IOnNetworks
     else {

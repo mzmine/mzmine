@@ -145,6 +145,45 @@ public class StringUtils {
    * Will search for a sign + or - that precedes or succeeds a number so +2 and 2+ will both result
    * in +2
    *
+   * @param str          input
+   * @param defaultValue default to return
+   * @return parsed integer or the default value on exception
+   */
+  @Nullable
+  public static Integer parseSignAndIntegerOrElse(@Nullable String str,
+      @Nullable Integer defaultValue) {
+    if (str == null || str.isBlank()) {
+      return defaultValue;
+    }
+    str = str.trim();
+    // handle charge sign at the end like 2+
+    final char lastChar = str.charAt(str.length() - 1);
+    if (lastChar == '+' || lastChar == '-') {
+      int sign = lastChar == '+' ? 1 : -1;
+      if (str.length() == 1) {
+        return sign; // only sign
+      }
+      Integer value = parseIntegerOrElse(str.substring(0, str.length() - 1), false, null);
+      if (value == null) {
+        return defaultValue;
+      }
+      return sign * Math.abs(value);
+    }
+
+    // regular value first
+    Integer value = parseIntegerOrElse(str, false, null);
+    if (value != null) {
+      return value;
+    }
+
+    // just + or -
+    return findFirstPlusMinusSignMultiplier(str);
+  }
+
+  /**
+   * Will search for a sign + or - that precedes or succeeds a number so +2 and 2+ will both result
+   * in +2
+   *
    * @param str           input
    * @param onlyUseDigits use only digits contained in string - otherwise try on the whole string
    * @param defaultValue  default to return
@@ -153,19 +192,24 @@ public class StringUtils {
   @Nullable
   public static Integer parseSignAndIntegerOrElse(@Nullable String str, boolean onlyUseDigits,
       @Nullable Integer defaultValue) {
+    if (!onlyUseDigits) {
+      return parseSignAndIntegerOrElse(str, defaultValue);
+    }
     if (str == null || str.isBlank()) {
       return defaultValue;
     }
+
     int signMultiplier = findFirstPlusMinusSignMultiplier(str);
     try {
-      var value = parseIntegerOrElse(str, onlyUseDigits, defaultValue);
+      var value = parseIntegerOrElse(str, true, null);
       if (signMultiplier == 0 && value == null) {
-        return null;
+        return defaultValue;
       } else if (value == null) {
         return signMultiplier;
       } else if (signMultiplier == 0) {
         return value;
       } else {
+        // only digits always returns positive value
         return value * signMultiplier;
       }
     } catch (Exception ex) {
@@ -252,7 +296,18 @@ public class StringUtils {
    */
   @NotNull
   public static String getDigits(@Nullable final String str) {
-    return str == null ? "" : org.apache.commons.lang3.StringUtils.getDigits(str);
+    if (str == null) {
+      return "";
+    }
+    final StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < str.length(); i++) {
+      final char c = str.charAt(i);
+      if (Character.isDigit(c)) {
+        builder.append(c);
+      }
+    }
+
+    return builder.toString();
   }
 
   /**
@@ -271,6 +326,10 @@ public class StringUtils {
    */
   public static boolean isBlank(@Nullable String str) {
     return str == null || str.isBlank();
+  }
+
+  public static String requireValueOrElse(@Nullable String str, @Nullable String defaultValue) {
+    return isBlank(str) ? defaultValue : str;
   }
 
   public static String inQuotes(String str) {
@@ -399,4 +458,24 @@ public class StringUtils {
   public static String nullToEmpty(@Nullable Object obj) {
     return obj == null ? "" : String.valueOf(obj);
   }
+
+  /**
+   * Removes all that match \\s+ white space like tab and space
+   */
+  public static String removeAllWhiteSpace(final String input) {
+    return input.replaceAll("\\s+", "");
+  }
+
+  public static boolean isSignOrDigit(char c) {
+    return Character.isDigit(c) || isSign(c);
+  }
+
+  public static boolean isSign(char c) {
+    return c == '-' || c == '+';
+  }
+
+  public static boolean isDigit(char c) {
+    return Character.isDigit(c);
+  }
+
 }

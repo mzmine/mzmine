@@ -40,12 +40,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.DoubleExpression;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
@@ -244,6 +246,14 @@ public class FxIconUtil {
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, @Nullable String tooltip,
       @Nullable Runnable onAction) {
     return newIconButton(fxIcons, DEFAULT_ICON_SIZE, tooltip, onAction);
+  }
+
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons,
+      @NotNull ObservableValue<String> tooltip, @Nullable Runnable onAction) {
+
+    final ButtonBase btn = newIconButton(fxIcons, DEFAULT_ICON_SIZE, null, onAction);
+    btn.tooltipProperty().bind(tooltip.map(Tooltip::new));
+    return btn;
   }
 
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, @Nullable String tooltip,

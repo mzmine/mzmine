@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.ionidentity;
+package io.github.mzmine.parameters.parametertypes.ionidentity.legacy;
 
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
@@ -35,24 +35,24 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Alternative simple parameter if there are only few adducts or modifications to set
  */
-public class IonCheckComboBoxParameter extends CheckComboParameter<IonModification> {
+public class LegacyIonCheckComboBoxParameter extends CheckComboParameter<IonModification> {
 
-  public IonCheckComboBoxParameter(final String name, final String description,
+  public LegacyIonCheckComboBoxParameter(final String name, final String description,
       final IonModification[] choices) {
     super(name, description, choices);
   }
 
-  public IonCheckComboBoxParameter(final String name, final String description,
+  public LegacyIonCheckComboBoxParameter(final String name, final String description,
       final IonModification[] choices, final List<IonModification> defaultValue) {
     super(name, description, choices, defaultValue);
   }
 
-  public IonCheckComboBoxParameter(final String name, final String description,
+  public LegacyIonCheckComboBoxParameter(final String name, final String description,
       final List<IonModification> choices) {
     super(name, description, choices);
   }
 
-  public IonCheckComboBoxParameter(final String name, final String description,
+  public LegacyIonCheckComboBoxParameter(final String name, final String description,
       final List<IonModification> choices, @NotNull final List<IonModification> defaultValue) {
     super(name, description, choices, defaultValue);
   }

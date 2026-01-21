@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -78,7 +78,6 @@ import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class MsMsQualityExportTask extends AbstractTask {
 
@@ -123,7 +122,7 @@ public class MsMsQualityExportTask extends AbstractTask {
       for (String spotName : spotNames) {
         final Frame ms1Frame = mobScanAccess.getEligibleFrames().stream().filter(
             f -> f instanceof ImagingFrame img && img.getMaldiSpotInfo() != null
-                && img.getMaldiSpotInfo().spotName().contains(spotName)).findFirst().orElse(null);
+                 && img.getMaldiSpotInfo().spotName().contains(spotName)).findFirst().orElse(null);
         if (ms1Frame != null) {
           isolationPurityScore += getPurityForFrame(feature, mobScanAccess, ms1Frame, info, window);
           numMs1++;
@@ -203,7 +202,7 @@ public class MsMsQualityExportTask extends AbstractTask {
           }
 
           if (matchCompoundToFlist && (annotation.getCompoundName() == null
-              || !featureList.getName() // annotations may have unsafe characters, flists not
+                                       || !featureList.getName() // annotations may have unsafe characters, flists not
               .contains(FileAndPathUtil.safePathEncode(annotation.getCompoundName())))) {
             processedRows++;
             continue;
@@ -261,14 +260,10 @@ public class MsMsQualityExportTask extends AbstractTask {
 
     final MSMSScore score;
 
-    if (formula != null && annotation.getAdductType() != null) {
-      final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-          formula, SilentChemObjectBuilder.getInstance());
-      try {
-        FormulaUtils.replaceAllIsotopesWithoutExactMass(molecularFormula);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+    IMolecularFormula molecularFormula;
+    if (formula != null && annotation.getAdductType() != null && //
+        (molecularFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula)) != null) {
+
       final IonType adductType = annotation.getAdductType();
       if (adductType.getCDKFormula() != null) {
         molecularFormula.add(adductType.getCDKFormula());

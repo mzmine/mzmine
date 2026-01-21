@@ -204,7 +204,7 @@ public class LipidFactory {
       int chainDoubleBonds, int numberOfAdditionalOxygens, LipidChainType[] chainTypes) {
 
     IMolecularFormula lipidFormula = null;
-    IMolecularFormula lipidBackboneFormula = FormulaUtils.createMajorIsotopeMolFormula(
+    IMolecularFormula lipidBackboneFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
         lipidBackbone);
 
     int numberOfCarbonsPerChain = chainLength / chainTypes.length;
@@ -232,7 +232,7 @@ public class LipidFactory {
     // add additional oxygens
     if (numberOfAdditionalOxygens != 0) {
       lipidFormula = FormulaUtils.addFormula(lipidBackboneFormula,
-          FormulaUtils.createMajorIsotopeMolFormula(numberOfAdditionalOxygens + "O"));
+          FormulaUtils.createMajorIsotopeMolFormulaWithCharge(numberOfAdditionalOxygens + "O"));
     } else {
       lipidFormula = lipidBackboneFormula;
     }
@@ -261,7 +261,7 @@ public class LipidFactory {
   // create ester bonding
   private IMolecularFormula doEsterBonding(IMolecularFormula backboneFormula,
       IMolecularFormula chainFormula) {
-    IMolecularFormula secondaryProduct = FormulaUtils.createMajorIsotopeMolFormula("H2O");
+    IMolecularFormula secondaryProduct = FormulaUtils.createMajorIsotopeMolFormulaWithCharge("H2O");
     IMolecularFormula product = FormulaUtils.addFormula(backboneFormula, chainFormula);
     return FormulaUtils.subtractFormula(product, secondaryProduct);
   }
@@ -269,24 +269,25 @@ public class LipidFactory {
   // create ether bonding
   private IMolecularFormula doEtherBonding(IMolecularFormula backboneFormula,
       IMolecularFormula chainFormula) {
-    IMolecularFormula secondaryProduct = FormulaUtils.createMajorIsotopeMolFormula("H2");
+    IMolecularFormula secondaryProduct = FormulaUtils.createMajorIsotopeMolFormulaWithCharge("H2");
     IMolecularFormula product = FormulaUtils.addFormula(backboneFormula, chainFormula);
     return FormulaUtils.subtractFormula(product, secondaryProduct);
   }
 
   private IMolecularFormula doAmidBonding(IMolecularFormula backboneFormula,
       IMolecularFormula chainFormula) {
-    IMolecularFormula secondaryProduct = FormulaUtils.createMajorIsotopeMolFormula("H2");
+    IMolecularFormula secondaryProduct = FormulaUtils.createMajorIsotopeMolFormulaWithCharge("H2");
     IMolecularFormula product = FormulaUtils.addFormula(backboneFormula, chainFormula);
     return FormulaUtils.subtractFormula(product, secondaryProduct);
   }
 
   private IMolecularFormula doSphingolipidBonding(IMolecularFormula backboneFormula,
       IMolecularFormula chainFormula) {
-    IMolecularFormula secondaryProduct = FormulaUtils.createMajorIsotopeMolFormula("H");
+    IMolecularFormula secondaryProduct = FormulaUtils.createMajorIsotopeMolFormulaWithCharge("H");
     IMolecularFormula product = FormulaUtils.addFormula(backboneFormula, chainFormula);
     //remove Sphingolipid backbone atoms from Formula
-    FormulaUtils.subtractFormula(product, FormulaUtils.createMajorIsotopeMolFormula("C3H8N"));
+    FormulaUtils.subtractFormula(product,
+        FormulaUtils.createMajorIsotopeMolFormulaWithCharge("C3H8N"));
     return FormulaUtils.subtractFormula(product, secondaryProduct);
   }
 

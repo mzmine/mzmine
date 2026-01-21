@@ -456,7 +456,7 @@ public class ParsingUtils {
     } catch (Exception e) {
       logger.log(Level.WARNING,
           "Error parsing attribute " + attributeName + "of element " + reader.getLocalName()
-              + " with value " + attributeValue);
+          + " with value " + attributeValue);
       return defaultValue;
     }
   }
@@ -529,6 +529,26 @@ public class ParsingUtils {
 
     try {
       return Double.valueOf(str);
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
+  /**
+   * Converts a string to an integer. If the string is equal to {@link CONST#XML_NULL_VALUE}, null
+   * is returned.
+   *
+   * @param str The string.
+   * @return The Integer.
+   */
+  @Nullable
+  public static Integer stringToInteger(@Nullable String str) {
+    if (str == null || str.equals(CONST.XML_NULL_VALUE)) {
+      return null;
+    }
+
+    try {
+      return Integer.parseInt(str);
     } catch (NumberFormatException e) {
       return null;
     }

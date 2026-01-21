@@ -82,8 +82,19 @@ public enum PolarityType implements UniqueIdSupplier {
   }
 
   public static PolarityType fromInt(@Nullable Integer i) {
+    // UNKNOWN was the default - maybe has to change to NEUTRAL? but depends on use case
+    return fromInt(i, UNKNOWN);
+  }
+
+  /**
+   *
+   * @param i              charge state
+   * @param defaultForZero default value if i is null or zero
+   */
+  @Nullable
+  public static PolarityType fromInt(@Nullable Integer i, @Nullable PolarityType defaultForZero) {
     if (i == null || i == 0) {
-      return UNKNOWN;
+      return defaultForZero;
     } else if (i < 0) {
       return NEGATIVE;
     } else {

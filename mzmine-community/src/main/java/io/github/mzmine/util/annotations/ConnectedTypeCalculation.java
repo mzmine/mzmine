@@ -68,7 +68,7 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
 
       new ConnectedTypeCalculation<>(DataTypes.get(FormulaType.class), (row, db) -> {
         final MolecularStructure structure = db.getStructure();
-        if(structure != null) {
+        if (structure != null) {
           return MolecularFormulaManipulator.getString(structure.formula());
         }
         return null;
@@ -77,7 +77,8 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
       new ConnectedTypeCalculation<>(DataTypes.get(PrecursorMZType.class), (row, db) -> {
         final IonType adduct = db.getAdductType(); // adduct defined
         final String formula = db.getFormula(); // formula calculated above
-        final IMolecularFormula molFormula = FormulaUtils.createMajorIsotopeMolFormula(formula);
+        final IMolecularFormula molFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+            formula);
         try {
           final IMolecularFormula ionized = adduct.addToFormula(molFormula);
           return FormulaUtils.calculateMzRatio(ionized);

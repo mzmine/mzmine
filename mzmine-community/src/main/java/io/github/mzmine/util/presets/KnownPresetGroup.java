@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.presets;
 
+import io.github.mzmine.datamodel.identities.IonLibrary;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +35,12 @@ public enum KnownPresetGroup implements PresetGroup {
   /**
    * {@link RowTypeFilterPreset}
    */
-  ROW_TYPE_FILTER_PRESET;
+  ROW_TYPE_FILTER_PRESET,
+  /**
+   * {@link IonLibrary}
+   */
+  ION_LIBRARY_PRESET, //
+  ;
 
   public KnownPresetGroup parse(String name) {
     return UniqueIdSupplier.parseOrElse(name, values(), null);
@@ -44,6 +50,7 @@ public enum KnownPresetGroup implements PresetGroup {
   public @NotNull String getUniqueID() {
     return switch (this) {
       case ROW_TYPE_FILTER_PRESET -> "feature_table_filters";
+      case ION_LIBRARY_PRESET -> "ion_libraries";
     };
   }
 
@@ -51,6 +58,7 @@ public enum KnownPresetGroup implements PresetGroup {
   public String toString() {
     return switch (this) {
       case ROW_TYPE_FILTER_PRESET -> "Feature table filters";
+      case ION_LIBRARY_PRESET -> "Ion libraries";
     };
   }
 }

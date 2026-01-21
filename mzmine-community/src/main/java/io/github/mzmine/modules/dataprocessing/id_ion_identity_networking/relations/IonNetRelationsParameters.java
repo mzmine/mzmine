@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,7 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relat
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonModificationParameter;
+import io.github.mzmine.parameters.parametertypes.ionidentity.legacy.LegacyIonModificationParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
@@ -38,8 +38,8 @@ public class IonNetRelationsParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTol = new MZToleranceParameter();
 
-  public static final IonModificationParameter adducts = new IonModificationParameter("Adducts",
-      "List of modifications");
+  public static final LegacyIonModificationParameter adducts = new LegacyIonModificationParameter(
+      "Adducts", "List of modifications");
 
   public static final BooleanParameter searchCondensedMultimer = new BooleanParameter(
       "Search condensed multimer",
