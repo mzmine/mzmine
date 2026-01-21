@@ -30,6 +30,7 @@ import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.JsonUtils;
 import io.github.mzmine.util.io.WriterOptions;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -69,10 +70,17 @@ public abstract class AbstractJsonPresetStore<T extends Preset> extends Abstract
     }
     try (var writer = Files.newBufferedWriter(file.toPath(),
         WriterOptions.REPLACE.toOpenOption())) {
-      writer.write(getMapper().writeValueAsString(preset));
+      writePreset(preset, writer);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * May change logic for more complex objects
+   */
+  protected void writePreset(@NotNull T preset, BufferedWriter writer) throws IOException {
+    writer.write(getMapper().writeValueAsString(preset));
   }
 
   @Override

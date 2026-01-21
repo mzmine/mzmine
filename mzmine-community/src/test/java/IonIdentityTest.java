@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,11 +39,11 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityList
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectManager;
@@ -75,30 +75,30 @@ public class IonIdentityTest {
   @Mock
   ResultFormula formula;
 
-  IonType hAdduct = new IonType(IonModification.H);
-  IonType naAdduct = new IonType(IonModification.NA);
+  IonType hAdduct = IonTypes.H.asIonType();
+  IonType naAdduct = IonTypes.NA.asIonType();
 
 
   @Test
   void ionIdentityTest() {
-      // create feature list need project manager and project
-      ModularFeatureList flist = new ModularFeatureList("A", null, raw);
+    // create feature list need project manager and project
+    ModularFeatureList flist = new ModularFeatureList("A", null, raw);
 
-      flist.addRowType(new IDType());
-      flist.addRowType(new RTType());
-      flist.addRowType(new MZType());
-      flist.addRowType(new IonIdentityListType());
-      flist.addRowType(new FeatureGroupType());
+    flist.addRowType(new IDType());
+    flist.addRowType(new RTType());
+    flist.addRowType(new MZType());
+    flist.addRowType(new IonIdentityListType());
+    flist.addRowType(new FeatureGroupType());
 
-      ModularFeatureListRow rowProtonated = new ModularFeatureListRow(flist, 1);
-      ModularFeatureListRow rowSodiated = new ModularFeatureListRow(flist, 2);
-      // create spy instances to return mz and rt values
-      double mz = 200;
+    ModularFeatureListRow rowProtonated = new ModularFeatureListRow(flist, 1);
+    ModularFeatureListRow rowSodiated = new ModularFeatureListRow(flist, 2);
+    // create spy instances to return mz and rt values
+    double mz = 200;
     rowProtonated = spy(rowProtonated);
     rowSodiated = spy(rowSodiated);
     // return some fixed mz and rt
-    doReturn(mz + hAdduct.getMassDifference()).when(rowProtonated).getAverageMZ();
-    doReturn(mz + naAdduct.getMassDifference()).when(rowSodiated).getAverageMZ();
+    doReturn(mz + hAdduct.totalMass()).when(rowProtonated).getAverageMZ();
+    doReturn(mz + naAdduct.totalMass()).when(rowSodiated).getAverageMZ();
 
     // add rows
     flist.addRow(rowProtonated);
@@ -111,56 +111,61 @@ public class IonIdentityTest {
     group.add(rowSodiated);
     flist.setGroups(groups);
 
-    // add ions to rows
-    IonIdentity.addAdductIdentityToRow(new MZTolerance(1, 10), rowProtonated, hAdduct, rowSodiated,
-        naAdduct);
+    // add ions to rows - not really done much as the tasks handle this
+    final IonNetwork network = new IonNetwork(MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA, 1);
+    final IonIdentity ionH = new IonIdentity(hAdduct);
+    ionH.setNetwork(network);
+    rowProtonated.addIonIdentity(ionH);
+    final IonIdentity ionNa = new IonIdentity(naAdduct);
+    ionNa.setNetwork(network);
+    rowSodiated.addIonIdentity(ionNa);
 
     assertNotNull(rowProtonated.get(new IonIdentityListType()));
-      assertNotNull(rowProtonated.get(IonIdentityListType.class));
-      assertNotNull(rowProtonated.getIonIdentities());
+    assertNotNull(rowProtonated.get(IonIdentityListType.class));
+    assertNotNull(rowProtonated.getIonIdentities());
 
-      assertEquals(1, rowProtonated.getIonIdentities().size());
-      assertEquals(1, rowSodiated.getIonIdentities().size());
-      assertNotNull(rowProtonated.getBestIonIdentity());
-      assertNotNull(rowSodiated.getBestIonIdentity());
+    assertEquals(1, rowProtonated.getIonIdentities().size());
+    assertEquals(1, rowSodiated.getIonIdentities().size());
+    assertNotNull(rowProtonated.getBestIonIdentity());
+    assertNotNull(rowSodiated.getBestIonIdentity());
 
-      List<IonNetwork> nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
-      assertEquals(1, nets.size());
-      assertEquals(2, nets.get(0).size());
+    List<IonNetwork> nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
+    assertEquals(1, nets.size());
+    assertEquals(2, nets.get(0).size());
 
-      IonNetworkLogic.renumberNetworks(flist);
-      nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
-      assertEquals(1, nets.size());
-      assertEquals(2, nets.get(0).size());
+    IonNetworkLogic.renumberNetworks(flist);
+    nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
+    assertEquals(1, nets.size());
+    assertEquals(2, nets.get(0).size());
 
-      // recalc annotation networks
-      IonNetworkLogic.recalcAllAnnotationNetworks(flist, true);
-      nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
-      assertEquals(1, nets.size());
-      assertEquals(2, nets.get(0).size());
+    // recalc annotation networks
+    IonNetworkLogic.removeEmptyNetworks(flist);
+    nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
+    assertEquals(1, nets.size());
+    assertEquals(2, nets.get(0).size());
 
-      // show all annotations with the highest count of links
-      IonNetworkLogic.sortIonIdentities(flist, true);
-      nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
-      assertEquals(1, nets.size());
-      assertEquals(2, nets.get(0).size());
+    // show all annotations with the highest count of links
+    IonNetworkLogic.sortIonIdentities(flist, true);
+    nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
+    assertEquals(1, nets.size());
+    assertEquals(2, nets.get(0).size());
 
-      // test add formula
-      when(formula.getIsotopeScore()).thenReturn(0.9f);
-      when(formula.getRDBE()).thenReturn(4.5f);
-      IonIdentity ion = rowProtonated.getBestIonIdentity();
-      ion.addMolFormula(formula);
-      ResultFormula best = ion.getBestMolFormula().get();
-      assertEquals(0.9f, best.getIsotopeScore());
-      assertEquals(4.5f, best.getRDBE());
+    // test add formula
+    when(formula.getIsotopeScore()).thenReturn(0.9f);
+    when(formula.getRDBE()).thenReturn(4.5f);
+    IonIdentity ion = rowProtonated.getBestIonIdentity();
+    ion.addMolFormula(formula);
+    ResultFormula best = ion.getBestMolFormula().get();
+    assertEquals(0.9f, best.getIsotopeScore());
+    assertEquals(4.5f, best.getRDBE());
 
-      // setting the formula should have updated the sub properties
-      // test properties in ion identity
-      best = rowProtonated.get(IonIdentityListType.class).get(0).getBestMolFormula().get();
-      assertEquals(4.5f, best.getRDBE(),
-          "Cannot access formula specific types from sub types of IonIdentityModularType.class");
-      assertEquals(0.9f, best.getIsotopeScore(),
-          "Cannot access formula specific types from sub types of IonIdentityModularType.class");
+    // setting the formula should have updated the sub properties
+    // test properties in ion identity
+    best = rowProtonated.get(IonIdentityListType.class).get(0).getBestMolFormula().get();
+    assertEquals(4.5f, best.getRDBE(),
+        "Cannot access formula specific types from sub types of IonIdentityModularType.class");
+    assertEquals(0.9f, best.getIsotopeScore(),
+        "Cannot access formula specific types from sub types of IonIdentityModularType.class");
 
   }
 }

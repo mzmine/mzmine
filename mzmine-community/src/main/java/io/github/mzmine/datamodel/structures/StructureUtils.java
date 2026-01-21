@@ -29,6 +29,7 @@ import io.github.dan2097.jnainchi.InchiKeyOutput;
 import io.github.dan2097.jnainchi.InchiKeyStatus;
 import io.github.dan2097.jnainchi.InchiStatus;
 import io.github.dan2097.jnainchi.JnaInchi;
+import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;
@@ -46,6 +47,7 @@ import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IBond.Stereo;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.interfaces.IStereoElement;
+import org.openscience.cdk.smiles.SmiFlavor;
 import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -82,11 +84,17 @@ public class StructureUtils {
   /**
    * Canonical + isomeric + stereo chemistry
    */
-  public static final SmilesGenerator isomericSmiGen = SmilesGenerator.absolute();
+  public static final SmilesGenerator isomericSmiGen = new SmilesGenerator(
+      SmiFlavor.Stereo | SmiFlavor.Canonical);
   /**
    * canonical smiles
    */
   public static final SmilesGenerator canonSmiGen = SmilesGenerator.unique();
+
+  /*
+   * absolute smiles generator adds atom mass numbers to all elements even 12C
+   */
+//  public static final SmilesGenerator absoluteSmiGen = SmilesGenerator.absolute();
 
   /**
    * Structure parsing
@@ -213,9 +221,16 @@ public class StructureUtils {
     return null;
   }
 
-  @NotNull
+  /**
+   * @return null on issue like unknown atoms
+   */
+  @Nullable
   public static IMolecularFormula getFormula(@NotNull IAtomContainer structure) {
-    return MolecularFormulaManipulator.getMolecularFormula(structure);
+    IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(structure);
+    if (formula != null) {
+      formula = FormulaUtils.replaceAllIsotopesWithoutExactMass(formula);
+    }
+    return formula;
   }
 
   public static double getMonoIsotopicMass(IAtomContainer structure) {

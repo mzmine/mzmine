@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,26 +28,35 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionid
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonTypePair;
+import io.github.mzmine.datamodel.identities.iontype.SearchableIonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
+import io.github.mzmine.datamodel.identities.iontype.IonNetworkNode;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary.CheckMode;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesTask;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureListUtils;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -60,24 +69,25 @@ public class IonNetworkingTask extends AbstractTask {
   private final ParameterSet parameters;
   private final MZmineProject project;
   private AtomicDouble stageProgress = new AtomicDouble(0);
-  private IonNetworkLibrary library;
   private boolean neverStop = false;
 
   private double minHeight;
-  private IonNetworkLibrary.CheckMode checkMode;
+  private FeatureCheckMode checkMode;
 
-  private CheckMode adductCheckMode;
+  private FeatureCheckMode adductCheckMode;
 
   private boolean performAnnotationRefinement;
   private IonNetworkRefinementParameters refineParam;
 
   private MinimumFeatureFilter minFeaturesFilter;
 
-  private MZTolerance mzTolerance;
+  private final MZTolerance mzTolerance;
+  private final SearchableIonLibrary library;
 
 
   /**
    * Create the task.
+   * TODO decide if minFeaturesFilter should be removed
    *
    * @param parameterSet the parameters.
    */
@@ -99,6 +109,36 @@ public class IonNetworkingTask extends AbstractTask {
         IonNetworkingParameters.ANNOTATION_REFINEMENTS).getValue();
     refineParam = parameterSet.getParameter(IonNetworkingParameters.ANNOTATION_REFINEMENTS)
         .getEmbeddedParameters();
+    final IonLibrary fullLibrary = parameters.getValue(IonNetworkingParameters.fullIonLibrary);
+    library = fullLibrary.toSearchableLibrary(true);
+
+    // moved to refinement
+//    var mainIonsList = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+//            IonNetworkingParameters.mainIonLibrary, IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN)
+//        .ions();
+//
+//    // main ions is a different library and small differences in mass definition may the ions
+//    // incomparable to the ones searched in library
+//    List<IonType> missing = new ArrayList<>();
+//    mainIons = HashSet.newHashSet(mainIonsList.size());
+//    for (IonType main : mainIonsList) {
+//      boolean found = false;
+//      for (IonType full : fullLibrary.ions()) {
+//        if (full.equalsName(main)) {
+//          mainIons.add(full);
+//          found = true;
+//          break;
+//        }
+//      }
+//      if (!found) {
+//        missing.add(main);
+//      }
+//    }
+//    if (!missing.isEmpty()) {
+//      final String message = "Some ions were defined as main ions but were not searched for in the full ion library:\n%s".formatted(
+//          StringUtils.join(missing, ", "));
+//      DialogLoggerUtil.showWarningNotification("Main ions missing in full library", message);
+//    }
   }
 
   public IonNetworkingTask(final MZmineProject project, final ParameterSet parameterSet,
@@ -114,7 +154,7 @@ public class IonNetworkingTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return "Identification of adducts, in-source fragments and clusters in " + featureList.getName()
-           + " ";
+        + " ";
   }
 
   @Override
@@ -142,17 +182,15 @@ public class IonNetworkingTask extends AbstractTask {
       }
 
       setStatus(TaskStatus.PROCESSING);
+      LOG.info("Clearing old ion identity networks");
+      ClearIonIdentitiesTask.clearAllIonIdentities(featureList);
+
       // create library
       LOG.info("Creating annotation library");
       // add types
-      featureList.addRowType(new IonIdentityListType());
+      featureList.addRowType(DataTypes.get(IonIdentityListType.class));
 
-      PolarityType polarity = FeatureListUtils.getPolarity(featureList, PolarityType.ANY);
-
-      IonLibraryParameterSet p = parameters.getParameter(IonNetworkingParameters.LIBRARY)
-          .getEmbeddedParameters();
-      library = new IonNetworkLibrary(p, polarity, mzTolerance);
-      annotateGroups(library);
+      annotateGroups();
       featureList.getAppliedMethods().add(
           new SimpleFeatureListAppliedMethod(IonNetworkingModule.class, parameters,
               getModuleCallDate()));
@@ -164,7 +202,7 @@ public class IonNetworkingTask extends AbstractTask {
   }
 
 
-  private void annotateGroups(IonNetworkLibrary library) {
+  private void annotateGroups() {
     // get groups
     List<RowGroup> groups = featureList.getGroups();
 
@@ -184,7 +222,7 @@ public class IonNetworkingTask extends AbstractTask {
       return annotations;
     }).sum();
     LOG.info("Corr: A total of " + compared.get() + " row2row adduct comparisons with " + annotPairs
-             + " annotation pairs");
+        + " annotation pairs");
 
     refineAndFinishNetworks();
   }
@@ -196,6 +234,8 @@ public class IonNetworkingTask extends AbstractTask {
    * @param compared
    */
   private long annotateGroup(RowGroup g, AtomicInteger compared) {
+    Map<RowIonAnnotation, IonNetwork> results = new HashMap<>();
+
     long annotations = 0;
     for (int i = 0; i < g.size() - 1; i++) {
       // check against existing networks
@@ -204,16 +244,74 @@ public class IonNetworkingTask extends AbstractTask {
         if (g.isCorrelated(i, k)) {
           compared.incrementAndGet();
           // check for adducts in library
-          List<IonIdentity[]> id = library.findAdducts(featureList, g.get(i), g.get(k),
-              adductCheckMode, minHeight);
-          if (!id.isEmpty()) {
+          final FeatureListRow a = g.get(i);
+          final FeatureListRow b = g.get(k);
+          if (checkRows(results, a, b)) {
             annotations++;
           }
         }
       }
       // finished.incrementAndGet();
     }
+
+    // add all networks to rows
+    addIonIdentitiesToRows(results.values());
+
     return annotations;
+  }
+
+  public static void addIonIdentitiesToRows(Collection<IonNetwork> networks) {
+    final List<IonNetwork> sortedNetworks = networks.stream()
+        .sorted(Comparator.comparingInt(IonNetwork::size).reversed()).toList();
+
+    Map<FeatureListRow, List<IonIdentity>> sortedIons = new HashMap<>();
+
+    for (IonNetwork net : sortedNetworks) {
+      for (IonNetworkNode node : net.getNodes()) {
+        final List<IonIdentity> rowIons = sortedIons.computeIfAbsent(node.row(),
+            k -> new ArrayList<>());
+        rowIons.add(node.ion());
+      }
+    }
+
+    sortedIons.forEach(FeatureListRow::setIonIdentities);
+  }
+
+  private boolean checkRows(Map<RowIonAnnotation, IonNetwork> results, FeatureListRow rowA,
+      FeatureListRow rowB) {
+    // search
+    List<IonTypePair> matches = library.searchRows(rowA, rowB, mzTolerance);
+
+    // merge results into ion networks
+    for (IonTypePair id : matches) {
+      final RowIonAnnotation a = new RowIonAnnotation(rowA, id.a());
+      final RowIonAnnotation b = new RowIonAnnotation(rowB, id.b());
+
+      final IonNetwork oldNetA = results.get(a);
+      final IonNetwork oldNetB = results.get(b);
+      if (oldNetA == null && oldNetB == null) {
+        // create new
+        final IonNetwork network = new IonNetwork(mzTolerance, -1);
+        network.put(rowA, new IonIdentity(id.a()));
+        network.put(rowB, new IonIdentity(id.b()));
+        results.put(a, network);
+        results.put(b, network);
+      } else if (oldNetA != null && oldNetB != null) {
+        // have to merge the networks
+        oldNetA.addAll(oldNetB);
+        // mark all nodes of B as now belonging to a
+        for (IonNetworkNode node : oldNetB.getNodes()) {
+          results.put(new RowIonAnnotation(node.row(), node.ion().getIonType()), oldNetA);
+        }
+      } else if (oldNetA != null) {
+        oldNetA.put(rowB, new IonIdentity(id.b()));
+        results.put(b, oldNetA);
+      } else {
+        oldNetB.put(rowA, new IonIdentity(id.a()));
+        results.put(a, oldNetB);
+      }
+    }
+    return !matches.isEmpty();
   }
 
 
@@ -223,7 +321,7 @@ public class IonNetworkingTask extends AbstractTask {
     IonNetworkLogic.renumberNetworks(featureList);
 
     // recalc annotation networks
-    IonNetworkLogic.recalcAllAnnotationNetworks(featureList, true);
+    IonNetworkLogic.removeEmptyNetworks(featureList);
 
     if (isCanceled()) {
       return;
@@ -241,7 +339,7 @@ public class IonNetworkingTask extends AbstractTask {
     }
 
     // recalc annotation networks
-    IonNetworkLogic.recalcAllAnnotationNetworks(featureList, true);
+    IonNetworkLogic.removeEmptyNetworks(featureList);
 
     // show all annotations with the highest count of links
     LOG.info("Corr: show most likely annotations");

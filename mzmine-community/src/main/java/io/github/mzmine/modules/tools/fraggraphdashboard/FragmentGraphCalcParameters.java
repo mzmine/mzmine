@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,20 +26,18 @@
 package io.github.mzmine.modules.tools.fraggraphdashboard;
 
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalFiltersParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsCompositionRangeParameter;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class FragmentGraphCalcParameters extends SimpleParameterSet {
 
@@ -67,12 +65,9 @@ public class FragmentGraphCalcParameters extends SimpleParameterSet {
       "The polarity of the ion.", List.of(PolarityType.POSITIVE, PolarityType.NEGATIVE),
       PolarityType.POSITIVE);
 
-  public static final CheckComboParameter<IonModification> adducts = new CheckComboParameter<>(
-      "Additional adducts",
-      "All elements of selected adducts will be added to the elements selected in the elements parameter.",
-      Stream.of(IonModification.getDefaultValuesPos(), IonModification.getDefaultValuesNeg())
-          .flatMap(Arrays::stream).distinct().toList(),
-      List.of(IonModification.H, IonModification.H_NEG));
+  public static final IonLibraryParameter allowedIons = new IonLibraryParameter("Search ions",
+      "A library of ions to use for predicting formulas",
+      IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_SMALLEST);
 
   public static final ParameterSetParameter<ElementalHeuristicParameters> heuristicParams = new ParameterSetParameter<>(
       "Element heuristics", "Refine calculated precursor and fragment formulae.",
@@ -80,6 +75,6 @@ public class FragmentGraphCalcParameters extends SimpleParameterSet {
 
   public FragmentGraphCalcParameters() {
     super(ms1Tolerance, ms2Tolerance, ms2SignalFilter, elements, maximumFormulae, heuristicParams,
-        polarity, adducts);
+        polarity, allowedIons);
   }
 }

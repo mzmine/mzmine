@@ -25,9 +25,11 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import io.github.mzmine.javafx.components.NumberTextField;
 import io.github.mzmine.javafx.components.skins.DynamicTextFieldSkin;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import java.text.NumberFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -59,6 +61,7 @@ public class FxTextFields {
     return newTextField(null, textProperty, (StringProperty) null, tooltip);
   }
 
+  // strings
   public static TextField newTextField(@Nullable Integer columnCount,
       @Nullable StringProperty textProperty, @Nullable String tooltip) {
     return newTextField(columnCount, textProperty, (StringProperty) null, tooltip);
@@ -75,7 +78,18 @@ public class FxTextFields {
     return applyToField(new TextField(), columnCount, textProperty, prompt, tooltip);
   }
 
-  public static TextField applyToField(@NotNull final TextField field,
+  public static <T extends TextField> T applyToField(@NotNull final T field,
+      final @Nullable Integer columnCount, final @Nullable String tooltip) {
+    return applyToField(field, columnCount, null, tooltip);
+  }
+
+  public static <T extends TextField> T applyToField(@NotNull final T field,
+      final @Nullable Integer columnCount, final @Nullable StringProperty textProperty,
+      final @Nullable String tooltip) {
+    return applyToField(field, columnCount, textProperty, null, tooltip);
+  }
+
+  public static <T extends TextField> T applyToField(@NotNull final T field,
       final @Nullable Integer columnCount, final @Nullable StringProperty textProperty,
       final @Nullable StringProperty prompt, final @Nullable String tooltip) {
     if (textProperty != null) {
@@ -320,6 +334,22 @@ public class FxTextFields {
       final int maxColumnCount) {
     return autoGrowFitText(newTextField(null, valueProperty, promptProperty, tooltip),
         minColumnCount, maxColumnCount);
+  }
+
+  // Numbers
+  public static TextField newNumberField(@Nullable Integer columnCount,
+      @NotNull NumberFormat format, @Nullable ObjectProperty<Number> valueProperty,
+      @Nullable String tooltip) {
+    return newNumberField(columnCount, format, valueProperty, null, tooltip);
+  }
+
+  public static TextField newNumberField(@Nullable Integer columnCount,
+      @NotNull NumberFormat format, @Nullable ObjectProperty<Number> valueProperty,
+      @Nullable String prompt, @Nullable String tooltip) {
+    var field = new NumberTextField(format);
+    applyToField(field, columnCount, null, new SimpleStringProperty(prompt), tooltip);
+    field.valueProperty().bindBidirectional(valueProperty);
+    return field;
   }
 
   public static TextField newIntegerField(@NotNull ObjectProperty<Integer> value,

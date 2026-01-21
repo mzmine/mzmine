@@ -60,8 +60,8 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.PartnerIdsType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.stats.AnovaResultsType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.modules.dataanalysis.significance.anova.AnovaResult;
@@ -296,7 +296,7 @@ public class AnnotationTypeTests {
 
     var type = new CompoundDatabaseMatchesType();
 
-    final IonType ionType = new IonType(IonModification.NH4);
+    final IonType ionType = IonTypes.NH4.asIonType();
     final CompoundDBAnnotation newIdentity = new SimpleCompoundDBAnnotation();
     newIdentity.put(new CompoundNameType(), "glucose");
     newIdentity.put(new FormulaType(), "C6H6O6");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,10 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * TODO rework and figure out how to add msms derived identities to a feature
+ */
+@Deprecated
 public class MSMSLogic {
 
   /**
@@ -50,10 +54,10 @@ public class MSMSLogic {
    * @param mzTolerance
    * @return List of identities. The first is always the one for the precursor
    */
-  public static List<MsMsIdentity> checkMultiMolCluster(Scan scan, double precursorMZ, IonType adduct,
-      MZTolerance mzTolerance, double minHeight) {
-    return checkMultiMolCluster(scan, precursorMZ, adduct, adduct.getMolecules(),
-        mzTolerance, minHeight);
+  public static List<MsMsIdentity> checkMultiMolCluster(Scan scan, double precursorMZ,
+      IonType adduct, MZTolerance mzTolerance, double minHeight) {
+    return checkMultiMolCluster(scan, precursorMZ, adduct, adduct.molecules(), mzTolerance,
+        minHeight);
   }
 
   /**
@@ -67,8 +71,8 @@ public class MSMSLogic {
    * @param mzTolerance
    * @return List of identities. The first is always the one for the precursor
    */
-  public static List<MsMsIdentity> checkMultiMolCluster(Scan scan, double precursorMZ, IonType adduct,
-      int maxM, MZTolerance mzTolerance, double minHeight) {
+  public static List<MsMsIdentity> checkMultiMolCluster(Scan scan, double precursorMZ,
+      IonType adduct, int maxM, MZTolerance mzTolerance, double minHeight) {
     MassList masses = scan.getMassList();
     if (masses == null) {
       return null;
@@ -77,7 +81,7 @@ public class MSMSLogic {
     // generate all M adducts 3M+X -> 2M+X -> M+X
     List<IonType> list = new ArrayList<>();
     for (int i = 1; i <= maxM; i++) {
-      IonType m = new IonType(i, adduct);
+      IonType m = adduct.withMolecules(i);
       list.add(m);
     }
 
@@ -161,7 +165,7 @@ public class MSMSLogic {
     }
 
     // delta
-    double dmz = adduct.getMassDifference();
+    double dmz = adduct.totalMass();
 
     // result best with the highest number of identities
     List<MsMsIdentity> ident = new ArrayList<>();
@@ -174,8 +178,8 @@ public class MSMSLogic {
       DataPoint loss = findDPAt(dps, mz - dmz, mzTolerance, minHeight);
       if (loss != null) {
         // id found
-        MSMSIonRelationIdentity relation =
-            new MSMSIonRelationIdentity(mzTolerance, loss, adduct, dp);
+        MSMSIonRelationIdentity relation = new MSMSIonRelationIdentity(mzTolerance, loss, adduct,
+            dp);
         ident.add(relation);
       }
     }
@@ -206,9 +210,9 @@ public class MSMSLogic {
       double minHeight) {
     DataPoint best = null;
     for (DataPoint dp : dps) {
-      if (dp.getIntensity() >= minHeight
-          && (best == null || dp.getIntensity() > best.getIntensity())
-          && mzTolerance.checkWithinTolerance(dp.getMZ(), precursorMZ)) {
+      if (dp.getIntensity() >= minHeight && (best == null
+          || dp.getIntensity() > best.getIntensity()) && mzTolerance.checkWithinTolerance(
+          dp.getMZ(), precursorMZ)) {
         best = dp;
       }
     }

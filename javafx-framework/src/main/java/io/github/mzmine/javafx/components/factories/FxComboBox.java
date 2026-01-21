@@ -38,6 +38,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.converter.DefaultStringConverter;
+import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.SearchableComboBox;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +57,25 @@ public class FxComboBox {
     return hBox;
   }
 
+  /**
+   * Creates CheckComboBox and selects all values
+   */
+  public static <T> CheckComboBox<T> createCheckComboBox(String tooltip,
+      @NotNull Collection<T> values) {
+    return createCheckComboBox(tooltip, values, values);
+  }
+
+  public static <T> CheckComboBox<T> createCheckComboBox(String tooltip,
+      @NotNull Collection<T> values, @NotNull Collection<T> selected) {
+    CheckComboBox<T> combo = new CheckComboBox<>(makeObservable(values));
+    combo.setShowCheckedCount(true);
+    combo.setTooltip(new Tooltip(tooltip));
+    for (final T sel : selected) {
+      combo.getCheckModel().check(sel);
+    }
+    return combo;
+  }
+
   public static <T> ComboBox<T> createComboBox(@Nullable String tooltip, Collection<T> values,
       @Nullable Property<T> selectedItem) {
     return addContent(tooltip, values, selectedItem, new ComboBox<>());
@@ -64,6 +84,7 @@ public class FxComboBox {
   private static <T, COMBO extends ComboBox<T>> @NotNull COMBO addContent(
       @Nullable final String tooltip, final Collection<T> values,
       @Nullable final Property<T> selectedItem, final COMBO combo) {
+    combo.setItems(makeObservable(values));
     if (values instanceof ObservableList<T> ov) {
       combo.setItems(ov);
     } else if (values != null) {
@@ -78,6 +99,15 @@ public class FxComboBox {
       combo.setTooltip(new Tooltip(tooltip));
     }
     return combo;
+  }
+
+  private static <T> ObservableList<T> makeObservable(final Collection<T> values) {
+    if (values instanceof ObservableList<T> ov) {
+      return ov;
+    } else {
+      // list needs to be modifiable when using StringConverter that may return null values that are not allowed in unmodifiable lists
+      return FXCollections.observableArrayList(values);
+    }
   }
 
   public static <T> SearchableComboBox<T> newSearchableComboBox(@Nullable String tooltip,

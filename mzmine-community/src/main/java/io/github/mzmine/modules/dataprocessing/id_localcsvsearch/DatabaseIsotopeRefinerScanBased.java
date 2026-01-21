@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -140,7 +140,7 @@ public class DatabaseIsotopeRefinerScanBased {
         row.getCompoundAnnotations().stream().filter(annotation -> {
           var adduct = annotation.getAdductType();
           // >=1 charge
-          var absCharge = Math.max(1, adduct != null ? adduct.getAbsCharge() : 1);
+          var absCharge = Math.max(1, adduct != null ? adduct.absTotalCharge() : 1);
           var measuredIsotopes = chargeIsotopeMap.getOrDefault(absCharge, null);
           if (measuredIsotopes == null) {
             // replace missing pattern by MS1 scan
@@ -191,7 +191,7 @@ public class DatabaseIsotopeRefinerScanBased {
         row.getCompoundAnnotations().stream().filter(annotation -> {
           var adduct = annotation.getAdductType();
           // >=1 charge
-          var absCharge = Math.max(1, adduct != null ? adduct.getAbsCharge() : 1);
+          var absCharge = Math.max(1, adduct != null ? adduct.absTotalCharge() : 1);
           var measuredIsotopes = chargeIsotopeMap.getOrDefault(absCharge, null);
           if (measuredIsotopes == null) {
             // replace missing pattern by MS1 scan
@@ -234,7 +234,7 @@ public class DatabaseIsotopeRefinerScanBased {
           ionFormula,
           key -> IsotopePatternCalculator.calculateIsotopePattern(ionFormula, minIntensity,
               mzTolerance.getMzToleranceForMass(FormulaUtils.calculateMzRatio(ionFormula)),
-              adductType.getCharge(), adductType.getPolarity(), false));
+              adductType.totalCharge(), adductType.getPolarity(), false));
       var predictedIsotopes = ScanUtils.extractDataPoints(predictedIsotopePattern);
 
       // also match with library as ground truth to give more weight to predicted signals
@@ -269,7 +269,7 @@ public class DatabaseIsotopeRefinerScanBased {
     float finalScore = 0;
     ionIsotopePatternMap.computeIfAbsent(ionFormula,
         key -> IsotopePatternCalculator.calculateIsotopePatternForResolutions(ionFormula,
-            minIntensity, MZTolerance.getDefaultResolutions(), adductType.getCharge(),
+            minIntensity, MZTolerance.getDefaultResolutions(), adductType.totalCharge(),
             adductType.getPolarity(), false));
     for (MZTolerance mzTol : MZTolerance.getDefaultResolutions()) {
       try {

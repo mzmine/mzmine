@@ -213,7 +213,8 @@ public class CompoundAnnotationUtils {
   /**
    * Stream all instances of {@link FeatureAnnotation}
    */
-  public static Stream<FeatureAnnotation> streamFeatureAnnotations(@NotNull final FeatureListRow row) {
+  public static Stream<FeatureAnnotation> streamFeatureAnnotations(
+      @NotNull final FeatureListRow row) {
     return row.streamAllFeatureAnnotations().filter(ann -> ann instanceof FeatureAnnotation)
         .map(FeatureAnnotation.class::cast);
   }
@@ -221,7 +222,8 @@ public class CompoundAnnotationUtils {
   /**
    * First FeatureAnnotation in {@link #streamFeatureAnnotations(FeatureListRow)}
    */
-  public static Optional<FeatureAnnotation> getBestFeatureAnnotation(@NotNull final FeatureListRow row) {
+  public static Optional<FeatureAnnotation> getBestFeatureAnnotation(
+      @NotNull final FeatureListRow row) {
     return CompoundAnnotationUtils.streamFeatureAnnotations(row).findFirst();
   }
 
@@ -279,7 +281,7 @@ public class CompoundAnnotationUtils {
 
     IonType adduct = annotation.getAdductType();
     if (adduct != null) {
-      return OptionalInt.of(adduct.getCharge());
+      return OptionalInt.of(adduct.totalCharge());
     }
 
     Integer annCharge = getTypeValue(annotation, ChargeType.class);

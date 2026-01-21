@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,16 +26,16 @@
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations;
 
 
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
@@ -46,7 +46,7 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
 
   // different depth of settings
   public enum Setup {
-    FULL, SUB, SIMPLE
+    FULL, SUB
   }
 
   // NOT INCLUDED in sub
@@ -61,9 +61,12 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
       "Minimum height of feature shape (not used for average mode)",
       MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final SubModuleParameter<IonLibraryParameterSet> LIBRARY =
-      new SubModuleParameter<>("Ion identity library", "Adducts, in-source fragments and multimers",
-          new IonLibraryParameterSet());
+
+  public static final IonLibraryParameter fullIonLibrary = new IonLibraryParameter("Ion library",
+      """
+          The full ion library contains all adducts, in source fragments, and other ions to be searched.
+          See ion network refinement to require main adducts in networks.""",
+      IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL);
 
   // MS MS
   // check for truth MS/MS
@@ -71,9 +74,8 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
   // new OptionalModuleParameter<IonNetworkMSMSCheckParameters>("Check MS/MS",
   // "Check MS/MS for truth of multimers", new IonNetworkMSMSCheckParameters(true));
 
-  public static final OptionalModuleParameter<IonNetworkRefinementParameters> ANNOTATION_REFINEMENTS =
-      new OptionalModuleParameter<IonNetworkRefinementParameters>("Annotation refinement", "",
-          new IonNetworkRefinementParameters(true), true);
+  public static final OptionalModuleParameter<IonNetworkRefinementParameters> ANNOTATION_REFINEMENTS = new OptionalModuleParameter<IonNetworkRefinementParameters>(
+      "Annotation refinement", "", new IonNetworkRefinementParameters(true), true);
 
   // setup
   private final Setup setup;
@@ -92,11 +94,9 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
     switch (setup) {
       case FULL:
         return new Parameter[]{PEAK_LISTS, MZ_TOLERANCE, MIN_HEIGHT, ANNOTATION_REFINEMENTS,
-            LIBRARY};
+            fullIonLibrary};
       case SUB:
         return new Parameter[]{MZ_TOLERANCE, ANNOTATION_REFINEMENTS};
-      case SIMPLE:
-        return new Parameter[]{LIBRARY};
     }
     return new Parameter[0];
   }
@@ -146,6 +146,23 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
     nameParameterMap.put("m/z tolerance", getParameter(MZ_TOLERANCE));
+    // {@link LegacyIonLibraryParameterSet} is loaded directly by the new library parameter
+    nameParameterMap.put("Ion identity library", fullIonLibrary);
     return nameParameterMap;
   }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    if (loadedVersion == 1) {
+      getParameter(ANNOTATION_REFINEMENTS).getEmbeddedParameters()
+          .getParameter(IonNetworkRefinementParameters.mainIonLibrary).getEmbeddedParameter()
+          .setValue(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN);
+    }
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
 }
