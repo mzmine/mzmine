@@ -553,6 +553,13 @@ public interface FeatureListRow extends ModularDataModel {
    */
   @Nullable FeatureAnnotation getPreferredAnnotation();
 
+  /**
+   *
+   * @return true if the preferred annotation was set by the user specifically, false if this row
+   * has no preferred annotation or it was computed automatically by a module or the default
+   * sorting.
+   */
+  boolean isUserPreferredAnnotation();
 
   @NotNull
   default Stream<FeatureAnnotation> streamAllFeatureAnnotations() {

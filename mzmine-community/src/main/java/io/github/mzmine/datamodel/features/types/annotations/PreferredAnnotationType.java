@@ -25,12 +25,16 @@
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.SimpleSubColumnsType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.fx.PreferredEditComboCellFactory;
@@ -39,6 +43,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +51,9 @@ import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TreeTableColumn;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -144,5 +152,50 @@ public class PreferredAnnotationType extends SimpleSubColumnsType<FeatureAnnotat
   @Override
   public double getPrefColumnWidth() {
     return 150;
+  }
+
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+
+    if (value == null || !row.isUserPreferredAnnotation()
+        || !(value instanceof FeatureAnnotation annotation)) {
+      return;
+    }
+
+    DataType annotationType = DataTypes.get(annotation.getDataType());
+
+//    writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
+//    writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, annotationType.getUniqueID());
+
+    annotation.saveToXML(writer, flist, row);
+
+//    writer.writeEndElement();
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
+        && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
+      throw new IllegalStateException("Wrong element");
+    }
+
+    FeatureAnnotation id = null;
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      if (reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)) {
+        id = FeatureAnnotation.loadFromXML(reader, project, flist, row);
+      }
+    }
+
+    return id;
   }
 }

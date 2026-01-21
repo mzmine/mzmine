@@ -519,6 +519,11 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
     return null;
   }
 
+  @Override
+  public boolean isUserPreferredAnnotation() {
+    return schema.get(modelRowIndex, DataTypes.get(PreferredAnnotationType.class)) != null;
+  }
+
   /**
    * Checks if this row contains an annotation based on the {@link ListWithSubsType} and the
    * {@link AnnotationType} and if the corresponding entry is not null or empty.
