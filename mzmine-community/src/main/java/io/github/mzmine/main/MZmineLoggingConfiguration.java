@@ -25,7 +25,13 @@
 
 package io.github.mzmine.main;
 
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -42,18 +48,56 @@ public final class MZmineLoggingConfiguration {
    * resources
    */
   public MZmineLoggingConfiguration() {
-
-    try {
-      ClassLoader cl = MZmineLoggingConfiguration.class.getClassLoader();
-      try (InputStream loggingProperties = cl.getResourceAsStream("logging.properties")) {
-        LogManager logMan = LogManager.getLogManager();
-        logMan.readConfiguration(loggingProperties);
+    ClassLoader cl = MZmineLoggingConfiguration.class.getClassLoader();
+    final String fileName = "logging.properties";
+    final File externalConfig = FileAndPathUtil.resolveInMzmineDir(fileName);
+    if (!externalConfig.exists()) {
+      // copy file to the user/.mzmine directory to allow edits of log level by user 
+      try (InputStream is = cl.getResourceAsStream(fileName)) {
+        FileAndPathUtil.createDirectory(externalConfig.getParentFile());
+        if (is != null) {
+          Files.copy(is, externalConfig.toPath());
+        }
+      } catch (Exception e) {
+        logger.log(Level.WARNING, "Could not copy logging configuration file: " + e.getMessage(),
+            e);
       }
+    }
+
+    Properties merged = new Properties();
+    // user facing config
+    if (externalConfig.exists()) {
+      try (InputStream base = Files.newInputStream(externalConfig.toPath())) {
+        merged.load(base);
+      } catch (Exception e) {
+      }
+    }
+    if (merged.isEmpty()) {
+      // loading failed or file was not there
+      try (InputStream base = cl.getResourceAsStream(fileName)) {
+        merged.load(base);
+      } catch (Exception e) {
+      }
+    }
+    // overlay internal log config
+    try (InputStream env = cl.getResourceAsStream("internal_logging.properties")) {
+      Properties overlay = new Properties();
+      overlay.load(env);
+      merged.putAll(overlay); // overwrite user properties
+    } catch (Exception e) {
+    }
+
+    // apply merged config by turning properties into InputStream
+    try {
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      merged.store(out, null);
+      ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+      LogManager.getLogManager().readConfiguration(in);
+      return;
     } catch (Exception e) {
       logger.log(Level.WARNING, "error during logger setup: " + e.getMessage(), e);
       e.printStackTrace();
     }
-
   }
 
 }

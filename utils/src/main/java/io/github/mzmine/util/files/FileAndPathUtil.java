@@ -498,7 +498,7 @@ public class FileAndPathUtil {
     return new File(resolveInMzmineDir("external_resources"), name);
   }
 
-  @Nullable
+  @NotNull
   public static File resolveInMzmineDir(String name) {
     return new File(USER_MZMINE_DIR, name);
   }
