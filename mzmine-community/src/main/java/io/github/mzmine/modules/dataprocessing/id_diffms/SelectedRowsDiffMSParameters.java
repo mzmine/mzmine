@@ -26,12 +26,17 @@
 package io.github.mzmine.modules.dataprocessing.id_diffms;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 
 public class SelectedRowsDiffMSParameters extends DiffMSParameters {
 
+  public static final StringParameter rowIds = new StringParameter("Row IDs",
+      "The ids of the rows to be annotated.");
+
   public SelectedRowsDiffMSParameters() {
-    super(new Parameter[]{pythonExecutable, diffmsDir, checkpoint, device, topK, maxMs2Peaks,
-        subformulaTol, subformulaBeam});
+    super(new Parameter[]{rowIds.cloneParameter(), pythonExecutable.cloneParameter(),
+        diffmsDir.cloneParameter(), checkpoint.cloneParameter(), device.cloneParameter(),
+        topK.cloneParameter(), maxMs2Peaks.cloneParameter(), subformulaTol.cloneParameter()});
   }
 }
 
