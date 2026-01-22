@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,9 +63,11 @@ import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RITolerance;
@@ -588,5 +590,66 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
    */
   default @Nullable String getAdditionalJson() {
     return get(JsonStringType.class);
+  }
+
+  static @NotNull List<@NotNull CompoundDBAnnotation> buildMostIntenseIsotopeRatios(
+      @NotNull List<@NotNull CompoundDBAnnotation> source, @NotNull MZTolerance tol) {
+
+    @NotNull List<@NotNull CompoundDBAnnotation> isotopes = new ArrayList<>();
+
+    for (CompoundDBAnnotation compoundDBAnnotation : source) {
+      String formula = compoundDBAnnotation.getFormula();
+      if (formula == null) {
+        MolecularStructure structure = compoundDBAnnotation.getStructure();
+        if (structure == null || structure.formulaString() == null) {
+          continue;
+        }
+        formula = structure.formulaString();
+      }
+
+      final Map<String, Integer> formulaCounts = FormulaUtils.parseFormula(formula);
+      String replaced = formula.replaceAll("[CHONPS0-9]+", "");
+      final Integer numC = formulaCounts.get("C");
+      if (numC == null || (numC < 70 && replaced.isBlank())) {
+        continue;
+      }
+
+      final IonType adduct = compoundDBAnnotation.getAdductType();
+      if (adduct == null) {
+        continue;
+      }
+      final IMolecularFormula majorIsotopeMolFormula = FormulaUtils.createMajorIsotopeMolFormula(
+          formula);
+      if (majorIsotopeMolFormula == null) {
+        continue;
+      }
+      final IMolecularFormula majorIsotopeIon;
+      try {
+        majorIsotopeIon = adduct.addToFormula(majorIsotopeMolFormula, true);
+      } catch (CloneNotSupportedException e) {
+        continue;
+      }
+      final double majorIsotopeMz = FormulaUtils.calculateMzRatio(majorIsotopeIon);
+      final IsotopePattern pattern = IsotopePatternCalculator.calculateIsotopePattern(
+          majorIsotopeMolFormula, 0.005, tol.getMzToleranceForMass(majorIsotopeMz),
+          adduct.getCharge(), adduct.getPolarity(), true);
+      final int mostIntenseIndex = pattern.getBasePeakIndex();
+      if (tol.checkWithinTolerance(pattern.getMzValue(mostIntenseIndex), majorIsotopeMz)) {
+        // don't add if the most intense peak is the one we had previously
+        continue;
+      }
+
+      final CompoundDBAnnotation mainIsotopePeak = compoundDBAnnotation.clone();
+      mainIsotopePeak.put(PrecursorMZType.class, pattern.getMzValue(mostIntenseIndex));
+      if (pattern instanceof SimpleIsotopePattern sip) {
+        final String isotopeComposition = sip.getIsotopeComposition(mostIntenseIndex);
+        mainIsotopePeak.put(FormulaType.class, isotopeComposition);
+      }
+
+      mainIsotopePeak.put(CommentType.class, "Most intense isotope composition");
+      isotopes.add(mainIsotopePeak);
+    }
+
+    return isotopes;
   }
 }
