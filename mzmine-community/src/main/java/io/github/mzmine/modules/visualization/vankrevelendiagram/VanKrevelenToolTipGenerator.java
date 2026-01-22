@@ -54,7 +54,7 @@ public class VanKrevelenToolTipGenerator implements XYToolTipGenerator {
       final FeatureListRow row = vkDataset.getSelectedRow(item);
 
       final StringBuilder tooltip = new StringBuilder();
-      tooltip.append("Feature list ID: ").append(row.getID());
+      tooltip.append("Row ID: ").append(row.getID());
       tooltip.append("\n").append(xAxisLabel).append(": ")
           .append(ratioFormat.format(vkDataset.getXValue(series, item)));
       tooltip.append("\n").append(yAxisLabel).append(": ")
