@@ -43,7 +43,7 @@ public class StructureTableCell<S> extends TreeTableCell<S, Object> {
     setHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
 
     molViewer.moleculeProperty()
-        .bind(itemProperty().map(o -> (MolecularStructure) o).map(MolecularStructure::structure));
+        .bind(itemProperty().map(o -> ((MolecularStructure) o).structure()));
 
     // show or hide pane
     graphicProperty().bind(Bindings.createObjectBinding(
