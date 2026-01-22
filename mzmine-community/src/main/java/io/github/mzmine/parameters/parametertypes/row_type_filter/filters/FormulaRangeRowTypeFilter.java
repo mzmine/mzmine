@@ -27,6 +27,8 @@ package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.QueryFormatException;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
@@ -35,6 +37,7 @@ import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
@@ -89,10 +92,19 @@ class FormulaRangeRowTypeFilter extends AbstractRowTypeFilter {
   @Override
   public boolean matches(FeatureListRow row) {
     return CompoundAnnotationUtils.streamFeatureAnnotations(row).map(FeatureAnnotation::getFormula)
-        .anyMatch(this::matchesFormula);
+        .anyMatch(this::matchesFormula) || matchesFormulaListType(row);
   }
 
-  private boolean matchesFormula(String formulaStr) {
+  private boolean matchesFormulaListType(@NotNull final FeatureListRow row) {
+    final List<ResultFormula> formulas = row.get(FormulaListType.class);
+    if (formulas == null || formulas.isEmpty()) {
+      return false;
+    }
+
+    return formulas.stream().map(ResultFormula::getFormulaAsString).anyMatch(this::matchesFormula);
+  }
+
+  private boolean matchesFormula(@Nullable String formulaStr) {
     final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
     if (formula == null) {
       return false;
