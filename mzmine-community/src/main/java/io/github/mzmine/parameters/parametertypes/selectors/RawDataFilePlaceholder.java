@@ -112,24 +112,7 @@ public class RawDataFilePlaceholder implements RawDataFile {
    */
   @Nullable
   public RawDataFile getMatchingFile() {
-    final RawDataFile raw = weakRawRef.get();
-    if (raw != null) {
-      return raw;
-    }
-
-    final MZmineProject proj = ProjectService.getProject();
-    if (proj == null) {
-      return null;
-    }
-
-    final List<RawDataFile> allFiles = proj.getCurrentRawDataFiles();
-    for (RawDataFile dataFile : allFiles) {
-      if (matches(dataFile)) {
-        weakRawRef = new WeakReference<>(dataFile);
-        return dataFile;
-      }
-    }
-    return null;
+    return streamMatchingFiles(new RawDataFilePlaceholder[]{this}).findFirst().orElse(null);
   }
 
   public boolean matches(@Nullable final RawDataFile file) {
