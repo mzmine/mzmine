@@ -98,6 +98,7 @@ public class ReportingTask extends AbstractFeatureListTask {
       desc = "Exporting report for feature list %s to pdf.".formatted(flist.getName());
 
       final File exportPdf = getParameters().getValue(ReportingParameters.exportFile);
+      FileAndPathUtil.createDirectory(exportPdf.getParentFile());
       JasperExportManager.exportReportToPdfFile(jasperPrint,
           FileAndPathUtil.getRealFilePath(exportPdf, "pdf").getAbsolutePath());
       desc = "Exporting report for feature list %s to HTML.".formatted(flist.getName());
