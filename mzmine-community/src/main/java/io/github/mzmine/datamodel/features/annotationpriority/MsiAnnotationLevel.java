@@ -25,13 +25,16 @@
 
 package io.github.mzmine.datamodel.features.annotationpriority;
 
-public enum SumnerLevel {
+/**
+ * https://doi.org/10.1007/s11306-007-0082-2
+ */
+public enum MsiAnnotationLevel {
 
   LEVEL_1(1), LEVEL_2(2), LEVEL_3(3), LEVEL_4(4);
 
   private final int numberLevel;
 
-  SumnerLevel(int numberLevel) {
+  MsiAnnotationLevel(int numberLevel) {
     this.numberLevel = numberLevel;
   }
 
@@ -41,6 +44,6 @@ public enum SumnerLevel {
 
   @Override
   public String toString() {
-    return "Sumner level " + numberLevel;
+    return "MSI level " + numberLevel;
   }
 }

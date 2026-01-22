@@ -117,16 +117,13 @@ public class MolecularStructureType extends DataType<MolecularStructure> impleme
       return null;
     }
 
-    final DataType<?> mainType = switch (superType) {
-      case PreferredAnnotationType pt -> {
-        FeatureAnnotation annotation = row.getPreferredAnnotation();
-        if (annotation != null) {
-          yield DataTypes.get(annotation.getDataType());
-        }
-        yield superType;
-      }
-      case null, default -> superType;
-    };
+    final DataType<?> mainType;
+    if (superType instanceof PreferredAnnotationType pt
+        && row.getPreferredAnnotation() instanceof FeatureAnnotation a) {
+      mainType = DataTypes.get(a.getDataType());
+    } else {
+      mainType = superType;
+    }
 
     return () -> FxThread.runLater(() -> {
       if (mainType instanceof CompoundDatabaseMatchesType) {

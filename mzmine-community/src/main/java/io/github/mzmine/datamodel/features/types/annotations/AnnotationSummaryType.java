@@ -97,8 +97,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
     } else {
       // parent type not set -> is the "summary"/best annotation in the row -> get best annotation and grab summary from there
       column.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(
-          CompoundAnnotationUtils.getBestFeatureAnnotation(cdf.getValue().getValue())
-              .map(a -> AnnotationSummary.of(cdf.getValue().getValue(), a)).orElse(null)));
+          CompoundAnnotationUtils.getBestAnnotationSummary(cdf.getValue().getValue())));
     }
 
     column.setCellFactory(col -> new MicroChartCell());
@@ -203,7 +202,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
       tooltip.setText("""
           Annotation levels:
           %s
-          %s""".formatted(annotationSummary.deriveSumnerLevel(),
+          %s""".formatted(annotationSummary.deriveMsiLevel(),
           annotationSummary.deriveSchymanskiLevel()));
       setTooltip(tooltip);
 

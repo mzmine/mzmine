@@ -31,6 +31,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
+ * Can be used to generate values of data types on demand, e.g. if they are calculated when
+ * requested and the data is not stored in the data model. See
+ * {@link io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType} for an
+ * example.
+ *
  * <b>WARNING</b> Types extending this interface MUST NOT call
  * {@link io.github.mzmine.datamodel.features.ModularFeatureListRow#get(DataType)} with themself as
  * an argument, as this is exactly where {@link this#getValue(ModularDataModel)} is called, which

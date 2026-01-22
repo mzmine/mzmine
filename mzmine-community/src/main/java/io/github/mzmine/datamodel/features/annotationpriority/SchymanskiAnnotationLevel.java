@@ -27,19 +27,22 @@ package io.github.mzmine.datamodel.features.annotationpriority;
 
 import org.jetbrains.annotations.NotNull;
 
-public enum SchymanskiLevel {
+/**
+ * https://doi.org/10.1021/es5002105
+ */
+public enum SchymanskiAnnotationLevel {
 
   LEVEL_1(1), LEVEL_2a(2, "a"), LEVEL_2b(2, "b"), LEVEL_3(3), LEVEL_4(4), LEVEL_5(5);
 
   private final int numberLevel;
   private final @NotNull String letterLevel;
 
-  SchymanskiLevel(int numberLevel, @NotNull String letterLevel) {
+  SchymanskiAnnotationLevel(int numberLevel, @NotNull String letterLevel) {
     this.numberLevel = numberLevel;
     this.letterLevel = letterLevel;
   }
 
-  SchymanskiLevel(int numberLevel) {
+  SchymanskiAnnotationLevel(int numberLevel) {
     this(numberLevel, "");
   }
 
@@ -47,7 +50,6 @@ public enum SchymanskiLevel {
     return numberLevel;
   }
 
-  // ... existing code ...
   public @NotNull String letterLevel() {
     return letterLevel;
   }

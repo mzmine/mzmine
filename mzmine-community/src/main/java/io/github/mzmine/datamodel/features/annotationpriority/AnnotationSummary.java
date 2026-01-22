@@ -193,9 +193,9 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
    * https://pmc.ncbi.nlm.nih.gov/articles/PMC3772505/
    */
   @NotNull
-  public SumnerLevel deriveSumnerLevel() {
+  public MsiAnnotationLevel deriveMsiLevel() {
     if (annotation == null) {
-      return SumnerLevel.LEVEL_4;
+      return MsiAnnotationLevel.LEVEL_4;
     }
 
     return switch (annotation) {
@@ -203,27 +203,27 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
         if (l.getMsMsScore() != null && l.getMsMsScore() > 0d) {
           switch (l.getLipidAnnotation()) {
             case MolecularSpeciesLevelAnnotation _ -> {
-              yield SumnerLevel.LEVEL_2;
+              yield MsiAnnotationLevel.LEVEL_2;
             }
             case SpeciesLevelAnnotation _ -> {
-              yield SumnerLevel.LEVEL_3;
+              yield MsiAnnotationLevel.LEVEL_3;
             }
             case null, default -> {
             }
           }
         }
-        yield SumnerLevel.LEVEL_4;
+        yield MsiAnnotationLevel.LEVEL_4;
       }
-      case SpectralDBAnnotation _ -> SumnerLevel.LEVEL_2;
+      case SpectralDBAnnotation _ -> MsiAnnotationLevel.LEVEL_2;
       case CompoundDBAnnotation c -> {
         if (rtScore() > 0 || riScore() > 0) {
-          yield SumnerLevel.LEVEL_2;
+          yield MsiAnnotationLevel.LEVEL_2;
         } else if (c.get(SiriusCsiScoreType.class) != null) {
-          yield SumnerLevel.LEVEL_3;
+          yield MsiAnnotationLevel.LEVEL_3;
         }
-        yield SumnerLevel.LEVEL_4;
+        yield MsiAnnotationLevel.LEVEL_4;
       }
-      default -> SumnerLevel.LEVEL_4;
+      default -> MsiAnnotationLevel.LEVEL_4;
     };
   }
 
@@ -231,11 +231,11 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
    * https://pubs.acs.org/doi/10.1021/es5002105
    */
   @NotNull
-  public SchymanskiLevel deriveSchymanskiLevel() {
+  public SchymanskiAnnotationLevel deriveSchymanskiLevel() {
     final double ipScoreMatchThreshold = 0.75;
 
     if (annotation == null) {
-      return SchymanskiLevel.LEVEL_5;
+      return SchymanskiAnnotationLevel.LEVEL_5;
     }
 
     return switch (annotation) {
@@ -243,30 +243,31 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
         if (l.getMsMsScore() != null && l.getMsMsScore() > 0d) {
           switch (l.getLipidAnnotation()) {
             case MolecularSpeciesLevelAnnotation _ -> {
-              yield SchymanskiLevel.LEVEL_2a;
+              yield SchymanskiAnnotationLevel.LEVEL_2a;
             }
             case SpeciesLevelAnnotation _ -> {
-              yield SchymanskiLevel.LEVEL_2b;
+              yield SchymanskiAnnotationLevel.LEVEL_2b;
             }
             case null, default -> {
             }
           }
         }
         // lipids are hard to judge by isotope scores so default to level 5
-        yield SchymanskiLevel.LEVEL_5;
+        yield SchymanskiAnnotationLevel.LEVEL_5;
       }
       case SpectralDBAnnotation s ->
-          riScore() > 0 || rtScore() > 0 ? SchymanskiLevel.LEVEL_1 : SchymanskiLevel.LEVEL_2a;
+          riScore() > 0 || rtScore() > 0 ? SchymanskiAnnotationLevel.LEVEL_1
+              : SchymanskiAnnotationLevel.LEVEL_2a;
       case CompoundDBAnnotation c -> {
         if (c.get(SiriusCsiScoreType.class) != null) {
-          yield SchymanskiLevel.LEVEL_3;
+          yield SchymanskiAnnotationLevel.LEVEL_3;
         } else if (isotopeScore() >= ipScoreMatchThreshold) {
-          yield SchymanskiLevel.LEVEL_4;
+          yield SchymanskiAnnotationLevel.LEVEL_4;
         } else {
-          yield SchymanskiLevel.LEVEL_5;
+          yield SchymanskiAnnotationLevel.LEVEL_5;
         }
       }
-      default -> SchymanskiLevel.LEVEL_5;
+      default -> SchymanskiAnnotationLevel.LEVEL_5;
     };
   }
 

@@ -398,9 +398,9 @@ public class CompoundAnnotationUtils {
   /**
    *
    * @param topN The maximum number of annotations per type.
-   * @return A list of all feature annotations in no particular order.
+   * @return A list of the top-N feature annotations in no particular order.
    */
-  public static @NotNull List<@NotNull FeatureAnnotation> getFeatureAnnotations(
+  public static @NotNull List<@NotNull FeatureAnnotation> getTopNFeatureAnnotations(
       @Nullable ModularDataModel row, int topN) {
     if (row == null || row.isEmpty()) {
       return List.of();
@@ -436,7 +436,7 @@ public class CompoundAnnotationUtils {
    */
   public static @NotNull List<@NotNull FeatureAnnotation> getAllFeatureAnnotations(
       @Nullable ModularDataModel row) {
-    return getFeatureAnnotations(row, Integer.MAX_VALUE);
+    return getTopNFeatureAnnotations(row, Integer.MAX_VALUE);
   }
 
   /**
@@ -445,7 +445,7 @@ public class CompoundAnnotationUtils {
    */
   public static @NotNull List<@NotNull FeatureAnnotation> getTopAnnotationsPerType(
       @Nullable final ModularDataModel model) {
-    return getFeatureAnnotations(model, 1);
+    return getTopNFeatureAnnotations(model, 1);
   }
 
   /**
@@ -469,13 +469,6 @@ public class CompoundAnnotationUtils {
   }
 
   /**
-   * @return The data type of the best {@link FeatureAnnotation} or null if no annotation exists.
-   */
-  public static @Nullable DataType<?> getBestAnnotationType(@Nullable FeatureListRow row) {
-    return getBestFeatureAnnotation(row).map(a -> DataTypes.get(a.getDataType())).orElse(null);
-  }
-
-  /**
    *
    * @param topN Number of annotations <b>per</b> annotation type.
    * @return Annotation types sorted by descending confidence as defined by
@@ -486,7 +479,7 @@ public class CompoundAnnotationUtils {
     if (row == null) {
       return List.of();
     }
-    return getFeatureAnnotations(row, topN).stream().map(a -> AnnotationSummary.of(row, a))
+    return getTopNFeatureAnnotations(row, topN).stream().map(a -> AnnotationSummary.of(row, a))
         .sorted(AnnotationSummary.HIGH_TO_LOW_CONFIDENCE).map(AnnotationSummary::annotation)
         //.filter(Objects::nonNull) // cannot be null because input is not null
         .toList();
