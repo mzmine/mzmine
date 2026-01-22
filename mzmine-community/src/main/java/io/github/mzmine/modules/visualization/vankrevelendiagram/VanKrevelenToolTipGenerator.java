@@ -72,14 +72,14 @@ public class VanKrevelenToolTipGenerator implements XYToolTipGenerator {
             identifyNumberFormat(bubbleType).format(vkDataset.getBubbleSizeValue(series, item)));
       }
 
-      final String formula = vkDataset.getFormulaString(item);
-      if (formula != null) {
-        tooltip.append("\nFormula: ").append(formula);
-      }
-
       final String preferredAnnotationName = row.getPreferredAnnotationName();
       if (preferredAnnotationName != null) {
         tooltip.append("\n").append(preferredAnnotationName);
+      } else {
+        final String formula = vkDataset.getFormulaString(item);
+        if (formula != null) {
+          tooltip.append("\nFormula: ").append(formula);
+        }
       }
 
       return tooltip.toString();
