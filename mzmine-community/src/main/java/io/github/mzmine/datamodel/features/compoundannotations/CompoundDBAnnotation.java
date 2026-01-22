@@ -77,6 +77,8 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RIRecord;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -630,23 +632,56 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
         continue;
       }
       final double majorIsotopeMz = FormulaUtils.calculateMzRatio(majorIsotopeIon);
-      final IsotopePattern pattern = IsotopePatternCalculator.calculateIsotopePattern(
-          majorIsotopeMolFormula, 0.005, tol.getMzToleranceForMass(majorIsotopeMz),
-          adduct.getCharge(), adduct.getPolarity(), true);
-      final int mostIntenseIndex = pattern.getBasePeakIndex();
-      if (tol.checkWithinTolerance(pattern.getMzValue(mostIntenseIndex), majorIsotopeMz)) {
+      final IsotopePattern resolutionAdjustedPattern = IsotopePatternCalculator.calculateIsotopePattern(
+          majorIsotopeIon, 0.005, tol.getMzToleranceForMass(majorIsotopeMz), adduct.getCharge(),
+          adduct.getPolarity(), true);
+
+      if (resolutionAdjustedPattern.getNumberOfDataPoints() <= 1) {
+        continue;
+      }
+      final int mostIntenseIndex = resolutionAdjustedPattern.getBasePeakIndex();
+      if (tol.checkWithinTolerance(resolutionAdjustedPattern.getMzValue(mostIntenseIndex),
+          majorIsotopeMz)) {
         // don't add if the most intense peak is the one we had previously
         continue;
       }
 
       final CompoundDBAnnotation mainIsotopePeak = compoundDBAnnotation.clone();
-      mainIsotopePeak.put(PrecursorMZType.class, pattern.getMzValue(mostIntenseIndex));
-      if (pattern instanceof SimpleIsotopePattern sip) {
+      mainIsotopePeak.put(PrecursorMZType.class,
+          resolutionAdjustedPattern.getMzValue(mostIntenseIndex));
+      mainIsotopePeak.put(NeutralMassType.class,
+          adduct.getMass(resolutionAdjustedPattern.getMzValue(mostIntenseIndex)));
+      if (resolutionAdjustedPattern instanceof SimpleIsotopePattern sip) {
         final String isotopeComposition = sip.getIsotopeComposition(mostIntenseIndex);
-        mainIsotopePeak.put(FormulaType.class, isotopeComposition);
+        if (!isotopeComposition.contains(",")) { // may be multiple formulas (if merged)
+          mainIsotopePeak.put(FormulaType.class, isotopeComposition);
+          mainIsotopePeak.put(CommentType.class, isotopeComposition);
+        } else {
+          mainIsotopePeak.put(CommentType.class, "multiple: " + isotopeComposition);
+
+          // find the most intense individual isotope signal as representative
+          final IsotopePattern highResPattern = IsotopePatternCalculator.calculateIsotopePattern(
+              majorIsotopeIon, 0.005, 0d, adduct.getCharge(), adduct.getPolarity(), true);
+          final double mainPeak = mainIsotopePeak.getPrecursorMZ();
+          Range<Double> mainPeakRange = tol.getToleranceRange(mainPeak);
+          IndexRange peakRange = BinarySearch.indexRange(mainPeakRange,
+              highResPattern.getNumberOfDataPoints(), highResPattern::getMzValue);
+          if (peakRange.isEmpty()) {
+            continue;
+          }
+          int maxIndex = peakRange.min();
+          double maxIntensity = highResPattern.getIntensityValue(peakRange.min());
+          for (int i = peakRange.min() + 1; i < peakRange.maxExclusive(); i++) {
+            if (highResPattern.getIntensityValue(i) > maxIntensity) {
+              maxIndex = i;
+              maxIntensity = highResPattern.getIntensityValue(i);
+            }
+          }
+          mainIsotopePeak.put(FormulaType.class,
+              ((SimpleIsotopePattern) highResPattern).getIsotopeComposition(maxIndex));
+        }
       }
 
-      mainIsotopePeak.put(CommentType.class, "Most intense isotope composition");
       isotopes.add(mainIsotopePeak);
     }
 
