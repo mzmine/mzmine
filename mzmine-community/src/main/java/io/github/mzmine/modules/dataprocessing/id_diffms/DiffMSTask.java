@@ -90,6 +90,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
+import io.github.mzmine.util.FeatureListUtils;
+
 public class DiffMSTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(DiffMSTask.class.getName());
@@ -134,7 +136,21 @@ public class DiffMSTask extends AbstractTask {
       @NotNull final Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.flist = flist;
-    this.rowsOverride = rowsOverride == null ? null : List.copyOf(rowsOverride);
+    
+    // Check if we have specific row IDs in parameters (from SelectedRowsDiffMSParameters)
+    if (rowsOverride != null) {
+      this.rowsOverride = List.copyOf(rowsOverride);
+    } else if (parameters instanceof SelectedRowsDiffMSParameters 
+        && parameters.getParameter(SelectedRowsDiffMSParameters.rowIds).getValue() != null 
+        && !parameters.getParameter(SelectedRowsDiffMSParameters.rowIds).getValue().isBlank()
+        && flist instanceof ModularFeatureList modularFlist) {
+       this.rowsOverride = FeatureListUtils.idStringToRows(modularFlist, 
+           parameters.getParameter(SelectedRowsDiffMSParameters.rowIds).getValue())
+           .stream().map(ModularFeatureListRow.class::cast).toList();
+    } else {
+      this.rowsOverride = null;
+    }
+
     this.pythonExe = parameters.getValue(DiffMSParameters.pythonExecutable);
     this.diffmsDir = parameters.getValue(DiffMSParameters.diffmsDir);
     this.checkpoint = parameters.getValue(DiffMSParameters.checkpoint);
