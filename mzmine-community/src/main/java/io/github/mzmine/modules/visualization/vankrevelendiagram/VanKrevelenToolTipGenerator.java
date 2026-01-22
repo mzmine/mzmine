@@ -51,7 +51,7 @@ public class VanKrevelenToolTipGenerator implements XYToolTipGenerator {
   @Override
   public String generateToolTip(final XYDataset dataset, final int series, final int item) {
     if (dataset instanceof VanKrevelenDiagramXYZDataset vkDataset) {
-      final FeatureListRow row = vkDataset.getSelectedRow(item);
+      final FeatureListRow row = vkDataset.getRow(item);
 
       final StringBuilder tooltip = new StringBuilder();
       tooltip.append("Row ID: ").append(row.getID());

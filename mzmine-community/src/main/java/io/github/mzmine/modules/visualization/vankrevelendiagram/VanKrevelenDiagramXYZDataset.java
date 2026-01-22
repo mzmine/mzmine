@@ -149,13 +149,13 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
     };
   }
 
-  FeatureListRow getSelectedRow(final int item) {
+  FeatureListRow getRow(final int item) {
     return filteredRows.get(item);
   }
 
   @Nullable
   String getFormulaString(final int item) {
-    final Object ann = getSelectedRow(item).getPreferredAnnotation();
+    final Object ann = getRow(item).getPreferredAnnotation();
     return ann == null ? null : getFormulaFromAnnotation(ann);
   }
 
