@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.SearchableIonLibrary;
-import io.github.mzmine.datamodel.identities.iontype.SimpleIonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +51,7 @@ class LegacyIonNetworkLibrary {
   public IonLibrary toNewLibrary() {
     final List<IonType> ions = allAdducts.stream().map(LegacyIonType::toNewIonType)
         .filter(ionType -> !ionType.isUndefinedAdduct()).toList();
-    return new SimpleIonLibrary("Legacy library imported", ions);
+    return new UnmodifiableIonLibrary("Legacy library imported", ions);
   }
 
   private MZTolerance mzTolerance;

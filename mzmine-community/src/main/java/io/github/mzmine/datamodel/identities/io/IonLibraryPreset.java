@@ -28,7 +28,7 @@ package io.github.mzmine.datamodel.identities.io;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
-import io.github.mzmine.datamodel.identities.iontype.SimpleIonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import io.github.mzmine.util.presets.KnownPresetGroup;
 import io.github.mzmine.util.presets.Preset;
 import io.github.mzmine.util.presets.PresetCategory;
@@ -57,7 +57,7 @@ public record IonLibraryPreset(@JsonSerialize(using = IonLibrarySerializer.class
 
   @Override
   public @NotNull IonLibraryPreset withName(String name) {
-    return new IonLibraryPreset(new SimpleIonLibrary(name, library.ions()));
+    return new IonLibraryPreset(new UnmodifiableIonLibrary(name, library.ions()));
   }
 
 }

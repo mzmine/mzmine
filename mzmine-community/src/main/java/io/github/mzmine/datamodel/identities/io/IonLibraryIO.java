@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.SimpleIonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.JsonUtils;
@@ -132,16 +132,16 @@ public class IonLibraryIO {
     if (IonLibraries.isInternalLibrary(storable.name())) {
       // a loaded library with name default mzmine
       // this might point to a change of the default library content
-      // use different name instead
+      // use different name instead - content is different as this was checked before
       String newName = storable.name()
-          .replaceAll(IonLibraries.RESERVED_NAME, "updated internal library");
+          .replaceAll(IonLibraries.RESERVED_NAME, "internal library (changed)");
       logger.fine(
           "A library named '%s' was loaded but this internal library has now a different content. Using a different name '%s' now to refer to this library.".formatted(
               storable.name(), newName));
-      return new SimpleIonLibrary(newName, types);
+      return new UnmodifiableIonLibrary(newName, types);
     }
 
-    return new SimpleIonLibrary(storable.name(), types);
+    return new UnmodifiableIonLibrary(storable.name(), types);
   }
 
   /**

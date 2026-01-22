@@ -43,7 +43,7 @@ public enum IonTypeSorting {
    */
   MOLECULES_THEN_CHARGE_THEN_MASS( //
       Comparator.comparingInt(IonType::molecules).thenComparingInt(IonType::totalCharge)
-          .thenComparingDouble(IonType::totalMass)),
+          .thenComparingDouble(IonType::totalMass).thenComparing(IonType::name)),
   /**
    *
    */

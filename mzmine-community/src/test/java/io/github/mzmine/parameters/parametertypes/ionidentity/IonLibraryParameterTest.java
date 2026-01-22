@@ -34,7 +34,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
-import io.github.mzmine.datamodel.identities.iontype.SimpleIonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.List;
@@ -164,7 +164,7 @@ class IonLibraryParameterTest {
 
   @Test
   void saveLoadValueToXMLOnlyElectron() {
-    final IonLibraryParameter param = new IonLibraryParameter(new SimpleIonLibrary("Only e-",
+    final IonLibraryParameter param = new IonLibraryParameter(new UnmodifiableIonLibrary("Only e-",
         List.of(IonTypes.M_PLUS.asIonType(), IonTypes.M_MINUS.asIonType())));
 
     // save and load from string

@@ -149,7 +149,7 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
 
     final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
     final IonLibrary existing = global.getLibraryForName(lib.name()).orElse(null);
-    if (existing != null && !existing.equalContentIgnoreOrder(lib)) {
+    if (existing != null && !existing.equalIons(lib)) {
       conflict = "The ion library '%s' selected in the parameter component differs from the local version. ";
       if (existing.getNumIons() == lib.getNumIons()) {
         conflict = "The sizes are the same, but the defined ions may differ slightly.";

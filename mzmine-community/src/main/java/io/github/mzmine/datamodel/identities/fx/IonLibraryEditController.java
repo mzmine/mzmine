@@ -28,7 +28,7 @@ package io.github.mzmine.datamodel.identities.fx;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.SimpleIonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.AddIons;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.ComposeAddLibraries;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.Save;
@@ -67,7 +67,7 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
       @Nullable IonLibrary library) {
     if (IonLibraries.isInternalLibrary(library)) {
       // cannot change internal library so create copy with different name
-      library = new SimpleIonLibrary("unnamed library", library.ions());
+      library = new UnmodifiableIonLibrary("unnamed library", library.ions());
     }
 
     super(new IonLibraryEditModel(library));
@@ -167,7 +167,7 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
       if (nameUnique || DialogLoggerUtil.showDialogYesNo("Overwrite library named " + newName,
           "A library exists with this name, do you want to overwrite it?")) {
 
-        final SimpleIonLibrary newLibrary = new SimpleIonLibrary(newName,
+        final UnmodifiableIonLibrary newLibrary = new UnmodifiableIonLibrary(newName,
             List.copyOf(model.getIonTypes()));
 
         if (!saveAsCopy) {

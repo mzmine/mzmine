@@ -25,12 +25,25 @@
 
 package io.github.mzmine.javafx.components.formatters;
 
+import io.github.mzmine.javafx.components.controls.ListSelectTextField;
 import java.util.List;
 import java.util.function.Function;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Converts between String and elements of a list. This is useful when using a {@link TextField} or
+ * editable {@link ComboBox} to convert the user text to elements and elements to text. See it used
+ * in {@link ListSelectTextField}.
+ * <p>
+ * The internal list of elements can be mutable and changed in runtime. Only elements from this list
+ * are returned by {@link #fromString(String)} by comparing the result from the toStringFunction.
+ *
+ * @param <T> element type
+ */
 public class ListStringConverter<T> extends StringConverter<T> {
 
   private final List<T> items;

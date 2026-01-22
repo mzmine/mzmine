@@ -25,24 +25,100 @@
 
 package io.github.mzmine.datamodel.identities.iontype;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Deep immutable, makes sure that the ions list is immutable as well. Used for the internal
- * libraries.
+ * A simple unmodifiable ion library used by the parameter. Use
+ * {@link #toSearchableLibrary(boolean)} for an optimized version for searches.
+ * <p>
+ * The ions are in an unmodifiable list.
  */
-public class UnmodifiableIonLibrary extends SimpleIonLibrary {
+public class UnmodifiableIonLibrary implements IonLibrary {
 
-  public UnmodifiableIonLibrary(IonLibrary ionLibrary) {
-    super(true, ionLibrary.name(), Collections.unmodifiableList(ionLibrary.ions()));
+  private static final Logger logger = Logger.getLogger(UnmodifiableIonLibrary.class.getName());
+  private final @NotNull String name;
+  private final @NotNull List<IonType> ions;
+
+  /**
+   * @param skipNameCheck name check can only be skipped by classes in this package to create
+   *                      default libraries. Outside, there will always be a name check.
+   */
+  UnmodifiableIonLibrary(boolean skipNameCheck, @NotNull String name, @NotNull List<IonType> ions) {
+    if (!skipNameCheck && IonLibraries.isInternalLibrary(name)) {
+      // use try catch to get stack trace
+      // users might load a library with mzmine default in name
+      // maybe even old default libraries from former versions that are selected in the parameterset
+      try {
+        throw new IllegalArgumentException(
+            "The chosen name '%s' contains the part '%s', which is reserved for internal default libraries. Will use 'Unnamed' instead.".formatted(
+                name, IonLibraries.RESERVED_NAME));
+      } catch (Exception e) {
+        logger.log(Level.WARNING, e.getMessage(), e);
+      }
+      name = "unnamed library";
+    }
+    this.name = name;
+    List<IonType> sorted = new ArrayList<>(ions);
+    sorted.sort(IonTypeSorting.MOLECULES_THEN_CHARGE_THEN_MASS.getComparator());
+    this.ions = Collections.unmodifiableList(sorted);
   }
 
   /**
-   * @return as this instance is unmodifiable, return the instance itself
+   * Create a new library and check if name is valid
    */
+  public UnmodifiableIonLibrary(@NotNull String name, @NotNull List<IonType> ions) {
+    this(false, name, ions);
+  }
+
+  /**
+   * Option to create internal default libraries within this package
+   */
+  static UnmodifiableIonLibrary createInternal(@NotNull String name, @NotNull List<IonType> ions) {
+    return new UnmodifiableIonLibrary(true, name, ions);
+  }
+
+
+  @Override
+  @NotNull
+  public List<IonType> ions() {
+    return ions;
+  }
+
   @Override
   public @NotNull IonLibrary copy() {
-    return this;
+    return new UnmodifiableIonLibrary(true, name, ions);
   }
+
+  @Override
+  @NotNull
+  public String toString() {
+    return "%s (%d ions)".formatted(name, ions.size());
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (!(other instanceof UnmodifiableIonLibrary o)) {
+      return false;
+    }
+
+    return name.equals(o.name) && equalIons(o);
+  }
+
+  @Override
+  public @NotNull String name() {
+    return name;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, ions);
+  }
+
+
 }

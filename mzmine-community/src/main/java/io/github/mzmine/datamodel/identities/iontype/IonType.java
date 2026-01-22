@@ -87,6 +87,9 @@ public final class IonType {
    * @param molecules
    */
   IonType(@NotNull List<@NotNull IonPart> parts, int molecules) {
+    if (molecules < 1) {
+      molecules = 1;
+    }
     // requires to merge all the same IonParts into single objects by adding up their count multiplier
     // sort so that name will be correct
     parts = IonParts.mergeDuplicates(parts).stream()
