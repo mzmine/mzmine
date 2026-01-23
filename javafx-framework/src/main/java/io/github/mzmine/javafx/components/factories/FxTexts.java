@@ -31,7 +31,6 @@ import io.github.mzmine.javafx.components.util.FxStyles;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import java.util.Arrays;
 import javafx.beans.value.ObservableValue;
-import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import org.jetbrains.annotations.NotNull;
@@ -129,20 +128,4 @@ public class FxTexts {
     return text;
   }
 
-  public static Label colored(Label text, ObservableValue<Color> color) {
-    // text.setFill does not work - overwritten by css?
-    color.subscribe((nv) -> {
-      final String colorStr = nv == null ? null : FxColorUtil.colorToHex(nv);
-      final String style = FxStyles.replaceProperty(text.getStyle(), "-fx-text-fill", colorStr);
-      text.setStyle(style);
-    });
-    return text;
-  }
-
-  public static Label colored(Label text, Color color) {
-    final String colorStr = color == null ? null : FxColorUtil.colorToHex(color);
-    final String style = FxStyles.replaceProperty(text.getStyle(), "-fx-text-fill", colorStr);
-    text.setStyle(style);
-    return text;
-  }
 }

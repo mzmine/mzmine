@@ -26,6 +26,7 @@
 package io.github.mzmine.javafx.components.factories;
 
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.components.util.FxStyles;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
@@ -175,4 +176,20 @@ public class FxLabels {
     return hyperlink;
   }
 
+  public static Label colored(Label text, ObservableValue<Color> color) {
+    // text.setFill does not work - overwritten by css?
+    color.subscribe((nv) -> {
+      final String colorStr = nv == null ? null : FxColorUtil.colorToHex(nv);
+      final String style = FxStyles.replaceProperty(text.getStyle(), "-fx-text-fill", colorStr);
+      text.setStyle(style);
+    });
+    return text;
+  }
+
+  public static Label colored(Label text, Color color) {
+    final String colorStr = color == null ? null : FxColorUtil.colorToHex(color);
+    final String style = FxStyles.replaceProperty(text.getStyle(), "-fx-text-fill", colorStr);
+    text.setStyle(style);
+    return text;
+  }
 }
