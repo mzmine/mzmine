@@ -39,9 +39,9 @@ import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotat
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.AnnotationMethodType;
 import io.github.mzmine.datamodel.features.types.annotations.AnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
-import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
@@ -525,6 +525,7 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
             (float) this.getSimilarity().getExplainedLibraryIntensity();
         case MatchingSignalsType _ -> this.getSimilarity().getOverlap();
         case MzPpmDifferenceType _ -> this.getMzPpmError(); // not added as type so needs mapping
+        case AnnotationMethodType _ -> getAnnotationMethodName(); // not in map so need method call
         case AnnotationSummaryType _ -> null; // created on demand in cell factory
         default -> null; // just return null here as type is just unknown to this match
       };
