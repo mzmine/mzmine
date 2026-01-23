@@ -296,9 +296,12 @@ def process_item_worker(item, subform_dir_str, args_ns):
         if imax > 0:
             frag_ints = [x / imax for x in frag_ints]
 
-    # Write result
-    tree = {"cand_form": formula, "cand_ion": root_ion,
-            "output_tbl": {"formula": frag_forms, "ms2_inten": frag_ints, "ions": frag_ions}}
+    # Write PeakFormula subformula JSON
+    # If no subformula assignments are provided/usable, PeakFormula expects output_tbl=null.
+    output_tbl = None
+    if frag_forms:
+        output_tbl = {"formula": frag_forms, "ms2_inten": frag_ints, "ions": frag_ions}
+    tree = {"cand_form": formula, "cand_ion": root_ion, "output_tbl": output_tbl}
     
     subform_dir = Path(subform_dir_str)
     subform_file = subform_dir / f"{row_id}.json"

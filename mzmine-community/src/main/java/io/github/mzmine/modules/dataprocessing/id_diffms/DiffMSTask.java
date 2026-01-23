@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
@@ -66,6 +67,7 @@ import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.annotations.ConnectedTypeCalculation;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -89,6 +91,7 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import io.github.mzmine.util.FeatureListUtils;
 
@@ -222,7 +225,31 @@ public class DiffMSTask extends AbstractTask {
         throw new IllegalStateException("Unexpected row type.");
       }
 
-      final String formula = resolveFormula(mrow);
+      final FeatureAnnotation bestAnn = CompoundAnnotationUtils.getBestFeatureAnnotation(mrow)
+          .orElse(null);
+      final String formula;
+      final IonType adduct;
+
+      if (bestAnn != null && bestAnn.getFormula() != null && bestAnn.getAdductType() != null) {
+        formula = bestAnn.getFormula();
+        adduct = bestAnn.getAdductType();
+      } else {
+        formula = resolveFormula(mrow);
+        if (formula == null) {
+          skippedNoFormula++;
+          continue;
+        }
+
+        try {
+          adduct = resolveAdduct(mrow, formula);
+        } catch (IllegalStateException e) {
+          skippedBadAdduct++;
+          logger.info(() -> "DiffMS: skipping row " + row.getID() + " due to adduct issue: "
+              + e.getMessage());
+          continue;
+        }
+      }
+
       if (formula != null) {
         final Map<String, Integer> parsedFormula = FormulaUtils.parseFormula(formula);
         final List<String> unsupportedElements = parsedFormula.keySet().stream()
@@ -236,24 +263,14 @@ public class DiffMSTask extends AbstractTask {
       }
 
       final List<Scan> ms2 = mrow.getAllFragmentScans();
-      if (formula == null) {
-        skippedNoFormula++;
-        continue;
-      }
       if (ms2.isEmpty()) {
         skippedNoMs2++;
         continue;
       }
 
-      final IonType adduct;
-      try {
-        adduct = resolveAdduct(mrow, formula);
-      } catch (IllegalStateException e) {
-        skippedBadAdduct++;
-        logger.info(() -> "DiffMS: skipping row " + row.getID() + " due to adduct issue: "
-            + e.getMessage());
-        continue;
-      }
+      // DiffMS/MIST expects the parent formula to be neutral (no adduct / no in-source modifications
+      // baked into the formula). Some pipelines store ionized/modified formulas; try to normalize.
+      final String neutralFormula = normalizeParentFormulaIfNeeded(mrow, formula, adduct);
 
       final var ms2WithMassList = ms2.stream().filter(s -> s.getMassList() != null).toList();
       if (ms2WithMassList.isEmpty()) {
@@ -299,7 +316,7 @@ public class DiffMSTask extends AbstractTask {
       }
 
       rowsById.put(row.getID(), mrow);
-      formulaByRowId.put(row.getID(), formula);
+      formulaByRowId.put(row.getID(), neutralFormula);
       adductByRowId.put(row.getID(), adduct);
 
       final double[] subMzs = new double[take];
@@ -309,7 +326,7 @@ public class DiffMSTask extends AbstractTask {
         subIntens[i] = dps[i].getIntensity();
       }
       final var topNms2 = new SimpleMassSpectrum(subMzs, subIntens);
-      final List<DiffMSSubformula> sub = resolveSubformulas(mrow, formula, adduct, topNms2);
+      final List<DiffMSSubformula> sub = resolveSubformulas(mrow, neutralFormula, adduct, topNms2);
 
       final Scan firstMs2 = ms2.get(0);
       final MsMsInfo msmsInfo = firstMs2.getMsMsInfo();
@@ -321,7 +338,7 @@ public class DiffMSTask extends AbstractTask {
       final String scanDefinition = firstMs2.getScanDefinition();
       final String instrument = resolveInstrumentString(firstMs2);
 
-      final DiffMSInputItem item = new DiffMSInputItem(row.getID(), formula, adduct.toString(),
+      final DiffMSInputItem item = new DiffMSInputItem(row.getID(), neutralFormula, adduct.toString(),
           mzOut, intOut, "POSITIVE", sub, instrument, scanDefinition,
           activationEnergy == null ? null : activationEnergy.doubleValue(), activationMethod,
           precursorMz != null ? precursorMz : row.getAverageMZ(), precursorCharge);
@@ -612,12 +629,11 @@ public class DiffMSTask extends AbstractTask {
   }
 
   private static String resolveFormula(final ModularFeatureListRow row) {
-    final List<ResultFormula> fromAnnotations = ResultFormula.forAllAnnotations(row, true);
-    if (!fromAnnotations.isEmpty()) {
-      final String f = fromAnnotations.get(0).getFormulaAsString();
-      if (f != null && !f.isBlank()) {
-        return f;
-      }
+    // Priority 1: Feature annotations (this is also handled in the main loop, but here we cover the case
+    // where we only have a formula but no adduct in the annotation, and want to use that formula)
+    final String bestAnnFormula = CompoundAnnotationUtils.getBestFormula(row);
+    if (bestAnnFormula != null) {
+      return bestAnnFormula;
     }
 
     final List<ResultFormula> consensus = row.get(ConsensusFormulaListType.class);
@@ -681,12 +697,98 @@ public class DiffMSTask extends AbstractTask {
       final List<SignalWithFormulae> peaksWithFormulae = FragmentUtils.getPeaksWithFormulae(
           ionFormula, mergedMs2, SpectralSignalFilter.DEFAULT_NO_PRECURSOR, subformulaTol);
 
-      return peaksWithFormulae.stream().flatMap(swf -> swf.formulae().stream().map(
-          f -> new DiffMSSubformula(f.formulaString(), swf.peak().getIntensity()))).toList();
+      // DiffMS expects neutral subformulas. The fragment formulae returned by FragmentUtils are
+      // subformulas of the ionized/modified precursor formula; we therefore "unapply" the same
+      // ion type again so PeakFormula can re-apply it via the "ions" field.
+      final String ionStr = adduct.toString();
+      return peaksWithFormulae.stream().flatMap(swf -> swf.formulae().stream().map(f -> {
+        final String neutralFrag = unapplyIonTypeToNeutralFormulaString(f.formula(), adduct);
+        if (neutralFrag == null || neutralFrag.isBlank()) {
+          return null;
+        }
+        return new DiffMSSubformula(neutralFrag, swf.peak().getIntensity(), ionStr);
+      })).filter(Objects::nonNull).toList();
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not resolve subformulas for row " + row.getID(), e);
       return List.of();
     }
+  }
+
+  /**
+   * DiffMS/MIST expects neutral (de-adducted) formulas, with the ion/adduct provided separately.
+   * This tries to detect and fix cases where the stored formula already includes the ion type's
+   * adduct and/or in-source modifications.
+   */
+  private static String normalizeParentFormulaIfNeeded(final ModularFeatureListRow row,
+      final String formula, final IonType ionType) {
+    if (formula == null || formula.isBlank()) {
+      return formula;
+    }
+    // If we cannot compute a neutral m/z for this ion type, do not attempt normalization.
+    if (ionType.getAbsCharge() == 0) {
+      return formula;
+    }
+
+    final double observedMz = row.getAverageMZ();
+    final MZTolerance tolerance = SpectraMerging.defaultMs2MergeTol;
+
+    final double mzA;
+    try {
+      mzA = ionType.getMZ(FormulaUtils.calculateExactMass(formula));
+    } catch (Exception e) {
+      return formula;
+    }
+
+    // If it already matches reasonably well, treat it as neutral and keep.
+    if (tolerance.checkWithinTolerance(mzA, observedMz)) {
+      return formula;
+    }
+
+    final String candidate = unapplyIonTypeToNeutralFormulaString(formula, ionType);
+    if (candidate == null || candidate.isBlank()) {
+      return formula;
+    }
+
+    final double mzB;
+    try {
+      mzB = ionType.getMZ(FormulaUtils.calculateExactMass(candidate));
+    } catch (Exception e) {
+      return formula;
+    }
+
+    final double diffA = Math.abs(mzA - observedMz);
+    final double diffB = Math.abs(mzB - observedMz);
+
+    // Prefer the neutralized candidate if it improves the m/z agreement and is within tolerance.
+    if (diffB < diffA && tolerance.checkWithinTolerance(mzB, observedMz)) {
+      logger.fine(() -> "DiffMS: normalized ionized parent formula for row " + row.getID() + " from "
+          + formula + " to " + candidate + " for ion " + ionType);
+      return candidate;
+    }
+    return formula;
+  }
+
+  /**
+   * Inverts {@link IonType#addToFormula(IMolecularFormula)} at the elemental-composition level.
+   * Returns a neutral formula string (charge cleared) or null if the operation fails.
+   */
+  private static @Nullable String unapplyIonTypeToNeutralFormulaString(
+      final @NotNull IMolecularFormula ionFormula, final @NotNull IonType ionType) {
+    try {
+      final IMolecularFormula result = ionType.removeFromFormula(ionFormula);
+      return MolecularFormulaManipulator.getString(result);
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  private static @Nullable String unapplyIonTypeToNeutralFormulaString(
+      final @NotNull String maybeIonizedFormula, final @NotNull IonType ionType) {
+    final IMolecularFormula f = FormulaUtils.createMajorIsotopeMolFormula(maybeIonizedFormula);
+    if (f == null) {
+      return null;
+    }
+    return unapplyIonTypeToNeutralFormulaString(f, ionType);
   }
 
   @JsonInclude(Include.NON_NULL)
@@ -695,7 +797,7 @@ public class DiffMSTask extends AbstractTask {
   }
 
   @JsonInclude(Include.NON_NULL)
-  private record DiffMSSubformula(String formula, double intensity) {
+  private record DiffMSSubformula(String formula, double intensity, @Nullable String ion) {
 
   }
 

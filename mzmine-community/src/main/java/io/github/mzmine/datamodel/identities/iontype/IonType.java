@@ -43,6 +43,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.apache.commons.math.MathException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
@@ -564,6 +565,53 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
       result.setCharge(formulaCharge + ionTypeCharge);
     }
 
+    return result;
+  }
+
+  /**
+   * Inverts {@link #addToFormula(IMolecularFormula, boolean)} by removing all adducts and
+   * modifications and dividing by the number of molecules. The resulting formula is neutral
+   * (charge=0).
+   *
+   * @param formula ionized formula
+   * @return neutral formula M
+   */
+  public IMolecularFormula removeFromFormula(IMolecularFormula formula)
+      throws CloneNotSupportedException {
+    IMolecularFormula result = (IMolecularFormula) formula.clone();
+
+    // subtract adduct modifications
+    Arrays.stream(adduct.getModifications()).filter(m -> m.getCDKFormula() != null).forEach(m -> {
+      if (m.getMass() >= 0) {
+        FormulaUtils.subtractFormula(result, m.getCDKFormula());
+      } else {
+        FormulaUtils.addFormula(result, m.getCDKFormula());
+      }
+    });
+
+    // subtract source modifications
+    if (mod != null) {
+      Arrays.stream(mod.getModifications()).filter(m -> m.getCDKFormula() != null).forEach(m -> {
+        if (m.getMass() >= 0) {
+          FormulaUtils.subtractFormula(result, m.getCDKFormula());
+        } else {
+          FormulaUtils.addFormula(result, m.getCDKFormula());
+        }
+      });
+    }
+
+    // divide by molecules
+    if (molecules > 1) {
+      for (IIsotope iso : result.isotopes()) {
+        int count = result.getIsotopeCount(iso);
+        result.removeIsotope(iso);
+        if (count > 0) {
+          result.addIsotope(iso, count / molecules);
+        }
+      }
+    }
+
+    result.setCharge(0);
     return result;
   }
 
