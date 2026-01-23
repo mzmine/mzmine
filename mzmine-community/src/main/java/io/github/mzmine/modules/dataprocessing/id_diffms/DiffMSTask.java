@@ -240,12 +240,11 @@ public class DiffMSTask extends AbstractTask {
           continue;
         }
 
-        try {
-          adduct = resolveAdduct(mrow, formula);
-        } catch (IllegalStateException e) {
+        adduct = resolveAdduct(mrow, formula);
+        if (adduct == null) {
           skippedBadAdduct++;
-          logger.info(() -> "DiffMS: skipping row " + row.getID() + " due to adduct issue: "
-              + e.getMessage());
+          logger.info(() -> "DiffMS: skipping row " + row.getID()
+              + " due to missing or unsupported adduct (run Ion Identity Networking / set Ion identity / ensure annotations include an adduct).");
           continue;
         }
       }
@@ -655,12 +654,11 @@ public class DiffMSTask extends AbstractTask {
     return null;
   }
 
-  private static IonType resolveAdduct(final ModularFeatureListRow row, final String formula) {
+  private static @Nullable IonType resolveAdduct(final ModularFeatureListRow row, final String formula) {
     final var ion = FeatureUtils.extractBestIonIdentity(null, row).orElse(null);
     if (ion != null) {
       if (ion.getPolarity() == PolarityType.NEGATIVE) {
-        throw new IllegalStateException(
-            "Negative polarity ion types are not supported by the DiffMS ion list: " + ion);
+        return null;
       }
       return ion;
     }
@@ -673,17 +671,13 @@ public class DiffMSTask extends AbstractTask {
           SpectraMerging.defaultMs2MergeTol, PolarityType.POSITIVE);
       if (mod != null) {
         if (mod.getPolarity() == PolarityType.NEGATIVE) {
-          throw new IllegalStateException(
-              "Guessed negative polarity ion modification is not supported by the DiffMS ion list: "
-                  + mod);
+          return null;
         }
         return new IonType(mod);
       }
     }
 
-    throw new IllegalStateException(
-        "Missing adduct/ion type for row " + row.getID()
-            + " (run Ion Identity Networking / set Ion identity / ensure annotations include an adduct).");
+    return null;
   }
 
   private List<DiffMSSubformula> resolveSubformulas(final ModularFeatureListRow row,
