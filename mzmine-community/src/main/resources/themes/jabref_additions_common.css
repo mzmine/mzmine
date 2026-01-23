@@ -47,19 +47,19 @@ Text.error-label {
   -fx-icon-color: -warning-text-color;
 }
 
+Text.warning-label {
+  /* Text uses fill instead of text fill */
+  -fx-fill: -warning-text-color;
+}
+
 .contrast-label {
   -fx-text-fill: -contrast-text-color;
   -fx-icon-color: -contrast-text-color;
 }
 
-.contrast-text {
+Text.contrast-label {
   -fx-fill: -contrast-text-color;
   -fx-icon-color: -contrast-text-color;
-}
-
-Text.warning-label {
-  /* Text uses fill instead of text fill */
-  -fx-fill: -warning-text-color;
 }
 
 /* Option to set all Text children in TextFlow to yellow */

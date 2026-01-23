@@ -41,15 +41,18 @@ public class FxLabels {
 
   public enum Styles {
     REGULAR, BOLD_TITLE, BOLD_SEMI_TITLE, BOLD, ITALIC, // colored
-    WARNING, ERROR,
     /**
-     * Changes color of LABELS
+     * Changes color of LABELS to yellow
      */
-    CONTRAST_LABEL,
+    WARNING,
     /**
-     * Changes color of TEXT
+     * Changes color of LABELS to red/orange
      */
-    CONTRAST_TEXT;
+    ERROR,
+    /**
+     * Changes color of LABELS to magenta
+     */
+    CONTRAST_LABEL;
 
     public void addStyleClass(Node label) {
       var style = getStyleClass();
@@ -69,7 +72,6 @@ public class FxLabels {
         case BOLD -> "bold-label";
         case ITALIC -> "italic-label";
         case CONTRAST_LABEL -> "contrast-label";
-        case CONTRAST_TEXT -> "contrast-text";
       };
     }
   }

@@ -275,11 +275,11 @@ public class GroupedParameterSetupPane extends BorderPane {
           selected.add(up);
           // make text clickable to auto filter
           final Text text = FxTexts.styledText(up.getName(), Styles.BOLD_SEMI_TITLE,
-              Styles.CONTRAST_TEXT);
+              Styles.CONTRAST_LABEL);
           text.getStyleClass().add("text-hover");
           text.setOnMouseClicked(_ -> setSearchFilter(up.getName()));
           if (selected.size() > 1) {
-            texts.add(FxTexts.styledText(", ", Styles.BOLD_SEMI_TITLE, Styles.CONTRAST_TEXT));
+            texts.add(FxTexts.styledText(", ", Styles.BOLD_SEMI_TITLE, Styles.CONTRAST_LABEL));
           }
           texts.add(text);
         }
