@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.presets;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.presets.Preset;
 import io.github.mzmine.util.presets.PresetCategory;
 import org.jetbrains.annotations.NotNull;
@@ -59,4 +60,21 @@ public record ModulePreset(String name, @NotNull String presetGroup,
     return PresetCategory.MODULES;
   }
 
+
+  public static @NotNull String getApplyPresetMessage(ParameterSet parameters) {
+    final String msg = "Do you want to overwrite the current parameters?";
+    final String loadingVersionMessages = parameters.getLoadingVersionMessages();
+    if (!StringUtils.isBlank(loadingVersionMessages)) {
+      return """              
+          The preset was created with an older version of the parameter set. Changes are:
+          %s
+          
+          It is recommended to load the preset, confirm and adapt the parameters and then saving the preset to update it.
+          
+          %s
+          """.formatted(loadingVersionMessages, msg);
+    }
+
+    return msg;
+  }
 }
