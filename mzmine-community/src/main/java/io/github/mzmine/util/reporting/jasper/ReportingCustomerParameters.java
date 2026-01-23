@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,10 +25,12 @@
 
 package io.github.mzmine.util.reporting.jasper;
 
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import java.util.Map;
 import javax.validation.constraints.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ReportingCustomerParameters extends SimpleParameterSet {
 
@@ -39,9 +42,11 @@ public class ReportingCustomerParameters extends SimpleParameterSet {
       "The address of the customer.", "", false);
   public static final StringParameter customerProject = new StringParameter(
       "Customer project reference", "A reference provided to the customer.", "", false);
+  public static final StringParameter customerCostCenter = new StringParameter(
+      "Customer cost center", "The customer's cost center to be billed.", "", false);
 
   public ReportingCustomerParameters() {
-    super(customerName, customerDepartment, customerAddress, customerProject);
+    super(customerName, customerDepartment, customerAddress, customerProject, customerCostCenter);
   }
 
   public void addToMetadata(@NotNull Map<String, Object> jasperParam) {
@@ -50,5 +55,29 @@ public class ReportingCustomerParameters extends SimpleParameterSet {
         getValue(ReportingCustomerParameters.customerDepartment));
     jasperParam.put("META_CUSTOMER_ADDRESS", getValue(ReportingCustomerParameters.customerAddress));
     jasperParam.put("META_CUSTOMER_PROJECT", getValue(ReportingCustomerParameters.customerProject));
+    jasperParam.put("META_CUSTOMER_COST_CENTER",
+        getValue(ReportingCustomerParameters.customerCostCenter));
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 2 -> "Added \"Customer cost center\" to the reporting customer parameters.";
+      default -> null;
+    };
+  }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+
+    if (loadedParams.get(ReportingCustomerParameters.customerCostCenter.getName()) == null) {
+      setParameter(ReportingCustomerParameters.customerCostCenter, "");
+    }
   }
 }
