@@ -95,7 +95,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
         return new ReadOnlyObjectWrapper<>();
       });
     } else {
-      // parent type not set -> is the "summary"/best annotation in the row -> get best annotation and grab summary from there
+      // currently not used but in case this type was added directly to the row, then use the preferred annotation
       column.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(
           CompoundAnnotationUtils.getBestAnnotationSummary(cdf.getValue().getValue())));
     }
