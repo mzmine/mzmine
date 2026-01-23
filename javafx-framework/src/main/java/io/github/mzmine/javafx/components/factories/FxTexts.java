@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.components.factories.FxLabels.Styles;
 import io.github.mzmine.javafx.components.util.FxStyles;
 import io.github.mzmine.javafx.util.FxColorUtil;
+import java.util.Arrays;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
@@ -63,16 +64,17 @@ public class FxTexts {
     return styledText(content, Styles.ITALIC.getStyleClass());
   }
 
-  public static Text styledText(String content, Styles style) {
-    return styledText(content, style.getStyleClass());
+  public static Text styledText(String content, Styles... style) {
+    return styledText(content,
+        Arrays.stream(style).map(Styles::getStyleClass).toArray(String[]::new));
   }
 
-  public static Text styledText(String content, String styleClass) {
+  public static Text styledText(String content, String... styleClass) {
     return styledText(text(content), styleClass);
   }
 
-  public static @NotNull Text styledText(Text text, String styleClass) {
-    text.getStyleClass().add(styleClass);
+  public static @NotNull Text styledText(Text text, String... styleClass) {
+    text.getStyleClass().addAll(styleClass);
     return text;
   }
 
