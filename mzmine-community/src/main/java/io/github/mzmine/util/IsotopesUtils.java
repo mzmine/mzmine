@@ -202,8 +202,9 @@ public class IsotopesUtils {
     // Compute pairwise mass differences within isotopes of each element
     for (Element element : elements) {
       // Filter out not stable isotopes
+      // changed in mzmine 4.9 to filter out isotopes of not so common elements with low natural abundance like 36S
       List<IIsotope> abundantIsotopes = Arrays.stream(isotopes.getIsotopes(element.getSymbol()))
-          .filter(i -> Doubles.compare(i.getNaturalAbundance(), 0) > 0d).toList();
+          .filter(IsotopesUtils::filterIsotope).toList();
 
       // Compute pairwise mass differences and divide each one with charges up to maxCharge
       for (int i = 0; i < abundantIsotopes.size(); i++) {
@@ -222,6 +223,20 @@ public class IsotopesUtils {
       Collections.sort(diffs);
     }
     return isotopeMzDiffs;
+  }
+
+  /**
+   * Used to just accept all isotopes but in mzmine 4.9 was changed to accept all from main isotopes
+   * but only more abundant isotopes from other elements that are typically only found a few atoms
+   * of this element per molecule. Like few S in molecule so [36]S will be removed.
+   *
+   * @return true if isotope should be kept
+   */
+  private static boolean filterIsotope(IIsotope i) {
+    return switch (i.getAtomicNumber()) {
+      case Element.H, Element.C, Element.O, Element.N -> i.getNaturalAbundance() > 0d;
+      default -> i.getNaturalAbundance() > 0.05d;
+    };
   }
 
   public static List<Double> getIsotopesMzDiffsCombined(List<Element> elements, int maxCharge,

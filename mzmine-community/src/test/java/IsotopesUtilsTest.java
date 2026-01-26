@@ -25,11 +25,13 @@
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
@@ -43,8 +45,13 @@ import io.github.mzmine.util.IsotopesUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.spectraldb.parser.SingleSpectrumCsvParser;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import java.io.File;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.openscience.cdk.Element;
 import org.openscience.cdk.interfaces.IIsotope;
@@ -106,6 +113,44 @@ class IsotopesUtilsTest {
       knownMzs.add(dp);
     }
   }
+
+  @Test
+  void findIsotopePatternInScan() throws URISyntaxException {
+    int maxCharge = 5;
+    List<Element> elements = Stream.of(Element.C, Element.H, Element.N, Element.O, Element.S)
+        .map(n -> new Element(null, n)).toList();
+
+    DoubleArrayList[] isoMzDiffsForCharge = IsotopesUtils.getIsotopesMzDiffsForCharge(elements,
+        maxCharge);
+
+    final File file = new File(
+        getClass().getClassLoader().getResource("rawdatafiles/single_scan.tsv").toURI());
+    final MassList scan = SingleSpectrumCsvParser.readFile(file);
+
+    assertNotNull(scan);
+
+    // example feature detected as charge 4 but is charge 1
+    final SimpleDataPoint featureDp = new SimpleDataPoint(536.1654, 1.4E6);
+
+    final MZTolerance mzTol = new MZTolerance(0.0015, 5);
+    List<List<DataPoint>> chargeCandidates = new ArrayList<>();
+
+    for (int i = 0; i < maxCharge; i++) {
+      int charge = i + 1;
+
+      List<DataPoint> candidates = IsotopesUtils.findIsotopesInScan(isoMzDiffsForCharge[i], mzTol,
+          scan, featureDp);
+      chargeCandidates.add(candidates);
+    }
+
+    assertFalse(chargeCandidates.isEmpty());
+    assertEquals(5, chargeCandidates.get(0).size());
+    assertEquals(5, chargeCandidates.get(1).size());
+    assertEquals(1, chargeCandidates.get(2).size());
+    assertEquals(1, chargeCandidates.get(3).size());
+    assertEquals(1, chargeCandidates.get(4).size());
+  }
+
 
   @Test
   void findsIsotopePatternStartingAtPeak3() {
@@ -296,7 +341,8 @@ class IsotopesUtilsTest {
     for (int i = 1; i < br3C10.getNumberOfDataPoints(); i++) {
       // all other should find a previous signal
       assertFalse(
-          IsotopePatternUtils.check13CPattern(br3C10, br3C10.getMzValue(i), mzTol, 2, true, br, true), String.format("Br3C10 isotope signal i=%d detected as main", i));
+          IsotopePatternUtils.check13CPattern(br3C10, br3C10.getMzValue(i), mzTol, 2, true, br,
+              true), String.format("Br3C10 isotope signal i=%d detected as main", i));
     }
 
     // change up some of the intensities - should be false in the end
