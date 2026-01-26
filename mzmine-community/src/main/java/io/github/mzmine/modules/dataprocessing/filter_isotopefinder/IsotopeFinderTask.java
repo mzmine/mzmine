@@ -86,13 +86,19 @@ class IsotopeFinderTask extends AbstractTask {
   private final String isotopes;
   private final ScanRange scanRange;
   private int processedRows, totalRows;
-
+  private final RawDataFile raw;
 
   IsotopeFinderTask(MZmineProject project, ModularFeatureList featureList, ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
+    this(project, featureList, featureList.getRawDataFile(0), parameters, moduleCallDate);
+  }
+
+  IsotopeFinderTask(MZmineProject project, ModularFeatureList featureList, @NotNull RawDataFile raw,
+      ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(featureList.getMemoryMapStorage(), moduleCallDate);
 
     this.featureList = featureList;
+    this.raw = raw;
     this.parameters = parameters;
 
     isotopeElements = parameters.getValue(IsotopeFinderParameters.elements);
@@ -118,14 +124,8 @@ class IsotopeFinderTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    logger.info("Running isotope pattern finder on " + featureList);
-
-    // We assume source peakList contains one datafile
-    if (featureList.getRawDataFiles().size() > 1) {
-      setErrorMessage("Cannot perform isotope finder on aligned feature list.");
-      setStatus(TaskStatus.ERROR);
-      return;
-    }
+    logger.info(
+        "Running isotope pattern finder on %s in file %s".formatted(featureList, raw.getName()));
 
     // Update isotopesMzDiffs
     DoubleArrayList[] isoMzDiffsForCharge = IsotopesUtils.getIsotopesMzDiffsForCharge(
@@ -147,10 +147,12 @@ class IsotopeFinderTask extends AbstractTask {
       maxIsoMzDiff[i] += 10 * isoMzTolerance.getMzToleranceForMass(maxIsoMzDiff[i]);
     }
 
+    // clear all old isotope pattern as they are replaced
+    clearOldIsotopePatterns();
+
     // start processing
     totalRows = featureList.getNumberOfRows();
     processedRows = 0;
-    RawDataFile raw = featureList.getRawDataFile(0);
 
     // Loop through all rows
     final ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.MASS_LIST,
@@ -199,9 +201,12 @@ class IsotopeFinderTask extends AbstractTask {
             candidates = normalizeImsIntensities(candidates, scan, featureDp);
           }
 
+          // just set new isotope pattern to feature
+          // old isotope patterns were already cleared
           if (candidates.size() > 1) { // feature itself is always in cadidates
-            IsotopePattern newPattern = new SimpleIsotopePattern(candidates.toArray(new DataPoint[0]),
-                charge, IsotopePatternStatus.DETECTED, IsotopeFinderModule.MODULE_NAME);
+            IsotopePattern newPattern = new SimpleIsotopePattern(
+                candidates.toArray(new DataPoint[0]), charge, IsotopePatternStatus.DETECTED,
+                IsotopeFinderModule.MODULE_NAME);
             if (pattern == null) {
               pattern = newPattern;
             } else if (pattern instanceof SimpleIsotopePattern) {
@@ -235,7 +240,8 @@ class IsotopeFinderTask extends AbstractTask {
           Float mobility = feature.getMobility();
           MobilityType mobilityType = feature.getMobilityUnit();
           if (data instanceof IMSRawDataFile imsfile) {
-            if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0 && mobilityType != null) {
+            if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0
+                && mobilityType != null) {
               Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType, bestCharge, imsfile);
               if (ccs != null) {
                 feature.setCCS(ccs);
@@ -282,7 +288,7 @@ class IsotopeFinderTask extends AbstractTask {
         processedRows++;
       }
     } catch (Exception ex) {
-      logger.log(Level.WARNING, "Error in isotope finder "+ ex.getMessage(), ex);
+      logger.log(Level.WARNING, "Error in isotope finder " + ex.getMessage(), ex);
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -301,6 +307,15 @@ class IsotopeFinderTask extends AbstractTask {
 
     logger.info("Finished isotope pattern finder on " + featureList);
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void clearOldIsotopePatterns() {
+    for (FeatureListRow row : featureList.getRows()) {
+      final Feature feature = row.getFeature(raw);
+      if (feature != null) {
+        feature.setIsotopePattern(null);
+      }
+    }
   }
 
   private List<DataPoint> normalizeImsIntensities(List<DataPoint> candidates, Scan scan,
