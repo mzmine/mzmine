@@ -40,6 +40,8 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorUtils;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.javafx.dialogs.NotificationService;
+import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
@@ -335,6 +337,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   void switchPickedPeaksVisible() {
     peaksVisible = !peaksVisible;
     int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+    int numPeakListDatasets = 0;
     for (int i = 0; i < numDatasets; i++) {
       XYDataset dataSet = plot.getDataset(i);
       if (!(dataSet instanceof PeakListDataSet)) {
@@ -342,6 +345,13 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       }
       XYItemRenderer renderer = plot.getRenderer(i);
       renderer.setDefaultSeriesVisible(peaksVisible, false);
+      numPeakListDatasets++;
+    }
+    if (numPeakListDatasets == 0) {
+      // would be good to expand the accordion, but no acces from here
+      NotificationService.show(NotificationType.INFO, "No feature list selected", """
+          Select a feature list in the bottom panel of the spectra plot to show the picked \
+          peaks in the spectrum.""");
     }
     if (isNotifyChange()) {
       fireChangeEvent();
