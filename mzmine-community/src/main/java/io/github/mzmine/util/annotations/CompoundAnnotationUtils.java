@@ -25,10 +25,12 @@
 
 package io.github.mzmine.util.annotations;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummaryOrder;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
@@ -214,8 +216,8 @@ public class CompoundAnnotationUtils {
    * of different nature. (e.g. Compound match score and cosine). Consider using
    * {@link CompoundAnnotationUtils#getAllFeatureAnnotationsByDescendingConfidence(FeatureListRow)}
    * or {@link CompoundAnnotationUtils#streamBestAnnotationSummaries(List, boolean)} and sort using
-   * {@link AnnotationSummary#HIGH_TO_LOW_CONFIDENCE} and
-   * {@link AnnotationSummary#LOW_TO_HIGH_CONFIDENCE}
+   * {@link AnnotationSummaryOrder#SCHYMANSKI_HIGH_TO_LOW_CONFIDENCE} and
+   * {@link AnnotationSummaryOrder#SCHYMANSKI_LOW_TO_HIGH_CONFIDENCE}
    *
    * @return sorter
    */
@@ -464,23 +466,27 @@ public class CompoundAnnotationUtils {
     if (model == null) {
       return null;
     }
+    Comparator<@Nullable AnnotationSummary> sorter = model.getFeatureList()
+        .getAnnotationSortConfig().sortOrder().getComparator();
     return getTopAnnotationsPerType(model).stream().map(a -> AnnotationSummary.of(model, a))
-        .min(AnnotationSummary.HIGH_TO_LOW_CONFIDENCE).orElse(null);
+        .min(sorter).orElse(null);
   }
 
   /**
    *
    * @param topN Number of annotations <b>per</b> annotation type.
    * @return Annotation types sorted by descending confidence as defined by
-   * {@link AnnotationSummary#HIGH_TO_LOW_CONFIDENCE}
+   * {@link FeatureList#getAnnotationSortConfig()}
    */
   public static @NotNull List<@NotNull FeatureAnnotation> getFeatureAnnotationsByDescendingConfidence(
       @Nullable final FeatureListRow row, int topN) {
     if (row == null) {
       return List.of();
     }
+    Comparator<@Nullable AnnotationSummary> sorter = row.getFeatureList().getAnnotationSortConfig()
+        .sortOrder().getComparator();
     return getTopNFeatureAnnotations(row, topN).stream().map(a -> AnnotationSummary.of(row, a))
-        .sorted(AnnotationSummary.HIGH_TO_LOW_CONFIDENCE).map(AnnotationSummary::annotation)
+        .sorted(sorter).map(AnnotationSummary::annotation)
         //.filter(Objects::nonNull) // cannot be null because input is not null
         .toList();
   }
@@ -488,7 +494,7 @@ public class CompoundAnnotationUtils {
   /**
    *
    * @return Annotation types sorted by descending confidence as defined by
-   * {@link AnnotationSummary#HIGH_TO_LOW_CONFIDENCE}
+   * {@link AnnotationSummaryOrder#SCHYMANSKI_HIGH_TO_LOW_CONFIDENCE}
    */
   public static @NotNull List<@NotNull FeatureAnnotation> getAllFeatureAnnotationsByDescendingConfidence(
       @Nullable final FeatureListRow row) {

@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.SimpleSubColumnsType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.fx.PreferredEditComboCellFactory;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -66,7 +67,7 @@ import org.jetbrains.annotations.Nullable;
  * annotation of all {@link FeatureAnnotation} types.
  */
 public class PreferredAnnotationType extends SimpleSubColumnsType<FeatureAnnotation> implements
-    MappingType<FeatureAnnotation> {
+    MappingType<FeatureAnnotation>, AnnotationType {
 
   public static final List<DataType> subTypes = List.of(new PreferredAnnotationType(),
       new CompoundNameType(), new AnnotationSummaryType(), new PrecursorMZType(),

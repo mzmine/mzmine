@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummaryOrder;
 import io.github.mzmine.datamodel.statistics.DataTableUtils;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
@@ -116,7 +117,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     // data was already prepared
     final List<FeatureListRow> rows = featureDataTable.getFeatureListRows();
 
-    Comparator<@Nullable AnnotationSummary> annotationSummarySorter = AnnotationSummary.LOW_TO_HIGH_CONFIDENCE;
+    Comparator<@Nullable AnnotationSummary> annotationSummarySorter = AnnotationSummaryOrder.SCHYMANSKI_LOW_TO_HIGH_CONFIDENCE;
     // change sorting
     final Map<@NotNull FeatureListRow, @NotNull AnnotationSummary> rowsMappedToBestSummary = CompoundAnnotationUtils.mapRowsToBestAnnotationSummary(
         rows, true);

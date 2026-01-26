@@ -36,40 +36,18 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import java.util.Comparator;
-import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AnnotationSummary implements Comparable<AnnotationSummary> {
 
-  private static final double maxPpmDiff = 15;
-  private static final double maxRtDiff = 0.3;
-  private static final double maxCcsDev = 0.10;
-  private static final double maxRiDev = 0.10;
-
   @NotNull
   private final FeatureListRow row;
   @Nullable
   private final FeatureAnnotation annotation;
-
-  private static final Comparator<@NotNull AnnotationSummary> LOW_TO_HIGH_NON_NULL = Comparator.comparing(
-          AnnotationSummary::deriveSchymanskiLevel, Comparator.nullsFirst(Comparator.reverseOrder()))
-      .thenComparing(AnnotationSummary::ms2Score, Comparator.nullsFirst(Comparator.naturalOrder()))
-      .thenComparing(AnnotationSummary::isotopeScore,
-          Comparator.nullsFirst(Comparator.naturalOrder()))
-      .thenComparing(AnnotationSummary::mzScore, Comparator.nullsFirst(Comparator.naturalOrder()))
-      .thenComparing(AnnotationSummary::rtScore, Comparator.nullsFirst(Comparator.naturalOrder()))
-      .thenComparing(AnnotationSummary::riScore, Comparator.nullsFirst(Comparator.naturalOrder()))
-      .thenComparing(AnnotationSummary::ccsScore, Comparator.nullsFirst(Comparator.naturalOrder()));
-
-  public static final Comparator<@Nullable AnnotationSummary> LOW_TO_HIGH_CONFIDENCE = Comparator.comparing(
-      Function.identity(), Comparator.nullsFirst(LOW_TO_HIGH_NON_NULL));
-
-  public static final Comparator<@Nullable AnnotationSummary> HIGH_TO_LOW_CONFIDENCE = LOW_TO_HIGH_CONFIDENCE.reversed();
 
   private AnnotationSummary(@NotNull final FeatureListRow row,
       @Nullable final FeatureAnnotation annotation) {
@@ -107,8 +85,9 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     final Double precursorMZ = annotation.getPrecursorMZ();
 
     if (rowMz != null && precursorMZ != null) {
-      return 1
-          - Math.min(Math.abs(MathUtils.getPpmDiff(precursorMZ, rowMz)), maxPpmDiff) / maxPpmDiff;
+      final double maxDiff = row.getFeatureList().getAnnotationSortConfig().mzTolerance()
+          .getMzToleranceForMass(precursorMZ);
+      return 1 - Math.min(Math.abs(precursorMZ - rowMz), maxDiff) / maxDiff;
     }
     return 0;
   }
@@ -122,7 +101,9 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     final Float precursorRt = annotation.getRT();
 
     if (rowRt != null && precursorRt != null) {
-      return 1 - Math.min(Math.abs(rowRt - precursorRt), maxRtDiff) / maxRtDiff;
+      final RTTolerance rtTolerance = row.getFeatureList().getAnnotationSortConfig().rtTolerance();
+      final float maxDiff = rtTolerance.getToleranceInMinutes(precursorRt);
+      return 1 - Math.min(Math.abs(rowRt - precursorRt), maxDiff) / maxDiff;
     }
     return 0;
   }
@@ -136,6 +117,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     final Float ccs = annotation.getCCS();
 
     if (averageCCS != null && ccs != null) {
+      final double maxCcsDev = row.getFeatureList().getAnnotationSortConfig().ccsTolerance();
       return getScore(averageCCS / ccs, maxCcsDev);
     }
     return 0;
@@ -158,6 +140,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     Float ri = CompoundAnnotationUtils.getTypeValue(annotation, RIType.class);
 
     if (averageRI != null && ri != null) {
+      final double maxRiDev = row.getFeatureList().getAnnotationSortConfig().riTolerance();
       return getScore(averageRI / ri, maxRiDev);
     }
     return 0d;
@@ -273,7 +256,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
 
   @Override
   public int compareTo(@NotNull AnnotationSummary o) {
-    return LOW_TO_HIGH_CONFIDENCE.compare(this, o);
+    return AnnotationSummaryOrder.SCHYMANSKI_LOW_TO_HIGH_CONFIDENCE.compare(this, o);
   }
 
   /**
