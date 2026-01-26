@@ -147,7 +147,7 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
       sb.append(mzFormat.format(dataset.getXValue(series, item)));
       sb.append("\n");
       ModularFeature feature = (ModularFeature) pld.getFeature(series, item);
-      if (feature.get(IonTypeType.class) instanceof IonType ion) {
+      if (feature.getRow() != null && feature.getRow().get(IonTypeType.class) instanceof IonType ion) {
         sb.append(ion.toString()).append(" ");
       }
       sb.append("Charge: ").append(feature.getCharge() != null ? feature.getCharge() : "N/A");
