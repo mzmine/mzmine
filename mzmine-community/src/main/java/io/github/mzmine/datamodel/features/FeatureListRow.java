@@ -196,7 +196,9 @@ public interface FeatureListRow extends ModularDataModel {
   Float getMaxHeight();
 
   /**
-   * Returns the charge for feature on this row. If more charges are found 0 is returned
+   * Returns the most common charge for features on this row. (most common or the lowest charge if
+   * multiple charges have the same number of features).
+   * @return most common charge state
    */
   Integer getRowCharge();
 

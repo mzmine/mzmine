@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.Parameter;
@@ -124,7 +125,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
           "Permissible range of chromatographic FWHM per row",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 1.0)), false);
   public static final OptionalParameter<IntRangeParameter> CHARGE = new OptionalParameter<>(
-      new IntRangeParameter("Charge", "Filter by charge, run isotopic features grouper first", true,
+      new IntRangeParameter("Charge",
+          "Filter by charge, run %s module first".formatted(IsotopeFinderModule.MODULE_NAME), true,
           Range.closed(1, 2)), false);
 
   public static final OptionalModuleParameter<KendrickMassDefectFilterParameters> KENDRICK_MASS_DEFECT = new OptionalModuleParameter<>(
@@ -295,7 +297,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
     param.setParameter(RowsFilterParameters.RT_RANGE, false);
     param.setParameter(RowsFilterParameters.FEATURE_DURATION, false);
     param.setParameter(RowsFilterParameters.FWHM, false);
-    param.setParameter(RowsFilterParameters.CHARGE, false);
+    // set the default to charge 1
+    param.setParameter(RowsFilterParameters.CHARGE, false, Range.closed(1, 1));
     param.setParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT, false);
     param.setParameter(RowsFilterParameters.HAS_IDENTITIES, false);
     param.setParameter(RowsFilterParameters.IDENTITY_TEXT, false);
