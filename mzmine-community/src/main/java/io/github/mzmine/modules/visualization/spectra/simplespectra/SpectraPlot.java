@@ -51,6 +51,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Iso
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.SinglePeakDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ContinuousRenderer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraItemLabelGenerator;
@@ -62,6 +63,7 @@ import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
@@ -71,6 +73,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Cursor;
 import javafx.util.Pair;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
@@ -110,6 +114,12 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   protected EStandardChartTheme theme;
   private boolean isotopesVisible = true, peaksVisible = true, itemLabelsVisible = true, dataPointsVisible = false;
   private boolean processingAllowed;
+
+  /**
+   *
+   */
+  @Nullable
+  private SpectraVisualizerTab tab = null;
 
   public SpectraPlot() {
     this(false);
@@ -348,12 +358,21 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       numPeakListDatasets++;
     }
     if (numPeakListDatasets == 0) {
-      // would be good to expand the accordion, but no acces from here
-      NotificationService.show(NotificationType.INFO, "No feature list selected", """
-          Select a feature list in the "Spectrum options" of the spectra plot to show the picked \
-          peaks in the spectrum.""");
-    }
-    if (isNotifyChange()) {
+      // would be good to expand the accordion, but no access from here
+      if (getTab() != null) {
+        Optional<@NotNull SinglePeakDataSet> peakDataSet = plot.getDatasets().values().stream()
+            .filter(SinglePeakDataSet.class::isInstance).map(SinglePeakDataSet.class::cast)
+            .findFirst();
+        if (peakDataSet.isPresent()) {
+          getTab().getBottomPanel().getPeakListSelector().getSelectionModel()
+              .select(peakDataSet.get().getFeature().getFeatureList());
+        } else {
+          NotificationService.show(NotificationType.INFO, "No feature list selected", """
+              Select a feature list in the "Spectrum options" of the spectra plot to show the picked \
+              peaks in the spectrum.""");
+        }
+      }
+    } if (isNotifyChange()) {
       fireChangeEvent();
     }
   }
@@ -635,5 +654,13 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   public Map<XYDataset, List<Pair<Double, Double>>> getDatasetToLabelsCoords() {
     return datasetToLabelsCoords;
+  }
+
+  public @Nullable SpectraVisualizerTab getTab() {
+    return tab;
+  }
+
+  public void setTab(@Nullable SpectraVisualizerTab tab) {
+    this.tab = tab;
   }
 }

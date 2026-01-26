@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 
@@ -42,12 +43,15 @@ public class SinglePeakDataSet extends AbstractXYDataset implements IntervalXYDa
    */
   private static final long serialVersionUID = 1L;
   private String label;
+  @org.jetbrains.annotations.NotNull
+  private final Feature feature;
   private double mz;
   private double intensity;
 
 
   public SinglePeakDataSet(Scan scanNumber, Feature peak) {
     this.label = peak.toString();
+    this.feature = peak;
     if (peak instanceof ModularFeature) {
       mz = ((ModularFeature) peak).getFeatureData().getMzForSpectrum(scanNumber);
       intensity = ((ModularFeature) peak).getFeatureData().getIntensityForSpectrum(scanNumber);
@@ -112,4 +116,7 @@ public class SinglePeakDataSet extends AbstractXYDataset implements IntervalXYDa
     return getYValue(series, item);
   }
 
+  public @NotNull Feature getFeature() {
+    return feature;
+  }
 }
