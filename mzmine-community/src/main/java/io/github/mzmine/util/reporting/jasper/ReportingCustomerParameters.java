@@ -59,18 +59,6 @@ public class ReportingCustomerParameters extends SimpleParameterSet {
         getValue(ReportingCustomerParameters.customerCostCenter));
   }
 
-  @Override
-  public int getVersion() {
-    return 2;
-  }
-
-  @Override
-  public @Nullable String getVersionMessage(int version) {
-    return switch (version) {
-      case 2 -> "Added \"Customer cost center\" to the reporting customer parameters.";
-      default -> null;
-    };
-  }
 
   @Override
   public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
