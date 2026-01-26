@@ -350,7 +350,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     if (numPeakListDatasets == 0) {
       // would be good to expand the accordion, but no acces from here
       NotificationService.show(NotificationType.INFO, "No feature list selected", """
-          Select a feature list in the bottom panel of the spectra plot to show the picked \
+          Select a feature list in the "Spectrum options" of the spectra plot to show the picked \
           peaks in the spectrum.""");
     }
     if (isNotifyChange()) {
