@@ -25,6 +25,13 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.renderers;
 
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,10 +39,6 @@ import java.util.Map;
 import javafx.util.Pair;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
-
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 
 /**
  * Label generator for spectra visualizer. Only used to generate labels for the raw data
@@ -61,7 +64,7 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
 
   /**
    * @see org.jfree.chart.labels.XYItemLabelGenerator#generateLabel(org.jfree.data.xy.XYDataset,
-   *      int, int)
+   * int, int)
    */
   public String generateLabel(XYDataset dataset, int series, int item) {
 
@@ -86,20 +89,24 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
     for (int i = 1; (item - i > 0) || (item + i < itemCount); i++) {
 
       // If we get out of the limit we can stop searching
-      if ((item - i > 0) && (dataset.getXValue(series, item - i) < limitLeft)
-          && ((item + i >= itemCount) || (dataset.getXValue(series, item + i) > limitRight)))
+      if ((item - i > 0) && (dataset.getXValue(series, item - i) < limitLeft) && (
+          (item + i >= itemCount) || (dataset.getXValue(series, item + i) > limitRight))) {
         break;
+      }
 
-      if ((item + i < itemCount) && (dataset.getXValue(series, item + i) > limitRight)
-          && ((item - i <= 0) || (dataset.getXValue(series, item - i) < limitLeft)))
+      if ((item + i < itemCount) && (dataset.getXValue(series, item + i) > limitRight) && (
+          (item - i <= 0) || (dataset.getXValue(series, item - i) < limitLeft))) {
         break;
+      }
 
       // If we find higher data point, bail out
-      if ((item - i > 0) && (originalY <= dataset.getYValue(series, item - i)))
+      if ((item - i > 0) && (originalY <= dataset.getYValue(series, item - i))) {
         return null;
+      }
 
-      if ((item + i < itemCount) && (originalY <= dataset.getYValue(series, item + i)))
+      if ((item + i < itemCount) && (originalY <= dataset.getYValue(series, item + i))) {
         return null;
+      }
 
     }
 
@@ -116,8 +123,8 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
       // do not generate a new overlapping label
       List<Pair<Double, Double>> coords = datasetToLabelsCoords.get(labelsDataset);
       for (Pair<Double, Double> coord : coords) {
-        if ((Math.abs(originalX - coord.getKey()) / xLength < 0.05)
-            && (Math.abs(originalY - coord.getValue()) / yLength < 0.05)) {
+        if ((Math.abs(originalX - coord.getKey()) / xLength < 0.05) && (
+            Math.abs(originalY - coord.getValue()) / yLength < 0.05)) {
           return null;
         }
       }
@@ -135,6 +142,16 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
     String label = null;
     if (dataset instanceof ScanDataSet) {
       label = ((ScanDataSet) dataset).getAnnotation(item);
+    } else if (dataset instanceof PeakListDataSet pld) {
+      StringBuilder sb = new StringBuilder();
+      sb.append(mzFormat.format(dataset.getXValue(series, item)));
+      sb.append("\n");
+      ModularFeature feature = (ModularFeature) pld.getFeature(series, item);
+      if (feature.get(IonTypeType.class) instanceof IonType ion) {
+        sb.append(ion.toString()).append(" ");
+      }
+      sb.append("Charge: ").append(feature.getCharge() != null ? feature.getCharge() : "N/A");
+      label = sb.toString();
     }
     if (label == null) {
       double mzValue = dataset.getXValue(series, item);
