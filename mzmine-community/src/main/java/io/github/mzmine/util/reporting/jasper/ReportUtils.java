@@ -69,6 +69,8 @@ import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowBoxPlotDataset;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponentAWT;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderer;
+import io.github.mzmine.modules.visualization.molstructure.StructureRenderService;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidSpectrumPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -510,7 +512,9 @@ public class ReportUtils {
     }
 
     Structure2DComponentAWT comp = new Structure2DComponentAWT(structure.structure(), structureRenderConfig);
-    comp.setSize(227 * 3, 130 * 3);
+    final int width = 227 * 3;
+    final int height = 130 * 3;
+    comp.setSize(width, height);
 
 //      final SVGGraphics2D svgGenerator = renderJComponentToSvgGraphics(comp, 110, 70);
 //      StringWriter stringWriter = new StringWriter();
@@ -518,9 +522,19 @@ public class ReportUtils {
 //      structureImage = stringWriter.toString().getBytes();
 
     // svg renderer does not produce nice structures
-    structureImage = createBufferedImageFromComponent(comp, comp.getWidth(), comp.getHeight());
-
-    return true;
+//    structureImage = createBufferedImageFromComponent(comp, comp.getWidth(), comp.getHeight());
+//
+//    return true;
+    final Structure2DRenderer renderer = StructureRenderService.getGlobalStructureRenderer();
+    try {
+      final String svg = renderer.drawStructureToSvgString(structure.structure(), width, height,
+          structureRenderConfig);
+      structureImage = svg.getBytes();
+      return  true;
+    } catch (Exception e) {
+      structureImage = null;
+      return  false;
+    }
   }
 
   private boolean updateLipidSpectrum(@NotNull FeatureListRow row) {
