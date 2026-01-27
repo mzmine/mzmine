@@ -246,13 +246,16 @@ public class Structure2DRenderer extends AtomContainerRenderer {
           Rectangle2D modelBounds = BoundsCalculator.calculateBounds(molecule);
           setupTransformNatural(modelBounds);
           IRenderingElement diagram = generateDiagram(molecule);
-          Rectangle diagramSize = convertToDiagramBounds(modelBounds);
 
           // use boarder margin to start scaling the structures earlier
           double margin = this.rendererModel.get(BasicSceneGenerator.Margin.class) * 2;
+          Rectangle diagramSize = convertToDiagramBounds(modelBounds);
+          diagramSize = new Rectangle(0, 0, (int) (diagramSize.getWidth() + margin),
+              (int) (diagramSize.getHeight() + margin));
 
-          if (config.mode() != Sizing.FIXED_SIZES_ALWAYS && (diagramSize.getWidth() + margin > width
-              || diagramSize.getHeight() + margin > height)) {
+
+          if (config.mode() != Sizing.FIXED_SIZES_ALWAYS && (diagramSize.getWidth() > width
+              || diagramSize.getHeight()> height)) {
             // too large - draw with resizing to size
             paint(molecule, visitor, drawArea, true);
             yield drawArea;
@@ -263,6 +266,7 @@ public class Structure2DRenderer extends AtomContainerRenderer {
 
             if (config.mode() == Sizing.FIXED_SIZES_ALWAYS) {
               // rather put everything so that structure starts in top left corner
+              // needs margins
               this.setDrawCenter(diagramSize.getWidth() / 2, diagramSize.getHeight() / 2);
               this.setModelCenter(modelBounds.getCenterX(), modelBounds.getCenterY());
             } else {
@@ -271,7 +275,7 @@ public class Structure2DRenderer extends AtomContainerRenderer {
               this.setModelCenter(modelBounds.getCenterX(), modelBounds.getCenterY());
             }
 
-            paint(molecule, visitor);
+//            paint(molecule, visitor);
             this.paint(visitor, diagram);
             yield diagramSize.getBounds();
           }
