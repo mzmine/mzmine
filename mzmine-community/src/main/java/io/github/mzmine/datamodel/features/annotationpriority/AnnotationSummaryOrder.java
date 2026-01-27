@@ -10,6 +10,7 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMat
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import java.util.Comparator;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +45,8 @@ public enum AnnotationSummaryOrder implements UniqueIdSupplier {
       Function.identity(), nullsFirst(Comparator.<AnnotationSummary>comparingInt(a -> {
         DataType<?> dt = DataTypes.get(a.annotation().getDataType());
         return switch (dt) {
-          case LipidMatchListType _ -> 1;
+          case LipidMatchListType _ ->
+              ((MatchedLipid) a.annotation()).getMsMsScore() != null ? 1 : 3;
           case SpectralLibraryMatchesType _ -> 2;
           case CompoundDatabaseMatchesType _ -> 3;
           case null, default -> 4;

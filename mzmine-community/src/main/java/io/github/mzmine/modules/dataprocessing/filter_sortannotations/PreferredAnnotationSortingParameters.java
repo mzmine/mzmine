@@ -37,7 +37,7 @@ public class PreferredAnnotationSortingParameters extends SimpleParameterSet {
 
   public static final AnnotationSummaryOrder DEFAULT_SORT_ORDER = AnnotationSummaryOrder.SCHYMANSKI;
   public static final ComboParameter<AnnotationSummaryOrder> sorting = new ComboParameter<>(
-      "Confidence sorting", "Defince how annotation confidence will be ranked.",
+      "Confidence sorting", "Define how annotation confidence will be ranked.",
       AnnotationSummaryOrder.values(), DEFAULT_SORT_ORDER);
 
 

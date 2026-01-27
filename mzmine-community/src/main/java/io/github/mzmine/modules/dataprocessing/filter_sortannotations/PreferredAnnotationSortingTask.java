@@ -1,14 +1,11 @@
 package io.github.mzmine.modules.dataprocessing.filter_sortannotations;
 
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import java.time.Instant;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
