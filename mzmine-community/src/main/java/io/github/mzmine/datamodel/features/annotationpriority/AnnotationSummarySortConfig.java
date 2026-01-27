@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  *
  * @param ccsTolerance ccs tolerance in %
- * @param riTolerance  ri tolerance in %
+ * @param riTolerance  ri tolerance in absolute units.
  */
 public record AnnotationSummarySortConfig(@NotNull MZTolerance mzTolerance,
                                           @NotNull RTTolerance rtTolerance, double ccsTolerance,

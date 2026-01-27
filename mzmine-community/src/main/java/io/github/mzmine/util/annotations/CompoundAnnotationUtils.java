@@ -216,8 +216,8 @@ public class CompoundAnnotationUtils {
    * of different nature. (e.g. Compound match score and cosine). Consider using
    * {@link CompoundAnnotationUtils#getAllFeatureAnnotationsByDescendingConfidence(FeatureListRow)}
    * or {@link CompoundAnnotationUtils#streamBestAnnotationSummaries(List, boolean)} and sort using
-   * {@link AnnotationSummaryOrder#SCHYMANSKI_HIGH_TO_LOW_CONFIDENCE} and
-   * {@link AnnotationSummaryOrder#SCHYMANSKI_LOW_TO_HIGH_CONFIDENCE}
+   * {@link AnnotationSummaryOrder#getComparatorHighFirst()} and
+   * {@link AnnotationSummaryOrder#getComparatorLowFirst()}.
    *
    * @return sorter
    */
@@ -466,8 +466,8 @@ public class CompoundAnnotationUtils {
     if (model == null) {
       return null;
     }
-    Comparator<@Nullable AnnotationSummary> sorter = model.getFeatureList()
-        .getAnnotationSortConfig().sortOrder().getComparator();
+    final Comparator<@Nullable AnnotationSummary> sorter = model.getFeatureList()
+        .getAnnotationSortConfig().sortOrder().getComparatorHighFirst();
     return getTopAnnotationsPerType(model).stream().map(a -> AnnotationSummary.of(model, a))
         .min(sorter).orElse(null);
   }
@@ -484,7 +484,7 @@ public class CompoundAnnotationUtils {
       return List.of();
     }
     Comparator<@Nullable AnnotationSummary> sorter = row.getFeatureList().getAnnotationSortConfig()
-        .sortOrder().getComparator();
+        .sortOrder().getComparatorHighFirst();
     return getTopNFeatureAnnotations(row, topN).stream().map(a -> AnnotationSummary.of(row, a))
         .sorted(sorter).map(AnnotationSummary::annotation)
         //.filter(Objects::nonNull) // cannot be null because input is not null
@@ -494,7 +494,7 @@ public class CompoundAnnotationUtils {
   /**
    *
    * @return Annotation types sorted by descending confidence as defined by
-   * {@link AnnotationSummaryOrder#SCHYMANSKI_HIGH_TO_LOW_CONFIDENCE}
+   * {@link AnnotationSummaryOrder#getComparatorHighFirst()}.
    */
   public static @NotNull List<@NotNull FeatureAnnotation> getAllFeatureAnnotationsByDescendingConfidence(
       @Nullable final FeatureListRow row) {

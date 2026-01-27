@@ -105,7 +105,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
     column.setMinWidth(45);
     column.setPrefWidth(45);
     column.setSortable(true);
-    column.setComparator(AnnotationSummaryOrder.SCHYMANSKI_LOW_TO_HIGH_CONFIDENCE);
+    column.setComparator(AnnotationSummaryOrder.MZMINE.getComparatorLowFirst());
 //    column.setMaxWidth(60);
 
     return (TreeTableColumn) column;

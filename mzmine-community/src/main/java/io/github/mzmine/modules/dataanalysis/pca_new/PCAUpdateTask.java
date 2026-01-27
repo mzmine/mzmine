@@ -117,7 +117,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     // data was already prepared
     final List<FeatureListRow> rows = featureDataTable.getFeatureListRows();
 
-    Comparator<@Nullable AnnotationSummary> annotationSummarySorter = AnnotationSummaryOrder.SCHYMANSKI_LOW_TO_HIGH_CONFIDENCE;
+    Comparator<@Nullable AnnotationSummary> annotationSummarySorter = AnnotationSummaryOrder.MZMINE.getComparatorLowFirst();
     // change sorting
     final Map<@NotNull FeatureListRow, @NotNull AnnotationSummary> rowsMappedToBestSummary = CompoundAnnotationUtils.mapRowsToBestAnnotationSummary(
         rows, true);

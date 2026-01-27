@@ -29,6 +29,10 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SiriusCsiScoreType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
@@ -118,7 +122,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
 
     if (averageCCS != null && ccs != null) {
       final double maxCcsDev = row.getFeatureList().getAnnotationSortConfig().ccsTolerance();
-      return getScore(averageCCS / ccs, maxCcsDev);
+      return getScore((averageCCS - ccs) / ccs, maxCcsDev);
     }
     return 0;
   }
@@ -141,7 +145,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
 
     if (averageRI != null && ri != null) {
       final double maxRiDev = row.getFeatureList().getAnnotationSortConfig().riTolerance();
-      return getScore(averageRI / ri, maxRiDev);
+      return getScore(averageRI - ri, maxRiDev);
     }
     return 0d;
   }
@@ -160,13 +164,35 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
         new MZTolerance(0.005, 15), 0d);
   }
 
+  public int annotationTypeScore() {
+    if (annotation == null) {
+      return 10;
+    }
+
+    return switch (DataTypes.get(annotation.getDataType())) {
+      // lipid: if lipid has ms2 score, prefer over library match without rt or ri. otherwise same as comp db.
+      case LipidMatchListType _ -> ((MatchedLipid) annotation).getMsMsScore() != null ? 2 : 4;
+      case SpectralLibraryMatchesType _ -> {
+        if (((SpectralDBAnnotation) annotation).getRtAbsoluteError() != null
+            || ((SpectralDBAnnotation) annotation).getRiDiff() != null) {
+          yield 1;
+        } else {
+          yield 3;
+        }
+      }
+      case CompoundDatabaseMatchesType _ -> 4;
+      case null, default -> 10;
+    };
+  }
+
   private double getScore(double actual, double predicted, double maxDiff) {
     return 1 - Math.min(Math.abs(actual - predicted), maxDiff) / maxDiff;
   }
 
   /**
    *
-   * @param deviationFromPredicted actualValue - predictedValue or actualValue/predictedValue
+   * @param deviationFromPredicted actualValue - predictedValue or (actualValue -
+   *                               predictedValue)/predictedValue
    */
   private double getScore(double deviationFromPredicted, double maxDeviation) {
     return 1 - Math.min(Math.abs(deviationFromPredicted), maxDeviation) / maxDeviation;
@@ -256,7 +282,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
 
   @Override
   public int compareTo(@NotNull AnnotationSummary o) {
-    return AnnotationSummaryOrder.SCHYMANSKI_LOW_TO_HIGH_CONFIDENCE.compare(this, o);
+    return AnnotationSummaryOrder.MZMINE.getComparatorLowFirst().compare(this, o);
   }
 
   /**

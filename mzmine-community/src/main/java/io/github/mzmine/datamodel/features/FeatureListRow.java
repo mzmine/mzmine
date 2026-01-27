@@ -546,7 +546,7 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Preferred annotation, either set by the user in the GUI or via
    * {@link
-   * io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummaryOrder#SCHYMANSKI_HIGH_TO_LOW_CONFIDENCE}
+   * io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummaryOrder#getComparatorHighFirst()}
    * to find the best annotation from different methods.
    *
    * @return the preferred annotation or null

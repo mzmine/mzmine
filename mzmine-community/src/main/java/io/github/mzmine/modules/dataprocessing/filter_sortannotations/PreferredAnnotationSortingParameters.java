@@ -2,9 +2,11 @@ package io.github.mzmine.modules.dataprocessing.filter_sortannotations;
 
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummaryOrder;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -31,11 +33,12 @@ public class PreferredAnnotationSortingParameters extends SimpleParameterSet {
   public static final PercentParameter ccsTolerance = new PercentParameter("CCS tolerance",
       "CCS tolerance used for ranking", DEFAULT_CCS_TOLERANCE, 0d, 1d);
 
-  public static final double DEFAULT_RI_TOLERANCE = 0.1;
-  public static final PercentParameter riTolerance = new PercentParameter("RI tolerance",
-      "RI tolerance used for ranking", DEFAULT_RI_TOLERANCE, 0d, 1d);
+  public static final double DEFAULT_RI_TOLERANCE = 2;
+  public static final DoubleParameter riTolerance = new DoubleParameter("RI tolerance",
+      "Absolute RI tolerance used for ranking", ConfigService.getGuiFormats().rtFormat(),
+      DEFAULT_RI_TOLERANCE, 0d, Double.MAX_VALUE);
 
-  public static final AnnotationSummaryOrder DEFAULT_SORT_ORDER = AnnotationSummaryOrder.SCHYMANSKI;
+  public static final AnnotationSummaryOrder DEFAULT_SORT_ORDER = AnnotationSummaryOrder.MZMINE;
   public static final ComboParameter<AnnotationSummaryOrder> sorting = new ComboParameter<>(
       "Confidence sorting", "Define how annotation confidence will be ranked.",
       AnnotationSummaryOrder.values(), DEFAULT_SORT_ORDER);
