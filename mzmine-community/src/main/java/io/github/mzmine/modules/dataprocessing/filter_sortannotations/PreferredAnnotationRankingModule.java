@@ -35,19 +35,19 @@ import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PreferredAnnotationSortingModule extends TaskPerFeatureListModule {
+public class PreferredAnnotationRankingModule extends TaskPerFeatureListModule {
 
-  public PreferredAnnotationSortingModule() {
-    super("Sort preferred annotations", PreferredAnnotationSortingParameters.class,
+  public PreferredAnnotationRankingModule() {
+    super("Preferred annotation ranking", PreferredAnnotationRankingParameters.class,
         MZmineModuleCategory.FEATURELISTFILTERING, false,
-        "Define how preferred annotations are sorted in a feature list.");
+        "Define how preferred annotations are determined and ranked in a feature list.");
   }
 
   @Override
   public @NotNull Task createTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage,
       @NotNull FeatureList featureList) {
-    return new PreferredAnnotationSortingTask(storage, moduleCallDate,
-        (PreferredAnnotationSortingParameters) parameters, this.getClass(), featureList);
+    return new PreferredAnnotationRankingTask(storage, moduleCallDate,
+        (PreferredAnnotationRankingParameters) parameters, this.getClass(), featureList);
   }
 }

@@ -24,7 +24,7 @@
 
 package io.github.mzmine.datamodel.features.annotationpriority;
 
-import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationSortingParameters;
+import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import org.jetbrains.annotations.NotNull;
@@ -41,13 +41,13 @@ public record AnnotationSummarySortConfig(@NotNull MZTolerance mzTolerance,
 
   public static final AnnotationSummarySortConfig DEFAULT = new AnnotationSummarySortConfig(
       MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA,
-      PreferredAnnotationSortingParameters.DEFAULT_RT_TOLERANCE,
-      PreferredAnnotationSortingParameters.DEFAULT_CCS_TOLERANCE,
-      PreferredAnnotationSortingParameters.DEFAULT_RI_TOLERANCE,
-      PreferredAnnotationSortingParameters.DEFAULT_SORT_ORDER);
+      PreferredAnnotationRankingParameters.DEFAULT_RT_TOLERANCE,
+      PreferredAnnotationRankingParameters.DEFAULT_CCS_TOLERANCE,
+      PreferredAnnotationRankingParameters.DEFAULT_RI_TOLERANCE,
+      PreferredAnnotationRankingParameters.DEFAULT_SORT_ORDER);
 
-  public PreferredAnnotationSortingParameters toParameters() {
-    return PreferredAnnotationSortingParameters.fromConfig(this);
+  public PreferredAnnotationRankingParameters toParameters() {
+    return PreferredAnnotationRankingParameters.fromConfig(this);
   }
 
   public AnnotationSummarySortConfig copy() {

@@ -41,7 +41,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParamete
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
-public class PreferredAnnotationSortingParameters extends SimpleParameterSet {
+public class PreferredAnnotationRankingParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
@@ -71,7 +71,7 @@ public class PreferredAnnotationSortingParameters extends SimpleParameterSet {
       AnnotationSummaryOrder.values(), DEFAULT_SORT_ORDER);
 
 
-  public PreferredAnnotationSortingParameters() {
+  public PreferredAnnotationRankingParameters() {
     super(
         "https://mzmine.github.io/mzmine_documentation/terminology/annotations.html#preferred-annotation",
         flists, mzTolerance, rtTolerance, ccsTolerance, riTolerance, sorting);
@@ -86,14 +86,14 @@ public class PreferredAnnotationSortingParameters extends SimpleParameterSet {
         Objects.requireNonNullElse(getValue(sorting), DEFAULT_SORT_ORDER));
   }
 
-  public static PreferredAnnotationSortingParameters fromConfig(
+  public static PreferredAnnotationRankingParameters fromConfig(
       @NotNull AnnotationSummarySortConfig config) {
-    ParameterSet param = new PreferredAnnotationSortingParameters().cloneParameterSet();
+    ParameterSet param = new PreferredAnnotationRankingParameters().cloneParameterSet();
     param.setParameter(mzTolerance, config.mzTolerance());
     param.setParameter(rtTolerance, config.rtTolerance());
     param.setParameter(ccsTolerance, config.ccsTolerance());
     param.setParameter(riTolerance, config.riTolerance());
     param.setParameter(sorting, config.sortOrder());
-    return (PreferredAnnotationSortingParameters) param;
+    return (PreferredAnnotationRankingParameters) param;
   }
 }

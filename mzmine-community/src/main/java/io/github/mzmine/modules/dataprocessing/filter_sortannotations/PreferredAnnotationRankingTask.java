@@ -35,15 +35,15 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PreferredAnnotationSortingTask extends AbstractFeatureListTask {
+public class PreferredAnnotationRankingTask extends AbstractFeatureListTask {
 
   @NotNull
-  private final PreferredAnnotationSortingParameters param;
+  private final PreferredAnnotationRankingParameters param;
   @NotNull
   private final FeatureList flist;
 
-  protected PreferredAnnotationSortingTask(@Nullable MemoryMapStorage storage,
-      @NotNull Instant moduleCallDate, @NotNull PreferredAnnotationSortingParameters parameters,
+  protected PreferredAnnotationRankingTask(@Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate, @NotNull PreferredAnnotationRankingParameters parameters,
       @NotNull Class<? extends MZmineModule> moduleClass, @NotNull final FeatureList featureList) {
     super(storage, moduleCallDate, parameters, moduleClass);
     param = parameters;

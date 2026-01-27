@@ -37,8 +37,8 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationSortingModule;
-import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationSortingParameters;
+import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
+import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingParameters;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
 import io.github.mzmine.parameters.ParameterUtils;
@@ -389,9 +389,9 @@ public class FeatureListLoadTask extends AbstractTask {
       selectedScansMap.forEach(flist::setSelectedScans);
 
       final FeatureListAppliedMethod preferredAnnoationSorting = ParameterUtils.getLatestModuleCall(
-          appliedMethods, PreferredAnnotationSortingModule.class);
+          appliedMethods, PreferredAnnotationRankingModule.class);
       if (preferredAnnoationSorting != null) {
-        PreferredAnnotationSortingParameters param = (PreferredAnnotationSortingParameters) preferredAnnoationSorting.getParameters();
+        PreferredAnnotationRankingParameters param = (PreferredAnnotationRankingParameters) preferredAnnoationSorting.getParameters();
         flist.setAnnotationSortConfig(param.toConfig());
       }
       return flist;
