@@ -235,7 +235,8 @@ public class IsotopesUtils {
   private static boolean filterIsotope(IIsotope i) {
     return switch (i.getAtomicNumber()) {
       case Element.H, Element.C, Element.O, Element.N -> i.getNaturalAbundance() > 0d;
-      default -> i.getNaturalAbundance() > 0.05d;
+      // natural abundance in CDK is already in % from 0-100
+      default -> i.getNaturalAbundance() > 0.05d; // 0.05%
     };
   }
 
