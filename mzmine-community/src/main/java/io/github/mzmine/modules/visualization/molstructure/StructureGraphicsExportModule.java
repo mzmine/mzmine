@@ -59,6 +59,7 @@ public class StructureGraphicsExportModule implements MZmineModule {
           "Choose svg file");
       File saveToFile = fc.showSaveDialog(null);
       if (saveToFile != null) {
+        parameters.setParameter(StructureGraphicsExportParameters.fileName, saveToFile);
         saveToFile = FileAndPathUtil.getRealFilePath(saveToFile, "svg");
         TxtWriter.write(svg, saveToFile);
       }
