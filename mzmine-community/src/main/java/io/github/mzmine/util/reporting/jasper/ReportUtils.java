@@ -68,6 +68,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowBoxPlotDataset;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponentAWT;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidSpectrumPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -109,7 +110,6 @@ import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
-import org.openscience.cdk.exception.CDKException;
 import org.w3c.dom.DOMImplementation;
 
 /**
@@ -138,6 +138,7 @@ public class ReportUtils {
   private final MetadataColumn<?> groupingColumn;
   @NotNull
   private final EStandardChartTheme theme;
+  private final Structure2DRenderConfig structureRenderConfig;
   private final AbundanceMeasure boxPlotAbundanceMeasure = AbundanceMeasure.Area;
   private final NumberFormats formats = ConfigService.getGuiFormats();
   /**
@@ -147,9 +148,11 @@ public class ReportUtils {
   private EChartViewer mirrorChart = null; // must be regenerated for each match
   private LipidSpectrumPlot lipidChart = null;
 
-  public ReportUtils(MetadataColumn<?> groupingColumn, @NotNull EStandardChartTheme theme) {
+  public ReportUtils(MetadataColumn<?> groupingColumn, @NotNull EStandardChartTheme theme,
+      Structure2DRenderConfig structureRenderConfig) {
     this.groupingColumn = groupingColumn;
     this.theme = theme;
+    this.structureRenderConfig = structureRenderConfig;
 
     initChart(mobilogramChart);
     mobilogramChart.setRangeAxisNumberFormatOverride(
@@ -506,23 +509,18 @@ public class ReportUtils {
       return false;
     }
 
-    try {
-      Structure2DComponentAWT comp = new Structure2DComponentAWT(structure.structure());
-      comp.setSize(227 * 3, 130 * 3);
+    Structure2DComponentAWT comp = new Structure2DComponentAWT(structure.structure(), structureRenderConfig);
+    comp.setSize(227 * 3, 130 * 3);
 
 //      final SVGGraphics2D svgGenerator = renderJComponentToSvgGraphics(comp, 110, 70);
 //      StringWriter stringWriter = new StringWriter();
 //      svgGenerator.stream(stringWriter, true);
 //      structureImage = stringWriter.toString().getBytes();
 
-      // svg renderer does not produce nice structures
-      structureImage = createBufferedImageFromComponent(comp, comp.getWidth(), comp.getHeight());
+    // svg renderer does not produce nice structures
+    structureImage = createBufferedImageFromComponent(comp, comp.getWidth(), comp.getHeight());
 
-      return true;
-    } catch (CDKException /*| SVGGraphics2DIOException*/ e) {
-      structureImage = null;
-      return false;
-    }
+    return true;
   }
 
   private boolean updateLipidSpectrum(@NotNull FeatureListRow row) {
