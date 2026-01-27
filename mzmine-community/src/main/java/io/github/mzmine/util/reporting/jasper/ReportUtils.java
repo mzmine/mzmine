@@ -67,7 +67,6 @@ import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowBoxPlotDataset;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.visualization.molstructure.Structure2DComponentAWT;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderer;
 import io.github.mzmine.modules.visualization.molstructure.StructureRenderService;
@@ -501,6 +500,12 @@ public class ReportUtils {
     return true;
   }
 
+  /**
+   * Uses direct structure to SVG now. Some structures made issues when using the
+   * Structure2DComponentAWT and then converting this to SVG. Using the Component and painting to
+   * png works fine as well and only shows minor pixelation.
+   *
+   */
   private boolean updateStructure(@NotNull FeatureListRow row) {
     final Optional<FeatureAnnotation> annotation = CompoundAnnotationUtils.getBestFeatureAnnotation(
         row);
@@ -511,10 +516,12 @@ public class ReportUtils {
       return false;
     }
 
-    Structure2DComponentAWT comp = new Structure2DComponentAWT(structure.structure(), structureRenderConfig);
     final int width = 227 * 3;
     final int height = 130 * 3;
-    comp.setSize(width, height);
+
+    // Keep this code fragment in case the new SVG export fails as well.
+//    Structure2DComponentAWT comp = new Structure2DComponentAWT(structure.structure(), structureRenderConfig);
+//    comp.setSize(width, height);
 
 //      final SVGGraphics2D svgGenerator = renderJComponentToSvgGraphics(comp, 110, 70);
 //      StringWriter stringWriter = new StringWriter();
@@ -530,10 +537,10 @@ public class ReportUtils {
       final String svg = renderer.drawStructureToSvgString(structure.structure(), width, height,
           structureRenderConfig);
       structureImage = svg.getBytes();
-      return  true;
+      return true;
     } catch (Exception e) {
       structureImage = null;
-      return  false;
+      return false;
     }
   }
 
