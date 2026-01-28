@@ -81,7 +81,8 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
       //
       new PrecursorMZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
       new NeutralMassType(), new RTType(), new CCSType(), new CCSRelativeErrorType(),
-      new IsotopePatternScoreType(), new CommentType(), new RIType(), new RIDiffType());
+      new IsotopePatternScoreType(), new CommentType(), new RIType(), new RIDiffType(),
+      new AnnotationSummaryType());
 
   private static final Logger logger = Logger.getLogger(
       CompoundDatabaseMatchesType.class.getName());
@@ -96,6 +97,12 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
 
   @Override
   public <K> @Nullable K map(@NotNull final DataType<K> subType, final CompoundDBAnnotation item) {
+    // visual on demand types are directly mapped here and not in the item
+    if (subType instanceof AnnotationSummaryType) {
+      // summary type is only created in cell value factory
+      return null;
+    }
+
     return item.get(subType);
   }
 
