@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SiriusCsiScoreType;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.CombinedScoreWeights;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
@@ -231,6 +232,13 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
       // use similarity.getScore to get double score instead of Float from FeatureAnnotation.getScore
       case SpectralDBAnnotation s -> OptionalDouble.of(s.getSimilarity().getScore());
       case MatchedLipid l -> OptionalDouble.of(l.getMsMsScore());
+      case CompoundDBAnnotation db -> {
+        final Float score = db.get(SiriusCsiScoreType.class);
+        if (score != null) {
+          yield OptionalDouble.of(score);
+        }
+        yield OptionalDouble.empty();
+      }
       case null, default -> OptionalDouble.empty();
     };
   }
@@ -411,15 +419,30 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     return AnnotationSummaryOrder.MZMINE.getComparatorLowFirst().compare(this, o);
   }
 
+  public String scoreLabel(@NotNull Scores type) {
+    if (!isActiveScore(type)) {
+      return type.fullName() + " (unavailable for feature list)";
+    }
+
+    final OptionalDouble score = score(type);
+
+    if (score.isPresent()) {
+      return "%s = %.3f".formatted(type.fullName(), score.getAsDouble());
+    }
+
+    return type.fullName() + " = 0 (unavailable for annotation)";
+  }
+
   /**
    * Order in this enum also defines the order of the cells in the feature table chart.
    */
-  public enum Scores {
+  public enum Scores implements UniqueIdSupplier {
     COMBINED, MS2, ISOTOPE, MZ, RT, RI, CCS;
 
+    @NotNull
     public String label() {
       return switch (this) {
-        case COMBINED -> "combined";
+        case COMBINED -> "ALL"; // used in chart cell so needs to be short
         case MZ -> "m/z";
         case RT -> "RT";
         case RI -> "RI";
@@ -428,6 +451,30 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
         case MS2 -> "MS2";
       };
     }
+
+    @NotNull
+    public String fullName() {
+      return switch (this) {
+        case MZ, RT, RI, CCS, MS2 -> label(); // same short and long
+        case COMBINED -> "Combined (" + label() + ")";
+        case ISOTOPE -> "Isotope pattern (" + label() + ")";
+      };
+    }
+
+    @Override
+    @NotNull
+    public String getUniqueID() {
+      return switch (this) {
+        case COMBINED -> "combined_score";
+        case MZ -> "mz";
+        case RT -> "rt";
+        case RI -> "ri";
+        case CCS -> "ccs";
+        case ISOTOPE -> "isotope_pattern";
+        case MS2 -> "ms2";
+      };
+    }
+
   }
 
   public @NotNull FeatureListRow row() {

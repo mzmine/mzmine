@@ -47,6 +47,7 @@ import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
@@ -106,7 +107,8 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
     column.setMinWidth(45);
     column.setPrefWidth(45);
     column.setSortable(true);
-    column.setComparator(AnnotationSummaryOrder.MZMINE.getComparatorLowFirst());
+    // flip sorting so that first click gives correct sorting
+    column.setComparator(AnnotationSummaryOrder.MZMINE.getComparatorHighFirst());
 //    column.setMaxWidth(60);
 
     return (TreeTableColumn) column;
@@ -200,17 +202,24 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
         return;
       }
 
+      // only plot actually active types like CCS only if ion mobility
+      final Scores[] scoreTypes = Arrays.stream(Scores.values())
+          .filter(annotationSummary::isActiveScore).toArray(Scores[]::new);
+      String scoresStr = Arrays.stream(scoreTypes).map(annotationSummary::scoreLabel)
+          .collect(Collectors.joining("\n"));
+
       tooltip.setText("""
           Annotation levels:
           %s
+          %s
+          
+          Scores:
           %s""".formatted(annotationSummary.deriveMsiLevel(),
-          annotationSummary.deriveSchymanskiLevel()));
+          annotationSummary.deriveSchymanskiLevel(), scoresStr));
       setTooltip(tooltip);
 
       // 1. Layout Calculations
       final boolean useTwoRows = height > TWO_ROW_HEIGHT_THRESHOLD && totalWidth < 100;
-      final Scores[] scoreTypes = Arrays.stream(Scores.values())
-          .filter(annotationSummary::isActiveScore).toArray(Scores[]::new);
       final int totalItems = scoreTypes.length;
       final int numCols = useTwoRows ? (int) Math.ceil(totalItems / 2.0) : totalItems;
       final int numRows = useTwoRows ? 2 : 1;
