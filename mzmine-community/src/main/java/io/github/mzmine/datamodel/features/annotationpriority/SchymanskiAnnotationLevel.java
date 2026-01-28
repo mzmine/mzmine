@@ -34,6 +34,7 @@ public enum SchymanskiAnnotationLevel {
 
   LEVEL_1(1), LEVEL_2a(2, "a"), LEVEL_2b(2, "b"), LEVEL_3(3), LEVEL_4(4), LEVEL_5(5);
 
+  private static final String LABEL = "Schymanski et al. level";
   private final int numberLevel;
   private final @NotNull String letterLevel;
 
@@ -54,8 +55,21 @@ public enum SchymanskiAnnotationLevel {
     return letterLevel;
   }
 
+  /**
+   *
+   * @return number + letter
+   */
+  public @NotNull String fullLevel() {
+    return numberLevel + letterLevel;
+  }
+
   @Override
   public String toString() {
-    return "Schymanski level " + numberLevel + letterLevel;
+    return LABEL + " " + numberLevel + letterLevel;
+  }
+
+  @NotNull
+  public String getLabel() {
+    return LABEL;
   }
 }

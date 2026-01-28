@@ -62,6 +62,9 @@ public class PreferredAnnotationRankingParameters extends SimpleParameterSet {
       "Absolute RI tolerance used for ranking.", ConfigService.getGuiFormats().rtFormat(),
       DEFAULT_RI_TOLERANCE, 0d, null);
 
+  public static final CombinedScoreWeightsParameter combinedScoreWeights = new CombinedScoreWeightsParameter();
+
+
   public static final AnnotationSummaryOrder DEFAULT_SORT_ORDER = AnnotationSummaryOrder.getDefault();
   public static final ComboParameter<AnnotationSummaryOrder> sorting = new ComboParameter<>(
       "Confidence sorting", """
@@ -74,7 +77,7 @@ public class PreferredAnnotationRankingParameters extends SimpleParameterSet {
   public PreferredAnnotationRankingParameters() {
     super(
         "https://mzmine.github.io/mzmine_documentation/terminology/annotations.html#preferred-annotation",
-        flists, mzTolerance, rtTolerance, ccsTolerance, riTolerance, sorting);
+        flists, mzTolerance, rtTolerance, ccsTolerance, riTolerance, combinedScoreWeights, sorting);
   }
 
   public AnnotationSummarySortConfig toConfig() {
@@ -83,6 +86,7 @@ public class PreferredAnnotationRankingParameters extends SimpleParameterSet {
         Objects.requireNonNullElse(getValue(rtTolerance), DEFAULT_RT_TOLERANCE),
         Objects.requireNonNullElse(getValue(ccsTolerance), DEFAULT_CCS_TOLERANCE),
         Objects.requireNonNullElse(getValue(riTolerance), DEFAULT_RI_TOLERANCE),
+        Objects.requireNonNullElse(getValue(combinedScoreWeights), CombinedScoreWeights.DEFAULT_WEIGHTS),
         Objects.requireNonNullElse(getValue(sorting), DEFAULT_SORT_ORDER));
   }
 
@@ -93,6 +97,7 @@ public class PreferredAnnotationRankingParameters extends SimpleParameterSet {
     param.setParameter(rtTolerance, config.rtTolerance());
     param.setParameter(ccsTolerance, config.ccsTolerance());
     param.setParameter(riTolerance, config.riTolerance());
+    param.setParameter(combinedScoreWeights, config.combinedScoreWeights());
     param.setParameter(sorting, config.sortOrder());
     return (PreferredAnnotationRankingParameters) param;
   }

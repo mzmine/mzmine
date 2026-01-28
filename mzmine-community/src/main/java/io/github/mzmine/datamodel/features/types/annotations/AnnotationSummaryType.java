@@ -25,13 +25,19 @@
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
+import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
+import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
+
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary.Scores;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummaryOrder;
+import io.github.mzmine.datamodel.features.annotationpriority.MsiAnnotationLevel;
+import io.github.mzmine.datamodel.features.annotationpriority.SchymanskiAnnotationLevel;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
@@ -40,15 +46,22 @@ import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -56,9 +69,12 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableColumn.CellDataFeatures;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
+import javafx.util.Callback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,23 +94,45 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
   @Override
   public @Nullable TreeTableColumn<ModularFeatureListRow, Object> createColumn(
       @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType, int subColumnIndex) {
-
     final TreeTableColumn<ModularFeatureListRow, AnnotationSummary> column = new TreeTableColumn<>(
         getHeaderString());
     column.setUserData(this);
     if (parentType != null) {
       // parent type set -> is a sub type of an annotation/list type. get annotation from there
-      column.setCellValueFactory(cdf -> {
-        final Object value = cdf.getValue().getValue().get((DataType<?>) parentType);
-        if (value instanceof List list) {
-          return new ReadOnlyObjectWrapper<>(
-              list != null && !list.isEmpty() ? AnnotationSummary.of(cdf.getValue().getValue(),
-                  (FeatureAnnotation) list.getFirst()) : null);
-        } else if (value instanceof FeatureAnnotation a) {
-          return new ReadOnlyObjectWrapper<>(AnnotationSummary.of(cdf.getValue().getValue(), a));
-        }
-        return new ReadOnlyObjectWrapper<>();
-      });
+      column.setCellValueFactory(
+          new Callback<CellDataFeatures<ModularFeatureListRow, AnnotationSummary>, ObservableValue<AnnotationSummary>>() {
+            // cache the AnnotationSummary because sorting and isotope pattern score is expensive
+            // first time sorting is slow and from then on it is as fast as all the other columns
+            private record RowAnnotationSummary(FeatureListRow row, FeatureAnnotation annotation) {
+
+            }
+
+            private final Map<RowAnnotationSummary, AnnotationSummary> cache = new HashMap<>();
+
+            @Override
+            public ObservableValue<AnnotationSummary> call(
+                CellDataFeatures<ModularFeatureListRow, AnnotationSummary> cdf) {
+              final ModularFeatureListRow row = cdf.getValue().getValue();
+              final Object value = row.get((DataType<?>) parentType);
+              final FeatureAnnotation annotation;
+              if (value instanceof List list) {
+                annotation =
+                    list != null && !list.isEmpty() ? (FeatureAnnotation) list.getFirst() : null;
+              } else if (value instanceof FeatureAnnotation a) {
+                annotation = a;
+              } else {
+                annotation = null;
+              }
+
+              if (annotation == null) {
+                return new ReadOnlyObjectWrapper<>();
+              }
+              final RowAnnotationSummary cacheKey = new RowAnnotationSummary(row, annotation);
+              final AnnotationSummary summary = cache.computeIfAbsent(cacheKey,
+                  _ -> AnnotationSummary.of(row, annotation));
+              return new ReadOnlyObjectWrapper<>(summary);
+            }
+          });
     } else {
       // currently not used but in case this type was added directly to the row, then use the preferred annotation
       column.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(
@@ -105,7 +143,8 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
     column.setMinWidth(45);
     column.setPrefWidth(45);
     column.setSortable(true);
-    column.setComparator(AnnotationSummaryOrder.MZMINE.getComparatorLowFirst());
+    // flip sorting so that first click gives correct sorting
+    column.setComparator(AnnotationSummaryOrder.MZMINE.getComparatorHighFirst());
 //    column.setMaxWidth(60);
 
     return (TreeTableColumn) column;
@@ -137,7 +176,6 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
     private final Canvas canvas = new Canvas();
     private final Font arial = new Font(Font.getDefault().getName(), 9);
     private final PaintScale palette;
-    private final Scores[] scoreTypes = Scores.values();
     private final Color bgColor;
     private final Color textColor;
     private final Color outlineColor;
@@ -147,6 +185,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
       setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
       setGraphic(canvas);
       setMinHeight(50);
+
       setTooltip(tooltip);
 //      setMinWidth(getMinChartWidth());
 
@@ -195,17 +234,16 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
 
       AnnotationSummary annotationSummary = getItem();
       if (annotationSummary == null || isEmpty() || !isVisible()) {
-        tooltip.setText(null);
+        tooltip.setGraphic(null);
         setTooltip(null);
         return;
       }
 
-      tooltip.setText("""
-          Annotation levels:
-          %s
-          %s""".formatted(annotationSummary.deriveMsiLevel(),
-          annotationSummary.deriveSchymanskiLevel()));
-      setTooltip(tooltip);
+      // only plot actually active types like CCS only if ion mobility
+      final Scores[] scoreTypes = Arrays.stream(Scores.values())
+          .filter(annotationSummary::isActiveScore).toArray(Scores[]::new);
+
+      setTooltip(annotationSummary, scoreTypes);
 
       // 1. Layout Calculations
       final boolean useTwoRows = height > TWO_ROW_HEIGHT_THRESHOLD && totalWidth < 100;
@@ -238,7 +276,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
         final double xOffset = colIndex * (barWidth + BAR_SPACING);
         final double yOffset = rowIndex * rowHeight + (rowIndex * BAR_SPACING);
 
-        final double score = annotationSummary.score(scoreType);
+        final double score = annotationSummary.score(scoreType).orElse(0d);
         final double barH = score * chartHeight;
         final double topEdge = yOffset + chartHeight - barH;
 
@@ -287,6 +325,37 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
       gc.fillText(annotationSummary.deriveSumnerLevel(), BAR_SPACING,
           arial.getSize() + arial.getSize() / 2 + BAR_SPACING);
       gc.restore();*/
+    }
+
+    private void setTooltip(AnnotationSummary annotationSummary, Scores[] scoreTypes) {
+      final MsiAnnotationLevel msiLevel = annotationSummary.deriveMsiLevel();
+      final SchymanskiAnnotationLevel schymanskiLevel = annotationSummary.deriveSchymanskiLevel();
+
+      final VBox left = FxLayout.newVBox(Pos.CENTER_RIGHT, Insets.EMPTY, //
+          newBoldLabel("Annotation levels:") //
+          , newLabel(msiLevel.getLabel() + " = ") //
+          , newLabel(schymanskiLevel.getLabel() + " = ") //
+          , newBoldLabel("") // space holder
+          , newBoldLabel("Scores:") //
+      );
+      final VBox right = FxLayout.newVBox(Pos.CENTER_LEFT, Insets.EMPTY, //
+          newBoldLabel("") // space holder
+          , newBoldLabel(msiLevel.numberLevel() + "") //
+          , newBoldLabel(schymanskiLevel.fullLevel()) //
+          , newBoldLabel("") // space holder
+          , newBoldLabel("") // space holder
+      );
+      left.setSpacing(0);
+      right.setSpacing(0);
+
+      for (Scores type : scoreTypes) {
+        left.getChildren().add(newLabel(type.fullName() + " = "));
+        right.getChildren().add(newBoldLabel(annotationSummary.scoreLabel(type)));
+      }
+
+      // grid pane did not work, scaled too large and with background
+      tooltip.setGraphic(FxLayout.newHBox(left, right));
+      setTooltip(tooltip);
     }
 
     private Color getScoreColor(double score) {

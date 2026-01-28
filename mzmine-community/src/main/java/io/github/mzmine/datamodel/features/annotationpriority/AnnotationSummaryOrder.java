@@ -24,7 +24,6 @@
 
 package io.github.mzmine.datamodel.features.annotationpriority;
 
-import static io.github.mzmine.util.Comparators.nullsFirst;
 import static io.github.mzmine.util.Comparators.reversedNullsFirst;
 import static java.util.Comparator.reverseOrder;
 
@@ -37,16 +36,14 @@ import org.jetbrains.annotations.Nullable;
 
 public enum AnnotationSummaryOrder implements UniqueIdSupplier {
 
+  /**
+   * Ranks annotation types {@link AnnotationSummary#mzmineAnnotationTypeRank()} and then by
+   * combined weighted score
+   */
   MZMINE, SCHYMANSKI, MSI;
 
   private static final Comparator<@NotNull AnnotationSummary> SCORES_LOW_TO_HIGH = Comparator.comparing(
-          AnnotationSummary::mzmineAnnotationTypeRank, nullsFirst())
-      .thenComparing(AnnotationSummary::ms2Score, nullsFirst())
-      .thenComparing(AnnotationSummary::isotopeScore, nullsFirst())
-      .thenComparing(AnnotationSummary::mzScore, nullsFirst())
-      .thenComparing(AnnotationSummary::rtScore, nullsFirst())
-      .thenComparing(AnnotationSummary::riScore, nullsFirst())
-      .thenComparing(AnnotationSummary::ccsScore, nullsFirst());
+      AnnotationSummary::mzmineAnnotationTypeRank).thenComparing(AnnotationSummary::combinedScore);
 
   private static final Comparator<@Nullable AnnotationSummary> SCHYMANSKI_LOW_TO_HIGH = //
       Comparator.nullsFirst( // annotation summary null - first
