@@ -519,14 +519,12 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
     // therefore some are still mapped here to the corresponding correct type
     try {
       return (T) switch (type) {
-        case SpectralLibraryMatchesType _ -> this; // to display the match in the first column
         case SimilarityType _ -> (float) this.getSimilarity().getScore(); // type requires float
         case ExplainedIntensityPercentType __ ->
             (float) this.getSimilarity().getExplainedLibraryIntensity();
         case MatchingSignalsType _ -> this.getSimilarity().getOverlap();
         case MzPpmDifferenceType _ -> this.getMzPpmError(); // not added as type so needs mapping
         case AnnotationMethodType _ -> getAnnotationMethodName(); // not in map so need method call
-        case AnnotationSummaryType _ -> null; // created on demand in cell factory
         default -> null; // just return null here as type is just unknown to this match
       };
     } catch (Exception e) {

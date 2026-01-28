@@ -125,6 +125,17 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
 
   @Override
   public <K> @Nullable K map(@NotNull final DataType<K> subType, final SpectralDBAnnotation match) {
+    // for types that are only visible in table map them here
+    // all other types are mapped in the match directly
+    Object value = switch (subType) {
+      case SpectralLibraryMatchesType _ -> this; // to display the match in the first column
+      case AnnotationSummaryType _ -> null; // created on demand in cell factory
+      default -> null;
+    };
+    if (value != null) {
+      return (K) value;
+    }
+
     // just delegate to match.get now that is a ModularDataModel similar to CompoundDatabaseMatchesType
     return match.get(subType);
   }
