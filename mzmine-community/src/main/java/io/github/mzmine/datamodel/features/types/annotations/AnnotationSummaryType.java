@@ -31,6 +31,7 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary.Scores;
@@ -52,10 +53,13 @@ import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -65,13 +69,12 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
+import javafx.scene.control.TreeTableColumn.CellDataFeatures;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
+import javafx.util.Callback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,23 +94,45 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
   @Override
   public @Nullable TreeTableColumn<ModularFeatureListRow, Object> createColumn(
       @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType, int subColumnIndex) {
-
     final TreeTableColumn<ModularFeatureListRow, AnnotationSummary> column = new TreeTableColumn<>(
         getHeaderString());
     column.setUserData(this);
     if (parentType != null) {
       // parent type set -> is a sub type of an annotation/list type. get annotation from there
-      column.setCellValueFactory(cdf -> {
-        final Object value = cdf.getValue().getValue().get((DataType<?>) parentType);
-        if (value instanceof List list) {
-          return new ReadOnlyObjectWrapper<>(
-              list != null && !list.isEmpty() ? AnnotationSummary.of(cdf.getValue().getValue(),
-                  (FeatureAnnotation) list.getFirst()) : null);
-        } else if (value instanceof FeatureAnnotation a) {
-          return new ReadOnlyObjectWrapper<>(AnnotationSummary.of(cdf.getValue().getValue(), a));
-        }
-        return new ReadOnlyObjectWrapper<>();
-      });
+      column.setCellValueFactory(
+          new Callback<CellDataFeatures<ModularFeatureListRow, AnnotationSummary>, ObservableValue<AnnotationSummary>>() {
+            // cache the AnnotationSummary because sorting and isotope pattern score is expensive
+            // first time sorting is slow and from then on it is as fast as all the other columns
+            private record RowAnnotationSummary(FeatureListRow row, FeatureAnnotation annotation) {
+
+            }
+
+            private final Map<RowAnnotationSummary, AnnotationSummary> cache = new HashMap<>();
+
+            @Override
+            public ObservableValue<AnnotationSummary> call(
+                CellDataFeatures<ModularFeatureListRow, AnnotationSummary> cdf) {
+              final ModularFeatureListRow row = cdf.getValue().getValue();
+              final Object value = row.get((DataType<?>) parentType);
+              final FeatureAnnotation annotation;
+              if (value instanceof List list) {
+                annotation =
+                    list != null && !list.isEmpty() ? (FeatureAnnotation) list.getFirst() : null;
+              } else if (value instanceof FeatureAnnotation a) {
+                annotation = a;
+              } else {
+                annotation = null;
+              }
+
+              if (annotation == null) {
+                return new ReadOnlyObjectWrapper<>();
+              }
+              final RowAnnotationSummary cacheKey = new RowAnnotationSummary(row, annotation);
+              final AnnotationSummary summary = cache.computeIfAbsent(cacheKey,
+                  _ -> AnnotationSummary.of(row, annotation));
+              return new ReadOnlyObjectWrapper<>(summary);
+            }
+          });
     } else {
       // currently not used but in case this type was added directly to the row, then use the preferred annotation
       column.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(
