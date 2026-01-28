@@ -49,7 +49,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -135,7 +134,7 @@ public class SimpleParameterSet implements ParameterSet {
     // dont check if the versions differ here, as there may be embedded parameter sets that
     // should be checked. Alternatively, stream over all parameters and check if we have an
     // EmbeddedParameterSet parameter.
-    final String message = getLoadingVersionMessages(loadedVersion).collect(
+    final String message = extractAllLoadingVersionMessages(loadedVersion).collect(
         Collectors.joining("\n"));
     if (!StringUtils.isBlank(message)) {
       loadingVersionMessages = message;
@@ -385,20 +384,29 @@ public class SimpleParameterSet implements ParameterSet {
     this.moduleNameAttribute = moduleName;
   }
 
-  protected @NotNull Stream<@NotNull String> getLoadingVersionMessages(int storedVersion) {
+  /**
+   * Only used during loading of the ParameterSet to set the internal
+   * {@link #getLoadingVersionMessages()}. Starts with messages from this parameter set, followed by
+   * messages from embedded parameters sets.
+   *
+   * @param storedVersion the loaded version
+   * @return stream of non-blank messages
+   */
+  protected @NotNull Stream<@NotNull String> extractAllLoadingVersionMessages(int storedVersion) {
     List<String> embeddedMessages = Arrays.stream(this.parameters).<String>mapMulti((p, c) -> {
       if (p instanceof EmbeddedParameterSet<?, ?> embeddedParameterSetParam) {
         ParameterSet embeddedParameters = embeddedParameterSetParam.getEmbeddedParameters();
-        if (!StringUtils.isBlank(embeddedParameters.getLoadingVersionMessages())) {
+        final String embeddedMessage = embeddedParameters.getLoadingVersionMessages();
+        if (!StringUtils.isBlank(embeddedMessage)) {
           String name = embeddedParameterSetParam.getName();
-          c.accept(name + " (embedded): " + embeddedParameters.getLoadingVersionMessages());
+          c.accept(name + " (embedded): " + embeddedMessage);
         }
       }
     }).toList();
 
     return Stream.concat(
         IntStream.range(storedVersion + 1, getVersion() + 1).mapToObj(this::getVersionMessage)
-            .filter(Objects::nonNull), embeddedMessages.stream());
+            .filter(StringUtils::hasValue), embeddedMessages.stream());
   }
 
   @Override

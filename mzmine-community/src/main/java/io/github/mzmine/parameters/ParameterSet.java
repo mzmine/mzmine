@@ -323,6 +323,8 @@ public interface ParameterSet extends ParameterContainer {
   /**
    * A string containing all messages/hints for old parameters while loading this module from xml.
    * This message is discarded on clone.
+   * <p>
+   * This also contains all messages from internal embedded {@link EmbeddedParameterSet}.
    *
    * @return A string containing all messages/hints for old parameters while loading this module
    * from xml. Empty if no messages, not null.

@@ -69,7 +69,8 @@ public record ModulePreset(String name, @NotNull String presetGroup,
           The preset was created with an older version of the parameter set. Changes are:
           %s
           
-          It is recommended to load the preset, confirm and adapt the parameters and then saving the preset to update it.
+          It is recommended to load the preset, confirm or adapt the parameters, and finally save \
+          the preset to update it.
           
           %s
           """.formatted(loadingVersionMessages, msg);

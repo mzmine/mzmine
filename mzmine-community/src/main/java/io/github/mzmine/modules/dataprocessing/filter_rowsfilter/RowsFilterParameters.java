@@ -320,10 +320,10 @@ public class RowsFilterParameters extends SimpleParameterSet {
   @Override
   public @Nullable String getVersionMessage(int version) {
     return switch (version) {
+      // 3 had message for internal change to cvFilter - but internal changes are now also printed since mzmine 4.9
+      // still print added option here because either way there is a message that RSD filter was changed
       case 3 -> """
-          "%s" has changed internally. Missing value imputation was added.
-          "%s" was added as an additional filtering option.""".formatted(cvFilter.getName(),
-          foldChangeFilter.getName());
+          "%s" was added as an additional filtering option.""".formatted(foldChangeFilter.getName());
       default -> null;
     };
   }
