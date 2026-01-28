@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary.Scores;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummaryOrder;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
@@ -104,7 +105,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
     column.setMinWidth(45);
     column.setPrefWidth(45);
     column.setSortable(true);
-    column.setComparator(AnnotationSummary.LOW_TO_HIGH_CONFIDENCE);
+    column.setComparator(AnnotationSummaryOrder.MZMINE.getComparatorLowFirst());
 //    column.setMaxWidth(60);
 
     return (TreeTableColumn) column;

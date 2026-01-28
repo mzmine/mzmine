@@ -29,47 +29,31 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SiriusCsiScoreType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import java.util.Comparator;
-import java.util.function.Function;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AnnotationSummary implements Comparable<AnnotationSummary> {
 
-  private static final double maxPpmDiff = 15;
-  private static final double maxRtDiff = 0.3;
-  private static final double maxCcsDev = 0.10;
-  private static final double maxRiDev = 0.10;
-
   @NotNull
   private final FeatureListRow row;
   @Nullable
   private final FeatureAnnotation annotation;
-
-  private static final Comparator<@NotNull AnnotationSummary> LOW_TO_HIGH_NON_NULL = Comparator.comparing(
-          AnnotationSummary::deriveSchymanskiLevel, Comparator.nullsFirst(Comparator.reverseOrder()))
-      .thenComparing(AnnotationSummary::ms2Score, Comparator.nullsFirst(Comparator.naturalOrder()))
-      .thenComparing(AnnotationSummary::isotopeScore,
-          Comparator.nullsFirst(Comparator.naturalOrder()))
-      .thenComparing(AnnotationSummary::mzScore, Comparator.nullsFirst(Comparator.naturalOrder()))
-      .thenComparing(AnnotationSummary::rtScore, Comparator.nullsFirst(Comparator.naturalOrder()))
-      .thenComparing(AnnotationSummary::riScore, Comparator.nullsFirst(Comparator.naturalOrder()))
-      .thenComparing(AnnotationSummary::ccsScore, Comparator.nullsFirst(Comparator.naturalOrder()));
-
-  public static final Comparator<@Nullable AnnotationSummary> LOW_TO_HIGH_CONFIDENCE = Comparator.comparing(
-      Function.identity(), Comparator.nullsFirst(LOW_TO_HIGH_NON_NULL));
-
-  public static final Comparator<@Nullable AnnotationSummary> HIGH_TO_LOW_CONFIDENCE = LOW_TO_HIGH_CONFIDENCE.reversed();
 
   private AnnotationSummary(@NotNull final FeatureListRow row,
       @Nullable final FeatureAnnotation annotation) {
@@ -107,8 +91,9 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     final Double precursorMZ = annotation.getPrecursorMZ();
 
     if (rowMz != null && precursorMZ != null) {
-      return 1
-          - Math.min(Math.abs(MathUtils.getPpmDiff(precursorMZ, rowMz)), maxPpmDiff) / maxPpmDiff;
+      final double maxDiff = row.getFeatureList().getAnnotationSortConfig().mzTolerance()
+          .getMzToleranceForMass(precursorMZ);
+      return 1 - Math.min(Math.abs(precursorMZ - rowMz), maxDiff) / maxDiff;
     }
     return 0;
   }
@@ -122,7 +107,9 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     final Float precursorRt = annotation.getRT();
 
     if (rowRt != null && precursorRt != null) {
-      return 1 - Math.min(Math.abs(rowRt - precursorRt), maxRtDiff) / maxRtDiff;
+      final RTTolerance rtTolerance = row.getFeatureList().getAnnotationSortConfig().rtTolerance();
+      final float maxDiff = rtTolerance.getToleranceInMinutes(precursorRt);
+      return 1 - Math.min(Math.abs(rowRt - precursorRt), maxDiff) / maxDiff;
     }
     return 0;
   }
@@ -136,7 +123,8 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     final Float ccs = annotation.getCCS();
 
     if (averageCCS != null && ccs != null) {
-      return getScore(averageCCS / ccs, maxCcsDev);
+      final double maxCcsDev = row.getFeatureList().getAnnotationSortConfig().ccsTolerance();
+      return getScore((averageCCS - ccs) / ccs, maxCcsDev);
     }
     return 0;
   }
@@ -158,7 +146,8 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     Float ri = CompoundAnnotationUtils.getTypeValue(annotation, RIType.class);
 
     if (averageRI != null && ri != null) {
-      return getScore(averageRI / ri, maxRiDev);
+      final double maxRiDev = row.getFeatureList().getAnnotationSortConfig().riTolerance();
+      return getScore(averageRI - ri, maxRiDev);
     }
     return 0d;
   }
@@ -177,13 +166,55 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
         new MZTolerance(0.005, 15), 0d);
   }
 
+  /// [FeatureAnnotation] types are ranked from best to worst:
+  /// - Spectral library match with RT or retention index match are highest.
+  /// - MatchedLipid with MS2: Usually better for this class of compounds than spectral matches
+  /// - Spectral matches (without RT or RI)
+  /// - MatchedLipid
+  /// - CompoundDB: Contains different types of annotations from local DB, SIRIUS but they all for
+  /// now fall under the same rank and are sorted internally.
+  ///
+  /// @return a rank mzmine [FeatureAnnotation] types the lower the better.
+  public int mzmineAnnotationTypeRank() {
+    if (annotation == null) {
+      return 10;
+    }
+
+    return switch (DataTypes.get(annotation.getDataType())) {
+      // lipid: if lipid has ms2 score, prefer over library match without rt or ri. otherwise same as comp db.
+      case LipidMatchListType _ -> {
+        final MatchedLipid lipid = (MatchedLipid) annotation;
+        // MSMSscore is null if no MS2 scan available and 0 if keep unconfirmed is active
+        // better to check matched fragments. If one is matched then rank this higher
+        final Set<LipidFragment> matchedFragments = lipid.getMatchedFragments();
+        if (matchedFragments.isEmpty()) {
+          yield 4; // worse than spectral match rating
+        } else {
+          yield 2; // better than spectral match
+        }
+      }
+      case SpectralLibraryMatchesType _ -> {
+        // RT is often provided in libraries but may completely mismatch the actual RT
+        // therefore check if the score is at least within range and use low minimum score
+        if (score(Scores.RT) > 0.01 || score(Scores.RI) > 0.01) {
+          yield 1;
+        } else {
+          yield 3;
+        }
+      }
+      case CompoundDatabaseMatchesType _ -> 4;
+      case null, default -> 10;
+    };
+  }
+
   private double getScore(double actual, double predicted, double maxDiff) {
     return 1 - Math.min(Math.abs(actual - predicted), maxDiff) / maxDiff;
   }
 
   /**
    *
-   * @param deviationFromPredicted actualValue - predictedValue or actualValue/predictedValue
+   * @param deviationFromPredicted actualValue - predictedValue or (actualValue -
+   *                               predictedValue)/predictedValue
    */
   private double getScore(double deviationFromPredicted, double maxDeviation) {
     return 1 - Math.min(Math.abs(deviationFromPredicted), maxDeviation) / maxDeviation;
@@ -273,7 +304,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
 
   @Override
   public int compareTo(@NotNull AnnotationSummary o) {
-    return LOW_TO_HIGH_CONFIDENCE.compare(this, o);
+    return AnnotationSummaryOrder.MZMINE.getComparatorLowFirst().compare(this, o);
   }
 
   /**
