@@ -419,18 +419,19 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     return AnnotationSummaryOrder.MZMINE.getComparatorLowFirst().compare(this, o);
   }
 
+  @NotNull
   public String scoreLabel(@NotNull Scores type) {
     if (!isActiveScore(type)) {
-      return type.fullName() + " (unavailable for feature list)";
+      return "(unavailable for feature list)";
     }
 
     final OptionalDouble score = score(type);
 
     if (score.isPresent()) {
-      return "%s = %.3f".formatted(type.fullName(), score.getAsDouble());
+      return "%.3f".formatted(score.getAsDouble());
     }
 
-    return type.fullName() + " = 0 (unavailable for annotation)";
+    return "(unavailable for annotation)";
   }
 
   /**
