@@ -70,19 +70,19 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
     AnnotationType {
 
   public static final List<DataType> subTypes = List.of(new CompoundDatabaseMatchesType(),
-      new CompoundNameType(), new CompoundAnnotationScoreType(), new FormulaType(),
-      new IonTypeType(), new MolecularStructureType(), new SmilesStructureType(),
-      new InChIStructureType(), new InChIKeyStructureType(),
+      new CompoundNameType(), new AnnotationSummaryType(), new CompoundAnnotationScoreType(),
+      new FormulaType(), new IonTypeType(), new MolecularStructureType(),
+      new SmilesStructureType(), new InChIStructureType(),
       // classifiers
-      new ClassyFireSuperclassType(), new ClassyFireClassType(), new ClassyFireSubclassType(),
-      new ClassyFireParentType(), new NPClassifierSuperclassType(), new NPClassifierClassType(),
-      new NPClassifierPathwayType(),
+      new InChIKeyStructureType(), new ClassyFireSuperclassType(), new ClassyFireClassType(),
+      new ClassyFireSubclassType(), new ClassyFireParentType(), new NPClassifierSuperclassType(),
+      new NPClassifierClassType(),
 
       //
-      new PrecursorMZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
-      new NeutralMassType(), new RTType(), new CCSType(), new CCSRelativeErrorType(),
-      new IsotopePatternScoreType(), new CommentType(), new RIType(), new RIDiffType(),
-      new AnnotationSummaryType());
+      new NPClassifierPathwayType(), new PrecursorMZType(), new MzPpmDifferenceType(),
+      new MzAbsoluteDifferenceType(), new NeutralMassType(), new RTType(), new CCSType(),
+      new CCSRelativeErrorType(), new IsotopePatternScoreType(), new CommentType(), new RIType(),
+      new RIDiffType());
 
   private static final Logger logger = Logger.getLogger(
       CompoundDatabaseMatchesType.class.getName());
