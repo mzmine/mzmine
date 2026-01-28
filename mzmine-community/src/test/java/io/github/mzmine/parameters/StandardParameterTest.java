@@ -29,6 +29,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.modules.dataprocessing.filter_sortannotations.CombinedScoreWeights;
+import io.github.mzmine.modules.dataprocessing.filter_sortannotations.CombinedScoreWeightsParameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -50,6 +52,7 @@ class StandardParameterTest {
         PolarityType.values(), PolarityType.NEGATIVE);
 
     List<ParameterTestCase> tests = List.of( //
+        new ParameterTestCase(new CombinedScoreWeightsParameter("weights", "test", CombinedScoreWeights.DEFAULT_WEIGHTS), new CombinedScoreWeights(1d,2d,2.5,0.5, 1.252, 1.5)), //
         // simple parameters
         new ParameterTestCase(stringParam, "other value"), //
         new ParameterTestCase(new DoubleParameter("t", "", new DecimalFormat("0.0000"), 5d), 1d), //
