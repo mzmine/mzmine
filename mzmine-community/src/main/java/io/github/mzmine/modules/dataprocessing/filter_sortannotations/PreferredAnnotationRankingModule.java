@@ -38,9 +38,11 @@ import org.jetbrains.annotations.Nullable;
 public class PreferredAnnotationRankingModule extends TaskPerFeatureListModule {
 
   public PreferredAnnotationRankingModule() {
-    super("Preferred annotation ranking", PreferredAnnotationRankingParameters.class,
-        MZmineModuleCategory.FEATURELISTFILTERING, false,
-        "Define how preferred annotations are determined and ranked in a feature list.");
+    super("Annotation ranking", PreferredAnnotationRankingParameters.class,
+        MZmineModuleCategory.FEATURELISTFILTERING, false, """
+            Define how ranks of preferred annotations are determined in a feature list.
+            This will replace the default that is already set to all new feature lists.
+            The ranking configs are usually transferred from an input to an output feature list by modules.""");
   }
 
   @Override
