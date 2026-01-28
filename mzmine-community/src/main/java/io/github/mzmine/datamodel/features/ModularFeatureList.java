@@ -131,6 +131,13 @@ public class ModularFeatureList implements FeatureList {
   // grouping
   private List<RowGroup> groups;
 
+  /**
+   * this just counts the mutations of annotationSortConfig to signal change.
+   * <p>
+   * May need to use volatile here to make it visible through all threads fast. But might not be
+   * needed as this change is still recognized fast enough
+   */
+  private int annotationSortConfigVersion = 0;
   private @NotNull AnnotationSummarySortConfig annotationSortConfig = AnnotationSummarySortConfig.DEFAULT;
 
   /**
@@ -987,5 +994,11 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void setAnnotationSortConfig(@NotNull AnnotationSummarySortConfig annotationSortConfig) {
     this.annotationSortConfig = annotationSortConfig;
+    annotationSortConfigVersion++;
+  }
+
+  @Override
+  public int getAnnotationSortConfigVersion() {
+    return annotationSortConfigVersion;
   }
 }
