@@ -38,11 +38,13 @@ import io.github.mzmine.datamodel.features.types.numbers.scores.SiriusCsiScoreTy
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -164,17 +166,37 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
         new MZTolerance(0.005, 15), 0d);
   }
 
-  public int annotationTypeScore() {
+  /// [FeatureAnnotation] types are ranked from best to worst:
+  /// - Spectral library match with RT or retention index match are highest.
+  /// - MatchedLipid with MS2: Usually better for this class of compounds than spectral matches
+  /// - Spectral matches (without RT or RI)
+  /// - MatchedLipid
+  /// - CompoundDB: Contains different types of annotations from local DB, SIRIUS but they all for
+  /// now fall under the same rank and are sorted internally.
+  ///
+  /// @return a rank mzmine [FeatureAnnotation] types the lower the better.
+  public int mzmineAnnotationTypeRank() {
     if (annotation == null) {
       return 10;
     }
 
     return switch (DataTypes.get(annotation.getDataType())) {
       // lipid: if lipid has ms2 score, prefer over library match without rt or ri. otherwise same as comp db.
-      case LipidMatchListType _ -> ((MatchedLipid) annotation).getMsMsScore() != null ? 2 : 4;
+      case LipidMatchListType _ -> {
+        final MatchedLipid lipid = (MatchedLipid) annotation;
+        // MSMSscore is null if no MS2 scan available and 0 if keep unconfirmed is active
+        // better to check matched fragments. If one is matched then rank this higher
+        final Set<LipidFragment> matchedFragments = lipid.getMatchedFragments();
+        if (matchedFragments.isEmpty()) {
+          yield 4; // worse than spectral match rating
+        } else {
+          yield 2; // better than spectral match
+        }
+      }
       case SpectralLibraryMatchesType _ -> {
-        if (((SpectralDBAnnotation) annotation).getRtAbsoluteError() != null
-            || ((SpectralDBAnnotation) annotation).getRiDiff() != null) {
+        // RT is often provided in libraries but may completely mismatch the actual RT
+        // therefore check if the score is at least within range and use low minimum score
+        if (score(Scores.RT) > 0.01 || score(Scores.RI) > 0.01) {
           yield 1;
         } else {
           yield 3;

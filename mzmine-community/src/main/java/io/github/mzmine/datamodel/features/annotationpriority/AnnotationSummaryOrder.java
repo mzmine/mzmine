@@ -24,14 +24,13 @@
 
 package io.github.mzmine.datamodel.features.annotationpriority;
 
-import static java.util.Comparator.naturalOrder;
-import static java.util.Comparator.nullsFirst;
+import static io.github.mzmine.util.Comparators.nullsFirst;
+import static io.github.mzmine.util.Comparators.reversedNullsFirst;
 import static java.util.Comparator.reverseOrder;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,31 +40,29 @@ public enum AnnotationSummaryOrder implements UniqueIdSupplier {
   MZMINE, SCHYMANSKI, MSI;
 
   private static final Comparator<@NotNull AnnotationSummary> SCORES_LOW_TO_HIGH = Comparator.comparing(
-          AnnotationSummary::annotationTypeScore, nullsFirst(naturalOrder()))
-      .thenComparing(AnnotationSummary::ms2Score, nullsFirst(naturalOrder()))
-      .thenComparing(AnnotationSummary::isotopeScore, nullsFirst(naturalOrder()))
-      .thenComparing(AnnotationSummary::mzScore, nullsFirst(naturalOrder()))
-      .thenComparing(AnnotationSummary::rtScore, nullsFirst(naturalOrder()))
-      .thenComparing(AnnotationSummary::riScore, nullsFirst(naturalOrder()))
-      .thenComparing(AnnotationSummary::ccsScore, nullsFirst(naturalOrder()));
+          AnnotationSummary::mzmineAnnotationTypeRank, nullsFirst())
+      .thenComparing(AnnotationSummary::ms2Score, nullsFirst())
+      .thenComparing(AnnotationSummary::isotopeScore, nullsFirst())
+      .thenComparing(AnnotationSummary::mzScore, nullsFirst())
+      .thenComparing(AnnotationSummary::rtScore, nullsFirst())
+      .thenComparing(AnnotationSummary::riScore, nullsFirst())
+      .thenComparing(AnnotationSummary::ccsScore, nullsFirst());
 
-  private static final Comparator<@NotNull AnnotationSummary> SCHYMANSKI_LOW_TO_HIGH_NON_NULL = Comparator.comparing(
-          AnnotationSummary::deriveSchymanskiLevel, nullsFirst(reverseOrder()))
-      .thenComparing(SCORES_LOW_TO_HIGH);
-  private static final Comparator<@Nullable AnnotationSummary> SCHYMANSKI_LOW_TO_HIGH = Comparator.comparing(
-      Function.identity(), nullsFirst(SCHYMANSKI_LOW_TO_HIGH_NON_NULL));
+  private static final Comparator<@Nullable AnnotationSummary> SCHYMANSKI_LOW_TO_HIGH = //
+      Comparator.nullsFirst( // annotation summary null - first
+          Comparator.comparing(AnnotationSummary::deriveSchymanskiLevel, reversedNullsFirst())
+              .thenComparing(SCORES_LOW_TO_HIGH));
 
-  private static final Comparator<@Nullable AnnotationSummary> DEFAULT_LOW_TO_HIGH = Comparator.comparing(
-          Function.identity(),
-          // according to Schymanski scale, lipid annotations would be 2b, so always below library matches.
-          // change that here for the default.
-          nullsFirst(Comparator.comparing(AnnotationSummary::annotationTypeScore, naturalOrder())))
+  // according to Schymanski scale, lipid annotations would be 2b, so always below library matches.
+  // changed that here for the mzmine default lipids with MS2 verification are higher than spectral matches.
+  // unless spectral match also has RT match
+  private static final Comparator<@Nullable AnnotationSummary> DEFAULT_LOW_TO_HIGH = Comparator.nullsFirst(
+          Comparator.comparing(AnnotationSummary::mzmineAnnotationTypeRank, reverseOrder()))
       .thenComparing(SCHYMANSKI_LOW_TO_HIGH);
 
-  private static final Comparator<@NotNull AnnotationSummary> MSI_LOW_TO_HIGH_NON_NULL = Comparator.comparing(
-      AnnotationSummary::deriveMsiLevel, nullsFirst(reverseOrder()));
-  private static final Comparator<@Nullable AnnotationSummary> MSI_LOW_TO_HIGH = Comparator.comparing(
-      Function.identity(), nullsFirst(MSI_LOW_TO_HIGH_NON_NULL).thenComparing(SCORES_LOW_TO_HIGH));
+  private static final Comparator<@Nullable AnnotationSummary> MSI_LOW_TO_HIGH = Comparator.nullsFirst(
+          Comparator.comparing(AnnotationSummary::deriveMsiLevel, reversedNullsFirst()))
+      .thenComparing(SCORES_LOW_TO_HIGH);
 
   @Override
   public @NotNull String getUniqueID() {

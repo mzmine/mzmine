@@ -60,7 +60,7 @@ public class PreferredAnnotationRankingParameters extends SimpleParameterSet {
   public static final double DEFAULT_RI_TOLERANCE = 2;
   public static final DoubleParameter riTolerance = new DoubleParameter("RI tolerance",
       "Absolute RI tolerance used for ranking.", ConfigService.getGuiFormats().rtFormat(),
-      DEFAULT_RI_TOLERANCE, 0d, Double.MAX_VALUE);
+      DEFAULT_RI_TOLERANCE, 0d, null);
 
   public static final AnnotationSummaryOrder DEFAULT_SORT_ORDER = AnnotationSummaryOrder.getDefault();
   public static final ComboParameter<AnnotationSummaryOrder> sorting = new ComboParameter<>(
