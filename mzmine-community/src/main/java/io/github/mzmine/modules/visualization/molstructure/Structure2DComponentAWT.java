@@ -30,7 +30,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import javax.swing.JComponent;
-import org.openscience.cdk.exception.CDKException;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 public class Structure2DComponentAWT extends JComponent {
@@ -39,14 +39,25 @@ public class Structure2DComponentAWT extends JComponent {
 
   private final Structure2DRenderer renderer;
   // higher zoom than default to have bigger structures
-  private Structure2DRenderConfig renderConfig = ConfigService.getStructureRenderConfig();
+  private Structure2DRenderConfig renderConfig;
   private IAtomContainer molecule;
 
-  public Structure2DComponentAWT(IAtomContainer container) throws CDKException {
+  public Structure2DComponentAWT(IAtomContainer container) {
     this(container, StructureRenderService.FONT);
   }
 
+  public Structure2DComponentAWT(IAtomContainer container,
+      @NotNull Structure2DRenderConfig renderConfig) {
+    this(container, StructureRenderService.FONT, renderConfig);
+  }
+
   public Structure2DComponentAWT(IAtomContainer container, Font font) {
+    this(container, font, ConfigService.getStructureRenderConfig());
+  }
+
+  public Structure2DComponentAWT(IAtomContainer container, Font font,
+      @NotNull Structure2DRenderConfig renderConfig) {
+    this.renderConfig = renderConfig;
     renderer = new Structure2DRenderer(font);
     molecule = container;
     renderer.prepareStructure2D(molecule);

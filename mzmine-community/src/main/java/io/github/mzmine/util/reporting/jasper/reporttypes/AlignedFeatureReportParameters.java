@@ -26,6 +26,8 @@ package io.github.mzmine.util.reporting.jasper.reporttypes;
 
 import io.github.mzmine.gui.chartbasics.graphicsexport.ExportChartThemeModule;
 import io.github.mzmine.gui.chartbasics.graphicsexport.ExportChartThemeParameters;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
+import io.github.mzmine.modules.visualization.molstructure.StructureRenderParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -51,8 +53,15 @@ public class AlignedFeatureReportParameters extends SimpleParameterSet {
       "Chart theme", "Define the chart theme", new ExportChartThemeParameters(), false,
       ExportChartThemeModule.class);
 
+
+  // needs more zoom maybe because of DPI?
+  public static final ParameterSetParameter<StructureRenderParameters> structureRendering = new ParameterSetParameter<>(
+      "Molecular structure rendering", "Options to control the rendering of molecular structures.",
+      // use different default zoom and clone parameterset
+      new StructureRenderParameters().setAll(new Structure2DRenderConfig(3d), true));
+
   public AlignedFeatureReportParameters() {
-    super(includeSummaryTable, includeEvidencePages, grouping, chartThemeParam);
+    super(includeSummaryTable, includeEvidencePages, grouping, structureRendering, chartThemeParam);
   }
 
 }

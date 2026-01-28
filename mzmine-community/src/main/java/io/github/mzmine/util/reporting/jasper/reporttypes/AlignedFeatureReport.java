@@ -27,12 +27,14 @@ package io.github.mzmine.util.reporting.jasper.reporttypes;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.reporting.jasper.JRCountingBeanCollectionDataSource;
 import io.github.mzmine.util.reporting.jasper.ReportUtils;
+import io.github.mzmine.util.reporting.jasper.ReportingParameters;
 import io.mzmine.reports.FeatureDetail;
 import io.mzmine.reports.FeatureSummary;
 import java.io.File;
@@ -62,6 +64,7 @@ public class AlignedFeatureReport implements ReportModule {
   private final EStandardChartTheme theme;
   private JRCountingBeanCollectionDataSource detailSource = null;
   private JRCountingBeanCollectionDataSource summarySource = null;
+  private Structure2DRenderConfig structureRenderConfig;
 
   public AlignedFeatureReport() {
     includeSummary = true;
@@ -78,6 +81,8 @@ public class AlignedFeatureReport implements ReportModule {
     theme = new EStandardChartTheme("Aligned feature report");
     parameters.getValue(AlignedFeatureReportParameters.chartThemeParam).applyToChartTheme(theme);
     theme.setMirrorPlotAxisOffset(new RectangleInsets(0, 0, -2, 0));
+
+    structureRenderConfig = parameters.getValue(AlignedFeatureReportParameters.structureRendering).createConfig();
   }
 
   @Override
@@ -96,7 +101,7 @@ public class AlignedFeatureReport implements ReportModule {
 
     totalItemsToPrepare.set(flist.getNumberOfRows());
 
-    final ReportUtils reportUtils = new ReportUtils(groupingCol, theme);
+    final ReportUtils reportUtils = new ReportUtils(groupingCol, theme, structureRenderConfig);
 
     final List<FeatureListRow> rows = flist.getRowsCopy();
     final List<FeatureDetail> detail = new ArrayList<>();
