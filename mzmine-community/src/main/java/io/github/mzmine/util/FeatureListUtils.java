@@ -880,6 +880,9 @@ public class FeatureListUtils {
   public static boolean hasImagingData(FeatureList flist) {
     return flist.getRawDataFiles().stream().anyMatch(ImagingRawDataFile.class::isInstance);
   }
+  public static boolean hasAllImagingData(FeatureList flist) {
+    return flist.getRawDataFiles().stream().allMatch(ImagingRawDataFile.class::isInstance);
+  }
 
   /**
    * Default row sorter is depending on imaging data. If one raw file is imaging all is sorted by

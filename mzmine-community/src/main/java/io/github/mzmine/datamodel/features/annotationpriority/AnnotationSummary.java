@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.features.annotationpriority;
 
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
@@ -46,6 +47,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFra
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.OptionalDouble;
@@ -164,10 +166,12 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
    * @return true if score is active
    */
   public boolean isActiveScore(@NotNull Scores type) {
+    final FeatureList featureList = row.getFeatureList();
     return switch (type) {
-      case CCS -> row.getFeatureList().hasRowType(CCSType.class);
-      case RT -> row.getFeatureList().hasRowType(RTType.class);
-      case RI -> row.getFeatureList().hasRowType(RIType.class);
+      case CCS -> featureList.hasRowType(CCSType.class);
+      case RI -> featureList.hasRowType(RIType.class);
+      case RT ->
+          featureList.hasRowType(RTType.class) && !FeatureListUtils.hasAllImagingData(featureList);
       case MZ, MS2, ISOTOPE, COMBINED -> true;
     };
   }
