@@ -57,7 +57,7 @@ public class CombinedScoreWeightsComponent extends FlowPane {
   private final @NotNull Property<Double> isotopes;
   private final @NotNull Property<Double> ccs;
 
-  public CombinedScoreWeightsComponent() {
+  public CombinedScoreWeightsComponent(@Nullable CombinedScoreWeights value) {
     super(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
 
     String scoreCalc = "Distance-based score (0-1): 1 − absoluteValue((measured − reference) / max distance)";
@@ -82,6 +82,8 @@ public class CombinedScoreWeightsComponent extends FlowPane {
         children.add(FxLabels.newLabel(Styles.BOLD_SEMI_TITLE, "+"));
       }
     }
+
+    setValue(value);
   }
 
   @NotNull

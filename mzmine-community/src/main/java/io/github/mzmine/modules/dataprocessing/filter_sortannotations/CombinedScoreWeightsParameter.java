@@ -52,7 +52,7 @@ public class CombinedScoreWeightsParameter extends
 
   @Override
   public CombinedScoreWeightsComponent createEditingComponent() {
-    return new CombinedScoreWeightsComponent();
+    return new CombinedScoreWeightsComponent(getValue());
   }
 
   @Override

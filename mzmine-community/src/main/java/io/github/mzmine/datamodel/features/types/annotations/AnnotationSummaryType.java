@@ -345,6 +345,8 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
           , newBoldLabel("") // space holder
           , newBoldLabel("") // space holder
       );
+      left.setSpacing(0);
+      right.setSpacing(0);
 
       for (Scores type : scoreTypes) {
         left.getChildren().add(newLabel(type.fullName() + " = "));
