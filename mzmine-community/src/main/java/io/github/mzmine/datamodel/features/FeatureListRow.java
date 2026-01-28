@@ -569,14 +569,11 @@ public interface FeatureListRow extends ModularDataModel {
   @Nullable String getPreferredAnnotationName();
 
   /**
-   * @return The polarity of this row. Based on {@link Feature#getRepresentativeScan()}.
+   * @return The polarity of this row. Based on {@link Feature#getRepresentativeScan()} or MS2 scans.
    */
   @Nullable
   default PolarityType getRepresentativePolarity() {
-    final Feature bestFeature = getBestFeature();
-    if (bestFeature != null && bestFeature.getRepresentativePolarity() != null) {
-      return bestFeature.getRepresentativePolarity();
-    }
+    // checks best feature first
     return streamFeatures().sorted(Comparator.comparingDouble(Feature::getHeight).reversed())
         .map(Feature::getRepresentativePolarity).filter(Objects::nonNull).findFirst().orElse(null);
   }
