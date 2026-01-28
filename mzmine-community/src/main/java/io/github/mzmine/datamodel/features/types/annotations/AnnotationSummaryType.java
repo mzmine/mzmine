@@ -45,6 +45,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import java.util.Arrays;
 import java.util.List;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -137,7 +138,6 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
     private final Canvas canvas = new Canvas();
     private final Font arial = new Font(Font.getDefault().getName(), 9);
     private final PaintScale palette;
-    private final Scores[] scoreTypes = Scores.values();
     private final Color bgColor;
     private final Color textColor;
     private final Color outlineColor;
@@ -209,6 +209,8 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
 
       // 1. Layout Calculations
       final boolean useTwoRows = height > TWO_ROW_HEIGHT_THRESHOLD && totalWidth < 100;
+      final Scores[] scoreTypes = Arrays.stream(Scores.values())
+          .filter(annotationSummary::isActiveScore).toArray(Scores[]::new);
       final int totalItems = scoreTypes.length;
       final int numCols = useTwoRows ? (int) Math.ceil(totalItems / 2.0) : totalItems;
       final int numRows = useTwoRows ? 2 : 1;
@@ -238,7 +240,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
         final double xOffset = colIndex * (barWidth + BAR_SPACING);
         final double yOffset = rowIndex * rowHeight + (rowIndex * BAR_SPACING);
 
-        final double score = annotationSummary.score(scoreType);
+        final double score = annotationSummary.score(scoreType).orElse(0d);
         final double barH = score * chartHeight;
         final double topEdge = yOffset + chartHeight - barH;
 
