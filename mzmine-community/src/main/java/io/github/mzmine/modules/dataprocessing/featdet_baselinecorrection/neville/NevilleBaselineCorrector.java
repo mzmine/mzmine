@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -31,7 +30,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Abstra
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.UnivariateBaselineCorrector;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
 import org.apache.commons.math3.analysis.UnivariateFunction;
@@ -46,7 +45,7 @@ public class NevilleBaselineCorrector extends UnivariateBaselineCorrector {
   }
 
   public NevilleBaselineCorrector(MemoryMapStorage storage, double samplePercentage,
-      @NotNull String suffix, MinimumSearchFeatureResolver resolver) {
+      @NotNull String suffix, Resolver resolver) {
     super(storage, samplePercentage, suffix, resolver);
   }
 
@@ -63,9 +62,9 @@ public class NevilleBaselineCorrector extends UnivariateBaselineCorrector {
         BaselineCorrectionParameters.correctionAlgorithm).getEmbeddedParameters();
     final Double samplePercentage = embedded.getValue(
         AbstractBaselineCorrectorParameters.samplePercentage);
-    final MinimumSearchFeatureResolver resolver =
-        embedded.getValue(AbstractBaselineCorrectorParameters.applyPeakRemoval)
-            ? initializeLocalMinResolver((ModularFeatureList) flist) : null;
+    final Resolver resolver = embedded.getValue(
+            AbstractBaselineCorrectorParameters.applyPeakRemoval)
+        .getResolver((ModularFeatureList) flist);
 
     return new NevilleBaselineCorrector(storage, samplePercentage, suffix, resolver);
   }
