@@ -35,17 +35,25 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularDataModelMap;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.AnnotationMethodType;
+import io.github.mzmine.datamodel.features.types.annotations.AnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
+import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
+import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.ExplainedIntensityPercentType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
 import io.github.mzmine.util.DataPointSorter;
@@ -483,6 +491,46 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
   @Override
   public Map<DataType, Object> getMap() {
     return map;
+  }
+
+  /**
+   * This method first gets values from the annotation and then from the entry. This is needed in
+   * the {@link CSVExportModularTask}.
+   * <p>
+   * This behavior is similar to {@link CompoundDBAnnotation}, where match and entry information is
+   * mixed and a single get function retrieves all.
+   *
+   * @return the value of this annotation or of the entry
+   */
+  @Override
+  public <T> @Nullable T get(DataType<T> type) {
+    T value = super.get(type);
+    if (value != null) {
+      return value;
+    }
+    value = entry.get(type);
+    if (value != null) {
+      return value;
+    }
+
+    // moved from SpectralLibraryMatchesType that had some special mapping columns
+    // those columns are neither saved in the match nor in the entry but are computed
+    // some values from entry might have failed return due to mismatching types
+    // therefore some are still mapped here to the corresponding correct type
+    try {
+      return (T) switch (type) {
+        case SimilarityType _ -> (float) this.getSimilarity().getScore(); // type requires float
+        case ExplainedIntensityPercentType __ ->
+            (float) this.getSimilarity().getExplainedLibraryIntensity();
+        case MatchingSignalsType _ -> this.getSimilarity().getOverlap();
+        case MzPpmDifferenceType _ -> this.getMzPpmError(); // not added as type so needs mapping
+        case AnnotationMethodType _ -> getAnnotationMethodName(); // not in map so need method call
+        default -> null; // just return null here as type is just unknown to this match
+      };
+    } catch (Exception e) {
+      // may have mismatching data types because source of values in library entry is diverse and uncontrolled
+      return null;
+    }
   }
 
   /**

@@ -267,23 +267,11 @@ public class CompoundAnnotationUtils {
    */
   public static <T> @Nullable T getTypeValue(@NotNull FeatureAnnotation annotation,
       @NotNull DataType<T> type) {
-    switch (annotation) {
-      case CompoundDBAnnotation db -> db.get(type);
-      case SpectralDBAnnotation db -> {
-        DBEntryField f = DBEntryField.fromDataType(type);
-        if (f != DBEntryField.UNSPECIFIED) {
-          // types like MolecularStructureType have no mapping in DBEntryField, so only use
-          // fromDataType in case we get something useful. Otherwise, fallback to default mapping below
-          return db.getEntry().getOrElse(f, null);
-        }
-      }
-//      Matched lipids currently uses the default case below
-      default -> {
-      }
-    }
-    ;
-
+    // check default FeatureAnnotation types first because some DataTypes are not directly stored in annotations
+    // e.g., AnnotationMethodType is not stored in spectral matches etc.
+    // but can be retrieved from FeatureAnnotation directly
     return (T) switch (type) {
+      // first map default types
       case PrecursorMZType _, MZType _ -> annotation.getPrecursorMZ();
       case SmilesStructureType _ -> annotation.getSmiles();
       case CompoundNameType _ -> annotation.getCompoundName();
@@ -298,7 +286,13 @@ public class CompoundAnnotationUtils {
       case RTType _ -> annotation.getRT();
       case DatabaseNameType _ -> annotation.getDatabase();
       case AnnotationMethodType _ -> annotation.getAnnotationMethodName();
-      default -> null;
+        // get additional fields from specific annotation classes
+      default -> switch (annotation) {
+        case CompoundDBAnnotation db -> db.get(type);
+        case SpectralDBAnnotation db -> db.get(type);
+        default -> null;
+//      Matched lipids currently uses the default FeatureAnnotation types above
+      };
     };
   }
 
