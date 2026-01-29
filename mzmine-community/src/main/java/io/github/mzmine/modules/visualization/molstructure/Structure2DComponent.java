@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.visualization.molstructure;
 
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.ConfigService;
 import java.awt.Font;
 import java.io.IOException;
@@ -92,7 +91,7 @@ public class Structure2DComponent extends Canvas {
 
     // Create context menu
     final ContextMenu contextMenu = new ContextMenu();
-    MenuItem saveSvg = new MenuItem("Save as svg");
+    MenuItem saveSvg = new MenuItem("Save structure as svg");
     saveSvg.setOnAction(e -> {
       final IAtomContainer mol = molecule.getValue();
       if (mol == null) {
@@ -122,8 +121,7 @@ public class Structure2DComponent extends Canvas {
    * ensures fx thread repaint
    */
   private void repaint() {
-    FxThread.runLater(
-        () -> renderer.drawStructure(this, molecule.getValue(), renderConfig.getValue()));
+    renderer.drawStructure(this, molecule.getValue(), renderConfig.getValue());
   }
 
   @Override
