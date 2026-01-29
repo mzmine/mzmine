@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
@@ -552,6 +553,10 @@ public interface FeatureList {
   void applyDefaultRowsSorting();
 
   void clearRows();
+
+  @NotNull AnnotationSummarySortConfig getAnnotationSortConfig();
+
+  void setAnnotationSortConfig(@NotNull AnnotationSummarySortConfig annotationSortConfig);
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge

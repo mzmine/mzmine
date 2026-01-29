@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,37 +22,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
+package io.github.mzmine.datamodel.features.types.annotations;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
-import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Matches the comment and additional json column
- */
-class AnnotationCommentAndJsonRowTypeFilter extends AbstractStringRowTypeFilter {
+public class AnnotationMethodType extends StringType {
 
-  public AnnotationCommentAndJsonRowTypeFilter(@NotNull RowTypeFilterOption selectedType,
-      @NotNull MatchingMode matchingMode, @NotNull String query, boolean caseSensitive) {
-    super(selectedType, matchingMode, query, caseSensitive);
+  @Override
+  public @NotNull String getUniqueID() {
+    return "annotation_method";
   }
 
   @Override
-  public boolean matches(FeatureListRow row) {
-    return row.streamAllFeatureAnnotations()
-        .anyMatch(this::matchesCommentOrJson);
+  public @NotNull String getHeaderString() {
+    return "Method";
   }
-
-  private boolean matchesCommentOrJson(FeatureAnnotation annotation) {
-    if (matchesString(annotation.getComment())) {
-      return true;
-    }
-
-    return matchesString(CompoundAnnotationUtils.getAdditionalJson(annotation));
-  }
-
 }

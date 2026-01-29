@@ -23,31 +23,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
+package io.github.mzmine.datamodel.features.types.modifiers;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
-import java.util.function.Function;
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.types.DataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class AnnotationAsStringRowTypeFilter extends AbstractStringRowTypeFilter {
+/**
+ * Can be used to generate values of data types on demand, e.g. if they are calculated when
+ * requested and the data is not stored in the data model. See
+ * {@link io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType} for an
+ * example.
+ *
+ * <b>WARNING</b> Types extending this interface MUST NOT call
+ * {@link io.github.mzmine.datamodel.features.ModularFeatureListRow#get(DataType)} with themself as
+ * an argument, as this is exactly where {@link this#getValue(ModularDataModel)} is called, which
+ * would lead to a stack overflow. Should such a case be necessary, we recommend to directly use
+ * {@link
+ * io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelRow#get(DataType)}
+ * instead.
+ *
+ * @param <T> Must be the same as the {@link DataType <T>}
+ */
+public interface MappingType<T> {
 
-  private final Function<FeatureAnnotation, @Nullable Object> valueFunction;
-
-  public AnnotationAsStringRowTypeFilter(@NotNull RowTypeFilterOption selectedType,
-      @NotNull MatchingMode matchingMode, @NotNull String query, boolean caseSensitive,
-      @NotNull Function<FeatureAnnotation, @Nullable Object> valueFunction) {
-    super(selectedType, matchingMode, query, caseSensitive);
-    this.valueFunction = valueFunction;
-  }
-
-  @Override
-  public boolean matches(FeatureListRow row) {
-    return row.streamAllFeatureAnnotations().map(valueFunction)
-        .anyMatch(this::matchesString);
-  }
-
+  @Nullable T getValue(@NotNull ModularDataModel model);
 }

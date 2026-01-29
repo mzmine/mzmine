@@ -33,6 +33,50 @@ import java.util.Objects;
  */
 public class Comparators {
 
+  /// Useful when using the following pattern:
+  ///
+  /// `Comparator.comparing(Object::toString, nullsFirst())`
+  ///
+  /// instead of
+  ///
+  /// `Comparator.comparing(Object::toString, Comparator.nullsFirst(Comparator.naturalOrder()))`
+  public static <T extends Comparable<? super T>> Comparator<T> nullsFirst() {
+    return Comparator.nullsFirst(Comparator.naturalOrder());
+  }
+
+  /// Useful when using the following pattern:
+  ///
+  /// `Comparator.comparing(Object::toString, nullsLast())`
+  ///
+  /// instead of
+  ///
+  /// `Comparator.comparing(Object::toString, Comparator.nullsLast(Comparator.naturalOrder()))`
+  public static <T extends Comparable<? super T>> Comparator<T> nullsLast() {
+    return Comparator.nullsLast(Comparator.naturalOrder());
+  }
+
+  /// Useful when using the following pattern:
+  ///
+  /// `Comparator.comparing(Object::toString, reversedNullsFirst())`
+  ///
+  /// instead of
+  ///
+  /// `Comparator.comparing(Object::toString, Comparator.nullsFirst(Comparator.reverseOrder()))`
+  public static <T extends Comparable<? super T>> Comparator<T> reversedNullsFirst() {
+    return Comparator.nullsFirst(Comparator.reverseOrder());
+  }
+
+  /// Useful when using the following pattern:
+  ///
+  /// `Comparator.comparing(Object::toString, reversedNullsLast())`
+  ///
+  /// instead of
+  ///
+  /// `Comparator.comparing(Object::toString, Comparator.nullsLast(Comparator.reverseOrder()))`
+  public static <T extends Comparable<? super T>> Comparator<T> reversedNullsLast() {
+    return Comparator.nullsLast(Comparator.reverseOrder());
+  }
+
   public static Comparator<Float> COMPARE_ABS_FLOAT = (a, b) -> {
     if (Objects.equals(a, b)) {
       return 0;

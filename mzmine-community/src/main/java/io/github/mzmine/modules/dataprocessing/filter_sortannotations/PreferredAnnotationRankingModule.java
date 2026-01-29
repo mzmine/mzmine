@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -23,31 +22,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
+package io.github.mzmine.modules.dataprocessing.filter_sortannotations;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
-import java.util.function.Function;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.impl.TaskPerFeatureListModule;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class AnnotationAsStringRowTypeFilter extends AbstractStringRowTypeFilter {
+public class PreferredAnnotationRankingModule extends TaskPerFeatureListModule {
 
-  private final Function<FeatureAnnotation, @Nullable Object> valueFunction;
-
-  public AnnotationAsStringRowTypeFilter(@NotNull RowTypeFilterOption selectedType,
-      @NotNull MatchingMode matchingMode, @NotNull String query, boolean caseSensitive,
-      @NotNull Function<FeatureAnnotation, @Nullable Object> valueFunction) {
-    super(selectedType, matchingMode, query, caseSensitive);
-    this.valueFunction = valueFunction;
+  public PreferredAnnotationRankingModule() {
+    super("Preferred annotation ranking", PreferredAnnotationRankingParameters.class,
+        MZmineModuleCategory.FEATURELISTFILTERING, false,
+        "Define how preferred annotations are determined and ranked in a feature list.");
   }
 
   @Override
-  public boolean matches(FeatureListRow row) {
-    return row.streamAllFeatureAnnotations().map(valueFunction)
-        .anyMatch(this::matchesString);
+  public @NotNull Task createTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage,
+      @NotNull FeatureList featureList) {
+    return new PreferredAnnotationRankingTask(storage, moduleCallDate,
+        (PreferredAnnotationRankingParameters) parameters, this.getClass(), featureList);
   }
-
 }

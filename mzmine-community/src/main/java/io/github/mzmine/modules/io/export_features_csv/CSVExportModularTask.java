@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -35,6 +36,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBA
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -47,6 +49,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CSVUtils;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -305,7 +308,6 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
    * {@link SubColumnsFactory#getType(int)} method.
    *
    * @param types a list of the main types, e.g. {@link FeatureList#getRowTypes()}
-   *
    * @return A map of main type (in the row) to all it's sub types in the entries.
    */
   private Map<DataType, List<DataType>> indexSubTypes(List<DataType> types,
@@ -347,6 +349,11 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
         }
 
         switch (first) {
+          // spectral match may be also listed as preferred annotation, so we need to add sub types explicitly here.
+          case SpectralDBAnnotation a -> {
+            typesList.addAll(new SpectralLibraryMatchesType().getSubDataTypes());
+            typesList.addAll(a.getTypes());
+          }
           case ModularDataModel modular -> typesList.addAll(modular.getTypes());
           case SimpleCompoundDBAnnotation annotation -> typesList.addAll(annotation.getTypes());
           default -> {
@@ -355,8 +362,8 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
       }
     }
 
-    return subTypes.entrySet().stream()
-        .collect(Collectors.toMap(Entry::getKey, entry -> List.copyOf(entry.getValue())));
+    return subTypes.entrySet().stream().collect(Collectors.toMap(Entry::getKey,
+        entry -> entry.getValue().stream().filter(this::filterType).toList()));
   }
 
   /**

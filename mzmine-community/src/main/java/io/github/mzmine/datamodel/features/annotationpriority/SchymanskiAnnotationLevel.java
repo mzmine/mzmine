@@ -23,37 +23,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
+package io.github.mzmine.datamodel.features.annotationpriority;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
-import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Matches the comment and additional json column
+ * https://doi.org/10.1021/es5002105
  */
-class AnnotationCommentAndJsonRowTypeFilter extends AbstractStringRowTypeFilter {
+public enum SchymanskiAnnotationLevel {
 
-  public AnnotationCommentAndJsonRowTypeFilter(@NotNull RowTypeFilterOption selectedType,
-      @NotNull MatchingMode matchingMode, @NotNull String query, boolean caseSensitive) {
-    super(selectedType, matchingMode, query, caseSensitive);
+  LEVEL_1(1), LEVEL_2a(2, "a"), LEVEL_2b(2, "b"), LEVEL_3(3), LEVEL_4(4), LEVEL_5(5);
+
+  private final int numberLevel;
+  private final @NotNull String letterLevel;
+
+  SchymanskiAnnotationLevel(int numberLevel, @NotNull String letterLevel) {
+    this.numberLevel = numberLevel;
+    this.letterLevel = letterLevel;
+  }
+
+  SchymanskiAnnotationLevel(int numberLevel) {
+    this(numberLevel, "");
+  }
+
+  public int numberLevel() {
+    return numberLevel;
+  }
+
+  public @NotNull String letterLevel() {
+    return letterLevel;
   }
 
   @Override
-  public boolean matches(FeatureListRow row) {
-    return row.streamAllFeatureAnnotations()
-        .anyMatch(this::matchesCommentOrJson);
+  public String toString() {
+    return "Schymanski level " + numberLevel + letterLevel;
   }
-
-  private boolean matchesCommentOrJson(FeatureAnnotation annotation) {
-    if (matchesString(annotation.getComment())) {
-      return true;
-    }
-
-    return matchesString(CompoundAnnotationUtils.getAdditionalJson(annotation));
-  }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
@@ -42,6 +43,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -544,21 +546,31 @@ public interface FeatureListRow extends ModularDataModel {
   boolean hasIsotopePattern();
 
   /**
-   * Uses {@link FeatureAnnotationPriority} to find the best annotation from different methods
+   * Preferred annotation, either set by the user in the GUI or via
+   * {@link
+   * io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummaryOrder#getComparatorHighFirst()}
+   * to find the best annotation from different methods.
    *
    * @return the preferred annotation or null
    */
-  @Nullable Object getPreferredAnnotation();
+  @Nullable FeatureAnnotation getPreferredAnnotation();
 
+  /**
+   *
+   * @return true if the preferred annotation was set by the user specifically, false if this row
+   * has no preferred annotation or it was computed automatically by a module or the default
+   * sorting.
+   */
+  boolean isUserPreferredAnnotation();
 
   @NotNull
-  default Stream<Object> streamAllFeatureAnnotations() {
-    return new FeatureAnnotationIterator(this).stream();
+  default Stream<FeatureAnnotation> streamAllFeatureAnnotations() {
+    return getAllFeatureAnnotations().stream();
   }
 
   @NotNull
-  default List<Object> getAllFeatureAnnotations() {
-    return streamAllFeatureAnnotations().toList();
+  default List<FeatureAnnotation> getAllFeatureAnnotations() {
+    return CompoundAnnotationUtils.getAllFeatureAnnotationsByDescendingConfidence(this);
   }
 
   /**
