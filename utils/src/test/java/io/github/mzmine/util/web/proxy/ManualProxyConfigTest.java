@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,36 +25,29 @@
 
 package io.github.mzmine.util.web.proxy;
 
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.util.web.ProxyType;
+import java.util.List;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-/**
- * Combines configs from manual and auto
- *
- * @param option       auto, manual, none
- * @param manualConfig manual config
- */
-public record FullProxyConfig(@NotNull ProxyConfigOption option,
-                              @NotNull ManualProxyConfig manualConfig) {
+class ManualProxyConfigTest {
 
+  final ManualProxyConfig config = new ManualProxyConfig(ProxyType.HTTPS, "mzio.io", 80,
+      List.of());
+  final ManualProxyConfig configExculsion = new ManualProxyConfig(ProxyType.HTTP, "mzio.io", 80,
+      List.of("test.io", "mzio.io"));
 
-  public static FullProxyConfig defaultConfig() {
-    return FullProxyConfig.create(ProxyConfigOption.AUTO_PROXY);
+  @Test
+  void getFullProxyString() {
+    Assertions.assertEquals("https://mzio.io:80", config.getFullProxyString());
+    Assertions.assertEquals("http://mzio.io:80", configExculsion.getFullProxyString());
+    Assertions.assertEquals("https://mzio.io:80", config.toString());
+    Assertions.assertEquals("http://mzio.io:80", configExculsion.toString());
   }
 
-  public static @NotNull FullProxyConfig noProxy() {
-    return FullProxyConfig.create(ProxyConfigOption.NO_PROXY);
-  }
-
-  public static @NotNull FullProxyConfig create(@NotNull ProxyConfigOption option) {
-    return new FullProxyConfig(option, ManualProxyConfig.defaultConfig());
-  }
-
-  @Override
-  public @NotNull String toString() {
-    if (option == ProxyConfigOption.MANUAL_PROXY) {
-      return "Proxy option: "+ manualConfig.fullDefinitionString();
-    }
-
-    return "Proxy option: "+option;
+  @Test
+  void fullDefinitionString() {
+    Assertions.assertEquals("https://mzio.io:80", config.fullDefinitionString());
+    Assertions.assertEquals("http://mzio.io:80 (non-proxy hosts: test.io, mzio.io)", configExculsion.fullDefinitionString());
   }
 }
