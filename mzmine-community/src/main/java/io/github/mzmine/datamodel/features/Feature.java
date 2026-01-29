@@ -291,7 +291,7 @@ public interface Feature {
   /**
    * Sets the isotope pattern of this feature
    */
-  void setIsotopePattern(@NotNull IsotopePattern isotopePattern);
+  void setIsotopePattern(@Nullable IsotopePattern isotopePattern);
 
   /**
    * Returns the charge of this ion. If the charge is unknown, returns 0.

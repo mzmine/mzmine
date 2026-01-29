@@ -349,7 +349,7 @@ public class ModularFeature extends ColumnarModularDataModelRow implements Featu
   }
 
   @Override
-  public void setIsotopePattern(@NotNull IsotopePattern isotopePattern) {
+  public void setIsotopePattern(@Nullable IsotopePattern isotopePattern) {
     set(IsotopePatternType.class, isotopePattern);
   }
 
