@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -50,7 +51,7 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
 
   public static final IntegerParameter minBlanks = new IntegerParameter(
       "Minimum # of detection in blanks",
-      "Specifies in how many of the blank files a peak has to be detected.");
+      "Specifies in how many of the blank files a peak has to be detected.", 1, 1, null);
 
   public static final ComboParameter<AbundanceMeasure> quantType = new ComboParameter<AbundanceMeasure>(
       "Quantification", "Use either the features' height or area for the subtraction. ",
@@ -62,26 +63,34 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
       RatioType.values(), RatioType.MAXIMUM);
 
   public static final OptionalParameter<PercentParameter> foldChange = new OptionalParameter<>(
-      new PercentParameter("Fold change increase",
-          "Specifies a percentage of increase of the intensity of a feature. If the intensity in the list to be"
-              + " filtered increases more than the given percentage to the blank, it will not be deleted from "
-              + "the feature list.", 3.0, 1.0, 1E5));
+      new PercentParameter("Fold change increase", """
+          Specifies a percentage of intensity increase of sample features over blank features.
+          To retain a sample feature it needs to be X% higher than the blanks (maximum or average, see parameter).
+          If off, the default 100% will be used to require sample features to be just >= blanks.""",
+          3.0, 1.0, 1E5));
 
-  public static final ComboParameter<BlankSubtractionOptions> keepBackgroundFeatures = new ComboParameter<BlankSubtractionOptions>(
+  /**
+   * Now that there is an option to create another feature list with all removed rows this parameter
+   * either removes the whole row or features individually.
+   */
+  public static final ComboParameter<BlankSubtractionOptions> subtractionOption = new ComboParameter<BlankSubtractionOptions>(
       "Keep or remove features (of rows) below fold change", """
-      For parameter optimization it might be of help to know which features were classified as background in
-      the samples and which features are more abundant than the background. This option allows doing that.
-      Option REMOVE (default): all features below the set fold-change are removed from the rows as are rows
-      that only contain background features.
-      Option KEEP: any feature that is indistinguishable from the background (i.e, below the required fold-change)
-      is kept, if any feature of a particular row is more abundant than the background. Any rows with only features
-      representing the background will still be completely removed though.
-      The option KEEP is only meant to be used for optimizing the fold-change and other parameters of this module
-      or if the background is of interest in subsequent data processing steps (i.e., statistical analysis).
-      """, BlankSubtractionOptions.values(), BlankSubtractionOptions.REMOVE);
+      Generally features are checked if they are distinguishable from the blanks by applying a minimum fold-change.
+      
+      KEEP (default): Only checks if the highest sample feature >= blank features and either keeps \
+      or removes all sample features as whole rows.
+      This option may be better for statistical analysis.
+      
+      REMOVE: Checks each sample feature individually for >= blank features removing each feature that fails. \
+      So rows may loose some features while other higher features are retained.
+      This option may distort statistical analysis but can help to quickly see which sample features are greater than the blanks.""",
+      BlankSubtractionOptions.values(), BlankSubtractionOptions.KEEP);
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "The suffix for the new feature list.", "subtracted");
+
+  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
+      false);
 
   public static final BooleanParameter createDeleted = new BooleanParameter(
       "Create secondary list of subtracted features", """
@@ -91,7 +100,7 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
 
   public FeatureListBlankSubtractionParameters() {
     super(new Parameter[]{alignedPeakList, blankRawDataFiles, minBlanks, quantType, ratioType,
-            foldChange, keepBackgroundFeatures, createDeleted, suffix},
+            foldChange, subtractionOption, createDeleted, suffix, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_blanksubtraction/filter_blanksubtraction.html");
   }
 
