@@ -24,6 +24,7 @@
 
 package io.github.mzmine.util.reporting.jasper;
 
+import io.github.mzmine.modules.visualization.molstructure.StructureRenderParameters;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
