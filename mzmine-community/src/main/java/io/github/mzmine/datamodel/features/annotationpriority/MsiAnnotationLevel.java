@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.features.annotationpriority;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * https://doi.org/10.1007/s11306-007-0082-2
  */
@@ -32,6 +34,7 @@ public enum MsiAnnotationLevel {
 
   LEVEL_1(1), LEVEL_2(2), LEVEL_3(3), LEVEL_4(4);
 
+  private final static String LABEL = "MSI level";
   private final int numberLevel;
 
   MsiAnnotationLevel(int numberLevel) {
@@ -44,6 +47,13 @@ public enum MsiAnnotationLevel {
 
   @Override
   public String toString() {
-    return "MSI level " + numberLevel;
+    return LABEL + " " + numberLevel;
   }
+
+  @NotNull
+  public String getLabel() {
+    return LABEL;
+  }
+
+
 }
