@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -78,9 +78,9 @@ public class FormulaListType extends ListWithSubsType<ResultFormula> implements 
   }
 
   @Override
-  public <K> @Nullable K map(@NotNull final DataType<K> subType, final ResultFormula formula) {
-    return (K) switch (subType) {
-      case FormulaListType __ -> formula;
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType, final ResultFormula formula) {
+    // specifically map to object first to avoid invocation of nullable Float.floatValue or Double.doubleValue.
+    final Object temp = switch (subType) {
       case FormulaMassType __ -> formula.getExactMass();
       case RdbeType __ -> formula.getRDBE();
       case MzPpmDifferenceType __ -> formula.getPpmDiff();
@@ -91,6 +91,7 @@ public class FormulaListType extends ListWithSubsType<ResultFormula> implements 
       default -> throw new UnsupportedOperationException(
           "DataType %s is not covered in map".formatted(subType.toString()));
     };
+    return (K) temp;
   }
 
   @NotNull

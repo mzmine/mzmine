@@ -124,11 +124,11 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
   }
 
   @Override
-  public <K> @Nullable K map(@NotNull final DataType<K> subType, final SpectralDBAnnotation match) {
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType,
+      final SpectralDBAnnotation match) {
     // for types that are only visible in table map them here
     // all other types are mapped in the match directly
     Object value = switch (subType) {
-      case SpectralLibraryMatchesType _ -> this; // to display the match in the first column
       case AnnotationSummaryType _ -> null; // created on demand in cell factory
       default -> null;
     };
