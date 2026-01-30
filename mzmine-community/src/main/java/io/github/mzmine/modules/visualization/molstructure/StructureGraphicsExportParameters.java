@@ -25,32 +25,27 @@
 
 package io.github.mzmine.modules.visualization.molstructure;
 
-import io.github.mzmine.datamodel.structures.MolecularStructure;
-import io.github.mzmine.datamodel.structures.StructureInputType;
-import io.github.mzmine.datamodel.structures.StructureParser;
-import junit.framework.Assert;
-import org.junit.jupiter.api.Test;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
+import java.io.File;
 
-class Structure2DRendererTest {
+public class StructureGraphicsExportParameters extends SimpleParameterSet {
 
-  @Test
-  void drawStructureToSvgString() throws Exception {
-    final Structure2DRenderer renderer = StructureRenderService.createDefaultRenderer();
+  /**
+   * Keeps track of last saved file
+   */
+  public static final HiddenParameter<File> fileName = new HiddenParameter<>(
+      new FileNameParameter("File", "File to export to", FileSelectionType.SAVE, false));
 
-    String smiles = "C[C@H](CCC(=O)NCCS(=O)(=O)O)[C@H]1CC[C@@H]2[C@@]1([C@H](C[C@H]3[C@H]2[C@@H](C[C@H]4[C@@]3(CC[C@H](C4)O)C)O)O)C";
-    final MolecularStructure structure = StructureParser.silent()
-        .parseStructure(smiles, StructureInputType.SMILES);
-     String svg = renderer.drawStructureToSvgString(structure.structure(), 600, 600,
-        Structure2DRenderConfig.DEFAULT_CONFIG);
+  public static final ParameterSetParameter<StructureRenderParameters> structureRendering = new ParameterSetParameter<>(
+      "Molecular structure rendering", "Options to control the rendering of molecular structures.",
+      // use different default zoom and clone parameterset
+      new StructureRenderParameters().setAll(new Structure2DRenderConfig(1), true));
 
-    Assert.assertNotNull(svg);
-    Assert.assertTrue(svg.startsWith("<svg"));
-
-
-    // render with fixed bond length and auto width and height of image
-    String svg2 = renderer.drawStructureToSvgStringFixedSize(structure.structure(), Structure2DRenderConfig.DEFAULT_CONFIG);
-
-    Assert.assertNotNull(svg2);
-    Assert.assertTrue(svg2.startsWith("<svg"));
+  public StructureGraphicsExportParameters() {
+    super(fileName, structureRendering);
   }
 }
