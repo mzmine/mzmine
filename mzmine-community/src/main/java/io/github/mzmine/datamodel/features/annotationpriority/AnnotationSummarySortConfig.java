@@ -24,6 +24,7 @@
 
 package io.github.mzmine.datamodel.features.annotationpriority;
 
+import io.github.mzmine.modules.dataprocessing.filter_sortannotations.CombinedScoreWeights;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 public record AnnotationSummarySortConfig(@NotNull MZTolerance mzTolerance,
                                           @NotNull RTTolerance rtTolerance, double ccsTolerance,
                                           double riTolerance,
+                                          @NotNull CombinedScoreWeights combinedScoreWeights,
                                           @NotNull AnnotationSummaryOrder sortOrder) {
 
   public static final AnnotationSummarySortConfig DEFAULT = new AnnotationSummarySortConfig(
@@ -44,6 +46,7 @@ public record AnnotationSummarySortConfig(@NotNull MZTolerance mzTolerance,
       PreferredAnnotationRankingParameters.DEFAULT_RT_TOLERANCE,
       PreferredAnnotationRankingParameters.DEFAULT_CCS_TOLERANCE,
       PreferredAnnotationRankingParameters.DEFAULT_RI_TOLERANCE,
+      CombinedScoreWeights.DEFAULT_WEIGHTS,
       PreferredAnnotationRankingParameters.DEFAULT_SORT_ORDER);
 
   public PreferredAnnotationRankingParameters toParameters() {
@@ -52,6 +55,6 @@ public record AnnotationSummarySortConfig(@NotNull MZTolerance mzTolerance,
 
   public AnnotationSummarySortConfig copy() {
     return new AnnotationSummarySortConfig(mzTolerance, rtTolerance, ccsTolerance, riTolerance,
-        sortOrder);
+        combinedScoreWeights, sortOrder);
   }
 }

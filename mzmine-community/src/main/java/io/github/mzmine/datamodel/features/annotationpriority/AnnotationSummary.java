@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.features.annotationpriority;
 
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
@@ -33,8 +34,12 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.RIType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SiriusCsiScoreType;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.modules.dataprocessing.filter_sortannotations.CombinedScoreWeights;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
@@ -42,8 +47,10 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFra
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
+import java.util.OptionalDouble;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,6 +61,15 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
   private final FeatureListRow row;
   @Nullable
   private final FeatureAnnotation annotation;
+
+  // the last version that was used to precompute the combinedScore, start with Integer.MAX to compute lazy
+  private int lastSortConfigVersion = Integer.MAX_VALUE;
+  // precomputed combinedScore with config of version lastSortConfigVersion, lazy computation on access
+  private double combinedScore;
+
+  // lazy precomputed on access
+  @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+  private OptionalDouble isotopeScore;
 
   private AnnotationSummary(@NotNull final FeatureListRow row,
       @Nullable final FeatureAnnotation annotation) {
@@ -71,8 +87,19 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     return new AnnotationSummary(row, annotation);
   }
 
-  public double score(@NotNull Scores type) {
+  public double score(@NotNull Scores type, double defaultValue) {
+    return score(type).orElse(defaultValue);
+  }
+
+  /**
+   * Scores might be missing due to missing information in the annotation source like a spectral
+   * library entry without retention time or because the feature list has no CCS or other values.
+   *
+   * @return an optional double which is empty if the score is missing
+   */
+  public OptionalDouble score(@NotNull Scores type) {
     return switch (type) {
+      case COMBINED -> OptionalDouble.of(combinedScore());
       case MZ -> mzScore();
       case RT -> rtScore();
       case RI -> riScore();
@@ -82,88 +109,177 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     };
   }
 
-  public double mzScore() {
+  /**
+   * Check config version and if needed recalculate cached scores. The scores are calculated lazily
+   * once a score has been requested
+   */
+  private void checkRecalcCachedScores() {
+    final int currentAnnotationSortConfigVersion = getCurrentAnnotationSortConfigVersion();
+    if (currentAnnotationSortConfigVersion == lastSortConfigVersion) {
+      return;
+    }
+
+    // set new version first so that combined score calculation does not trigger isotope score calc
+    lastSortConfigVersion = currentAnnotationSortConfigVersion;
+
+    // isotope is the most expensive currently
+    isotopeScore = calcIsotopeScore();
+    // combined score last as it uses all other scores
+    combinedScore = calcCombinedScore();
+  }
+
+  /**
+   * Fetch the precomputed combined score in case config is still the same, otherwise compute value
+   * again.
+   */
+  public double combinedScore() {
+    checkRecalcCachedScores();
+    return combinedScore;
+  }
+
+  private double calcCombinedScore() {
+    final AnnotationSummarySortConfig config = getAnnotationSortConfig();
+    final CombinedScoreWeights weights = config.combinedScoreWeights();
+    double score = 0;
+    double totalWeight = 0;
+
+    for (Scores type : Scores.values()) {
+      // check if the whole table has CCS, RI, RT to skip this for all annotations
+      // cannot just skip RT score for one annotation that has no RT while all others with RT add it
+      // this may give a penalty to annotations with better match with additional properties
+      if (type == Scores.COMBINED || !isActiveScore(type)) {
+        continue;
+      }
+
+      final double weight = weights.get(type);
+      score += score(type).orElse(0d) * weight;
+      totalWeight += weight;
+    }
+
+    return totalWeight > 0 ? score / totalWeight : 0d;
+  }
+
+  /**
+   * A score is active if the underlying feature list has all properties needed to calculate it.
+   * Like CCSType as a row type for CCS score.
+   *
+   * @return true if score is active
+   */
+  public boolean isActiveScore(@NotNull Scores type) {
+    final FeatureList featureList = row.getFeatureList();
+    return switch (type) {
+      case CCS -> featureList.hasRowType(CCSType.class);
+      case RI -> featureList.hasRowType(RIType.class);
+      case RT ->
+          featureList.hasRowType(RTType.class) && !FeatureListUtils.hasAllImagingData(featureList);
+      case MZ, MS2, ISOTOPE, COMBINED -> true;
+    };
+  }
+
+  public OptionalDouble mzScore() {
     if (annotation == null) {
-      return 0;
+      return OptionalDouble.empty();
     }
 
     final Double rowMz = row.getAverageMZ();
     final Double precursorMZ = annotation.getPrecursorMZ();
 
     if (rowMz != null && precursorMZ != null) {
-      final double maxDiff = row.getFeatureList().getAnnotationSortConfig().mzTolerance()
+      final double maxDiff = getAnnotationSortConfig().mzTolerance()
           .getMzToleranceForMass(precursorMZ);
-      return 1 - Math.min(Math.abs(precursorMZ - rowMz), maxDiff) / maxDiff;
+      return OptionalDouble.of(getScore(rowMz, precursorMZ, maxDiff));
     }
-    return 0;
+    return OptionalDouble.empty();
   }
 
-  public double rtScore() {
+  private @NotNull AnnotationSummarySortConfig getAnnotationSortConfig() {
+    return row.getFeatureList().getAnnotationSortConfig();
+  }
+
+  private int getCurrentAnnotationSortConfigVersion() {
+    return row.getFeatureList().getAnnotationSortConfigVersion();
+  }
+
+  public OptionalDouble rtScore() {
     if (annotation == null) {
-      return 0;
+      return OptionalDouble.empty();
     }
 
     final Float rowRt = row.getAverageRT();
     final Float precursorRt = annotation.getRT();
 
     if (rowRt != null && precursorRt != null) {
-      final RTTolerance rtTolerance = row.getFeatureList().getAnnotationSortConfig().rtTolerance();
+      final RTTolerance rtTolerance = getAnnotationSortConfig().rtTolerance();
       final float maxDiff = rtTolerance.getToleranceInMinutes(precursorRt);
-      return 1 - Math.min(Math.abs(rowRt - precursorRt), maxDiff) / maxDiff;
+      return OptionalDouble.of(getScore(rowRt, precursorRt, maxDiff));
     }
-    return 0;
+    return OptionalDouble.empty();
   }
 
-  public double ccsScore() {
+  public OptionalDouble ccsScore() {
     if (annotation == null) {
-      return 0;
+      return OptionalDouble.empty();
     }
 
     final Float averageCCS = row.getAverageCCS();
     final Float ccs = annotation.getCCS();
 
     if (averageCCS != null && ccs != null) {
-      final double maxCcsDev = row.getFeatureList().getAnnotationSortConfig().ccsTolerance();
-      return getScore((averageCCS - ccs) / ccs, maxCcsDev);
+      final double maxCcsDev = getAnnotationSortConfig().ccsTolerance();
+      return OptionalDouble.of(getScore((averageCCS - ccs) / ccs, maxCcsDev));
     }
-    return 0;
+    return OptionalDouble.empty();
   }
 
-  public double ms2Score() {
+  public OptionalDouble ms2Score() {
     return switch (annotation) {
-      case SpectralDBAnnotation s -> s.getScore();
-      case MatchedLipid l -> l.getMsMsScore();
-      case null, default -> 0;
+      // use similarity.getScore to get double score instead of Float from FeatureAnnotation.getScore
+      case SpectralDBAnnotation s -> OptionalDouble.of(s.getSimilarity().getScore());
+      case MatchedLipid l -> OptionalDouble.of(l.getMsMsScore());
+      case CompoundDBAnnotation db -> {
+        final Float score = db.get(SiriusCsiScoreType.class);
+        if (score != null) {
+          yield OptionalDouble.of(score);
+        }
+        yield OptionalDouble.empty();
+      }
+      case null, default -> OptionalDouble.empty();
     };
   }
 
-  public double riScore() {
+  public OptionalDouble riScore() {
     if (annotation == null) {
-      return 0;
+      return OptionalDouble.empty();
     }
 
     Float averageRI = row.getAverageRI();
     Float ri = CompoundAnnotationUtils.getTypeValue(annotation, RIType.class);
 
     if (averageRI != null && ri != null) {
-      final double maxRiDev = row.getFeatureList().getAnnotationSortConfig().riTolerance();
-      return getScore(averageRI - ri, maxRiDev);
+      final double maxRiDev = getAnnotationSortConfig().riTolerance();
+      return OptionalDouble.of(getScore(averageRI, ri, maxRiDev));
     }
-    return 0d;
+    return OptionalDouble.empty();
   }
 
-  public double isotopeScore() {
+  public OptionalDouble isotopeScore() {
+    checkRecalcCachedScores();
+    return isotopeScore;
+  }
+
+  public OptionalDouble calcIsotopeScore() {
     if (annotation == null) {
-      return 0;
+      return OptionalDouble.empty();
     }
 
     final IsotopePattern bestIsotopePattern = row.getBestIsotopePattern();
     final IsotopePattern predictedIp = annotation.getIsotopePattern();
     if (bestIsotopePattern == null || predictedIp == null) {
-      return 0d;
+      return OptionalDouble.empty();
     }
-    return IsotopePatternScoreCalculator.getSimilarityScore(predictedIp, bestIsotopePattern,
-        new MZTolerance(0.005, 15), 0d);
+    return OptionalDouble.of(
+        IsotopePatternScoreCalculator.getSimilarityScore(predictedIp, bestIsotopePattern,
+            new MZTolerance(0.005, 15), 0d));
   }
 
   /// [FeatureAnnotation] types are ranked from best to worst:
@@ -196,7 +312,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
       case SpectralLibraryMatchesType _ -> {
         // RT is often provided in libraries but may completely mismatch the actual RT
         // therefore check if the score is at least within range and use low minimum score
-        if (score(Scores.RT) > 0.01 || score(Scores.RI) > 0.01) {
+        if (score(Scores.RT, 0d) > 0.01 || score(Scores.RI, 0d) > 0.01) {
           yield 1;
         } else {
           yield 3;
@@ -247,7 +363,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
       }
       case SpectralDBAnnotation _ -> MsiAnnotationLevel.LEVEL_2;
       case CompoundDBAnnotation c -> {
-        if (rtScore() > 0 || riScore() > 0) {
+        if (rtScore().orElse(0d) > 0.01 || riScore().orElse(0d) > 0.01) {
           yield MsiAnnotationLevel.LEVEL_2;
         } else if (c.get(SiriusCsiScoreType.class) != null) {
           yield MsiAnnotationLevel.LEVEL_3;
@@ -287,12 +403,12 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
         yield SchymanskiAnnotationLevel.LEVEL_5;
       }
       case SpectralDBAnnotation s ->
-          riScore() > 0 || rtScore() > 0 ? SchymanskiAnnotationLevel.LEVEL_1
+          riScore().orElse(0d) > 0 || rtScore().orElse(0d) > 0 ? SchymanskiAnnotationLevel.LEVEL_1
               : SchymanskiAnnotationLevel.LEVEL_2a;
       case CompoundDBAnnotation c -> {
         if (c.get(SiriusCsiScoreType.class) != null) {
           yield SchymanskiAnnotationLevel.LEVEL_3;
-        } else if (isotopeScore() >= ipScoreMatchThreshold) {
+        } else if (isotopeScore().orElse(0) >= ipScoreMatchThreshold) {
           yield SchymanskiAnnotationLevel.LEVEL_4;
         } else {
           yield SchymanskiAnnotationLevel.LEVEL_5;
@@ -307,14 +423,31 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     return AnnotationSummaryOrder.MZMINE.getComparatorLowFirst().compare(this, o);
   }
 
+  @NotNull
+  public String scoreLabel(@NotNull Scores type) {
+    if (!isActiveScore(type)) {
+      return "(unavailable for feature list)";
+    }
+
+    final OptionalDouble score = score(type);
+
+    if (score.isPresent()) {
+      return "%.3f".formatted(score.getAsDouble());
+    }
+
+    return "(unavailable for annotation)";
+  }
+
   /**
    * Order in this enum also defines the order of the cells in the feature table chart.
    */
-  public enum Scores {
-    MS2, ISOTOPE, MZ, RT, RI, CCS;
+  public enum Scores implements UniqueIdSupplier {
+    COMBINED, MS2, ISOTOPE, MZ, RT, RI, CCS;
 
+    @NotNull
     public String label() {
       return switch (this) {
+        case COMBINED -> "ALL"; // used in chart cell so needs to be short
         case MZ -> "m/z";
         case RT -> "RT";
         case RI -> "RI";
@@ -323,6 +456,30 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
         case MS2 -> "MS2";
       };
     }
+
+    @NotNull
+    public String fullName() {
+      return switch (this) {
+        case MZ, RT, RI, CCS, MS2 -> label(); // same short and long
+        case COMBINED -> "Combined (" + label() + ")";
+        case ISOTOPE -> "Isotope pattern (" + label() + ")";
+      };
+    }
+
+    @Override
+    @NotNull
+    public String getUniqueID() {
+      return switch (this) {
+        case COMBINED -> "combined_score";
+        case MZ -> "mz";
+        case RT -> "rt";
+        case RI -> "ri";
+        case CCS -> "ccs";
+        case ISOTOPE -> "isotope_pattern";
+        case MS2 -> "ms2";
+      };
+    }
+
   }
 
   public @NotNull FeatureListRow row() {
