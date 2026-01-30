@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -56,12 +57,14 @@ public class IsotopeFinderModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    ModularFeatureList[] featureLists = parameters
-        .getParameter(IsotopeFinderParameters.featureLists).getValue().getMatchingFeatureLists();
+    ModularFeatureList[] featureLists = parameters.getParameter(
+        IsotopeFinderParameters.featureLists).getValue().getMatchingFeatureLists();
 
     for (final ModularFeatureList featureList : featureLists) {
-      Task newTask = new IsotopeFinderTask(project, featureList, parameters, moduleCallDate);
-      tasks.add(newTask);
+      for (RawDataFile raw : featureList.getRawDataFiles()) {
+        Task newTask = new IsotopeFinderTask(project, featureList, raw, parameters, moduleCallDate);
+        tasks.add(newTask);
+      }
     }
 
     return ExitCode.OK;
