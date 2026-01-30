@@ -30,6 +30,7 @@ import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureLi
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -39,7 +40,9 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
 
@@ -53,12 +56,10 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
       "Minimum # of detection in blanks",
       "Specifies in how many of the blank files a peak has to be detected.", 1, 1, null);
 
-  public static final ComboParameter<AbundanceMeasure> quantType = new ComboParameter<AbundanceMeasure>(
-      "Quantification", "Use either the features' height or area for the subtraction. ",
-      AbundanceMeasure.values(), AbundanceMeasure.Height);
+  public static final AbundanceMeasureParameter quantType = new AbundanceMeasureParameter();
 
   public static final ComboParameter<RatioType> ratioType = new ComboParameter<RatioType>(
-      "Ratio type",
+      "Blank abundance ratio type",
       "Use either the maximum or the average blank value for calculating the blank-ratio. ",
       RatioType.values(), RatioType.MAXIMUM);
 
@@ -73,18 +74,18 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
    * Now that there is an option to create another feature list with all removed rows this parameter
    * either removes the whole row or features individually.
    */
-  public static final ComboParameter<BlankSubtractionOptions> subtractionOption = new ComboParameter<BlankSubtractionOptions>(
-      "Keep or remove features (of rows) below fold change", """
+  public static final ComboParameter<BlankSubtractionOptions> subtractionOption = new ComboParameter<>(
+      "Check abundance of", """
       Generally features are checked if they are distinguishable from the blanks by applying a minimum fold-change.
       
-      KEEP (default): Only checks if the highest sample feature >= blank features and either keeps \
+      Most abundant feature (default): Only checks if the highest sample feature >= blank features and either keeps \
       or removes all sample features as whole rows.
       This option may be better for statistical analysis.
       
-      REMOVE: Checks each sample feature individually for >= blank features removing each feature that fails. \
+      Each feature: Checks each sample feature individually for >= blank features removing each feature that fails. \
       So rows may loose some features while other higher features are retained.
       This option may distort statistical analysis but can help to quickly see which sample features are greater than the blanks.""",
-      BlankSubtractionOptions.values(), BlankSubtractionOptions.KEEP);
+      BlankSubtractionOptions.values(), BlankSubtractionOptions.MAXIMUM_FEATURE);
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "The suffix for the new feature list.", "subtracted");
@@ -94,7 +95,7 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
 
   public static final BooleanParameter createDeleted = new BooleanParameter(
       "Create secondary list of subtracted features", """
-      Indicates whether an additional feature list containing all non-used (deleted) background-features should be saved.
+      Mostly used during workflow optimization: Indicates whether an additional feature list containing all non-used (deleted) background-features should be saved.
       All features removed by this step will then be saved to a new feature list with the suffix 'subtractedBackground'.""",
       false);
 
@@ -107,5 +108,37 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    final Map<String, Parameter<?>> map = super.getNameParameterMap();
+    map.put("Quantification", getParameter(quantType));
+    map.put("Ratio type", getParameter(ratioType));
+    return map;
+  }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    if (!loadedParams.containsKey(subtractionOption.getName())) {
+      // in version 2 subtraction option parameter changed the function completely
+      // do not map the old value from version 1, just replace with default
+      setParameter(subtractionOption, BlankSubtractionOptions.MAXIMUM_FEATURE);
+    }
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 2 -> """
+          Parameter "Keep or remove features (of rows) below fold change" was removed as this option is now better covered by creating a second list of removed features.
+          Parameter %s was added to provide more control over the removed features (whole rows or each individual feature).""".formatted(subtractionOption);
+      default -> null;
+    };
   }
 }

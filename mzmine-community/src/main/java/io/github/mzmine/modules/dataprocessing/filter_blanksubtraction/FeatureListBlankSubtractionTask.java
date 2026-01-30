@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.BlankSubtractionAnnotationType;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -157,7 +158,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         originalFeatureList, suffix, getMemoryMapStorage(), nonBlankRaws, null, null);
 
     // create feature list containing all background features and all samples
-    final ModularFeatureList backgroundAlignedFeaturesList =  FeatureListUtils.createCopyWithoutRows(
+    final ModularFeatureList backgroundAlignedFeaturesList = FeatureListUtils.createCopyWithoutRows(
         originalFeatureList, "subtractedBackground", getMemoryMapStorage(), null, null);
 
     final List<FeatureListRow> notBackgroundAlignedFeaturesListRows = new ArrayList<>();
@@ -179,7 +180,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
       if (foundInNBlanks < minBlankDetections || blankAbundance <= 0d) {
         // keep whole row because detections in blank is unused
         featuresToKeep.addAll(notBackgroundFeaturesOfCurrentRow);
-      } else if (subtractionOption == BlankSubtractionOptions.KEEP) {
+      } else if (subtractionOption == BlankSubtractionOptions.MAXIMUM_FEATURE) {
         // if one feature is higher than blanks keep all features in that row
         double maxFeatureAbundance = getAbundance(notBackgroundFeaturesOfCurrentRow, quantType,
             RatioType.MAXIMUM);
@@ -188,7 +189,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         } else {
           featuresToRemove.addAll(notBackgroundFeaturesOfCurrentRow);
         }
-      } else if (subtractionOption == BlankSubtractionOptions.REMOVE) {
+      } else if (subtractionOption == BlankSubtractionOptions.EACH_FEATURE) {
         // check the intensity of each feature in samples
         for (Feature nonBlankFeature : notBackgroundFeaturesOfCurrentRow) {
           // check if feature is more abundant than the blank samples
@@ -363,9 +364,16 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
   /**
    * Used in parameter
    */
-  public enum BlankSubtractionOptions {
-    KEEP("KEEP - Keep all features in that row"), REMOVE(
-        "REMOVE - Only keep features above fold change");
+  public enum BlankSubtractionOptions implements UniqueIdSupplier {
+    MAXIMUM_FEATURE("Most abundant feature (keep/remove whole row)"), //
+    EACH_FEATURE("Each feature (keep/remove individual feature)");
+    // used to be this but was changed in mzmine 4.9 because these options were made redundant
+    // now the removed features can be captured in 2nd feature list of removed features
+    // and the actual options are to compare the maximum abundance or each feature
+    // no need to map the old value to the new one, rather version bump parameters
+//    KEEP("KEEP - Keep all features in that row"), REMOVE(
+//        "REMOVE - Only keep features above fold change");
+
 
     private final String description;
 
@@ -376,6 +384,14 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     @Override
     public String toString() {
       return this.description;
+    }
+
+    @Override
+    public @NotNull String getUniqueID() {
+      return switch (this) {
+        case MAXIMUM_FEATURE -> "maximum_feature";
+        case EACH_FEATURE -> "each_feature";
+      };
     }
   }
 }
