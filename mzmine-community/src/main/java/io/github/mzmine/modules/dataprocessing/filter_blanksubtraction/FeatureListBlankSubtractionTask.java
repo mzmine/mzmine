@@ -160,6 +160,8 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     // create feature list containing all background features and all samples
     final ModularFeatureList backgroundAlignedFeaturesList = FeatureListUtils.createCopyWithoutRows(
         originalFeatureList, "subtractedBackground", getMemoryMapStorage(), null, null);
+    // make sure this feature list is never used for batch last selection
+    backgroundAlignedFeaturesList.setExcludedFromBatchLast(true);
 
     final List<FeatureListRow> notBackgroundAlignedFeaturesListRows = new ArrayList<>();
     final List<FeatureListRow> backgroundAlignedFeaturesListRows = new ArrayList<>();
