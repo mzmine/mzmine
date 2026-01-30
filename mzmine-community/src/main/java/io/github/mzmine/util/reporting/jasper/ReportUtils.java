@@ -113,10 +113,11 @@ import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
 import org.w3c.dom.DOMImplementation;
 
-/**
- * Utils class to generate the charts for reports. Future will show how many other reports will be
- * able to use this class. May be a good class to refactor.
- */
+/// Utils class to generate the charts for reports. Future will show how many other reports will be
+/// able to use this class. May be a good class to refactor.
+///
+/// Specific reports may add:
+/// - [#setGroupingColumn(MetadataColumn)] for box plots
 public class ReportUtils {
 
   private final SimpleXYChart<PlotXYDataProvider> eicChart = new SimpleXYChart<>(
@@ -136,12 +137,14 @@ public class ReportUtils {
 
   private final ExportBoxplot boxPlot = new ExportBoxplot();
   private final Function<RawDataFile, Color> getSpectrumColor = RawDataFile::getColorAWT;
-  private final MetadataColumn<?> groupingColumn;
   @NotNull
   private final EStandardChartTheme theme;
   private final Structure2DRenderConfig structureRenderConfig;
   private final AbundanceMeasure boxPlotAbundanceMeasure = AbundanceMeasure.Area;
   private final NumberFormats formats = ConfigService.getGuiFormats();
+  // set by the specific report
+  @Nullable
+  private MetadataColumn<?> groupingColumn;
   /**
    * Bytes of the svg string or BufferedImage
    */
@@ -149,9 +152,8 @@ public class ReportUtils {
   private EChartViewer mirrorChart = null; // must be regenerated for each match
   private LipidSpectrumPlot lipidChart = null;
 
-  public ReportUtils(MetadataColumn<?> groupingColumn, @NotNull EStandardChartTheme theme,
+  public ReportUtils(@NotNull EStandardChartTheme theme,
       Structure2DRenderConfig structureRenderConfig) {
-    this.groupingColumn = groupingColumn;
     this.theme = theme;
     this.structureRenderConfig = structureRenderConfig;
 
@@ -167,6 +169,10 @@ public class ReportUtils {
     ((NumberAxis) ms2Chart.getXYPlot().getRangeAxis()).setNumberFormatOverride(
         ConfigService.getGuiFormats().intensityFormat());
     initChart(boxPlot);
+  }
+
+  public void setGroupingColumn(@Nullable MetadataColumn<?> groupingColumn) {
+    this.groupingColumn = groupingColumn;
   }
 
   private static @NotNull String getCompoundSummary(@NotNull FeatureListRow row,
@@ -276,7 +282,7 @@ public class ReportUtils {
         figures.addTwoFigureRowFigure(FigureAndCaption.asTwoColumnSvg(mobilogramChart,
             "Figure %s.%d: EIMs of feature %s.".formatted(id, chartCounter++, id)));
       }
-      if (updateBoxPlot(row)) {
+      if (groupingColumn != null && updateBoxPlot(row)) {
         figures.addTwoFigureRowFigure(FigureAndCaption.asTwoColumnPng(boxPlot,
             "Figure %s.%d: %s distribution grouped by %s.".formatted(id, chartCounter++,
                 boxPlotAbundanceMeasure, groupingColumn.getTitle())));
@@ -558,6 +564,10 @@ public class ReportUtils {
   }
 
   private boolean updateBoxPlot(@NotNull FeatureListRow row) {
+    if (groupingColumn == null) {
+      return false;
+    }
+
     final RowBoxPlotDataset ds = new RowBoxPlotDataset(row, groupingColumn,
         boxPlotAbundanceMeasure);
     if (ds.getColumnCount() == 0 || ds.getRowCount() == 0 || row.getRawDataFiles().size() <= 1) {

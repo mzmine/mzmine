@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.molstructure;
 
+import io.github.mzmine.modules.presets.ModulePreset;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig.Sizing;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -83,5 +84,18 @@ public class StructureRenderParameters extends SimpleParameterSet {
     final double bonds = this.getValue(bondLength);
     final double zoom = this.getValue(baseZoom);
     return new Structure2DRenderConfig(sizing, zoom, bonds);
+  }
+
+  @Override
+  public @NotNull List<ModulePreset> createDefaultPresets() {
+    // defaults that work in all of mzmine and in the reports
+    // the reports are exported with different DPI than the screen
+    // so there is a factor applied later in the ReportingTask to zoom in more
+    return List.of( //
+        new ModulePreset("mzmine (default)", StructureRenderModule.UNIQUE_ID,
+            setAll(Structure2DRenderConfig.DEFAULT_CONFIG, true)), //
+        new ModulePreset("mzmine (large molecules, shorter bonds)", StructureRenderModule.UNIQUE_ID,
+            setAll(new Structure2DRenderConfig(1, 15), true)) //
+    );
   }
 }

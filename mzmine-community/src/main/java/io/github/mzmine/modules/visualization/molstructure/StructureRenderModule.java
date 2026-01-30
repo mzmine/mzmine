@@ -22,26 +22,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.reporting.jasper.reporttypes;
+package io.github.mzmine.modules.visualization.molstructure;
 
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.reporting.jasper.ReportUtils;
-import java.util.Map;
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JasperPrint;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public interface ReportModule extends MZmineModule {
+/**
+ * For saving presets
+ */
+public class StructureRenderModule implements MZmineModule {
 
-  JasperPrint generateReport(@NotNull FeatureList flist,
-      @NotNull Map<String, Object> jasperParameters, @NotNull ReportUtils reportUtils)
-      throws JRException;
+  public static final String UNIQUE_ID = "structure_render_config";
 
-  double getProgress();
+  @Override
+  public @NotNull String getName() {
+    return "Structure rendering";
+  }
 
-  public ReportModule createInstance(@NotNull ParameterSet parameters);
+  @Override
+  public @NotNull String getUniqueID() {
+    return UNIQUE_ID;
+  }
 
-  void cancel();
+  @Override
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return StructureRenderParameters.class;
+  }
 }
