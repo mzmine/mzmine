@@ -156,6 +156,7 @@ class ResolverPreviewUpdateTask extends FxUpdateTask<Object> {
       }
       if (resolvedFeatures != null) {
         resolvedFeatures.forEach(ds -> chart.addDataset(ds, new ColoredAreaShapeRenderer()));
+        chart.setLegendItemsVisible(resolvedFeatures.size() < 20);
       }
     });
   }
