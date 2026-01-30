@@ -63,7 +63,8 @@ public class DeleteRowsTask extends AbstractFeatureListTask {
   @Override
   protected void process() {
     final List<FeatureListRow> rows = FeatureListUtils.idStringToRows(flist, rowIdStr);
-    rows.forEach(flist::removeRow);
+    // batch remove rows
+    flist.removeRows(rows);
   }
 
   @Override
