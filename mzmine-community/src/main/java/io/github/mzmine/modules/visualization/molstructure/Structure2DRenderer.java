@@ -51,7 +51,6 @@ import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
 import org.openscience.cdk.renderer.BoundsCalculator;
 import org.openscience.cdk.renderer.RendererModel;
-import org.openscience.cdk.renderer.color.CDK2DAtomColors;
 import org.openscience.cdk.renderer.elements.IRenderingElement;
 import org.openscience.cdk.renderer.font.AWTFontManager;
 import org.openscience.cdk.renderer.generators.BasicSceneGenerator;
@@ -81,7 +80,8 @@ public class Structure2DRenderer extends AtomContainerRenderer {
 
     // Set default atom colors for the renderer
     RendererModel rendererModel = getRenderer2DModel();
-    rendererModel.set(StandardGenerator.AtomColor.class, new CDK2DAtomColors());
+    // custom colors
+    rendererModel.set(StandardGenerator.AtomColor.class, new MZmine2DAtomColors());
 
     // space between atom label and bond line
     rendererModel.set(StandardGenerator.SymbolMarginRatio.class, 1.5d); // smaller space label bond
@@ -89,9 +89,6 @@ public class Structure2DRenderer extends AtomContainerRenderer {
     rendererModel.set(StandardGenerator.HashSpacing.class, 2.75d); // bonds | | | spacing
 //    rendererModel.set(StandardGenerator.WaveSpacing.class, 2.75d); //
     rendererModel.set(StandardGenerator.WedgeRatio.class, 6d); // end width of > < bonds
-
-    // custom colors
-    rendererModel.set(StandardGenerator.AtomColor.class, new MZmine2DAtomColors());
 
     // bond width usually similar to | pipe symbol thickness
     // bold font makes bonds to thick so use a smaller ratio
@@ -108,10 +105,16 @@ public class Structure2DRenderer extends AtomContainerRenderer {
   public void drawStructure(final Canvas canvas, final IAtomContainer molecule,
       Structure2DRenderConfig config) {
     final JavaFxStructureDrawVisitor visitor = new JavaFxStructureDrawVisitor(canvas);
-    visitor.setRounding(true);
-    canvas.getGraphicsContext2D().clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-    canvas.getGraphicsContext2D().setFill(javafx.scene.paint.Color.WHITE);
-    canvas.getGraphicsContext2D().fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+    visitor.setRounding(false);
+
+    // important use visitor graphics and not the canvas graphics to clear rect
+    // otherwise some random bonds may disappear - no idea why
+    final Graphics2D g2 = visitor.getGraphics();
+    int width = (int) canvas.getWidth();
+    int height = (int) canvas.getHeight();
+    g2.setColor(Color.WHITE);
+    g2.fillRect(0, 0, width, height);
+
     drawStructure(visitor, (int) canvas.getWidth(), (int) canvas.getHeight(), molecule, config);
   }
 
