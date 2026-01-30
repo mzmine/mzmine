@@ -992,7 +992,8 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public void setAnnotationSortConfig(@NotNull AnnotationSummarySortConfig annotationSortConfig) {
+  public synchronized void setAnnotationSortConfig(
+      @NotNull AnnotationSummarySortConfig annotationSortConfig) {
     this.annotationSortConfig = annotationSortConfig;
     annotationSortConfigVersion++;
   }
