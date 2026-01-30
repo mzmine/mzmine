@@ -50,12 +50,12 @@ import org.jetbrains.annotations.Nullable;
 public class CombinedScoreWeightsComponent extends FlowPane {
 
   private final NumberFormat numberFormat = new DecimalFormat("0.0");
-  private final @NotNull Property<Double> mz;
-  private final @NotNull Property<Double> ms2;
-  private final @NotNull Property<Double> rt;
-  private final @NotNull Property<Double> ri;
-  private final @NotNull Property<Double> isotopes;
-  private final @NotNull Property<Double> ccs;
+  private final @NotNull Property<@Nullable Double> mz;
+  private final @NotNull Property<@Nullable Double> ms2;
+  private final @NotNull Property<@Nullable Double> rt;
+  private final @NotNull Property<@Nullable Double> ri;
+  private final @NotNull Property<@Nullable Double> isotopes;
+  private final @NotNull Property<@Nullable Double> ccs;
 
   public CombinedScoreWeightsComponent(@Nullable CombinedScoreWeights value) {
     super(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
@@ -65,19 +65,23 @@ public class CombinedScoreWeightsComponent extends FlowPane {
     List<Region> weightComponents = new ArrayList<>();
     ms2 = addTextField(weightComponents, "MS2",
         "MS2 weights are multiplied with the MS2 score if available.");
-    isotopes = addTextField(weightComponents, "IP", "Isotope pattern weights are multiplied with the isotope pattern scores if available.");
+    isotopes = addTextField(weightComponents, "IP",
+        "Isotope pattern weights are multiplied with the isotope pattern scores if available.");
     mz = addTextField(weightComponents, "m/z", """
         m/z values are transformed using an m/z tolerance as maximum distance.
         """ + scoreCalc);
     rt = addTextField(weightComponents, "RT",
         "Retention time weight are multiplied with the RT score.\n" + scoreCalc);
-    ri = addTextField(weightComponents, "RI", "Retention index weight are multiplied with the RI score.\n" + scoreCalc);
-    ccs = addTextField(weightComponents, "CCS", "CCS weights are multiplied with the CCS score which is based on relative distances as %%.\n" + scoreCalc);
+    ri = addTextField(weightComponents, "RI",
+        "Retention index weight are multiplied with the RI score.\n" + scoreCalc);
+    ccs = addTextField(weightComponents, "CCS",
+        "CCS weights are multiplied with the CCS score which is based on relative distances as %%.\n"
+            + scoreCalc);
 
     final ObservableList<Node> children = getChildren();
     for (int i = 0; i < weightComponents.size(); i++) {
       children.add(weightComponents.get(i));
-      if(i<weightComponents.size()-1){
+      if (i < weightComponents.size() - 1) {
         // + symbol to show that those are added up
         children.add(FxLabels.newLabel(Styles.BOLD_SEMI_TITLE, "+"));
       }
@@ -87,8 +91,8 @@ public class CombinedScoreWeightsComponent extends FlowPane {
   }
 
   @NotNull
-  private Property<Double> addTextField(List<Region> weightComponents, @NotNull String name,
-      @NotNull String tooltipText) {
+  private Property<@Nullable Double> addTextField(List<Region> weightComponents,
+      @NotNull String name, @NotNull String tooltipText) {
     final DoubleComponent component = new DoubleComponent(45, 0d, null, numberFormat, 1d);
     final Tooltip tooltip = new Tooltip(tooltipText);
     final Label label = FxLabels.newBoldLabel(name);
@@ -126,8 +130,14 @@ public class CombinedScoreWeightsComponent extends FlowPane {
     ccs.setValue(value.ccs());
   }
 
+
+  @Nullable
   public CombinedScoreWeights getValue() {
+    try {
     return new CombinedScoreWeights(mz.getValue(), rt.getValue(), ri.getValue(), ccs.getValue(),
         ms2.getValue(), isotopes.getValue());
+    } catch (Exception e) {
+      return null;
+    }
   }
 }

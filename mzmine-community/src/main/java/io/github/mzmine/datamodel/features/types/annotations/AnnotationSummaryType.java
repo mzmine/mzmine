@@ -144,7 +144,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
     column.setPrefWidth(45);
     column.setSortable(true);
     // flip sorting so that first click gives correct sorting
-    column.setComparator(AnnotationSummaryOrder.MZMINE.getComparatorHighFirst());
+    column.setComparator(AnnotationSummaryOrder.MZMINE.getComparatorLowFirst());
 //    column.setMaxWidth(60);
 
     return (TreeTableColumn) column;
