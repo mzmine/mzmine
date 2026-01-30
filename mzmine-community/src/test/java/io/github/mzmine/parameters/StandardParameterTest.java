@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -37,6 +38,11 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import java.text.DecimalFormat;
 import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -49,7 +55,18 @@ class StandardParameterTest {
     final ComboParameter<PolarityType> comboParam = new ComboParameter<>("test", "",
         PolarityType.values(), PolarityType.NEGATIVE);
 
+    final RawDataFilesSelection selection = new RawDataFilesSelection(
+        RawDataFilesSelectionType.BY_METADATA);
+    selection.setBatchLastFiles(
+        new RawDataFile[]{new RawDataFilePlaceholder("Test name.raw", "some path/somefile")});
+    selection.setMetadataSelection(
+        new MetadataListGroupsSelection("Column", List.of("included1", "included2")),
+        new MetadataListGroupsSelection("exc column", List.of()));
+    selection.setNamePattern("*pattern");
+
     List<ParameterTestCase> tests = List.of( //
+        new ParameterTestCase(new RawDataFilesParameter(selection),
+            new RawDataFilesSelection(RawDataFilesSelectionType.SPECIFIC_FILES)), //
         // simple parameters
         new ParameterTestCase(stringParam, "other value"), //
         new ParameterTestCase(new DoubleParameter("t", "", new DecimalFormat("0.0000"), 5d), 1d), //

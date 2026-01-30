@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelectionParameter;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
@@ -69,13 +70,14 @@ public class RawDataFilesComponent extends GridPane {
         FXCollections.observableArrayList(RawDataFilesSelectionType.values()));
     typeCombo.getSelectionModel().selectFirst();
 
-    typeCombo.getSelectionModel().selectedItemProperty()
-        .addListener((options, oldValue, newValue) -> {
-          currentValue.setSelectionType(newValue);
-          detailsButton.setDisable(newValue != RawDataFilesSelectionType.NAME_PATTERN
-              && newValue != RawDataFilesSelectionType.SPECIFIC_FILES);
-          updateNumFiles();
-        });
+    final ReadOnlyObjectProperty<RawDataFilesSelectionType> selectedItem = typeCombo.getSelectionModel()
+        .selectedItemProperty();
+    selectedItem.subscribe((_, newValue) -> {
+      currentValue.setSelectionType(newValue);
+      updateNumFiles();
+    });
+
+    detailsButton.disableProperty().bind(selectedItem.map(item -> !item.hasAdditionalUserInput()));
 
     add(typeCombo, 1, 0);
 
@@ -103,6 +105,24 @@ public class RawDataFilesComponent extends GridPane {
         if (exitCode == ExitCode.OK) {
           String namePattern = paramSet.getParameter(nameParameter).getValue();
           currentValue.setNamePattern(namePattern);
+        }
+      }
+      if (type == RawDataFilesSelectionType.BY_METADATA) {
+        MetadataListGroupsSelectionParameter included = new MetadataListGroupsSelectionParameter(
+            "Include",
+            "Include metadata group names in column. Enter multiple values, one in each text field.",
+            currentValue.getIncludeMetadataSelection(), false);
+        MetadataListGroupsSelectionParameter excluded = new MetadataListGroupsSelectionParameter(
+            "Exclude",
+            "Exclude metadata group names in column. Enter multiple values, one in each text field.",
+            currentValue.getExcludeMetadataSelection(), false);
+
+        final SimpleParameterSet paramSet = new SimpleParameterSet(included, excluded);
+        final ExitCode exitCode = paramSet.showSetupDialog(true);
+        if (exitCode == ExitCode.OK) {
+          var includeSelection = paramSet.getValue(included);
+          var excludeSelection = paramSet.getValue(excluded);
+          currentValue.setMetadataSelection(includeSelection, excludeSelection);
         }
       }
       updateNumFiles();
