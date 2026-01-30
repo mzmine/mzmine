@@ -25,12 +25,16 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-public enum RawDataFilesSelectionType {
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import org.jetbrains.annotations.NotNull;
+
+public enum RawDataFilesSelectionType implements UniqueIdSupplier {
 
   GUI_SELECTED_FILES("As selected in main window"), //
   ALL_FILES("All raw data files"), //
   SPECIFIC_FILES("Specific raw data files"), //
   NAME_PATTERN("File name pattern"), //
+  BY_METADATA("By metadata"), //
   BATCH_LAST_FILES("Those created by previous batch step");
 
   private final String stringValue;
@@ -44,4 +48,25 @@ public enum RawDataFilesSelectionType {
     return stringValue;
   }
 
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case GUI_SELECTED_FILES -> "GUI_SELECTED_FILES";
+      case ALL_FILES -> "ALL_FILES";
+      case SPECIFIC_FILES -> "SPECIFIC_FILES";
+      case NAME_PATTERN -> "NAME_PATTERN";
+      case BY_METADATA -> "BY_METADATA";
+      case BATCH_LAST_FILES -> "BATCH_LAST_FILES";
+    };
+  }
+
+  /**
+   * @return true if requires additional user input
+   */
+  public boolean hasAdditionalUserInput() {
+    return switch (this) {
+      case GUI_SELECTED_FILES, ALL_FILES, BATCH_LAST_FILES -> false;
+      case SPECIFIC_FILES, NAME_PATTERN, BY_METADATA -> true;
+    };
+  }
 }

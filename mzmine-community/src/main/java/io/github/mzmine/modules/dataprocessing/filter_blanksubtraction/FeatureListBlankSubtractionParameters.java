@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionTask.BlankSubtractionOptions;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -40,6 +39,7 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,7 +50,7 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
       "Aligned feature list", 1, 1);
 
   public static final RawDataFilesParameter blankRawDataFiles = new RawDataFilesParameter(
-      "Blank/Control raw data files", 1, Integer.MAX_VALUE);
+      "Blank/Control raw data files", RawDataFilesSelection.createBlankByMetadata());
 
   public static final IntegerParameter minBlanks = new IntegerParameter(
       "Minimum # of detection in blanks",
@@ -137,7 +137,8 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
     return switch (version) {
       case 2 -> """
           Parameter "Keep or remove features (of rows) below fold change" was removed as this option is now better covered by creating a second list of removed features.
-          Parameter %s was added to provide more control over the removed features (whole rows or each individual feature).""".formatted(subtractionOption);
+          Parameter %s was added to provide more control over the removed features (whole rows or each individual feature).""".formatted(
+          subtractionOption);
       default -> null;
     };
   }
