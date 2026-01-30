@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -119,9 +119,8 @@ public class MsOtherCorrelationResultType extends ListWithSubsType<MsOtherCorrel
   }
 
   @Override
-  public <K> @Nullable K map(@NotNull DataType<K> subType, MsOtherCorrelationResult parentItem) {
+  protected <K> @Nullable K map(@NotNull DataType<K> subType, MsOtherCorrelationResult parentItem) {
     return (K)switch (subType) {
-      case MsOtherCorrelationResultType _ -> parentItem;
       case AreaType a -> parentItem.otherFeature().get(a);
       case HeightType h -> parentItem.otherFeature().get(h);
       case ChromatogramTypeType c -> parentItem.otherFeature().getChromatogramType();

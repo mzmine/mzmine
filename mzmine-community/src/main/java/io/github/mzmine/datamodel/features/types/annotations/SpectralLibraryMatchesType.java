@@ -60,10 +60,8 @@ import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.scores.ExplainedIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
-import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
@@ -110,7 +108,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       new InternalIdType(), //
       new RIDiffType(), //
       new JsonStringType() //
-      );
+  );
 
   @NotNull
   @Override
@@ -126,50 +124,20 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
   }
 
   @Override
-  public <K> @Nullable K map(@NotNull final DataType<K> subType, final SpectralDBAnnotation match) {
-    final SpectralLibraryEntry entry = match.getEntry();
-    return (K) switch (subType) {
-      case SpectralLibraryMatchesType _ -> match;
-      case CompoundNameType _ -> entry.getField(DBEntryField.NAME).orElse("").toString();
-      case FormulaType _ -> entry.getField(DBEntryField.FORMULA).orElse("").toString();
-      case IonAdductType _ -> entry.getField(DBEntryField.ION_TYPE).orElse("").toString();
-      case MolecularStructureType _ -> entry.getStructure();
-      case SmilesStructureType _ -> entry.getField(DBEntryField.SMILES).orElse("").toString();
-      case InChIStructureType _ -> entry.getField(DBEntryField.INCHI).orElse("").toString();
-      case ClassyFireSuperclassType _ ->
-          entry.getField(DBEntryField.CLASSYFIRE_SUPERCLASS).orElse("").toString();
-      case ClassyFireClassType _ ->
-          entry.getField(DBEntryField.CLASSYFIRE_CLASS).orElse("").toString();
-      case ClassyFireSubclassType _ ->
-          entry.getField(DBEntryField.CLASSYFIRE_SUBCLASS).orElse("").toString();
-      case ClassyFireParentType _ ->
-          entry.getField(DBEntryField.CLASSYFIRE_PARENT).orElse("").toString();
-      case NPClassifierSuperclassType _ ->
-          entry.getField(DBEntryField.NPCLASSIFIER_SUPERCLASS).orElse("").toString();
-      case NPClassifierClassType _ ->
-          entry.getField(DBEntryField.NPCLASSIFIER_CLASS).orElse("").toString();
-      case NPClassifierPathwayType _ ->
-          entry.getField(DBEntryField.NPCLASSIFIER_PATHWAY).orElse("").toString();
-      case SimilarityType _ -> (float) match.getSimilarity().getScore();
-      case ExplainedIntensityPercentType __ -> match.getSimilarity().getExplainedLibraryIntensity();
-      case MatchingSignalsType _ -> match.getSimilarity().getOverlap();
-      case PrecursorMZType _ -> entry.getField(DBEntryField.PRECURSOR_MZ).orElse(null);
-      case NeutralMassType _ -> entry.getField(DBEntryField.EXACT_MASS).orElse(null);
-      case CCSType _ -> entry.getOrElse(DBEntryField.CCS, null);
-      case CCSRelativeErrorType _ -> match.getCCSError();
-      case RtAbsoluteDifferenceType _ -> match.getRtAbsoluteError();
-      case MzAbsoluteDifferenceType _ -> match.getMzAbsoluteError();
-      case MzPpmDifferenceType _ -> match.getMzPpmError();
-      case CommentType _ -> entry.getOrElse(DBEntryField.COMMENT, null);
-      case EntryIdType _ -> entry.getOrElse(DBEntryField.ENTRY_ID, null);
-      case CASType _ -> entry.getOrElse(DBEntryField.CAS, null);
-      case InternalIdType _ -> entry.getOrElse(DBEntryField.INTERNAL_ID, null);
-      case JsonStringType _ -> entry.getOrElse(DBEntryField.JSON_STRING, null);
-      case RIDiffType _ -> match.getRiDiff();
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType,
+      final SpectralDBAnnotation match) {
+    // for types that are only visible in table map them here
+    // all other types are mapped in the match directly
+    Object value = switch (subType) {
       case AnnotationSummaryType _ -> null; // created on demand in cell factory
-      default -> throw new UnsupportedOperationException(
-          "DataType %s is not covered in map".formatted(subType.toString()));
+      default -> null;
     };
+    if (value != null) {
+      return (K) value;
+    }
+
+    // just delegate to match.get now that is a ModularDataModel similar to CompoundDatabaseMatchesType
+    return match.get(subType);
   }
 
   @NotNull
