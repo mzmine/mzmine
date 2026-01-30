@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerTask.RatingType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.Arrays;
 import java.util.logging.Logger;
