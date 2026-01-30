@@ -61,6 +61,7 @@ public class RawDataFilesParameter implements
 
   public RawDataFilesParameter(RawDataFilesSelection value) {
     this(1, Integer.MAX_VALUE);
+    this.value = value;
   }
 
   public RawDataFilesParameter(@NotNull String name, @Nullable RawDataFilesSelection value) {
