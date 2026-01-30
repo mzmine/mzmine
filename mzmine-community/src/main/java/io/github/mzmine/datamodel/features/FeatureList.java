@@ -72,8 +72,7 @@ public interface FeatureList {
   /**
    * @return Short descriptive name for the feature list
    */
-  @NotNull
-  String getName();
+  @NotNull String getName();
 
   /**
    * Change the name of this feature list
@@ -304,8 +303,7 @@ public interface FeatureList {
    * @return The scans used to build this feature list. For ion mobility data, the frames are
    * returned.
    */
-  @Nullable
-  List<? extends Scan> getSeletedScans(@NotNull RawDataFile file);
+  @Nullable List<? extends Scan> getSeletedScans(@NotNull RawDataFile file);
 
   /**
    * Returns all rows with average retention time within given range
@@ -481,8 +479,7 @@ public interface FeatureList {
    *
    * @return a map that stores different relationship maps
    */
-  @NotNull
-  R2RNetworkingMaps getRowMaps();
+  @NotNull R2RNetworkingMaps getRowMaps();
 
   /**
    * Maps {@link Feature} DataType listeners, e.g., for calculating the mean values for a DataType
@@ -490,16 +487,14 @@ public interface FeatureList {
    *
    * @return map of feature DataType listeners
    */
-  @NotNull
-  Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners();
+  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners();
 
   /**
    * Maps {@link FeatureListRow} DataType listeners, e.g., for graphical representations
    *
    * @return map of feature DataType listeners
    */
-  @NotNull
-  Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners();
+  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners();
 
   /**
    * @param row
@@ -552,6 +547,16 @@ public interface FeatureList {
   void applyDefaultRowsSorting();
 
   void clearRows();
+
+  /**
+   * @param excluded true to exclude this feature list from batch last
+   */
+  void setExcludedFromBatchLast(boolean excluded);
+
+  /**
+   * @return true if this feature list should never be used as batch last feature list
+   */
+  boolean isExcludedFromBatchLastSelection();
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge
