@@ -26,7 +26,6 @@ package io.github.mzmine.util.reporting.jasper.reporttypes;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
@@ -47,7 +46,6 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfree.chart.ui.RectangleInsets;
 
 public class AlignedFeatureReport implements ReportModule {
 
@@ -58,15 +56,12 @@ public class AlignedFeatureReport implements ReportModule {
   private final AtomicBoolean isCanceled = new AtomicBoolean(false);
   @NotNull
   private final MetadataColumn<?> groupingCol;
-  @NotNull
-  private final EStandardChartTheme theme;
   private JRCountingBeanCollectionDataSource detailSource = null;
   private JRCountingBeanCollectionDataSource summarySource = null;
 
   public AlignedFeatureReport() {
     includeSummary = true;
     includeEvidence = true;
-    theme = new EStandardChartTheme("Aligned feature report");
     groupingCol = ProjectService.getMetadata().getSampleTypeColumn();
   }
 
@@ -75,9 +70,6 @@ public class AlignedFeatureReport implements ReportModule {
     includeEvidence = parameters.getValue(AlignedFeatureReportParameters.includeEvidencePages);
     groupingCol = ProjectService.getMetadata()
         .getColumnByName(parameters.getValue(AlignedFeatureReportParameters.grouping));
-    theme = new EStandardChartTheme("Aligned feature report");
-    parameters.getValue(AlignedFeatureReportParameters.chartThemeParam).applyToChartTheme(theme);
-    theme.setMirrorPlotAxisOffset(new RectangleInsets(0, 0, -2, 0));
   }
 
   @Override
@@ -91,12 +83,14 @@ public class AlignedFeatureReport implements ReportModule {
   }
 
   @Override
-  public JasperPrint generateReport(FeatureList flist, Map<String, Object> jasperParameters)
+  public JasperPrint generateReport(@NotNull FeatureList flist,
+      @NotNull Map<String, Object> jasperParameters, @NotNull ReportUtils reportUtils)
       throws JRException {
 
-    totalItemsToPrepare.set(flist.getNumberOfRows());
+    // set all report-specific fields
+    initializeReportUtils(reportUtils);
 
-    final ReportUtils reportUtils = new ReportUtils(groupingCol, theme);
+    totalItemsToPrepare.set(flist.getNumberOfRows());
 
     final List<FeatureListRow> rows = flist.getRowsCopy();
     final List<FeatureDetail> detail = new ArrayList<>();
@@ -127,6 +121,10 @@ public class AlignedFeatureReport implements ReportModule {
         "report_templates/aligned_report/aligned_report_cover.jasper");
     return JasperFillManager.fillReport(file.getAbsolutePath(), jasperParameters,
         new JREmptyDataSource());
+  }
+
+  private void initializeReportUtils(@NotNull ReportUtils reportUtils) {
+    reportUtils.setGroupingColumn(groupingCol);
   }
 
   @Override

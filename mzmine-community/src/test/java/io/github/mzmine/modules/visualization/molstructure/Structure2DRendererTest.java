@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -22,26 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.reporting.jasper.reporttypes;
+package io.github.mzmine.modules.visualization.molstructure;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.reporting.jasper.ReportUtils;
-import java.util.Map;
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JasperPrint;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureInputType;
+import io.github.mzmine.datamodel.structures.StructureParser;
+import junit.framework.Assert;
+import org.junit.jupiter.api.Test;
 
-public interface ReportModule extends MZmineModule {
+class Structure2DRendererTest {
 
-  JasperPrint generateReport(@NotNull FeatureList flist,
-      @NotNull Map<String, Object> jasperParameters, @NotNull ReportUtils reportUtils)
-      throws JRException;
+  @Test
+  void drawStructureToSvgString() throws Exception {
+    final Structure2DRenderer renderer = StructureRenderService.createDefaultRenderer();
 
-  double getProgress();
+    String smiles = "C[C@H](CCC(=O)NCCS(=O)(=O)O)[C@H]1CC[C@@H]2[C@@]1([C@H](C[C@H]3[C@H]2[C@@H](C[C@H]4[C@@]3(CC[C@H](C4)O)C)O)O)C";
+    final MolecularStructure structure = StructureParser.silent()
+        .parseStructure(smiles, StructureInputType.SMILES);
+    final String svg = renderer.drawStructureToSvgString(structure.structure(), 600, 600,
+        Structure2DRenderConfig.DEFAULT_CONFIG);
 
-  public ReportModule createInstance(@NotNull ParameterSet parameters);
-
-  void cancel();
+    Assert.assertNotNull(svg);
+    Assert.assertTrue(svg.startsWith("<svg"));
+  }
 }

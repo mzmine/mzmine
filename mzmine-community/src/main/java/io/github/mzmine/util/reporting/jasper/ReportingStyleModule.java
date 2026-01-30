@@ -22,26 +22,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.reporting.jasper.reporttypes;
+package io.github.mzmine.util.reporting.jasper;
 
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.reporting.jasper.ReportUtils;
-import java.util.Map;
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JasperPrint;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public interface ReportModule extends MZmineModule {
+public class ReportingStyleModule implements MZmineModule {
 
-  JasperPrint generateReport(@NotNull FeatureList flist,
-      @NotNull Map<String, Object> jasperParameters, @NotNull ReportUtils reportUtils)
-      throws JRException;
+  @Override
+  public @NotNull String getName() {
+    return "Reporting style";
+  }
 
-  double getProgress();
-
-  public ReportModule createInstance(@NotNull ParameterSet parameters);
-
-  void cancel();
+  @Override
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return ReportingStyleParameters.class;
+  }
 }
