@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -122,7 +122,7 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
   private final ObjectProperty<@NotNull Consumer<ParameterSet>> askApplyParameterSet = new SimpleObjectProperty<>(
       (params) -> {
         if (DialogLoggerUtil.showDialogYesNo("Overwrite parameters?",
-            "Do you want to overwrite the current parameters?")) {
+            ModulePreset.getApplyPresetMessage(params))) {
           setParametersDirect(params);
         }
       });

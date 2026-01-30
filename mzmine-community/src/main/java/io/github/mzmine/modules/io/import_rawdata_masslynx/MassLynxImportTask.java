@@ -45,7 +45,6 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -269,10 +268,12 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
   }
 
   private void readMsFunction(MassLynxDataAccess ml, int function, RawDataFileImpl dataFile,
-      List<SimpleScan> scans) {
+      @NotNull List<@NotNull SimpleScan> scans) {
     for (int scan = 0; scan < ml.getNumberOfScansInFunction(function); scan++) {
       final SimpleScan loadedScan = ml.readScan(dataFile, function, scan);
-      scans.add(loadedScan);
+      if (loadedScan != null) {
+        scans.add(loadedScan);
+      }
       loadedItems++;
 
       if (isCanceled()) {

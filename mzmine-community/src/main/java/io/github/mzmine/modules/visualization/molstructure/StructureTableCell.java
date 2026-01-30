@@ -40,6 +40,9 @@ public class StructureTableCell<S> extends TreeTableCell<S, Object> {
 
   public StructureTableCell() {
     final Structure2DComponent molViewer = new Structure2DComponent();
+    // too many context menus in table already
+    molViewer.setContextMenuEnabled(false);
+
     setHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
 
     molViewer.moleculeProperty()
