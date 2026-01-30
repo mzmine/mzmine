@@ -70,18 +70,19 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
     AnnotationType {
 
   public static final List<DataType> subTypes = List.of(new CompoundDatabaseMatchesType(),
-      new CompoundNameType(), new CompoundAnnotationScoreType(), new FormulaType(),
-      new IonTypeType(), new MolecularStructureType(), new SmilesStructureType(),
-      new InChIStructureType(), new InChIKeyStructureType(),
+      new CompoundNameType(), new AnnotationSummaryType(), new CompoundAnnotationScoreType(),
+      new FormulaType(), new IonTypeType(), new MolecularStructureType(),
+      new SmilesStructureType(), new InChIStructureType(),
       // classifiers
-      new ClassyFireSuperclassType(), new ClassyFireClassType(), new ClassyFireSubclassType(),
-      new ClassyFireParentType(), new NPClassifierSuperclassType(), new NPClassifierClassType(),
-      new NPClassifierPathwayType(),
+      new InChIKeyStructureType(), new ClassyFireSuperclassType(), new ClassyFireClassType(),
+      new ClassyFireSubclassType(), new ClassyFireParentType(), new NPClassifierSuperclassType(),
+      new NPClassifierClassType(),
 
       //
-      new PrecursorMZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
-      new NeutralMassType(), new RTType(), new CCSType(), new CCSRelativeErrorType(),
-      new IsotopePatternScoreType(), new CommentType(), new RIType(), new RIDiffType());
+      new NPClassifierPathwayType(), new PrecursorMZType(), new MzPpmDifferenceType(),
+      new MzAbsoluteDifferenceType(), new NeutralMassType(), new RTType(), new CCSType(),
+      new CCSRelativeErrorType(), new IsotopePatternScoreType(), new CommentType(), new RIType(),
+      new RIDiffType());
 
   private static final Logger logger = Logger.getLogger(
       CompoundDatabaseMatchesType.class.getName());
@@ -96,6 +97,12 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
 
   @Override
   public <K> @Nullable K map(@NotNull final DataType<K> subType, final CompoundDBAnnotation item) {
+    // visual on demand types are directly mapped here and not in the item
+    if (subType instanceof AnnotationSummaryType) {
+      // summary type is only created in cell value factory
+      return null;
+    }
+
     return item.get(subType);
   }
 
