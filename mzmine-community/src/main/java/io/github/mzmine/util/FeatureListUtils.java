@@ -804,6 +804,7 @@ public class FeatureListUtils {
     FeatureListUtils.copyPeakListAppliedMethods(featureList, newFlist);
     FeatureListUtils.transferRowTypes(newFlist, List.of(featureList), true);
     FeatureListUtils.transferSelectedScans(newFlist, List.of(featureList));
+    newFlist.setAnnotationSortConfig(featureList.getAnnotationSortConfig().copy());
 
     if (copyRows) {
       copyRows(featureList, newFlist, renumberIDs);

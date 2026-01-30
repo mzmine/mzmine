@@ -53,13 +53,13 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
 
   private static final List<DataType> subTypes = List.of(//
       new LipidMatchListType(), //
+      new AnnotationSummaryType(), //
       new IonAdductType(), //
       new FormulaType(), //
       new CommentType(), //
-      new MzPpmDifferenceType(), //
-      new ExplainedIntensityPercentType(),//
-      new LipidSpectrumType(), //
-      new AnnotationSummaryType());
+      new MzPpmDifferenceType(),//
+      new ExplainedIntensityPercentType(), //
+      new LipidSpectrumType());
 
   @NotNull
   @Override

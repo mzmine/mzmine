@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
@@ -129,6 +130,8 @@ public class ModularFeatureList implements FeatureList {
   private String dateCreated;
   // grouping
   private List<RowGroup> groups;
+
+  private @NotNull AnnotationSummarySortConfig annotationSortConfig = AnnotationSummarySortConfig.DEFAULT;
 
   /**
    * Used to buffer charts of rows and features to display in the
@@ -974,5 +977,15 @@ public class ModularFeatureList implements FeatureList {
 
   @NotNull ColumnarModularFeatureListRowsSchema getRowsSchema() {
     return rowsSchema;
+  }
+
+  @Override
+  public @NotNull AnnotationSummarySortConfig getAnnotationSortConfig() {
+    return annotationSortConfig;
+  }
+
+  @Override
+  public void setAnnotationSortConfig(@NotNull AnnotationSummarySortConfig annotationSortConfig) {
+    this.annotationSortConfig = annotationSortConfig;
   }
 }

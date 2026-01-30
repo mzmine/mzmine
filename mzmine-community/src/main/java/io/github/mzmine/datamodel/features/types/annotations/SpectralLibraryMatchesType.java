@@ -82,31 +82,31 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
   private static final List<DataType> subTypes = List.of( //
       new SpectralLibraryMatchesType(), //
       new CompoundNameType(), //
+      new AnnotationSummaryType(),//
       new SimilarityType(),//
       new MatchingSignalsType(),//
-      new ExplainedIntensityPercentType(),//
-      new IonAdductType(), //
+      new ExplainedIntensityPercentType(), //
+      new IonAdductType(),//
       new FormulaType(),//
       new MolecularStructureType(),//
       new SmilesStructureType(),//
-      new InChIStructureType(),//
       // classifiers
-      new ClassyFireSuperclassType(), new ClassyFireClassType(), new ClassyFireSubclassType(),
-      new ClassyFireParentType(), new NPClassifierSuperclassType(), new NPClassifierClassType(),
-      new NPClassifierPathwayType(), //
+      new InChIStructureType(), new ClassyFireSuperclassType(), new ClassyFireClassType(),
+      new ClassyFireSubclassType(), new ClassyFireParentType(), new NPClassifierSuperclassType(),
+      new NPClassifierClassType(), //
+      new NPClassifierPathwayType(),//
       new NeutralMassType(),//
       new PrecursorMZType(),//
       new MzAbsoluteDifferenceType(),//
       new MzPpmDifferenceType(),//
       new RtAbsoluteDifferenceType(),//
       new CCSType(),//
-      new CCSRelativeErrorType(),//
+      new CCSRelativeErrorType(), //
       new CommentType(), //
-      new EntryIdType(), //
-      new CASType(),  //
+      new EntryIdType(),  //
+      new CASType(), //
       new InternalIdType(), //
       new RIDiffType(), //
-      new AnnotationSummaryType(), //
       new JsonStringType() //
   );
 

@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.SimpleSubColumnsType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.fx.PreferredEditComboCellFactory;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -59,9 +60,14 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * This type is only set through user action, so don't set this programmatically.
+ * <p>
+ * By default, this type is a {@link MappingType} using
+ * {@link FeatureListRow#getPreferredAnnotation()} to retrieve either the user-specified preferred
+ * annotation (user selected a specific annotation from a list in the GUI) or the most trusted
+ * annotation of all {@link FeatureAnnotation} types.
  */
 public class PreferredAnnotationType extends SimpleSubColumnsType<FeatureAnnotation> implements
-    MappingType<FeatureAnnotation> {
+    MappingType<FeatureAnnotation>, AnnotationType {
 
   public static final List<DataType> subTypes = List.of(new PreferredAnnotationType(),
       new CompoundNameType(), new AnnotationSummaryType(), new PrecursorMZType(),
@@ -164,14 +170,7 @@ public class PreferredAnnotationType extends SimpleSubColumnsType<FeatureAnnotat
       return;
     }
 
-    DataType annotationType = DataTypes.get(annotation.getDataType());
-
-//    writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
-//    writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, annotationType.getUniqueID());
-
     annotation.saveToXML(writer, flist, row);
-
-//    writer.writeEndElement();
   }
 
   @Override
