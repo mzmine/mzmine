@@ -348,6 +348,7 @@ public class MassLynxDataAccess implements AutoCloseable {
 //        "Unknown function in file " + rawFolder.getName() + " - function " + function);
   }
 
+  @Nullable
   public SimpleScan readScan(RawDataFileImpl file, int function, int scan) {
     return switch (getFunctionType(function)) {
       case IMS_MS -> {

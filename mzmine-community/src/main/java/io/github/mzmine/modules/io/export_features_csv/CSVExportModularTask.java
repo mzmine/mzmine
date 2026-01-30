@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
@@ -58,6 +59,7 @@ import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -233,12 +235,14 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
         .sorted(FeatureListRowSorter.DEFAULT_ID).toList();
     List<RawDataFile> rawDataFiles = flist.getRawDataFiles();
 
+    final Comparator<DataType> sorter = DataTypes.getDefaultSorterFeatureTable();
+
     List<DataType> rowTypes = flist.getRowTypes().stream().filter(this::filterType)
-        .filter(type -> !removeEmptyCols || typeContainData(type, rows, false, -1))
+        .filter(type -> !removeEmptyCols || typeContainData(type, rows, false, -1)).sorted(sorter)
         .collect(Collectors.toList());
 
     List<DataType> featureTypes = flist.getFeatureTypes().stream().filter(this::filterType)
-        .filter(type -> !removeEmptyCols || typeContainData(type, rows, true, -1))
+        .filter(type -> !removeEmptyCols || typeContainData(type, rows, true, -1)).sorted(sorter)
         .collect(Collectors.toList());
 
     final Map<DataType, List<DataType>> rowsSubTypesIndex = indexSubTypes(rowTypes, rows);
