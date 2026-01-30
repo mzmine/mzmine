@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -72,7 +72,7 @@ public enum NodeAtt implements GraphElementAttr {
 
   private static @Nullable <T> T extractFirstFeatureAnnotation(FeatureListRow row,
       Function<FeatureAnnotation, T> function) {
-    return CompoundAnnotationUtils.streamFeatureAnnotations(row).map(function)
+    return row.streamAllFeatureAnnotations().map(function)
         .filter(Objects::nonNull).findFirst().orElse(null);
   }
 
@@ -191,7 +191,7 @@ public enum NodeAtt implements GraphElementAttr {
 
   private static <T> T extractFirstFeatureAnnotation(FeatureListRow row,
       Class<? extends DataType<T>> type) {
-    return CompoundAnnotationUtils.streamFeatureAnnotations(row)
+    return row.streamAllFeatureAnnotations()
         .map(annotation -> CompoundAnnotationUtils.getTypeValue(annotation, type))
         .filter(Objects::nonNull).findFirst().orElse(null);
   }

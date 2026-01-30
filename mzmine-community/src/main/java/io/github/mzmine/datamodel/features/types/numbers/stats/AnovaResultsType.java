@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.abstr.SimpleSubColumnsType;
+import io.github.mzmine.datamodel.features.types.abstr.ModularSubColumnsType;
 import io.github.mzmine.modules.dataanalysis.significance.anova.AnovaResult;
 import java.util.List;
 import javafx.beans.property.Property;
@@ -43,7 +43,7 @@ import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AnovaResultsType extends SimpleSubColumnsType<AnovaResult> {
+public class AnovaResultsType extends ModularSubColumnsType<AnovaResult> {
 
   @Override
   public @NotNull String getUniqueID() {

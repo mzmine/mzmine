@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,11 +53,12 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
 
   private static final List<DataType> subTypes = List.of(//
       new LipidMatchListType(), //
+      new AnnotationSummaryType(), //
       new IonAdductType(), //
       new FormulaType(), //
       new CommentType(), //
-      new MzPpmDifferenceType(), //
-      new ExplainedIntensityPercentType(),//
+      new MzPpmDifferenceType(),//
+      new ExplainedIntensityPercentType(), //
       new LipidSpectrumType());
 
   @NotNull
@@ -78,9 +79,8 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
   }
 
   @Override
-  public <K> @Nullable K map(@NotNull final DataType<K> subType, final MatchedLipid match) {
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType, final MatchedLipid match) {
     return (K) switch (subType) {
-      case LipidMatchListType __ -> match;
       case IonAdductType __ -> match.getIonizationType().getAdductName();
       case FormulaType __ ->
           MolecularFormulaManipulator.getString(match.getLipidAnnotation().getMolecularFormula());
@@ -92,6 +92,7 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
         double exactMass = MatchedLipid.getExactMass(match);
         yield (float) ((exactMass - match.getAccurateMz()) / exactMass) * 1000000;
       }
+      case AnnotationSummaryType _ -> null; // created on demand in cell factory
       default -> throw new UnsupportedOperationException(
           "DataType %s is not covered in map".formatted(subType.toString()));
     };
@@ -159,6 +160,6 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
 
   @Override
   public boolean getDefaultVisibility() {
-    return true;
+    return false;
   }
 }
