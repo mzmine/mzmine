@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,7 +28,9 @@ package io.github.mzmine.datamodel.features.types.graphicalnodes;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidSpectrumPlot;
+import java.util.List;
 
 public class LipidSpectrumCell extends ChartCell<LipidSpectrumPlot> {
 
@@ -37,8 +40,8 @@ public class LipidSpectrumCell extends ChartCell<LipidSpectrumPlot> {
   }
 
   @Override
-  protected void updateItem(Object o, boolean b) {
-    super.updateItem(o, b);
+  protected void updateItem(Object o, boolean visible) {
+    super.updateItem(o, visible);
 
     if (!isValidCell()) {
       return;
@@ -49,14 +52,22 @@ public class LipidSpectrumCell extends ChartCell<LipidSpectrumPlot> {
     }
 
     final ModularFeatureListRow row = getTableRow().getItem();
-    if (row == null || row.getLipidMatches().isEmpty()) {
+    final List<MatchedLipid> matches = row.getLipidMatches();
+    if (row == null || matches.isEmpty()) {
       getChart().clearPlot();
       getChart().setVisible(false);
       return;
+    } else if (matches.getFirst().getMatchedFragments().isEmpty()) {
+      getChart().clearPlot();
+      getChart().setVisible(false);
+      setText("No MS2 verification");
+      return;
     }
+
+    setText(null);
     getChart().setVisible(true);
 
-    getChart().updateLipidSpectrum(row.getLipidMatches().getFirst(), true, RunOption.THIS_THREAD);
+    getChart().updateLipidSpectrum(matches.getFirst(), true, RunOption.THIS_THREAD);
   }
 
   @Override

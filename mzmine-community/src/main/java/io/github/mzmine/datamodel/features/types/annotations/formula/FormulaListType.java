@@ -73,6 +73,11 @@ public class FormulaListType extends ListWithSubsType<ResultFormula> implements 
   }
 
   @Override
+  public double getPrefColumnWidth() {
+    return 125;
+  }
+
+  @Override
   public <K> @Nullable K map(@NotNull final DataType<K> subType, final ResultFormula formula) {
     return (K) switch (subType) {
       case FormulaListType __ -> formula;
@@ -129,7 +134,7 @@ public class FormulaListType extends ListWithSubsType<ResultFormula> implements 
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
-          && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
+        && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
       throw new IllegalStateException("Wrong element");
     }
 

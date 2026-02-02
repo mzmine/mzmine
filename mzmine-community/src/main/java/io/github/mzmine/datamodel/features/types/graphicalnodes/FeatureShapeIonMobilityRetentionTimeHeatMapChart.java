@@ -71,7 +71,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends BufferedCh
     axis.setAutoRangeStickyZero(false);
     axis.setAutoRangeMinimumSize(0.005);
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    setPrefWidth(type.getColumnWidth());
+    setPrefWidth(type.getPrefColumnWidth());
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
     try {
@@ -83,7 +83,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends BufferedCh
       // error in jfreechart draw method
     }
 
-    setChartCreateImage(chart, (int) type.getColumnWidth(),
+    setChartCreateImage(chart, (int) type.getPrefColumnWidth(),
         GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
   }
 }

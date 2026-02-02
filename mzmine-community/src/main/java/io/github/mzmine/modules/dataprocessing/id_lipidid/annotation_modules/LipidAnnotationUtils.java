@@ -150,8 +150,7 @@ public class LipidAnnotationUtils {
       LipidCategories lipidCategory, final FragmentScanSelection scanMergeSelect) {
     Set<MatchedLipid> possibleRowAnnotations = new HashSet<>();
 
-    if (Objects.requireNonNull(row.getBestFeature().getRepresentativeScan()).getPolarity()
-        .equals(lipidIon.ionizationType().getPolarity())) {
+    if (Objects.equals(row.getRepresentativePolarity(),lipidIon.ionizationType().getPolarity())) {
       Range<Double> mzTolRange12C = mzTolerance.getToleranceRange(row.getAverageMZ());
 
       // MS1 check

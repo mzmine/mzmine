@@ -77,6 +77,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -229,6 +230,18 @@ public class DataTypes {
       prioMap.put(DataTypes.get(aClass), i++);
     }
     return prioMap;
+  }
+
+  /**
+   * Default sorter is based on {@link DataType} order in {@link #getDataTypeOrderFeatureTable()}
+   * @return default sorter
+   */
+  @NotNull
+  public static Comparator<DataType> getDefaultSorterFeatureTable() {
+    final Map<DataType, Integer> order = DataTypes.getDataTypeOrderFeatureTable();
+
+    return Comparator.<DataType>comparingInt(
+        t -> order.getOrDefault(t, 99999999)).thenComparing(DataType::getUniqueID);
   }
 
   /**

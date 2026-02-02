@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,12 +28,12 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
@@ -57,8 +56,8 @@ import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.ConcurrentModificationException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -233,12 +232,14 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
         .sorted(FeatureListRowSorter.DEFAULT_ID).toList();
     List<RawDataFile> rawDataFiles = flist.getRawDataFiles();
 
+    final Comparator<DataType> sorter = DataTypes.getDefaultSorterFeatureTable();
+
     List<DataType> rowTypes = flist.getRowTypes().stream().filter(this::filterType)
-        .filter(type -> !removeEmptyCols || typeContainData(type, rows, false, -1))
+        .filter(type -> !removeEmptyCols || typeContainData(type, rows, false, -1)).sorted(sorter)
         .collect(Collectors.toList());
 
     List<DataType> featureTypes = flist.getFeatureTypes().stream().filter(this::filterType)
-        .filter(type -> !removeEmptyCols || typeContainData(type, rows, true, -1))
+        .filter(type -> !removeEmptyCols || typeContainData(type, rows, true, -1)).sorted(sorter)
         .collect(Collectors.toList());
 
     final Map<DataType, List<DataType>> rowsSubTypesIndex = indexSubTypes(rowTypes, rows);
@@ -302,6 +303,8 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   /**
    * Checks all rows and their data types for sub types, that may or may not be listed in the
    * {@link SubColumnsFactory#getType(int)} method.
+   *
+   * @param types a list of the main types, e.g. {@link FeatureList#getRowTypes()}
    *
    * @return A map of main type (in the row) to all it's sub types in the entries.
    */

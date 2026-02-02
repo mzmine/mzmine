@@ -552,8 +552,8 @@ public class RowsFilterTask extends AbstractTask {
 
     // Filter by charge range
     if (filterByCharge) {
-      int charge = row.getBestFeature().getCharge();
-      if (charge == 0 || !chargeRange.contains(charge)) {
+      final Integer charge = row.getRowCharge();
+      if (charge == null || charge == 0 || !chargeRange.contains(charge)) {
         return true;
       }
     }

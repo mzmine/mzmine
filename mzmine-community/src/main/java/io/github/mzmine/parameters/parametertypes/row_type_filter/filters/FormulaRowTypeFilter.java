@@ -27,6 +27,8 @@ package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.QueryFormatException;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
@@ -63,7 +65,16 @@ class FormulaRowTypeFilter extends AbstractRowTypeFilter {
   @Override
   public boolean matches(FeatureListRow row) {
     return CompoundAnnotationUtils.streamFeatureAnnotations(row).map(FeatureAnnotation::getFormula)
-        .anyMatch(this::matchesFormula);
+        .anyMatch(this::matchesFormula) || matchesFormulaListType(row);
+  }
+
+  private boolean matchesFormulaListType(@NotNull final FeatureListRow row) {
+    final List<ResultFormula> formulas = row.get(FormulaListType.class);
+    if (formulas == null || formulas.isEmpty()) {
+      return false;
+    }
+
+    return formulas.stream().map(ResultFormula::getFormulaAsString).anyMatch(this::matchesFormula);
   }
 
   private boolean matchesFormula(@Nullable String formulaStr) {
