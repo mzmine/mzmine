@@ -30,12 +30,12 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record MetadataGroupSelection(@NotNull String columnName,
-                                     @NotNull String groupStr) implements MetadataGroupsSelection {
+public record Metadata1GroupSelection(@NotNull String columnName,
+                                      @NotNull String groupStr) implements MetadataGroupsSelection {
 
-  public static MetadataGroupSelection NONE = new MetadataGroupSelection("", "");
+  public static Metadata1GroupSelection NONE = new Metadata1GroupSelection("", "");
 
-  public MetadataGroupSelection(@NotNull String columnName, @NotNull String groupStr) {
+  public Metadata1GroupSelection(@NotNull String columnName, @NotNull String groupStr) {
     this.columnName = columnName.trim();
     this.groupStr = groupStr.trim();
   }

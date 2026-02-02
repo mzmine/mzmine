@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public sealed interface MetadataGroupsSelection permits Metadata2GroupsSelection,
-    MetadataGroupSelection, MetadataListGroupsSelection {
+    Metadata1GroupSelection, MetadataListGroupsSelection {
 
   @NotNull String columnName();
 

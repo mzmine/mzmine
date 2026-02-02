@@ -38,10 +38,10 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelection;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelection;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelectionParameter;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelection;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelectionParameter;
@@ -77,9 +77,9 @@ class StandardParameterTest {
         new ParameterTestCase(new Metadata2GroupsSelectionParameter("t", "",
             new Metadata2GroupsSelection("groupCol", "a", "b")),
             new Metadata2GroupsSelection("groupColOther", "oa", "ob")), //
-        new ParameterTestCase(new MetadataGroupSelectionParameter("t", "",
-            new MetadataGroupSelection("groupCol", "a")),
-            new MetadataGroupSelection("groupColOther", "oa")), //
+        new ParameterTestCase(new Metadata1GroupSelectionParameter("t", "",
+            new Metadata1GroupSelection("groupCol", "a")),
+            new Metadata1GroupSelection("groupColOther", "oa")), //
         new ParameterTestCase(new MetadataListGroupsSelectionParameter("t", "",
             new MetadataListGroupsSelection("groupCol", List.of("a", "b"))),
             new MetadataListGroupsSelection("groupColOther", List.of("oa", "ob"))), //
