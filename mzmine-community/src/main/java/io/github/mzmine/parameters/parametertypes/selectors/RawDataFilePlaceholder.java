@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,6 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -112,7 +111,9 @@ public class RawDataFilePlaceholder implements RawDataFile {
    */
   @Nullable
   public RawDataFile getMatchingFile() {
-    return streamMatchingFiles(new RawDataFilePlaceholder[]{this}).findFirst().orElse(null);
+    // must filter for null as findFirst throws npe otherwise
+    return streamMatchingFiles(new RawDataFilePlaceholder[]{this}).filter(Objects::nonNull)
+        .findFirst().orElse(null);
   }
 
   public boolean matches(@Nullable final RawDataFile file) {
@@ -138,19 +139,22 @@ public class RawDataFilePlaceholder implements RawDataFile {
     final List<RawDataFile> allFiles = ProjectService.getProject().getCurrentRawDataFiles();
 
     // find all raw files and use the same allFiles instance
-    return Arrays.stream(placeholders).map(placeholder -> {
-      final RawDataFile direct = placeholder.weakRawRef.get();
-      if (direct != null) {
-        return direct;
-      }
-      // find in all files
-      for (RawDataFile file : allFiles) {
-        if (placeholder.matches(file)) {
-          return file;
-        }
-      }
-      return null; // missing file
-    });
+    Stream<@Nullable RawDataFile> rawDataFileStream = Arrays.stream(placeholders)
+        .map(placeholder -> {
+          final RawDataFile direct = placeholder.weakRawRef.get();
+          if (direct != null) {
+            return direct;
+          }
+          // find in all files
+          for (RawDataFile file : allFiles) {
+            if (placeholder.matches(file)) {
+              return file;
+            }
+          }
+          return null; // missing file
+        });
+    var array = rawDataFileStream.toArray(RawDataFile[]::new);
+    return Arrays.stream(array);
   }
 
   /**
