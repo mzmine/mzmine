@@ -227,6 +227,7 @@ public class RawDataFilesParameter implements
     this.value.setSelectionType(selectionType);
     this.value.setSpecificFiles(specificFiles);
     this.value.setNamePattern(namePattern);
+    this.value.setMetadataSelection(included, excluded);
   }
 
   @Override
