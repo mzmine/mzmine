@@ -26,11 +26,12 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelectionParameter;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
@@ -108,20 +109,17 @@ public class RawDataFilesComponent extends GridPane {
         }
       }
       if (type == RawDataFilesSelectionType.BY_METADATA) {
-        MetadataListGroupsSelectionParameter included = new MetadataListGroupsSelectionParameter(
-            "Include",
-            "Include metadata group names in column. Enter multiple values, one in each text field.",
-            currentValue.getIncludeMetadataSelection(), false);
-        MetadataListGroupsSelectionParameter excluded = new MetadataListGroupsSelectionParameter(
-            "Exclude",
-            "Exclude metadata group names in column. Enter multiple values, one in each text field.",
-            currentValue.getExcludeMetadataSelection(), false);
+        final ParameterSet metaParams = ConfigService.getConfiguration()
+            .getModuleParameters(RawDataFilesByMetadataModule.class).cloneParameterSet();
+        metaParams.setParameter(RawDataFilesByMetadataParameters.included,
+            currentValue.getIncludeMetadataSelection());
+        metaParams.setParameter(RawDataFilesByMetadataParameters.excluded,
+            currentValue.getExcludeMetadataSelection());
 
-        final SimpleParameterSet paramSet = new SimpleParameterSet(included, excluded);
-        final ExitCode exitCode = paramSet.showSetupDialog(true);
+        final ExitCode exitCode = metaParams.showSetupDialog(true);
         if (exitCode == ExitCode.OK) {
-          var includeSelection = paramSet.getValue(included);
-          var excludeSelection = paramSet.getValue(excluded);
+          var includeSelection = metaParams.getValue(RawDataFilesByMetadataParameters.included);
+          var excludeSelection = metaParams.getValue(RawDataFilesByMetadataParameters.excluded);
           currentValue.setMetadataSelection(includeSelection, excludeSelection);
         }
       }

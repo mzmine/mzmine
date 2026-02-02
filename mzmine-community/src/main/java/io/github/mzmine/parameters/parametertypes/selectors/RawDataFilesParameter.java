@@ -208,7 +208,7 @@ public class RawDataFilesParameter implements
     MetadataListGroupsSelection included = MetadataListGroupsSelection.NONE;
 
     final MetadataListGroupsSelectionParameter metadataSelection = new MetadataListGroupsSelectionParameter(
-        "included_metadata", "for load save", value.getIncludeMetadataSelection());
+        "included_metadata", "for load save", included);
     items = xmlElement.getElementsByTagName("by_metadata");
     for (int i = 0; i < items.getLength(); i++) {
       final Element element = (Element) items.item(i);
