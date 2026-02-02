@@ -26,12 +26,8 @@
 package io.github.mzmine.parameters.parametertypes.metadata;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.StringUtils;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -43,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
  * Select multiple groups in a column
  *
  */
-public final class MetadataListGroupsSelection {
+public final class MetadataListGroupsSelection implements MetadataGroupsSelection {
 
   public static MetadataListGroupsSelection NONE = new MetadataListGroupsSelection("", Set.of());
 
@@ -53,7 +49,7 @@ public final class MetadataListGroupsSelection {
 
   public MetadataListGroupsSelection(@NotNull String columnName,
       @NotNull Collection<String> groups) {
-    this.columnName = columnName;
+    this.columnName = columnName.trim();
     this.groups = groups.stream().map(String::trim).filter(StringUtils::hasValue)
         .collect(Collectors.toSet());
   }
@@ -62,74 +58,27 @@ public final class MetadataListGroupsSelection {
    * @return Checks if the current metadata table contains the specified column and the specified
    * values. Case sensitive.
    */
+  @Override
   public boolean isValid() {
-    if (columnName.isBlank()) {
+    if (columnName.isBlank() || groups.isEmpty()) {
       return false;
     }
 
-    final MetadataTable metadata = ProjectService.getMetadata();
-
-    final MetadataColumn<?> column = getColumn();
-    if (column == null) {
+    final Map<RawDataFile, Object> columnValues = getColumnData();
+    if (columnValues == null) {
       return false;
     }
 
-    final Map<RawDataFile, Object> columnValues = metadata.getData().get(column);
     // usually few values in groups so ok to stream for each value
     return columnValues.values().stream().anyMatch(this::matchesValue);
   }
 
-  private boolean matchesValue(Object value) {
+  @Override
+  public boolean matchesValue(@Nullable Object value) {
     return value != null && groups.contains(value.toString());
   }
 
-  /**
-   * @return The actual column from the metadata table or null.
-   */
-  @Nullable
-  public MetadataColumn<?> getColumn() {
-    return ProjectService.getMetadata().getColumnByName(columnName());
-  }
-
-  /**
-   * @return A list of files that match have the same value as {@link #groups()} in the specified
-   * {@link #columnName} in the {@link MetadataTable}. Empty list if the column does not exist or it
-   * does not contain the value.
-   */
-  public List<RawDataFile> getMatchingFiles() {
-    return getMatchingFiles(ProjectService.getProject().getCurrentRawDataFiles());
-  }
-
-  /**
-   * @return A list of files that match have the same value as {@link #groups()} in the specified
-   * {@link #columnName} in the {@link MetadataTable}. Empty list if the column does not exist or it
-   * does not contain the value.
-   */
-  public List<RawDataFile> getMatchingFiles(@NotNull List<RawDataFile> dataFiles) {
-    if (!isValid()) {
-      return List.of();
-    }
-
-    final Map<RawDataFile, Object> column = ProjectService.getMetadata().getData().get(getColumn());
-
-    return dataFiles.stream().filter(raw -> matchesValue(column.get(raw))).toList();
-  }
-
-  /**
-   * @return A list of files that do NOT match the values in {@link #groups()} in the specified
-   * {@link #columnName} in the {@link MetadataTable}. Copy of input list if the column does not
-   * exist or it does not contain the value.
-   */
-  public List<RawDataFile> removeMatchingFilesCopy(@NotNull List<RawDataFile> dataFiles) {
-    if (!isValid()) {
-      return List.copyOf(dataFiles);
-    }
-
-    final Map<RawDataFile, Object> column = ProjectService.getMetadata().getData().get(getColumn());
-
-    return dataFiles.stream().filter(raw -> !matchesValue(column.get(raw))).toList();
-  }
-
+  @Override
   public @NotNull String columnName() {
     return columnName;
   }
