@@ -1,26 +1,20 @@
 /*
  * Copyright (c) 2004-2026 The MZmine Development Team
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_diffms;
@@ -92,6 +86,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
@@ -141,17 +136,19 @@ public class DiffMSTask extends AbstractTask {
       @NotNull final Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.flist = flist;
-    
-    // Check if we have specific row IDs in parameters (from SelectedRowsDiffMSParameters)
+
+    // Check if we have specific row IDs in parameters (from
+    // SelectedRowsDiffMSParameters)
     if (rowsOverride != null) {
       this.rowsOverride = List.copyOf(rowsOverride);
-    } else if (parameters instanceof SelectedRowsDiffMSParameters 
-        && parameters.getParameter(SelectedRowsDiffMSParameters.rowIds).getValue() != null 
+    } else if (parameters instanceof SelectedRowsDiffMSParameters
+        && parameters.getParameter(SelectedRowsDiffMSParameters.rowIds).getValue() != null
         && !parameters.getParameter(SelectedRowsDiffMSParameters.rowIds).getValue().isBlank()
         && flist instanceof ModularFeatureList modularFlist) {
-       this.rowsOverride = FeatureListUtils.idStringToRows(modularFlist, 
-           parameters.getParameter(SelectedRowsDiffMSParameters.rowIds).getValue())
-           .stream().map(ModularFeatureListRow.class::cast).toList();
+      this.rowsOverride = FeatureListUtils
+          .idStringToRows(modularFlist,
+              parameters.getParameter(SelectedRowsDiffMSParameters.rowIds).getValue())
+          .stream().map(ModularFeatureListRow.class::cast).toList();
     } else {
       this.rowsOverride = null;
     }
@@ -203,8 +200,7 @@ public class DiffMSTask extends AbstractTask {
 
     final List<DiffMSInputItem> input = new ArrayList<>();
 
-    final List<? extends FeatureListRow> rows =
-        rowsOverride != null ? rowsOverride : flist.getRows();
+    final List<? extends FeatureListRow> rows = rowsOverride != null ? rowsOverride : flist.getRows();
     totalRows = 0;
     doneRows = 0;
     int skippedNoFormula = 0;
@@ -227,8 +223,7 @@ public class DiffMSTask extends AbstractTask {
         throw new IllegalStateException("Unexpected row type.");
       }
 
-      final FeatureAnnotation bestAnn = CompoundAnnotationUtils.getBestFeatureAnnotation(mrow)
-          .orElse(null);
+      final FeatureAnnotation bestAnn = CompoundAnnotationUtils.getBestFeatureAnnotation(mrow).orElse(null);
       final String formula;
       final IonType adduct;
 
@@ -251,15 +246,32 @@ public class DiffMSTask extends AbstractTask {
         }
       }
 
-      if (formula != null) {
-        final Map<String, Integer> parsedFormula = FormulaUtils.parseFormula(formula);
-        final List<String> unsupportedElements = parsedFormula.keySet().stream()
-            .filter(e -> !DIFFMS_SUPPORTED_ELEMENTS.contains(e)).toList();
-        if (!unsupportedElements.isEmpty()) {
-          skippedUnsupportedElements++;
-          logger.info(() -> "DiffMS: skipping row " + row.getID() + " due to unsupported elements: "
-              + unsupportedElements);
-          continue;
+      if (formula != null && adduct != null) {
+        final IMolecularFormula neutralFormula = FormulaUtils.createMajorIsotopeMolFormula(formula);
+        if (neutralFormula != null) {
+          try {
+            final IMolecularFormula ionFormula = adduct.addToFormula(neutralFormula);
+            final List<String> unsupportedElements = new ArrayList<>();
+            for (IIsotope iso : ionFormula.isotopes()) {
+              final String symbol = iso.getSymbol();
+              if (ionFormula.getIsotopeCount(iso) > 0 && !DIFFMS_SUPPORTED_ELEMENTS.contains(
+                  symbol)) {
+                if (!unsupportedElements.contains(symbol)) {
+                  unsupportedElements.add(symbol);
+                }
+              }
+            }
+
+            if (!unsupportedElements.isEmpty()) {
+              skippedUnsupportedElements++;
+              logger.info(() -> "DiffMS: skipping row " + row.getID()
+                  + " due to unsupported elements in precursor (formula+adduct): "
+                  + unsupportedElements);
+              continue;
+            }
+          } catch (CloneNotSupportedException e) {
+            logger.log(Level.WARNING, "Could not clone formula for row " + row.getID(), e);
+          }
         }
       }
 
@@ -269,8 +281,11 @@ public class DiffMSTask extends AbstractTask {
         continue;
       }
 
-      // DiffMS/MIST expects the parent formula to be neutral (no adduct / no in-source modifications
-      // baked into the formula). Some pipelines store ionized/modified formulas; try to normalize.
+      // DiffMS/MIST expects the parent formula to be neutral (no adduct / no
+      // in-source
+      // modifications
+      // baked into the formula). Some pipelines store ionized/modified formulas; try
+      // to normalize.
       final String neutralFormula = normalizeParentFormulaIfNeeded(mrow, formula, adduct);
 
       final var ms2WithMassList = ms2.stream().filter(s -> s.getMassList() != null).toList();
@@ -286,7 +301,8 @@ public class DiffMSTask extends AbstractTask {
       final int n = merged.getNumberOfDataPoints();
       if (n == 0) {
         skippedNoMs2++;
-        logger.info(() -> "DiffMS: skipping row " + row.getID() + " because merged MS/MS spectrum is empty");
+        logger.info(() -> "DiffMS: skipping row " + row.getID()
+            + " because merged MS/MS spectrum is empty");
         continue;
       }
 
@@ -294,7 +310,8 @@ public class DiffMSTask extends AbstractTask {
 
       final DataPoint[] dps = ScanUtils.extractDataPoints(merged, true);
       final List<DataPoint> topNms2Points = Arrays.stream(dps).sorted(DataPointSorter.DEFAULT_INTENSITY)
-          .limit(maxMs2Peaks).sorted(DataPointSorter.DEFAULT_MZ_ASCENDING).toList();
+          .limit(maxMs2Peaks)
+          .sorted(DataPointSorter.DEFAULT_MZ_ASCENDING).toList();
 
       final double[][] topNms2Data = DataPointUtils.getDataPointsAsDoubleArray(topNms2Points);
       final double[] subMzs = topNms2Data[0];
@@ -333,8 +350,8 @@ public class DiffMSTask extends AbstractTask {
       final String scanDefinition = firstMs2.getScanDefinition();
       final String instrument = resolveInstrumentString(firstMs2);
 
-      final DiffMSInputItem item = new DiffMSInputItem(row.getID(), neutralFormula, adduct.toString(),
-          mzOut, intOut, "POSITIVE", sub, instrument, scanDefinition,
+      final DiffMSInputItem item = new DiffMSInputItem(row.getID(), neutralFormula,
+          adduct.toString(), mzOut, intOut, "POSITIVE", sub, instrument, scanDefinition,
           activationEnergy == null ? null : activationEnergy.doubleValue(), activationMethod,
           precursorMz != null ? precursorMz : row.getAverageMZ(), precursorCharge);
 
@@ -342,12 +359,10 @@ public class DiffMSTask extends AbstractTask {
     }
 
     if (input.isEmpty()) {
-      throw new IllegalStateException(
-          "No rows eligible for DiffMS. Skipped rows without Formula: " + skippedNoFormula
-              + ", without MS/MS: " + skippedNoMs2
-              + ", bad adduct: " + skippedBadAdduct
-              + ", negative polarity: " + skippedBadPolarity
-              + ", unsupported elements: " + skippedUnsupportedElements);
+      throw new IllegalStateException("No rows eligible for DiffMS. Skipped rows without Formula: "
+          + skippedNoFormula + ", without MS/MS: " + skippedNoMs2 + ", bad adduct: "
+          + skippedBadAdduct + ", negative polarity: " + skippedBadPolarity
+          + ", unsupported elements: " + skippedUnsupportedElements);
     }
 
     logger.info(
@@ -375,7 +390,8 @@ public class DiffMSTask extends AbstractTask {
     doneRows = 0;
     description = "DiffMS: loading model";
 
-    // We do not rely on the output file anymore for results, but still pass it as argument
+    // We do not rely on the output file anymore for results, but still pass it as
+    // argument
     // to keep the interface compatible if we wanted to read it at the end.
     // However, we now process results incrementally.
     final List<String> cmd = new ArrayList<>();
@@ -398,8 +414,9 @@ public class DiffMSTask extends AbstractTask {
     cmd.add("--device");
     cmd.add(device.toArg());
 
-    logger.info(() -> "DiffMS: running python runner with " + input.size() + " items. "
-        + "Input JSON: " + inFile.getAbsolutePath() + ", output JSON: " + outFile.getAbsolutePath());
+    logger.info(
+        () -> "DiffMS: running python runner with " + input.size() + " items. " + "Input JSON: "
+            + inFile.getAbsolutePath() + ", output JSON: " + outFile.getAbsolutePath());
     if (logger.isLoggable(Level.FINE)) {
       logger.fine(() -> "DiffMS: runner command: " + String.join(" ", cmd));
     }
@@ -418,11 +435,11 @@ public class DiffMSTask extends AbstractTask {
     final double totalSec = (endTime - startTime) / 1e9;
     final double avgSecPerRow = totalRows > 0 ? totalSec / totalRows : 0;
 
-    logger.info(
-        "DiffMS: finished in %.1f s (avg %.2f s/row) for %d rows".formatted(totalSec, avgSecPerRow,
-            totalRows));
+    logger.info("DiffMS: finished in %.1f s (avg %.2f s/row) for %d rows".formatted(totalSec,
+        avgSecPerRow, totalRows));
 
-    // Results are processed incrementally via processResultItem called from runOrThrowWithProgress
+    // Results are processed incrementally via processResultItem called from
+    // runOrThrowWithProgress
     if (isCanceled()) {
       return;
     }
@@ -504,9 +521,8 @@ public class DiffMSTask extends AbstractTask {
               final double sec = dtNanos / 1e9;
               if (sec > 0d && delta > 0) {
                 final double secPerRow = sec / delta;
-                emaSecondsPerRow =
-                    emaSecondsPerRow <= 0 ? secPerRow
-                        : (ETA_EMA_ALPHA * secPerRow + (1d - ETA_EMA_ALPHA) * emaSecondsPerRow);
+                emaSecondsPerRow = emaSecondsPerRow <= 0 ? secPerRow
+                    : (ETA_EMA_ALPHA * secPerRow + (1d - ETA_EMA_ALPHA) * emaSecondsPerRow);
               }
               lastProgressNanos = now;
               lastProgressDone = newDone;
@@ -574,8 +590,8 @@ public class DiffMSTask extends AbstractTask {
     if (totalRows <= 0 || doneRows <= 0) {
       return "";
     }
-    if (emaSecondsPerRow <= 0d || Double.isNaN(emaSecondsPerRow) || Double.isInfinite(
-        emaSecondsPerRow)) {
+    if (emaSecondsPerRow <= 0d || Double.isNaN(emaSecondsPerRow)
+        || Double.isInfinite(emaSecondsPerRow)) {
       return "";
     }
     final int remaining = Math.max(0, totalRows - doneRows);
@@ -604,8 +620,8 @@ public class DiffMSTask extends AbstractTask {
         case THERMO_RAW -> {
           return "Orbitrap (LCMS)";
         }
-        case BRUKER_TDF, BRUKER_TSF, BRUKER_BAF, WATERS_RAW, WATERS_RAW_IMS, SCIEX_WIFF, SCIEX_WIFF2,
-             SHIMADZU_LCD, AGILENT_D, AGILENT_D_IMS, MBI -> {
+        case BRUKER_TDF, BRUKER_TSF, BRUKER_BAF, WATERS_RAW, WATERS_RAW_IMS, SCIEX_WIFF, SCIEX_WIFF2, SHIMADZU_LCD,
+            AGILENT_D, AGILENT_D_IMS, MBI -> {
           return "Q-ToF (LCMS)";
         }
       }
@@ -624,8 +640,11 @@ public class DiffMSTask extends AbstractTask {
   }
 
   private static String resolveFormula(final ModularFeatureListRow row) {
-    // Priority 1: Feature annotations (this is also handled in the main loop, but here we cover the case
-    // where we only have a formula but no adduct in the annotation, and want to use that formula)
+    // Priority 1: Feature annotations (this is also handled in the main loop, but
+    // here we cover the
+    // case
+    // where we only have a formula but no adduct in the annotation, and want to use
+    // that formula)
     final String bestAnnFormula = CompoundAnnotationUtils.getBestFormula(row);
     if (bestAnnFormula != null) {
       return bestAnnFormula;
@@ -650,7 +669,8 @@ public class DiffMSTask extends AbstractTask {
     return null;
   }
 
-  private static @Nullable IonType resolveAdduct(final ModularFeatureListRow row, final String formula) {
+  private static @Nullable IonType resolveAdduct(final ModularFeatureListRow row,
+      final String formula) {
     final var ion = FeatureUtils.extractBestIonIdentity(null, row).orElse(null);
     if (ion != null) {
       if (ion.getPolarity() == PolarityType.NEGATIVE) {
@@ -687,8 +707,10 @@ public class DiffMSTask extends AbstractTask {
       final List<SignalWithFormulae> peaksWithFormulae = FragmentUtils.getPeaksWithFormulae(
           ionFormula, mergedMs2, SpectralSignalFilter.DEFAULT_NO_PRECURSOR, subformulaTol);
 
-      // DiffMS expects neutral subformulas. The fragment formulae returned by FragmentUtils are
-      // subformulas of the ionized/modified precursor formula; we therefore "unapply" the same
+      // DiffMS expects neutral subformulas. The fragment formulae returned by
+      // FragmentUtils are
+      // subformulas of the ionized/modified precursor formula; we therefore "unapply"
+      // the same
       // ion type again so PeakFormula can re-apply it via the "ions" field.
       final String ionStr = adduct.toString();
       return peaksWithFormulae.stream().flatMap(swf -> swf.formulae().stream().map(f -> {
@@ -705,8 +727,10 @@ public class DiffMSTask extends AbstractTask {
   }
 
   /**
-   * DiffMS/MIST expects neutral (de-adducted) formulas, with the ion/adduct provided separately.
-   * This tries to detect and fix cases where the stored formula already includes the ion type's
+   * DiffMS/MIST expects neutral (de-adducted) formulas, with the ion/adduct
+   * provided separately.
+   * This tries to detect and fix cases where the stored formula already includes
+   * the ion type's
    * adduct and/or in-source modifications.
    */
   private static String normalizeParentFormulaIfNeeded(final ModularFeatureListRow row,
@@ -714,7 +738,8 @@ public class DiffMSTask extends AbstractTask {
     if (formula == null || formula.isBlank()) {
       return formula;
     }
-    // If we cannot compute a neutral m/z for this ion type, do not attempt normalization.
+    // If we cannot compute a neutral m/z for this ion type, do not attempt
+    // normalization.
     if (ionType.getAbsCharge() == 0) {
       return formula;
     }
@@ -749,18 +774,21 @@ public class DiffMSTask extends AbstractTask {
     final double diffA = Math.abs(mzA - observedMz);
     final double diffB = Math.abs(mzB - observedMz);
 
-    // Prefer the neutralized candidate if it improves the m/z agreement and is within tolerance.
+    // Prefer the neutralized candidate if it improves the m/z agreement and is
+    // within tolerance.
     if (diffB < diffA && tolerance.checkWithinTolerance(mzB, observedMz)) {
-      logger.fine(() -> "DiffMS: normalized ionized parent formula for row " + row.getID() + " from "
-          + formula + " to " + candidate + " for ion " + ionType);
+      logger.fine(() -> "DiffMS: normalized ionized parent formula for row " + row.getID()
+          + " from " + formula + " to " + candidate + " for ion " + ionType);
       return candidate;
     }
     return formula;
   }
 
   /**
-   * Inverts {@link IonType#addToFormula(IMolecularFormula)} at the elemental-composition level.
-   * Returns a neutral formula string (charge cleared) or null if the operation fails.
+   * Inverts {@link IonType#addToFormula(IMolecularFormula)} at the
+   * elemental-composition level.
+   * Returns a neutral formula string (charge cleared) or null if the operation
+   * fails.
    */
   private static @Nullable String unapplyIonTypeToNeutralFormulaString(
       final @NotNull IMolecularFormula ionFormula, final @NotNull IonType ionType) {
@@ -793,12 +821,9 @@ public class DiffMSTask extends AbstractTask {
 
   @JsonInclude(Include.NON_NULL)
   private record DiffMSInputItem(int rowId, String formula, String adduct, List<Double> mzs,
-                                 List<Double> intensities, String polarity,
-                                 List<DiffMSSubformula> subformulas, String instrument,
-                                 String scanDefinition, @Nullable Double collisionEnergy,
-                                 @Nullable String activationMethod, double precursorMz,
-                                 @Nullable Integer precursorCharge) {
+      List<Double> intensities, String polarity, List<DiffMSSubformula> subformulas,
+      String instrument, String scanDefinition, @Nullable Double collisionEnergy,
+      @Nullable String activationMethod, double precursorMz, @Nullable Integer precursorCharge) {
 
   }
 }
-
