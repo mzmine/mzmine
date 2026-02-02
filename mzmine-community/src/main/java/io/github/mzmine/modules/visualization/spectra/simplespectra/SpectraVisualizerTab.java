@@ -155,6 +155,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     // setBackground(Color.white);
 
     spectrumPlot = new SpectraPlot(enableProcessing);
+    spectrumPlot.setTab(this);
     mainPane.setCenter(spectrumPlot);
 
     toolBar = new ToolBar();
@@ -427,7 +428,6 @@ public class SpectraVisualizerTab extends MZmineTab {
 
     // Set plot data sets
     spectrumPlot.addDataSet(peakDataSet, singlePeakColor, true, true);
-
   }
 
   public void loadIsotopes(IsotopePattern newPattern) {
@@ -634,5 +634,9 @@ public class SpectraVisualizerTab extends MZmineTab {
   @Override
   public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
+  }
+
+  SpectraBottomPanel getBottomPanel() {
+    return bottomPanel;
   }
 }
