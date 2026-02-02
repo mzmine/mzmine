@@ -52,6 +52,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.maths.Precision;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -301,9 +302,17 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
         // If bar is tall, text is on the bar.
         if (score > 0.2) {
           gc.setFill(Color.WHITE); // Assuming bars are colored/dark
+        } else if (annotationSummary.score(scoreType).isPresent()
+            && Precision.equalFloatSignificance(score, 0d)) {
+          // value present in library but outside of bounds, change text color to indicate.
+          gc.setFill(
+              ConfigService.getConfiguration().getTheme().isDark() ? getScoreColor(0).brighter()
+                  .brighter() : getScoreColor(0));
         } else {
+          // no score calculated, no entry in database
           gc.setFill(textColor);
         }
+
         // Draw at (0,0) relative to the pivot.
         // Due to rotation: X moves UP, Y moves RIGHT (which is centered via VPos)
         gc.fillText(scoreType.label(), 0, 0);
