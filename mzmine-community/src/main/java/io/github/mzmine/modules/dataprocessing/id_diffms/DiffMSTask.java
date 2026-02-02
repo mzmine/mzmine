@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.id_diffms;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.primitives.Doubles;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrum;
@@ -63,6 +64,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.RawDataFileType;
@@ -291,15 +293,15 @@ public class DiffMSTask extends AbstractTask {
       totalRows++;
 
       final DataPoint[] dps = ScanUtils.extractDataPoints(merged, true);
-      Arrays.sort(dps, DataPointSorter.DEFAULT_INTENSITY);
+      final List<DataPoint> topNms2Points = Arrays.stream(dps).sorted(DataPointSorter.DEFAULT_INTENSITY)
+          .limit(maxMs2Peaks).sorted(DataPointSorter.DEFAULT_MZ_ASCENDING).toList();
 
-      final int take = Math.min(maxMs2Peaks, dps.length);
-      final List<Double> mzOut = new ArrayList<>(take);
-      final List<Double> intOut = new ArrayList<>(take);
-      for (int i = 0; i < take; i++) {
-        mzOut.add(dps[i].getMZ());
-        intOut.add(dps[i].getIntensity());
-      }
+      final double[][] topNms2Data = DataPointUtils.getDataPointsAsDoubleArray(topNms2Points);
+      final double[] subMzs = topNms2Data[0];
+      final double[] subIntens = topNms2Data[1];
+
+      final List<Double> mzOut = Doubles.asList(subMzs);
+      final List<Double> intOut = Doubles.asList(subIntens);
 
       final PolarityType polarity = ms2.get(0).getPolarity();
       if (polarity == null) {
@@ -318,12 +320,6 @@ public class DiffMSTask extends AbstractTask {
       formulaByRowId.put(row.getID(), neutralFormula);
       adductByRowId.put(row.getID(), adduct);
 
-      final double[] subMzs = new double[take];
-      final double[] subIntens = new double[take];
-      for (int i = 0; i < take; i++) {
-        subMzs[i] = dps[i].getMZ();
-        subIntens[i] = dps[i].getIntensity();
-      }
       final var topNms2 = new SimpleMassSpectrum(subMzs, subIntens);
       final List<DiffMSSubformula> sub = resolveSubformulas(mrow, neutralFormula, adduct, topNms2);
 
