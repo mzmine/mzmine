@@ -38,7 +38,13 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelection;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelection;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -66,6 +72,17 @@ class StandardParameterTest {
             new PolarityType[]{PolarityType.POSITIVE, PolarityType.NEGATIVE}),
             new PolarityType[]{PolarityType.NEGATIVE, PolarityType.POSITIVE}), //
         new ParameterTestCase(comboParam, PolarityType.POSITIVE), //
+        // metadata params
+        new ParameterTestCase(new MetadataGroupingParameter("t", "", "groupCol"), "other"),
+        new ParameterTestCase(new Metadata2GroupsSelectionParameter("t", "",
+            new Metadata2GroupsSelection("groupCol", "a", "b")),
+            new Metadata2GroupsSelection("groupColOther", "oa", "ob")), //
+        new ParameterTestCase(new MetadataGroupSelectionParameter("t", "",
+            new MetadataGroupSelection("groupCol", "a")),
+            new MetadataGroupSelection("groupColOther", "oa")), //
+        new ParameterTestCase(new MetadataListGroupsSelectionParameter("t", "",
+            new MetadataListGroupsSelection("groupCol", List.of("a", "b"))),
+            new MetadataListGroupsSelection("groupColOther", List.of("oa", "ob"))), //
         // optional parameters
         new ParameterTestCase(new OptionalParameter<>(comboParam, true), false,
             PolarityType.POSITIVE), //
