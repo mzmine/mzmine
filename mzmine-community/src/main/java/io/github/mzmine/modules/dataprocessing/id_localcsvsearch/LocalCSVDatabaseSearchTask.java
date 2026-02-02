@@ -90,6 +90,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final String sampleHeader;
   private final List<RawDataFile> allRawDataFiles;
   private final ExtraColumnHandler extraColumnHandler;
+  private final boolean calcMainSignal;
   private IonNetworkLibrary ionNetworkLibrary;
 
   private List<String[]> databaseValues;
@@ -132,6 +133,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     extraColumnHandler = new ExtraColumnHandler(
         parameters.getValue(LocalCSVDatabaseSearchParameters.extraColumns));
+
+    calcMainSignal = parameters.getValue(LocalCSVDatabaseSearchParameters.calculateMainSignal);
 
     final boolean isotopePatternMatcher = parameters.getValue(
         LocalCSVDatabaseSearchParameters.isotopePatternMatcher);
@@ -348,7 +351,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     } else {
       annotations.add(baseAnnotation);
     }
-    if (mzTolerance != null) {
+    if (mzTolerance != null && calcMainSignal) {
       annotations.addAll(
           CompoundDBAnnotation.buildMostIntenseIsotopeRatios(annotations, mzTolerance));
     }

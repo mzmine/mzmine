@@ -612,7 +612,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
       final IMolecularFormula majorIsotopeMolFormula = FormulaUtils.createMajorIsotopeMolFormula(
           formula);
-      final String replaced = formula.replaceAll("[CHONPS0-9]+", "");
+      final String replaced = formula.replaceAll("[CHONPFI0-9]+", "");
       final int numC = MolecularFormulaManipulator.getElementCount(majorIsotopeMolFormula,
           Elements.CARBON);
       if (numC < 70 && replaced.isBlank()) {
