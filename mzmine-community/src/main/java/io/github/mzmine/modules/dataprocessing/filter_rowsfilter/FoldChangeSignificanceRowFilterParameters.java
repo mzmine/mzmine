@@ -33,16 +33,21 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelection;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import io.github.mzmine.parameters.parametertypes.statistics.MissingValueImputationParameter;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSet {
@@ -58,14 +63,18 @@ public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSe
   public static final Metadata2GroupsSelectionParameter grouping = new Metadata2GroupsSelectionParameter(
       "Select the metadata column and two groups to calculate the fold-change and significance for filtering.");
 
-  public static final DoubleParameter maxPValue = new DoubleParameter("Maximum p-value",
-      "Maximum p-value when comparing group A/group B (default 0.05)",
-      ConfigService.getGuiFormats().scoreFormat(), 0.05, 0d, 1d);
+  // changed in mzmine 4.9 to optional to make it easier to disable and just filter for fold-change instead
+  // if maxPvalue is on: require 2 samples, otherwise 1 sample
+  public static final OptionalParameter<DoubleParameter> maxPValue = new OptionalParameter<>(
+      new DoubleParameter("Maximum p-value",
+          "Maximum p-value when comparing group A/group B (default 0.05). Requires at least 2 samples per group.",
+          ConfigService.getGuiFormats().scoreFormat(), 0.05, 0d, 1d), true);
 
   public static final DoubleParameter minLog2FoldChange = new DoubleParameter(
       "log2(fold-change) threshold", """
       The log2(FC) threshold (as log2(group A/group B)), e.g., 1 and -1 correspond to FC 2 and 0.5, respectively.
-      The threshold may be applied to two sides (up/down regulation) using absolute values or a single side using signed values like -1 for everything downregulated.""",
+      The threshold may be applied to two sides (up/down regulation) using absolute values or a single side using signed values like -1 for everything downregulated.
+      Requires only 1 sample per group if "%s" is off.""".formatted(maxPValue.getName()),
       ConfigService.getGuiFormats().scoreFormat(), 1d);
 
   public static final ComboParameter<FoldChangeFilterSides> foldChangeSideOption = new ComboParameter<>(
@@ -80,13 +89,13 @@ public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSe
   }
 
   public void setAll(AbundanceMeasure measure, ImputationFunctions missingImputation,
-      Metadata2GroupsSelection grouping, SignificanceTests significanceTest, double maxPValue,
-      double minLog2FoldChange, FoldChangeFilterSides fcSides) {
+      Metadata2GroupsSelection grouping, SignificanceTests significanceTest, boolean filterPValue,
+      double maxPValue, double minLog2FoldChange, FoldChangeFilterSides fcSides) {
     setParameter(abundanceMeasure, measure);
     setParameter(missingValueImputation, missingImputation);
     setParameter(FoldChangeSignificanceRowFilterParameters.grouping, grouping);
     setParameter(test, significanceTest);
-    setParameter(FoldChangeSignificanceRowFilterParameters.maxPValue, maxPValue);
+    setParameter(FoldChangeSignificanceRowFilterParameters.maxPValue, filterPValue, maxPValue);
     setParameter(FoldChangeSignificanceRowFilterParameters.minLog2FoldChange, minLog2FoldChange);
     setParameter(foldChangeSideOption, fcSides);
   }
@@ -103,13 +112,15 @@ public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSe
 
     // create filter
     final Metadata2GroupsSelection group = this.getValue(grouping);
-    final double maxP = this.getValue(maxPValue);
+    final Optional<Double> optionalPFilter = this.getOptionalValue(maxPValue);
+    final boolean filterPValue = optionalPFilter.isPresent();
+    final double maxP = optionalPFilter.orElse(0.05);
     final double minFC = this.getValue(minLog2FoldChange);
     final FoldChangeFilterSides fcSideOption = this.getValue(foldChangeSideOption);
     final SignificanceTests significanceTest = this.getValue(test);
 
-    return new FoldChangeSignificanceRowFilter(dataTable, group, maxP, minFC, fcSideOption,
-        significanceTest);
+    return new FoldChangeSignificanceRowFilter(dataTable, group, filterPValue, maxP, minFC,
+        fcSideOption, significanceTest);
   }
 
   @Override
@@ -117,4 +128,31 @@ public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSe
     return IonMobilitySupport.SUPPORTED;
   }
 
+  @Override
+  public Map<String, Parameter<?>> loadValuesFromXML(org.w3c.dom.Element xmlElement) {
+    // before loading the parameters, set default values of new parameters
+    // so that if they are missing in the xml they will remain in default mode
+    // maxPValue was changed to an OptionalParameter to allow disabling it
+    // without maxPValue we only filter for FC and require only 1 file per group
+    maxPValue.setValue(true);
+    return super.loadValuesFromXML(xmlElement);
+  }
+
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters) {
+    final Optional<Double> maxP = getOptionalValue(maxPValue);
+    final double minFC = getValue(minLog2FoldChange);
+
+    boolean applyFoldChangeFilter = Double.compare(minFC, 0d) != 0;
+    boolean applySignificancePFilter = maxP.isPresent() && maxP.get() > 0;
+
+    if (!applyFoldChangeFilter && !applySignificancePFilter) {
+      errorMessages.add(
+          "At least one filter needs to be activated: fold-change and/or p-value filter.");
+      super.checkParameterValues(errorMessages, skipRawDataAndFeatureListParameters);
+      return false;
+    }
+    return super.checkParameterValues(errorMessages, skipRawDataAndFeatureListParameters);
+  }
 }
