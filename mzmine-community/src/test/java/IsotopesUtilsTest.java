@@ -395,7 +395,7 @@ class IsotopesUtilsTest {
 //    Duration mzmineTime = Duration.between(start, Instant.now());
 //    logger.info("mzmine " + mzmineTime.toString());
 
-    IsotopePatternGenerator cdkGenerator = new IsotopePatternGenerator(0.01);
+    final IsotopePatternGenerator cdkGenerator = new IsotopePatternGenerator(0.01);
     cdkGenerator.setMinResolution(resolution);
     org.openscience.cdk.formula.IsotopePattern cdkIso = cdkGenerator.getIsotopes(formula);
 //    start = Instant.now();

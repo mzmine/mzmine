@@ -26,14 +26,13 @@
 // cdk license as it is LGPL
 package io.github.mzmine.modules.tools.isotopeprediction;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.Element;
+import org.openscience.cdk.config.Elements;
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.IsotopeContainer;
@@ -299,71 +298,36 @@ class IsotopePatternEstimator {
 
   public static double estimateRequiredAbundance(@NotNull final IMolecularFormula formula) {
     double minAbundance = 0.1;
-    try {
-      final IsotopeFactory fac = Isotopes.getInstance();
+    final int numCarbon = MolecularFormulaManipulator.getElementCount(formula, Elements.CARBON);
+    if (numCarbon >= 75) {
+      // 13C peak of C75H152 is 83%
+      minAbundance = 0.01;
+    }
 
-      int numCarbon = 0;
-      IIsotope[] carbonIsotopes = fac.getIsotopes(Element.C);
-      for (IIsotope carbonIsotope : carbonIsotopes) {
-        if (!allowIsotope(carbonIsotope)) {
-          continue;
-        }
-        numCarbon += formula.getIsotopeCount(carbonIsotope);
+    int numSulfur = MolecularFormulaManipulator.getElementCount(formula, Elements.SULFUR);
+    if (numSulfur >= 5) {
+      minAbundance = 0.0074;
+    }
+
+    int numRelevantElements = numCarbon + numSulfur;
+
+    // only pay attention to N and O if the formula is big enough and there are enough
+    // N and O to make a difference
+    if (numRelevantElements > 70) {
+      final int numNitrogen = MolecularFormulaManipulator.getElementCount(formula,
+          Elements.NITROGEN);
+      if (numNitrogen >= 40) {
+        minAbundance = 0.0035;
       }
+      numRelevantElements += numNitrogen;
+    }
 
-      if (numCarbon >= 75) {
-        // 13C peak of C75H152 is 83%
-        minAbundance = 0.01;
+    if (numRelevantElements > 110) {
+      final int numOxygen = MolecularFormulaManipulator.getElementCount(formula, Elements.OXYGEN);
+      if (numOxygen >= 30) {
+        minAbundance = 0.002;
       }
-
-      IIsotope[] sIsotopes = fac.getIsotopes(Element.S);
-      int numSulfur = 0;
-      for (IIsotope sIsotope : sIsotopes) {
-        if (!allowIsotope(sIsotope)) {
-          continue;
-        }
-        numSulfur += formula.getIsotopeCount(sIsotope);
-      }
-      if (numSulfur >= 5) {
-        minAbundance = 0.0074;
-      }
-
-      int numRelevantElements = numCarbon + numSulfur;
-
-      // only pay attention to N and O if the formula is big enough and there are enough
-      // N and O to make a difference
-      if (numRelevantElements > 70) {
-        IIsotope[] nIsotopes = fac.getIsotopes(Element.N);
-        int numNitrogen = 0;
-        for (IIsotope nIsotope : nIsotopes) {
-          if (!allowIsotope(nIsotope)) {
-            continue;
-          }
-          numNitrogen += formula.getIsotopeCount(nIsotope);
-        }
-        if (numNitrogen >= 40) {
-          minAbundance = 0.0035;
-        }
-        numRelevantElements += numNitrogen;
-      }
-
-      if (numRelevantElements > 110) {
-        IIsotope[] oIsotopes = fac.getIsotopes(Element.N);
-        int numOxygen = 0;
-        for (IIsotope oIsotope : oIsotopes) {
-          if (!allowIsotope(oIsotope)) {
-            continue;
-          }
-          numOxygen += formula.getIsotopeCount(oIsotope);
-        }
-        if (numOxygen >= 40) {
-          minAbundance = 0.002;
-        }
-        numRelevantElements += numOxygen;
-      }
-
-    } catch (IOException e) {
-      return minAbundance;
+      numRelevantElements += numOxygen;
     }
 
     return minAbundance;
