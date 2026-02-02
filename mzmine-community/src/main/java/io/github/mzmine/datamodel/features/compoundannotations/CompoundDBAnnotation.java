@@ -652,6 +652,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
           resolutionAdjustedPattern.getMzValue(mostIntenseIndex));
       mainIsotopePeak.put(NeutralMassType.class,
           adduct.getMass(resolutionAdjustedPattern.getMzValue(mostIntenseIndex)));
+
       if (resolutionAdjustedPattern instanceof SimpleIsotopePattern sip) {
         final String isotopeComposition = sip.getIsotopeComposition(mostIntenseIndex);
         if (!isotopeComposition.contains(",")) { // may be multiple formulas (if merged)
@@ -667,19 +668,18 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
           Range<Double> mainPeakRange = tol.getToleranceRange(mainPeak);
           IndexRange peakRange = BinarySearch.indexRange(mainPeakRange,
               highResPattern.getNumberOfDataPoints(), highResPattern::getMzValue);
-          if (peakRange.isEmpty()) {
-            continue;
-          }
-          int maxIndex = peakRange.min();
-          double maxIntensity = highResPattern.getIntensityValue(peakRange.min());
-          for (int i = peakRange.min() + 1; i < peakRange.maxExclusive(); i++) {
-            if (highResPattern.getIntensityValue(i) > maxIntensity) {
-              maxIndex = i;
-              maxIntensity = highResPattern.getIntensityValue(i);
+          if (!peakRange.isEmpty()) {
+            int maxIndex = peakRange.min();
+            double maxIntensity = highResPattern.getIntensityValue(peakRange.min());
+            for (int i = peakRange.min() + 1; i < peakRange.maxExclusive(); i++) {
+              if (highResPattern.getIntensityValue(i) > maxIntensity) {
+                maxIndex = i;
+                maxIntensity = highResPattern.getIntensityValue(i);
+              }
             }
+            mainIsotopePeak.put(FormulaType.class,
+                ((SimpleIsotopePattern) highResPattern).getIsotopeComposition(maxIndex));
           }
-          mainIsotopePeak.put(FormulaType.class,
-              ((SimpleIsotopePattern) highResPattern).getIsotopeComposition(maxIndex));
         }
       }
 
