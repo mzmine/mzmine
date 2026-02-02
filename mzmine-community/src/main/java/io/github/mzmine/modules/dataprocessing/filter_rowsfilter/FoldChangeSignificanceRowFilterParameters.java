@@ -33,7 +33,6 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
@@ -46,7 +45,6 @@ import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTableP
 import io.github.mzmine.parameters.parametertypes.statistics.MissingValueImputationParameter;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
@@ -126,16 +124,6 @@ public class FoldChangeSignificanceRowFilterParameters extends SimpleParameterSe
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
-  }
-
-  @Override
-  public Map<String, Parameter<?>> loadValuesFromXML(org.w3c.dom.Element xmlElement) {
-    // before loading the parameters, set default values of new parameters
-    // so that if they are missing in the xml they will remain in default mode
-    // maxPValue was changed to an OptionalParameter to allow disabling it
-    // without maxPValue we only filter for FC and require only 1 file per group
-    maxPValue.setValue(true);
-    return super.loadValuesFromXML(xmlElement);
   }
 
   @Override

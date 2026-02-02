@@ -338,17 +338,6 @@ public class RowsFilterParameters extends SimpleParameterSet {
   }
 
   @Override
-  public Map<String, Parameter<?>> loadValuesFromXML(org.w3c.dom.Element xmlElement) {
-    // before loading the parameters, set default values of new parameters
-    // so that if they are missing in the xml they will remain in default mode
-    // maxPValue was changed to an OptionalParameter to allow disabling it
-    // fold change filter was added recently and old batches would not load internal parameters
-    getParameter(foldChangeFilter).getEmbeddedParameters()
-        .setParameter(FoldChangeSignificanceRowFilterParameters.maxPValue, true);
-    return super.loadValuesFromXML(xmlElement);
-  }
-
-  @Override
   public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
     super.handleLoadedParameters(loadedParams, loadedVersion);
 
