@@ -93,6 +93,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.config.Elements;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
@@ -609,10 +610,12 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
         formula = structure.formulaString();
       }
 
-      final Map<String, Integer> formulaCounts = FormulaUtils.parseFormula(formula);
-      String replaced = formula.replaceAll("[CHONPS0-9]+", "");
-      final Integer numC = formulaCounts.get("C");
-      if (numC == null || (numC < 70 && replaced.isBlank())) {
+      final IMolecularFormula majorIsotopeMolFormula = FormulaUtils.createMajorIsotopeMolFormula(
+          formula);
+      final String replaced = formula.replaceAll("[CHONPS0-9]+", "");
+      final int numC = MolecularFormulaManipulator.getElementCount(majorIsotopeMolFormula,
+          Elements.CARBON);
+      if (numC < 70 && replaced.isBlank()) {
         continue;
       }
 
@@ -620,8 +623,6 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
       if (adduct == null) {
         continue;
       }
-      final IMolecularFormula majorIsotopeMolFormula = FormulaUtils.createMajorIsotopeMolFormula(
-          formula);
       if (majorIsotopeMolFormula == null) {
         continue;
       }
@@ -632,7 +633,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
         continue;
       }
       final double majorIsotopeMz = FormulaUtils.calculateMzRatio(majorIsotopeIon);
-      final IsotopePattern resolutionAdjustedPattern = IsotopePatternCalculator.calculateIsotopePattern(
+      final IsotopePattern resolutionAdjustedPattern = IsotopePatternCalculator.estimateIsotopePatternFast(
           majorIsotopeIon, 0.005, tol.getMzToleranceForMass(majorIsotopeMz), adduct.getCharge(),
           adduct.getPolarity(), true);
 
@@ -660,7 +661,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
           mainIsotopePeak.put(CommentType.class, "multiple: " + isotopeComposition);
 
           // find the most intense individual isotope signal as representative
-          final IsotopePattern highResPattern = IsotopePatternCalculator.calculateIsotopePattern(
+          final IsotopePattern highResPattern = IsotopePatternCalculator.estimateIsotopePatternFast(
               majorIsotopeIon, 0.005, 0d, adduct.getCharge(), adduct.getPolarity(), true);
           final double mainPeak = mainIsotopePeak.getPrecursorMZ();
           Range<Double> mainPeakRange = tol.getToleranceRange(mainPeak);
