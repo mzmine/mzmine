@@ -184,6 +184,13 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       HandleExtraColumnsOptions.IMPORT_SPECIFIC,
       new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IGNORE, null));
 
+  public static final BooleanParameter strictChargeFilter = new BooleanParameter(
+      "Strict charge filtering", """
+      If enabled, the charge of the compound determined through the "%s" parameter or by importing
+      the "%s" type and matched to the determined charge of the feature (isotope pattern must be detected).
+      If no isotope pattern is detected, the charge filtering is not executed and compounds are matched
+      regardless of charge state.""".formatted(ionLibrary.getName(),
+      new IonTypeType().getHeaderString()), false);
 
   // old parameter
   private final StringParameter commentFields = new StringParameter("Append comment fields",
@@ -194,13 +201,15 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_cmpd_db/local-cmpd-db-search.html",
         peakLists, dataBaseFile, fieldSeparator, columns, mzTolerance, rtTolerance, mobTolerance,
-        ccsTolerance, riTolerance, isotopePatternMatcher, ionLibrary, calculateMainSignal,
-        filterSamples, extraColumns);
+        ccsTolerance, riTolerance, strictChargeFilter, isotopePatternMatcher, ionLibrary,
+        calculateMainSignal, filterSamples, extraColumns);
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    final boolean superCheck = super.checkParameterValues(errorMessages);
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(errorMessages,
+        skipRawDataAndFeatureListParameters);
 
     final List<ImportType<?>> selectedTypes = getParameter(columns).getValue().stream()
         .filter(ImportType::isSelected).toList();
@@ -229,7 +238,17 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
           new SmilesStructureType().getHeaderString()));
     }
 
-    return superCheck && anyIdentifierSelected && canDetermineMz;
+    boolean chargeFilterPossible = true;
+    if (getValue(strictChargeFilter) && !(getValue(ionLibrary) || getValue(columns).stream()
+        .filter(i -> i.getDataType().equals(new IonTypeType())).findFirst()
+        .map(ImportType::isSelected).orElse(false))) {
+      errorMessages.add("""
+          Cannot apply charge filtering if neither the "%s" parameter nor the "%s" charge are enabled.""".formatted(
+          ionLibrary.getName(), new IonTypeType().getHeaderString()));
+      chargeFilterPossible = false;
+    }
+
+    return superCheck && anyIdentifierSelected && canDetermineMz && chargeFilterPossible;
   }
 
   private boolean isAnyIdentifierSelected(Collection<String> errorMessages,
@@ -310,6 +329,10 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
             new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IMPORT_SPECIFIC,
                 commentFieldValues));
       }
+    }
+
+    if (!loadedParams.containsKey(strictChargeFilter.getName())) {
+      setParameter(strictChargeFilter, false);
     }
 
     if (!loadedParams.containsKey(calculateMainSignal.getName())) {
