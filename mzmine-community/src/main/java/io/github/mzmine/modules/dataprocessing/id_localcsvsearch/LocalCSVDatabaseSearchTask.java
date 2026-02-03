@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
@@ -90,6 +91,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final String sampleHeader;
   private final List<RawDataFile> allRawDataFiles;
   private final ExtraColumnHandler extraColumnHandler;
+  private final boolean chargeFilter;
   private IonNetworkLibrary ionNetworkLibrary;
 
   private List<String[]> databaseValues;
@@ -129,6 +131,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
         .flatMap(Collection::stream).distinct().toList();
     sampleHeader = parameters.getParameter(LocalCSVDatabaseSearchParameters.filterSamples)
         .getEmbeddedParameter().getValue();
+    chargeFilter = parameters.getValue(LocalCSVDatabaseSearchParameters.strictChargeFilter);
 
     extraColumnHandler = new ExtraColumnHandler(
         parameters.getValue(LocalCSVDatabaseSearchParameters.extraColumns));
@@ -355,6 +358,16 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       @NotNull FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobTolerance,
       @Nullable Double percCcsTolerance, @Nullable RITolerance riTolerance) {
+
+    if (chargeFilter && annotation.getAdductType() != null && row.getRowCharge() != null) {
+      final IonType adduct = annotation.getAdductType();
+      final int absCharge = adduct.getAbsCharge();
+      final int rowCharge = Math.abs(row.getRowCharge());
+      // only apply charge filtering if adduct and charge are determined
+      if (adduct.getPolarity() != row.getRepresentativePolarity() || absCharge != rowCharge) {
+        return;
+      }
+    }
 
     final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(row, mzTolerance,
         rtTolerance, mobTolerance, percCcsTolerance, riTolerance);
