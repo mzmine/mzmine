@@ -62,9 +62,11 @@ import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RITolerance;
@@ -74,6 +76,8 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RIRecord;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -88,6 +92,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.config.Elements;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
@@ -596,4 +601,97 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return get(JsonStringType.class);
   }
 
+  static @NotNull List<@NotNull CompoundDBAnnotation> buildMostIntenseIsotopeRatios(
+      @NotNull List<@NotNull CompoundDBAnnotation> source, @NotNull MZTolerance tol) {
+
+    @NotNull List<@NotNull CompoundDBAnnotation> isotopes = new ArrayList<>();
+
+    for (CompoundDBAnnotation compoundDBAnnotation : source) {
+      String formula = compoundDBAnnotation.getFormula();
+      if (formula == null) {
+        MolecularStructure structure = compoundDBAnnotation.getStructure();
+        if (structure == null || structure.formulaString() == null) {
+          continue;
+        }
+        formula = structure.formulaString();
+      }
+
+      final IMolecularFormula majorIsotopeMolFormula = FormulaUtils.createMajorIsotopeMolFormula(
+          formula);
+      final String replaced = formula.replaceAll("[CHONPFI0-9]+", "");
+      final int numC = MolecularFormulaManipulator.getElementCount(majorIsotopeMolFormula,
+          Elements.CARBON);
+      if (numC < 70 && replaced.isBlank()) {
+        continue;
+      }
+
+      final IonType adduct = compoundDBAnnotation.getAdductType();
+      if (adduct == null) {
+        continue;
+      }
+      if (majorIsotopeMolFormula == null) {
+        continue;
+      }
+      final IMolecularFormula majorIsotopeIon;
+      try {
+        majorIsotopeIon = adduct.addToFormula(majorIsotopeMolFormula, true);
+      } catch (CloneNotSupportedException e) {
+        continue;
+      }
+      final double majorIsotopeMz = FormulaUtils.calculateMzRatio(majorIsotopeIon);
+      final IsotopePattern resolutionAdjustedPattern = IsotopePatternCalculator.estimateIsotopePatternFast(
+          majorIsotopeIon, 0.005, tol.getMzToleranceForMass(majorIsotopeMz), adduct.getCharge(),
+          adduct.getPolarity(), true);
+
+      if (resolutionAdjustedPattern.getNumberOfDataPoints() <= 1) {
+        continue;
+      }
+      final int mostIntenseIndex = resolutionAdjustedPattern.getBasePeakIndex();
+      if (tol.checkWithinTolerance(resolutionAdjustedPattern.getMzValue(mostIntenseIndex),
+          majorIsotopeMz)) {
+        // don't add if the most intense peak is the one we had previously
+        continue;
+      }
+
+      final CompoundDBAnnotation mainIsotopePeak = compoundDBAnnotation.clone();
+      mainIsotopePeak.put(PrecursorMZType.class,
+          resolutionAdjustedPattern.getMzValue(mostIntenseIndex));
+      mainIsotopePeak.put(NeutralMassType.class,
+          adduct.getMass(resolutionAdjustedPattern.getMzValue(mostIntenseIndex)));
+
+      if (resolutionAdjustedPattern instanceof SimpleIsotopePattern sip) {
+        final String isotopeComposition = sip.getIsotopeComposition(mostIntenseIndex);
+        if (!isotopeComposition.contains(",")) { // may be multiple formulas (if merged)
+          mainIsotopePeak.put(FormulaType.class, isotopeComposition);
+          mainIsotopePeak.put(CommentType.class, isotopeComposition);
+        } else {
+          mainIsotopePeak.put(CommentType.class, "multiple: " + isotopeComposition);
+
+          // find the most intense individual isotope signal as representative
+          final IsotopePattern highResPattern = IsotopePatternCalculator.estimateIsotopePatternFast(
+              majorIsotopeIon, 0.005, 0d, adduct.getCharge(), adduct.getPolarity(), true);
+          final double mainPeak = mainIsotopePeak.getPrecursorMZ();
+          Range<Double> mainPeakRange = tol.getToleranceRange(mainPeak);
+          IndexRange peakRange = BinarySearch.indexRange(mainPeakRange,
+              highResPattern.getNumberOfDataPoints(), highResPattern::getMzValue);
+          if (!peakRange.isEmpty()) {
+            int maxIndex = peakRange.min();
+            double maxIntensity = highResPattern.getIntensityValue(peakRange.min());
+            for (int i = peakRange.min() + 1; i < peakRange.maxExclusive(); i++) {
+              if (highResPattern.getIntensityValue(i) > maxIntensity) {
+                maxIndex = i;
+                maxIntensity = highResPattern.getIntensityValue(i);
+              }
+            }
+            mainIsotopePeak.put(FormulaType.class,
+                ((SimpleIsotopePattern) highResPattern).getIsotopeComposition(maxIndex));
+          }
+        }
+      }
+
+      isotopes.add(mainIsotopePeak);
+    }
+
+    return isotopes;
+  }
 }

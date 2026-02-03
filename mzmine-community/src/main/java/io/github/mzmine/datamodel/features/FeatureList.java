@@ -552,6 +552,16 @@ public interface FeatureList {
   void clearRows();
 
   /**
+   * @param excluded true to exclude this feature list from batch last
+   */
+  void setExcludedFromBatchLast(boolean excluded);
+
+  /**
+   * @return true if this feature list should never be used as batch last feature list
+   */
+  boolean isExcludedFromBatchLastSelection();
+
+  /**
    * This counter allows a quick comparison if the last used {@link AnnotationSummarySortConfig} in
    * classes like {@link AnnotationSummary} is still the same to
    * {@link #getAnnotationSortConfig()}.
