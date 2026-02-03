@@ -76,12 +76,12 @@ public class FormulaUtils {
 
   /**
    * Set of ions with low probability that they contribute much to the highest signal in the isotope
-   * pattern. This factors is that C and Si are very common (Si more in GC-MS) and that other
-   * elements are more rare in formulas.
+   * pattern. C and Si are very common (Si more in GC-MS) but they will be excluded first and
+   * evaluated later if their number contributes to the max isotope.
    */
-  public static final IntSet ATOMS_LOW_ISOTOPE_PROBABILITY = new IntOpenHashSet(
-      List.of(Element.H, Element.Na, Element.K, Element.Be, Element.Ca, Element.C, Element.N,
-          Element.P, Element.As, Element.O, Element.S, Element.F, Element.I));
+  private static final IntSet ATOMS_LOW_ISOTOPE_PROBABILITY = new IntOpenHashSet(
+      List.of(Element.H, Element.Na, Element.K, Element.Be, Element.Ca, Element.C, Element.Si,
+          Element.N, Element.P, Element.As, Element.O, Element.S, Element.F, Element.I));
 
   /**
    * A quick check if the formula should have one most abundant signal or if there are other
