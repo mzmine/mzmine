@@ -57,6 +57,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalDouble;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
@@ -277,7 +278,8 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
         final double xOffset = colIndex * (barWidth + BAR_SPACING);
         final double yOffset = rowIndex * rowHeight + (rowIndex * BAR_SPACING);
 
-        final double score = annotationSummary.score(scoreType).orElse(0d);
+        final OptionalDouble optScore = annotationSummary.score(scoreType);
+        final double score = optScore.orElse(0d);
         final double barH = score * chartHeight;
         final double topEdge = yOffset + chartHeight - barH;
 
@@ -302,8 +304,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
         // If bar is tall, text is on the bar.
         if (score > 0.2) {
           gc.setFill(Color.WHITE); // Assuming bars are colored/dark
-        } else if (annotationSummary.score(scoreType).isPresent()
-            && Precision.equalFloatSignificance(score, 0d)) {
+        } else if (optScore.isPresent() && Precision.equalFloatSignificance(score, 0d)) {
           // value present in library but outside of bounds, change text color to indicate.
           gc.setFill(
               ConfigService.getConfiguration().getTheme().isDark() ? getScoreColor(0).brighter()
