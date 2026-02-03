@@ -43,7 +43,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Holds multiple isotope pattern of different charge states. Not every charge state is represented
+ * Holds multiple isotope pattern of different charge states. Not every charge state is represented.
+ * {@link #getPreferredIsotopePattern()} is the first isotope pattern and the patterns are not
+ * sorted by charge but rather by priority descending.
  */
 public class MultiChargeStateIsotopePattern implements IsotopePattern {
 
