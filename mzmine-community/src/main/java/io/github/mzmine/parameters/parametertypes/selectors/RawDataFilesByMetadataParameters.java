@@ -43,13 +43,13 @@ import org.jetbrains.annotations.Nullable;
 public class RawDataFilesByMetadataParameters extends SimpleParameterSet {
 
   public static final MetadataListGroupsSelectionParameter included = new MetadataListGroupsSelectionParameter(
-      "Include",
-      "Include metadata group names in column. Enter multiple values, one in each text field.",
-      NONE, false);
+      "Include", """
+      Include metadata group names in column. Enter multiple values, one in each text field.
+      Exclude is stronger and will remove data files if excluded.""", NONE, false);
   public static final MetadataListGroupsSelectionParameter excluded = new MetadataListGroupsSelectionParameter(
-      "Exclude",
-      "Exclude metadata group names in column. Enter multiple values, one in each text field.",
-      NONE, false);
+      "Exclude", """
+      Exclude metadata group names in column. Enter multiple values, one in each text field.
+      Exclude is stronger than include and will remove data files if excluded.""", NONE, false);
 
   public RawDataFilesByMetadataParameters() {
     super(included, excluded);
