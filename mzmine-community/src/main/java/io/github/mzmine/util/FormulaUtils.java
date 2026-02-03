@@ -34,6 +34,8 @@ import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,6 +51,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.Element;
+import org.openscience.cdk.config.Elements;
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.exception.InvalidSmilesException;
@@ -68,6 +72,41 @@ public class FormulaUtils {
    */
   public static final double electronMass = 0.000548579909065;
   private static final Logger logger = Logger.getLogger(FormulaUtils.class.getName());
+
+
+  /**
+   * Set of ions with low probability that they contribute much to the highest signal in the isotope
+   * pattern. This factors is that C and Si are very common (Si more in GC-MS) and that other
+   * elements are more rare in formulas.
+   */
+  public static final IntSet ATOMS_LOW_ISOTOPE_PROBABILITY = new IntOpenHashSet(
+      List.of(Element.H, Element.Na, Element.K, Element.Be, Element.Ca, Element.C, Element.N,
+          Element.P, Element.As, Element.O, Element.S, Element.F, Element.I));
+
+  /**
+   * A quick check if the formula should have one most abundant signal or if there are other
+   * isotopes influencing the isotope distribution.
+   *
+   * @return true if the most abundant signal is unclear and may have multiple options
+   */
+  public static boolean quickCheckHasAbundantIsotopes(@Nullable IMolecularFormula formula) {
+    if (formula == null) {
+      return false;
+    }
+    for (IIsotope isotope : formula.isotopes()) {
+      final Integer atomicNumber = isotope.getAtomicNumber();
+      if (atomicNumber == null || !FormulaUtils.ATOMS_LOW_ISOTOPE_PROBABILITY.contains(
+          atomicNumber.intValue())) {
+        return true; // special atom found
+      }
+    }
+    final int numC = MolecularFormulaManipulator.getElementCount(formula, Elements.CARBON);
+    // for GC MS
+    final int numSi = MolecularFormulaManipulator.getElementCount(formula, Elements.SILICON);
+    // Si has 5% for +1 isotope and another abundant isotope at +2
+    final int total = numC + numSi * 5;
+    return total > 70; // has abundant C or Si signals
+  }
 
   /**
    * Sort all molecular formulas by score of ppm distance, isotope sccore and msms score (with
@@ -352,7 +391,7 @@ public class FormulaUtils {
    */
   @Nullable
   public static IMolecularFormula createMajorIsotopeMolFormula(@Nullable String formula) {
-    if(formula == null) {
+    if (formula == null) {
       return null;
     }
     try {
