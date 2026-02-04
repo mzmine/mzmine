@@ -81,7 +81,7 @@ public class FormulaUtils {
    */
   private static final IntSet ATOMS_LOW_ISOTOPE_PROBABILITY = new IntOpenHashSet(
       List.of(Element.H, Element.Na, Element.K, Element.Be, Element.Ca, Element.C, Element.Si,
-          Element.N, Element.P, Element.As, Element.O, Element.S, Element.F, Element.I));
+          Element.N, Element.P, Element.As, Element.O, Element.F, Element.I));
 
   /**
    * A quick check if the formula should have one most abundant signal or if there are other
