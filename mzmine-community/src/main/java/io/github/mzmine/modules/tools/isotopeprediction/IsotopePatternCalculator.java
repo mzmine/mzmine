@@ -106,43 +106,7 @@ public class IsotopePatternCalculator implements MZmineModule {
 
     org.openscience.cdk.formula.IsotopePattern pattern = generator.getIsotopes(cdkFormula);
 
-    int numOfIsotopes = pattern.getNumberOfIsotopes();
-
-    DataPoint dataPoints[] = new DataPoint[numOfIsotopes];
-    String isotopeComposition[] = new String[numOfIsotopes];
-    // For each unit of charge, we have to add or remove a mass of a
-    // single electron. If the charge is positive, we remove electron
-    // mass. If the charge is negative, we add it.
-    charge = Math.abs(charge);
-    var electronMass = polarity.getSign() * -1 * charge * ELECTRON_MASS;
-
-    for (int i = 0; i < numOfIsotopes; i++) {
-      IsotopeContainer isotope = pattern.getIsotope(i);
-
-      double mass = isotope.getMass() + electronMass;
-
-      if (charge != 0) {
-        mass /= charge;
-      }
-
-      double intensity = isotope.getIntensity();
-
-      dataPoints[i] = new SimpleDataPoint(mass, intensity);
-
-      if (storeFormula) {
-        isotopeComposition[i] = formatCDKString(isotope.toString());
-      }
-    }
-
-    String formulaString = MolecularFormulaManipulator.getString(cdkFormula);
-
-    if (storeFormula) {
-      return new SimpleIsotopePattern(dataPoints, charge, IsotopePatternStatus.PREDICTED,
-          formulaString, isotopeComposition);
-    } else {
-      return new SimpleIsotopePattern(dataPoints, charge, IsotopePatternStatus.PREDICTED,
-          formulaString);
-    }
+    return convertToIsotopePattern(pattern, cdkFormula, charge, polarity, storeFormula);
   }
 
   public static HashMap<Double, IsotopePattern> calculateIsotopePatternForResolutions(
@@ -288,6 +252,13 @@ public class IsotopePatternCalculator implements MZmineModule {
 
     final org.openscience.cdk.formula.IsotopePattern pattern = estimator.getIsotopes(cdkFormula);
 
+    return convertToIsotopePattern(pattern, cdkFormula, charge, polarity, storeFormula);
+  }
+
+  private static @NotNull SimpleIsotopePattern convertToIsotopePattern(
+      @NotNull org.openscience.cdk.formula.IsotopePattern pattern,
+      @NotNull IMolecularFormula cdkFormula, int charge, @NotNull PolarityType polarity,
+      boolean storeFormula) {
     int numOfIsotopes = pattern.getNumberOfIsotopes();
 
     DataPoint dataPoints[] = new DataPoint[numOfIsotopes];
