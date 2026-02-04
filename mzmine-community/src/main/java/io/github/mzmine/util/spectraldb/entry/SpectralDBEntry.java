@@ -26,13 +26,13 @@ package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
@@ -68,7 +68,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
    * StableValue renamed to ComputedConstant in JDK26
    */
   private final Supplier<IsotopePattern> pattern = StableValue.supplier(
-      () -> FeatureAnnotation.calculateIsotopePattern(
+      () -> IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(
           FormulaUtils.createMajorIsotopeMolFormula(getFormula()), getAdductType()));
 
   /**
