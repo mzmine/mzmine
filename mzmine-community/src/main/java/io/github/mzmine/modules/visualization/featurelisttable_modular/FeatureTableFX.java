@@ -550,14 +550,12 @@ public class FeatureTableFX extends BorderPane {
     }
     final var preferredAnnotations = getMainColumnEntry(PreferredAnnotationType.class);
     if (preferredAnnotations != null) {
-      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, CompoundNameType.class, true);
+      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, PreferredAnnotationType.class, true);
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, AnnotationSummaryType.class,
           true);
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, MolecularStructureType.class,
           true);
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, ScoreType.class, true);
-      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, AnnotationMethodType.class,
-          true);
     }
 
     applyVisibilityParametersToAllColumns();
