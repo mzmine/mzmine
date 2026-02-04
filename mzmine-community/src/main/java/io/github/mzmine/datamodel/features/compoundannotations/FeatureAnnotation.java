@@ -216,7 +216,15 @@ public interface FeatureAnnotation {
     } else {
       formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
     }
-    if (formula == null) {
+    return calculateIsotopePattern(formula, ionType);
+  }
+
+  /**
+   * Predict pattern with default binning width
+   */
+  public static @Nullable IsotopePattern calculateIsotopePattern(
+      @Nullable IMolecularFormula formula, @Nullable IonType ionType) {
+    if (formula == null || ionType == null) {
       return null;
     }
     try {

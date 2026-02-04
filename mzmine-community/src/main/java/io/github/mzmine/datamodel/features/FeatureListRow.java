@@ -529,7 +529,14 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @param matchedLipid the matched lipid
    */
-  void addLipidAnnotation(MatchedLipid matchedLipid);
+  void addLipidAnnotation(@NotNull List<MatchedLipid> matchedLipid);
+
+  /**
+   * Sets and replaces annotations from lipid search
+   *
+   * @param matchedLipid the matched lipid
+   */
+  void setLipidAnnotation(@NotNull List<MatchedLipid> matchedLipid);
 
   // -- ModularFeatureListRow additions
   Stream<ModularFeature> streamFeatures();

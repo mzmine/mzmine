@@ -150,7 +150,7 @@ public class LipidAnnotationUtils {
       LipidCategories lipidCategory, final FragmentScanSelection scanMergeSelect) {
     Set<MatchedLipid> possibleRowAnnotations = new HashSet<>();
 
-    if (Objects.equals(row.getRepresentativePolarity(),lipidIon.ionizationType().getPolarity())) {
+    if (Objects.equals(row.getRepresentativePolarity(), lipidIon.ionizationType().getPolarity())) {
       Range<Double> mzTolRange12C = mzTolerance.getToleranceRange(row.getAverageMZ());
 
       // MS1 check
@@ -352,17 +352,19 @@ public class LipidAnnotationUtils {
     //consider previous annotations
     List<MatchedLipid> previousLipidMatches = row.getLipidMatches();
     if (!previousLipidMatches.isEmpty()) {
-      row.set(LipidMatchListType.class, null);
       possibleRowAnnotations.addAll(previousLipidMatches);
     }
     LipidAnnotationResolver lipidAnnotationResolver = new LipidAnnotationResolver(true, true, true);
     List<MatchedLipid> finalResults = lipidAnnotationResolver.resolveFeatureListRowMatchedLipids(
         row, possibleRowAnnotations);
-    for (MatchedLipid matchedLipid : finalResults) {
-      if (matchedLipid != null) {
-        row.addLipidAnnotation(matchedLipid);
-      }
+
+    // set all annotations over the old - already merged the old annotations in
+    finalResults = finalResults.stream().filter(Objects::nonNull).toList();
+    for (MatchedLipid lipid : finalResults) {
+      // get isotope pattern once to cache it - will speed up feature table later
+      lipid.getIsotopePattern();
     }
+    row.set(LipidMatchListType.class, finalResults);
   }
 
 }

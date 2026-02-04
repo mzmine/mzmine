@@ -727,18 +727,23 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   @Override
-  public void addLipidAnnotation(MatchedLipid matchedLipid) {
+  public void addLipidAnnotation(@NotNull List<MatchedLipid> matchedLipid) {
     synchronized (writeLock) {
       // add column first if needed
       List<MatchedLipid> matches = get(LipidMatchListType.class);
       if (matches == null) {
-        matches = List.of(matchedLipid);
+        matches = new ArrayList<>(matchedLipid);
       } else {
         matches = new ArrayList<>(matches);
-        matches.add(matchedLipid);
+        matches.addAll(matchedLipid);
       }
       set(LipidMatchListType.class, matches);
     }
+  }
+
+  @Override
+  public void setLipidAnnotation(@NotNull List<MatchedLipid> matchedLipid) {
+    set(LipidMatchListType.class, matchedLipid);
   }
 
   @Override
