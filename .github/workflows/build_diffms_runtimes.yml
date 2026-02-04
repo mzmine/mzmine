@@ -8,6 +8,12 @@ on:
         required: false
         default: 'true'
         type: boolean
+  push:
+    branches:
+      - diffms
+      - 'feature/**'
+      - 'fix/**'
+# Removing paths restriction to ensure it triggers on any change to the branch during testing
 
 permissions:
   contents: write

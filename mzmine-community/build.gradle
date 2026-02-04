@@ -775,10 +775,11 @@ tasks.named('processResources') {
     dependsOn(tasks.named('fetchDiffmsRuntimePacks'))
 }
 
-tasks.register('fetchDiffmsRuntimePacks') {
+    tasks.register('fetchDiffmsRuntimePacks') {
     def packsDir = new File(layout.projectDirectory.asFile, "../external_tools/diffms/runtime-packs")
     def tag = "diffms-runtimes"
-    def repo = "mzmine/mzmine" // Pre-built runtimes are served from this repo
+    // Use environment variable if in CI, otherwise default to the main repo
+    def repo = System.getenv("GITHUB_REPOSITORY") ?: "mzmine/mzmine"
     
     outputs.dir(packsDir)
 
