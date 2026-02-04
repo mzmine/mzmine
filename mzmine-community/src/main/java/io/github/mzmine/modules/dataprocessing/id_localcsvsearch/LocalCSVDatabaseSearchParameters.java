@@ -57,7 +57,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -178,13 +178,13 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       HandleExtraColumnsOptions.IMPORT_SPECIFIC,
       new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IGNORE, null));
 
-  public static final BooleanParameter strictChargeFilter = new BooleanParameter(
+  public static final ComboParameter<ChargeFilterType> chargeFilter = new ComboParameter<>(
       "Strict charge filtering", """
       If enabled, the charge of the compound determined through the "%s" parameter or by importing
       the "%s" type and matched to the determined charge of the feature (isotope pattern must be detected).
       If no isotope pattern is detected, the charge filtering is not executed and compounds are matched
       regardless of charge state.""".formatted(ionLibrary.getName(),
-      new IonTypeType().getHeaderString()), false);
+      new IonTypeType().getHeaderString()), ChargeFilterType.values(), ChargeFilterType.NO_FILTER);
 
   // old parameter
   private final StringParameter commentFields = new StringParameter("Append comment fields",
@@ -195,8 +195,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_cmpd_db/local-cmpd-db-search.html",
         peakLists, dataBaseFile, fieldSeparator, columns, mzTolerance, rtTolerance, mobTolerance,
-        ccsTolerance, riTolerance, strictChargeFilter, isotopePatternMatcher, ionLibrary,
-        filterSamples, extraColumns);
+        ccsTolerance, riTolerance, chargeFilter, isotopePatternMatcher, ionLibrary, filterSamples,
+        extraColumns);
   }
 
   @Override
@@ -233,8 +233,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
     }
 
     boolean chargeFilterPossible = true;
-    if (getValue(strictChargeFilter) && !(getValue(ionLibrary) || getValue(columns).stream()
-        .filter(i -> i.getDataType().equals(new IonTypeType())).findFirst()
+    if (getValue(chargeFilter) != ChargeFilterType.NO_FILTER && !(getValue(ionLibrary) || getValue(
+        columns).stream().filter(i -> i.getDataType().equals(new IonTypeType())).findFirst()
         .map(ImportType::isSelected).orElse(false))) {
       errorMessages.add("""
           Cannot apply charge filtering if neither the "%s" parameter nor the "%s" charge are enabled.""".formatted(
@@ -325,8 +325,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       }
     }
 
-    if (!loadedParams.containsKey(strictChargeFilter.getName())) {
-      setParameter(strictChargeFilter, false);
+    if (!loadedParams.containsKey(chargeFilter.getName())) {
+      setParameter(chargeFilter, ChargeFilterType.NO_FILTER);
     }
   }
 
