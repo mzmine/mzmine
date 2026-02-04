@@ -221,20 +221,23 @@ public interface FeatureAnnotation {
 
   /**
    * Predict pattern with default binning width
+   *
+   * @param neutralFormula ionType will be added on top of neutral formula to create ion formula
+   * @return the isotope pattern of ion formula. or null if formula or ionType are null
    */
   public static @Nullable IsotopePattern calculateIsotopePattern(
-      @Nullable IMolecularFormula formula, @Nullable IonType ionType) {
-    if (formula == null || ionType == null) {
+      @Nullable IMolecularFormula neutralFormula, @Nullable IonType ionType) {
+    if (neutralFormula == null || ionType == null) {
       return null;
     }
     try {
-      formula = ionType.addToFormula(formula);
+      neutralFormula = ionType.addToFormula(neutralFormula);
     } catch (CloneNotSupportedException e) {
       return null;
     }
 
-    return IsotopePatternCalculator.calculateIsotopePattern(formula, 0.005, ionType.getAbsCharge(),
-        ionType.getPolarity(), false);
+    return IsotopePatternCalculator.calculateIsotopePattern(neutralFormula, 0.005,
+        ionType.getAbsCharge(), ionType.getPolarity(), false);
   }
 
   @Nullable IsotopePattern getIsotopePattern();

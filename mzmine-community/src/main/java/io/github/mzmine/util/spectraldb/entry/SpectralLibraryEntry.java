@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
@@ -37,7 +38,6 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
-import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.Map;
 import java.util.Optional;
@@ -278,16 +278,7 @@ public interface SpectralLibraryEntry extends MassList {
     } else {
       formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
     }
-    if (formula == null) {
-      return null;
-    }
-    try {
-      formula = ionType.addToFormula(formula);
-    } catch (CloneNotSupportedException e) {
-      return null;
-    }
 
-    return IsotopePatternCalculator.calculateIsotopePattern(formula, 0.005, ionType.getAbsCharge(),
-        ionType.getPolarity(), false);
+    return FeatureAnnotation.calculateIsotopePattern(formula, ionType);
   }
 }
