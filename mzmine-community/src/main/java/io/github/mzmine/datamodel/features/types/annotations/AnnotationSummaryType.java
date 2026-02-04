@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.annotationpriority.MsiAnnotationLevel
 import io.github.mzmine.datamodel.features.annotationpriority.SchymanskiAnnotationLevel;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -208,6 +209,16 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
           : FxColorUtil.awtColorToFX(defaultChartTheme.getPlotBackgroundPaint());
     }
 
+    static Color getAnnotationTypeColor(@NotNull Class<? extends DataType> typeClass) {
+      DataType type = DataTypes.get(typeClass);
+      return switch (type) {
+        case SpectralLibraryMatchesType _ -> new Color(0.749f, 0.1725f, 0.5176f, 1f);
+        case CompoundDatabaseMatchesType _ -> new Color(0.f, 0.620f, 0.451f, 1f);
+        case LipidMatchListType _ -> new Color(0.941f, 0.894f, 0.259f, 1f);
+        default -> new Color(0.337f, 0.706f, 0.914f, 1f);
+      };
+    }
+
     @Override
     protected void layoutChildren() {
       super.layoutChildren();
@@ -228,14 +239,17 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
       final double totalWidth = canvas.getWidth();
 //      final double annotationLevelsSpace = 2 * (arial.getSize() + BAR_SPACING); // option to put levels on the side (ansgar did not like it)
       final double annotationLevelsSpace = 0;
+      final double annotationTypeBarHeight = 3;
 
       final double chartMaxWidth = totalWidth - annotationLevelsSpace;
-      final double height = canvas.getHeight();
+      final double chartMaxHeight = canvas.getHeight();
+      final double availableHeight = chartMaxHeight - (annotationTypeBarHeight + BAR_SPACING);
 
-      gc.clearRect(0, 0, totalWidth, height);
+      gc.clearRect(0, 0, totalWidth, chartMaxHeight);
 
       AnnotationSummary annotationSummary = getItem();
-      if (annotationSummary == null || isEmpty() || !isVisible()) {
+      if (annotationSummary == null || annotationSummary.annotation() == null || isEmpty()
+          || !isVisible()) {
         tooltip.setGraphic(null);
         setTooltip(null);
         return;
@@ -248,19 +262,22 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
       setTooltip(annotationSummary, scoreTypes);
 
       // 1. Layout Calculations
-      final boolean useTwoRows = height > TWO_ROW_HEIGHT_THRESHOLD && totalWidth < 100;
+      final boolean useTwoRows = availableHeight > TWO_ROW_HEIGHT_THRESHOLD && totalWidth < 100;
       final int totalItems = scoreTypes.length;
       final int numCols = useTwoRows ? (int) Math.ceil(totalItems / 2.0) : totalItems;
       final int numRows = useTwoRows ? 2 : 1;
 
-      final double rowHeight = height / numRows;
+      final double rowHeight = availableHeight / numRows;
       final double chartHeight = rowHeight - BAR_SPACING;
 
       final double availableWidth = chartMaxWidth - (BAR_SPACING * (numCols - 1));
       final double barWidth = availableWidth / numCols;
 
       gc.setFill(bgColor);
-      gc.fillRect(0, 0, chartMaxWidth, height);
+      gc.fillRect(0, 0, chartMaxWidth, chartMaxHeight);
+
+      gc.setFill(getAnnotationTypeColor(annotationSummary.annotation().getDataType()));
+      gc.fillRect(0, 0, chartMaxWidth, annotationTypeBarHeight);
 
       gc.setFont(arial);
       // Align LEFT means "Bottom" when rotated -90 degrees
@@ -276,7 +293,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
         final int colIndex = useTwoRows ? (i % numCols) : i;
 
         final double xOffset = colIndex * (barWidth + BAR_SPACING);
-        final double yOffset = rowIndex * rowHeight + (rowIndex * BAR_SPACING);
+        final double yOffset = (chartMaxHeight - availableHeight) + rowIndex * rowHeight + (rowIndex * BAR_SPACING);
 
         final OptionalDouble optScore = annotationSummary.score(scoreType);
         final double score = optScore.orElse(0d);
@@ -288,6 +305,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
         // ceil top and height to not leave a pixel free at the bottom of the chart
         gc.fillRect(Math.round(xOffset), Math.ceil(topEdge), Math.round(barWidth), Math.ceil(barH));
 
+        // potential outline around the whole chart
 //        gc.setStroke(outlineColor);
 //        gc.strokeRect(Math.round(xOffset), Math.ceil(yOffset), Math.round(barWidth), Math.ceil(chartHeight));
 
@@ -322,7 +340,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
       }
 
       gc.setStroke(outlineColor);
-      gc.strokeRect(0, 0, chartMaxWidth, height);
+      gc.strokeRect(0, 0, chartMaxWidth, chartMaxHeight);
 
       /*final double pivotX = chartMaxWidth;
       final double pivotY = height;
