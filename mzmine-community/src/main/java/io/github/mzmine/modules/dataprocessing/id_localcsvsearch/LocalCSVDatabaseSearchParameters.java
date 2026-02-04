@@ -186,7 +186,7 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IGNORE, null));
 
   public static final ComboParameter<ChargeFilterType> chargeFilter = new ComboParameter<>(
-      "Strict charge filtering", """
+      "Charge filter", """
       If enabled, the charge of the compound determined through the "%s" parameter or by importing
       the "%s" type and matched to the determined charge of the feature (isotope pattern must be detected).
       If no isotope pattern is detected, the charge filtering is not executed and compounds are matched
