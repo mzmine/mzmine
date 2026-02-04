@@ -75,9 +75,6 @@ public class ManualCompoundAnnotationTask extends AbstractFeatureListTask {
       final List<FeatureAnnotation> annotations = FeatureAnnotation.parseFromXMLString(
           annotationStr, ProjectService.getProject(), flist, (ModularFeatureListRow) row);
       for (final FeatureAnnotation annotation : annotations) {
-        // call to cache isotope pattern internally and speed up feature table
-        annotation.getIsotopePattern();
-
         switch (annotation) {
           case CompoundDBAnnotation comp -> row.addCompoundAnnotation(comp);
           case SpectralDBAnnotation spec -> row.addSpectralLibraryMatch(spec);

@@ -359,10 +359,7 @@ public class LipidAnnotationUtils {
 
     // set all annotations over the old - already merged the old annotations in
     finalResults = finalResults.stream().filter(Objects::nonNull).toList();
-    for (MatchedLipid lipid : finalResults) {
-      // get isotope pattern once to cache it - will speed up feature table later
-      lipid.getIsotopePattern();
-    }
+    // caching of lipid properties is triggered in row
     row.setLipidAnnotations(finalResults);
   }
 
