@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
@@ -43,6 +44,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.formula.IsotopeContainer;
 import org.openscience.cdk.formula.IsotopePatternGenerator;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -219,6 +221,27 @@ public class IsotopePatternCalculator implements MZmineModule {
     int endIndex = cdkString.length() - 1;
 
     return cdkString.substring(startIndex + 3, endIndex);
+  }
+
+  /**
+   * Predict pattern with default binning width for annotations
+   *
+   * @param neutralFormula ionType will be added on top of neutral formula to create ion formula
+   * @return the isotope pattern of ion formula. or null if formula or ionType are null
+   */
+  public static @Nullable IsotopePattern calculateFeatureAnnotationIsotopePattern(
+      @Nullable IMolecularFormula neutralFormula, @Nullable IonType ionType) {
+    if (neutralFormula == null || ionType == null) {
+      return null;
+    }
+    try {
+      neutralFormula = ionType.addToFormula(neutralFormula);
+    } catch (CloneNotSupportedException e) {
+      return null;
+    }
+
+    return calculateIsotopePattern(neutralFormula, 0.005,
+        ionType.getAbsCharge(), ionType.getPolarity(), false);
   }
 
   @Override

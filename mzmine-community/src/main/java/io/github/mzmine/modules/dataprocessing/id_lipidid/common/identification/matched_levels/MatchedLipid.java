@@ -44,6 +44,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidAn
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.Collection;
 import java.util.HashSet;
@@ -85,7 +86,7 @@ public class MatchedLipid implements FeatureAnnotation {
    * StableValue renamed to ComputedConstant in JDK26
    */
   private Supplier<IsotopePattern> pattern = StableValue.supplier(
-      () -> FeatureAnnotation.calculateIsotopePattern(getLipidAnnotation().getMolecularFormula(),
+      () -> IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(getLipidAnnotation().getMolecularFormula(),
           getAdductType()));
 
   public MatchedLipid(ILipidAnnotation lipidAnnotation, Double accurateMz,

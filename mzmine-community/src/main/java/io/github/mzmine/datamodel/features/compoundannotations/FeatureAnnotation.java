@@ -216,28 +216,7 @@ public interface FeatureAnnotation {
     } else {
       formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
     }
-    return calculateIsotopePattern(formula, ionType);
-  }
-
-  /**
-   * Predict pattern with default binning width
-   *
-   * @param neutralFormula ionType will be added on top of neutral formula to create ion formula
-   * @return the isotope pattern of ion formula. or null if formula or ionType are null
-   */
-  public static @Nullable IsotopePattern calculateIsotopePattern(
-      @Nullable IMolecularFormula neutralFormula, @Nullable IonType ionType) {
-    if (neutralFormula == null || ionType == null) {
-      return null;
-    }
-    try {
-      neutralFormula = ionType.addToFormula(neutralFormula);
-    } catch (CloneNotSupportedException e) {
-      return null;
-    }
-
-    return IsotopePatternCalculator.calculateIsotopePattern(neutralFormula, 0.005,
-        ionType.getAbsCharge(), ionType.getPolarity(), false);
+    return IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(formula, ionType);
   }
 
   @Nullable IsotopePattern getIsotopePattern();
