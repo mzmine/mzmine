@@ -86,9 +86,9 @@ public class MatchedLipid implements FeatureAnnotation {
    * <p>
    * StableValue renamed to ComputedConstant in JDK26
    */
-  private Supplier<IsotopePattern> pattern = StableValue.supplier(
-      () -> IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(getLipidAnnotation().getMolecularFormula(),
-          getAdductType()));
+  private final Supplier<IsotopePattern> pattern = StableValue.supplier(
+      () -> IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(
+          getLipidAnnotation().getMolecularFormula(), getAdductType()));
 
   public MatchedLipid(ILipidAnnotation lipidAnnotation, Double accurateMz,
       IonizationType ionizationType, Set<LipidFragment> matchedFragments, Double msMsScore) {
