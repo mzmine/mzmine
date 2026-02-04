@@ -43,6 +43,17 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
     EmbeddedParameter<Boolean, EmbeddedParameterType, OptionalParameterComponent<?>> implements
     OptionalParameterContainer {
 
+  /**
+   * the default value is set for every OptionalParameter and it is required during loading from
+   * xml. In mzmine <4.9 if a parameter was changed from simple parameter to an OptionalParameter,
+   * the load from xml would default to loading false as the selected value. In mzmine 4.9 this was
+   * changed to use the defaultValue that is set for each OptionalParameter as this should be a
+   * better default.
+   */
+  private final boolean defaultValue;
+  /**
+   * The actual value
+   */
   private boolean value;
 
   public OptionalParameter(EmbeddedParameterType embeddedParameter) {
@@ -50,7 +61,13 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
   }
 
   public OptionalParameter(EmbeddedParameterType embeddedParameter, boolean defaultValue) {
-    super(defaultValue, embeddedParameter);
+    this(embeddedParameter, defaultValue, defaultValue);
+  }
+
+  protected OptionalParameter(EmbeddedParameterType embeddedParameter, boolean defaultValue,
+      boolean value) {
+    super(value, embeddedParameter);
+    this.defaultValue = defaultValue;
   }
 
 
@@ -81,7 +98,8 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
 
   @Override
   public OptionalParameter cloneParameter() {
-    return new OptionalParameter(embeddedParameter.cloneParameter(), this.getValue());
+    // always clone with the correct default value to retain load from xml behavior
+    return new OptionalParameter(embeddedParameter.cloneParameter(), defaultValue, value);
   }
 
   @Override
@@ -105,11 +123,13 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
+    // no need to load or save the defaultValue as this will always stay with the instance
     embeddedParameter.loadValueFromXML(xmlElement);
     String selectedAttr = xmlElement.getAttribute("selected");
     // might be blank if the attribute does not exist. For example if the parameter was not optional before
     if (selectedAttr.isBlank()) {
-      this.value = false;
+      // changed in 4.9 to use the actual defaultValue instead of false to allow default value true
+      this.value = defaultValue;
     } else {
       this.value = Boolean.parseBoolean(selectedAttr);
     }
@@ -117,6 +137,7 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
 
   @Override
   public void saveValueToXML(Element xmlElement) {
+    // no need to load or save the defaultValue as this will always stay with the instance
     xmlElement.setAttribute("selected", String.valueOf(value));
     embeddedParameter.saveValueToXML(xmlElement);
   }

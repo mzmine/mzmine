@@ -29,8 +29,8 @@ import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.parameters.CompositeParametersParameter;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelection;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelectionParameter;
 import java.util.Collection;
 import java.util.Map;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +44,7 @@ public class MinimumSamplesInOneMetadataGroupParameter extends
       Both the absolute threshold and a percentage is applied. The value will be rounded down to the nearest whole number.""";
 
   private final MinimumSamplesParameter minSamples;
-  private final MetadataGroupSelectionParameter metadata = new MetadataGroupSelectionParameter();
+  private final Metadata1GroupSelectionParameter metadata = new Metadata1GroupSelectionParameter();
   private final Integer minAbsolute;
   private MinimumSamplesFilterConfig value;
 
@@ -116,7 +116,7 @@ public class MinimumSamplesInOneMetadataGroupParameter extends
     final String columnName = requireNonNullElse(value.columnName(), "");
     final String groupStr = requireNonNullElse(value.group(), "");
 
-    metadata.setValue(new MetadataGroupSelection(columnName, groupStr));
+    metadata.setValue(new Metadata1GroupSelection(columnName, groupStr));
     minSamples.setValue(value.minSamples());
   }
 
@@ -129,7 +129,7 @@ public class MinimumSamplesInOneMetadataGroupParameter extends
   @Override
   protected void handleLoadedParameters(Map<String, Parameter<?>> loadedParameters) {
     super.handleLoadedParameters(loadedParameters);
-    final MetadataGroupSelection selection = metadata.getValue();
+    final Metadata1GroupSelection selection = metadata.getValue();
     setValue(new MinimumSamplesFilterConfig(minSamples.getValue(), selection.columnName(),
         selection.groupStr()));
   }
