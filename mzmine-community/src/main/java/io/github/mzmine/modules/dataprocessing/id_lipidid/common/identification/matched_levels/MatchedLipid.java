@@ -44,11 +44,13 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidAn
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -79,10 +81,13 @@ public class MatchedLipid implements FeatureAnnotation {
   private final MatchedLipidStatus status;
   private String comment;
   /**
-   * Pattern could be stored in ILipidAnnotation, but it seems unnecessary to calculate it, unless
-   * we have a match
+   * Pattern is calculated for ion so cannot be saved in {@link ILipidAnnotation}
+   * <p>
+   * StableValue renamed to ComputedConstant in JDK26
    */
-  private final IsotopePattern pattern;
+  private Supplier<IsotopePattern> pattern = StableValue.supplier(
+      () -> IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(getLipidAnnotation().getMolecularFormula(),
+          getAdductType()));
 
   public MatchedLipid(ILipidAnnotation lipidAnnotation, Double accurateMz,
       IonizationType ionizationType, Set<LipidFragment> matchedFragments, Double msMsScore) {
@@ -100,7 +105,6 @@ public class MatchedLipid implements FeatureAnnotation {
     this.msMsScore = msMsScore;
     this.status = status;
     this.comment = status.getComment();
-    this.pattern = calculateIsotopePattern();
   }
 
   public static MatchedLipid loadFromXML(XMLStreamReader reader,
@@ -358,7 +362,7 @@ public class MatchedLipid implements FeatureAnnotation {
 
   @Override
   public @Nullable IsotopePattern getIsotopePattern() {
-    return pattern;
+    return pattern.get();
   }
 
   @Override
