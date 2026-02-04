@@ -63,11 +63,11 @@ try {
     $pygIndex = "https://data.pyg.org/whl/torch-$torchTag%2B$cudaTag.html"
 
     # Try compiled deps; if unavailable, continue with torch_geometric only.
-    try {
-      micromamba run -p $envPrefix python -m pip install --no-cache-dir `
-        pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv `
-        -f $pygIndex
-    } catch {
+    Write-Host "Trying to install compiled PyG dependencies from $pygIndex..."
+    micromamba run -p $envPrefix python -m pip install --no-cache-dir `
+      pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv `
+      -f $pygIndex
+    if ($LASTEXITCODE -ne 0) {
       Write-Host "WARN: Could not install full PyG wheel set from $pygIndex. Installing torch_geometric only."
     }
     micromamba run -p $envPrefix python -m pip install --no-cache-dir torch_geometric

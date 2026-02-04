@@ -43,7 +43,3 @@ dependencies:
   # NOTE: torch_geometric and its optional compiled dependencies are installed via pip in
   # external_tools/diffms/runtime/build_runtime_packs.* to avoid fragile conda solves across
   # platforms.
-
-  # optional: only needed for some dataset tooling / scripts (not required for inference)
-  - tqdm-joblib
-
