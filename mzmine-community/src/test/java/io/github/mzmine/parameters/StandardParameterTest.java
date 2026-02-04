@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -37,8 +38,20 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelection;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelection;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelection;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import java.text.DecimalFormat;
 import java.util.List;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -59,6 +72,17 @@ class StandardParameterTest {
             new PolarityType[]{PolarityType.POSITIVE, PolarityType.NEGATIVE}),
             new PolarityType[]{PolarityType.NEGATIVE, PolarityType.POSITIVE}), //
         new ParameterTestCase(comboParam, PolarityType.POSITIVE), //
+        // metadata params
+        new ParameterTestCase(new MetadataGroupingParameter("t", "", "groupCol"), "other"),
+        new ParameterTestCase(new Metadata2GroupsSelectionParameter("t", "",
+            new Metadata2GroupsSelection("groupCol", "a", "b")),
+            new Metadata2GroupsSelection("groupColOther", "oa", "ob")), //
+        new ParameterTestCase(new Metadata1GroupSelectionParameter("t", "",
+            new Metadata1GroupSelection("groupCol", "a")),
+            new Metadata1GroupSelection("groupColOther", "oa")), //
+        new ParameterTestCase(new MetadataListGroupsSelectionParameter("t", "",
+            new MetadataListGroupsSelection("groupCol", List.of("a", "b"))),
+            new MetadataListGroupsSelection("groupColOther", List.of("oa", "ob"))), //
         // optional parameters
         new ParameterTestCase(new OptionalParameter<>(comboParam, true), false,
             PolarityType.POSITIVE), //
@@ -66,6 +90,37 @@ class StandardParameterTest {
             "otherEmbeddedValue") //
     );
     return tests;
+  }
+
+  @Test
+  void testRawDataFileSelection() {
+    final RawDataFilesSelection byMetadata = new RawDataFilesSelection(
+        RawDataFilesSelectionType.BY_METADATA);
+    byMetadata.setNamePattern("metadata files no pattern");
+
+    final RawDataFilesSelection selection = new RawDataFilesSelection(
+        RawDataFilesSelectionType.SPECIFIC_FILES);
+    selection.setSpecificFiles(
+        new RawDataFile[]{new RawDataFilePlaceholder("Test name.raw", "some path/somefile")});
+    testParameter(new ParameterTestCase<>(new RawDataFilesParameter(selection), byMetadata));
+
+    selection.setMetadataSelection(
+        new MetadataListGroupsSelection("Column", List.of("included1", "included2")),
+        new MetadataListGroupsSelection("exc column", List.of()));
+    selection.setNamePattern("*pattern");
+
+    testParameter(new ParameterTestCase<>(new RawDataFilesParameter(selection), byMetadata));
+
+    selection.setSelectionType(RawDataFilesSelectionType.NAME_PATTERN);
+    // only save when specific selected
+    selection.setSpecificFiles(new RawDataFilePlaceholder[0]);
+
+    testParameter(new ParameterTestCase<>(new RawDataFilesParameter(selection), byMetadata));
+  }
+
+  void testParameter(ParameterTestCase<?> test) {
+    saveLoadParameter(test);
+    cloneParameter(test);
   }
 
   @ParameterizedTest
@@ -118,7 +173,8 @@ class StandardParameterTest {
 
   void assertValueEqual(Parameter param, Parameter clone, boolean equal) {
     assertEquals(equal, param.valueEquals(clone),
-        "Value equals should be %s but is %s".formatted(equal, !equal));
+        "Parameter %s: Value equals should be %s but is %s".formatted(param.getName(), equal,
+            !equal));
   }
 
   void assertEmbeddedEqual(Parameter param, Parameter clone, boolean equal) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
@@ -90,6 +91,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final String sampleHeader;
   private final List<RawDataFile> allRawDataFiles;
   private final ExtraColumnHandler extraColumnHandler;
+  private final boolean calcMainSignal;
   private final ChargeFilterType chargeFilter;
   private IonNetworkLibrary ionNetworkLibrary;
 
@@ -134,6 +136,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     extraColumnHandler = new ExtraColumnHandler(
         parameters.getValue(LocalCSVDatabaseSearchParameters.extraColumns));
+
+    calcMainSignal = parameters.getValue(LocalCSVDatabaseSearchParameters.calculateMainSignal);
 
     final boolean isotopePatternMatcher = parameters.getValue(
         LocalCSVDatabaseSearchParameters.isotopePatternMatcher);
@@ -349,6 +353,10 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           CompoundDBAnnotation.buildCompoundsWithAdducts(baseAnnotation, ionLibrary));
     } else {
       annotations.add(baseAnnotation);
+    }
+    if (mzTolerance != null && calcMainSignal) {
+      annotations.addAll(
+          CompoundDBAnnotation.buildMostIntenseIsotopeRatios(annotations, mzTolerance));
     }
     return annotations;
   }

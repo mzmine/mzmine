@@ -55,8 +55,8 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt.Mode;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelection;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelection;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
@@ -281,7 +281,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
         .getEmbeddedParameters();
     cvFilter.setAll(AbundanceMeasure.Area, ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION, 0.2, 0.2,
         false,
-        new MetadataGroupSelection(MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()));
+        new Metadata1GroupSelection(MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()));
 
     param.setParameter(RowsFilterParameters.foldChangeFilter, false);
     final FoldChangeSignificanceRowFilterParameters fcParams = param.getParameter(
