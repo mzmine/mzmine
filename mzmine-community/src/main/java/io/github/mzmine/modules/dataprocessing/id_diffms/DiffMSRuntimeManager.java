@@ -421,8 +421,23 @@ public final class DiffMSRuntimeManager {
 
   private static Optional<File> findBestPackFile(final @NotNull Variant variant,
       final @NotNull Platform platform) {
-    final File packsDir = FileAndPathUtil.resolveInExternalToolsDir(PACKS_DIR_REL);
-    if (packsDir == null || !packsDir.isDirectory()) {
+    
+    List<File> searchDirs = new ArrayList<>();
+    
+    // 1. Check user-built packs first (UserDir/.mzmine/diffms/runtime-packs)
+    File userDiffMs = new File(FileAndPathUtil.getMzmineDir(), "diffms");
+    File userPacks = new File(userDiffMs, "runtime-packs");
+    if (userPacks.isDirectory()) {
+      searchDirs.add(userPacks);
+    }
+    
+    // 2. Check bundled packs (external_tools/diffms/runtime-packs)
+    final File bundledPacks = FileAndPathUtil.resolveInExternalToolsDir(PACKS_DIR_REL);
+    if (bundledPacks != null && bundledPacks.isDirectory()) {
+      searchDirs.add(bundledPacks);
+    }
+    
+    if (searchDirs.isEmpty()) {
       return Optional.empty();
     }
 
@@ -430,35 +445,34 @@ public final class DiffMSRuntimeManager {
     final String os = platform.os.id;
     final String arch = platform.arch.id;
 
-    final File[] files = packsDir.listFiles();
-    if (files == null || files.length == 0) {
-      return Optional.empty();
-    }
-
-    // Prefer files matching the recommended naming convention:
-    // diffms-runtime-<variant>-<os>-<arch>.(tar.gz|zip)
     final List<File> candidates = new ArrayList<>();
-    for (final File f : files) {
-      if (!f.isFile()) {
-        continue;
-      }
-      final String n = f.getName().toLowerCase(Locale.ROOT);
-      if (!n.contains("diffms-runtime-")) {
-        continue;
-      }
-      if (!n.contains("-" + v + "-")) {
-        continue;
-      }
-      if (!n.contains("-" + os + "-")) {
-        continue;
-      }
-      if (!n.contains("-" + arch)) {
-        continue;
-      }
-      if (!(n.endsWith(".zip") || n.endsWith(".tar.gz") || n.endsWith(".tgz"))) {
-        continue;
-      }
-      candidates.add(f);
+    
+    for (File packsDir : searchDirs) {
+        final File[] files = packsDir.listFiles();
+        if (files == null) continue;
+        
+        for (final File f : files) {
+          if (!f.isFile()) {
+            continue;
+          }
+          final String n = f.getName().toLowerCase(Locale.ROOT);
+          if (!n.contains("diffms-runtime-")) {
+            continue;
+          }
+          if (!n.contains("-" + v + "-")) {
+            continue;
+          }
+          if (!n.contains("-" + os + "-")) {
+            continue;
+          }
+          if (!n.contains("-" + arch)) {
+            continue;
+          }
+          if (!(n.endsWith(".zip") || n.endsWith(".tar.gz") || n.endsWith(".tgz"))) {
+            continue;
+          }
+          candidates.add(f);
+        }
     }
 
     return candidates.stream().max(Comparator.comparingLong(File::lastModified));

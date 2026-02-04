@@ -4,14 +4,35 @@ $ErrorActionPreference = "Stop"
 # Builds DiffMS runtime packs using micromamba + conda-pack (Windows).
 #
 # Output:
-#   external_tools\diffms\runtime-packs\diffms-runtime-<variant>-windows-<arch>.zip
+#   <OutputDirectory>\diffms-runtime-<variant>-windows-<arch>.zip
 #
 # Requirements:
-# - micromamba on PATH
+# - micromamba on PATH or set via MICROMAMBA_EXE env var
+#
+# Usage:
+#   .\build_runtime_packs.ps1 [[-OutputDirectory] <path>]
+
+param(
+    [string]$OutputDirectory
+)
 
 $RootDir = Resolve-Path (Join-Path $PSScriptRoot "..\..\..") | Select-Object -ExpandProperty Path
 $RuntimeDir = Join-Path $RootDir "external_tools\diffms\runtime"
-$PacksDir = Join-Path $RootDir "external_tools\diffms\runtime-packs"
+
+if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
+    $PacksDir = Join-Path $RootDir "external_tools\diffms\runtime-packs"
+} else {
+    $PacksDir = $OutputDirectory
+}
+
+$MambaExe = $env:MICROMAMBA_EXE
+if ([string]::IsNullOrWhiteSpace($MambaExe)) {
+    $MambaExe = "micromamba"
+}
+
+if (!(Get-Command $MambaExe -ErrorAction SilentlyContinue)) {
+    Write-Error "$MambaExe not found. Please install micromamba or set MICROMAMBA_EXE."
+}
 
 $CpuYml = Join-Path $RuntimeDir "diffms-runtime-cpu.yml"
 $CudaYml = Join-Path $RuntimeDir "diffms-runtime-cuda.yml"
@@ -34,23 +55,23 @@ New-Item -ItemType Directory -Force -Path $tmpRoot | Out-Null
 try {
   $packerPrefix = Join-Path $tmpRoot "packer"
   Write-Host "Building conda-pack tool env..."
-  micromamba create -y -p $packerPrefix -c conda-forge conda-pack | Out-Null
+  & $MambaExe create -y -p $packerPrefix -c conda-forge conda-pack | Out-Null
 
   function Build-Pack($variant, $yml, $out) {
     $envPrefix = Join-Path $tmpRoot ("env_" + $variant)
     Write-Host "Creating env for $variant from $(Split-Path $yml -Leaf)..."
     if ($env:MAMBA_EXTRA_ARGS) {
-      micromamba create -y -p $envPrefix -f $yml $env:MAMBA_EXTRA_ARGS
+      & $MambaExe create -y -p $envPrefix -f $yml $env:MAMBA_EXTRA_ARGS
     } else {
-      micromamba create -y -p $envPrefix -f $yml
+      & $MambaExe create -y -p $envPrefix -f $yml
     }
 
     Write-Host "Installing torch-geometric stack via pip (variant=$variant)..."
-    $torchVer = (micromamba run -p $envPrefix python -c "import torch; print(torch.__version__)") -replace "`r",""
+    $torchVer = (& $MambaExe run -p $envPrefix python -c "import torch; print(torch.__version__)") -replace "`r",""
     if ($torchVer -match '^(\d+\.\d+\.\d+)') { $torchVer = $Matches[1] }
     if ($torchVer -match '^(\d+\.\d+)\.') { $torchTag = ($Matches[1] + ".0") } else { $torchTag = $torchVer }
 
-    $cudaRaw = (micromamba run -p $envPrefix python -c "import torch; print(torch.version.cuda or '')") -replace "`r",""
+    $cudaRaw = (& $MambaExe run -p $envPrefix python -c "import torch; print(torch.version.cuda or '')") -replace "`r",""
     if ([string]::IsNullOrWhiteSpace($cudaRaw)) {
       $cudaTag = "cpu"
     } else {
@@ -64,18 +85,18 @@ try {
 
     # Try compiled deps; if unavailable, continue with torch_geometric only.
     Write-Host "Trying to install compiled PyG dependencies from $pygIndex..."
-    micromamba run -p $envPrefix python -m pip install --no-cache-dir `
+    & $MambaExe run -p $envPrefix python -m pip install --no-cache-dir `
       pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv `
       -f $pygIndex
     if ($LASTEXITCODE -ne 0) {
       Write-Host "WARN: Could not install full PyG wheel set from $pygIndex. Installing torch_geometric only."
     }
-    micromamba run -p $envPrefix python -m pip install --no-cache-dir torch_geometric
-    micromamba run -p $envPrefix python -m pip install --no-cache-dir tqdm-joblib
+    & $MambaExe run -p $envPrefix python -m pip install --no-cache-dir torch_geometric
+    & $MambaExe run -p $envPrefix python -m pip install --no-cache-dir tqdm-joblib
 
     Write-Host "Packing env to $(Split-Path $out -Leaf)..."
     if (Test-Path $out) { Remove-Item -Force $out }
-    micromamba run -p $packerPrefix conda-pack -p $envPrefix -o $out --format zip
+    & $MambaExe run -p $packerPrefix conda-pack -p $envPrefix -o $out --format zip
     Write-Host "Done: $out"
   }
 

@@ -42,6 +42,9 @@ public class DiffMSParameters extends SimpleParameterSet {
           List.of(), FileSelectionType.OPEN),
       false);
 
+  public static final DiffMSBuildRuntimeParameter buildRuntime = new DiffMSBuildRuntimeParameter("Build Runtime",
+      "Create a local Python runtime for DiffMS using the bundled scripts. Requires internet access.", "Create Python Runtime");
+
   public static final FileNameParameter checkpoint = new DiffMSCheckpointParameter("Checkpoint",
       "Pretrained DiffMS checkpoint (.ckpt). Use the download button to fetch the DiffMS checkpoint archive from Zenodo and automatically extract the required .ckpt.",
       List.of(new ExtensionFilter("Checkpoint", "*.ckpt")), FileSelectionType.OPEN);
@@ -59,7 +62,7 @@ public class DiffMSParameters extends SimpleParameterSet {
       "Absolute tolerance for matching a subformula mass to an MS/MS peak m/z.", 0.02, 10.0);
 
   public DiffMSParameters() {
-    this(new io.github.mzmine.parameters.Parameter<?>[] { flists, pythonExecutable, checkpoint,
+    this(new io.github.mzmine.parameters.Parameter<?>[] { flists, pythonExecutable, buildRuntime, checkpoint,
         device, topK, maxMs2Peaks, subformulaTol });
 
     // Auto-select checkpoint if it was downloaded previously or if the current one
