@@ -1,0 +1,7 @@
+*
+!.gitignore
+!README.md
+!*.yml
+!*.yaml
+!*.sh
+!*.ps1

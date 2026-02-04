@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "diffms"
+version = "1.0.0"
+description = "DiffMS: Diffusion Generation of Molecules Conditioned on Mass Spectra"
+requires-python = "==3.9.*"
+dependencies = [
+    "hydra-core==1.3.2",
+    "matplotlib==3.7.1",
+    "numpy==1.23",
+    "omegaconf==2.3.0",
+    "overrides==7.3.1",
+    "pandas==1.4",
+    "pytorch_lightning==2.0.4",
+    "setuptools==68.0.0",
+    "torch_geometric==2.3.1",
+    "torchmetrics==0.11.4",
+    "tqdm",
+    "wandb",
+    "h5py",
+    "seaborn",
+    "myopic-mces",
+    "tqdm-joblib",
+]
+authors = [
+    {name = "Montgomery Bohde", email = "mbohde@tamu.edu"},
+    {name = "Mrunali Manjrekar"},
+    {name = "Runzhong Wang"},
+    {name = "Shuiwang Ji"},
+    {name = "Connor W. Coley"},
+]
+maintainers = [
+    {name = "Montgomery Bohde", email = "mbohde@tamu.edu"}
+]
+readme = "README.md"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src"]
+exclude = []
+namespaces = false

@@ -1,0 +1,49 @@
+name: mzmine-diffms-cuda
+
+# CUDA runtime for DiffMS used by MZmine.
+#
+# Intended platforms: Windows x64 + Linux x64 (NVIDIA).
+# macOS does not support CUDA.
+#
+# This environment bundles a CUDA-enabled PyTorch build. On machines without a GPU, PyTorch will
+# still run on CPU, but the environment will be significantly larger.
+channels:
+  - nvidia
+  - pytorch
+  - conda-forge
+
+dependencies:
+  - python=3.9
+  - pip
+
+  # core scientific stack
+  - numpy<2
+  - scipy
+  - pandas
+  - networkx
+  - tqdm
+  - joblib
+
+  # DiffMS + runner dependencies
+  - rdkit=2024.09.4
+  - omegaconf=2.3.*
+  - hydra-core=1.3.*
+  - pytorch-lightning=2.0.*
+  - torchmetrics=0.11.*
+  - wandb
+  - h5py
+  - matplotlib
+
+  # PyTorch + CUDA (choose a CUDA runtime version that has broad support)
+  # DiffMS upstream reference: CUDA 11.8.
+  - pytorch=2.3.1
+  - pytorch-cuda=11.8
+
+  # PyTorch Geometric (torch_geometric import)
+  # NOTE: torch_geometric and its optional compiled dependencies are installed via pip in
+  # external_tools/diffms/runtime/build_runtime_packs.* to avoid fragile conda solves across
+  # platforms.
+
+  # optional: only needed for some dataset tooling / scripts (not required for inference)
+  - tqdm-joblib
+

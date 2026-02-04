@@ -307,7 +307,28 @@ def EXTERNAL_TOOLS_DESTINATION =
         !OperatingSystem.current().isMacOsX() ? getLayout().getBuildDirectory().dir("jpackage/$APPNAME/external_tools").get()
                 : getLayout().getBuildDirectory().dir("jpackage/${APPNAME}.app/Contents/external_tools").get()
 def EXTERNAL_TOOLS_SRC = getLayout().getProjectDirectory().dir("../external_tools")
+tasks.jpackage.dependsOn(tasks.fetchDiffmsRuntimePacks)
 tasks.jpackage.doFirst {
+    // DiffMS runtime packs (optional but recommended)
+    // Runtime packs are large and therefore stored in external_tools/diffms/runtime-packs/ (gitignored).
+    // They are downloaded from GitHub Releases by fetchDiffmsRuntimePacks task.
+    def packsDir = new File(layout.projectDirectory.asFile, "../external_tools/diffms/runtime-packs")
+    def requirePacks = (project.findProperty("requireDiffmsRuntimePacks")?.toString()?.toBoolean() ?: false)
+    def hasPacks = packsDir.isDirectory() && (packsDir.listFiles()?.any {
+        it.isFile() && it.name.toLowerCase().startsWith("diffms-runtime-") && (
+            it.name.toLowerCase().endsWith(".zip") || it.name.toLowerCase().endsWith(".tar.gz") || it.name.toLowerCase().endsWith(".tgz")
+        )
+    } ?: false)
+    if (!hasPacks) {
+        def msg = "DiffMS runtime packs not found in ${packsDir.absolutePath}. " +
+                "They should have been downloaded by fetchDiffmsRuntimePacks task."
+        if (requirePacks) {
+            throw new GradleException(msg)
+        } else {
+            logger.warn(msg)
+        }
+    }
+
     copy {
         from EXTERNAL_TOOLS_SRC
         into EXTERNAL_TOOLS_DESTINATION
@@ -327,8 +348,9 @@ tasks.jpackage.doFirst {
                 commandLine(['xattr', '-r', '-d', 'com.apple.quarantine', externalToolsDir.absolutePath])
                 ignoreExitValue = true
             }
-        } catch (Exception ignored) {
-            // best-effort; continue
+        } catch (Exception e) {
+            logger.warn("Failed to set file permissions or remove quarantine: ${e.message}")
+            logger.debug("Stacktrace:", e)
         }
     }
 }
@@ -750,6 +772,78 @@ tasks.register('fetchThermoRawFileParser') {
 // running in intellij will not download the resources so one manual gradle task call is needed
 tasks.named('processResources') {
     dependsOn(tasks.named('fetchThermoRawFileParser'))
+    dependsOn(tasks.named('fetchDiffmsRuntimePacks'))
+}
+
+tasks.register('fetchDiffmsRuntimePacks') {
+    def packsDir = new File(layout.projectDirectory.asFile, "../external_tools/diffms/runtime-packs")
+    def tag = "diffms-runtimes"
+    def repo = "mzmine/mzmine" // Pre-built runtimes are served from this repo
+    
+    outputs.dir(packsDir)
+
+    doLast {
+        if (!packsDir.exists()) packsDir.mkdirs()
+
+        // We only download if the directory is empty or missing the current platform pack
+        def os = OperatingSystem.current().isWindows() ? "windows" : (OperatingSystem.current().isMacOsX() ? "macos" : "linux")
+        def arch = System.getProperty("os.arch").toLowerCase().contains("aarch64") || System.getProperty("os.arch").toLowerCase().contains("arm64") ? "arm64" : "x86_64"
+        def ext = os == "windows" ? "zip" : "tar.gz"
+        
+        def currentPlatformPattern = "diffms-runtime-*-${os}-${arch}.${ext}"
+        def hasCurrentPlatform = packsDir.listFiles()?.any { it.name.matches(currentPlatformPattern.replace("*", ".*")) } ?: false
+
+        if (hasCurrentPlatform && !project.hasProperty("forceDownloadRuntimes")) {
+            logger.lifecycle("DiffMS runtime for current platform already exists in ${packsDir.absolutePath}. Use -PforceDownloadRuntimes to override.")
+            return
+        }
+
+        logger.lifecycle("Downloading DiffMS runtime packs from GitHub Release ${tag}...")
+        
+        // Try using gh CLI first as it is more efficient and handles auth if needed
+        def ghAvailable = false
+        try {
+            def result = exec {
+                commandLine 'gh', '--version'
+                ignoreExitValue = true
+                standardOutput = new ByteArrayOutputStream()
+            }
+            ghAvailable = result.exitValue == 0
+        } catch (Exception ignored) {}
+
+        if (ghAvailable) {
+            exec {
+                commandLine 'gh', 'release', 'download', tag, '--repo', repo, '--dir', packsDir.absolutePath, '--pattern', 'diffms-runtime-*', '--clobber'
+            }
+        } else {
+            // Fallback to manual download via URL if gh is not available
+            // This is more complex because we need to know the filenames.
+            // For now, we'll try to download the most common ones.
+            def variants = ["cpu", "cuda"]
+            def platforms = [
+                "linux-x86_64": "tar.gz",
+                "macos-arm64": "tar.gz",
+                "windows-x86_64": "zip"
+            ]
+
+            variants.each { variant ->
+                platforms.each { platform, extension ->
+                    if (variant == "cuda" && platform.startsWith("macos")) return
+                    
+                    def fileName = "diffms-runtime-${variant}-${platform}.${extension}"
+                    def url = "https://github.com/${repo}/releases/download/${tag}/${fileName}"
+                    def destFile = new File(packsDir, fileName)
+                    
+                    try {
+                        logger.lifecycle("Downloading ${url}...")
+                        new URL(url).withInputStream { i -> destFile.withOutputStream { it << i } }
+                    } catch (Exception e) {
+                        logger.warn("Failed to download ${url}: ${e.message}")
+                    }
+                }
+            }
+        }
+    }
 }
 
 /*
