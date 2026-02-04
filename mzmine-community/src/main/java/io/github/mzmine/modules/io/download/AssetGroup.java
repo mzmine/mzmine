@@ -32,7 +32,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Fixed details on external assets. See also {@link DownloadAsset} to define new downloads of
+ * Fixed details on external assets. See also {@link DownloadAsset} to define
+ * new downloads of
  * specific versions.
  */
 public enum AssetGroup {
@@ -43,7 +44,7 @@ public enum AssetGroup {
   MSnLib, GNPS_LIB, MONA_LIB, MASSBANK_EU,
 
   // models
-  MS2DEEPSCORE, DREAMS;
+  MS2DEEPSCORE, DREAMS, DIFFMS;
 
   @Override
   public String toString() {
@@ -64,6 +65,7 @@ public enum AssetGroup {
       case MASSBANK_EU -> "MassBank EU";
       case MS2DEEPSCORE -> "MS2Deepscore";
       case DREAMS -> "DreaMS";
+      case DIFFMS -> "DiffMS";
     };
   }
 
@@ -76,7 +78,7 @@ public enum AssetGroup {
     return switch (this) {
       case ThermoRawFileParser, MSCONVERT -> AssetCategory.TOOLS;
       case MSnLib, GNPS_LIB, MONA_LIB, MASSBANK_EU -> AssetCategory.SPECTRAL_LIBRARIES;
-      case MS2DEEPSCORE, DREAMS -> AssetCategory.MODELS;
+      case MS2DEEPSCORE, DREAMS, DIFFMS -> AssetCategory.MODELS;
     };
   }
 
@@ -87,7 +89,7 @@ public enum AssetGroup {
   public String getDownloadInfoPage() {
     return switch (this) {
       case ThermoRawFileParser ->
-          "https://github.com/pluskal-lab/ThermoRawFileParserMacLinux/releases";
+        "https://github.com/pluskal-lab/ThermoRawFileParserMacLinux/releases";
       case MSCONVERT -> "https://proteowizard.sourceforge.io/download.html";
       // libraries
       case MSnLib -> "https://zenodo.org/records/11163380";
@@ -96,11 +98,13 @@ public enum AssetGroup {
       case MASSBANK_EU -> "https://github.com/MassBank/MassBank-data/releases/latest";
       case MS2DEEPSCORE -> "https://zenodo.org/records/12628368";
       case DREAMS -> "https://huggingface.co/roman-bushuiev/DreaMS";
+      case DIFFMS -> "https://zenodo.org/records/15122968";
     };
   }
 
   /**
-   * @return list of download options. Empty list if no direct download is possible
+   * @return list of download options. Empty list if no direct download is
+   *         possible
    */
   @NotNull
   public List<DownloadAsset> getDownloadAssets() {

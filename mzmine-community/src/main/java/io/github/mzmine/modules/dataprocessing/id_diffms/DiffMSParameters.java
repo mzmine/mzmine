@@ -22,11 +22,12 @@ package io.github.mzmine.modules.dataprocessing.id_diffms;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import java.io.File;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -34,15 +35,15 @@ public class DiffMSParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
-  public static final FileNameParameter pythonExecutable = new FileNameParameter("Python",
-      "Python executable with DiffMS installed (or runnable via --diffms-dir).", List.of(),
-      FileSelectionType.OPEN);
+  public static final OptionalParameter<FileNameParameter> pythonExecutable = new OptionalParameter<>(
+      new FileNameParameter("Custom Python executable",
+          "Optional override for the Python executable. If not selected, MZmine will use the bundled DiffMS runtime pack "
+              + "(external_tools/diffms/runtime-packs) and extract it into the user directory on first use.",
+          List.of(), FileSelectionType.OPEN),
+      false);
 
-  public static final DirectoryParameter diffmsDir = new DirectoryParameter("DiffMS directory",
-      "Path to a local DiffMS checkout (repository root).");
-
-  public static final FileNameParameter checkpoint = new FileNameParameter("Checkpoint",
-      "Pretrained DiffMS checkpoint (.ckpt).",
+  public static final FileNameParameter checkpoint = new DiffMSCheckpointParameter("Checkpoint",
+      "Pretrained DiffMS checkpoint (.ckpt). Use the download button to fetch the DiffMS checkpoint archive from Zenodo and automatically extract the required .ckpt.",
       List.of(new ExtensionFilter("Checkpoint", "*.ckpt")), FileSelectionType.OPEN);
 
   public static final ComboParameter<Device> device = new ComboParameter<>("Device",
@@ -58,11 +59,19 @@ public class DiffMSParameters extends SimpleParameterSet {
       "Absolute tolerance for matching a subformula mass to an MS/MS peak m/z.", 0.02, 10.0);
 
   public DiffMSParameters() {
-    this(new io.github.mzmine.parameters.Parameter[] { flists, pythonExecutable, diffmsDir,
-        checkpoint, device, topK, maxMs2Peaks, subformulaTol });
+    this(new io.github.mzmine.parameters.Parameter<?>[] { flists, pythonExecutable, checkpoint,
+        device, topK, maxMs2Peaks, subformulaTol });
+
+    // Auto-select checkpoint if it was downloaded previously or if the current one
+    // is missing.
+    final File defaultCkpt = DiffMSCheckpointFiles.getDefaultCheckpointFile();
+    final File currentCkpt = getValue(checkpoint);
+    if (defaultCkpt.isFile() && (currentCkpt == null || !currentCkpt.isFile())) {
+      getParameter(checkpoint).setValue(defaultCkpt);
+    }
   }
 
-  protected DiffMSParameters(final io.github.mzmine.parameters.Parameter[] parameters) {
+  protected DiffMSParameters(final io.github.mzmine.parameters.Parameter<?>[] parameters) {
     super(parameters);
   }
 

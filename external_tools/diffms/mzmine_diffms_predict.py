@@ -381,6 +381,18 @@ def main():
     from concurrent.futures import ProcessPoolExecutor
     import multiprocessing
 
+    # If CUDA is requested but not available (or not supported by this build), fall back to CPU.
+    # This allows shipping a CUDA-enabled runtime while still working on CPU-only machines, and
+    # also avoids hard failures when users select "CUDA" in MZmine on unsupported platforms.
+    if str(args.device).lower().startswith("cuda"):
+        try:
+            if not torch.cuda.is_available():
+                print("MZMINE_DIFFMS_LOG CUDA requested but not available; falling back to CPU", file=sys.stderr, flush=True)
+                args.device = "cpu"
+        except Exception:
+            print("MZMINE_DIFFMS_LOG CUDA requested but unavailable; falling back to CPU", file=sys.stderr, flush=True)
+            args.device = "cpu"
+
     device = torch.device(args.device)
 
     # Workers are now defined at top-level

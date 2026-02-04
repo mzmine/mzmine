@@ -34,9 +34,8 @@ public class SelectedRowsDiffMSParameters extends DiffMSParameters {
       "The ids of the rows to be annotated.");
 
   public SelectedRowsDiffMSParameters() {
-    super(new Parameter[]{rowIds.cloneParameter(), pythonExecutable.cloneParameter(),
-        diffmsDir.cloneParameter(), checkpoint.cloneParameter(), device.cloneParameter(),
-        topK.cloneParameter(), maxMs2Peaks.cloneParameter(), subformulaTol.cloneParameter()});
+    super(new Parameter[] { rowIds.cloneParameter(), pythonExecutable.cloneParameter(),
+        checkpoint.cloneParameter(), device.cloneParameter(), topK.cloneParameter(),
+        maxMs2Peaks.cloneParameter(), subformulaTol.cloneParameter() });
   }
 }
-

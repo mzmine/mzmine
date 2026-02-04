@@ -113,7 +113,6 @@ public class DiffMSTask extends AbstractTask {
   private final int maxMs2Peaks;
   private final @NotNull MZTolerance subformulaTol;
   private final @NotNull File pythonExe;
-  private final @NotNull File diffmsDir;
   private final @NotNull File checkpoint;
 
   private final Map<Integer, ModularFeatureListRow> rowsById = new HashMap<>();
@@ -153,8 +152,8 @@ public class DiffMSTask extends AbstractTask {
       this.rowsOverride = null;
     }
 
-    this.pythonExe = parameters.getValue(DiffMSParameters.pythonExecutable);
-    this.diffmsDir = parameters.getValue(DiffMSParameters.diffmsDir);
+    this.pythonExe = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        DiffMSParameters.pythonExecutable, null);
     this.checkpoint = parameters.getValue(DiffMSParameters.checkpoint);
     this.device = parameters.getValue(DiffMSParameters.device);
     this.topK = parameters.getValue(DiffMSParameters.topK);
@@ -181,14 +180,40 @@ public class DiffMSTask extends AbstractTask {
     }
     mlist.addRowType(DataTypes.get(CompoundDatabaseMatchesType.class));
 
-    if (pythonExe == null || !pythonExe.isFile()) {
+    File effectivePythonExe = pythonExe;
+    if (effectivePythonExe == null || !effectivePythonExe.isFile()) {
+      // Prefer bundled runtime packs extracted into the user dir (writable) and
+      // relocated via conda-unpack.
+      effectivePythonExe = DiffMSRuntimeManager.ensureRuntimeAndGetPython(
+          device == DiffMSParameters.Device.CUDA ? DiffMSRuntimeManager.Variant.CUDA
+              : DiffMSRuntimeManager.Variant.CPU,
+          this::isCanceled);
+    }
+    if (effectivePythonExe == null || !effectivePythonExe.isFile()) {
       throw new IllegalStateException("Python executable not found.");
     }
-    if (diffmsDir == null || !diffmsDir.isDirectory()) {
-      throw new IllegalStateException("DiffMS directory not found.");
+
+    File ckptToResolve = checkpoint;
+    if (ckptToResolve == null || !ckptToResolve.isFile()) {
+      // If the parameter is missing or invalid, try the default location.
+      final File defaultCkpt = DiffMSCheckpointFiles.getDefaultCheckpointFile();
+      if (defaultCkpt.isFile()) {
+        ckptToResolve = defaultCkpt;
+      }
     }
-    if (checkpoint == null || !checkpoint.isFile()) {
-      throw new IllegalStateException("DiffMS checkpoint not found.");
+
+    if (ckptToResolve == null || !ckptToResolve.isFile()) {
+      throw new IllegalStateException(
+          "DiffMS checkpoint not found. Use the DiffMS parameters to download or select it.");
+    }
+
+    // DiffMS is vendored into the MZmine distribution to keep user setup minimal.
+    // The vendored commit hash is recorded in
+    // external_tools/diffms/vendor/DIFFMS_PINNED_COMMIT.txt
+    final File diffmsDir = FileAndPathUtil.resolveInExternalToolsDir("diffms/vendor/DiffMS/");
+    if (diffmsDir == null || !diffmsDir.isDirectory()) {
+      throw new IllegalStateException(
+          "Bundled DiffMS directory not found. Expected external_tools/diffms/vendor/DiffMS/");
     }
 
     final File runnerDir = FileAndPathUtil.resolveInExternalToolsDir("diffms/");
@@ -390,17 +415,22 @@ public class DiffMSTask extends AbstractTask {
     doneRows = 0;
     description = "DiffMS: loading model";
 
+    final File effectiveCheckpoint = resolveCheckpointOrExtractIfNeeded(ckptToResolve);
+    if (!effectiveCheckpoint.isFile()) {
+      throw new IllegalStateException("DiffMS checkpoint not found after extraction.");
+    }
+
     // We do not rely on the output file anymore for results, but still pass it as
     // argument
     // to keep the interface compatible if we wanted to read it at the end.
     // However, we now process results incrementally.
     final List<String> cmd = new ArrayList<>();
-    cmd.add(pythonExe.getAbsolutePath());
+    cmd.add(effectivePythonExe.getAbsolutePath());
     cmd.add(runner.getAbsolutePath());
     cmd.add("--diffms-dir");
     cmd.add(diffmsDir.getAbsolutePath());
     cmd.add("--checkpoint");
-    cmd.add(checkpoint.getAbsolutePath());
+    cmd.add(effectiveCheckpoint.getAbsolutePath());
     cmd.add("--input");
     cmd.add(inFile.getAbsolutePath());
     cmd.add("--output");
@@ -428,7 +458,8 @@ public class DiffMSTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
-      logger.log(Level.SEVERE, "DiffMS: runner failed. Partial results might be available.", e);
+      error("DiffMS: runner failed. " + (e.getMessage() == null ? "" : e.getMessage()), e);
+      return;
     }
 
     final long endTime = System.nanoTime();
@@ -445,6 +476,31 @@ public class DiffMSTask extends AbstractTask {
     }
 
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private File resolveCheckpointOrExtractIfNeeded(final @NotNull File checkpointFile) {
+    if (!DiffMSCheckpointFiles.isTarGz(checkpointFile)) {
+      return checkpointFile;
+    }
+
+    // If the parameter points to the archive (e.g., immediately after download),
+    // extract the
+    // default checkpoint into the DiffMS model directory under the user MZmine
+    // directory and use
+    // that.
+    final File out = DiffMSCheckpointFiles.getDefaultCheckpointFile();
+    if (out.isFile() && out.length() > 0) {
+      return out;
+    }
+
+    description = "DiffMS: extracting checkpoint";
+    try {
+      return DiffMSCheckpointFiles.extractWantedCheckpointFromTarGz(checkpointFile, out,
+          DiffMSCheckpointFiles.DEFAULT_CHECKPOINT_FILE_NAME, this::isCanceled);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to extract DiffMS checkpoint from archive: "
+          + checkpointFile.getAbsolutePath(), e);
+    }
   }
 
   private void processResultItem(DiffMSResultItem res) {
@@ -535,6 +591,7 @@ public class DiffMSTask extends AbstractTask {
           if (sm.matches()) {
             final String stage = sm.group(1);
             description = "DiffMS: " + stage + formatEtaSuffix(emaSecondsPerRow);
+            logger.info(() -> "DiffMS: stage=" + stage);
             if (stage.contains("inference")) {
               lastProgressNanos = System.nanoTime();
               lastProgressDone = doneRows;
