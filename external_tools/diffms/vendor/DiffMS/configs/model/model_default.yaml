@@ -1,0 +1,20 @@
+# Model settings
+transition: 'marginal' 
+model: 'graph_tf'           # 'graph_tf', 'graph_tf_v2',       
+diffusion_steps: 500
+diffusion_noise_schedule: 'cosine'         
+n_layers: 5
+
+extra_features: 'all'        # 'all', 'cycles', 'eigenvalues' or null
+
+hidden_mlp_dims: {'X': 256, 'E': 128, 'y': 2048}        
+
+hidden_dims : {'dx': 256, 'de': 64, 'dy': 1024, 'n_head': 8, 'dim_ffX': 256, 'dim_ffE': 128, 'dim_ffy': 1024}
+
+encoder_hidden_dim: 256           # Small Model Default (CANOPUS)
+#encoder_hidden_dim: 512          # Large Model Default (MSG)
+
+encoder_magma_modulo: 512         # Small Model Default (CANOPUS)
+#encoder_magma_modulo: 2048       # Large Model Default (MSG)
+
+lambda_train: [0, 1, 0]
