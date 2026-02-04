@@ -19,7 +19,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_diffms;
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -28,14 +27,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
 
 public class DiffMSBuildRuntimeTask extends AbstractTask {
 
@@ -53,8 +51,10 @@ public class DiffMSBuildRuntimeTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return 0; // Indeterminate
+    return finishedPercentage;
   }
+
+  private double finishedPercentage = 0;
 
   @Override
   public void run() {
@@ -113,11 +113,13 @@ public class DiffMSBuildRuntimeTask extends AbstractTask {
     File binDir = new File(userDiffMsDir, "bin");
     File localExe = new File(binDir, isWindows() ? "micromamba.exe" : "micromamba");
     if (localExe.isFile() && localExe.canExecute()) {
+      finishedPercentage = 0.05;
       return localExe;
     }
 
     // Download
     description = "Downloading micromamba...";
+    finishedPercentage = 0.01;
     if (!binDir.exists() && !binDir.mkdirs()) {
       throw new IOException("Could not create bin directory: " + binDir.getAbsolutePath());
     }
@@ -126,7 +128,7 @@ public class DiffMSBuildRuntimeTask extends AbstractTask {
     logger.info("Downloading micromamba from " + url);
     
     // Using a simple download. For production, consider Hash verification.
-    try (InputStream in = new URL(url).openStream()) {
+    try (InputStream in = URI.create(url).toURL().openStream()) {
       Files.copy(in, localExe.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 
@@ -134,6 +136,7 @@ public class DiffMSBuildRuntimeTask extends AbstractTask {
       localExe.setExecutable(true);
     }
 
+    finishedPercentage = 0.05;
     return localExe;
   }
 
@@ -195,6 +198,14 @@ public class DiffMSBuildRuntimeTask extends AbstractTask {
           p.destroy();
           break;
         }
+        if (line.startsWith("PROGRESS: ")) {
+          try {
+            finishedPercentage = Double.parseDouble(line.substring(10).trim()) / 100.0;
+          } catch (NumberFormatException e) {
+            // ignore
+          }
+          continue;
+        }
         logger.info("[DiffMS Build] " + line);
         // We could parse progress here if the script outputs it
       }
@@ -209,8 +220,8 @@ public class DiffMSBuildRuntimeTask extends AbstractTask {
   private boolean canExecute(String cmd) {
     try {
       ProcessBuilder pb = new ProcessBuilder(isWindows() ? List.of("where", cmd) : List.of("which", cmd));
-      pb.start().waitFor();
-      return true; // exit code 0 means found (mostly)
+      Process p = pb.start();
+      return p.waitFor() == 0;
     } catch (Exception e) {
       return false;
     }
