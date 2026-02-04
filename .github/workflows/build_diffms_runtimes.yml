@@ -41,7 +41,7 @@ jobs:
         with:
           micromamba-version: "latest"
           cache-downloads: true
-          cache-environment: true
+          cache-environment: false
 
       - name: Build DiffMS runtime packs (macOS/Linux)
         if: runner.os != 'Windows'
