@@ -338,7 +338,8 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
    *                               predictedValue)/predictedValue
    */
   private double getScore(double deviationFromPredicted, double maxDeviation) {
-    if (Double.isNaN(deviationFromPredicted) || Double.isNaN(maxDeviation)) {
+    if (Double.isNaN(deviationFromPredicted) || Double.isNaN(maxDeviation)
+        || Double.compare(maxDeviation, 0) == 0) {
       //      make sure we dont return NaN
       return 0;
     }
