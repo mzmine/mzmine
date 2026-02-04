@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation.ILipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation.LipidFragmentFactory;
@@ -364,7 +363,7 @@ public class LipidAnnotationUtils {
       // get isotope pattern once to cache it - will speed up feature table later
       lipid.getIsotopePattern();
     }
-    row.set(LipidMatchListType.class, finalResults);
+    row.setLipidAnnotations(finalResults);
   }
 
 }

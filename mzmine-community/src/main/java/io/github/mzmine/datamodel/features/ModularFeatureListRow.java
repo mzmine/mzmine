@@ -742,7 +742,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   @Override
-  public void setLipidAnnotation(@NotNull List<MatchedLipid> matchedLipid) {
+  public void setLipidAnnotations(@NotNull List<MatchedLipid> matchedLipid) {
     set(LipidMatchListType.class, matchedLipid);
   }
 
