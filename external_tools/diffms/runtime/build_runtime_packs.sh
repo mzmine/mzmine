@@ -61,15 +61,18 @@ cleanup() { rm -rf "$tmp_root"; }
 trap cleanup EXIT
 
 packer_prefix="$tmp_root/packer"
+echo "PROGRESS: 5"
 echo "Building conda-pack tool env..."
-"$MAMBA_EXE" create -y -p "$packer_prefix" -c conda-forge conda-pack >/dev/null
+"$MAMBA_EXE" create -y -p "$packer_prefix" -c conda-forge conda-pack
+echo "PROGRESS: 15"
 
 build_pack() {
-  local variant="$1" yml="$2" out="$3"
+  local variant="$1" yml="$2" out="$3" base_progress="$4" step_progress="$5"
   local env_prefix="$tmp_root/env_$variant"
 
   echo "Creating env for $variant from $(basename "$yml")..."
   "$MAMBA_EXE" create -y -p "$env_prefix" -f "$yml" ${MAMBA_EXTRA_ARGS:-}
+  echo "PROGRESS: $((base_progress + (step_progress * 60 / 100)))"
 
   echo "Installing torch-geometric stack via pip (variant=$variant)..."
   local torch_ver
@@ -101,32 +104,34 @@ build_pack() {
   # Install optional compiled deps first; if not available for this platform, fall back to
   # installing torch_geometric only (PyG docs: optional dependencies are not required for basic usage).
   # https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html
-  if ! "$MAMBA_EXE" run -p "$env_prefix" python -m pip install --no-cache-dir \
-      pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv \
+  if ! "$MAMBA_EXE" run -p "$env_prefix" python -m pip install --no-cache-dir --quiet \
+      torch_scatter torch_sparse torch_cluster torch_spline_conv \
       -f "$pyg_index"; then
     echo "WARN: Could not install full PyG wheel set from $pyg_index. Installing torch_geometric only."
   fi
-  "$MAMBA_EXE" run -p "$env_prefix" python -m pip install --no-cache-dir torch_geometric
+  "$MAMBA_EXE" run -p "$env_prefix" python -m pip install --no-cache-dir --quiet torch_geometric
 
   # pip-only dependency used by vendored DiffMS in fp2mol dataset preprocessing (import name: tqdm_joblib)
-  "$MAMBA_EXE" run -p "$env_prefix" python -m pip install --no-cache-dir tqdm-joblib
+  "$MAMBA_EXE" run -p "$env_prefix" python -m pip install --no-cache-dir --quiet tqdm-joblib
+  echo "PROGRESS: $((base_progress + (step_progress * 90 / 100)))"
 
   echo "Packing env to $(basename "$out")..."
   rm -f "$out"
   "$MAMBA_EXE" run -p "$packer_prefix" conda-pack -p "$env_prefix" -o "$out" --format tar.gz
 
   echo "Done: $out"
+  echo "PROGRESS: $((base_progress + step_progress))"
 }
 
 cpu_out="$PACKS_DIR/diffms-runtime-cpu-${os}-${arch}.${ext}"
-build_pack "cpu" "$CPU_YML" "$cpu_out"
-
-if [[ "$os" != "macos" ]]; then
-  cuda_out="$PACKS_DIR/diffms-runtime-cuda-${os}-${arch}.${ext}"
-  build_pack "cuda" "$CUDA_YML" "$cuda_out"
+if [[ "$os" == "macos" ]]; then
+    build_pack "cpu" "$CPU_YML" "$cpu_out" 15 85
+    echo "Skipping CUDA runtime pack on macOS."
 else
-  echo "Skipping CUDA runtime pack on macOS."
+    build_pack "cpu" "$CPU_YML" "$cpu_out" 15 40
+    cuda_out="$PACKS_DIR/diffms-runtime-cuda-${os}-${arch}.${ext}"
+    build_pack "cuda" "$CUDA_YML" "$cuda_out" 55 45
 fi
 
 echo "Runtime packs ready in: $PACKS_DIR"
-
+echo "PROGRESS: 100"
