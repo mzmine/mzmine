@@ -40,7 +40,6 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.AnnotationMethodType;
-import io.github.mzmine.datamodel.features.types.annotations.AnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
@@ -547,9 +546,7 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
 
   @Override
   public @Nullable IsotopePattern getIsotopePattern() {
-    // store the isotope pattern? Ideally the match shouldn't store it, but the entry. currently no
-    // DBEntry field for an isotope pattern. and if we make one it is saved to libraries, which also
-    // seems unnecessary
-    return entry.calculateIsotopePattern();
+    // entry caches the isotope pattern
+    return entry.getIsotopePattern();
   }
 }

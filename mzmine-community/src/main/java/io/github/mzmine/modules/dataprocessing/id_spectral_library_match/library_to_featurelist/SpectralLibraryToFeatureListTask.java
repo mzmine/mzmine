@@ -217,6 +217,8 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
       var similarity = SpectralSimilarity.ofMatchIdentity(scan.getEntry());
       // add spectral lib match
       var match = new SpectralDBAnnotation(scan.getEntry(), similarity, scan, null, null, null, null);
+      // cache isotope pattern to speed up feature table
+      match.getIsotopePattern();
       row.addSpectralLibraryMatch(match);
 
       row.set(FeatureShapeType.class, false);

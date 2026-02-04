@@ -80,6 +80,7 @@ public class MatchedLipid implements FeatureAnnotation {
   private final Double msMsScore;
   private final MatchedLipidStatus status;
   private String comment;
+
   /**
    * Pattern is calculated for ion so cannot be saved in {@link ILipidAnnotation}
    * <p>

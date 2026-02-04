@@ -93,6 +93,12 @@ public class SortSpectralMatchesTask extends AbstractTask {
         .sorted(Comparator.comparingDouble(SpectralDBAnnotation::getScore).reversed())
         .collect(Collectors.toList());
 
+    // cache isotope patterns to speed up feature table later.
+    // just get the IsotopePattern to calculate it
+    for (SpectralDBAnnotation match : matches) {
+      match.getIsotopePattern();
+    }
+
     // set sorted list
     row.setSpectralLibraryMatch(matches);
   }
