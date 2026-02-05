@@ -24,14 +24,27 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import javafx.scene.control.TreeTableCell;
+import javafx.scene.control.TreeTableColumn;
+import javafx.util.Callback;
 
-public class CountingRowChartCellFactory extends CountingRowCellFactory<ModularFeatureListRow, Object> {
+public class CountingRowCellFactory<T, V> implements
+    Callback<TreeTableColumn<T, V>, TreeTableCell<T, V>> {
 
-  public CountingRowChartCellFactory(
-      Function<Integer, TreeTableCell<ModularFeatureListRow, Object>> createCell) {
-    super(createCell);
+  // uses a counter to label the first cell that seems to be the measurement cell
+  public final AtomicInteger counter = new AtomicInteger(0);
+  private final Function<Integer, TreeTableCell<T, V>> createCell;
+
+  public CountingRowCellFactory(
+      Function<Integer, TreeTableCell<T, V>> createCell) {
+    this.createCell = createCell;
+  }
+
+  @Override
+  public TreeTableCell<T, V> call(
+      TreeTableColumn<T, V> column) {
+    return createCell.apply(counter.getAndIncrement());
   }
 }

@@ -37,7 +37,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.util.converter.FormatStringConverter;
 import org.controlsfx.control.tableview2.cell.TextField2TableCell;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,6 +48,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public class TableColumns {
 
+  /**
+   * Javafx default TableColumnHeader width is 80.0 by setting a different prefered width on the
+   * column the calculation of auto size is turned off. See TableColumnHeader#doColumnAutoSize
+   */
+  public static final double DEFAULT_COLUMN_WIDTH = 79.0;
   private static final Logger logger = Logger.getLogger(TableColumns.class.getName());
 
   public static void autoFitLastColumn(TableView<?> table) {

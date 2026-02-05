@@ -97,6 +97,12 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
     col.setMinWidth(20);
     if (type.getPrefColumnWidth() > 0) {
       col.setPrefWidth(type.getPrefColumnWidth());
+    } else {
+      // this small snipped makes the table to open in an instant.
+      // issue is that if the column has prefWidth 80 (default in javafx) then it calculates the actual size
+      // deviate from 80 and it will keep that size
+      // but types need to define a better alternative for now
+//      col.setPrefWidth(TableColumns.DEFAULT_COLUMN_WIDTH);
     }
 
     // define observable

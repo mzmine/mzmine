@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.fx.MetadataHeaderColumn;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.AbundanceBoxPlotCell;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingRowChartCellFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.MinSamplesRequirement;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -80,8 +81,9 @@ public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
         ProjectService.getMetadata().getSampleTypeColumn());
 
     // define observable
-    col.setCellFactory(c -> (TreeTableCell) new AbundanceBoxPlotCell(col.selectedColumnProperty(),
-        abundanceMeasure));
+    col.setCellFactory(new CountingRowChartCellFactory(
+        (id) -> (TreeTableCell) new AbundanceBoxPlotCell(id, col.selectedColumnProperty(),
+            abundanceMeasure)));
 //    col.setCellValueFactory(new DataTypeCellValueFactory(raw, this, parentType, subColumnIndex));
     col.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(cdf.getValue().getValue()));
     return col;

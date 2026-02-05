@@ -27,32 +27,37 @@ package io.github.mzmine.modules.visualization.molstructure;
 
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.SkipMeasurementTreeCell;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
-import java.util.logging.Logger;
-import javafx.beans.binding.Bindings;
 import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.TreeTableCell;
 
-public class StructureTableCell<S> extends TreeTableCell<S, Object> {
+public class StructureTableCell<S> extends SkipMeasurementTreeCell<S, Object> {
 
-  private static final Logger logger = Logger.getLogger(StructureTableCell.class.getName());
+  private final Structure2DComponent molViewer;
 
-  public StructureTableCell() {
-    final Structure2DComponent molViewer = new Structure2DComponent();
+  public StructureTableCell(int id) {
+    super(id);
+    molViewer = new Structure2DComponent();
     // too many context menus in table already
     molViewer.setContextMenuEnabled(false);
 
-    setHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-
-    molViewer.moleculeProperty()
-        .bind(itemProperty().map(o -> ((MolecularStructure) o).structure()));
-
-    // show or hide pane
-    graphicProperty().bind(Bindings.createObjectBinding(
-        () -> !isEmpty() && itemProperty().get() != null ? molViewer : null, itemProperty(),
-        emptyProperty()));
     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
     setMinWidth(DataTypes.get(MolecularStructureType.class).getPrefColumnWidth());
+    setHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
+  }
+
+  @Override
+  protected void updateContent(Object value, boolean empty) {
+    if (value == null || !empty) {
+      setGraphic(null);
+      return;
+    }
+    if (!(value instanceof MolecularStructure structure)) {
+      throw new IllegalStateException("The item was not of type MolecularStructure in cell");
+    }
+
+    molViewer.setMolecule(structure.structure());
+    setGraphic(molViewer);
   }
 }
