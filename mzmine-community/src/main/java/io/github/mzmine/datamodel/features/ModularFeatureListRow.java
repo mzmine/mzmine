@@ -477,7 +477,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   @Override
-  public void addCompoundAnnotation(CompoundDBAnnotation id) {
+  public void addCompoundAnnotations(@NotNull List<CompoundDBAnnotation> id) {
     // should usually not be called from multiple threads
     synchronized (writeLock) {
       List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
@@ -485,9 +485,12 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
       if (matches != null) {
         newList.addAll(matches);
       }
-      newList.add(id);
+      newList.addAll(id);
       set(CompoundDatabaseMatchesType.class, newList);
     }
+    // outside of lock
+    // cache values like isotope pattern to speed up feature table
+    CompoundAnnotationUtils.precalculateAnnotationValues(id, this);
   }
 
   @NotNull
@@ -498,8 +501,12 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   @Override
-  public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
+  public void setCompoundAnnotations(@Nullable List<CompoundDBAnnotation> annotations) {
     set(CompoundDatabaseMatchesType.class, annotations);
+    if (annotations != null) {
+      // cache values like isotope pattern to speed up feature table
+      CompoundAnnotationUtils.precalculateAnnotationValues(annotations, this);
+    }
   }
 
   @Override
@@ -546,23 +553,29 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   @Override
-  public void addSpectralLibraryMatch(SpectralDBAnnotation id) {
+  public void addSpectralLibraryMatch(@NotNull SpectralDBAnnotation id) {
     synchronized (writeLock) {
       List<SpectralDBAnnotation> old = requireNonNullElseGet(get(SpectralLibraryMatchesType.class),
           ArrayList::new);
       old.add(id);
       set(SpectralLibraryMatchesType.class, old);
     }
+    // outside of lock
+    // cache values like isotope pattern to speed up feature table
+    CompoundAnnotationUtils.precalculateAnnotationValues(id, this);
   }
 
   @Override
-  public void addSpectralLibraryMatches(List<SpectralDBAnnotation> matches) {
+  public void addSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches) {
     synchronized (writeLock) {
       List<SpectralDBAnnotation> old = requireNonNullElseGet(get(SpectralLibraryMatchesType.class),
           ArrayList::new);
       old.addAll(matches);
       set(SpectralLibraryMatchesType.class, old);
     }
+    // outside of lock
+    // cache values like isotope pattern to speed up feature table
+    CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
   }
 
   @Override
@@ -574,6 +587,10 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   @Override
   public void setSpectralLibraryMatch(List<SpectralDBAnnotation> matches) {
     set(SpectralLibraryMatchesType.class, matches);
+    if (matches != null) {
+      // cache values like isotope pattern to speed up feature table
+      CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
+    }
   }
 
   @Override
@@ -739,11 +756,18 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
       }
       set(LipidMatchListType.class, matches);
     }
+    // outside of lock
+    // cache values like isotope pattern to speed up feature table
+    CompoundAnnotationUtils.precalculateAnnotationValues(matchedLipid, this);
   }
 
   @Override
-  public void setLipidAnnotations(@NotNull List<MatchedLipid> matchedLipid) {
+  public void setLipidAnnotations(@Nullable List<MatchedLipid> matchedLipid) {
     set(LipidMatchListType.class, matchedLipid);
+    if (matchedLipid != null) {
+      // cache values like isotope pattern to speed up feature table
+      CompoundAnnotationUtils.precalculateAnnotationValues(matchedLipid, this);
+    }
   }
 
   @Override

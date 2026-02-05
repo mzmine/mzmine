@@ -24,19 +24,26 @@
 
 package io.github.mzmine.util.spectraldb.entry;
 
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.StringUtils;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -55,6 +62,14 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
   @Nullable
   private SpectralLibrary library;
   private @Nullable MolecularStructure structure;
+  /**
+   * Pattern is calculated for ion
+   * <p>
+   * StableValue renamed to ComputedConstant in JDK26
+   */
+  private final Supplier<IsotopePattern> pattern = StableValue.supplier(
+      () -> IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(
+          FormulaUtils.createMajorIsotopeMolFormula(getFormula()), getAdductType()));
 
   /**
    * Copy constructor
@@ -278,6 +293,30 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
   }
 
   @Override
+  @Nullable
+  public String getFormula() {
+    final String formula = getOrElse(DBEntryField.FORMULA, null);
+    if (StringUtils.hasValue(formula)) {
+      return formula;
+    }
+    final MolecularStructure structure = getStructure();
+    if (structure != null) {
+      final String formulaString = structure.formulaString();
+      if (formulaString != null) {
+        putIfNotNull(DBEntryField.FORMULA, formulaString);
+      }
+      return formulaString;
+    }
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public IonType getAdductType() {
+    return get(IonTypeType.class);
+  }
+
+  @Override
   public MolecularStructure getStructure() {
     if (structure != null) {
       return structure;
@@ -286,6 +325,11 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     String inchi = getOrElse(DBEntryField.INCHI, "");
     structure = StructureParser.silent().parseStructure(smiles, inchi);
     return structure;
+  }
+
+  @Override
+  public @Nullable IsotopePattern getIsotopePattern() {
+    return pattern.get();
   }
 
 }

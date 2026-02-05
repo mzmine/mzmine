@@ -97,6 +97,36 @@ public class CompoundAnnotationUtils {
   private static final Logger logger = Logger.getLogger(CompoundAnnotationUtils.class.getName());
 
   /**
+   * Precalculates the isotope pattern and maybe other properties of a feature annotation to speed
+   * up the feature table. This is usually done in {@link FeatureListRow} methods where annotations
+   * are added.
+   *
+   */
+  public static void precalculateAnnotationValues(
+      @NotNull Collection<? extends FeatureAnnotation> annotations, FeatureListRow row) {
+    // cache isotope pattern for faster feature table start up
+    for (FeatureAnnotation annotation : annotations) {
+      precalculateAnnotationValues(annotation, row);
+    }
+  }
+
+  /**
+   * Precalculates the isotope pattern and maybe other properties of a feature annotation to speed
+   * up the feature table. This is usually done in {@link FeatureListRow} methods where annotations
+   * are added.
+   *
+   */
+  public static void precalculateAnnotationValues(@NotNull FeatureAnnotation annotation,
+      FeatureListRow row) {
+    // cache isotope pattern for faster feature table start up
+    annotation.getIsotopePattern();
+
+    if (annotation instanceof CompoundDBAnnotation db) {
+      calculateBoundTypes(db, row);
+    }
+  }
+
+  /**
    * Get the best annotation types or {@link MissingValueType} for each feature list row.
    *
    * @param rows             the rows to be mapped.
@@ -286,7 +316,7 @@ public class CompoundAnnotationUtils {
       case RTType _ -> annotation.getRT();
       case DatabaseNameType _ -> annotation.getDatabase();
       case AnnotationMethodType _ -> annotation.getAnnotationMethodName();
-        // get additional fields from specific annotation classes
+      // get additional fields from specific annotation classes
       default -> switch (annotation) {
         case CompoundDBAnnotation db -> db.get(type);
         case SpectralDBAnnotation db -> db.get(type);

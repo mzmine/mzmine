@@ -37,8 +37,6 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
-import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
-import io.github.mzmine.util.FormulaUtils;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -47,7 +45,6 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * Spectral library entry is a mass spectrum that can be memory mapped (memory map defined in
@@ -257,28 +254,25 @@ public interface SpectralLibraryEntry extends MassList {
   @Nullable String getLibraryName();
 
   /**
+   * @return Formula from the entered formula or from the structure if no formula provided
+   */
+  @Nullable String getFormula();
+
+  /**
+   * @return ion type
+   */
+  @Nullable IonType getAdductType();
+
+  /**
    * @return the structure parsed from smiles or inchi
    */
   MolecularStructure getStructure();
 
-  @Nullable
-  default IsotopePattern calculateIsotopePattern() {
-    final String formulaStr = getAsString(DBEntryField.FORMULA).orElse(null);
-    final IonType ionType = IonTypeParser.parse(getAsString(DBEntryField.ION_TYPE).orElse(null));
-
-    if (ionType == null) {
-      return null;
-    }
-    IMolecularFormula formula = null;
-    if (formulaStr == null) {
-      final MolecularStructure structure = getStructure();
-      if (structure != null) {
-        formula = structure.formula();
-      }
-    } else {
-      formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
-    }
-
-    return IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(formula, ionType);
-  }
+  /**
+   * Isotope pattern is cached and only calculated once on demand. Modules may already calculate the
+   * isotope pattern to speed up later use in tables.
+   *
+   * @return the isotope pattern of the ion formula
+   */
+  @Nullable IsotopePattern getIsotopePattern();
 }

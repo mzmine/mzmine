@@ -342,16 +342,25 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * @param annotations sets all compound annotations.
    */
-  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
+  void setCompoundAnnotations(@Nullable List<CompoundDBAnnotation> annotations);
 
   /**
    * Appends a compound annotation.
    *
    * @param id
    */
-  void addCompoundAnnotation(CompoundDBAnnotation id);
+  default void addCompoundAnnotation(@NotNull CompoundDBAnnotation id) {
+    addCompoundAnnotations(List.of(id));
+  }
 
-  void addSpectralLibraryMatch(SpectralDBAnnotation id);
+  /**
+   * Appends a compound annotation.
+   *
+   * @param ids
+   */
+  void addCompoundAnnotations(@NotNull List<CompoundDBAnnotation> ids);
+
+  void addSpectralLibraryMatch(@NotNull SpectralDBAnnotation id);
 
   boolean isIdentified();
 
@@ -536,12 +545,12 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @param matchedLipid the matched lipid
    */
-  void setLipidAnnotations(@NotNull List<MatchedLipid> matchedLipid);
+  void setLipidAnnotations(@Nullable List<MatchedLipid> matchedLipid);
 
   // -- ModularFeatureListRow additions
   Stream<ModularFeature> streamFeatures();
 
-  void addSpectralLibraryMatches(List<SpectralDBAnnotation> matches);
+  void addSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches);
 
   @Nullable Range<Float> getMobilityRange();
 
