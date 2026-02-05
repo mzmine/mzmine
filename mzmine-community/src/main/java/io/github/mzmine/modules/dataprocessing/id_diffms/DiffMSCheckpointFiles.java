@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Shared utilities/constants for DiffMS checkpoint management.
+ * DiffMS checkpoint management.
  */
 public final class DiffMSCheckpointFiles {
 
@@ -61,8 +61,18 @@ public final class DiffMSCheckpointFiles {
   private DiffMSCheckpointFiles() {
   }
 
+  /**
+   * Returns the directory where DiffMS checkpoints are stored.
+   */
+  public static @NotNull File getCheckpointDir() {
+    return new File(AssetGroup.DIFFMS.getDownloadToDir(), "checkpoints");
+  }
+
+  /**
+   * Returns the default checkpoint file location in the checkpoints subdirectory.
+   */
   public static @NotNull File getDefaultCheckpointFile() {
-    return new File(AssetGroup.DIFFMS.getDownloadToDir(), DEFAULT_CHECKPOINT_FILE_NAME);
+    return new File(getCheckpointDir(), DEFAULT_CHECKPOINT_FILE_NAME);
   }
 
   public static boolean isTarGz(final @Nullable File file) {

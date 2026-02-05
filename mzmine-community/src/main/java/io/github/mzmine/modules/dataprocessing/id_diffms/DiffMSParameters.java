@@ -37,8 +37,7 @@ public class DiffMSParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<FileNameParameter> pythonExecutable = new OptionalParameter<>(
       new FileNameParameter("Custom Python executable",
-          "Optional override for the Python executable. If not selected, MZmine will use the bundled DiffMS runtime pack "
-              + "(external_tools/diffms/runtime-packs) and extract it into the user directory on first use.",
+          "Optional override for the Python executable. If not selected, use the 'Build Runtime' module to create and extract a local runtime pack.",
           List.of(), FileSelectionType.OPEN),
       false);
 
@@ -76,6 +75,39 @@ public class DiffMSParameters extends SimpleParameterSet {
 
   protected DiffMSParameters(final io.github.mzmine.parameters.Parameter<?>[] parameters) {
     super(parameters);
+  }
+
+  @Override
+  public boolean checkParameterValues(java.util.Collection<String> errorMessages) {
+    boolean allOk = super.checkParameterValues(errorMessages);
+    
+    // Check if we have a valid Python runtime
+    final File customPython = getEmbeddedParameterValueIfSelectedOrElse(pythonExecutable, null);
+    
+    if (customPython != null) {
+      // Custom Python is selected, validate it
+      if (!customPython.isFile()) {
+        errorMessages.add("Custom Python executable does not exist: " + customPython.getAbsolutePath() + 
+            ". Please select a valid Python executable or uncheck the option to use the bundled runtime.");
+        allOk = false;
+      }
+    } else {
+      // Check if bundled runtime is available
+      final File cpuRuntime = DiffMSRuntimeManager.getUsablePython(DiffMSRuntimeManager.Variant.CPU);
+      final File cudaRuntime = DiffMSRuntimeManager.getUsablePython(DiffMSRuntimeManager.Variant.CUDA);
+      
+      if (cpuRuntime == null && cudaRuntime == null) {
+        if (DiffMSRuntimeManager.anyPackExists()) {
+          errorMessages.add("A DiffMS runtime pack was found but is not yet installed. Please use the 'Install Found Runtime' button in the 'Build Runtime' parameter to initialize it.");
+        } else {
+          errorMessages.add("No Python runtime found. Please use the 'Build Runtime' option to create a local Python runtime, " +
+              "or select a custom Python executable. The Build Runtime option requires internet access.");
+        }
+        allOk = false;
+      }
+    }
+    
+    return allOk;
   }
 
   public enum Device {

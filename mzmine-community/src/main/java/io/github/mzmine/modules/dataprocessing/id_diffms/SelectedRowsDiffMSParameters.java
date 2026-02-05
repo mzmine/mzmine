@@ -35,7 +35,7 @@ public class SelectedRowsDiffMSParameters extends DiffMSParameters {
 
   public SelectedRowsDiffMSParameters() {
     super(new Parameter[] { rowIds.cloneParameter(), pythonExecutable.cloneParameter(),
-        checkpoint.cloneParameter(), device.cloneParameter(), topK.cloneParameter(),
-        maxMs2Peaks.cloneParameter(), subformulaTol.cloneParameter() });
+        buildRuntime.cloneParameter(), checkpoint.cloneParameter(), device.cloneParameter(),
+        topK.cloneParameter(), maxMs2Peaks.cloneParameter(), subformulaTol.cloneParameter() });
   }
 }

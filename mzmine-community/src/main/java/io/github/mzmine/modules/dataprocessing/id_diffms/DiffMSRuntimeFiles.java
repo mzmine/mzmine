@@ -25,14 +25,11 @@ import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Conventions for bundling a ready-to-run Python runtime with MZmine (e.g., via
- * conda-pack).
- * <p>
- * For the first customer roll-outs, the simplest approach is to ship an
- * extracted environment under
- * {@code external_tools/diffms/runtime/} and let MZmine auto-detect the python
- * executable.
+ * Legacy support for bundled Python runtimes.
+ * 
+ * @deprecated Use {@link DiffMSRuntimeManager} instead.
  */
+@Deprecated
 public final class DiffMSRuntimeFiles {
 
   private DiffMSRuntimeFiles() {
@@ -40,7 +37,10 @@ public final class DiffMSRuntimeFiles {
 
   /**
    * Expected environment root under the MZmine distribution.
+   * 
+   * @deprecated Bundled runtimes are no longer used. Runtimes are built on-demand.
    */
+  @Deprecated
   public static @Nullable File getBundledRuntimeRootDir() {
     return FileAndPathUtil.resolveInExternalToolsDir("diffms/runtime/");
   }
@@ -50,7 +50,10 @@ public final class DiffMSRuntimeFiles {
    * {@link #getBundledRuntimeRootDir()}.
    * <p>
    * Supports common conda/conda-pack layouts across platforms.
+   * 
+   * @deprecated Bundled runtimes are no longer used. Runtimes are built on-demand.
    */
+  @Deprecated
   public static @Nullable File findBundledPythonExecutable() {
     final File root = getBundledRuntimeRootDir();
     if (root == null || !root.isDirectory()) {

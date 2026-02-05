@@ -47,18 +47,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Manages a bundled DiffMS Python runtime distributed as a {@code conda-pack}
- * archive under
- * {@code external_tools/diffms/runtime-packs/} and extracted into the user
- * directory on demand.
+ * Manages DiffMS Python runtimes built from conda-pack archives.
  */
 public final class DiffMSRuntimeManager {
 
   private static final Logger logger = Logger.getLogger(DiffMSRuntimeManager.class.getName());
   private static final Object INSTALL_LOCK = new Object();
 
-  private static final String PACKS_DIR_REL = "diffms/runtime-packs/";
-  private static final String USER_RUNTIME_DIR_REL = "external_resources/models/diffms/runtime/";
+  private static final String USER_RUNTIME_DIR_REL = "external_resources/models/diffms/runtimes/";
 
   public enum Variant {
     CPU("cpu"), CUDA("cuda");
@@ -111,9 +107,12 @@ public final class DiffMSRuntimeManager {
       final File pack = findBestPackFile(effective, platform)
           .or(() -> effective == Variant.CUDA ? findBestPackFile(Variant.CPU, platform)
               : Optional.empty())
-          .orElseThrow(() -> new IllegalStateException(
-              "No DiffMS runtime pack found for " + effective.id + " on " + platform + ". Expected under "
-                  + FileAndPathUtil.resolveInExternalToolsDir(PACKS_DIR_REL).getAbsolutePath()));
+          .orElseThrow(() -> {
+            final File userPacks = new File(new File(FileAndPathUtil.getMzmineDir(), "diffms"), "runtime-packs");
+            return new IllegalStateException(
+                "No DiffMS runtime pack found for " + effective.id + " on " + platform + ". Expected under "
+                    + userPacks.getAbsolutePath() + ". Use the DiffMS Build Runtime module to create one.");
+          });
 
       logger.info(() -> "DiffMS: extracting runtime pack: " + pack.getAbsolutePath());
       extractPack(pack, runtimeDir, isCanceled);
@@ -217,29 +216,61 @@ public final class DiffMSRuntimeManager {
       return;
     }
 
-    logger.info(() -> "DiffMS: running conda-unpack: " + condaUnpack.getAbsolutePath());
-    final ProcessBuilder pb = new ProcessBuilder(condaUnpack.getAbsolutePath());
+    // Find Python executable to run conda-unpack with.
+    // We can't execute conda-unpack directly because its shebang points to a placeholder path
+    // that hasn't been rewritten yet (chicken-and-egg problem).
+    final File python = findPythonExecutable(runtimeDir);
+    if (python == null || !python.isFile()) {
+      logger.warning(() -> "DiffMS: Python not found in extracted runtime; skipping conda-unpack for "
+          + runtimeDir.getAbsolutePath());
+      try {
+        Files.writeString(marker.toPath(), "skipped-no-python\n");
+      } catch (Exception ignored) {
+      }
+      return;
+    }
+
+    // Ensure Python is executable (safety check for platforms where tar extraction may not preserve permissions)
+    if (!python.canExecute()) {
+      logger.info(() -> "DiffMS: Setting execute permission on Python: " + python.getAbsolutePath());
+      python.setExecutable(true, false);
+    }
+
+    logger.info(() -> "DiffMS: running conda-unpack with Python: " + python.getAbsolutePath() 
+        + " " + condaUnpack.getAbsolutePath());
+    final ProcessBuilder pb = new ProcessBuilder(python.getAbsolutePath(), condaUnpack.getAbsolutePath());
     pb.directory(runtimeDir);
-    // Avoid deadlocks by not piping stdout/stderr (conda-unpack may print a lot).
-    pb.redirectError(ProcessBuilder.Redirect.DISCARD);
-    pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+    pb.redirectErrorStream(true);
     try {
       final Process p = pb.start();
-      // best-effort cancel support
-      while (p.isAlive()) {
-        if (isCanceled != null && isCanceled.getAsBoolean()) {
-          p.destroyForcibly();
-          throw new IllegalStateException("Canceled while running conda-unpack.");
+      
+      // Capture output for error reporting
+      final StringBuilder output = new StringBuilder();
+      try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(p.getInputStream()))) {
+        String line;
+        while ((line = reader.readLine()) != null) {
+          if (isCanceled != null && isCanceled.getAsBoolean()) {
+            p.destroyForcibly();
+            throw new IllegalStateException("Canceled while running conda-unpack.");
+          }
+          // Keep output limited to avoid memory issues
+          if (output.length() < 10000) {
+            output.append(line).append('\n');
+          }
         }
-        Thread.sleep(200);
       }
+      
       final int code = p.waitFor();
       if (code != 0) {
-        throw new IllegalStateException("conda-unpack failed with exit code " + code);
+        final String errorMsg = output.length() > 0 
+            ? "conda-unpack failed with exit code " + code + ". Output:\n" + output
+            : "conda-unpack failed with exit code " + code + " (no output captured)";
+        throw new IllegalStateException(errorMsg);
       }
       Files.writeString(marker.toPath(), "ok\n");
     } catch (Exception e) {
-      throw new IllegalStateException("Failed to run conda-unpack in " + runtimeDir.getAbsolutePath(),
+      throw new IllegalStateException("Failed to run conda-unpack in " + runtimeDir.getAbsolutePath() 
+          + ". Python: " + python.getAbsolutePath() + ", conda-unpack: " + condaUnpack.getAbsolutePath(),
           e);
     }
   }
@@ -420,25 +451,17 @@ public final class DiffMSRuntimeManager {
     }
   }
 
-  private static Optional<File> findBestPackFile(final @NotNull Variant variant,
+  public static boolean anyPackExists() {
+    final Platform platform = Platform.detect();
+    return findBestPackFile(Variant.CPU, platform).isPresent()
+        || findBestPackFile(Variant.CUDA, platform).isPresent();
+  }
+
+  public static Optional<File> findBestPackFile(final @NotNull Variant variant,
       final @NotNull Platform platform) {
-    
-    List<File> searchDirs = new ArrayList<>();
-    
-    // 1. Check user-built packs first (UserDir/.mzmine/diffms/runtime-packs)
     File userDiffMs = new File(FileAndPathUtil.getMzmineDir(), "diffms");
     File userPacks = new File(userDiffMs, "runtime-packs");
-    if (userPacks.isDirectory()) {
-      searchDirs.add(userPacks);
-    }
-    
-    // 2. Check bundled packs (external_tools/diffms/runtime-packs)
-    final File bundledPacks = FileAndPathUtil.resolveInExternalToolsDir(PACKS_DIR_REL);
-    if (bundledPacks != null && bundledPacks.isDirectory()) {
-      searchDirs.add(bundledPacks);
-    }
-    
-    if (searchDirs.isEmpty()) {
+    if (!userPacks.isDirectory()) {
       return Optional.empty();
     }
 
@@ -448,32 +471,30 @@ public final class DiffMSRuntimeManager {
 
     final List<File> candidates = new ArrayList<>();
     
-    for (File packsDir : searchDirs) {
-        final File[] files = packsDir.listFiles();
-        if (files == null) continue;
-        
-        for (final File f : files) {
-          if (!f.isFile()) {
-            continue;
-          }
-          final String n = f.getName().toLowerCase(Locale.ROOT);
-          if (!n.contains("diffms-runtime-")) {
-            continue;
-          }
-          if (!n.contains("-" + v + "-")) {
-            continue;
-          }
-          if (!n.contains("-" + os + "-")) {
-            continue;
-          }
-          if (!n.contains("-" + arch)) {
-            continue;
-          }
-          if (!(n.endsWith(".zip") || n.endsWith(".tar.gz") || n.endsWith(".tgz"))) {
-            continue;
-          }
-          candidates.add(f);
+    final File[] files = userPacks.listFiles();
+    if (files != null) {
+      for (final File f : files) {
+        if (!f.isFile()) {
+          continue;
         }
+        final String n = f.getName().toLowerCase(Locale.ROOT);
+        if (!n.contains("diffms-runtime-")) {
+          continue;
+        }
+        if (!n.contains("-" + v + "-")) {
+          continue;
+        }
+        if (!n.contains("-" + os + "-")) {
+          continue;
+        }
+        if (!n.contains("-" + arch)) {
+          continue;
+        }
+        if (!(n.endsWith(".zip") || n.endsWith(".tar.gz") || n.endsWith(".tgz"))) {
+          continue;
+        }
+        candidates.add(f);
+      }
     }
 
     return candidates.stream().max(Comparator.comparingLong(File::lastModified));
