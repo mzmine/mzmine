@@ -82,7 +82,6 @@ public class PreferredEditComboCellFactory implements
         textWrapper.setMaxHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
         textWrapper.setPrefHeight(USE_COMPUTED_SIZE);
         textWrapper.setAlignment(Pos.CENTER);
-        setPrefWidth(type.getPrefColumnWidth());
         textValue.setPrefWidth(type.getPrefColumnWidth());
         setMaxHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
         setWrapText(true);
