@@ -216,11 +216,11 @@ public class DiffMSTask extends AbstractTask {
           "Bundled DiffMS directory not found. Expected external_tools/diffms/vendor/DiffMS/");
     }
 
-    final File runnerDir = FileAndPathUtil.resolveInExternalToolsDir("diffms/");
+    final File runnerDir = FileAndPathUtil.resolveInExternalToolsDir("diffms/src/");
     final File runner = new File(runnerDir, "mzmine_diffms_predict.py");
     if (!runner.isFile()) {
       throw new IllegalStateException(
-          "DiffMS runner not found. Expected external_tools/diffms/mzmine_diffms_predict.py");
+          "DiffMS runner not found. Expected external_tools/diffms/src/mzmine_diffms_predict.py");
     }
 
     final List<DiffMSInputItem> input = new ArrayList<>();

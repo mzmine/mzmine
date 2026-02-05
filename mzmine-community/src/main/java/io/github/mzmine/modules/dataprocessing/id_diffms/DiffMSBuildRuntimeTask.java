@@ -34,14 +34,21 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.Nullable;
 
 public class DiffMSBuildRuntimeTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(DiffMSBuildRuntimeTask.class.getName());
+  private final @Nullable Runnable onFinished;
   private String description = "Initializing DiffMS runtime build...";
 
   public DiffMSBuildRuntimeTask() {
+    this(null);
+  }
+
+  public DiffMSBuildRuntimeTask(@Nullable Runnable onFinished) {
     super(null, Instant.now());
+    this.onFinished = onFinished;
   }
 
   @Override
@@ -61,21 +68,13 @@ public class DiffMSBuildRuntimeTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     try {
-      final File diffmsDir = FileAndPathUtil.resolveInExternalToolsDir("diffms");
-      if (diffmsDir == null || !diffmsDir.isDirectory()) {
-        throw new IOException("DiffMS directory not found in external tools. Please check MZmine installation.");
+      final File runtimeDir = FileAndPathUtil.resolveInExternalToolsDir("python-runtimes/diffms");
+      if (runtimeDir == null || !runtimeDir.isDirectory()) {
+        throw new IOException("DiffMS runtime build scripts not found in " 
+            + (runtimeDir != null ? runtimeDir.getAbsolutePath() : "python-runtimes/diffms")
+            + ". Please check MZmine installation.");
       }
 
-      final File runtimeDir = new File(diffmsDir, "runtime");
-      
-      if (!runtimeDir.isDirectory()) {
-        throw new IOException("DiffMS runtime scripts not found in " + runtimeDir.getAbsolutePath());
-      }
-
-      // Ensure user-writable packs directory exists (in case external_tools is read-only, we might need a different location?)
-      // However, the scripts default to writing to packsDir relative to them.
-      // If external_tools is in Program Files, this will fail.
-      // We should use a user directory for the output.
       final File userDiffMsDir = new File(FileAndPathUtil.getMzmineDir(), "diffms");
       final File userPacksDir = new File(userDiffMsDir, "runtime-packs");
       if (!userPacksDir.exists() && !userPacksDir.mkdirs()) {
@@ -89,15 +88,26 @@ public class DiffMSBuildRuntimeTask extends AbstractTask {
       description = "Building DiffMS runtime environment (this may take a few minutes)...";
       runBuildScript(runtimeDir, userPacksDir, micromambaExe);
 
-      description = "DiffMS runtime build completed.";
+      // 3. Extract and initialize runtimes
+      description = "Extracting and initializing runtimes...";
+      DiffMSRuntimeManager.ensureRuntimeAndGetPython(DiffMSRuntimeManager.Variant.CPU, this::isCanceled);
+      
+      // On non-macOS platforms, we also built CUDA, so extract it as well
+      final String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+      if (!os.contains("mac")) {
+        try {
+          DiffMSRuntimeManager.ensureRuntimeAndGetPython(DiffMSRuntimeManager.Variant.CUDA, this::isCanceled);
+        } catch (Exception e) {
+          logger.warning("Could not extract CUDA runtime after build: " + e.getMessage());
+        }
+      }
+
+      description = "DiffMS runtime build and extraction completed.";
       setStatus(TaskStatus.FINISHED);
 
-      // Notify the RuntimeManager that we might have new packs?
-      // It checks the dir dynamically, but we should make sure it knows about the user dir.
-      // Currently DiffMSRuntimeManager looks in external_tools/diffms/runtime-packs.
-      // We need to update it to ALSO look in userPacksDir. 
-      // I'll update DiffMSRuntimeManager separately.
-
+      if (onFinished != null) {
+        onFinished.run();
+      }
     } catch (Exception e) {
       error("DiffMS runtime build failed: " + e.getMessage(), e);
     }

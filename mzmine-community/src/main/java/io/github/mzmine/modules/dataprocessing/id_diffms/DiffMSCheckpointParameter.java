@@ -101,4 +101,22 @@ public class DiffMSCheckpointParameter extends FileNameParameter {
     copy.setLastFiles(new java.util.ArrayList<>(getLastFiles()));
     return copy;
   }
+
+  @Override
+  public boolean checkValue(java.util.Collection<String> errorMessages) {
+    final File value = getValue();
+    
+    if (value == null) {
+      errorMessages.add(getName() + " is not set. Please select or download a DiffMS checkpoint file.");
+      return false;
+    }
+    
+    if (!value.isFile()) {
+      errorMessages.add(getName() + " file does not exist: " + value.getAbsolutePath() + 
+          ". Please select a valid checkpoint file or use the download button to fetch it.");
+      return false;
+    }
+    
+    return true;
+  }
 }
