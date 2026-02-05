@@ -59,6 +59,9 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureInputType;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.RawDataFileType;
@@ -520,8 +523,22 @@ public class DiffMSTask extends AbstractTask {
 
     final String formula = formulaByRowId.get(rowId);
     final IonType adduct = adductByRowId.get(rowId);
+
+    // Parse input formula for validation
+    final IMolecularFormula inputFormula = FormulaUtils.createMajorIsotopeMolFormula(formula);
+    if (inputFormula == null) {
+      logger.warning(() -> "DiffMS: cannot parse input formula for row " + rowId + ": " + formula);
+      return;
+    }
+
     int rank = 1;
+
     for (String smi : smiles) {
+      // Validate that the SMILES structure has the same formula as the input
+      if (!validateSmilesFormula(smi, inputFormula, rowId, formula)) {
+        continue;
+      }
+
       final SimpleCompoundDBAnnotation ann = new SimpleCompoundDBAnnotation();
       ann.put(DatabaseNameType.class, "DiffMS");
       ann.put(CompoundNameType.class, "DiffMS #" + rank);
@@ -539,6 +556,70 @@ public class DiffMSTask extends AbstractTask {
       });
       row.addCompoundAnnotation(ann);
       rank++;
+    }
+  }
+
+  /**
+   * Validates that a SMILES structure has the same molecular formula as the
+   * expected input formula.
+   * This is a sanity check to catch cases where DiffMS generates an internally
+   * inconsistent result.
+   * 
+   * @param smiles       the SMILES string to validate
+   * @param inputFormula the expected molecular formula
+   * @param rowId        the row ID for logging
+   * @param formulaStr   the formula string for logging
+   * @return true if formulas match, false otherwise
+   */
+  private boolean validateSmilesFormula(final String smiles, final IMolecularFormula inputFormula,
+      final int rowId, final String formulaStr) {
+    try {
+      // Parse the SMILES to get the molecular structure
+      final MolecularStructure struct = StructureParser.silent().parseStructure(smiles,
+          StructureInputType.SMILES);
+
+      if (struct == null) {
+        logger.info(() -> "DiffMS: skipping structure for row " + rowId
+            + " - cannot parse SMILES: " + smiles);
+        return false;
+      }
+
+      // Get the formula from the structure
+      final IMolecularFormula smilesFormula = struct.formula();
+      if (smilesFormula == null) {
+        logger.info(() -> "DiffMS: skipping structure for row " + rowId
+            + " - cannot extract formula from SMILES: " + smiles);
+        return false;
+      }
+
+      // Build element count maps for comparison (using element symbols as keys)
+      final Map<String, Integer> inputCounts = new HashMap<>();
+      for (IIsotope isotope : inputFormula.isotopes()) {
+        final String symbol = isotope.getSymbol();
+        final int count = inputFormula.getIsotopeCount(isotope);
+        inputCounts.put(symbol, inputCounts.getOrDefault(symbol, 0) + count);
+      }
+
+      final Map<String, Integer> smilesCounts = new HashMap<>();
+      for (IIsotope isotope : smilesFormula.isotopes()) {
+        final String symbol = isotope.getSymbol();
+        final int count = smilesFormula.getIsotopeCount(isotope);
+        smilesCounts.put(symbol, smilesCounts.getOrDefault(symbol, 0) + count);
+      }
+
+      // Compare the two maps
+      if (!inputCounts.equals(smilesCounts)) {
+        logger.info(() -> "DiffMS: skipping structure for row " + rowId
+            + " - formula mismatch: expected " + formulaStr + " but SMILES " + smiles
+            + " has formula " + MolecularFormulaManipulator.getString(smilesFormula));
+        return false;
+      }
+
+      return true;
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "DiffMS: error validating SMILES formula for row " + rowId
+          + ": " + smiles, e);
+      return false;
     }
   }
 

@@ -42,7 +42,8 @@ public class DiffMSParameters extends SimpleParameterSet {
       false);
 
   public static final DiffMSBuildRuntimeParameter buildRuntime = new DiffMSBuildRuntimeParameter("Build Runtime",
-      "Create a local Python runtime for DiffMS using the bundled scripts. Requires internet access.", "Create Python Runtime");
+      "Create a local Python runtime for DiffMS using the bundled scripts. Requires internet access.",
+      "Create Python Runtime");
 
   public static final FileNameParameter checkpoint = new DiffMSCheckpointParameter("Checkpoint",
       "Pretrained DiffMS checkpoint (.ckpt). Use the download button to fetch the DiffMS checkpoint archive from Zenodo and automatically extract the required .ckpt.",
@@ -52,7 +53,7 @@ public class DiffMSParameters extends SimpleParameterSet {
       "Execution device for inference.", Device.values(), Device.CPU);
 
   public static final IntegerParameter topK = new IntegerParameter("Top-K structures",
-      "Number of structures to sample per feature.", 10, 1, 100);
+      "Number of structures to sample per feature.", 5, 1, 100);
 
   public static final IntegerParameter maxMs2Peaks = new IntegerParameter("Max MS/MS peaks",
       "Top-N peaks (by intensity) exported per feature (merged MS/MS).", 50, 5, 500);
@@ -80,14 +81,14 @@ public class DiffMSParameters extends SimpleParameterSet {
   @Override
   public boolean checkParameterValues(java.util.Collection<String> errorMessages) {
     boolean allOk = super.checkParameterValues(errorMessages);
-    
+
     // Check if we have a valid Python runtime
     final File customPython = getEmbeddedParameterValueIfSelectedOrElse(pythonExecutable, null);
-    
+
     if (customPython != null) {
       // Custom Python is selected, validate it
       if (!customPython.isFile()) {
-        errorMessages.add("Custom Python executable does not exist: " + customPython.getAbsolutePath() + 
+        errorMessages.add("Custom Python executable does not exist: " + customPython.getAbsolutePath() +
             ". Please select a valid Python executable or uncheck the option to use the bundled runtime.");
         allOk = false;
       }
@@ -95,18 +96,20 @@ public class DiffMSParameters extends SimpleParameterSet {
       // Check if bundled runtime is available
       final File cpuRuntime = DiffMSRuntimeManager.getUsablePython(DiffMSRuntimeManager.Variant.CPU);
       final File cudaRuntime = DiffMSRuntimeManager.getUsablePython(DiffMSRuntimeManager.Variant.CUDA);
-      
+
       if (cpuRuntime == null && cudaRuntime == null) {
         if (DiffMSRuntimeManager.anyPackExists()) {
-          errorMessages.add("A DiffMS runtime pack was found but is not yet installed. Please use the 'Install Found Runtime' button in the 'Build Runtime' parameter to initialize it.");
+          errorMessages.add(
+              "A DiffMS runtime pack was found but is not yet installed. Please use the 'Install Found Runtime' button in the 'Build Runtime' parameter to initialize it.");
         } else {
-          errorMessages.add("No Python runtime found. Please use the 'Build Runtime' option to create a local Python runtime, " +
-              "or select a custom Python executable. The Build Runtime option requires internet access.");
+          errorMessages
+              .add("No Python runtime found. Please use the 'Build Runtime' option to create a local Python runtime, " +
+                  "or select a custom Python executable. The Build Runtime option requires internet access.");
         }
         allOk = false;
       }
     }
-    
+
     return allOk;
   }
 
