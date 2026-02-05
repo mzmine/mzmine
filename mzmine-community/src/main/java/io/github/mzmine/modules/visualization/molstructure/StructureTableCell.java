@@ -49,7 +49,7 @@ public class StructureTableCell<S> extends SkipMeasurementTreeCell<S, Object> {
 
   @Override
   protected void updateContent(Object value, boolean empty) {
-    if (value == null || !empty) {
+    if (value == null || empty) {
       setGraphic(null);
       return;
     }
