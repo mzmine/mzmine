@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.config.Elements;
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
@@ -56,11 +55,11 @@ class IsotopePatternEstimator {
   /**
    * Default intensity of a peak in a calculated isotope pattern. normalized to 0-1.
    */
-  public static final double DEFAULT_MIN_INTENSITY_IN_PATTERN = 0.1;
+  public static final double DEFAULT_MIN_INTENSITY_IN_PATTERN = 0.005;
   /**
-   * Still includes N and O isotopes but not [2]H
+   * In 0-100% still includes 15N and 18O isotopes but not [2]H and not 17O with 0.04%
    */
-  public static final double DEFAULT_FAST_ABUNDANCE = 0.002;
+  public static final double DEFAULT_FAST_ABUNDANCE = 0.2;
   public static final float DEFAULT_RESOLUTION = 0.0005f;
 
   private static final Logger logger = Logger.getLogger(IsotopePatternEstimator.class.getName());
@@ -333,10 +332,4 @@ class IsotopePatternEstimator {
     return minAbundance;
   }
 
-  private static boolean allowIsotope(@Nullable IIsotope isotope) {
-    if (isotope == null) {
-      return false;
-    }
-    return isotope.getNaturalAbundance() != null && isotope.getNaturalAbundance() > 0.00001;
-  }
 }
