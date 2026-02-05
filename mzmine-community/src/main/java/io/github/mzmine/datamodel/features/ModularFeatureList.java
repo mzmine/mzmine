@@ -151,6 +151,12 @@ public class ModularFeatureList implements FeatureList {
    */
   private final Map<String, Node> bufferedCharts = new ConcurrentHashMap<>();
 
+  /**
+   * in rare cases modules produce extra feature lists that should never be used in batch last
+   * selection.
+   */
+  private boolean excludedFromBatchLastSelection = false;
+
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
       @NotNull RawDataFile... dataFiles) {
     this(name, storage, List.of(dataFiles));
@@ -987,12 +993,23 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
+  public void setExcludedFromBatchLast(boolean excluded) {
+    this.excludedFromBatchLastSelection = excluded;
+  }
+
+  @Override
+  public boolean isExcludedFromBatchLastSelection() {
+    return excludedFromBatchLastSelection;
+  }
+
+  @Override
   public @NotNull AnnotationSummarySortConfig getAnnotationSortConfig() {
     return annotationSortConfig;
   }
 
   @Override
-  public void setAnnotationSortConfig(@NotNull AnnotationSummarySortConfig annotationSortConfig) {
+  public synchronized void setAnnotationSortConfig(
+      @NotNull AnnotationSummarySortConfig annotationSortConfig) {
     this.annotationSortConfig = annotationSortConfig;
     annotationSortConfigVersion++;
   }

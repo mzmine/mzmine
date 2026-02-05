@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -71,8 +72,8 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
 
   public static final List<DataType> subTypes = List.of(new CompoundDatabaseMatchesType(),
       new CompoundNameType(), new AnnotationSummaryType(), new CompoundAnnotationScoreType(),
-      new FormulaType(), new IonTypeType(), new MolecularStructureType(),
-      new SmilesStructureType(), new InChIStructureType(),
+      new FormulaType(), new IonTypeType(), new MolecularStructureType(), new SmilesStructureType(),
+      new InChIStructureType(),
       // classifiers
       new InChIKeyStructureType(), new ClassyFireSuperclassType(), new ClassyFireClassType(),
       new ClassyFireSubclassType(), new ClassyFireParentType(), new NPClassifierSuperclassType(),
@@ -96,13 +97,8 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
   }
 
   @Override
-  public <K> @Nullable K map(@NotNull final DataType<K> subType, final CompoundDBAnnotation item) {
-    // visual on demand types are directly mapped here and not in the item
-    if (subType instanceof AnnotationSummaryType) {
-      // summary type is only created in cell value factory
-      return null;
-    }
-
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType,
+      final CompoundDBAnnotation item) {
     return item.get(subType);
   }
 

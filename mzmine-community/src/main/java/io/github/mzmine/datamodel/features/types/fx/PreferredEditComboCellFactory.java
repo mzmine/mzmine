@@ -123,10 +123,7 @@ public class PreferredEditComboCellFactory implements
           setGraphic(null);
           setText(null);
         } else {
-          String formatted = type.getFormattedStringCheckType(item);
-          if (item instanceof FeatureAnnotation a) {
-            formatted += " (" + a.getAnnotationMethodName() + ")";
-          }
+          final String formatted = type.getFormattedStringCheckType(item);
           textValue.setText(formatted);
           setTooltip(new Tooltip(formatted));
           setText(formatted);

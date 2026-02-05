@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -223,7 +223,7 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements Sub
    * @param <K>        the value of the subType
    * @return the value of the subType or null
    */
-  public abstract <K> @Nullable K map(@NotNull DataType<K> subType, T parentItem);
+  protected abstract <K> @Nullable K map(@NotNull DataType<K> subType, T parentItem);
 
   @Override
   public @Nullable Object getSubColValue(@NotNull final DataType sub, final Object value) {

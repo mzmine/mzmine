@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummaryO
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -86,7 +87,8 @@ public class PreferredAnnotationRankingParameters extends SimpleParameterSet {
         Objects.requireNonNullElse(getValue(rtTolerance), DEFAULT_RT_TOLERANCE),
         Objects.requireNonNullElse(getValue(ccsTolerance), DEFAULT_CCS_TOLERANCE),
         Objects.requireNonNullElse(getValue(riTolerance), DEFAULT_RI_TOLERANCE),
-        Objects.requireNonNullElse(getValue(combinedScoreWeights), CombinedScoreWeights.DEFAULT_WEIGHTS),
+        Objects.requireNonNullElse(getValue(combinedScoreWeights),
+            CombinedScoreWeights.DEFAULT_WEIGHTS),
         Objects.requireNonNullElse(getValue(sorting), DEFAULT_SORT_ORDER));
   }
 
@@ -100,5 +102,10 @@ public class PreferredAnnotationRankingParameters extends SimpleParameterSet {
     param.setParameter(combinedScoreWeights, config.combinedScoreWeights());
     param.setParameter(sorting, config.sortOrder());
     return (PreferredAnnotationRankingParameters) param;
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

@@ -48,7 +48,7 @@ public record Structure2DRenderConfig(Sizing mode, double zoom, double bondLengt
     this(Sizing.getDefault(), zoom, bondLength);
   }
 
-  public Structure2DRenderConfig multiplyZoom(int zoom) {
+  public Structure2DRenderConfig multiplyZoom(double zoom) {
     return this.withZoom(this.zoom * zoom);
   }
 

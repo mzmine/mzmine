@@ -736,8 +736,19 @@ public class FeatureListUtils {
   public static ModularFeatureList createCopyWithoutRows(final FeatureList featureList,
       final String suffix, final MemoryMapStorage storage, final @Nullable Integer totalRows,
       final @Nullable Integer totalFeatures) {
-    return createCopy(featureList, null, suffix, storage, false, featureList.getRawDataFiles(),
-        false, totalRows, totalFeatures);
+    return createCopyWithoutRows(featureList, suffix, storage, featureList.getRawDataFiles(),
+        totalRows, totalFeatures);
+  }
+
+  /**
+   * Does not copy rows
+   */
+  public static ModularFeatureList createCopyWithoutRows(final FeatureList featureList,
+      final String suffix, final MemoryMapStorage storage,
+      final @NotNull List<RawDataFile> dataFiles, final @Nullable Integer totalRows,
+      final @Nullable Integer totalFeatures) {
+    return createCopy(featureList, null, suffix, storage, false, dataFiles, false, totalRows,
+        totalFeatures);
   }
 
   /**

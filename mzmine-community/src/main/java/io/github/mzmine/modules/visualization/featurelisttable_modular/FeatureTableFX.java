@@ -91,6 +91,7 @@ import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.properties.DelayedListChangeListener;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
@@ -120,7 +121,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
@@ -150,6 +150,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
+import javafx.util.Duration;
 import org.controlsfx.control.NotificationPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -159,7 +160,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class FeatureTableFX extends BorderPane implements ListChangeListener<FeatureListRow> {
+public class FeatureTableFX extends BorderPane {
 
   private final TreeTableView<ModularFeatureListRow> table = new TreeTableView<>();
 
@@ -180,6 +181,12 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   private final FeatureTableContextMenu contextMenu;
   private final FeatureTableColumnMenuHelper contextMenuHelper;
   private final int SAMPLE_COLUMNS_THRESHOLD = 30;
+  /**
+   * Rows are changed in the feature list on any thread. Those changes are accumulated in the
+   * listener and rows in table updated later.
+   */
+  private final DelayedListChangeListener<FeatureListRow> rowsChangedListener = new DelayedListChangeListener<>(
+      Duration.millis(500), this::updateRows);
 
   /**
    * Package private to centralize creation in {@link FxFeatureTableController}
@@ -543,14 +550,12 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     }
     final var preferredAnnotations = getMainColumnEntry(PreferredAnnotationType.class);
     if (preferredAnnotations != null) {
-      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, CompoundNameType.class, true);
+      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, PreferredAnnotationType.class, true);
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, AnnotationSummaryType.class,
           true);
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, MolecularStructureType.class,
           true);
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, ScoreType.class, true);
-      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, AnnotationMethodType.class,
-          true);
     }
 
     applyVisibilityParametersToAllColumns();
@@ -596,16 +601,11 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
   /**
    * Listens to update the table if a row is added/removed to/from the feature list.
    */
-  @Override
-  public void onChanged(final Change<? extends FeatureListRow> c) {
-    c.next();
-    if (!(c.wasAdded() || c.wasRemoved())) {
-      return;
-    }
-
+  public void updateRows() {
     FxThread.runLater(() -> {
       // create new list - filtering is applied automatically and table items updated
-      final List<TreeItem<ModularFeatureListRow>> newRows = featureListProperty.get().getRows()
+      // work with copy of rows as rows may change during stream throwing exception
+      final List<TreeItem<ModularFeatureListRow>> newRows = featureListProperty.get().getRowsCopy()
           .stream().map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
       rowItems.setAll(newRows);
       table.sort();
@@ -1191,7 +1191,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
 
     // remove the old listener
     if (oldFeatureList != null) {
-      oldFeatureList.getRows().removeListener(this);
+      oldFeatureList.getRows().removeListener(rowsChangedListener);
     }
     if (newFeatureList == null) {
       return;
@@ -1217,7 +1217,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     rowItems.setAll(newRows);
 
     // reflect the changes to the feature list in the table
-    newFeatureList.getRows().addListener(this);
+    newFeatureList.getRows().addListener(rowsChangedListener);
   }
 
   /**
@@ -1294,7 +1294,7 @@ public class FeatureTableFX extends BorderPane implements ListChangeListener<Fea
     if (flist == null) {
       return;
     }
-    flist.getRows().removeListener(this);
+    flist.getRows().removeListener(rowsChangedListener);
     flist.onFeatureTableFxClosed();
   }
 

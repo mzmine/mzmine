@@ -30,8 +30,8 @@ import static java.util.Objects.requireNonNullElse;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeIntComponent;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelectionComponent;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelection;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelectionComponent;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
@@ -42,10 +42,10 @@ import org.jetbrains.annotations.Nullable;
 public class MinimumSamplesInOneMetadataGroupComponent extends FlowPane {
 
   private final AbsoluteAndRelativeIntComponent minSamples;
-  private final MetadataGroupSelectionComponent metadata;
+  private final Metadata1GroupSelectionComponent metadata;
 
   public MinimumSamplesInOneMetadataGroupComponent(AbsoluteAndRelativeIntComponent minSamples,
-      MetadataGroupSelectionComponent metadata, MinimumSamplesFilterConfig value) {
+      Metadata1GroupSelectionComponent metadata, MinimumSamplesFilterConfig value) {
     final HBox metadataBox = FxLayout.newHBox(Insets.EMPTY, new Label("in column"),
         metadata.getColumnField(), new Label("in"), FxLabels.newBoldLabel("THIS"),
         new Label("group"), metadata.getGroupField());
@@ -60,20 +60,20 @@ public class MinimumSamplesInOneMetadataGroupComponent extends FlowPane {
 
   public void setValue(@Nullable MinimumSamplesFilterConfig value) {
     if (value == null) {
-      metadata.setValue(MetadataGroupSelection.NONE);
+      metadata.setValue(Metadata1GroupSelection.NONE);
       minSamples.setValue(MinimumSamplesFilterConfig.DEFAULT.minSamples());
       return;
     }
 
     final String column = requireNonNullElse(value.columnName(), "");
     final String groupStr = requireNonNullElse(value.group(), "");
-    metadata.setValue(new MetadataGroupSelection(column, groupStr));
+    metadata.setValue(new Metadata1GroupSelection(column, groupStr));
     minSamples.setValue(value.minSamples());
   }
 
   @NotNull
   public MinimumSamplesFilterConfig getValue() {
-    final MetadataGroupSelection selection = metadata.getValue();
+    final Metadata1GroupSelection selection = metadata.getValue();
     return new MinimumSamplesFilterConfig(minSamples.getValue(), selection.columnName(),
         selection.groupStr());
   }

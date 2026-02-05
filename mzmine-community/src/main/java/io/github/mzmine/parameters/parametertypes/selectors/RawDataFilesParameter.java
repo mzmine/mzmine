@@ -28,14 +28,18 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelection;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataListGroupsSelectionParameter;
 import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -60,6 +64,10 @@ public class RawDataFilesParameter implements
     this.value = value;
   }
 
+  public RawDataFilesParameter(@NotNull String name, @Nullable RawDataFilesSelection value) {
+    this(name, 1, Integer.MAX_VALUE, value);
+  }
+
   public RawDataFilesParameter(int minCount) {
     this(minCount, Integer.MAX_VALUE);
   }
@@ -70,9 +78,15 @@ public class RawDataFilesParameter implements
   }
 
   public RawDataFilesParameter(String name, int minCount, int maxCount) {
+    this(name, minCount, maxCount, null);
+  }
+
+  public RawDataFilesParameter(String name, int minCount, int maxCount,
+      @Nullable RawDataFilesSelection value) {
     this.name = name;
     this.minCount = minCount;
     this.maxCount = maxCount;
+    setValue(value);
   }
 
   @Override
@@ -158,7 +172,8 @@ public class RawDataFilesParameter implements
     if (Strings.isNullOrEmpty(attrValue)) {
       selectionType = RawDataFilesSelectionType.GUI_SELECTED_FILES;
     } else {
-      selectionType = RawDataFilesSelectionType.valueOf(xmlElement.getAttribute("type"));
+      selectionType = UniqueIdSupplier.parseOrElse(xmlElement.getAttribute("type"),
+          RawDataFilesSelectionType.values(), RawDataFilesSelectionType.GUI_SELECTED_FILES);
     }
 
     List<Object> newValues = new ArrayList<>();
@@ -189,10 +204,30 @@ public class RawDataFilesParameter implements
       namePattern = items.item(i).getTextContent();
     }
 
+    MetadataListGroupsSelection excluded = MetadataListGroupsSelection.NONE;
+    MetadataListGroupsSelection included = MetadataListGroupsSelection.NONE;
+
+    final MetadataListGroupsSelectionParameter metadataSelection = new MetadataListGroupsSelectionParameter(
+        "included_metadata", "for load save", included);
+    items = xmlElement.getElementsByTagName("by_metadata");
+    for (int i = 0; i < items.getLength(); i++) {
+      final Element element = (Element) items.item(i);
+      final String type = element.getAttribute("includeExcludeType");
+      metadataSelection.loadValueFromXML(element);
+
+      final MetadataListGroupsSelection selection = metadataSelection.getValue();
+      if ("exclude".equals(type)) {
+        excluded = selection;
+      } else if ("include".equals(type)) {
+        included = selection;
+      }
+    }
+
     this.value = new RawDataFilesSelection();
     this.value.setSelectionType(selectionType);
     this.value.setSpecificFiles(specificFiles);
     this.value.setNamePattern(namePattern);
+    this.value.setMetadataSelection(included, excluded);
   }
 
   @Override
@@ -201,7 +236,7 @@ public class RawDataFilesParameter implements
       return;
     }
     Document parentDocument = xmlElement.getOwnerDocument();
-    xmlElement.setAttribute("type", value.getSelectionType().name());
+    xmlElement.setAttribute("type", value.getSelectionType().getUniqueID());
 
     if (value.getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES
         && value.getSpecificFiles() != null) {
@@ -228,6 +263,18 @@ public class RawDataFilesParameter implements
       newElement.setTextContent(value.getNamePattern());
       xmlElement.appendChild(newElement);
     }
+
+    Element newElement = parentDocument.createElement("by_metadata");
+    newElement.setAttribute("includeExcludeType", "include");
+    new MetadataListGroupsSelectionParameter("included_metadata", "for load save",
+        value.getIncludeMetadataSelection()).saveValueToXML(newElement);
+    xmlElement.appendChild(newElement);
+
+    newElement = parentDocument.createElement("by_metadata");
+    newElement.setAttribute("includeExcludeType", "exclude");
+    new MetadataListGroupsSelectionParameter("excluded_metadata", "for load save",
+        value.getExcludeMetadataSelection()).saveValueToXML(newElement);
+    xmlElement.appendChild(newElement);
 
   }
 

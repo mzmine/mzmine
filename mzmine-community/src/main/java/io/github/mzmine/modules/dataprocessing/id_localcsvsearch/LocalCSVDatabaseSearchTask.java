@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -90,6 +90,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final String sampleHeader;
   private final List<RawDataFile> allRawDataFiles;
   private final ExtraColumnHandler extraColumnHandler;
+  private final boolean calcMainSignal;
   private IonNetworkLibrary ionNetworkLibrary;
 
   private List<String[]> databaseValues;
@@ -132,6 +133,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     extraColumnHandler = new ExtraColumnHandler(
         parameters.getValue(LocalCSVDatabaseSearchParameters.extraColumns));
+
+    calcMainSignal = parameters.getValue(LocalCSVDatabaseSearchParameters.calculateMainSignal);
 
     final boolean isotopePatternMatcher = parameters.getValue(
         LocalCSVDatabaseSearchParameters.isotopePatternMatcher);
@@ -347,6 +350,10 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           CompoundDBAnnotation.buildCompoundsWithAdducts(baseAnnotation, ionLibrary));
     } else {
       annotations.add(baseAnnotation);
+    }
+    if (mzTolerance != null && calcMainSignal) {
+      annotations.addAll(
+          CompoundDBAnnotation.buildMostIntenseIsotopeRatios(annotations, mzTolerance));
     }
     return annotations;
   }

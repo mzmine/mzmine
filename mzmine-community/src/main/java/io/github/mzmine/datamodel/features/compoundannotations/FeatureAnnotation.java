@@ -216,17 +216,7 @@ public interface FeatureAnnotation {
     } else {
       formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
     }
-    if (formula == null) {
-      return null;
-    }
-    try {
-      formula = ionType.addToFormula(formula);
-    } catch (CloneNotSupportedException e) {
-      return null;
-    }
-
-    return IsotopePatternCalculator.calculateIsotopePattern(formula, 0.005, ionType.getAbsCharge(),
-        ionType.getPolarity(), false);
+    return IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(formula, ionType);
   }
 
   @Nullable IsotopePattern getIsotopePattern();

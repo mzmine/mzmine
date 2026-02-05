@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -78,9 +79,8 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
   }
 
   @Override
-  public <K> @Nullable K map(@NotNull final DataType<K> subType, final MatchedLipid match) {
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType, final MatchedLipid match) {
     return (K) switch (subType) {
-      case LipidMatchListType __ -> match;
       case IonAdductType __ -> match.getIonizationType().getAdductName();
       case FormulaType __ ->
           MolecularFormulaManipulator.getString(match.getLipidAnnotation().getMolecularFormula());

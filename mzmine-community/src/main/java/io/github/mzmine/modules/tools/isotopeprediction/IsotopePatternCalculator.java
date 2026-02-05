@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
@@ -43,6 +44,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.formula.IsotopeContainer;
 import org.openscience.cdk.formula.IsotopePatternGenerator;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -90,81 +92,36 @@ public class IsotopePatternCalculator implements MZmineModule {
   }
 
   public static IsotopePattern calculateIsotopePattern(IMolecularFormula cdkFormula,
-      double minAbundance, int charge, PolarityType polarity, boolean storeFormula) {
-    return calculateIsotopePattern(cdkFormula, minAbundance, 0.00005f, charge, polarity,
+      double minPatternIntensity, int charge, PolarityType polarity, boolean storeFormula) {
+    return calculateIsotopePattern(cdkFormula, minPatternIntensity, 0.00005f, charge, polarity,
         storeFormula);
   }
 
   public static IsotopePattern calculateIsotopePattern(IMolecularFormula cdkFormula,
-      double minAbundance, double mergeWidth, int charge, PolarityType polarity,
+      double minPatternIntensity, double mergeWidth, int charge, PolarityType polarity,
       boolean storeFormula) {
     // TODO: check if the formula is not too big (>100 of a single atom?).
     // if so, just cancel the prediction
-
-    // Set the minimum abundance of isotope
-    // TODO: in the CDK minAbundance is now called minIntensity and refers
-    // to the relative intensity
-    // in the isotope pattern, should change it here, too
-    IsotopePatternGenerator generator = new IsotopePatternGenerator(minAbundance);
+    IsotopePatternGenerator generator = new IsotopePatternGenerator(minPatternIntensity);
     generator.setMinResolution(mergeWidth);
     generator.setStoreFormulas(storeFormula);
 
     org.openscience.cdk.formula.IsotopePattern pattern = generator.getIsotopes(cdkFormula);
 
-    int numOfIsotopes = pattern.getNumberOfIsotopes();
-
-    DataPoint dataPoints[] = new DataPoint[numOfIsotopes];
-    String isotopeComposition[] = new String[numOfIsotopes];
-    // For each unit of charge, we have to add or remove a mass of a
-    // single electron. If the charge is positive, we remove electron
-    // mass. If the charge is negative, we add it.
-    charge = Math.abs(charge);
-    var electronMass = polarity.getSign() * -1 * charge * ELECTRON_MASS;
-
-    for (int i = 0; i < numOfIsotopes; i++) {
-      IsotopeContainer isotope = pattern.getIsotope(i);
-
-      double mass = isotope.getMass() + electronMass;
-
-      if (charge != 0) {
-        mass /= charge;
-      }
-
-      double intensity = isotope.getIntensity();
-
-      dataPoints[i] = new SimpleDataPoint(mass, intensity);
-
-      if (storeFormula) {
-        isotopeComposition[i] = formatCDKString(isotope.toString());
-      }
-    }
-
-    String formulaString = MolecularFormulaManipulator.getString(cdkFormula);
-
-    if (storeFormula) {
-      return new SimpleIsotopePattern(dataPoints, charge, IsotopePatternStatus.PREDICTED,
-          formulaString, isotopeComposition);
-    } else {
-      return new SimpleIsotopePattern(dataPoints, charge, IsotopePatternStatus.PREDICTED,
-          formulaString);
-    }
+    return convertToIsotopePattern(pattern, cdkFormula, charge, polarity, storeFormula);
   }
 
   public static HashMap<Double, IsotopePattern> calculateIsotopePatternForResolutions(
-      IMolecularFormula cdkFormula, double minAbundance, MZTolerance[] tolerances, int charge,
-      PolarityType polarity, boolean storeFormula) {
+      IMolecularFormula cdkFormula, double minPatternIntensity, MZTolerance[] tolerances,
+      int charge, PolarityType polarity, boolean storeFormula) {
     // TODO: check if the formula is not too big (>100 of a single atom?).
     // if so, just cancel the prediction
 
-    // Set the minimum abundance of isotope
-    // TODO: in the CDK minAbundance is now called minIntensity and refers
-    // to the relative intensity
-    // in the isotope pattern, should change it here, too
     HashMap<Double, IsotopePattern> calculatedIsotopePatternForResolutions = new HashMap<>();
     for (MZTolerance mzTolerance : tolerances) {
       calculatedIsotopePatternForResolutions.put(mzTolerance.getMzTolerance(),
-          calculateIsotopePattern(cdkFormula, minAbundance, mzTolerance.getMzTolerance(), charge,
-              polarity, storeFormula));
+          calculateIsotopePattern(cdkFormula, minPatternIntensity, mzTolerance.getMzTolerance(),
+              charge, polarity, storeFormula));
     }
     return calculatedIsotopePatternForResolutions;
   }
@@ -266,6 +223,27 @@ public class IsotopePatternCalculator implements MZmineModule {
     return cdkString.substring(startIndex + 3, endIndex);
   }
 
+  /**
+   * Predict pattern with default binning width for annotations
+   *
+   * @param neutralFormula ionType will be added on top of neutral formula to create ion formula
+   * @return the isotope pattern of ion formula. or null if formula or ionType are null
+   */
+  public static @Nullable IsotopePattern calculateFeatureAnnotationIsotopePattern(
+      @Nullable IMolecularFormula neutralFormula, @Nullable IonType ionType) {
+    if (neutralFormula == null || ionType == null) {
+      return null;
+    }
+    try {
+      neutralFormula = ionType.addToFormula(neutralFormula);
+    } catch (CloneNotSupportedException e) {
+      return null;
+    }
+
+    return calculateIsotopePattern(neutralFormula, 0.005,
+        ionType.getAbsCharge(), ionType.getPolarity(), false);
+  }
+
   @Override
   public @NotNull String getName() {
     return MODULE_NAME;
@@ -274,5 +252,72 @@ public class IsotopePatternCalculator implements MZmineModule {
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return IsotopePatternCalculatorParameters.class;
+  }
+
+
+  /**
+   *
+   * @param cdkFormula          the formula
+   * @param minPatternIntensity relative minimum intensity of a signal in the final isotope
+   *                            pattern.
+   * @param mergeWidth          resolution in Da
+   * @param charge              charge of the isotope pattern
+   * @param storeFormula
+   * @return
+   */
+  public static IsotopePattern estimateIsotopePatternFast(@NotNull IMolecularFormula cdkFormula,
+      double minPatternIntensity, double mergeWidth, int charge, @NotNull PolarityType polarity,
+      boolean storeFormula) {
+    final double minAbundancePercent =
+        IsotopePatternEstimator.estimateRequiredAbundance(cdkFormula) * 100;
+    final IsotopePatternEstimator estimator = new IsotopePatternEstimator(minAbundancePercent,
+        minPatternIntensity, mergeWidth, storeFormula);
+
+    final org.openscience.cdk.formula.IsotopePattern pattern = estimator.getIsotopes(cdkFormula);
+
+    return convertToIsotopePattern(pattern, cdkFormula, charge, polarity, storeFormula);
+  }
+
+  private static @NotNull SimpleIsotopePattern convertToIsotopePattern(
+      @NotNull org.openscience.cdk.formula.IsotopePattern pattern,
+      @NotNull IMolecularFormula cdkFormula, int charge, @NotNull PolarityType polarity,
+      boolean storeFormula) {
+    int numOfIsotopes = pattern.getNumberOfIsotopes();
+
+    DataPoint dataPoints[] = new DataPoint[numOfIsotopes];
+    String isotopeComposition[] = new String[numOfIsotopes];
+    // For each unit of charge, we have to add or remove a mass of a
+    // single electron. If the charge is positive, we remove electron
+    // mass. If the charge is negative, we add it.
+    charge = Math.abs(charge);
+    var electronMass = polarity.getSign() * -1 * charge * ELECTRON_MASS;
+
+    for (int i = 0; i < numOfIsotopes; i++) {
+      IsotopeContainer isotope = pattern.getIsotope(i);
+
+      double mass = isotope.getMass() + electronMass;
+
+      if (charge != 0) {
+        mass /= charge;
+      }
+
+      double intensity = isotope.getIntensity();
+
+      dataPoints[i] = new SimpleDataPoint(mass, intensity);
+
+      if (storeFormula) {
+        isotopeComposition[i] = formatCDKString(isotope.toString());
+      }
+    }
+
+    String formulaString = MolecularFormulaManipulator.getString(cdkFormula);
+
+    if (storeFormula) {
+      return new SimpleIsotopePattern(dataPoints, charge, IsotopePatternStatus.PREDICTED,
+          formulaString, isotopeComposition);
+    } else {
+      return new SimpleIsotopePattern(dataPoints, charge, IsotopePatternStatus.PREDICTED,
+          formulaString);
+    }
   }
 }
