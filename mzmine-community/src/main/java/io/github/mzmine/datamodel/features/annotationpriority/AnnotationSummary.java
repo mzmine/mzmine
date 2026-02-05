@@ -384,15 +384,15 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     };
   }
 
-  /**
-   * https://pubs.acs.org/doi/10.1021/es5002105
-   */
+  /// https://pubs.acs.org/doi/10.1021/acs.est.0c05713
+  ///
+  /// https://doi.org/10.1021/es5002105
   @NotNull
-  public SchymanskiAnnotationLevel deriveSchymanskiLevel() {
+  public ExposomicsAnnotationLevel deriveExposomicsLevel() {
     final double ipScoreMatchThreshold = 0.75;
 
     if (annotation == null) {
-      return SchymanskiAnnotationLevel.LEVEL_5;
+      return ExposomicsAnnotationLevel.LEVEL_5;
     }
 
     return switch (annotation) {
@@ -400,31 +400,31 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
         if (l.getMsMsScore() != null && l.getMsMsScore() > 0d) {
           switch (l.getLipidAnnotation()) {
             case MolecularSpeciesLevelAnnotation _ -> {
-              yield SchymanskiAnnotationLevel.LEVEL_2a;
+              yield ExposomicsAnnotationLevel.LEVEL_2a;
             }
             case SpeciesLevelAnnotation _ -> {
-              yield SchymanskiAnnotationLevel.LEVEL_2b;
+              yield ExposomicsAnnotationLevel.LEVEL_2b;
             }
             case null, default -> {
             }
           }
         }
         // lipids are hard to judge by isotope scores so default to level 5
-        yield SchymanskiAnnotationLevel.LEVEL_5;
+        yield ExposomicsAnnotationLevel.LEVEL_5;
       }
       case SpectralDBAnnotation s ->
-          riScore().orElse(0d) > 0 || rtScore().orElse(0d) > 0 ? SchymanskiAnnotationLevel.LEVEL_1
-              : SchymanskiAnnotationLevel.LEVEL_2a;
+          riScore().orElse(0d) > 0 || rtScore().orElse(0d) > 0 ? ExposomicsAnnotationLevel.LEVEL_1
+              : ExposomicsAnnotationLevel.LEVEL_2a;
       case CompoundDBAnnotation c -> {
         if (c.get(SiriusCsiScoreType.class) != null) {
-          yield SchymanskiAnnotationLevel.LEVEL_3;
+          yield ExposomicsAnnotationLevel.LEVEL_3;
         } else if (isotopeScore().orElse(0) >= ipScoreMatchThreshold) {
-          yield SchymanskiAnnotationLevel.LEVEL_4;
+          yield ExposomicsAnnotationLevel.LEVEL_4;
         } else {
-          yield SchymanskiAnnotationLevel.LEVEL_5;
+          yield ExposomicsAnnotationLevel.LEVEL_5;
         }
       }
-      default -> SchymanskiAnnotationLevel.LEVEL_5;
+      default -> ExposomicsAnnotationLevel.LEVEL_5;
     };
   }
 
@@ -436,7 +436,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
   @NotNull
   public String scoreLabel(@NotNull Scores type) {
     if (!isActiveScore(type)) {
-      return "(unavailable for feature list)";
+      return "N/A";
     }
 
     final OptionalDouble score = score(type);
@@ -445,7 +445,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
       return "%.3f".formatted(score.getAsDouble());
     }
 
-    return "(unavailable for annotation)";
+    return "N/A";
   }
 
   /**

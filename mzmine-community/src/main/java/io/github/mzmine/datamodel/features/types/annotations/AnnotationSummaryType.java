@@ -36,8 +36,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary.Scores;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummaryOrder;
+import io.github.mzmine.datamodel.features.annotationpriority.ExposomicsAnnotationLevel;
 import io.github.mzmine.datamodel.features.annotationpriority.MsiAnnotationLevel;
-import io.github.mzmine.datamodel.features.annotationpriority.SchymanskiAnnotationLevel;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -357,7 +357,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
 
     private void setTooltip(AnnotationSummary annotationSummary, Scores[] scoreTypes) {
       final MsiAnnotationLevel msiLevel = annotationSummary.deriveMsiLevel();
-      final SchymanskiAnnotationLevel schymanskiLevel = annotationSummary.deriveSchymanskiLevel();
+      final ExposomicsAnnotationLevel schymanskiLevel = annotationSummary.deriveExposomicsLevel();
 
       final VBox left = FxLayout.newVBox(Pos.CENTER_RIGHT, Insets.EMPTY, //
           newBoldLabel("Annotation levels:") //

@@ -27,23 +27,23 @@ package io.github.mzmine.datamodel.features.annotationpriority;
 
 import org.jetbrains.annotations.NotNull;
 
-/**
- * https://doi.org/10.1021/es5002105
- */
-public enum SchymanskiAnnotationLevel {
+/// https://pubs.acs.org/doi/10.1021/acs.est.0c05713
+///
+/// https://doi.org/10.1021/es5002105
+public enum ExposomicsAnnotationLevel {
 
   LEVEL_1(1), LEVEL_2a(2, "a"), LEVEL_2b(2, "b"), LEVEL_3(3), LEVEL_4(4), LEVEL_5(5);
 
-  private static final String LABEL = "Schymanski et al. level";
+  private static final String LABEL = "Exposomics (Celma/Schymanski et al.) level";
   private final int numberLevel;
   private final @NotNull String letterLevel;
 
-  SchymanskiAnnotationLevel(int numberLevel, @NotNull String letterLevel) {
+  ExposomicsAnnotationLevel(int numberLevel, @NotNull String letterLevel) {
     this.numberLevel = numberLevel;
     this.letterLevel = letterLevel;
   }
 
-  SchymanskiAnnotationLevel(int numberLevel) {
+  ExposomicsAnnotationLevel(int numberLevel) {
     this(numberLevel, "");
   }
 

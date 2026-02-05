@@ -34,7 +34,7 @@ public enum MsiAnnotationLevel {
 
   LEVEL_1(1), LEVEL_2(2), LEVEL_3(3), LEVEL_4(4);
 
-  private final static String LABEL = "MSI level";
+  private final static String LABEL = "MSI (Sumner et. al.) level";
   private final int numberLevel;
 
   MsiAnnotationLevel(int numberLevel) {
