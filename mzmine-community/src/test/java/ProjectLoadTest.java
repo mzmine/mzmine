@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -91,7 +91,7 @@ public class ProjectLoadTest {
     // two library matches
     assertEquals(2, flist.getRows().stream().filter(FeatureListRow::isIdentified).count());
 
-    assertEquals(14, flist.getRowTypes().size());
+    assertEquals(15, flist.getRowTypes().size());
     assertEquals(16, flist.getFeatureTypes().size());
 
     ProjectService.getProjectManager().clearProject();
