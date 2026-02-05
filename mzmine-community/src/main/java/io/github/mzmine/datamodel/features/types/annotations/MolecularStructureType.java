@@ -42,6 +42,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 import io.github.mzmine.modules.visualization.molstructure.MolStructureViewer;
 import io.github.mzmine.modules.visualization.molstructure.StructureTableCell;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralIdentificationResultsTab;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.property.Property;
@@ -104,6 +105,8 @@ public class MolecularStructureType extends DataType<MolecularStructure> impleme
       final int subColumnIndex) {
     var column = super.createColumn(raw, parentType, subColumnIndex);
     column.setCellFactory(_ -> new StructureTableCell<>());
+    column.setComparator(Comparator.comparingInt(
+        v -> v instanceof MolecularStructure structure ? structure.totalAtomsCount() : -1));
     return column;
   }
 
