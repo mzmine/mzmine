@@ -19,10 +19,12 @@
 
 package io.github.mzmine.modules.dataprocessing.id_diffms;
 
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.parameters.AbstractParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskService;
+import java.io.File;
 import java.util.Collection;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -30,11 +32,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
-public class DiffMSBuildRuntimeParameter extends AbstractParameter<Boolean, HBox> {
+public class DiffMSBuildRuntimeParameter extends AbstractParameter<Boolean, VBox> {
 
   private final String description;
   private final String buttonText;
@@ -47,33 +51,48 @@ public class DiffMSBuildRuntimeParameter extends AbstractParameter<Boolean, HBox
   }
 
   @Override
-  public HBox createEditingComponent() {
+  public VBox createEditingComponent() {
+    VBox main = new VBox(5);
     HBox box = new HBox(10);
     box.setAlignment(Pos.CENTER_LEFT);
     
     Button button = new Button(buttonText);
     button.setTooltip(new Tooltip(description));
+    
+    Label statusLabel = new Label();
+    updateStatus(statusLabel);
+
     button.setOnAction(e -> {
-      TaskService.getController().addTask(new DiffMSBuildRuntimeTask(), TaskPriority.HIGH);
+      TaskService.getController().addTask(new DiffMSBuildRuntimeTask(() -> FxThread.runLater(() -> updateStatus(statusLabel))), TaskPriority.HIGH);
     });
     
-    // Also add a label for context if needed, but tooltip is often enough.
-    // Let's add a small label to indicate what this does if the name isn't visible
     Label descLabel = new Label(description);
     descLabel.setWrapText(true);
     HBox.setHgrow(descLabel, Priority.ALWAYS);
     
     box.getChildren().addAll(button, descLabel);
-    return box;
+    main.getChildren().addAll(box, statusLabel);
+    return main;
+  }
+
+  private void updateStatus(Label label) {
+    File py = DiffMSRuntimeManager.getUsablePython(DiffMSRuntimeManager.Variant.CPU);
+    if (py != null) {
+      label.setText("Status: Found usable Python at " + py.getAbsolutePath());
+      label.setTextFill(Color.GREEN);
+    } else {
+      label.setText("Status: No Python runtime found in user directory.");
+      label.setTextFill(Color.RED);
+    }
   }
 
   @Override
-  public void setValueToComponent(HBox component, @Nullable Boolean newValue) {
+  public void setValueToComponent(VBox component, @Nullable Boolean newValue) {
     // Action parameter, no state to reflect in component
   }
 
   @Override
-  public void setValueFromComponent(HBox component) {
+  public void setValueFromComponent(VBox component) {
     // Action parameter, no state to read from component
   }
 

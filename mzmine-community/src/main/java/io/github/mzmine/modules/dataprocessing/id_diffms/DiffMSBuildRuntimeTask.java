@@ -40,10 +40,16 @@ import org.jetbrains.annotations.NotNull;
 public class DiffMSBuildRuntimeTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(DiffMSBuildRuntimeTask.class.getName());
+  private final @Nullable Runnable onFinished;
   private String description = "Initializing DiffMS runtime build...";
 
   public DiffMSBuildRuntimeTask() {
+    this(null);
+  }
+
+  public DiffMSBuildRuntimeTask(@Nullable Runnable onFinished) {
     super(null, Instant.now());
+    this.onFinished = onFinished;
   }
 
   @Override
@@ -92,12 +98,9 @@ public class DiffMSBuildRuntimeTask extends AbstractTask {
       description = "DiffMS runtime build completed.";
       setStatus(TaskStatus.FINISHED);
 
-      // Notify the RuntimeManager that we might have new packs?
-      // It checks the dir dynamically, but we should make sure it knows about the user dir.
-      // Currently DiffMSRuntimeManager looks in external_tools/diffms/runtime-packs.
-      // We need to update it to ALSO look in userPacksDir. 
-      // I'll update DiffMSRuntimeManager separately.
-
+      if (onFinished != null) {
+        onFinished.run();
+      }
     } catch (Exception e) {
       error("DiffMS runtime build failed: " + e.getMessage(), e);
     }

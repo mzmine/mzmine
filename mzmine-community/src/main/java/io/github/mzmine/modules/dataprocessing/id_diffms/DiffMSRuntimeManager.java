@@ -91,30 +91,19 @@ public final class DiffMSRuntimeManager {
     Objects.requireNonNull(requested);
 
     synchronized (INSTALL_LOCK) {
-      final Platform platform = Platform.detect();
-
-      final Variant effective;
-      if (requested == Variant.CUDA && platform.os == OS.MACOS) {
-        // macOS has no CUDA runtime. Fall back to CPU pack.
-        effective = Variant.CPU;
-      } else {
-        effective = requested;
-      }
-
-      final File runtimeDir = getUserRuntimeDir(effective, platform);
-      final File py = findPythonExecutable(runtimeDir);
-      if (isUsablePythonExecutable(py)) {
+      final File py = getUsablePython(requested);
+      if (py != null) {
         return py;
       }
-      if (py != null && py.isFile()) {
-        // we found a python candidate but it is not executable/usable. This can happen
-        // if the
-        // tar extraction did not preserve symlinks/hardlinks (e.g., bin/python becomes
-        // 0 bytes).
-        // Reinstall from pack.
+
+      final Platform platform = Platform.detect();
+      final Variant effective = (requested == Variant.CUDA && platform.os == OS.MACOS) ? Variant.CPU : requested;
+      final File runtimeDir = getUserRuntimeDir(effective, platform);
+
+      if (findPythonExecutable(runtimeDir) != null) {
+        // we found a python candidate but it is not executable/usable.
         logger.warning(() -> "DiffMS: found unusable python executable in existing runtime dir. "
-            + "Will reinstall runtime pack. python=" + py.getAbsolutePath() + " (size=" + py.length()
-            + " bytes, canExecute=" + py.canExecute() + ")");
+            + "Will reinstall runtime pack.");
         deleteDirectoryRecursively(runtimeDir.toPath(), isCanceled);
       }
 
@@ -139,6 +128,18 @@ public final class DiffMSRuntimeManager {
       }
       return py2;
     }
+  }
+
+  /**
+   * Returns a usable Python executable for the requested variant if already
+   * installed and relocated.
+   */
+  public static @Nullable File getUsablePython(final @NotNull Variant requested) {
+    final Platform platform = Platform.detect();
+    final Variant effective = (requested == Variant.CUDA && platform.os == OS.MACOS) ? Variant.CPU : requested;
+    final File runtimeDir = getUserRuntimeDir(effective, platform);
+    final File py = findPythonExecutable(runtimeDir);
+    return isUsablePythonExecutable(py) ? py : null;
   }
 
   private static boolean isUsablePythonExecutable(final @Nullable File py) {
