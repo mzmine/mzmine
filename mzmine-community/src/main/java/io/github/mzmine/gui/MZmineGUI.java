@@ -46,6 +46,7 @@ import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
+import io.github.mzmine.javafx.components.util.TextLabelMeasurementUtil;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxColorUtil;
@@ -510,6 +511,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
     MZmineGUI.mainStage = stage;
     DesktopService.setDesktop(this);
+    TextLabelMeasurementUtil.init(stage.sceneProperty());
     MZminePreferences preferences = ConfigService.getPreferences();
 
     logger.finest("Initializing mzmine main window");

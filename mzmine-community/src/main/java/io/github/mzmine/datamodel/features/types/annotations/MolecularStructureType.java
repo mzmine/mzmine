@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingRowChartCellFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -106,7 +107,7 @@ public class MolecularStructureType extends DataType<MolecularStructure> impleme
       final @Nullable RawDataFile raw, final @Nullable SubColumnsFactory parentType,
       final int subColumnIndex) {
     var column = super.createColumn(raw, parentType, subColumnIndex);
-    column.setCellFactory(_ -> new StructureTableCell<>());
+    column.setCellFactory(new CountingRowChartCellFactory(StructureTableCell::new));
     column.setComparator(Comparator.comparingInt(
         v -> v instanceof MolecularStructure structure ? structure.totalAtomsCount() : -1));
     return column;

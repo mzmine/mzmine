@@ -25,9 +25,16 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.javafx.components.factories.TableColumns;
+import io.github.mzmine.javafx.components.util.TextLabelMeasurementUtil;
 import java.text.NumberFormat;
+import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A DataType that has a NumberFormat to format its content. May be a simple number or Range or
@@ -56,4 +63,28 @@ public abstract class NumberFormatType<T> extends DataType<T> {
     return value != null ? getFormat(export).format(value) : "";
   }
 
+  @Override
+  public @Nullable TreeTableColumn<ModularFeatureListRow, Object> createColumn(
+      @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType, int subColumnIndex) {
+    final TreeTableColumn<ModularFeatureListRow, Object> column = super.createColumn(raw,
+        parentType, subColumnIndex);
+
+    return column;
+  }
+
+  /**
+   * @return a large number that represents the expected value range for the preferred width
+   * estimation
+   */
+  public double getRepresentativeLargeNumber() {
+    return 99999;
+  }
+
+  @Override
+  public double getPrefColumnWidth() {
+    final NumberFormat format = getFormat();
+    final String longNumberString = format.format(getRepresentativeLargeNumber());
+    return TextLabelMeasurementUtil.measureWidth(longNumberString)
+        + TableColumns.EXTRA_WIDTH_MARGIN;
+  }
 }

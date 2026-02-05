@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -22,16 +23,41 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.graphicalnodes;
+package io.github.mzmine.javafx.components.util;
 
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import java.util.function.Function;
-import javafx.scene.control.TreeTableCell;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.text.Text;
 
-public class CountingRowChartCellFactory extends CountingRowCellFactory<ModularFeatureListRow, Object> {
+public class TextLabelMeasurementUtil {
 
-  public CountingRowChartCellFactory(
-      Function<Integer, TreeTableCell<ModularFeatureListRow, Object>> createCell) {
-    super(createCell);
+  private static final TextLabelMeasurementUtil INSTANCE = new TextLabelMeasurementUtil();
+
+  private final Text measurer = new Text();
+  private final Scene tempScene = new Scene(new Group(measurer));
+
+  private TextLabelMeasurementUtil() {
+    super();
   }
+
+  public static void init(ReadOnlyObjectProperty<Scene> mainScene) {
+    mainScene.subscribe(ns -> {
+      if (ns == null) {
+        return;
+      }
+      INSTANCE.tempScene.getStylesheets().setAll(ns.getStylesheets());
+      INSTANCE.measurer.applyCss();
+    });
+
+  }
+
+  /**
+   * Measures text width with a specific font.
+   */
+  public static double measureWidth(String text) {
+    INSTANCE.measurer.setText(text);
+    return INSTANCE.measurer.getLayoutBounds().getWidth();
+  }
+
 }

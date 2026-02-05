@@ -191,6 +191,9 @@ public class FeatureTableFX extends BorderPane {
    * Package private to centralize creation in {@link FxFeatureTableController}
    */
   FeatureTableFX(@NotNull ParameterSet parameters) {
+    // option to create a different skin for column auto sizing control
+//    table.setSkin(new OptimizedTreeTableViewSkin<>(table));
+
     dataChangedNotification = new NotificationPane(table);
     setCenter(dataChangedNotification);
 

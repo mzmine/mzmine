@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -22,16 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.graphicalnodes;
+package io.github.mzmine.javafx.components.skins.tables;
 
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import java.util.function.Function;
-import javafx.scene.control.TreeTableCell;
+import javafx.scene.control.TableColumnBase;
+import javafx.scene.control.skin.NestedTableColumnHeader;
+import javafx.scene.control.skin.TableColumnHeader;
 
-public class CountingRowChartCellFactory extends CountingRowCellFactory<ModularFeatureListRow, Object> {
+public class OptimizedNestedTableColumnHeader extends NestedTableColumnHeader {
 
-  public CountingRowChartCellFactory(
-      Function<Integer, TreeTableCell<ModularFeatureListRow, Object>> createCell) {
-    super(createCell);
+  public OptimizedNestedTableColumnHeader(TableColumnBase<?, ?> column) {
+    super(column);
+  }
+
+  @Override
+  protected void resizeColumnToFitContent(int i) {
+    super.resizeColumnToFitContent(i);
+  }
+
+  @Override
+  protected TableColumnHeader createTableColumnHeader(TableColumnBase col) {
+    if (col == null || col.getColumns().isEmpty() || col == this.getTableColumn()) {
+      return new OptimizedTableColumnHeader(col);
+    } else {
+      return new OptimizedNestedTableColumnHeader(col);
+    }
   }
 }
