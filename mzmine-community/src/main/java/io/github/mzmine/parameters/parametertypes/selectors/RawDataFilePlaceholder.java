@@ -139,7 +139,7 @@ public class RawDataFilePlaceholder implements RawDataFile {
     final List<RawDataFile> allFiles = ProjectService.getProject().getCurrentRawDataFiles();
 
     // find all raw files and use the same allFiles instance
-    Stream<@Nullable RawDataFile> rawDataFileStream = Arrays.stream(placeholders)
+    return Arrays.stream(placeholders)
         .map(placeholder -> {
           final RawDataFile direct = placeholder.weakRawRef.get();
           if (direct != null) {
@@ -153,8 +153,6 @@ public class RawDataFilePlaceholder implements RawDataFile {
           }
           return null; // missing file
         });
-    var array = rawDataFileStream.toArray(RawDataFile[]::new);
-    return Arrays.stream(array);
   }
 
   /**
