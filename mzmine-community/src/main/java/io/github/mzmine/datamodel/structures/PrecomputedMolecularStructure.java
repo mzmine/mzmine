@@ -51,4 +51,9 @@ public record PrecomputedMolecularStructure(@NotNull IAtomContainer structure,
         + monoIsotopicMass + ", " + "mostAbundantMass=" + mostAbundantMass + ", "
         + "totalFormalCharge=" + totalFormalCharge + ']';
   }
+
+  @Override
+  public int totalAtomsCount() {
+    return structure.getAtomCount();
+  }
 }
