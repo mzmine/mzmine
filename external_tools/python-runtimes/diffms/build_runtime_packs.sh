@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Builds DiffMS runtime packs using micromamba + conda-pack.
+#
+# Output:
+#   external_tools/diffms/runtime-packs/diffms-runtime-<variant>-<os>-<arch>.<ext>
+#
+# Requirements:
+# - micromamba on PATH or set via MICROMAMBA_EXE env var
+#
+# Arguments:
+#   $1 (optional): Output directory for runtime packs.
+#                  If not provided, defaults to external_tools/diffms/runtime-packs
+#
+# Notes:
+# - CUDA pack is skipped on macOS (no CUDA).
+# - The produced archives are intended to be shipped inside the MZmine distribution or created by the user.
+
+# Determine micromamba executable
+MAMBA_EXE="${MICROMAMBA_EXE:-micromamba}"
+
+if ! command -v "$MAMBA_EXE" >/dev/null 2>&1; then
+  echo "Error: $MAMBA_EXE not found. Please install micromamba or set MICROMAMBA_EXE." >&2
+  exit 1
+fi
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+RUNTIME_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Output directory override
+# Default: user directory (if MZMINE_DIR env var is set) or fallback to old location
+if [[ -n "${1:-}" ]]; then
+  PACKS_DIR="$1"
+else
+  # Default to user directory if available, otherwise old location for backward compatibility
+  if [[ -n "${MZMINE_DIR:-}" ]]; then
+    PACKS_DIR="$MZMINE_DIR/diffms/runtime-packs"
+  else
+    PACKS_DIR="$ROOT_DIR/external_tools/diffms/runtime-packs"
+  fi
+fi
+
+CPU_YML="$RUNTIME_DIR/diffms-runtime-cpu.yml"
+CUDA_YML="$RUNTIME_DIR/diffms-runtime-cuda.yml"
+
+mkdir -p "$PACKS_DIR"
+
+uname_s="$(uname -s | tr '[:upper:]' '[:lower:]')"
+case "$uname_s" in
+  darwin) os="macos" ;;
+  linux) os="linux" ;;
+  *) echo "Unsupported OS for this script: $uname_s" >&2; exit 2 ;;
+esac
+
+uname_m="$(uname -m | tr '[:upper:]' '[:lower:]')"
+case "$uname_m" in
+  x86_64|amd64) arch="x86_64" ;;
+  arm64|aarch64) arch="arm64" ;;
+  *) echo "Unsupported arch for this script: $uname_m" >&2; exit 2 ;;
+esac
+
+ext="tar.gz"
+
+tmp_root="$(mktemp -d)"
+cleanup() { rm -rf "$tmp_root"; }
+trap cleanup EXIT
+
+packer_prefix="$tmp_root/packer"
+echo "PROGRESS: 5"
+echo "Building conda-pack tool env..."
+"$MAMBA_EXE" create -y -p "$packer_prefix" -c conda-forge conda-pack
+echo "PROGRESS: 15"
+
+build_pack() {
+  local variant="$1" yml="$2" out="$3" base_progress="$4" step_progress="$5"
+  local env_prefix="$tmp_root/env_$variant"
+
+  echo "Creating env for $variant from $(basename "$yml")..."
+  "$MAMBA_EXE" create -y -p "$env_prefix" -f "$yml" ${MAMBA_EXTRA_ARGS:-}
+  echo "PROGRESS: $((base_progress + (step_progress * 60 / 100)))"
+
+  echo "Installing torch-geometric stack via pip (variant=$variant)..."
+  local torch_ver
+  torch_ver="$("$MAMBA_EXE" run -p "$env_prefix" python -c "import torch; print(torch.__version__)" | tr -d '\r' | head -n 1)"
+  # Keep only major.minor.patch
+  torch_ver="$(echo "$torch_ver" | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+).*/\1/')"
+
+  # PyG wheel index uses a canonical patch version per minor series (e.g., 2.3.* -> 2.3.0).
+  # See PyG installation docs.
+  local torch_mm
+  torch_mm="$(echo "$torch_ver" | sed -E 's/^([0-9]+\.[0-9]+)\..*/\1/')"
+  local torch_tag="${torch_mm}.0"
+
+  # Detect CUDA tag from the installed torch build.
+  local cuda_raw
+  cuda_raw="$("$MAMBA_EXE" run -p "$env_prefix" python -c "import torch; print(torch.version.cuda or '')" | tr -d '\r' | head -n 1)"
+  local cuda_tag="cpu"
+  if [[ -n "$cuda_raw" ]]; then
+    # 11.8 -> cu118, 12.1 -> cu121
+    cuda_tag="cu$(echo "$cuda_raw" | tr -d '.' | cut -c1-3)"
+  fi
+  # In case the env is CPU-only but the user asked for CUDA variant, fall back to cpu wheels.
+  if [[ "$variant" == "cuda" && "$cuda_tag" == "cpu" ]]; then
+    echo "WARN: CUDA variant requested but torch reports no CUDA; using cpu wheels."
+  fi
+
+  local pyg_index="https://data.pyg.org/whl/torch-${torch_tag}%2B${cuda_tag}.html"
+
+  # Install optional compiled deps first; if not available for this platform, fall back to
+  # installing torch_geometric only (PyG docs: optional dependencies are not required for basic usage).
+  # https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html
+  if ! "$MAMBA_EXE" run -p "$env_prefix" python -m pip install --no-cache-dir --quiet \
+      torch_scatter torch_sparse torch_cluster torch_spline_conv \
+      -f "$pyg_index"; then
+    echo "WARN: Could not install full PyG wheel set from $pyg_index. Installing torch_geometric only."
+  fi
+  "$MAMBA_EXE" run -p "$env_prefix" python -m pip install --no-cache-dir --quiet torch_geometric
+
+  # pip-only dependency used by vendored DiffMS in fp2mol dataset preprocessing (import name: tqdm_joblib)
+  "$MAMBA_EXE" run -p "$env_prefix" python -m pip install --no-cache-dir --quiet tqdm-joblib
+  echo "PROGRESS: $((base_progress + (step_progress * 90 / 100)))"
+
+  echo "Packing env to $(basename "$out")..."
+  rm -f "$out"
+  "$MAMBA_EXE" run -p "$packer_prefix" conda-pack -p "$env_prefix" -o "$out" --format tar.gz
+
+  echo "Done: $out"
+  echo "PROGRESS: $((base_progress + step_progress))"
+}
+
+cpu_out="$PACKS_DIR/diffms-runtime-cpu-${os}-${arch}.${ext}"
+if [[ "$os" == "macos" ]]; then
+    build_pack "cpu" "$CPU_YML" "$cpu_out" 15 85
+    echo "Skipping CUDA runtime pack on macOS."
+else
+    build_pack "cpu" "$CPU_YML" "$cpu_out" 15 40
+    cuda_out="$PACKS_DIR/diffms-runtime-cuda-${os}-${arch}.${ext}"
+    build_pack "cuda" "$CUDA_YML" "$cuda_out" 55 45
+fi
+
+echo "Runtime packs ready in: $PACKS_DIR"
+echo "PROGRESS: 100"
