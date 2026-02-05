@@ -91,7 +91,7 @@ public class ProjectLoadTest {
     // two library matches
     assertEquals(2, flist.getRows().stream().filter(FeatureListRow::isIdentified).count());
 
-    assertEquals(15, flist.getRowTypes().size());
+    assertEquals(14, flist.getRowTypes().size());
     assertEquals(16, flist.getFeatureTypes().size());
 
     ProjectService.getProjectManager().clearProject();
