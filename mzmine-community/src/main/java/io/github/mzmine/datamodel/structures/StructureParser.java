@@ -99,7 +99,7 @@ public class StructureParser {
       if (verbose) {
         logger.log(Level.WARNING, message, e);
       } else {
-        logger.log(Level.WARNING, message);
+        logger.log(Level.FINE, message);
       }
       return null;
     }
@@ -121,7 +121,7 @@ public class StructureParser {
       if (verbose) {
         logger.log(Level.WARNING, message, e);
       } else {
-        logger.log(Level.WARNING, message);
+        logger.log(Level.FINE, message);
       }
     }
     return null;
