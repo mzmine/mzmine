@@ -305,7 +305,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
     param.setParameter(RowsFilterParameters.COMMENT_TEXT, false);
     param.setParameter(RowsFilterParameters.REMOVE_ROW, RowsFilterChoices.KEEP_MATCHING);
     param.setParameter(RowsFilterParameters.MS2_Filter, false);
-    param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, true);
+    param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, false);
     param.setParameter(RowsFilterParameters.KEEP_ALL_ANNOTATED, false);
     param.setParameter(RowsFilterParameters.ROW_TYPE_FILTER, false);
     param.setParameter(RowsFilterParameters.Reset_ID, false);
