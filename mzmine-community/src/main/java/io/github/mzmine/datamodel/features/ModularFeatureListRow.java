@@ -490,7 +490,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
     }
     // outside of lock
     // cache values like isotope pattern to speed up feature table
-    CompoundAnnotationUtils.precalculateAnnotationValues(id);
+    CompoundAnnotationUtils.precalculateAnnotationValues(id, this);
   }
 
   @NotNull
@@ -505,7 +505,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
     set(CompoundDatabaseMatchesType.class, annotations);
     if (annotations != null) {
       // cache values like isotope pattern to speed up feature table
-      CompoundAnnotationUtils.precalculateAnnotationValues(annotations);
+      CompoundAnnotationUtils.precalculateAnnotationValues(annotations, this);
     }
   }
 
@@ -562,7 +562,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
     }
     // outside of lock
     // cache values like isotope pattern to speed up feature table
-    CompoundAnnotationUtils.precalculateAnnotationValues(id);
+    CompoundAnnotationUtils.precalculateAnnotationValues(id, this);
   }
 
   @Override
@@ -575,7 +575,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
     }
     // outside of lock
     // cache values like isotope pattern to speed up feature table
-    CompoundAnnotationUtils.precalculateAnnotationValues(matches);
+    CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
   }
 
   @Override
@@ -589,7 +589,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
     set(SpectralLibraryMatchesType.class, matches);
     if (matches != null) {
       // cache values like isotope pattern to speed up feature table
-      CompoundAnnotationUtils.precalculateAnnotationValues(matches);
+      CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
     }
   }
 
@@ -758,7 +758,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
     }
     // outside of lock
     // cache values like isotope pattern to speed up feature table
-    CompoundAnnotationUtils.precalculateAnnotationValues(matchedLipid);
+    CompoundAnnotationUtils.precalculateAnnotationValues(matchedLipid, this);
   }
 
   @Override
@@ -766,7 +766,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
     set(LipidMatchListType.class, matchedLipid);
     if (matchedLipid != null) {
       // cache values like isotope pattern to speed up feature table
-      CompoundAnnotationUtils.precalculateAnnotationValues(matchedLipid);
+      CompoundAnnotationUtils.precalculateAnnotationValues(matchedLipid, this);
     }
   }
 

@@ -103,10 +103,10 @@ public class CompoundAnnotationUtils {
    *
    */
   public static void precalculateAnnotationValues(
-      @NotNull Collection<? extends FeatureAnnotation> annotations) {
+      @NotNull Collection<? extends FeatureAnnotation> annotations, FeatureListRow row) {
     // cache isotope pattern for faster feature table start up
     for (FeatureAnnotation annotation : annotations) {
-      precalculateAnnotationValues(annotation);
+      precalculateAnnotationValues(annotation, row);
     }
   }
 
@@ -116,9 +116,14 @@ public class CompoundAnnotationUtils {
    * are added.
    *
    */
-  public static void precalculateAnnotationValues(@NotNull FeatureAnnotation annotation) {
+  public static void precalculateAnnotationValues(@NotNull FeatureAnnotation annotation,
+      FeatureListRow row) {
     // cache isotope pattern for faster feature table start up
     annotation.getIsotopePattern();
+
+    if (annotation instanceof CompoundDBAnnotation db) {
+      calculateBoundTypes(db, row);
+    }
   }
 
   /**
