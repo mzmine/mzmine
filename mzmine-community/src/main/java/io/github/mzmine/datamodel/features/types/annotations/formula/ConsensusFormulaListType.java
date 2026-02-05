@@ -54,6 +54,6 @@ public class ConsensusFormulaListType extends ListDataType<ResultFormula> implem
 
   @Override
   public double getPrefColumnWidth() {
-    return 120;
+    return 125;
   }
 }

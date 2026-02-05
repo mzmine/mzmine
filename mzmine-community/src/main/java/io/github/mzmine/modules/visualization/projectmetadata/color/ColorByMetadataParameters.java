@@ -58,7 +58,7 @@ public class ColorByMetadataParameters extends SimpleParameterSet {
       0d, 1d);
 
   public static final BooleanParameter separateBlankQcs = new BooleanParameter(
-      "Separate blanks & QCs", "Separate coloring for blanks and QCs", true);
+      "Separate blanks & QCs", "Separate coloring for blanks and QCs", false);
 
   public static final BooleanParameter applySorting = new BooleanParameter("Sort data files",
       "Sort raw data files", true);
