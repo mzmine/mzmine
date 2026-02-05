@@ -1,5 +1,4 @@
 #!/usr/bin/env pwsh
-$ErrorActionPreference = "Stop"
 
 # Builds DiffMS runtime packs using micromamba + conda-pack (Windows).
 #
@@ -15,6 +14,8 @@ $ErrorActionPreference = "Stop"
 param(
     [string]$OutputDirectory
 )
+
+$ErrorActionPreference = "Stop"
 
 $RootDir = Resolve-Path (Join-Path $PSScriptRoot "..\..\..") | Select-Object -ExpandProperty Path
 $RuntimeDir = Join-Path $RootDir "external_tools\diffms\runtime"
@@ -39,7 +40,7 @@ $CudaYml = Join-Path $RuntimeDir "diffms-runtime-cuda.yml"
 
 New-Item -ItemType Directory -Force -Path $PacksDir | Out-Null
 
-$archRaw = ($env:PROCESSOR_ARCHITECTURE ?? "").ToLowerInvariant()
+$archRaw = "$env:PROCESSOR_ARCHITECTURE".ToLowerInvariant()
 if ($archRaw -eq "amd64" -or $archRaw -eq "x86_64") {
   $arch = "x86_64"
 } elseif ($archRaw -like "*arm*") {
@@ -49,15 +50,29 @@ if ($archRaw -eq "amd64" -or $archRaw -eq "x86_64") {
   $arch = "x86_64"
 }
 
-$tmpRoot = Join-Path $env:RUNNER_TEMP ("diffms_runtime_pack_" + [Guid]::NewGuid().ToString("N"))
+$tempBase = $env:RUNNER_TEMP
+if ([string]::IsNullOrWhiteSpace($tempBase)) {
+    $tempBase = $env:TEMP
+}
+$tmpRoot = Join-Path $tempBase ("diffms_runtime_pack_" + [Guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Force -Path $tmpRoot | Out-Null
 
 try {
   $packerPrefix = Join-Path $tmpRoot "packer"
+  Write-Host "PROGRESS: 5"
   Write-Host "Building conda-pack tool env..."
-  & $MambaExe create -y -p $packerPrefix -c conda-forge conda-pack | Out-Null
+  & $MambaExe create -y -p $packerPrefix -c conda-forge conda-pack
+  if ($LASTEXITCODE -ne 0) { throw "Failed to create conda-pack environment" }
+  Write-Host "PROGRESS: 15"
 
-  function Build-Pack($variant, $yml, $out) {
+  function Build-Pack {
+    param(
+      [string]$variant,
+      [string]$yml,
+      [string]$out,
+      [int]$baseProgress,
+      [int]$stepProgress
+    )
     $envPrefix = Join-Path $tmpRoot ("env_" + $variant)
     Write-Host "Creating env for $variant from $(Split-Path $yml -Leaf)..."
     if ($env:MAMBA_EXTRA_ARGS) {
@@ -65,13 +80,17 @@ try {
     } else {
       & $MambaExe create -y -p $envPrefix -f $yml
     }
+    if ($LASTEXITCODE -ne 0) { throw "Failed to create environment for $variant" }
+    Write-Host ("PROGRESS: " + ($baseProgress + [int]($stepProgress * 0.6)))
 
     Write-Host "Installing torch-geometric stack via pip (variant=$variant)..."
     $torchVer = (& $MambaExe run -p $envPrefix python -c "import torch; print(torch.__version__)") -replace "`r",""
+    if ($LASTEXITCODE -ne 0) { throw "Failed to get torch version" }
     if ($torchVer -match '^(\d+\.\d+\.\d+)') { $torchVer = $Matches[1] }
     if ($torchVer -match '^(\d+\.\d+)\.') { $torchTag = ($Matches[1] + ".0") } else { $torchTag = $torchVer }
 
     $cudaRaw = (& $MambaExe run -p $envPrefix python -c "import torch; print(torch.version.cuda or '')") -replace "`r",""
+    if ($LASTEXITCODE -ne 0) { throw "Failed to get CUDA version" }
     if ([string]::IsNullOrWhiteSpace($cudaRaw)) {
       $cudaTag = "cpu"
     } else {
@@ -85,29 +104,34 @@ try {
 
     # Try compiled deps; if unavailable, continue with torch_geometric only.
     Write-Host "Trying to install compiled PyG dependencies from $pygIndex..."
-    & $MambaExe run -p $envPrefix python -m pip install --no-cache-dir `
-      pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv `
+    & $MambaExe run -p $envPrefix python -m pip install --no-cache-dir --quiet `
+      torch_scatter torch_sparse torch_cluster torch_spline_conv `
       -f $pygIndex
     if ($LASTEXITCODE -ne 0) {
       Write-Host "WARN: Could not install full PyG wheel set from $pygIndex. Installing torch_geometric only."
     }
-    & $MambaExe run -p $envPrefix python -m pip install --no-cache-dir torch_geometric
-    & $MambaExe run -p $envPrefix python -m pip install --no-cache-dir tqdm-joblib
+    & $MambaExe run -p $envPrefix python -m pip install --no-cache-dir --quiet torch_geometric
+    if ($LASTEXITCODE -ne 0) { throw "Failed to install torch_geometric" }
+    & $MambaExe run -p $envPrefix python -m pip install --no-cache-dir --quiet tqdm-joblib
+    if ($LASTEXITCODE -ne 0) { throw "Failed to install tqdm-joblib" }
+    Write-Host ("PROGRESS: " + ($baseProgress + [int]($stepProgress * 0.9)))
 
     Write-Host "Packing env to $(Split-Path $out -Leaf)..."
     if (Test-Path $out) { Remove-Item -Force $out }
     & $MambaExe run -p $packerPrefix conda-pack -p $envPrefix -o $out --format zip
+    if ($LASTEXITCODE -ne 0) { throw "Failed to pack environment for $variant" }
     Write-Host "Done: $out"
+    Write-Host ("PROGRESS: " + ($baseProgress + $stepProgress))
   }
 
   $cpuOut = Join-Path $PacksDir ("diffms-runtime-cpu-windows-$arch.zip")
-  Build-Pack "cpu" $CpuYml $cpuOut
+  Build-Pack "cpu" $CpuYml $cpuOut 15 40
 
   $cudaOut = Join-Path $PacksDir ("diffms-runtime-cuda-windows-$arch.zip")
-  Build-Pack "cuda" $CudaYml $cudaOut
+  Build-Pack "cuda" $CudaYml $cudaOut 55 45
 
   Write-Host "Runtime packs ready in: $PacksDir"
+  Write-Host "PROGRESS: 100"
 } finally {
   if (Test-Path $tmpRoot) { Remove-Item -Recurse -Force $tmpRoot }
 }
-
