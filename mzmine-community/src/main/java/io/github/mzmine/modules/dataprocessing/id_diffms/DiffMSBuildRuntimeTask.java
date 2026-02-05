@@ -34,6 +34,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.Nullable;
 
 public class DiffMSBuildRuntimeTask extends AbstractTask {
 
