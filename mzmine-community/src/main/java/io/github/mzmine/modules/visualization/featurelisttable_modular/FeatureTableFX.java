@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -43,10 +44,8 @@ import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
-import io.github.mzmine.datamodel.features.types.annotations.AnnotationMethodType;
 import io.github.mzmine.datamodel.features.types.annotations.AnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
-import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidSpectrumType;
 import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
@@ -550,6 +549,8 @@ public class FeatureTableFX extends BorderPane {
     }
     final var preferredAnnotations = getMainColumnEntry(PreferredAnnotationType.class);
     if (preferredAnnotations != null) {
+      setColumnVisibilityAndSubColumns(preferredAnnotations.getValue(), false);
+      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, null, true);
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, PreferredAnnotationType.class, true);
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, AnnotationSummaryType.class,
           true);
