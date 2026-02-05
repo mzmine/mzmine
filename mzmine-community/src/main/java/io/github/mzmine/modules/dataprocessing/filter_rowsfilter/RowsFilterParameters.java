@@ -288,7 +288,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
         RowsFilterParameters.foldChangeFilter).getEmbeddedParameters();
 
     fcParams.setAll(AbundanceMeasure.Area, ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION,
-        Metadata2GroupsSelection.NONE, SignificanceTests.WELCHS_T_TEST, 0.05, 1d,
+        Metadata2GroupsSelection.NONE, SignificanceTests.WELCHS_T_TEST, true, 0.05, 1d,
         FoldChangeFilterSides.ABS_BOTH_SIDES);
 
     //
@@ -326,7 +326,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
       // 3 had message for internal change to cvFilter - but internal changes are now also printed since mzmine 4.9
       // still print added option here because either way there is a message that RSD filter was changed
       case 3 -> """
-          "%s" was added as an additional filtering option.""".formatted(foldChangeFilter.getName());
+          "%s" was added as an additional filtering option.""".formatted(
+          foldChangeFilter.getName());
       default -> null;
     };
   }

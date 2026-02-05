@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
@@ -91,6 +92,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final List<RawDataFile> allRawDataFiles;
   private final ExtraColumnHandler extraColumnHandler;
   private final boolean calcMainSignal;
+  private final ChargeFilterType chargeFilter;
   private IonNetworkLibrary ionNetworkLibrary;
 
   private List<String[]> databaseValues;
@@ -130,6 +132,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
         .flatMap(Collection::stream).distinct().toList();
     sampleHeader = parameters.getParameter(LocalCSVDatabaseSearchParameters.filterSamples)
         .getEmbeddedParameter().getValue();
+    chargeFilter = parameters.getValue(LocalCSVDatabaseSearchParameters.chargeFilter);
 
     extraColumnHandler = new ExtraColumnHandler(
         parameters.getValue(LocalCSVDatabaseSearchParameters.extraColumns));
@@ -362,6 +365,10 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       @NotNull FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobTolerance,
       @Nullable Double percCcsTolerance, @Nullable RITolerance riTolerance) {
+
+    if (!chargeFilter.matches(row, annotation)) {
+      return;
+    }
 
     final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(row, mzTolerance,
         rtTolerance, mobTolerance, percCcsTolerance, riTolerance);
