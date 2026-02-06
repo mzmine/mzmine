@@ -7,6 +7,7 @@ name: mzmine-diffms
 # - This is intended to be packed via conda-pack and bundled with MZmine.
 # - DiffMS upstream was tested with Python 3.9, torch 2.3.1, and torch_geometric 2.3.1.
 #   (see external_tools/diffms/vendor/DiffMS/README.md)
+# - Upgraded to Python 3.11 for compatibility with modern type hints (Python 3.10+ syntax).
 # - Our runner (external_tools/diffms/src/mzmine_diffms_predict.py) requires torch, rdkit, torch_geometric,
 #   omegaconf/hydra, pytorch-lightning, torchmetrics, etc.
 #
@@ -18,8 +19,8 @@ channels:
   - pytorch
 
 dependencies:
-  # match DiffMS upstream constraints for maximum compatibility
-  - python=3.9
+  # Upgraded to Python 3.11 for modern type hint compatibility
+  - python=3.11
   - pip
 
   # core scientific stack
@@ -39,6 +40,11 @@ dependencies:
   - wandb
   - h5py
   - matplotlib
+
+  # ChemAudit dependencies (for structure validation)
+  - molvs=0.1.1
+  - pip:
+    - chembl-structure-pipeline>=1.0.0
 
   # PyTorch + PyTorch Geometric (torch_geometric import)
   - pytorch=2.3.1

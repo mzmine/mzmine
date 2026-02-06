@@ -1,0 +1,49 @@
+# Prometheus configuration for ChemAudit monitoring
+# Scrapes metrics from the FastAPI backend at /metrics endpoint
+
+global:
+  scrape_interval: 10s      # How frequently to scrape targets
+  evaluation_interval: 10s  # How frequently to evaluate rules
+  scrape_timeout: 5s        # Timeout for scrape requests
+
+# Alertmanager configuration (optional - for future alerting)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Rule files (optional - for recording/alerting rules)
+rule_files: []
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+    metrics_path: /metrics
+    scheme: http
+
+  # ChemAudit Backend API
+  - job_name: "chemaudit-backend"
+    static_configs:
+      - targets: ["backend:8000"]
+        labels:
+          service: "chemaudit"
+          component: "api"
+    metrics_path: /metrics
+    scheme: http
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Redis metrics (if redis_exporter is added later)
+  # - job_name: "redis"
+  #   static_configs:
+  #     - targets: ["redis-exporter:9121"]
+  #   metrics_path: /metrics
+
+  # PostgreSQL metrics (if postgres_exporter is added later)
+  # - job_name: "postgres"
+  #   static_configs:
+  #     - targets: ["postgres-exporter:9187"]
+  #   metrics_path: /metrics

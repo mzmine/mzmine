@@ -35,6 +35,12 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ChemAuditDetailsType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ChemAuditMlReadinessScoreType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ChemAuditQualityCategoryType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ChemAuditQualityIndicatorType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ChemAuditRawJsonType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ChemAuditValidationScoreType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
@@ -74,6 +80,10 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
       new CompoundNameType(), new CompoundAnnotationScoreType(), new FormulaType(),
       new IonTypeType(), new MolecularStructureType(), new SmilesStructureType(),
       new InChIStructureType(), new InChIKeyStructureType(),
+      // ChemAudit
+      new ChemAuditQualityIndicatorType(), new ChemAuditValidationScoreType(),
+      new ChemAuditMlReadinessScoreType(), new ChemAuditQualityCategoryType(),
+      new ChemAuditDetailsType(), new ChemAuditRawJsonType(),
       // classifiers
       new ClassyFireSuperclassType(), new ClassyFireClassType(), new ClassyFireSubclassType(),
       new ClassyFireParentType(), new NPClassifierSuperclassType(), new NPClassifierClassType(),

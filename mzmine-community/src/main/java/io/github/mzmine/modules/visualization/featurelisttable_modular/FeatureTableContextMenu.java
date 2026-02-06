@@ -55,6 +55,7 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ChemAuditRawJsonType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
@@ -86,6 +87,7 @@ import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFinger
 import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdParameters;
 import io.github.mzmine.modules.tools.siriusapi.modules.rank_annotations.SiriusApiRankAnnotationsModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.chemaudit.ChemAuditResultsTab;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
@@ -634,6 +636,10 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> selectedRow != null && !selectedRow.getCompoundAnnotations().isEmpty());
     showCompoundDBResults.setOnAction(_ -> CompoundDatabaseMatchTab.addNewTab(table));
 
+    final MenuItem showChemAuditResults = new ConditionalMenuItem("ChemAudit results",
+        () -> selectedRow != null && rowHasChemAuditResults(selectedRow));
+    showChemAuditResults.setOnAction(_ -> ChemAuditResultsTab.addNewTab(table));
+
     final MenuItem showSpectralDBResults = new ConditionalMenuItem("Spectral DB search results",
         () -> !selectedRows.isEmpty() && rowHasSpectralLibraryMatches(selectedRows));
     showSpectralDBResults.setOnAction(
@@ -659,8 +665,8 @@ public class FeatureTableContextMenu extends ContextMenu {
             showBestMobilityScanItem, extractSumSpectrumFromMobScans, showMSMSItem,
             showMSMSMirrorItem, showAllMSMSItem, showPseudoSpectrumItem, showDiaMirror,
             new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
-            showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
-            showCorrelatedImageFeaturesItem);
+            showChemAuditResults, showSpectralDBResults, showMatchedLipidSignals,
+            new SeparatorMenuItem(), showCorrelatedImageFeaturesItem);
   }
 
   private @NotNull EventHandler<ActionEvent> open3DFeaturePlot() {
@@ -858,6 +864,22 @@ public class FeatureTableContextMenu extends ContextMenu {
       }
     }
     return num;
+  }
+
+  private boolean rowHasChemAuditResults(@Nullable ModularFeatureListRow row) {
+    if (row == null) {
+      return false;
+    }
+    final var annotations = FeatureUtils.extractAllCompoundAnnotations(row);
+    if (annotations == null || annotations.isEmpty()) {
+      return false;
+    }
+    for (var annotation : annotations) {
+      if (annotation.get(ChemAuditRawJsonType.class) != null) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean rowHasSpectralLibraryMatches(List<ModularFeatureListRow> rows) {

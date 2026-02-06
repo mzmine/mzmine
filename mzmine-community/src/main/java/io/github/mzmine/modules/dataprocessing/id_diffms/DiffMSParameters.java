@@ -20,6 +20,7 @@
 package io.github.mzmine.modules.dataprocessing.id_diffms;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -61,9 +62,36 @@ public class DiffMSParameters extends SimpleParameterSet {
   public static final MZToleranceParameter subformulaTol = new MZToleranceParameter("Subformula tolerance",
       "Absolute tolerance for matching a subformula mass to an MS/MS peak m/z.", 0.02, 10.0);
 
+  public static final BooleanParameter enableChemAudit = new BooleanParameter(
+      "Enable ChemAudit validation",
+      "Validate and score predicted structures using ChemAudit. "
+          + "Structures that fail quality thresholds will be filtered out. "
+          + "Adds validation scores and quality metrics to annotations.",
+      false);
+
+  public static final IntegerParameter minValidationScore = new IntegerParameter(
+      "Minimum validation score",
+      "Minimum ChemAudit validation score (0-100) to accept structures. "
+          + "Recommended: 60 for balanced quality, 80 for high quality, 40 for permissive.",
+      60, 0, 100);
+
+  public static final IntegerParameter minMLReadinessScore = new IntegerParameter(
+      "Minimum ML-readiness score",
+      "Minimum ML-readiness score (0-100) to accept structures. "
+          + "Assesses descriptor calculability and fingerprint generation. "
+          + "Recommended: 40 for balanced, 70 for high quality, 30 for permissive.",
+      40, 0, 100);
+
+  public static final BooleanParameter enableStructuralAlerts = new BooleanParameter(
+      "Screen for structural alerts",
+      "Screen structures against PAINS and BRENK catalogs. "
+          + "Structures with critical alerts will be filtered out.",
+      true);
+
   public DiffMSParameters() {
     this(new io.github.mzmine.parameters.Parameter<?>[] { flists, pythonExecutable, buildRuntime, checkpoint,
-        device, topK, maxMs2Peaks, subformulaTol });
+        device, topK, maxMs2Peaks, subformulaTol, enableChemAudit, minValidationScore,
+        minMLReadinessScore, enableStructuralAlerts });
 
     // Auto-select checkpoint if it was downloaded previously or if the current one
     // is missing.

@@ -45,6 +45,7 @@ import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ChemAuditQualityIndicatorType;
 import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
@@ -508,6 +509,7 @@ public class FeatureTableFX extends BorderPane {
     setVisible(ColumnType.ROW_TYPE, mainType, PrecursorMZType.class, toggledState);
     setVisible(ColumnType.ROW_TYPE, mainType, MzPpmDifferenceType.class, toggledState);
     setVisible(ColumnType.ROW_TYPE, mainType, NeutralMassType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, mainType, ChemAuditQualityIndicatorType.class, toggledState);
 
     if (applyVisibility) {
       applyVisibilityParametersToAllColumns();

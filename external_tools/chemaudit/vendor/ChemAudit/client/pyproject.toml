@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "chemaudit-client"
+version = "1.0.0"
+description = "Python client for ChemAudit API - chemical structure validation"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "ChemAudit Team" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "httpx>=0.25.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "respx>=0.20.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Kohulan/ChemAudit"
+Documentation = "https://github.com/Kohulan/ChemAudit#readme"
+Repository = "https://github.com/Kohulan/ChemAudit"
+
+[tool.hatch.build.targets.wheel]
+packages = ["chemaudit"]

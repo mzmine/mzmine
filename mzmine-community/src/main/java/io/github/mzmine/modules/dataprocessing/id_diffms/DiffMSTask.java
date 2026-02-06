@@ -39,6 +39,12 @@ import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ChemAuditDetailsType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ChemAuditMlReadinessScoreType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ChemAuditQualityCategoryType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ChemAuditQualityIndicatorType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ChemAuditRawJsonType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ChemAuditValidationScoreType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.ConsensusFormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
@@ -117,11 +123,16 @@ public class DiffMSTask extends AbstractTask {
   private final @NotNull MZTolerance subformulaTol;
   private final @NotNull File pythonExe;
   private final @NotNull File checkpoint;
+  private final boolean enableChemAudit;
+  private final int minValidationScore;
+  private final int minMLReadinessScore;
+  private final boolean enableStructuralAlerts;
 
   private final Map<Integer, ModularFeatureListRow> rowsById = new HashMap<>();
   private final Map<Integer, String> formulaByRowId = new HashMap<>();
   private final Map<Integer, IonType> adductByRowId = new HashMap<>();
 
+  private ChemAuditValidator chemAuditValidator;
   private String description = "DiffMS structure generation";
   private int totalRows;
   private int doneRows;
@@ -162,6 +173,10 @@ public class DiffMSTask extends AbstractTask {
     this.topK = parameters.getValue(DiffMSParameters.topK);
     this.maxMs2Peaks = parameters.getValue(DiffMSParameters.maxMs2Peaks);
     this.subformulaTol = parameters.getValue(DiffMSParameters.subformulaTol);
+    this.enableChemAudit = parameters.getValue(DiffMSParameters.enableChemAudit);
+    this.minValidationScore = parameters.getValue(DiffMSParameters.minValidationScore);
+    this.minMLReadinessScore = parameters.getValue(DiffMSParameters.minMLReadinessScore);
+    this.enableStructuralAlerts = parameters.getValue(DiffMSParameters.enableStructuralAlerts);
   }
 
   @Override
@@ -418,6 +433,19 @@ public class DiffMSTask extends AbstractTask {
     doneRows = 0;
     description = "DiffMS: loading model";
 
+    // Initialize ChemAudit validator if enabled
+    if (enableChemAudit) {
+      try {
+        chemAuditValidator = new ChemAuditValidator(effectivePythonExe, minValidationScore,
+            minMLReadinessScore, enableStructuralAlerts);
+        logger.info(() -> "ChemAudit validation enabled (min validation: " + minValidationScore
+            + ", min ML: " + minMLReadinessScore + ", alerts: " + enableStructuralAlerts + ")");
+      } catch (Exception e) {
+        logger.log(Level.WARNING, "Failed to initialize ChemAudit validator, continuing without validation", e);
+        chemAuditValidator = null;
+      }
+    }
+
     final File effectiveCheckpoint = resolveCheckpointOrExtractIfNeeded(ckptToResolve);
     if (!effectiveCheckpoint.isFile()) {
       throw new IllegalStateException("DiffMS checkpoint not found after extraction.");
@@ -539,13 +567,50 @@ public class DiffMSTask extends AbstractTask {
         continue;
       }
 
+      // ChemAudit validation (if enabled)
+      ChemAuditResult validation = null;
+      if (enableChemAudit && chemAuditValidator != null) {
+        validation = chemAuditValidator.validateSingle(smi, rowId, rank);
+
+        if (validation != null && !validation.meetsQualityThreshold()) {
+          // Capture final values for lambda
+          final int finalRank = rank;
+          final ChemAuditResult finalValidation = validation;
+          logger.info(() -> String.format(
+              "DiffMS: skipping structure for row %d (rank %d) - ChemAudit validation failed: %s",
+              rowId, finalRank, finalValidation.getSummary()));
+          continue;
+        }
+      }
+
       final SimpleCompoundDBAnnotation ann = new SimpleCompoundDBAnnotation();
       ann.put(DatabaseNameType.class, "DiffMS");
       ann.put(CompoundNameType.class, "DiffMS #" + rank);
       ann.put(FormulaType.class, formula);
       ann.put(IonTypeType.class, adduct);
-      ann.put(SmilesStructureType.class, smi);
-      ann.put(CommentType.class, "DiffMS");
+
+      // Use standardized SMILES if ChemAudit validation was performed
+      final String finalSmiles = (validation != null && validation.hasNoErrors())
+          ? validation.standardizedSmiles()
+          : smi;
+      ann.put(SmilesStructureType.class, finalSmiles);
+
+      // Add ChemAudit quality metrics to comment if available
+      if (validation != null && validation.hasNoErrors()) {
+        ann.put(CommentType.class, "DiffMS | " + validation.getSummary());
+      } else {
+        ann.put(CommentType.class, "DiffMS");
+      }
+
+      if (validation != null) {
+        ann.put(ChemAuditQualityIndicatorType.class, buildChemAuditQualityIndicator(validation));
+        ann.put(ChemAuditValidationScoreType.class, validation.validationScore());
+        ann.put(ChemAuditMlReadinessScoreType.class, validation.mlReadinessScore());
+        ann.put(ChemAuditQualityCategoryType.class, validation.qualityCategory());
+        ann.put(ChemAuditDetailsType.class, formatChemAuditDetails(validation));
+        ann.put(ChemAuditRawJsonType.class, serializeChemAuditResult(validation));
+      }
+
       // manually call calculations to avoid RT absolute error log if RT is missing
       ConnectedTypeCalculation.LIST.forEach(calc -> {
         if (calc.typeToCalculate() instanceof RtAbsoluteDifferenceType
@@ -775,6 +840,216 @@ public class DiffMSTask extends AbstractTask {
     }
 
     return "Unknown (LCMS)";
+  }
+
+  private static @Nullable String buildChemAuditQualityIndicator(
+      final @NotNull ChemAuditResult validation) {
+    if (validation.error() != null && !validation.error().isBlank()) {
+      return "ERR";
+    }
+    final String category = validation.qualityCategory();
+    if (category == null || category.isBlank()) {
+      return null;
+    }
+    final String base = switch (category.toLowerCase()) {
+      case "excellent" -> "A";
+      case "good" -> "B";
+      case "moderate" -> "C";
+      case "poor" -> "D";
+      case "invalid" -> "F";
+      default -> category.substring(0, 1).toUpperCase();
+    };
+    if (validation.hasCriticalAlerts()) {
+      return base + "!";
+    }
+    if (validation.alerts() != null && !validation.alerts().isEmpty()) {
+      return base + "*";
+    }
+    return base;
+  }
+
+  private static @Nullable String formatChemAuditDetails(
+      final @NotNull ChemAuditResult validation) {
+    final List<String> parts = new ArrayList<>();
+    parts.add("valid=" + validation.valid());
+    parts.add("val=" + validation.validationScore());
+    parts.add("ml=" + validation.mlReadinessScore());
+    if (validation.qualityCategory() != null && !validation.qualityCategory().isBlank()) {
+      parts.add("category=" + validation.qualityCategory());
+    }
+    if (validation.mlInterpretation() != null && !validation.mlInterpretation().isBlank()) {
+      parts.add("ml_note=" + validation.mlInterpretation());
+    }
+    final String alerts = formatChemAuditAlerts(validation.alerts());
+    if (alerts != null) {
+      parts.add("alerts=" + alerts);
+    }
+    final String failedChecks = formatChemAuditFailedChecks(validation.failedChecks());
+    if (failedChecks != null) {
+      parts.add("failed_checks=" + failedChecks);
+    }
+    final String standardization = formatChemAuditStandardization(validation.standardization());
+    if (standardization != null) {
+      parts.add("standardization=" + standardization);
+    }
+    final String breakdown = formatChemAuditMlBreakdown(validation.mlBreakdown());
+    if (breakdown != null) {
+      parts.add("ml_breakdown=" + breakdown);
+    }
+    if (validation.error() != null && !validation.error().isBlank()) {
+      parts.add("error=" + validation.error());
+    }
+    return parts.isEmpty() ? null : String.join(" | ", parts);
+  }
+
+  private static @Nullable String formatChemAuditAlerts(
+      final @Nullable List<ChemAuditResult.StructuralAlert> alerts) {
+    if (alerts == null) {
+      return null;
+    }
+    if (alerts.isEmpty()) {
+      return "none";
+    }
+    final List<String> parts = new ArrayList<>(alerts.size());
+    for (var alert : alerts) {
+      final StringBuilder sb = new StringBuilder();
+      if (alert.pattern() != null && !alert.pattern().isBlank()) {
+        sb.append(alert.pattern());
+      } else {
+        sb.append("alert");
+      }
+      final List<String> bits = new ArrayList<>();
+      if (alert.catalog() != null && !alert.catalog().isBlank()) {
+        bits.add(alert.catalog());
+      }
+      if (alert.severity() != null && !alert.severity().isBlank()) {
+        bits.add(alert.severity());
+      }
+      if (alert.matchedAtoms() != null && !alert.matchedAtoms().isEmpty()) {
+        bits.add("atoms=" + alert.matchedAtoms());
+      }
+      if (alert.description() != null && !alert.description().isBlank()) {
+        bits.add("desc=" + alert.description());
+      }
+      if (!bits.isEmpty()) {
+        sb.append(" (").append(String.join(", ", bits)).append(")");
+      }
+      parts.add(sb.toString());
+    }
+    return String.join("; ", parts);
+  }
+
+  private static @Nullable String formatChemAuditFailedChecks(
+      final @Nullable List<ChemAuditResult.FailedCheck> failedChecks) {
+    if (failedChecks == null) {
+      return null;
+    }
+    if (failedChecks.isEmpty()) {
+      return "none";
+    }
+    final List<String> parts = new ArrayList<>(failedChecks.size());
+    for (var check : failedChecks) {
+      final StringBuilder sb = new StringBuilder();
+      if (check.name() != null && !check.name().isBlank()) {
+        sb.append(check.name());
+      } else {
+        sb.append("check");
+      }
+      if (check.severity() != null && !check.severity().isBlank()) {
+        sb.append(" (").append(check.severity()).append(")");
+      }
+      if (check.message() != null && !check.message().isBlank()) {
+        sb.append(": ").append(check.message());
+      }
+      parts.add(sb.toString());
+    }
+    return String.join("; ", parts);
+  }
+
+  private static @Nullable String formatChemAuditStandardization(
+      final @Nullable ChemAuditResult.StandardizationResult standardization) {
+    if (standardization == null) {
+      return null;
+    }
+    if (Boolean.TRUE.equals(standardization.success())) {
+      final List<String> parts = new ArrayList<>();
+      parts.add("ok");
+      if (standardization.massChangePercent() != null) {
+        parts.add("mass_change=" + String.format("%.2f%%", standardization.massChangePercent()));
+      }
+      if (standardization.excludedFragments() != null
+          && !standardization.excludedFragments().isEmpty()) {
+        parts.add("excluded=" + standardization.excludedFragments());
+      }
+      return String.join(", ", parts);
+    }
+    if (standardization.error() != null && !standardization.error().isBlank()) {
+      return "failed: " + standardization.error();
+    }
+    return "failed";
+  }
+
+  private static @Nullable String formatChemAuditMlBreakdown(
+      final @Nullable ChemAuditResult.MlBreakdown breakdown) {
+    if (breakdown == null) {
+      return null;
+    }
+    final List<String> parts = new ArrayList<>();
+    if (breakdown.descriptorsScore() != null) {
+      if (breakdown.descriptorsSuccessful() != null && breakdown.descriptorsTotal() != null) {
+        parts.add("desc=" + breakdown.descriptorsSuccessful() + "/" + breakdown.descriptorsTotal()
+            + " (score=" + breakdown.descriptorsScore() + ")");
+      } else {
+        parts.add("desc_score=" + breakdown.descriptorsScore());
+      }
+    }
+    if (breakdown.fingerprintsScore() != null) {
+      final String fpSummary = formatFingerprintsSuccessful(breakdown.fingerprintsSuccessful());
+      if (fpSummary != null) {
+        parts.add("fp_score=" + breakdown.fingerprintsScore() + " (" + fpSummary + ")");
+      } else {
+        parts.add("fp_score=" + breakdown.fingerprintsScore());
+      }
+    }
+    if (breakdown.sizeScore() != null) {
+      parts.add("size_score=" + breakdown.sizeScore());
+    }
+    if (breakdown.molecularWeight() != null) {
+      parts.add("mw=" + String.format("%.4f", breakdown.molecularWeight()));
+    }
+    if (breakdown.numAtoms() != null) {
+      parts.add("atoms=" + breakdown.numAtoms());
+    }
+    return parts.isEmpty() ? null : String.join(", ", parts);
+  }
+
+  private static @Nullable String formatFingerprintsSuccessful(
+      final @Nullable com.fasterxml.jackson.databind.JsonNode fingerprintsSuccessful) {
+    if (fingerprintsSuccessful == null || fingerprintsSuccessful.isNull()) {
+      return null;
+    }
+    if (fingerprintsSuccessful.isArray()) {
+      final int count = fingerprintsSuccessful.size();
+      return "n=" + count;
+    }
+    if (fingerprintsSuccessful.isInt() || fingerprintsSuccessful.isLong()) {
+      return "n=" + fingerprintsSuccessful.asInt();
+    }
+    if (fingerprintsSuccessful.isTextual()) {
+      final String text = fingerprintsSuccessful.asText();
+      return text.isBlank() ? null : text;
+    }
+    return fingerprintsSuccessful.toString();
+  }
+
+  private static @Nullable String serializeChemAuditResult(
+      final @NotNull ChemAuditResult validation) {
+    try {
+      return mapper.writeValueAsString(validation);
+    } catch (Exception e) {
+      logger.log(Level.FINE, "Failed to serialize ChemAudit result", e);
+      return null;
+    }
   }
 
   private static String resolveFormula(final ModularFeatureListRow row) {

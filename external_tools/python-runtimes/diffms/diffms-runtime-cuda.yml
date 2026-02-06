@@ -7,13 +7,16 @@ name: mzmine-diffms-cuda
 #
 # This environment bundles a CUDA-enabled PyTorch build. On machines without a GPU, PyTorch will
 # still run on CPU, but the environment will be significantly larger.
+# 
+# Upgraded to Python 3.11 for compatibility with modern type hints (Python 3.10+ syntax).
 channels:
   - nvidia
   - pytorch
   - conda-forge
 
 dependencies:
-  - python=3.9
+  # Upgraded to Python 3.11 for modern type hint compatibility
+  - python=3.11
   - pip
 
   # core scientific stack
@@ -33,6 +36,11 @@ dependencies:
   - wandb
   - h5py
   - matplotlib
+
+  # ChemAudit dependencies (for structure validation)
+  - molvs=0.1.1
+  - pip:
+    - chembl-structure-pipeline>=1.0.0
 
   # PyTorch + CUDA (choose a CUDA runtime version that has broad support)
   # DiffMS upstream reference: CUDA 11.8.
