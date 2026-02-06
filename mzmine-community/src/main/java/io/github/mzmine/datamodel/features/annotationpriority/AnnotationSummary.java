@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
@@ -170,9 +171,10 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     return switch (type) {
       case CCS -> featureList.hasRowType(CCSType.class);
       case RI -> featureList.hasRowType(RIType.class);
+      case ISOTOPE -> featureList.hasRowType(IsotopePatternType.class);
       case RT ->
           featureList.hasRowType(RTType.class) && !FeatureListUtils.hasAllImagingData(featureList);
-      case MZ, MS2, ISOTOPE, COMBINED -> true;
+      case MZ, MS2, COMBINED -> true;
     };
   }
 
