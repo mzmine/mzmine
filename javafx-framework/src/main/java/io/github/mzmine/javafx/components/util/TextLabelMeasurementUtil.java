@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,36 +23,41 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations.formula;
+package io.github.mzmine.javafx.components.util;
 
-import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
-import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
-import org.jetbrains.annotations.NotNull;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.text.Text;
 
-/**
- * A list of molecular formulas
- */
-public class SimpleFormulaListType extends ListDataType<ResultFormula> implements AnnotationType,
-    EditableColumnType {
+public class TextLabelMeasurementUtil {
 
+  private static final TextLabelMeasurementUtil INSTANCE = new TextLabelMeasurementUtil();
 
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    // do not mistake with formulas from {@link FormulaListType}
-    return "simple_formulas";
+  private final Text measurer = new Text();
+  private final Scene tempScene = new Scene(new Group(measurer));
+
+  private TextLabelMeasurementUtil() {
+    super();
   }
 
-  @Override
-  public @NotNull String getHeaderString() {
-    return "Formula";
+  public static void init(ReadOnlyObjectProperty<Scene> mainScene) {
+    mainScene.subscribe(ns -> {
+      if (ns == null) {
+        return;
+      }
+      INSTANCE.tempScene.getStylesheets().setAll(ns.getStylesheets());
+      INSTANCE.measurer.applyCss();
+    });
+
   }
 
-  @Override
-  public double getPrefColumnWidth() {
-    return FormulaListType.PREF_COL_WIDTH;
+  /**
+   * Measures text width with a specific font.
+   */
+  public static double measureWidth(String text) {
+    INSTANCE.measurer.setText(text);
+    return INSTANCE.measurer.getLayoutBounds().getWidth();
   }
+
 }

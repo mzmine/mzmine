@@ -53,6 +53,12 @@ public class TableColumns {
    * column the calculation of auto size is turned off. See TableColumnHeader#doColumnAutoSize
    */
   public static final double DEFAULT_COLUMN_WIDTH = 79.0;
+  /**
+   * margin added to the total width of a cell to keep space to other cells. This is during auto
+   * width.
+   */
+  public static final double EXTRA_WIDTH_MARGIN = 12;
+
   private static final Logger logger = Logger.getLogger(TableColumns.class.getName());
 
   public static void autoFitLastColumn(TableView<?> table) {
