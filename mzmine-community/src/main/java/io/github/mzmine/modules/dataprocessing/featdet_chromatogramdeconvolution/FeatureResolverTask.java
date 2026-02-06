@@ -321,12 +321,8 @@ public class FeatureResolverTask extends AbstractTask {
             GeneralResolverParameters.SUFFIX).getValue(), storage, estimatedRows, estimatedRows,
         dataFile);
 
-    //    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
-    resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));
-
-    // since we dont create a copy, we have to copy manually
-    originalFeatureList.getAppliedMethods()
-        .forEach(m -> resolvedFeatureList.getAppliedMethods().add(m));
+    // do not transfer types add them later
+    FeatureListUtils.transferAllButRows(originalFeatureList, resolvedFeatureList, false);
     // the new method is added later, since we don't know here which resolver module is used.
 
     // check the actual feature data. IMSRawDataFiles can also be built as classic lc-ms features
