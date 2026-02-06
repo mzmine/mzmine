@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
@@ -66,5 +67,10 @@ public class CommentType extends StringType implements EditableColumnType, Strin
     // row visibility overwritten in DataTypeCheckListParameter#defaultDisableColumns
     // but false for all other comments in annotations etc
     return false;
+  }
+
+  @Override
+  public double getPrefColumnWidth() {
+    return FormulaListType.PREF_COL_WIDTH;
   }
 }

@@ -263,7 +263,7 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
   public double getPrefColumnWidth() {
     // define to speed up table open - otherwise calculation of width takes long
     // if too many types are undefined
-    return Math.min(80,
+    return Math.min(TableColumns.DEFAULT_COLUMN_WIDTH,
         TextLabelMeasurementUtil.measureWidth(getHeaderString() + TableColumns.EXTRA_WIDTH_MARGIN));
   }
 
