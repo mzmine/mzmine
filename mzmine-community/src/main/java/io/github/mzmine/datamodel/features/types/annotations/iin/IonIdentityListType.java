@@ -62,6 +62,7 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
   private static final Logger logger = Logger.getLogger(IonIdentityListType.class.getName());
   // Unmodifiable list of all subtypes
   private static final List<DataType> subTypes = List.of(new IonNetworkIDType(),
+      new IonIdentityListType(),
       // start with netID
       new SizeType(), new NeutralMassType(), new PartnerIdsType(), new MsMsMultimerVerifiedType(),
       // all realtionship types
@@ -93,7 +94,6 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
   protected <K> @Nullable K map(@NotNull final DataType<K> subType, final IonIdentity ion) {
     final IonNetwork net = ion.getNetwork();
     return (K) switch (subType) {
-      case IonIdentityListType __ -> ion;
       case IonNetworkIDType __ -> net != null ? ion.getNetID() : null;
       case SizeType __ -> net != null ? net.size() : null;
       case NeutralMassType __ -> net != null ? net.getNeutralMass() : null;

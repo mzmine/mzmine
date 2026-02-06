@@ -48,8 +48,13 @@ import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralIdentificationResultsTab;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -92,6 +97,29 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
   @Override
   public @NotNull String getHeaderString() {
     return "AQS";
+  }
+
+  @Override
+  public @Nullable Runnable getDoubleClickAction(final @Nullable FeatureTableFX table,
+      @NotNull final ModularFeatureListRow row, @NotNull final List<RawDataFile> file,
+      @Nullable final DataType<?> superType, final @Nullable Object value) {
+
+    final DataType<?> mainType;
+    if (superType instanceof PreferredAnnotationType
+        && row.getPreferredAnnotation() instanceof FeatureAnnotation a) {
+      mainType = DataTypes.get(a.getDataType());
+    } else {
+      mainType = superType;
+    }
+
+    return () -> FxThread.runLater(() -> {
+      if (mainType instanceof CompoundDatabaseMatchesType) {
+        CompoundDatabaseMatchTab tab = new CompoundDatabaseMatchTab(table);
+        MZmineCore.getDesktop().addTab(tab);
+      } else if (mainType instanceof SpectralLibraryMatchesType) {
+        MZmineCore.getDesktop().addTab(new SpectralIdentificationResultsTab(table));
+      }
+    });
   }
 
   @Override
