@@ -554,6 +554,10 @@ public class FeatureTableFX extends BorderPane {
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, PreferredAnnotationType.class, true);
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, AnnotationSummaryType.class,
           true);
+      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, FormulaType.class,
+          true);
+      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, IonTypeType.class,
+          true);
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, MolecularStructureType.class,
           true);
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, ScoreType.class, true);

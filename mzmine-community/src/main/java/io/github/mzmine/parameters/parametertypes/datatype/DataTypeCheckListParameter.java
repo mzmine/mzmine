@@ -301,12 +301,12 @@ public class DataTypeCheckListParameter implements
    * main list cell. However, the {@link PreferredAnnotationType} is not a list type.
    */
   private void defaultEnableColumns() {
-    if (getName().toLowerCase().contains("row")) {
+//    if (getName().toLowerCase().contains("row")) {
+//
+//    }
 
-    }
-
-    if (getName().toLowerCase().contains("feature")) {
+//    if (getName().toLowerCase().contains("feature")) {
       // add types here in the future
-    }
+//    }
   }
 }

@@ -780,9 +780,6 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
     if (key instanceof MappingType<?> mt) {
       return (T) mt.getValue(this);
     }
-//    if (key instanceof PreferredAnnotationType pat) {
-//      return (T) getPreferredAnnotation();
-//    }
     return super.get(key);
   }
 }
