@@ -41,6 +41,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
@@ -143,6 +144,9 @@ class RansacAlignerTask extends AbstractTask {
         Arrays.stream(featureLists).flatMap(flist -> flist.getRawDataFiles().stream()).distinct()
             .toList());
 
+    // do not transfer types add them later
+    FeatureListUtils.transferAllButRows(List.of(featureLists), alignedFeatureList, false);
+
     for (ModularFeatureList featureList : featureLists) {
 
       for (RawDataFile dataFile : featureList.getRawDataFiles()) {
@@ -157,9 +161,6 @@ class RansacAlignerTask extends AbstractTask {
         }
 
         allDataFiles.add(dataFile);
-
-        featureList.getRawDataFiles().forEach(
-            file -> alignedFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
       }
     }
 

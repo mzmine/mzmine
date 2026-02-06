@@ -801,10 +801,7 @@ public class FeatureListUtils {
         requireNonNullElse(totalRows, estimatedRows),
         requireNonNullElse(totalFeatures, estimatedFeatures), dataFiles);
 
-    FeatureListUtils.copyPeakListAppliedMethods(featureList, newFlist);
-    FeatureListUtils.transferRowTypes(newFlist, List.of(featureList), true);
-    FeatureListUtils.transferSelectedScans(newFlist, List.of(featureList));
-    newFlist.setAnnotationSortConfig(featureList.getAnnotationSortConfig().copy());
+    transferAllButRows(featureList, newFlist, true);
 
     if (copyRows) {
       copyRows(featureList, newFlist, renumberIDs);
@@ -822,6 +819,46 @@ public class FeatureListUtils {
       newFeatureList.addRow(copy);
       id++;
     }
+  }
+
+  /**
+   * Transfer selected scans, applied methods, annotation sort config, row and feature types
+   *
+   * @param source        copy from
+   * @param target        copy to
+   * @param transferTypes true then transfer all row and feature types
+   */
+  public static void transferAllButRows(@NotNull FeatureList source, @NotNull ModularFeatureList target,
+      boolean transferTypes) {
+    transferAllButRows(List.of(source), target, transferTypes);
+
+    FeatureListUtils.copyPeakListAppliedMethods(source, target);
+    if (transferTypes) {
+      FeatureListUtils.transferRowTypes(target, List.of(source), true);
+    }
+    FeatureListUtils.transferSelectedScans(target, List.of(source));
+    target.setAnnotationSortConfig(source.getAnnotationSortConfig().copy());
+  }
+  /**
+   * Transfer selected scans, applied methods, annotation sort config, row and feature types
+   *
+   * @param sources        copy from
+   * @param target        copy to
+   * @param transferTypes true then transfer all row and feature types
+   */
+  public static void transferAllButRows(@NotNull List<FeatureList> sources, @NotNull ModularFeatureList target,
+      boolean transferTypes) {
+    if (sources.isEmpty()) {
+      throw new IllegalArgumentException("No source feature list");
+    }
+    final FeatureList source = sources.getFirst();
+
+    FeatureListUtils.copyPeakListAppliedMethods(source, target);
+    if (transferTypes) {
+      FeatureListUtils.transferRowTypes(target, sources, true);
+    }
+    FeatureListUtils.transferSelectedScans(target, sources);
+    target.setAnnotationSortConfig(source.getAnnotationSortConfig().copy());
   }
 
   /**
@@ -891,6 +928,7 @@ public class FeatureListUtils {
   public static boolean hasImagingData(FeatureList flist) {
     return flist.getRawDataFiles().stream().anyMatch(ImagingRawDataFile.class::isInstance);
   }
+
   public static boolean hasAllImagingData(FeatureList flist) {
     return flist.getRawDataFiles().stream().allMatch(ImagingRawDataFile.class::isInstance);
   }

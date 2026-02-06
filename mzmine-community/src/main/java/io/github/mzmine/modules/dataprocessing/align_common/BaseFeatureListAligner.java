@@ -130,10 +130,8 @@ public class BaseFeatureListAligner {
     // Create a new aligned feature list based on the baseList and renumber IDs
     var alignedFeatureList = new ModularFeatureList(featureListName, storage, estimatedRows,
         exactFeatures, allDataFiles);
-    FeatureListUtils.transferRowTypes(alignedFeatureList, featureLists, true);
-    FeatureListUtils.transferSelectedScans(alignedFeatureList, featureLists);
-    FeatureListUtils.copyPeakListAppliedMethods(featureLists.getFirst(), alignedFeatureList);
-    alignedFeatureList.setAnnotationSortConfig(featureLists.getFirst().getAnnotationSortConfig());
+
+    FeatureListUtils.transferAllButRows(featureLists, alignedFeatureList, true);
     return alignedFeatureList;
   }
 
