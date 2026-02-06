@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.id_pubchemsearch.gui;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingRowCellFactory;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
@@ -244,7 +245,7 @@ public class PubChemResultsViewBuilder extends FxViewBuilder<PubChemResultsModel
 
     final TreeTableColumn<CompoundDBAnnotation, Object> structureColumn = TreeTableColumns.createColumn(
         "Structure", annotation -> new ReadOnlyObjectWrapper<>(annotation.getStructure()));
-    structureColumn.setCellFactory(_ -> new StructureTableCell<>());
+    structureColumn.setCellFactory(new CountingRowCellFactory<>(StructureTableCell::new));
     treeTableView.getColumns().add(structureColumn);
 
     final TreeTableColumn<CompoundDBAnnotation, Double> mzDiffColumn = TreeTableColumns.createColumn(

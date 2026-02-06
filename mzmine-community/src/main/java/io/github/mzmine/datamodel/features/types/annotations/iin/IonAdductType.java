@@ -65,4 +65,8 @@ public class IonAdductType extends StringType
     return "ion_adduct";
   }
 
+  @Override
+  public double getPrefColumnWidth() {
+    return IonTypeType.PREF_COL_WIDTH;
+  }
 }

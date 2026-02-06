@@ -55,6 +55,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class FormulaListType extends ListWithSubsType<ResultFormula> implements AnnotationType {
 
+  public static final double PREF_COL_WIDTH = 135;
+
   // Unmodifiable list of all subtypes
   private static final List<DataType> subTypes = List.of(new FormulaListType(),
       new FormulaMassType(), new RdbeType(), new MzPpmDifferenceType(),
@@ -74,7 +76,7 @@ public class FormulaListType extends ListWithSubsType<ResultFormula> implements 
 
   @Override
   public double getPrefColumnWidth() {
-    return 125;
+    return PREF_COL_WIDTH;
   }
 
   @Override

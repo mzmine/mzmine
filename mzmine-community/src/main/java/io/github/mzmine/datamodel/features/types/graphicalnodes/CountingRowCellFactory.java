@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,36 +22,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations.formula;
+package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
-import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
-import org.jetbrains.annotations.NotNull;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import javafx.scene.control.TreeTableCell;
+import javafx.scene.control.TreeTableColumn;
+import javafx.util.Callback;
 
-/**
- * A list of molecular formulas
- */
-public class SimpleFormulaListType extends ListDataType<ResultFormula> implements AnnotationType,
-    EditableColumnType {
+public class CountingRowCellFactory<T, V> implements
+    Callback<TreeTableColumn<T, V>, TreeTableCell<T, V>> {
 
+  // uses a counter to label the first cell that seems to be the measurement cell
+  public final AtomicInteger counter = new AtomicInteger(0);
+  private final Function<Integer, TreeTableCell<T, V>> createCell;
 
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    // do not mistake with formulas from {@link FormulaListType}
-    return "simple_formulas";
+  public CountingRowCellFactory(
+      Function<Integer, TreeTableCell<T, V>> createCell) {
+    this.createCell = createCell;
   }
 
   @Override
-  public @NotNull String getHeaderString() {
-    return "Formula";
-  }
-
-  @Override
-  public double getPrefColumnWidth() {
-    return FormulaListType.PREF_COL_WIDTH;
+  public TreeTableCell<T, V> call(
+      TreeTableColumn<T, V> column) {
+    return createCell.apply(counter.getAndIncrement());
   }
 }

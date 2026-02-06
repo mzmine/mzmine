@@ -30,6 +30,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import io.github.mzmine.javafx.components.factories.TableColumns;
+import io.github.mzmine.javafx.components.util.TextLabelMeasurementUtil;
 import java.util.Comparator;
 import java.util.List;
 import javafx.scene.control.TreeTableColumn;
@@ -68,5 +70,11 @@ public class ScanNumbersType extends ListDataType<Scan> {
     column.setComparator(Comparator.comparingInt(v -> v instanceof List list ? list.size() : 0));
 
     return column;
+  }
+
+  @Override
+  public double getPrefColumnWidth() {
+    // setting pref width makes table open faster due to less calculations needed
+    return TextLabelMeasurementUtil.measureWidth("99999")+ TableColumns.EXTRA_WIDTH_MARGIN;
   }
 }

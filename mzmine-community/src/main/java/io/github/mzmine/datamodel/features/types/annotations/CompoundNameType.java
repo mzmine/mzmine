@@ -67,6 +67,6 @@ public class CompoundNameType extends StringType implements EditableColumnType,
 
   @Override
   public double getPrefColumnWidth() {
-    return 120;
+    return 150;
   }
 }
