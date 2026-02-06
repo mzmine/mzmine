@@ -61,7 +61,7 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
 
   private static final Logger logger = Logger.getLogger(IonIdentityListType.class.getName());
   // Unmodifiable list of all subtypes
-  private static final List<DataType> subTypes = List.of(new IonNetworkIDType(),
+  private static final List<DataType> subTypes = List.of(new IonNetworkIDType(), new IonIdentityListType(),
       // start with netID
       new IonIdentityListType(), // add self type to have a column
       new SizeType(), new NeutralMassType(), new PartnerIdsType(), new MsMsMultimerVerifiedType(),
@@ -87,7 +87,7 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
 
   @Override
   public double getPrefColumnWidth() {
-    return 100;
+    return IonTypeType.PREF_COL_WIDTH;
   }
 
   @Override

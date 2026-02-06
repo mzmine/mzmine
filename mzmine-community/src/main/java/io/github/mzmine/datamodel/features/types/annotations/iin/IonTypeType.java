@@ -49,6 +49,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class IonTypeType extends DataType<IonType> {
 
+  public static final double PREF_COL_WIDTH = 120;
   private static final Function<@Nullable String, @Nullable IonType> mapper = IonTypeParser::parse;
 
   @Override
@@ -104,5 +105,10 @@ public class IonTypeType extends DataType<IonType> {
   @Override
   public @Nullable Function<@Nullable String, @Nullable IonType> getMapper() {
     return mapper;
+  }
+
+  @Override
+  public double getPrefColumnWidth() {
+    return PREF_COL_WIDTH;
   }
 }
