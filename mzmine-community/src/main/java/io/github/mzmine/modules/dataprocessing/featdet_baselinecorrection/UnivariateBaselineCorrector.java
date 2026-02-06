@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,7 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.AnyXYProvider;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.util.MemoryMapStorage;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.awt.Color;
@@ -41,7 +40,7 @@ public abstract class UnivariateBaselineCorrector extends AbstractResolverBaseli
   }
 
   public UnivariateBaselineCorrector(@Nullable MemoryMapStorage storage, double samplePercentage,
-      @NotNull String suffix, @Nullable MinimumSearchFeatureResolver resolver) {
+      @NotNull String suffix, @Nullable Resolver resolver) {
     super(storage, samplePercentage, suffix, resolver);
   }
 
