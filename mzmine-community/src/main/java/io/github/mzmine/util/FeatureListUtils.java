@@ -831,13 +831,6 @@ public class FeatureListUtils {
   public static void transferAllButRows(@NotNull FeatureList source, @NotNull ModularFeatureList target,
       boolean transferTypes) {
     transferAllButRows(List.of(source), target, transferTypes);
-
-    FeatureListUtils.copyPeakListAppliedMethods(source, target);
-    if (transferTypes) {
-      FeatureListUtils.transferRowTypes(target, List.of(source), true);
-    }
-    FeatureListUtils.transferSelectedScans(target, List.of(source));
-    target.setAnnotationSortConfig(source.getAnnotationSortConfig().copy());
   }
   /**
    * Transfer selected scans, applied methods, annotation sort config, row and feature types
