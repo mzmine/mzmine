@@ -1,0 +1,16 @@
+# Training settings
+n_epochs: 75
+batch_size: 96
+eval_batch_size: 128
+lr: 0.0015 # 0.0015 for training, 0.0002 for fine-tuning
+clip_grad: null          # float, null to disable
+save_model: True
+num_workers: 1
+pin_memory: True
+ema_decay: 0          # EMA decay current not implemented
+progress_bar: false
+weight_decay: 1e-12
+optimizer: adamw # adamw | nadamw | nadam 
+scheduler: 'one_cycle' # 'const' | 'one_cycle'
+pct_start: 0.3
+seed: 123

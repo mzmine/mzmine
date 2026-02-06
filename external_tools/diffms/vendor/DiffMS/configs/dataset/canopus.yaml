@@ -1,0 +1,25 @@
+name: canopus
+remove_h: null
+stats_dir: null
+datadir: '../../../data/canopus'
+filter: False
+denoise_nodes: False
+merge: 'downproject_4096'  # 'none' | 'mist_fp' | 'merge-encoder_output-linear' |  'merge-encoder_output-mlp' | 'downproject_4096'
+morgan_nbits: 2048
+morgan_r: 2
+split_file: '../../../data/canopus/splits/canopus_hplus_100_0.tsv'
+spec_features: 'peakformula'
+mol_features: 'fingerprint'
+subform_folder: '../../../data/canopus/subformulae/subformulae_default'
+augment_data: False
+remove_prob: 0.1
+remove_weights: 'exp'
+inten_prob: 0.1
+inten_transform: 'float'
+cls_type: 'ms1'
+magma_aux_loss: False
+labels_file: '../../../data/canopus/labels.tsv'
+spec_folder: '../../../data/canopus/spec_files'
+cache_featurizers: True
+set_pooling: 'cls'
+max_count: null

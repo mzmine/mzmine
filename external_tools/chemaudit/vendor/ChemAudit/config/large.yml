@@ -1,0 +1,19 @@
+# ChemAudit Deployment Profile: Large
+# Suitable for high-throughput production workloads
+
+# Batch processing limits
+MAX_BATCH_SIZE: 50000
+MAX_FILE_SIZE_MB: 500
+
+# Worker configuration
+CELERY_WORKERS: 8               # Workers for large batch jobs
+CELERY_WORKERS_PRIORITY: 2      # Workers for small/priority jobs
+GUNICORN_WORKERS: 8
+
+# Redis memory limit
+REDIS_MAXMEMORY: 1gb
+
+# Container memory limits (optional, for docker-compose)
+BACKEND_MEMORY_LIMIT: 4g
+CELERY_MEMORY_LIMIT: 4g
+CELERY_PRIORITY_MEMORY_LIMIT: 2g

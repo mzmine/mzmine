@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: "Rajan"
+    given-names: "Kohulan"
+    orcid: "https://orcid.org/0000-0003-1066-7792"
+title: "ChemAudit"
+version: 1.0.0
+date-released: 2026-01-29
+url: "https://github.com/Kohulan/ChemAudit"
+license: MIT
+keywords:
+  - cheminformatics
+  - chemical-structure-validation
+  - rdkit
+  - machine-learning
+  - drug-discovery

@@ -1,0 +1,27 @@
+# General settings
+name: 'dev' # Warning: 'debug' and 'test' are reserved name that have a special behavior
+
+parent_dir: '.'
+
+wandb: 'online'             # online | offline | disabled
+wandb_name: 'mass_spec_exp'
+gpus: 1                     # Multi-gpu is not implemented on this branch
+
+decoder: null # path to pretrained decoder
+encoder: null # path to pretrained encoder
+
+resume: null
+test_only: null
+load_weights: null
+
+encoder_finetune_strategy: null  # null | freeze | ft-unfold | freeze-unfold | freeze-transformer | ft-transformer
+decoder_finetune_strategy: null  # null | freeze | ft-input | freeze-input | ft-transformer | freeze-transformer | ft-output 
+
+check_val_every_n_epochs: 1
+sample_every_val: 1000
+val_samples_to_generate: 100
+test_samples_to_generate: 100
+log_every_steps: 50
+
+evaluate_all_checkpoints: False
+checkpoint_strategy: 'last'

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ChemAudit Batch Report - {{ job_id }}</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Header -->
+<div class="report-header">
+    <h1 class="report-title">ChemAudit Batch Validation Report</h1>
+    <p class="report-subtitle">Job ID: {{ job_id }} | Generated: {{ timestamp }}</p>
+</div>
+
+<!-- Summary Statistics -->
+<div class="summary-section">
+    <h2 class="section-title">Summary Statistics</h2>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <p class="stat-value" style="color: #3b82f6;">{{ stats.total }}</p>
+            <p class="stat-label">Total Molecules</p>
+        </div>
+
+        <div class="stat-card">
+            <p class="stat-value" style="color: #16a34a;">{{ stats.successful }}</p>
+            <p class="stat-label">Successful</p>
+        </div>
+
+        <div class="stat-card">
+            <p class="stat-value" style="color: #dc2626;">{{ stats.errors }}</p>
+            <p class="stat-label">Errors</p>
+        </div>
+
+        <div class="stat-card">
+            <p class="stat-value" style="color: #7c3aed;">
+                {% if stats.processing_time_seconds %}
+                    {{ "%.1f"|format(stats.processing_time_seconds) }}s
+                {% else %}
+                    -
+                {% endif %}
+            </p>
+            <p class="stat-label">Processing Time</p>
+        </div>
+    </div>
+
+    <!-- Score Averages -->
+    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="stat-card">
+            <p class="stat-value {% if stats.avg_validation_score >= 80 %}score-excellent{% elif stats.avg_validation_score >= 50 %}score-moderate{% else %}score-poor{% endif %}">
+                {% if stats.avg_validation_score is not none %}
+                    {{ "%.1f"|format(stats.avg_validation_score) }}
+                {% else %}
+                    -
+                {% endif %}
+            </p>
+            <p class="stat-label">Avg Validation Score</p>
+        </div>
+
+        <div class="stat-card">
+            <p class="stat-value {% if stats.avg_ml_readiness_score >= 80 %}score-excellent{% elif stats.avg_ml_readiness_score >= 50 %}score-moderate{% else %}score-poor{% endif %}">
+                {% if stats.avg_ml_readiness_score is not none %}
+                    {{ "%.1f"|format(stats.avg_ml_readiness_score) }}
+                {% else %}
+                    -
+                {% endif %}
+            </p>
+            <p class="stat-label">Avg ML-Readiness Score</p>
+        </div>
+    </div>
+
+    <!-- Drug-likeness & ADMET Scores -->
+    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="stat-card">
+            <p class="stat-value" style="color: #9333ea;">
+                {% if stats.avg_qed_score is not none %}
+                    {{ "%.2f"|format(stats.avg_qed_score) }}
+                {% else %}
+                    -
+                {% endif %}
+            </p>
+            <p class="stat-label">Avg QED Score</p>
+        </div>
+
+        <div class="stat-card">
+            <p class="stat-value" style="color: #06b6d4;">
+                {% if stats.avg_sa_score is not none %}
+                    {{ "%.1f"|format(stats.avg_sa_score) }}
+                {% else %}
+                    -
+                {% endif %}
+            </p>
+            <p class="stat-label">Avg SA Score</p>
+        </div>
+    </div>
+
+    <!-- Pass Rates -->
+    {% if stats.lipinski_pass_rate is not none or stats.safety_pass_rate is not none %}
+    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
+        {% if stats.lipinski_pass_rate is not none %}
+        <div class="stat-card">
+            <p class="stat-value {% if stats.lipinski_pass_rate >= 80 %}score-excellent{% elif stats.lipinski_pass_rate >= 50 %}score-moderate{% else %}score-poor{% endif %}">
+                {{ "%.1f"|format(stats.lipinski_pass_rate) }}%
+            </p>
+            <p class="stat-label">Lipinski Pass Rate</p>
+        </div>
+        {% endif %}
+
+        {% if stats.safety_pass_rate is not none %}
+        <div class="stat-card">
+            <p class="stat-value {% if stats.safety_pass_rate >= 80 %}score-excellent{% elif stats.safety_pass_rate >= 50 %}score-moderate{% else %}score-poor{% endif %}">
+                {{ "%.1f"|format(stats.safety_pass_rate) }}%
+            </p>
+            <p class="stat-label">Safety Pass Rate</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Score Distribution Chart -->
+{% if chart_data %}
+<div class="chart-container">
+    <h3 class="chart-title">Validation Score Distribution</h3>
+    <img src="data:image/svg+xml;base64,{{ chart_data }}" alt="Score Distribution Chart" class="chart-image">
+</div>
+{% endif %}
+
+<!-- Alert Summary -->
+{% if stats.alert_summary %}
+<div class="alert-box">
+    <h3 class="alert-title">Structural Alerts Summary</h3>
+    <p class="alert-content">
+        {% for catalog, count in stats.alert_summary.items() %}
+            <strong>{{ catalog }}:</strong> {{ count }} molecule(s){% if not loop.last %} | {% endif %}
+        {% endfor %}
+    </p>
+</div>
+{% endif %}
+
+<!-- Critical Issues Table -->
+{% if critical_issues %}
+<div>
+    <h2 class="section-title">Critical Issues (Top {{ critical_issues|length }})</h2>
+
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th>Index</th>
+                <th>Molecule</th>
+                <th>Score</th>
+                <th>Issue</th>
+                <th>Severity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for issue in critical_issues %}
+            <tr>
+                <td>{{ issue.index }}</td>
+                <td style="font-family: monospace; font-size: 8pt;">{{ issue.smiles[:40] }}{% if issue.smiles|length > 40 %}...{% endif %}</td>
+                <td>
+                    <span class="{% if issue.score >= 80 %}score-excellent{% elif issue.score >= 50 %}score-moderate{% else %}score-poor{% endif %}">
+                        {{ issue.score }}
+                    </span>
+                </td>
+                <td>{{ issue.issue }}</td>
+                <td><strong>{{ issue.severity }}</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- All Molecules Table -->
+{% if all_molecules %}
+<div style="page-break-before: always;">
+    <h2 class="section-title">Molecule Details ({{ all_molecules|length }} molecules)</h2>
+
+    <table class="molecule-table">
+        <thead>
+            <tr>
+                <th style="width: 140px;">Structure</th>
+                <th>Molecule Information</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mol in all_molecules %}
+            <tr>
+                <td class="structure-cell">
+                    {% if mol.image_data %}
+                    <img src="data:image/png;base64,{{ mol.image_data }}" alt="Molecule {{ mol.index }}" class="structure-image">
+                    {% else %}
+                    <p style="color: #dc2626; font-size: 8pt;">Structure<br>unavailable</p>
+                    {% endif %}
+                </td>
+                <td class="info-cell">
+                    <div class="mol-header">
+                        <span class="mol-index">#{{ mol.index }}</span>
+                        {% if mol.name %}
+                        <span class="mol-name">{{ mol.name }}</span>
+                        {% endif %}
+                        <span class="mol-score {% if mol.score >= 80 %}score-excellent{% elif mol.score >= 50 %}score-moderate{% else %}score-poor{% endif %}">
+                            Score: {{ mol.score }}
+                        </span>
+                    </div>
+                    <div class="mol-smiles">
+                        <strong>SMILES:</strong> <code>{{ mol.smiles }}</code>
+                    </div>
+                    {% if mol.formula %}
+                    <div class="mol-detail">
+                        <strong>Formula:</strong> {{ mol.formula }}
+                        {% if mol.mw %} | <strong>MW:</strong> {{ "%.2f"|format(mol.mw) }}{% endif %}
+                    </div>
+                    {% endif %}
+                    {% if mol.issues %}
+                    <div class="mol-issues">
+                        <strong>Issues:</strong>
+                        {% for issue in mol.issues[:3] %}
+                        <span class="issue-tag {% if issue.severity == 'CRITICAL' %}issue-critical{% elif issue.severity == 'ERROR' %}issue-error{% else %}issue-warning{% endif %}">
+                            {{ issue.message }}
+                        </span>
+                        {% endfor %}
+                        {% if mol.issues|length > 3 %}
+                        <span class="issue-more">+{{ mol.issues|length - 3 }} more</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% if mol.alerts %}
+                    <div class="mol-alerts">
+                        <strong>Alerts:</strong>
+                        {% for alert in mol.alerts[:2] %}
+                        <span class="alert-tag">{{ alert.catalog }}: {{ alert.name }}</span>
+                        {% endfor %}
+                        {% if mol.alerts|length > 2 %}
+                        <span class="alert-more">+{{ mol.alerts|length - 2 }} more</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- Metadata Footer -->
+<div class="metadata">
+    <p>
+        Generated by ChemAudit v1.0.0 |
+        Report Date: {{ timestamp }}
+    </p>
+</div>
+
+</body>
+</html>

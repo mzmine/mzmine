@@ -308,6 +308,27 @@ def EXTERNAL_TOOLS_DESTINATION =
                 : getLayout().getBuildDirectory().dir("jpackage/${APPNAME}.app/Contents/external_tools").get()
 def EXTERNAL_TOOLS_SRC = getLayout().getProjectDirectory().dir("../external_tools")
 tasks.jpackage.doFirst {
+    // DiffMS runtime packs (optional but recommended)
+    // Runtime packs are large and therefore stored in external_tools/diffms/runtime-packs/ (gitignored).
+    // They should be created in CI before packaging. If missing, DiffMS will run only if users
+    // provide their own Python.
+    def packsDir = new File(layout.projectDirectory.asFile, "../external_tools/diffms/runtime-packs")
+    def requirePacks = (project.findProperty("requireDiffmsRuntimePacks")?.toString()?.toBoolean() ?: false)
+    def hasPacks = packsDir.isDirectory() && (packsDir.listFiles()?.any {
+        it.isFile() && it.name.toLowerCase().startsWith("diffms-runtime-") && (
+            it.name.toLowerCase().endsWith(".zip") || it.name.toLowerCase().endsWith(".tar.gz") || it.name.toLowerCase().endsWith(".tgz")
+        )
+    } ?: false)
+    if (!hasPacks) {
+        def msg = "DiffMS runtime packs not found in ${packsDir.absolutePath}. " +
+                "CI should generate these via external_tools/diffms/runtime/build_runtime_packs.* before packaging."
+        if (requirePacks) {
+            throw new GradleException(msg)
+        } else {
+            logger.warn(msg)
+        }
+    }
+
     copy {
         from EXTERNAL_TOOLS_SRC
         into EXTERNAL_TOOLS_DESTINATION
@@ -327,8 +348,9 @@ tasks.jpackage.doFirst {
                 commandLine(['xattr', '-r', '-d', 'com.apple.quarantine', externalToolsDir.absolutePath])
                 ignoreExitValue = true
             }
-        } catch (Exception ignored) {
-            // best-effort; continue
+        } catch (Exception e) {
+            logger.warn("Failed to set file permissions or remove quarantine: ${e.message}")
+            logger.debug("Stacktrace:", e)
         }
     }
 }

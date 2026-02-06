@@ -25,7 +25,6 @@
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
-
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.modules.io.download.DownloadAsset;
@@ -56,7 +55,7 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
   private final LastFilesButton btnLastFiles;
   private final FileSelectionType type;
   private final List<ExtensionFilter> filters;
-
+  private @Nullable DownloadAssetButton downloadAssetButton;
 
   public FileNameComponent(List<File> lastFiles, FileSelectionType type,
       final List<ExtensionFilter> filters) {
@@ -69,7 +68,6 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
     this(lastFiles, type, filters, null, extAsset, downloadLinks);
   }
 
-
   public FileNameComponent(List<File> lastFiles, FileSelectionType type,
       final List<ExtensionFilter> filters, @Nullable Consumer<File> exportExamples) {
     this(lastFiles, type, filters, exportExamples, null, List.of());
@@ -80,9 +78,10 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
       final AssetGroup extAsset, final List<DownloadAsset> downloadLinks) {
     this.type = type;
     this.filters = filters;
+    this.downloadAssetButton = null;
 
     txtFilename = new TextField();
-    //txtFilename.setFont(smallFont);
+    // txtFilename.setFont(smallFont);
 
     // last used files chooser button
     // on click - set file name to textField
@@ -117,6 +116,11 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
       downloadButton.setOnDownloadFinished(
           files -> FxThread.runLater(() -> setValue(files.stream().findFirst().orElse(null))));
       getChildren().add(downloadButton);
+      // store reference so other modules may override the default "set downloaded
+      // file" behavior
+      // (e.g., download an archive, then extract a specific file and set that
+      // instead).
+      this.downloadAssetButton = downloadButton;
     }
 
     setAlignment(Pos.CENTER_LEFT);
@@ -182,13 +186,25 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
   }
 
   public File getValue(boolean allowEmptyString) {
-    // we never allow empty strings in the component as this would lead to a new File("")
+    // we never allow empty strings in the component as this would lead to a new
+    // File("")
     // which is saves interpreted as a relative path during load/save from xml
     return getValue();
   }
 
   public void setToolTipText(String toolTip) {
     txtFilename.setTooltip(new Tooltip(toolTip));
+  }
+
+  /**
+   * Overrides the action called once download is finished (if this component was
+   * created with
+   * download links). If no download button exists, this is a no-op.
+   */
+  public void setOnDownloadFinished(final @Nullable Consumer<List<File>> onDownloadFinished) {
+    if (downloadAssetButton != null) {
+      downloadAssetButton.setOnDownloadFinished(onDownloadFinished);
+    }
   }
 
   private void initDragDropped() {

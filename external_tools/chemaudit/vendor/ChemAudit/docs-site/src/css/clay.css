@@ -1,0 +1,163 @@
+/**
+ * Claymorphism Design System for ChemAudit Documentation
+ *
+ * Provides clay-inspired UI components with soft shadows and depth.
+ * Supports both light and dark modes with appropriate shadow adjustments.
+ */
+
+/* ========== Light Mode Clay Variables ========== */
+:root {
+  --clay-bg: #f5f7fa;
+  --clay-border: rgba(0, 0, 0, 0.1);
+
+  /* Shadow components for light mode */
+  --clay-shadow-inset-light: inset -8px -8px 16px rgba(255, 255, 255, 0.7);
+  --clay-shadow-inset-dark: inset 8px 8px 16px rgba(0, 0, 0, 0.15);
+  --clay-shadow-outset: 8px 8px 16px rgba(0, 0, 0, 0.25);
+
+  /* Composite clay shadow */
+  --clay-shadow: var(--clay-shadow-inset-light),
+                 var(--clay-shadow-inset-dark),
+                 var(--clay-shadow-outset);
+}
+
+/* ========== Dark Mode Clay Variables ========== */
+[data-theme='dark'] {
+  --clay-bg: #2d2d3a;
+  --clay-border: rgba(255, 255, 255, 0.05);
+
+  /* Shadow components for dark mode */
+  --clay-shadow-inset-light: inset -10px -10px 20px rgba(255, 255, 255, 0.05);
+  --clay-shadow-inset-dark: inset 0px 16px 32px rgba(0, 0, 0, 0.5);
+  --clay-shadow-outset: 35px 35px 35px rgba(0, 0, 0, 0.3);
+
+  /* Composite clay shadow for dark mode */
+  --clay-shadow: var(--clay-shadow-inset-light),
+                 var(--clay-shadow-inset-dark),
+                 var(--clay-shadow-outset);
+}
+
+/* ========== Clay Card Component ========== */
+.clay-card {
+  background: var(--clay-bg);
+  border-radius: 24px;
+  padding: 1.5rem;
+  box-shadow: var(--clay-shadow);
+  transition: all 0.3s ease;
+  border: 1px solid var(--clay-border);
+}
+
+.clay-card-hover {
+  background: var(--clay-bg);
+  border-radius: 24px;
+  padding: 1.5rem;
+  box-shadow: var(--clay-shadow);
+  transition: all 0.3s ease;
+  border: 1px solid var(--clay-border);
+}
+
+.clay-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: inset -10px -10px 20px rgba(255, 255, 255, 0.9),
+              inset 10px 10px 20px rgba(0, 0, 0, 0.2),
+              12px 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .clay-card-hover:hover {
+  box-shadow: inset -12px -12px 24px rgba(255, 255, 255, 0.08),
+              inset 0px 20px 40px rgba(0, 0, 0, 0.6),
+              40px 40px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* ========== Clay Button Components ========== */
+.clay-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 32px;
+  font-weight: 600;
+  border-radius: 28px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: white;
+}
+
+.clay-button-primary {
+  background: linear-gradient(135deg, #C41E3A 0%, #891528 100%);
+  box-shadow: inset -2px -2px 4px rgba(255, 255, 255, 0.2),
+              inset 2px 2px 4px rgba(0, 0, 0, 0.3),
+              4px 4px 12px rgba(196, 30, 58, 0.4);
+}
+
+.clay-button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: inset -2px -2px 4px rgba(255, 255, 255, 0.3),
+              inset 2px 2px 4px rgba(0, 0, 0, 0.4),
+              6px 6px 16px rgba(196, 30, 58, 0.5);
+}
+
+.clay-button-accent {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  box-shadow: inset -2px -2px 4px rgba(255, 255, 255, 0.2),
+              inset 2px 2px 4px rgba(0, 0, 0, 0.2),
+              4px 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.clay-button-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: inset -2px -2px 4px rgba(255, 255, 255, 0.3),
+              inset 2px 2px 4px rgba(0, 0, 0, 0.3),
+              6px 6px 16px rgba(245, 158, 11, 0.5);
+}
+
+/* ========== Clay Gradient Backgrounds ========== */
+.clay-gradient-primary {
+  background: linear-gradient(135deg, #C41E3A 0%, #891528 100%);
+}
+
+.clay-gradient-accent {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+}
+
+.clay-gradient-surface {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+[data-theme='dark'] .clay-gradient-surface {
+  background: linear-gradient(135deg, #2d2d3a 0%, #1f1f2a 100%);
+}
+
+/* ========== Clay Feature Card (Landing Page) ========== */
+.clay-feature-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 32px;
+  padding: 2rem;
+  box-shadow: inset -10px -10px 20px rgba(255, 255, 255, 0.8),
+              inset 10px 10px 20px rgba(0, 0, 0, 0.1),
+              12px 12px 24px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  border: 1px solid var(--clay-border);
+}
+
+.clay-feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: inset -12px -12px 24px rgba(255, 255, 255, 0.9),
+              inset 12px 12px 24px rgba(0, 0, 0, 0.15),
+              16px 16px 32px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme='dark'] .clay-feature-card {
+  background: linear-gradient(135deg, #2d2d3a 0%, #1f1f2a 100%);
+  box-shadow: inset -12px -12px 24px rgba(255, 255, 255, 0.05),
+              inset 0px 20px 40px rgba(0, 0, 0, 0.5),
+              16px 16px 32px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='dark'] .clay-feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: inset -14px -14px 28px rgba(255, 255, 255, 0.08),
+              inset 0px 24px 48px rgba(0, 0, 0, 0.6),
+              20px 20px 40px rgba(0, 0, 0, 0.5);
+}

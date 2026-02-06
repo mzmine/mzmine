@@ -1,0 +1,369 @@
+/**
+ * Professional PDF Report Styles
+ *
+ * A4 page setup with print-friendly colors and layout.
+ * Designed for regulatory submissions and professional documentation.
+ */
+
+/* Page setup */
+@page {
+  size: A4;
+  margin: 2cm 1.5cm;
+
+  @top-center {
+    content: "ChemAudit Batch Report";
+    font-size: 10pt;
+    color: #6b7280;
+  }
+
+  @bottom-center {
+    content: "Page " counter(page) " of " counter(pages);
+    font-size: 9pt;
+    color: #9ca3af;
+  }
+}
+
+/* Base styles */
+body {
+  font-family: 'DejaVu Sans', Arial, sans-serif;
+  font-size: 10pt;
+  line-height: 1.5;
+  color: #1f2937;
+}
+
+/* Header */
+.report-header {
+  border-bottom: 3px solid #3b82f6;
+  padding-bottom: 1cm;
+  margin-bottom: 1cm;
+}
+
+.report-title {
+  font-size: 20pt;
+  font-weight: bold;
+  color: #1e40af;
+  margin: 0 0 0.3cm 0;
+}
+
+.report-subtitle {
+  font-size: 11pt;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Summary section */
+.summary-section {
+  margin-bottom: 1cm;
+}
+
+.section-title {
+  font-size: 14pt;
+  font-weight: bold;
+  color: #1f2937;
+  margin: 0.8cm 0 0.4cm 0;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.2cm;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5cm;
+  margin-bottom: 0.8cm;
+}
+
+.stat-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 0.4cm;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 18pt;
+  font-weight: bold;
+  margin: 0 0 0.2cm 0;
+}
+
+.stat-label {
+  font-size: 9pt;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Score coloring */
+.score-excellent {
+  color: #16a34a;
+}
+
+.score-good {
+  color: #2563eb;
+}
+
+.score-moderate {
+  color: #d97706;
+}
+
+.score-poor {
+  color: #dc2626;
+}
+
+/* Chart section */
+.chart-container {
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 0.6cm;
+  margin-bottom: 0.8cm;
+  text-align: center;
+}
+
+.chart-title {
+  font-size: 12pt;
+  font-weight: bold;
+  color: #374151;
+  margin: 0 0 0.4cm 0;
+}
+
+.chart-image {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Table styles */
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.8cm;
+  font-size: 9pt;
+}
+
+.results-table th {
+  background-color: #f3f4f6;
+  color: #374151;
+  font-weight: bold;
+  text-align: left;
+  padding: 0.3cm;
+  border-bottom: 2px solid #d1d5db;
+}
+
+.results-table td {
+  padding: 0.25cm 0.3cm;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.results-table tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+/* Molecule table */
+.molecule-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.8cm;
+}
+
+.molecule-table th {
+  background-color: #f3f4f6;
+  color: #374151;
+  font-weight: bold;
+  text-align: left;
+  padding: 0.3cm;
+  border-bottom: 2px solid #d1d5db;
+  font-size: 10pt;
+}
+
+.molecule-table td {
+  padding: 0.3cm;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+
+.molecule-table tr {
+  page-break-inside: avoid;
+}
+
+.structure-cell {
+  width: 140px;
+  text-align: center;
+  background-color: #fafafa;
+}
+
+.structure-image {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+}
+
+.info-cell {
+  font-size: 9pt;
+}
+
+.mol-header {
+  display: flex;
+  align-items: center;
+  gap: 0.3cm;
+  margin-bottom: 0.2cm;
+  padding-bottom: 0.15cm;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.mol-index {
+  font-weight: bold;
+  color: #3b82f6;
+  font-size: 10pt;
+}
+
+.mol-name {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.mol-score {
+  margin-left: auto;
+  font-weight: bold;
+  padding: 0.1cm 0.2cm;
+  border-radius: 3px;
+  font-size: 9pt;
+}
+
+.mol-smiles {
+  margin: 0.15cm 0;
+  word-break: break-all;
+}
+
+.mol-smiles code {
+  font-family: 'DejaVu Sans Mono', monospace;
+  font-size: 8pt;
+  background-color: #f3f4f6;
+  padding: 0.05cm 0.1cm;
+  border-radius: 2px;
+}
+
+.mol-detail {
+  margin: 0.1cm 0;
+  color: #4b5563;
+}
+
+.mol-issues {
+  margin: 0.15cm 0;
+}
+
+.issue-tag {
+  display: inline-block;
+  font-size: 7pt;
+  padding: 0.05cm 0.15cm;
+  border-radius: 2px;
+  margin-right: 0.1cm;
+  margin-bottom: 0.05cm;
+}
+
+.issue-critical {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.issue-error {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.issue-warning {
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+
+.issue-more, .alert-more {
+  font-size: 7pt;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.mol-alerts {
+  margin: 0.15cm 0;
+}
+
+.alert-tag {
+  display: inline-block;
+  font-size: 7pt;
+  padding: 0.05cm 0.15cm;
+  border-radius: 2px;
+  background-color: #fef3c7;
+  color: #92400e;
+  margin-right: 0.1cm;
+  margin-bottom: 0.05cm;
+}
+
+/* Legacy molecule gallery (kept for backwards compatibility) */
+.molecule-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4cm;
+  margin-bottom: 1cm;
+}
+
+.molecule-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 0.3cm;
+  text-align: center;
+  page-break-inside: avoid;
+}
+
+.molecule-image {
+  width: 100%;
+  height: auto;
+  margin-bottom: 0.2cm;
+}
+
+.molecule-info {
+  font-size: 8pt;
+  color: #6b7280;
+  margin: 0.1cm 0;
+}
+
+.molecule-score {
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0.1cm 0;
+}
+
+/* Alert section */
+.alert-box {
+  background-color: #fef3c7;
+  border-left: 4px solid #f59e0b;
+  padding: 0.4cm;
+  margin-bottom: 0.8cm;
+  border-radius: 2px;
+}
+
+.alert-title {
+  font-size: 11pt;
+  font-weight: bold;
+  color: #92400e;
+  margin: 0 0 0.2cm 0;
+}
+
+.alert-content {
+  font-size: 9pt;
+  color: #78350f;
+  margin: 0;
+}
+
+/* Metadata section */
+.metadata {
+  font-size: 8pt;
+  color: #9ca3af;
+  margin-top: 1cm;
+  padding-top: 0.5cm;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Print-friendly: avoid page breaks inside elements */
+.stat-card, .molecule-card, .results-table tr {
+  page-break-inside: avoid;
+}
+
+/* Ensure section titles stay with content */
+.section-title {
+  page-break-after: avoid;
+}

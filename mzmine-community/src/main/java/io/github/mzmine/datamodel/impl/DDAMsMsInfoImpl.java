@@ -79,12 +79,12 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     this.msMsScan = msMsScan;
     this.parentScan = parentScan;
     this.msLevel = msLevel;
-    this.method = method;
+    this.method = method != null ? method : ActivationMethod.UNKNOWN;
     mzIsolationWindow = SimpleRange.ofDouble(isolationWindow);
   }
 
   public DDAMsMsInfoImpl(double isolationMz, @Nullable Integer charge, final int msLevel) {
-    this(isolationMz, charge, null, null, null, msLevel, null, null);
+    this(isolationMz, charge, null, null, null, msLevel, ActivationMethod.UNKNOWN, null);
   }
 
   public static DDAMsMsInfo fromMzML(MzMLPrecursorElement precursorElement, int msLevel) {

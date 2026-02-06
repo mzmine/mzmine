@@ -1,0 +1,964 @@
+{
+  "_description": "Reference molecules for accuracy testing against RDKit behavior",
+  "_version": "1.0.1",
+  "_date": "2026-01-23",
+  "_note": "Expected values generated using RDKit 2024.3.0",
+  "molecules": [
+    {
+      "id": "REF001",
+      "name": "aspirin",
+      "smiles": "CC(=O)OC1=CC=CC=C1C(=O)O",
+      "category": "drug-like",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 13,
+        "num_bonds": 13,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF002",
+      "name": "caffeine",
+      "smiles": "CN1C=NC2=C1C(=O)N(C)C(=O)N2C",
+      "category": "drug-like",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 14,
+        "num_bonds": 15,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF003",
+      "name": "ibuprofen",
+      "smiles": "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O",
+      "category": "drug-like",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 15,
+        "num_bonds": 15,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 1,
+        "undefined_stereocenters": 1,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF004",
+      "name": "ethanol",
+      "smiles": "CCO",
+      "category": "simple",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 3,
+        "num_bonds": 2,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF005",
+      "name": "benzene",
+      "smiles": "c1ccccc1",
+      "category": "simple",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 6,
+        "num_bonds": 6,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF006",
+      "name": "acetic_acid",
+      "smiles": "CC(=O)O",
+      "category": "simple",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 4,
+        "num_bonds": 3,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF007",
+      "name": "l_alanine",
+      "smiles": "C[C@H](N)C(=O)O",
+      "category": "stereochemistry",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 6,
+        "num_bonds": 5,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 1,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF008",
+      "name": "d_alanine",
+      "smiles": "C[C@@H](N)C(=O)O",
+      "category": "stereochemistry",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 6,
+        "num_bonds": 5,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 1,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF009",
+      "name": "r_lactic_acid",
+      "smiles": "C[C@H](O)C(=O)O",
+      "category": "stereochemistry",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 6,
+        "num_bonds": 5,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 1,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF010",
+      "name": "e_stilbene",
+      "smiles": "C(/C=C/C1=CC=CC=C1)1=CC=CC=C1",
+      "category": "stereochemistry",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 14,
+        "num_bonds": 15,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF011",
+      "name": "z_stilbene",
+      "smiles": "C(/C=C\\C1=CC=CC=C1)1=CC=CC=C1",
+      "category": "stereochemistry",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 14,
+        "num_bonds": 15,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF012",
+      "name": "meso_tartaric_acid",
+      "smiles": "C([C@H]([C@@H](C(=O)O)O)O)(=O)O",
+      "category": "stereochemistry",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 10,
+        "num_bonds": 9,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 2,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF013",
+      "name": "sodium_benzoate",
+      "smiles": "[Na+].[O-]C(=O)c1ccccc1",
+      "category": "salt",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 10,
+        "num_bonds": 9,
+        "has_aromatic": true,
+        "num_fragments": 2,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF014",
+      "name": "lidocaine_hcl",
+      "smiles": "CCN(CC)CC(=O)NC1=C(C)C=CC=C1C.[Cl-]",
+      "category": "salt",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 18,
+        "num_bonds": 17,
+        "has_aromatic": true,
+        "num_fragments": 2,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF015",
+      "name": "calcium_chloride",
+      "smiles": "[Ca+2].[Cl-].[Cl-]",
+      "category": "salt",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 3,
+        "num_bonds": 0,
+        "has_aromatic": false,
+        "num_fragments": 3,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF016",
+      "name": "naphthalene",
+      "smiles": "c1ccc2ccccc2c1",
+      "category": "aromatic",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 10,
+        "num_bonds": 11,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF017",
+      "name": "pyridine",
+      "smiles": "c1ccncc1",
+      "category": "aromatic",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 6,
+        "num_bonds": 6,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF018",
+      "name": "furan",
+      "smiles": "c1ccoc1",
+      "category": "aromatic",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 5,
+        "num_bonds": 5,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF019",
+      "name": "thiophene",
+      "smiles": "c1ccsc1",
+      "category": "aromatic",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 5,
+        "num_bonds": 5,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF020",
+      "name": "imidazole",
+      "smiles": "c1c[nH]cn1",
+      "category": "aromatic",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 5,
+        "num_bonds": 5,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF021",
+      "name": "cyclopropane",
+      "smiles": "C1CC1",
+      "category": "ring",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 3,
+        "num_bonds": 3,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF022",
+      "name": "cyclohexane",
+      "smiles": "C1CCCCC1",
+      "category": "ring",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 6,
+        "num_bonds": 6,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF023",
+      "name": "adamantane",
+      "smiles": "C1C2CC3CC1CC(C2)C3",
+      "category": "ring",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 10,
+        "num_bonds": 12,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 4,
+        "undefined_stereocenters": 4,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF024",
+      "name": "cubane",
+      "smiles": "C12C3C4C1C5C4C3C25",
+      "category": "ring",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 8,
+        "num_bonds": 12,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 8,
+        "undefined_stereocenters": 8,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF025",
+      "name": "methane",
+      "smiles": "C",
+      "category": "edge",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 1,
+        "num_bonds": 0,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF026",
+      "name": "iron_atom",
+      "smiles": "[Fe]",
+      "category": "edge",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 1,
+        "num_bonds": 0,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF027",
+      "name": "hydrogen_molecule",
+      "smiles": "[H][H]",
+      "category": "edge",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 2,
+        "num_bonds": 1,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF028",
+      "name": "atorvastatin",
+      "smiles": "CC(C)C1=C(C(=C(N1CCC(CC(CC(=O)O)O)O)C2=CC=C(C=C2)F)C3=CC=CC=C3)C(=O)NC4=CC=CC=C4",
+      "category": "complex",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 41,
+        "num_bonds": 44,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 2,
+        "undefined_stereocenters": 2,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF029",
+      "name": "quercetin",
+      "smiles": "OC1=CC(=C2C(=O)C(=C(OC2=C1)C3=CC=C(O)C(=C3)O)O)O",
+      "category": "natural_product",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 22,
+        "num_bonds": 24,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF030",
+      "name": "resveratrol",
+      "smiles": "OC1=CC=C(C=C1)/C=C/C2=CC(=CC(=C2)O)O",
+      "category": "natural_product",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 17,
+        "num_bonds": 18,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF031",
+      "name": "cholesterol",
+      "smiles": "CC(C)CCC[C@@H](C)[C@H]1CC[C@@H]2[C@@]1(CC[C@H]3[C@H]2CC=C4[C@@]3(CC[C@@H](C4)O)C)C",
+      "category": "natural_product",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 28,
+        "num_bonds": 31,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 8,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF032",
+      "name": "morphine",
+      "smiles": "CN1CC[C@]23C4=C5C=CC(=C4O[C@H]2[C@@H](C=C[C@H]3[C@H]1C5)O)O",
+      "category": "natural_product",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 21,
+        "num_bonds": 25,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 5,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF033",
+      "name": "doxorubicin_aglycone",
+      "smiles": "CC1=CC2=C(C=C1O)C(=O)C3=C(C2=O)C(=C(C=C3OC)O)O",
+      "category": "complex",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 22,
+        "num_bonds": 24,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF034",
+      "name": "pentavalent_carbon",
+      "smiles": "C(C)(C)(C)(C)C",
+      "category": "invalid",
+      "expected": {
+        "parsable": false,
+        "valid_sanitization": false,
+        "has_valence_error": true
+      }
+    },
+    {
+      "id": "REF035",
+      "name": "hexavalent_carbon",
+      "smiles": "CC(C)(C)(C)(C)C",
+      "category": "invalid",
+      "expected": {
+        "parsable": false,
+        "valid_sanitization": false,
+        "has_valence_error": true
+      }
+    },
+    {
+      "id": "REF036",
+      "name": "invalid_aromatic",
+      "smiles": "c1ccc1",
+      "category": "partial_valid",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 4,
+        "num_bonds": 4,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true,
+        "note": "4-membered ring - RDKit kekulizes and removes aromaticity"
+      }
+    },
+    {
+      "id": "REF037",
+      "name": "unbalanced_ring",
+      "smiles": "C1CC",
+      "category": "invalid",
+      "expected": {
+        "parsable": false,
+        "parse_error": "unclosed_ring"
+      }
+    },
+    {
+      "id": "REF038",
+      "name": "undefined_stereo_center",
+      "smiles": "CC(O)C(=O)O",
+      "category": "stereochemistry",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 6,
+        "num_bonds": 5,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 1,
+        "undefined_stereocenters": 1,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF039",
+      "name": "undefined_double_bond",
+      "smiles": "CC=CC",
+      "category": "stereochemistry",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 4,
+        "num_bonds": 3,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "has_undefined_double_bond": true,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF040",
+      "name": "e_2_butene",
+      "smiles": "C/C=C/C",
+      "category": "stereochemistry",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 4,
+        "num_bonds": 3,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "has_undefined_double_bond": false,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF041",
+      "name": "z_2_butene",
+      "smiles": "C/C=C\\C",
+      "category": "stereochemistry",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 4,
+        "num_bonds": 3,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "has_undefined_double_bond": false,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF042",
+      "name": "penicillin_v",
+      "smiles": "CC1([C@@H](N2[C@H](S1)[C@@H](C2=O)NC(=O)COC3=CC=CC=C3)C(=O)O)C",
+      "category": "drug-like",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 24,
+        "num_bonds": 26,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 3,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF043",
+      "name": "metformin",
+      "smiles": "CN(C)C(=N)NC(=N)N",
+      "category": "drug-like",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 9,
+        "num_bonds": 8,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF044",
+      "name": "omeprazole",
+      "smiles": "CC1=CN=C(C(=C1OC)C)CS(=O)C2=NC3=C(N2)C=CC(=C3)OC",
+      "category": "drug-like",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 24,
+        "num_bonds": 26,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 1,
+        "undefined_stereocenters": 1,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF045",
+      "name": "lisinopril",
+      "smiles": "NCCCC[C@H](N[C@@H](CCC1=CC=CC=C1)C(=O)O)C(=O)N2CCC[C@H]2C(=O)O",
+      "category": "drug-like",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 29,
+        "num_bonds": 30,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 3,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF046",
+      "name": "sildenafil",
+      "smiles": "CCCC1=NN(C2=C1NC(=NC2=O)C3=C(C=CC(=C3)S(=O)(=O)N4CCN(CC4)C)OCC)C",
+      "category": "drug-like",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 33,
+        "num_bonds": 36,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF047",
+      "name": "ferrocene",
+      "smiles": "[Fe+2].[cH-]1cccc1.[cH-]1cccc1",
+      "category": "organometallic",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 11,
+        "num_bonds": 10,
+        "has_aromatic": true,
+        "num_fragments": 3,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF048",
+      "name": "boron_trifluoride",
+      "smiles": "FB(F)F",
+      "category": "edge",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 4,
+        "num_bonds": 3,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF049",
+      "name": "sulfur_hexafluoride",
+      "smiles": "FS(F)(F)(F)(F)F",
+      "category": "edge",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 7,
+        "num_bonds": 6,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 0,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF050",
+      "name": "glucose",
+      "smiles": "OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O",
+      "category": "natural_product",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 12,
+        "num_bonds": 12,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 5,
+        "undefined_stereocenters": 1,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF051",
+      "name": "amphotericin_b_frag",
+      "smiles": "C[C@H]1[C@@H](CC[C@@H]([C@H]([C@@H](C[C@H](C[C@H](CC(=O)O[C@H](C)[C@@H]([C@H](C)O)O)O)O)O)O)O)O[C@H](O1)C",
+      "category": "complex",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 32,
+        "num_bonds": 32,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 11,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF052",
+      "name": "cyclosporin_frag",
+      "smiles": "C[C@@H]1C(=O)N[C@H](C(=O)N[C@H](C(=O)N[C@@H](CC(C)C)C(=O)N2CCC[C@H]2C(=O)N1)CC(C)C)CC(C)C",
+      "category": "complex",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 36,
+        "num_bonds": 37,
+        "has_aromatic": false,
+        "num_fragments": 1,
+        "num_stereocenters": 5,
+        "undefined_stereocenters": 0,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    },
+    {
+      "id": "REF053",
+      "name": "empty_smiles",
+      "smiles": "",
+      "category": "invalid",
+      "expected": {
+        "parsable": false,
+        "parse_error": "empty_input"
+      }
+    },
+    {
+      "id": "REF054",
+      "name": "garbage_input",
+      "smiles": "this is not valid",
+      "category": "invalid",
+      "expected": {
+        "parsable": false,
+        "parse_error": "invalid_syntax"
+      }
+    },
+    {
+      "id": "REF055",
+      "name": "warfarin",
+      "smiles": "CC(=O)CC(C1=C(C2=CC=CC=C2OC1=O)O)C3=CC=CC=C3",
+      "category": "drug-like",
+      "expected": {
+        "parsable": true,
+        "valid_sanitization": true,
+        "num_atoms": 23,
+        "num_bonds": 25,
+        "has_aromatic": true,
+        "num_fragments": 1,
+        "num_stereocenters": 1,
+        "undefined_stereocenters": 1,
+        "inchi_generatable": true,
+        "smiles_roundtrip_consistent": true
+      }
+    }
+  ]
+}
