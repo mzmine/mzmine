@@ -25,16 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopegrouper;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -43,7 +38,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
@@ -223,14 +217,6 @@ class IsotopeGrouperTask extends AbstractTask {
         continue;
       }
 
-      // Convert the peak pattern to array
-      final DataPoint[] isotopes = bestFitRows.stream()
-          .map(r -> new SimpleDataPoint(r.getAverageMZ(), r.getMaxHeight()))
-          .sorted(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending))
-          .toArray(DataPoint[]::new);
-      SimpleIsotopePattern newPattern = new SimpleIsotopePattern(isotopes, bestFitCharge,
-          IsotopePatternStatus.DETECTED, mostIntenseRow.toString());
-
       // Depending on user's choice, we leave either the most intense, or
       // the lowest m/z peak
       if (chooseMostIntense) {
@@ -242,16 +228,6 @@ class IsotopeGrouperTask extends AbstractTask {
       // add to final rows
       final FeatureListRow mainRow = bestFitRows.get(0);
       finalRows.add(mainRow);
-      // set isotope pattern
-      Feature feature = mainRow.getFeatures().get(0);
-
-      // do not set isotope pattern if feature already has an isotope pattern
-      // this means the isotope finder (or another module already ran) keep the old pattern
-      // we trust the isotope finder more on detecting all isotope signals
-      if (feature.getIsotopePattern() == null) {
-        feature.setIsotopePattern(newPattern);
-        feature.setCharge(bestFitCharge);
-      }
 
       // Remove all peaks already assigned to isotope pattern
       // first is already removed
