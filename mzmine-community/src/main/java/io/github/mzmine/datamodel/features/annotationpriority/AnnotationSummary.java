@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
@@ -138,8 +139,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
   }
 
   private double calcCombinedScore() {
-    final AnnotationSummarySortConfig config = getAnnotationSortConfig();
-    final CombinedScoreWeights weights = config.combinedScoreWeights();
+    final CombinedScoreWeights weights = getWeights();
     double score = 0;
     double totalWeight = 0;
 
@@ -159,6 +159,15 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     return totalWeight > 0 ? score / totalWeight : 0d;
   }
 
+  private @NotNull CombinedScoreWeights getWeights() {
+    final AnnotationSummarySortConfig config = getAnnotationSortConfig();
+    return getWeights(config);
+  }
+
+  private static @NotNull CombinedScoreWeights getWeights(AnnotationSummarySortConfig config) {
+    return config.combinedScoreWeights();
+  }
+
   /**
    * A score is active if the underlying feature list has all properties needed to calculate it.
    * Like CCSType as a row type for CCS score.
@@ -167,12 +176,16 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
    */
   public boolean isActiveScore(@NotNull Scores type) {
     final FeatureList featureList = row.getFeatureList();
+    final CombinedScoreWeights weights = getWeights();
     return switch (type) {
-      case CCS -> featureList.hasRowType(CCSType.class);
-      case RI -> featureList.hasRowType(RIType.class);
-      case RT ->
-          featureList.hasRowType(RTType.class) && !FeatureListUtils.hasAllImagingData(featureList);
-      case MZ, MS2, ISOTOPE, COMBINED -> true;
+      case CCS -> featureList.hasRowType(CCSType.class) && weights.ccs() > 0d;
+      case RI -> featureList.hasRowType(RIType.class) && weights.ri() > 0d;
+      case ISOTOPE -> featureList.hasRowType(IsotopePatternType.class) && weights.isotopes() > 0d;
+      case RT -> featureList.hasRowType(RTType.class) && weights.rt() > 0d
+          && !FeatureListUtils.hasAllImagingData(featureList);
+      case MZ -> weights.mz() > 0d; // GC-EI SpectralDeconvolutionGCTask sets weight to 0
+      case MS2 -> weights.ms2() > 0d;
+      case COMBINED -> true;
     };
   }
 

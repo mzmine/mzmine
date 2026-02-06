@@ -62,4 +62,8 @@ public record CombinedScoreWeights(double mz, double rt, double ri, double ccs, 
       case COMBINED -> 0; // is calculated by this but never uses a weight itself
     };
   }
+
+  public CombinedScoreWeights withMz(double mz) {
+    return new CombinedScoreWeights(mz, rt, ri, ccs, ms2, isotopes);
+  }
 }

@@ -57,4 +57,13 @@ public record AnnotationSummarySortConfig(@NotNull MZTolerance mzTolerance,
     return new AnnotationSummarySortConfig(mzTolerance, rtTolerance, ccsTolerance, riTolerance,
         combinedScoreWeights, sortOrder);
   }
+
+  /**
+   *
+   * @return copy with replaced weights
+   */
+  public AnnotationSummarySortConfig withCombinedScoreWeights(@NotNull CombinedScoreWeights combinedScoreWeights) {
+    return new AnnotationSummarySortConfig(mzTolerance, rtTolerance, ccsTolerance, riTolerance,
+        combinedScoreWeights, sortOrder);
+  }
 }
