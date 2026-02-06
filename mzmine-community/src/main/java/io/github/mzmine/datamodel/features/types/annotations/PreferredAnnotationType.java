@@ -34,8 +34,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.SimpleSubColumnsType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.fx.PreferredEditComboCellFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
@@ -69,9 +69,20 @@ import org.jetbrains.annotations.Nullable;
 public class PreferredAnnotationType extends SimpleSubColumnsType<FeatureAnnotation> implements
     MappingType<FeatureAnnotation>, AnnotationType {
 
-  public static final List<DataType> subTypes = List.of(new PreferredAnnotationType(),
-      new CompoundNameType(), new AnnotationSummaryType(), new PrecursorMZType(),
-      new MolecularStructureType(), new ScoreType(), new IonTypeType(), new AnnotationMethodType());
+  /**
+   * Similar order to {@link CompoundDatabaseMatchesType} and {@link SpectralLibraryMatchesType}
+   */
+  public static final List<DataType> subTypes = List.of( //
+      new PreferredAnnotationType(), //
+      new CompoundNameType(), //
+      new AnnotationSummaryType(), //
+      new FormulaType(), //
+      new IonTypeType(), //
+      new MolecularStructureType(), //
+      new ScoreType(), //
+      new PrecursorMZType(), //
+      new AnnotationMethodType() //
+  );
 
   @Override
   public @NotNull String getUniqueID() {
