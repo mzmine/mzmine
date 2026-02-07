@@ -180,7 +180,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     return switch (type) {
       case CCS -> featureList.hasRowType(CCSType.class) && weights.ccs() > 0d;
       case RI -> featureList.hasRowType(RIType.class) && weights.ri() > 0d;
-      case ISOTOPE -> featureList.hasRowType(IsotopePatternType.class) && weights.isotopes() > 0d;
+      case ISOTOPE -> featureList.hasFeatureType(IsotopePatternType.class) && weights.isotopes() > 0d;
       case RT -> featureList.hasRowType(RTType.class) && weights.rt() > 0d
           && !FeatureListUtils.hasAllImagingData(featureList);
       case MZ -> weights.mz() > 0d; // GC-EI SpectralDeconvolutionGCTask sets weight to 0
