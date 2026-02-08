@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,7 +30,9 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingRowChartCellFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
@@ -118,11 +120,20 @@ public class MolecularStructureType extends DataType<MolecularStructure> impleme
     if (!(value instanceof MolecularStructure structure)) {
       return null;
     }
+
+    final DataType<?> mainType;
+    if (superType instanceof PreferredAnnotationType pt
+        && row.getPreferredAnnotation() instanceof FeatureAnnotation a) {
+      mainType = DataTypes.get(a.getDataType());
+    } else {
+      mainType = superType;
+    }
+
     return () -> FxThread.runLater(() -> {
-      if (superType instanceof CompoundDatabaseMatchesType) {
+      if (mainType instanceof CompoundDatabaseMatchesType) {
         CompoundDatabaseMatchTab tab = new CompoundDatabaseMatchTab(table);
         MZmineCore.getDesktop().addTab(tab);
-      } else if (superType instanceof SpectralLibraryMatchesType) {
+      } else if (mainType instanceof SpectralLibraryMatchesType) {
         MZmineCore.getDesktop().addTab(new SpectralIdentificationResultsTab(table));
       } else {
         new MolStructureViewer("", structure.structure()).show();

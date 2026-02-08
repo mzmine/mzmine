@@ -1,8 +1,7 @@
 name: PR Test Build
 
 on:
-  pull_request:
-    branches: [ "master", "actions-test" ]
+  pull_request: # all branches
 
 jobs:
   gradle_build:

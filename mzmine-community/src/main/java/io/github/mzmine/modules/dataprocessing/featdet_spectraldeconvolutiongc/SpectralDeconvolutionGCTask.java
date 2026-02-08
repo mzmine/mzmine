@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -92,6 +93,11 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
       if (!isCanceled()) {
         handleOriginal.reflectNewFeatureListToProject(suffix, project, deconvolutedFeatureList,
             featureList);
+        // set the mz weight to 0 as there is no mz score in GC-EI with missing precursor
+        // later need to consider how to process combined GC-CI and EI data but that is a different algorithm
+        AnnotationSummarySortConfig config = deconvolutedFeatureList.getAnnotationSortConfig();
+        config = config.withCombinedScoreWeights(config.combinedScoreWeights().withMz(0d));
+        deconvolutedFeatureList.setAnnotationSortConfig(config);
         setStatus(TaskStatus.FINISHED);
         LOGGER.info("Spectral deconvolution completed on " + featureList.getName());
       }

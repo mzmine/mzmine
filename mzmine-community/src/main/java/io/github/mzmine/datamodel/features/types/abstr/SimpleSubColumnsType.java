@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,87 +25,22 @@
 
 package io.github.mzmine.datamodel.features.types.abstr;
 
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularDataRecord;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.scene.control.TreeTableColumn;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * handles save/ load from xml
- */
-public abstract class SimpleSubColumnsType<T extends ModularDataRecord> extends
-    DataType<T> implements SubColumnsFactory {
-
-  private static final Logger logger = Logger.getLogger(SimpleSubColumnsType.class.getName());
+public abstract class SimpleSubColumnsType<T> extends DataType<T> implements SubColumnsFactory {
 
   @SuppressWarnings("rawtypes")
   public abstract @NotNull List<DataType> getSubDataTypes();
-
-  /**
-   * Create record when loading from xml
-   *
-   * @param model datatypes mapped to values
-   * @return
-   */
-  protected abstract T createRecord(final SimpleModularDataModel model);
-
-  @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (!(value instanceof ModularDataRecord record)) {
-      return;
-    }
-    writer.writeStartElement(SUB_TYPES_XML_ELEMENT);
-    List<DataType> subTypes = getSubDataTypes();
-
-    for (DataType<?> sub : subTypes) {
-      Object subValue = record.getValue(sub);
-      if (subValue != null) {
-        writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
-        writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, sub.getUniqueID());
-
-        try {
-          // catch here, so we can easily debug and don't destroy the flist while saving in case an unexpected exception happens
-          sub.saveToXML(writer, subValue, flist, row, feature, file);
-        } catch (XMLStreamException e) {
-          logger.log(Level.WARNING,
-              "Error while writing data type " + sub.getClass().getSimpleName() + " with value "
-                  + subValue + " to xml.  " + e.getMessage(), e);
-        }
-        // end sub parameter
-        writer.writeEndElement();
-      }
-    }
-    // end outer element for sub types
-    writer.writeEndElement();
-  }
-
-  @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    SimpleModularDataModel model = SubColumnsFactory.super.loadSubColumnsFromXML(reader, project,
-        flist, row, feature, file);
-    return model.isEmpty() ? null : createRecord(model);
-  }
 
   @Override
   public @NotNull List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
@@ -148,7 +83,6 @@ public abstract class SimpleSubColumnsType<T extends ModularDataRecord> extends
     return getType(subcolumn).getUniqueID();
   }
 
-
   @Override
   public @NotNull DataType<?> getType(int index) {
     var list = getSubDataTypes();
@@ -158,7 +92,6 @@ public abstract class SimpleSubColumnsType<T extends ModularDataRecord> extends
     }
     return list.get(index);
   }
-
 
   @Override
   public @Nullable Object getSubColValue(int subcolumn, Object cellData) {
@@ -177,10 +110,5 @@ public abstract class SimpleSubColumnsType<T extends ModularDataRecord> extends
           String.format("value of type %s needs to be of type ModularDataRecord",
               value.getClass().getName()));
     }
-  }
-
-  @Override
-  public boolean getDefaultVisibility() {
-    return false;
   }
 }

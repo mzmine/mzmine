@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,9 @@ package io.github.mzmine.parameters.parametertypes.datatype;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
@@ -70,6 +72,7 @@ public class DataTypeCheckListParameter implements
     this.desc = description;
     this.value = new HashMap<>();
     defaultDisableColumns();
+    defaultEnableColumns();
   }
 
   private static @NotNull String getKey(boolean isFeatureType, Class<? extends DataType<?>> parent,
@@ -288,5 +291,22 @@ public class DataTypeCheckListParameter implements
     if (getName().toLowerCase().contains("feature")) {
       // add types here in the future
     }
+  }
+
+  /**
+   * enable some types by default that are disabled by default but do make sense to show in specific
+   * cases. For example, the {@link CompoundNameType} would not be shown in the
+   * {@link  PreferredAnnotationType}, because it does not make sense to show it in all
+   * {@link io.github.mzmine.datamodel.features.types.ListWithSubsType} as the name is shown in the
+   * main list cell. However, the {@link PreferredAnnotationType} is not a list type.
+   */
+  private void defaultEnableColumns() {
+//    if (getName().toLowerCase().contains("row")) {
+//
+//    }
+
+//    if (getName().toLowerCase().contains("feature")) {
+      // add types here in the future
+//    }
   }
 }

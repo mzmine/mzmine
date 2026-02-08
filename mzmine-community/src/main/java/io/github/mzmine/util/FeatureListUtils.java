@@ -804,6 +804,7 @@ public class FeatureListUtils {
     FeatureListUtils.copyPeakListAppliedMethods(featureList, newFlist);
     FeatureListUtils.transferRowTypes(newFlist, List.of(featureList), true);
     FeatureListUtils.transferSelectedScans(newFlist, List.of(featureList));
+    newFlist.setAnnotationSortConfig(featureList.getAnnotationSortConfig().copy());
 
     if (copyRows) {
       copyRows(featureList, newFlist, renumberIDs);
@@ -889,6 +890,10 @@ public class FeatureListUtils {
 
   public static boolean hasImagingData(FeatureList flist) {
     return flist.getRawDataFiles().stream().anyMatch(ImagingRawDataFile.class::isInstance);
+  }
+
+  public static boolean hasAllImagingData(FeatureList flist) {
+    return flist.getRawDataFiles().stream().allMatch(ImagingRawDataFile.class::isInstance);
   }
 
   /**

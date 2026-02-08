@@ -133,6 +133,7 @@ public class BaseFeatureListAligner {
     FeatureListUtils.transferRowTypes(alignedFeatureList, featureLists, true);
     FeatureListUtils.transferSelectedScans(alignedFeatureList, featureLists);
     FeatureListUtils.copyPeakListAppliedMethods(featureLists.getFirst(), alignedFeatureList);
+    alignedFeatureList.setAnnotationSortConfig(featureLists.getFirst().getAnnotationSortConfig());
     return alignedFeatureList;
   }
 

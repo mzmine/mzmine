@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,7 +37,6 @@ import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.QueryFormatException;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.LipidFlexibleNotationParser.LipidFlexibleNotation;
-import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.maths.MathOperator;
 import java.util.ArrayList;
 import java.util.List;
@@ -106,8 +105,8 @@ class LipidRowTypeFilter extends AbstractRowTypeFilter {
       }
     }
 
-    return CompoundAnnotationUtils.streamFeatureAnnotations(row)
-        .map(FeatureAnnotation::getCompoundName).anyMatch(this::matchesLipidName);
+    return row.streamAllFeatureAnnotations().map(FeatureAnnotation::getCompoundName)
+        .anyMatch(this::matchesLipidName);
   }
 
   private boolean matchesLipid(MatchedLipid lipid) {

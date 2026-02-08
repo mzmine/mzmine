@@ -141,6 +141,25 @@ Text.contrast-label {
     -fx-effect: dropshadow(three-pass-box, skyblue, 14, 0, 0, 0);
 }
 
+/* make annotation summary tooltip white text */
+.tooltip > HBox > VBox > Text {
+    -fx-fill: -jr-tooltip-fg;
+}
+.tooltip > HBox > VBox > Label {
+    -fx-text-fill: -jr-tooltip-fg;
+}
+.tooltip > Text {
+    -fx-fill: -jr-tooltip-fg;
+}
+.tooltip > Label {
+    -fx-text-fill: -jr-tooltip-fg;
+}
+.tooltip > TextFlow > Text {
+    -fx-fill: -jr-tooltip-fg;
+}
+.tooltip > TextFlow > Label {
+    -fx-text-fill: -jr-tooltip-fg;
+}
 
 .tooltip-error {
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 5);

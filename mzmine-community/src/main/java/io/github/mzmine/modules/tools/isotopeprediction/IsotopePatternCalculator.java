@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
@@ -43,6 +44,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.formula.IsotopeContainer;
 import org.openscience.cdk.formula.IsotopePatternGenerator;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -106,43 +108,7 @@ public class IsotopePatternCalculator implements MZmineModule {
 
     org.openscience.cdk.formula.IsotopePattern pattern = generator.getIsotopes(cdkFormula);
 
-    int numOfIsotopes = pattern.getNumberOfIsotopes();
-
-    DataPoint dataPoints[] = new DataPoint[numOfIsotopes];
-    String isotopeComposition[] = new String[numOfIsotopes];
-    // For each unit of charge, we have to add or remove a mass of a
-    // single electron. If the charge is positive, we remove electron
-    // mass. If the charge is negative, we add it.
-    charge = Math.abs(charge);
-    var electronMass = polarity.getSign() * -1 * charge * ELECTRON_MASS;
-
-    for (int i = 0; i < numOfIsotopes; i++) {
-      IsotopeContainer isotope = pattern.getIsotope(i);
-
-      double mass = isotope.getMass() + electronMass;
-
-      if (charge != 0) {
-        mass /= charge;
-      }
-
-      double intensity = isotope.getIntensity();
-
-      dataPoints[i] = new SimpleDataPoint(mass, intensity);
-
-      if (storeFormula) {
-        isotopeComposition[i] = formatCDKString(isotope.toString());
-      }
-    }
-
-    String formulaString = MolecularFormulaManipulator.getString(cdkFormula);
-
-    if (storeFormula) {
-      return new SimpleIsotopePattern(dataPoints, charge, IsotopePatternStatus.PREDICTED,
-          formulaString, isotopeComposition);
-    } else {
-      return new SimpleIsotopePattern(dataPoints, charge, IsotopePatternStatus.PREDICTED,
-          formulaString);
-    }
+    return convertToIsotopePattern(pattern, cdkFormula, charge, polarity, storeFormula);
   }
 
   public static HashMap<Double, IsotopePattern> calculateIsotopePatternForResolutions(
@@ -257,6 +223,27 @@ public class IsotopePatternCalculator implements MZmineModule {
     return cdkString.substring(startIndex + 3, endIndex);
   }
 
+  /**
+   * Predict pattern with default binning width for annotations
+   *
+   * @param neutralFormula ionType will be added on top of neutral formula to create ion formula
+   * @return the isotope pattern of ion formula. or null if formula or ionType are null
+   */
+  public static @Nullable IsotopePattern calculateFeatureAnnotationIsotopePattern(
+      @Nullable IMolecularFormula neutralFormula, @Nullable IonType ionType) {
+    if (neutralFormula == null || ionType == null) {
+      return null;
+    }
+    try {
+      neutralFormula = ionType.addToFormula(neutralFormula);
+    } catch (CloneNotSupportedException e) {
+      return null;
+    }
+
+    return calculateIsotopePattern(neutralFormula, 0.005,
+        ionType.getAbsCharge(), ionType.getPolarity(), false);
+  }
+
   @Override
   public @NotNull String getName() {
     return MODULE_NAME;
@@ -288,6 +275,13 @@ public class IsotopePatternCalculator implements MZmineModule {
 
     final org.openscience.cdk.formula.IsotopePattern pattern = estimator.getIsotopes(cdkFormula);
 
+    return convertToIsotopePattern(pattern, cdkFormula, charge, polarity, storeFormula);
+  }
+
+  private static @NotNull SimpleIsotopePattern convertToIsotopePattern(
+      @NotNull org.openscience.cdk.formula.IsotopePattern pattern,
+      @NotNull IMolecularFormula cdkFormula, int charge, @NotNull PolarityType polarity,
+      boolean storeFormula) {
     int numOfIsotopes = pattern.getNumberOfIsotopes();
 
     DataPoint dataPoints[] = new DataPoint[numOfIsotopes];

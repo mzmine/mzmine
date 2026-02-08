@@ -28,10 +28,13 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification
 import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
@@ -41,11 +44,13 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidAn
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -68,13 +73,22 @@ public class MatchedLipid implements FeatureAnnotation {
   private static final String XML_COMMENT = "comment";
   private static final String XML_STATUS = "status";
 
-  private ILipidAnnotation lipidAnnotation;
-  private Double accurateMz;
-  private IonizationType ionizationType;
-  private Set<LipidFragment> matchedFragments;
-  private Double msMsScore;
+  private final ILipidAnnotation lipidAnnotation;
+  private final Double accurateMz;
+  private final IonizationType ionizationType;
+  private final Set<LipidFragment> matchedFragments;
+  private final Double msMsScore;
+  private final MatchedLipidStatus status;
   private String comment;
-  private MatchedLipidStatus status;
+
+  /**
+   * Pattern is calculated for ion so cannot be saved in {@link ILipidAnnotation}
+   * <p>
+   * StableValue renamed to ComputedConstant in JDK26
+   */
+  private final Supplier<IsotopePattern> pattern = StableValue.supplier(
+      () -> IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(
+          getLipidAnnotation().getMolecularFormula(), getAdductType()));
 
   public MatchedLipid(ILipidAnnotation lipidAnnotation, Double accurateMz,
       IonizationType ionizationType, Set<LipidFragment> matchedFragments, Double msMsScore) {
@@ -194,41 +208,20 @@ public class MatchedLipid implements FeatureAnnotation {
     return lipidAnnotation;
   }
 
-  public void setLipidAnnotation(ILipidAnnotation lipidAnnotation) {
-    this.lipidAnnotation = lipidAnnotation;
-  }
-
   public Double getAccurateMz() {
     return accurateMz;
-  }
-
-  public void setAccurateMz(Double accurateMz) {
-    this.accurateMz = accurateMz;
   }
 
   public IonizationType getIonizationType() {
     return ionizationType;
   }
 
-  public void setIonizationType(IonizationType ionizationType) {
-    this.ionizationType = ionizationType;
-  }
-
-  @NotNull
   public Set<LipidFragment> getMatchedFragments() {
     return requireNonNullElse(matchedFragments, Set.of());
   }
 
-  public void setMatchedFragments(Set<LipidFragment> matchedFragments) {
-    this.matchedFragments = matchedFragments;
-  }
-
   public Double getMsMsScore() {
     return msMsScore;
-  }
-
-  public void setMsMsScore(Double msMsScore) {
-    this.msMsScore = msMsScore;
   }
 
   @Override
@@ -242,10 +235,6 @@ public class MatchedLipid implements FeatureAnnotation {
 
   public MatchedLipidStatus getStatus() {
     return status;
-  }
-
-  public void setStatus(MatchedLipidStatus status) {
-    this.status = status;
   }
 
   @Override
@@ -373,12 +362,23 @@ public class MatchedLipid implements FeatureAnnotation {
   }
 
   @Override
+  public @Nullable IsotopePattern getIsotopePattern() {
+    return pattern.get();
+  }
+
+  @Override
   public @Nullable String getDatabase() {
     return "Rule-based lipid fragmentation";
+  }
+
+  @Override
+  public @NotNull Class<? extends DataType> getDataType() {
+    return LipidMatchListType.class;
   }
 
   @Override
   public @NotNull String getXmlAttributeKey() {
     return XML_ELEMENT;
   }
+
 }
