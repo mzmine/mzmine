@@ -53,6 +53,6 @@ public class SimpleFormulaListType extends ListDataType<ResultFormula> implement
 
   @Override
   public double getPrefColumnWidth() {
-    return FormulaListType.PREF_COL_WIDTH;
+    return FormulaListType.getFormulaPrefColumnWidth();
   }
 }

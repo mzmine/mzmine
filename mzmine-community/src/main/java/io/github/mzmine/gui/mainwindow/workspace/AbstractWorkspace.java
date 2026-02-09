@@ -54,6 +54,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDe
 import io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule;
+import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
@@ -306,7 +307,8 @@ public abstract class AbstractWorkspace implements Workspace {
         FormulaPredictionFeatureListModule.class, Ms2SearchModule.class);
     addModuleMenuItems(menu, "EC-MS workflow", CalcEcmsPotentialModule.class);
     menu.getItems().add(new SeparatorMenuItem());
-    addModuleMenuItems(menu, ClearFeatureAnnotationsModule.class);
+    addModuleMenuItems(menu, ClearFeatureAnnotationsModule.class,
+        PreferredAnnotationRankingModule.class);
     return menu;
   }
 

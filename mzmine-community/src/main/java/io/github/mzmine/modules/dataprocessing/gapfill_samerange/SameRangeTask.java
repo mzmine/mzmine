@@ -45,6 +45,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -101,8 +102,9 @@ class SameRangeTask extends AbstractTask {
     // Create new feature list
     processedPeakList = new ModularFeatureList(peakList + " " + suffix, getMemoryMapStorage(),
         columns);
-    peakList.getRawDataFiles()
-        .forEach(file -> processedPeakList.setSelectedScans(file, peakList.getSeletedScans(file)));
+
+    // do not transfer types add them later
+    FeatureListUtils.transferMetadata(peakList, processedPeakList, false);
 
     List<FeatureListRow> outputList = Collections.synchronizedList(new ArrayList<>());
 

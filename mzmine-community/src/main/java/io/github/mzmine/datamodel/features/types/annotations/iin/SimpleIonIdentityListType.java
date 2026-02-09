@@ -53,6 +53,6 @@ public class SimpleIonIdentityListType extends ListDataType<IonIdentity> impleme
 
   @Override
   public double getPrefColumnWidth() {
-    return IonTypeType.PREF_COL_WIDTH;
+    return IonTypeType.getFormulaPrefColumnWidth();
   }
 }

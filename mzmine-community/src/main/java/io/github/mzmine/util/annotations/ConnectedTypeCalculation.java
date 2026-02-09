@@ -57,7 +57,7 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * @param typeToCalculate The type to calculate the value for.
- * @param calc            A function to calculate the desired value of the type. May trhow an
+ * @param calc            A function to calculate the desired value of the type. May throw an
  *                        {@link NullPointerException} (caught) but no other exception.
  * @param <T>
  */

@@ -134,8 +134,8 @@ public class ImsExpanderTask extends AbstractTask {
 
     final ModularFeatureList newFlist = new ModularFeatureList(flist.getName() + SUFFIX,
         getMemoryMapStorage(), imsFile);
-    newFlist.setSelectedScans(imsFile, flist.getSeletedScans(imsFile));
-    newFlist.getAppliedMethods().addAll(flist.getAppliedMethods());
+    // do not transfer types add them later
+    FeatureListUtils.transferMetadata(flist, newFlist, false);
     DataTypeUtils.addDefaultIonMobilityTypeColumns(newFlist);
 
     desc = "Mobility expanding feature list " + flist.getName();

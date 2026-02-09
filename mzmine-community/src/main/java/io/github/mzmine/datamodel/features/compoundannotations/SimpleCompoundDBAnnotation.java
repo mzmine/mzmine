@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.AnnotationMethodType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
@@ -174,6 +176,11 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   }
 
   @Override
+  public @NotNull Class<? extends DataType> getDataType() {
+    return CompoundDatabaseMatchesType.class;
+  }
+
+  @Override
   public void setStructure(final MolecularStructure structure) {
     if (structure == null) {
       return;
@@ -189,12 +196,18 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
   @Override
   public <T> T get(@NotNull DataType<T> key) {
-    // this type is not in the map to avoid export. It is calculated on demand
-    if (key instanceof MolecularStructureType) {
-      return (T) getStructure();
+    // special values that are not in the map may be mapped directly
+    Object value = switch (key) {
+      // this type is not in the map to avoid export. It is calculated on demand
+      case MolecularStructureType _ -> getStructure();
+      case AnnotationMethodType _ -> getAnnotationMethodName(); // might not by in data map
+      default -> null;
+    };
+
+    if (value == null) {
+      value = data.get(key);
     }
 
-    Object value = data.get(key);
     if (value != null && !key.getValueClass().isInstance(value)) {
       throw new IllegalStateException(
           String.format("Value type (%s) does not match data type value class (%s)",
@@ -373,5 +386,6 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   public int hashCode() {
     return Objects.hash(data);
   }
+
 }
 
