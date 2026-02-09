@@ -36,12 +36,17 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
 import java.util.ArrayList;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.XYTitleAnnotation;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.ui.RectangleAnchor;
 import org.jfree.data.Range;
 
 /**
@@ -132,10 +137,25 @@ public class ChromatogramFeatureShapeCell extends ChartCell<SimpleXYChart<?>> {
     SimpleXYChart<IonTimeSeriesToXYProvider> chart = new SimpleXYChart<>(
         uf.format("Retention time", "min"), uf.format("Intensity", "a.u."));
 
-    chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
+    chart.getXYPlot().setInsets(ChartCell.DEFAULT_SMALL_PLOT_INSETS);
+    chart.getXYPlot().getDomainAxis().setLabel(null);
+    chart.getXYPlot().getRangeAxis().setLabel(null);
+
+    chart.setRangeAxisNumberFormatOverride(MZmineConfiguration.INTEGER_SCIENTIFIC_FORMAT);
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
     chart.setLegendItemsVisible(false);
     chart.setPrefWidth(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH);
+
+    // TODO decide if in plot label is used and use the same in the mobilogram plot
+    TextTitle title = new TextTitle("RT / min");
+    final ValueAxis domainAxis = chart.getChart().getXYPlot().getDomainAxis();
+    title.setFont(domainAxis.getLabelFont());
+    title.setPaint(domainAxis.getLabelPaint());
+
+// Create an XYTitleAnnotation positioned at (x=0.98, y=0.98) in relative plot coordinates
+    XYTitleAnnotation annotation = new XYTitleAnnotation(0.98, 0.98, title,
+        RectangleAnchor.TOP_RIGHT);
+    chart.getXYPlot().addAnnotation(annotation);
 
     return chart;
   }

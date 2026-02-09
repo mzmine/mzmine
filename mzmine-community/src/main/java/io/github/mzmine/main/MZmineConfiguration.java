@@ -42,6 +42,7 @@ import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -53,6 +54,8 @@ public interface MZmineConfiguration {
 
   String CONFIG_EXTENSION = ".mzconfig";
   File CONFIG_FILE = FileAndPathUtil.resolveInMzmineDir(CONFIG_EXTENSION);
+
+  NumberFormat INTEGER_SCIENTIFIC_FORMAT = new DecimalFormat("0E0");
 
   ParameterSet getModuleParameters(Class<? extends MZmineModule> module);
 

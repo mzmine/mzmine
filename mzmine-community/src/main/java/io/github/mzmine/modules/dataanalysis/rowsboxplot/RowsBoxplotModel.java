@@ -28,7 +28,9 @@ package io.github.mzmine.modules.dataanalysis.rowsboxplot;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import java.text.NumberFormat;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -43,12 +45,26 @@ public class RowsBoxplotModel {
   private final ObjectProperty<@Nullable RowBoxPlotDataset> dataset = new SimpleObjectProperty<>();
   private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>(
       AbundanceMeasure.Height);
+  private final ObjectProperty<NumberFormat> abundanceNumberFormat = new SimpleObjectProperty<>(
+      ConfigService.getConfiguration().getIntensityFormat());
 
   private final BooleanProperty showCategoryAxislabel = new SimpleBooleanProperty(true);
   private final BooleanProperty showTitle = new SimpleBooleanProperty(true);
   private final BooleanProperty showCategoryAxisColumnLabels = new SimpleBooleanProperty(true);
 
   private final ObjectProperty<@Nullable EChartViewer> chart = new SimpleObjectProperty<>(null);
+
+  public NumberFormat getAbundanceNumberFormat() {
+    return abundanceNumberFormat.get();
+  }
+
+  public ObjectProperty<NumberFormat> abundanceNumberFormatProperty() {
+    return abundanceNumberFormat;
+  }
+
+  public void setAbundanceNumberFormat(NumberFormat abundanceNumberFormat) {
+    this.abundanceNumberFormat.set(abundanceNumberFormat);
+  }
 
   public List<FeatureListRow> getSelectedRows() {
     return selectedRows.get();
@@ -129,4 +145,5 @@ public class RowsBoxplotModel {
   protected ObjectProperty<@Nullable EChartViewer> chartProperty() {
     return chart;
   }
+
 }

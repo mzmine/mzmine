@@ -28,9 +28,7 @@ package io.github.mzmine.modules.dataanalysis.rowsboxplot;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.List;
 import javafx.scene.layout.Region;
@@ -50,12 +48,13 @@ public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
   @Override
   public Region build() {
 
-    final NumberFormats formats = MZmineCore.getConfiguration().getGuiFormats();
-
     final JFreeChart barChart = ChartFactory.createBarChart("Rows box plot", "Metadata", "Height",
         null);
-    ((NumberAxis) barChart.getCategoryPlot().getRangeAxis()).setNumberFormatOverride(
-        formats.intensityFormat());
+
+    // in table it is better to not use the preference intensity format because it may be too wide
+    model.abundanceNumberFormatProperty().subscribe((format) -> {
+      ((NumberAxis) barChart.getCategoryPlot().getRangeAxis()).setNumberFormatOverride(format);
+    });
     final EChartViewer viewer = new EChartViewer(barChart);
     model.chartProperty().set(viewer); // needed so we can use this to export the chart
 
@@ -96,7 +95,12 @@ public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
             .setLabel(value ? categoryAxisLabel : ""));
 
     final TextTitle chartTitle = barChart.getTitle();
-    model.showTitleProperty().subscribe(value -> barChart.setTitle(value ? chartTitle : null));
+    model.showTitleProperty().subscribe(value -> {
+      barChart.setTitle(value ? chartTitle : null);
+      // somehow font of labels change if the title label is removed.
+      // maybe has to do with category plot and EChartTheme?
+//      barChart.getCategoryPlot().getRangeAxis().setLabel(null);
+    });
 
     model.showCategoryAxisColumnLabelsProperty().subscribe(value -> {
       barChart.getCategoryPlot().getDomainAxis().setTickLabelsVisible(value);
