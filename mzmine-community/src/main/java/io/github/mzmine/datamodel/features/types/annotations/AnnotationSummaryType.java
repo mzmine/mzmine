@@ -100,6 +100,11 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
   }
 
   @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
+
+  @Override
   public @Nullable Runnable getDoubleClickAction(final @Nullable FeatureTableFX table,
       @NotNull final ModularFeatureListRow row, @NotNull final List<RawDataFile> file,
       @Nullable final DataType<?> superType, final @Nullable Object value) {
