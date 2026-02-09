@@ -801,10 +801,7 @@ public class FeatureListUtils {
         requireNonNullElse(totalRows, estimatedRows),
         requireNonNullElse(totalFeatures, estimatedFeatures), dataFiles);
 
-    FeatureListUtils.copyPeakListAppliedMethods(featureList, newFlist);
-    FeatureListUtils.transferRowTypes(newFlist, List.of(featureList), true);
-    FeatureListUtils.transferSelectedScans(newFlist, List.of(featureList));
-    newFlist.setAnnotationSortConfig(featureList.getAnnotationSortConfig().copy());
+    transferMetadata(featureList, newFlist, true);
 
     if (copyRows) {
       copyRows(featureList, newFlist, renumberIDs);
@@ -822,6 +819,39 @@ public class FeatureListUtils {
       newFeatureList.addRow(copy);
       id++;
     }
+  }
+
+  /**
+   * Transfer selected scans, applied methods, annotation sort config, row and feature types
+   *
+   * @param source        copy from
+   * @param target        copy to
+   * @param transferTypes true then transfer all row and feature types
+   */
+  public static void transferMetadata(@NotNull FeatureList source, @NotNull ModularFeatureList target,
+      boolean transferTypes) {
+    transferMetadata(List.of(source), target, transferTypes);
+  }
+  /**
+   * Transfer selected scans, applied methods, annotation sort config, row and feature types
+   *
+   * @param sources        copy from
+   * @param target        copy to
+   * @param transferTypes true then transfer all row and feature types
+   */
+  public static void transferMetadata(@NotNull List<FeatureList> sources, @NotNull ModularFeatureList target,
+      boolean transferTypes) {
+    if (sources.isEmpty()) {
+      throw new IllegalArgumentException("No source feature list");
+    }
+    final FeatureList source = sources.getFirst();
+
+    FeatureListUtils.copyPeakListAppliedMethods(source, target);
+    if (transferTypes) {
+      FeatureListUtils.transferRowTypes(target, sources, true);
+    }
+    FeatureListUtils.transferSelectedScans(target, sources);
+    target.setAnnotationSortConfig(source.getAnnotationSortConfig().copy());
   }
 
   /**
