@@ -86,8 +86,8 @@ public class IntegrationTests {
             "rawdatafiles/integration_tests/workshop_dataset/expected_results.csv", results, batchFile)
         .isEmpty());
 
-    logger.info("Checking file with 39 known differences. Table below is expected:");
-    Assertions.assertEquals(39, IntegrationTestUtils.getCsvComparisonResults(
+    logger.info("Checking file with 42 known differences. Table below is expected:");
+    Assertions.assertEquals(42, IntegrationTestUtils.getCsvComparisonResults(
         "rawdatafiles/integration_tests/workshop_dataset/expected_results_error.csv", results,
         batchFile).size());
   }
