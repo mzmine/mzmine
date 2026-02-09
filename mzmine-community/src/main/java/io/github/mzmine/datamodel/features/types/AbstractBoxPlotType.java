@@ -63,7 +63,7 @@ public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
 
   @Override
   public double getPrefColumnWidth() {
-    return GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH;
+    return GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH-40;
   }
 
   @Override

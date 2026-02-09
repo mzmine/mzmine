@@ -87,7 +87,7 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
 
   @Override
   public double getPrefColumnWidth() {
-    return IonTypeType.PREF_COL_WIDTH;
+    return IonTypeType.getFormulaPrefColumnWidth();
   }
 
   @Override

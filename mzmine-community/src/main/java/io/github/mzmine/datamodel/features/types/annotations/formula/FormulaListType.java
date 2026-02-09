@@ -39,6 +39,8 @@ import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CombinedScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.MsMsScoreType;
+import io.github.mzmine.javafx.components.factories.TableColumns;
+import io.github.mzmine.javafx.components.util.TextLabelMeasurementUtil;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
@@ -54,8 +56,6 @@ import org.jetbrains.annotations.Nullable;
  * {@link SimpleFormulaListType}. Includes scores, neutral mass, etc.
  */
 public class FormulaListType extends ListWithSubsType<ResultFormula> implements AnnotationType {
-
-  public static final double PREF_COL_WIDTH = 135;
 
   // Unmodifiable list of all subtypes
   private static final List<DataType> subTypes = List.of(new FormulaListType(),
@@ -76,7 +76,16 @@ public class FormulaListType extends ListWithSubsType<ResultFormula> implements 
 
   @Override
   public double getPrefColumnWidth() {
-    return PREF_COL_WIDTH;
+    return getFormulaPrefColumnWidth();
+  }
+
+  /**
+   * @return the width of a
+   */
+  public static double getFormulaPrefColumnWidth() {
+    final double width =
+        TextLabelMeasurementUtil.measureWidth("C99H99O99N9P9") + TableColumns.EXTRA_WIDTH_MARGIN;
+    return width;
   }
 
   @Override
