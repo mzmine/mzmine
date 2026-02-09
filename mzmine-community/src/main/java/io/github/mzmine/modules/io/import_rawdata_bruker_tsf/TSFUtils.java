@@ -326,17 +326,16 @@ public class TSFUtils {
       logger.finest(() -> "Opening tsf file " + path.getAbsolutePath());
       handle = tsfdata.tsf_open(path.getParentFile().getAbsolutePath(),
           useRecalibratedState);
-      logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
-          + tsfdata.tsf_has_recalibrated_state(handle));
     } else {
       logger.finest(() -> "Opening tsf path " + path.getAbsolutePath());
       handle = tsfdata.tsf_open(path.getAbsolutePath(), useRecalibratedState);
-      logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
-          + tsfdata.tsf_has_recalibrated_state(handle));
     }
     if (handle == 0L) {
       printLastError(handle);
+      return handle;
     }
+    logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
+        + tsfdata.tsf_has_recalibrated_state(handle));
     return handle;
   }
 
