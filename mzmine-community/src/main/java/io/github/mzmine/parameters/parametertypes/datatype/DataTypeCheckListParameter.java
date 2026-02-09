@@ -37,7 +37,9 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityList
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.parameters.UserParameter;
@@ -67,12 +69,18 @@ public class DataTypeCheckListParameter implements
   private Map<String, Boolean> value;
 
 
-  public DataTypeCheckListParameter(@NotNull String name, @NotNull String description) {
+  public DataTypeCheckListParameter(@NotNull String name, @NotNull String description,
+      @Nullable ColumnType type) {
     this.name = name;
     this.desc = description;
     this.value = new HashMap<>();
-    defaultDisableColumns();
-    defaultEnableColumns();
+
+    if (type == ColumnType.ROW_TYPE) {
+      defaultRowColumns();
+    }
+    if (type == ColumnType.FEATURE_TYPE) {
+      defaultFeatureColumns();
+    }
   }
 
   private static @NotNull String getKey(boolean isFeatureType, Class<? extends DataType<?>> parent,
@@ -258,7 +266,8 @@ public class DataTypeCheckListParameter implements
 
   @Override
   public DataTypeCheckListParameter cloneParameter() {
-    final DataTypeCheckListParameter clone = new DataTypeCheckListParameter(name, desc);
+    final DataTypeCheckListParameter clone = new DataTypeCheckListParameter(name, desc,
+        ColumnType.ROW_TYPE);
     clone.setValue(new HashMap<>(value));
     return clone;
   }
@@ -271,42 +280,36 @@ public class DataTypeCheckListParameter implements
    * disable some types by default that don't make sense to show but would be shown usually. For
    * example, the mz type in ion identity would be shown by default because
    * {@link MZType#getDefaultVisibility()} mz itself is always on for a feature or a row.
-   */
-  private void defaultDisableColumns() {
-    if (getName().toLowerCase().contains("row")) {
-      // activate comment column for rows
-      value.put(getKey(false, CommentType.class, null), true);
-
-      value.put(getKey(false, IonIdentityListType.class, MZType.class), false);
-
-      value.put(getKey(false, SpectralLibraryMatchesType.class, FormulaType.class), false);
-      value.put(getKey(false, SpectralLibraryMatchesType.class, CCSType.class), false);
-
-      value.put(getKey(false, CompoundDatabaseMatchesType.class, RTType.class), false);
-      value.put(getKey(false, CompoundDatabaseMatchesType.class, CCSType.class), false);
-
-      value.put(getKey(false, LipidMatchListType.class, FormulaType.class), false);
-    }
-
-    if (getName().toLowerCase().contains("feature")) {
-      // add types here in the future
-    }
-  }
-
-  /**
+   * <p>
    * enable some types by default that are disabled by default but do make sense to show in specific
    * cases. For example, the {@link CompoundNameType} would not be shown in the
    * {@link  PreferredAnnotationType}, because it does not make sense to show it in all
    * {@link io.github.mzmine.datamodel.features.types.ListWithSubsType} as the name is shown in the
    * main list cell. However, the {@link PreferredAnnotationType} is not a list type.
    */
-  private void defaultEnableColumns() {
-//    if (getName().toLowerCase().contains("row")) {
-//
-//    }
+  private void defaultRowColumns() {
+    // activate comment column for rows
+    value.put(getKey(false, CommentType.class, null), true);
+    value.put(getKey(false, IonIdentityListType.class, MZType.class), false);
 
-//    if (getName().toLowerCase().contains("feature")) {
-      // add types here in the future
-//    }
+    value.put(getKey(false, SpectralLibraryMatchesType.class, FormulaType.class), false);
+    value.put(getKey(false, SpectralLibraryMatchesType.class, CCSType.class), false);
+
+    value.put(getKey(false, CompoundDatabaseMatchesType.class, RTType.class), false);
+    value.put(getKey(false, CompoundDatabaseMatchesType.class, CCSType.class), false);
+
+    value.put(getKey(false, LipidMatchListType.class, FormulaType.class), false);
+  }
+
+  /**
+   * Enable or disable feature types. In general feature types should be limited to height or area
+   * or may to very few other types.
+   */
+  private void defaultFeatureColumns() {
+    // all should be disabled - height is true as its the default
+    value.put(getKey(true, MZType.class, null), false);
+    value.put(getKey(true, RTType.class, null), false);
+    value.put(getKey(true, AreaType.class, null), false);
+    value.put(getKey(true, HeightType.class, null), true);
   }
 }
