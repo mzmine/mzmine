@@ -111,7 +111,7 @@ class LinearNormalizerTask extends AbstractTask {
     normalizedFeatureList = new ModularFeatureList(originalFeatureList + " " + suffix,
         getMemoryMapStorage(), originalFeatureList.getRawDataFiles());
     // do not transfer types add them later
-    FeatureListUtils.transferAllButRows(originalFeatureList, normalizedFeatureList, false);
+    FeatureListUtils.transferMetadata(originalFeatureList, normalizedFeatureList, false);
 
     // Loop through all raw data files, and find the feature with biggest
     // height

@@ -322,7 +322,7 @@ public class FeatureResolverTask extends AbstractTask {
         dataFile);
 
     // do not transfer types add them later
-    FeatureListUtils.transferAllButRows(originalFeatureList, resolvedFeatureList, false);
+    FeatureListUtils.transferMetadata(originalFeatureList, resolvedFeatureList, false);
     // the new method is added later, since we don't know here which resolver module is used.
 
     // check the actual feature data. IMSRawDataFiles can also be built as classic lc-ms features

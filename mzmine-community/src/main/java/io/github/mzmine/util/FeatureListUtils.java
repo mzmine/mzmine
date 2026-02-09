@@ -801,7 +801,7 @@ public class FeatureListUtils {
         requireNonNullElse(totalRows, estimatedRows),
         requireNonNullElse(totalFeatures, estimatedFeatures), dataFiles);
 
-    transferAllButRows(featureList, newFlist, true);
+    transferMetadata(featureList, newFlist, true);
 
     if (copyRows) {
       copyRows(featureList, newFlist, renumberIDs);
@@ -828,9 +828,9 @@ public class FeatureListUtils {
    * @param target        copy to
    * @param transferTypes true then transfer all row and feature types
    */
-  public static void transferAllButRows(@NotNull FeatureList source, @NotNull ModularFeatureList target,
+  public static void transferMetadata(@NotNull FeatureList source, @NotNull ModularFeatureList target,
       boolean transferTypes) {
-    transferAllButRows(List.of(source), target, transferTypes);
+    transferMetadata(List.of(source), target, transferTypes);
   }
   /**
    * Transfer selected scans, applied methods, annotation sort config, row and feature types
@@ -839,7 +839,7 @@ public class FeatureListUtils {
    * @param target        copy to
    * @param transferTypes true then transfer all row and feature types
    */
-  public static void transferAllButRows(@NotNull List<FeatureList> sources, @NotNull ModularFeatureList target,
+  public static void transferMetadata(@NotNull List<FeatureList> sources, @NotNull ModularFeatureList target,
       boolean transferTypes) {
     if (sources.isEmpty()) {
       throw new IllegalArgumentException("No source feature list");

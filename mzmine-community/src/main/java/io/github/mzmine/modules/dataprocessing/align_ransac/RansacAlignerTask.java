@@ -145,7 +145,7 @@ class RansacAlignerTask extends AbstractTask {
             .toList());
 
     // do not transfer types add them later
-    FeatureListUtils.transferAllButRows(List.of(featureLists), alignedFeatureList, false);
+    FeatureListUtils.transferMetadata(List.of(featureLists), alignedFeatureList, false);
 
     for (ModularFeatureList featureList : featureLists) {
 

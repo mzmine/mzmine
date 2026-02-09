@@ -131,7 +131,7 @@ public class BaseFeatureListAligner {
     var alignedFeatureList = new ModularFeatureList(featureListName, storage, estimatedRows,
         exactFeatures, allDataFiles);
 
-    FeatureListUtils.transferAllButRows(featureLists, alignedFeatureList, true);
+    FeatureListUtils.transferMetadata(featureLists, alignedFeatureList, true);
     return alignedFeatureList;
   }
 

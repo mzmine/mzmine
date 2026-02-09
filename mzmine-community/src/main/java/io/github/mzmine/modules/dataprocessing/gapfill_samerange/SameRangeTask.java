@@ -104,7 +104,7 @@ class SameRangeTask extends AbstractTask {
         columns);
 
     // do not transfer types add them later
-    FeatureListUtils.transferAllButRows(peakList, processedPeakList, false);
+    FeatureListUtils.transferMetadata(peakList, processedPeakList, false);
 
     List<FeatureListRow> outputList = Collections.synchronizedList(new ArrayList<>());
 
