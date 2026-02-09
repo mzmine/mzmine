@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -320,20 +321,23 @@ public class TSFUtils {
           + "library could not be initialised.");
       return 0L;
     }
+    final long handle;
     if (path.isFile()) {
       logger.finest(() -> "Opening tsf file " + path.getAbsolutePath());
-      final long handle = tsfdata.tsf_open(path.getParentFile().getAbsolutePath(),
+      handle = tsfdata.tsf_open(path.getParentFile().getAbsolutePath(),
           useRecalibratedState);
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tsfdata.tsf_has_recalibrated_state(handle));
-      return handle;
     } else {
       logger.finest(() -> "Opening tsf path " + path.getAbsolutePath());
-      final long handle = tsfdata.tsf_open(path.getAbsolutePath(), useRecalibratedState);
+      handle = tsfdata.tsf_open(path.getAbsolutePath(), useRecalibratedState);
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tsfdata.tsf_has_recalibrated_state(handle));
-      return handle;
     }
+    if (handle == 0L) {
+      printLastError(handle);
+    }
+    return handle;
   }
 
 
@@ -364,7 +368,7 @@ public class TSFUtils {
    */
   private boolean printLastError(long errorCode) {
     if (errorCode == 0 || errorCode > BUFFER_SIZE) {
-      byte[] errorBuffer = new byte[64];
+      byte[] errorBuffer = new byte[256];
       long len = tsfdata.tsf_get_last_error_string(errorBuffer, errorBuffer.length);
       final String errorMessage = new String(errorBuffer, StandardCharsets.UTF_8);
       logger.fine(() -> "Last TDF import error: " + errorMessage + " length: " + len
