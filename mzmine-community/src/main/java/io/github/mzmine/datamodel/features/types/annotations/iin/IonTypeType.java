@@ -33,6 +33,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
+import io.github.mzmine.javafx.components.factories.TableColumns;
+import io.github.mzmine.javafx.components.util.TextLabelMeasurementUtil;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.function.Function;
 import javafx.beans.property.Property;
@@ -49,7 +51,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class IonTypeType extends DataType<IonType> {
 
-  public static final double PREF_COL_WIDTH = 120;
   private static final Function<@Nullable String, @Nullable IonType> mapper = IonTypeParser::parse;
 
   @Override
@@ -109,6 +110,15 @@ public class IonTypeType extends DataType<IonType> {
 
   @Override
   public double getPrefColumnWidth() {
-    return PREF_COL_WIDTH;
+    return getFormulaPrefColumnWidth();
+  }
+
+  /**
+   * @return the width of a
+   */
+  public static double getFormulaPrefColumnWidth() {
+    final double width =
+        TextLabelMeasurementUtil.measureWidth("[M-2H2O+Na]+2") + TableColumns.EXTRA_WIDTH_MARGIN;
+    return width;
   }
 }

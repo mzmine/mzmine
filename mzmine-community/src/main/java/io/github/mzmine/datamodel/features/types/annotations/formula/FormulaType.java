@@ -74,6 +74,6 @@ public class FormulaType extends StringType
   @Override
   public double getPrefColumnWidth() {
     // setting pref width makes table open faster due to less calculations needed
-    return FormulaListType.PREF_COL_WIDTH;
+    return FormulaListType.getFormulaPrefColumnWidth();
   }
 }
