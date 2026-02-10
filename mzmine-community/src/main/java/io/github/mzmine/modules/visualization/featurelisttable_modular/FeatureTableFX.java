@@ -84,6 +84,7 @@ import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotati
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.MsMsScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
@@ -195,6 +196,21 @@ public class FeatureTableFX extends BorderPane {
     setCenter(dataChangedNotification);
 
     initDataChangedNotification();
+
+    table.addEventHandler(KeyEvent.KEY_RELEASED, e -> {
+      if (e.getCode() != KeyCode.F1) {
+        return;
+      }
+      final DataType<?> selectedDataType = getSelectionModel().getSelectedCells().stream()
+          .findFirst().map(TreeTablePosition::getTableColumn).map(c -> getNewColumnMap().get(c))
+          .map(ColumnID::getDataType).orElse(null);
+      switch (selectedDataType) {
+        case PreferredAnnotationType _ -> DesktopService.getDesktop().openWebPage(
+            "https://mzmine.github.io/mzmine_documentation/terminology/annotations.html#preferred-annotation");
+        case null, default -> DesktopService.getDesktop().openWebPage(
+            "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/featdet_results/featdet_results.html");
+      }
+    });
 
     // add dummy root
     TreeItem<ModularFeatureListRow> root = new TreeItem<>();
@@ -464,6 +480,7 @@ public class FeatureTableFX extends BorderPane {
 
     setColumnVisibilityAndSubColumns(lipidMatches.getValue(), false, false);
 
+    setVisible(ColumnType.ROW_TYPE, LipidMatchListType.class, null, visible);
     setVisible(ColumnType.ROW_TYPE, LipidMatchListType.class, LipidMatchListType.class, visible);
     setVisible(ColumnType.ROW_TYPE, LipidMatchListType.class, AnnotationSummaryType.class, visible);
     setVisible(ColumnType.ROW_TYPE, LipidMatchListType.class, LipidSpectrumType.class, visible);
@@ -551,13 +568,12 @@ public class FeatureTableFX extends BorderPane {
     if (preferredAnnotations != null) {
       setColumnVisibilityAndSubColumns(preferredAnnotations.getValue(), false);
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, null, true);
-      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, PreferredAnnotationType.class, true);
+      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, PreferredAnnotationType.class,
+          true);
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, AnnotationSummaryType.class,
           true);
-      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, FormulaType.class,
-          true);
-      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, IonTypeType.class,
-          true);
+      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, FormulaType.class, true);
+      setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, IonTypeType.class, true);
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, MolecularStructureType.class,
           true);
       setVisible(ColumnType.ROW_TYPE, PreferredAnnotationType.class, ScoreType.class, true);
