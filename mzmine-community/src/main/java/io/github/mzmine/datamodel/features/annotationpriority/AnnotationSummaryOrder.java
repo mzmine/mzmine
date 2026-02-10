@@ -41,7 +41,7 @@ public enum AnnotationSummaryOrder implements UniqueIdSupplier {
    * Ranks annotation types {@link AnnotationSummary#mzmineAnnotationTypeRank()} and then by
    * combined weighted score
    */
-  MZMINE, SCHYMANSKI, MSI;
+  MZMINE, EXPOSOMICS, MSI;
 
   private static final Comparator<@NotNull AnnotationSummary> SCORES_LOW_TO_HIGH = Comparator.comparing(
       AnnotationSummary::mzmineAnnotationTypeRank).thenComparing(AnnotationSummary::combinedScore);
@@ -66,7 +66,7 @@ public enum AnnotationSummaryOrder implements UniqueIdSupplier {
   public @NotNull String getUniqueID() {
     return switch (this) {
       case MZMINE -> "mzmine_default";
-      case SCHYMANSKI -> "schymanski";
+      case EXPOSOMICS -> "exposomics";
       case MSI -> "msi";
     };
   }
@@ -75,8 +75,8 @@ public enum AnnotationSummaryOrder implements UniqueIdSupplier {
   public @NotNull String getDescription() {
     return switch (this) {
       case MZMINE -> "Default annotation sorting configuration for mzmine.";
-      case SCHYMANSKI ->
-          "Annotation sorting configuration based on Schymanski et al annotation levels.";
+      case EXPOSOMICS ->
+          "Annotation sorting configuration according to Celma/Schymanski et. al., originates in exposomics.";
       case MSI ->
           "Annotation sorting configuration according to MSI (Metabolomics Standards Initiative).";
     };
@@ -96,7 +96,7 @@ public enum AnnotationSummaryOrder implements UniqueIdSupplier {
     return switch (this) {
       case MSI -> MSI_LOW_TO_HIGH;
       case MZMINE -> DEFAULT_LOW_TO_HIGH;
-      case SCHYMANSKI -> SCHYMANSKI_LOW_TO_HIGH;
+      case EXPOSOMICS -> SCHYMANSKI_LOW_TO_HIGH;
     };
   }
 
@@ -108,7 +108,7 @@ public enum AnnotationSummaryOrder implements UniqueIdSupplier {
     return switch (this) {
       case MZMINE -> DEFAULT_LOW_TO_HIGH.reversed();
       case MSI -> MSI_LOW_TO_HIGH.reversed();
-      case SCHYMANSKI -> SCHYMANSKI_LOW_TO_HIGH.reversed();
+      case EXPOSOMICS -> SCHYMANSKI_LOW_TO_HIGH.reversed();
     };
   }
 
@@ -120,8 +120,8 @@ public enum AnnotationSummaryOrder implements UniqueIdSupplier {
   public String toString() {
     return switch (this) {
       case MZMINE -> "mzmine";
-      case SCHYMANSKI -> "Schymanski et. al.";
-      case MSI -> "MSI";
+      case EXPOSOMICS -> "Exposomics (Celma/Schymanski et. al.)";
+      case MSI -> "MSI (Sumner et. al.)";
     };
   }
 }
