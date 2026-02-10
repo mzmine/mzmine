@@ -197,20 +197,7 @@ public class FeatureTableFX extends BorderPane {
 
     initDataChangedNotification();
 
-    table.addEventHandler(KeyEvent.KEY_RELEASED, e -> {
-      if (e.getCode() != KeyCode.F1) {
-        return;
-      }
-      final DataType<?> selectedDataType = getSelectionModel().getSelectedCells().stream()
-          .findFirst().map(TreeTablePosition::getTableColumn).map(c -> getNewColumnMap().get(c))
-          .map(ColumnID::getDataType).orElse(null);
-      switch (selectedDataType) {
-        case PreferredAnnotationType _ -> DesktopService.getDesktop().openWebPage(
-            "https://mzmine.github.io/mzmine_documentation/terminology/annotations.html#preferred-annotation");
-        case null, default -> DesktopService.getDesktop().openWebPage(
-            "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/featdet_results/featdet_results.html");
-      }
-    });
+    initTableF1Help();
 
     // add dummy root
     TreeItem<ModularFeatureListRow> root = new TreeItem<>();
@@ -280,6 +267,23 @@ public class FeatureTableFX extends BorderPane {
         final List<ModularFeatureListRow> rows = getSelectedRows();
         table.getSelectionModel().clearSelection();
         DeleteRowsModule.deleteWithConfirmation(featureListProperty.get(), rows);
+      }
+    });
+  }
+
+  private void initTableF1Help() {
+    table.addEventHandler(KeyEvent.KEY_RELEASED, e -> {
+      if (e.getCode() != KeyCode.F1) {
+        return;
+      }
+      final DataType<?> selectedDataType = getSelectionModel().getSelectedCells().stream()
+          .findFirst().map(TreeTablePosition::getTableColumn).map(c -> getNewColumnMap().get(c))
+          .map(ColumnID::getDataType).orElse(null);
+      switch (selectedDataType) {
+        case PreferredAnnotationType _ -> DesktopService.getDesktop().openWebPage(
+            "https://mzmine.github.io/mzmine_documentation/terminology/annotations.html#preferred-annotation");
+        case null, default -> DesktopService.getDesktop().openWebPage(
+            "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/featdet_results/featdet_results.html");
       }
     });
   }
