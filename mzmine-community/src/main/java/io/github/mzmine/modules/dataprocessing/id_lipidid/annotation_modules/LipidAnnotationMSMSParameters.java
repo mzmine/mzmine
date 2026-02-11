@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,7 +40,7 @@ public class LipidAnnotationMSMSParameters extends SimpleParameterSet {
       "Enter m/z tolerance for exact mass database matching on MS2 level", 0.005, 10);
 
   public static final PercentParameter minimumMsMsScore = new PercentParameter(
-      "Explained intensity [%]:", "Explained intensity [%] of all signals in MS/MS spectrum", 0.6);
+      "Explained intensity [%]:", "Explained intensity [%] of all signals in MS2 spectrum", 0.6);
 
   public static final BooleanParameter keepUnconfirmedAnnotations = new BooleanParameter(
       "Keep unconfirmed annotations",

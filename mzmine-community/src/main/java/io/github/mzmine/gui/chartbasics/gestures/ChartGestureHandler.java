@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,19 @@
 
 package io.github.mzmine.gui.chartbasics.gestures;
 
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.gui.chartbasics.ChartLogics;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffHandler.Orientation;
+import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
+import io.github.mzmine.gui.chartbasics.gestures.standard.DragGestureHandlerDef;
+import io.github.mzmine.gui.chartbasics.gestures.standard.GestureHandlerDef;
+import io.github.mzmine.gui.chartbasics.gui.javafx.ChartGestureMouseAdapterFX;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.gui.wrapper.MouseEventWrapper;
+import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,26 +46,25 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.TitleEntity;
 import org.jfree.data.Range;
 
-import io.github.mzmine.gui.chartbasics.ChartLogics;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffHandler.Orientation;
-import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
-import io.github.mzmine.gui.chartbasics.gestures.standard.DragGestureHandlerDef;
-import io.github.mzmine.gui.chartbasics.gestures.standard.GestureHandlerDef;
-import io.github.mzmine.gui.chartbasics.gui.wrapper.MouseEventWrapper;
-import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
-
 /**
  * The handler processes {@link ChartGestureEvent}s in a {@link Consumer}. Pre-defined handlers and
  * drag-difference handlers can be generated. It also provides a static list of standard gesture
  * handler definitions.
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ChartGestureHandler {
+
+  public static void addStandardGestures(EChartViewer chart, boolean flippedAxes) {
+    final ChartGestureMouseAdapterFX mouseAdapter = chart.getMouseAdapter();
+    assert mouseAdapter != null;
+
+    for (GestureHandlerFactory handler : createStandardGestures(true, true, true, true, true,
+        flippedAxes)) {
+      mouseAdapter.addGestureHandler(handler.createHandler());
+    }
+  }
+
   /**
    * Some standard handlers
    */
@@ -64,7 +75,7 @@ public class ChartGestureHandler {
     TITLE_REMOVER, // Remove titles (setVisible false)
     AUTO_ZOOM_AXIS, // Auto zoom axis
     AUTO_ZOOM_OPPOSITE_AXIS, // Auto zoom opposite axis (domain<->range
-                             // axis)
+    // axis)
     SCROLL_AXIS, // Scroll an axis while retaining the zoom
     SCROLL_AXIS_AND_AUTO_ZOOM, // Scroll an axis and auto zoom the other
     ZOOM_AXIS_INCLUDE_ZERO, // Zoom an axis while holding the lowerBound
@@ -82,7 +93,7 @@ public class ChartGestureHandler {
   public enum DragHandler {
     AUTO_ZOOM_AXIS, // Auto zoom axis
     AUTO_ZOOM_OPPOSITE_AXIS, // Auto zoom opposite axis (domain<->range
-                             // axis)
+    // axis)
     SCROLL_AXIS, // Scroll an axis while retaining the zoom
     SCROLL_AXIS_AND_AUTO_ZOOM, // Scroll an axis and auto zoom the other
     ZOOM_AXIS_INCLUDE_ZERO, // Zoom an axis while holding the lowerBound
@@ -96,9 +107,10 @@ public class ChartGestureHandler {
 
   // static list of standard chartgestures as GestureHandlerFactories
   // initialise + getter
-  private static final List<GestureHandlerFactory> standardGestures = new ArrayList<>();
+  private static final List<GestureHandlerFactory> standardGestures;
+
   static {
-    initStandardGestures(true, true, true, true, true);
+    standardGestures = createStandardGestures(true, true, true, true, true, false);
   }
 
   // non static section
@@ -119,8 +131,9 @@ public class ChartGestureHandler {
   }
 
   public void accept(ChartGestureEvent e) {
-    if (handler != null)
+    if (handler != null) {
       handler.accept(e);
+    }
   }
 
   public ChartGesture getGesture() {
@@ -134,13 +147,13 @@ public class ChartGestureHandler {
   /**
    * The drag diff handler listens for PRESSED, DRAGGED and RELEASED events and is called for every
    * range difference between two events. is a range difference between two drag events
-   * 
+   *
    * @param handler A list of DragHandlers (predefined consumers)
-   * @param key A list of Key filters which are connected to the handler list
-   * @param entity The Entity filter
-   * @param button The Button filter
-   * @param orient Orientation of drag events (Horizontal or Vertical)
-   * @param param Parameters for specific handlers
+   * @param key     A list of Key filters which are connected to the handler list
+   * @param entity  The Entity filter
+   * @param button  The Button filter
+   * @param orient  Orientation of drag events (Horizontal or Vertical)
+   * @param param   Parameters for specific handlers
    */
   public static ChartGestureHandler createDragDiffHandler(DragHandler[] handler, Key[] key,
       Entity entity, GestureButton button, Orientation orient, Object[] param) {
@@ -159,9 +172,9 @@ public class ChartGestureHandler {
 
   /**
    * Creates a predefined consumer for drag diff events
-   * 
+   *
    * @param handler The predefined consumer
-   * @param param Parameters for specific handlers
+   * @param param   Parameters for specific handlers
    * @return
    * @throws Exception
    */
@@ -171,34 +184,38 @@ public class ChartGestureHandler {
       case SCROLL_AXIS:
         return e -> {
           ValueAxis axis = e.getAxis();
-          if (axis != null)
+          if (axis != null) {
             ChartLogics.offsetAxisAbsolute(axis, e.getDiff());
+          }
         };
       case SCROLL_AXIS_AND_AUTO_ZOOM:
         return de -> {
           ValueAxis axis = de.getAxis();
           if (axis != null) {
             ChartLogics.offsetAxisAbsolute(axis, de.getDiff());
-            if (de.getEntity().equals(Entity.DOMAIN_AXIS))
+            if (de.getEntity().equals(Entity.DOMAIN_AXIS)) {
               de.getChartWrapper().autoRangeAxis();
-            else
+            } else {
               de.getChartWrapper().autoDomainAxis();
+            }
           }
         };
       case AUTO_ZOOM_AXIS:
         return de -> {
           ValueAxis axis = de.getAxis();
-          if (axis != null)
+          if (axis != null) {
             ChartLogics.autoAxis(axis);
+          }
         };
       case AUTO_ZOOM_OPPOSITE_AXIS:
         return de -> {
           ValueAxis axis = de.getAxis();
           if (axis != null) {
-            if (de.getEntity().equals(Entity.DOMAIN_AXIS))
+            if (de.getEntity().equals(Entity.DOMAIN_AXIS)) {
               de.getChartWrapper().autoRangeAxis();
-            else
+            } else {
               de.getChartWrapper().autoDomainAxis();
+            }
           }
         };
       case ZOOM_AXIS_INCLUDE_ZERO:
@@ -218,13 +235,14 @@ public class ChartGestureHandler {
           }
         };
       default:
-        throw new IllegalArgumentException("Drag Gesture handler not created: "+handler.toString());
+        throw new IllegalArgumentException(
+            "Drag Gesture handler not created: " + handler.toString());
     }
   }
 
   /**
    * Create preset handlers
-   * 
+   *
    * @param handler
    * @param g
    * @return
@@ -235,10 +253,10 @@ public class ChartGestureHandler {
 
   /**
    * Create preset handlers
-   * 
+   *
    * @param handler
    * @param g
-   * @param param Parameters for specific handlers <br>
+   * @param param   Parameters for specific handlers <br>
    * @return
    */
   public static ChartGestureHandler createHandler(Handler handler, final ChartGesture g,
@@ -287,8 +305,9 @@ public class ChartGestureHandler {
       case AUTO_ZOOM_AXIS:
         newHandler = e -> {
           ValueAxis a = e.getAxis();
-          if (a != null)
+          if (a != null) {
             ChartLogics.autoAxis(a);
+          }
         };
         break;
       case AUTO_ZOOM_OPPOSITE_AXIS:
@@ -296,10 +315,11 @@ public class ChartGestureHandler {
           if (e.getGesture().getEntity().equals(Entity.AXIS)) {
             e.getChartWrapper().autoRangeAxis();
             e.getChartWrapper().autoDomainAxis();
-          } else if (e.getGesture().getEntity().equals(Entity.DOMAIN_AXIS))
+          } else if (e.getGesture().getEntity().equals(Entity.DOMAIN_AXIS)) {
             e.getChartWrapper().autoRangeAxis();
-          else
+          } else {
             e.getChartWrapper().autoDomainAxis();
+          }
         };
         break;
       case SCROLL_AXIS:
@@ -309,7 +329,7 @@ public class ChartGestureHandler {
             double diff = 0.03;
             if (e.getMouseEvent().isMouseWheelEvent()) {
               // TODO actually get the mouse wheel distance and calculate percentage
-              diff = 0.10 * (e.getMouseEvent().getWheelRotation()>0? 1 : -1);
+              diff = 0.10 * (e.getMouseEvent().getWheelRotation() > 0 ? 1 : -1);
             }
             ChartLogics.offsetAxis(axis, diff);
           }
@@ -322,14 +342,15 @@ public class ChartGestureHandler {
             double diff = 0.03;
             if (e.getMouseEvent().isMouseWheelEvent()) {
               // TODO actually get the mouse wheel distance and calculate percentage
-              diff = 0.10 * (e.getMouseEvent().getWheelRotation()>0? 1 : -1);
+              diff = 0.10 * (e.getMouseEvent().getWheelRotation() > 0 ? 1 : -1);
             }
             ChartLogics.offsetAxis(axis, diff);
 
-            if (e.getGesture().getEntity().equals(Entity.DOMAIN_AXIS))
+            if (e.getGesture().getEntity().equals(Entity.DOMAIN_AXIS)) {
               e.getChartWrapper().autoRangeAxis();
-            else
+            } else {
               e.getChartWrapper().autoDomainAxis();
+            }
           }
         };
         break;
@@ -340,7 +361,7 @@ public class ChartGestureHandler {
             double diff = 0.05;
             if (e.getMouseEvent().isMouseWheelEvent()) {
               // TODO actually get the mouse wheel distance and calculate percentage
-              diff = -0.10 * (e.getMouseEvent().getWheelRotation()>0? 1 : -1);
+              diff = -0.10 * (e.getMouseEvent().getWheelRotation() > 0 ? 1 : -1);
             }
             ChartLogics.zoomAxis(axis, diff, true);
           }
@@ -354,7 +375,7 @@ public class ChartGestureHandler {
             double diff = 0.05;
             if (e.getMouseEvent().isMouseWheelEvent()) {
               // TODO actually get the mouse wheel distance and calculate percentage
-              diff = 0.10 * (e.getMouseEvent().getWheelRotation()>0? 1 : -1);
+              diff = 0.10 * (e.getMouseEvent().getWheelRotation() > 0 ? 1 : -1);
             }
 
             // get data space coordinates
@@ -362,12 +383,13 @@ public class ChartGestureHandler {
             if (point != null) {
               // vertical ?
               Boolean orient = e.isVerticalAxis(axis);
-              if (orient == null)
+              if (orient == null) {
                 return;
-              else if (orient)
+              } else if (orient) {
                 ChartLogics.zoomAxis(axis, diff, point.getY());
-              else
+              } else {
                 ChartLogics.zoomAxis(axis, diff, point.getX());
+              }
             }
           }
         };
@@ -375,17 +397,18 @@ public class ChartGestureHandler {
       default:
         break;
     }
-    if (newHandler == null)
-      throw new IllegalArgumentException("Gesture handler not created: "+handler.toString());
-    else
+    if (newHandler == null) {
+      throw new IllegalArgumentException("Gesture handler not created: " + handler.toString());
+    } else {
       return new ChartGestureHandler(g, newHandler);
+    }
   }
 
   /**
    * A list of standard gestures
-   * 
-   * @see {@link GestureHandlerDef} {@link DragGestureHandlerDef}
+   *
    * @return
+   * @see {@link GestureHandlerDef} {@link DragGestureHandlerDef}
    */
   public static List<GestureHandlerFactory> getStandardGestures() {
     return standardGestures;
@@ -393,16 +416,19 @@ public class ChartGestureHandler {
 
   /**
    * Generates a list of standard chart gesture
-   * 
-   * @param axisDrag
-   * @param axisWheel
-   * @param titleRemover
-   * @param zoomHistory
-   * @param axisAutoRange
-   * @return
+   *
+   * @param flippedAxes flipped means that the x and y axes are switched in the plot like in the
+   *                    mobilogram plot that is on the side and uses intensity as domain and
+   *                    mobility as range. This is when the plot orientation is not changed but just
+   *                    the dataset itself is flipped
    */
-  private static List<GestureHandlerFactory> initStandardGestures(boolean axisDrag,
-      boolean axisWheel, boolean titleRemover, boolean zoomHistory, boolean axisAutoRange) {
+  public static List<GestureHandlerFactory> createStandardGestures(boolean axisDrag,
+      boolean axisWheel, boolean titleRemover, boolean zoomHistory, boolean axisAutoRange,
+      boolean flippedAxes) {
+    List<GestureHandlerFactory> standardGestures = new ArrayList<>();
+
+    final Entity domainAxis = flippedAxes ? Entity.RANGE_AXIS : Entity.DOMAIN_AXIS;
+    final Entity rangeAxis = flippedAxes ? Entity.DOMAIN_AXIS : Entity.RANGE_AXIS;
 
     if (axisDrag) {
       // adds multiple gestures to one domain axis drag handler
@@ -411,16 +437,16 @@ public class ChartGestureHandler {
       // Zoom axis centered: CTRL + DRAG
       // Zoom + auto zoom range axis: CTRL + SHIFT + DRAG
       standardGestures.add(new DragGestureHandlerDef(
-          new DragHandler[] {DragHandler.SCROLL_AXIS, DragHandler.SCROLL_AXIS_AND_AUTO_ZOOM,
+          new DragHandler[]{DragHandler.SCROLL_AXIS, DragHandler.SCROLL_AXIS_AND_AUTO_ZOOM,
               DragHandler.ZOOM_AXIS_CENTER, DragHandler.ZOOM_AXIS_CENTER,
               DragHandler.AUTO_ZOOM_OPPOSITE_AXIS},
-          new Key[] {Key.NONE, Key.SHIFT, Key.CTRL, Key.CTRL_SHIFT, Key.CTRL_SHIFT},
-          Entity.DOMAIN_AXIS, GestureButton.BUTTON1, null, null));
+          new Key[]{Key.NONE, Key.SHIFT, Key.CTRL, Key.CTRL_SHIFT, Key.CTRL_SHIFT}, domainAxis,
+          GestureButton.BUTTON1, null, null));
 
       // Zoom range axis (include zero): DRAG
-      standardGestures
-          .add(new DragGestureHandlerDef(new DragHandler[] {DragHandler.ZOOM_AXIS_INCLUDE_ZERO},
-              new Key[] {Key.ALL}, Entity.RANGE_AXIS, GestureButton.BUTTON1, null, null));
+      standardGestures.add(
+          new DragGestureHandlerDef(new DragHandler[]{DragHandler.ZOOM_AXIS_INCLUDE_ZERO},
+              new Key[]{Key.ALL}, rangeAxis, GestureButton.BUTTON1, null, null));
     }
     if (axisWheel) {
       // MOUSE WHEEL on domain axis
@@ -428,37 +454,41 @@ public class ChartGestureHandler {
       // Scroll + auto zoom: SHIFT + WHEEL
       // Zoom axis centered: CTRL + WHEEL
       // Zoom + auto zoom range axis: CTRL + SHIFT + WHEEL
-      standardGestures.add(new GestureHandlerDef(Handler.SCROLL_AXIS, Entity.DOMAIN_AXIS,
-          new Event[] {Event.MOUSE_WHEEL}, null, Key.NONE, null));
-      standardGestures.add(new GestureHandlerDef(Handler.SCROLL_AXIS_AND_AUTO_ZOOM,
-          Entity.DOMAIN_AXIS, new Event[] {Event.MOUSE_WHEEL}, null, Key.SHIFT, null));
-      standardGestures.add(new GestureHandlerDef(Handler.ZOOM_AXIS_CENTER, Entity.DOMAIN_AXIS,
-          new Event[] {Event.MOUSE_WHEEL}, null, Key.CTRL, null));
-      standardGestures.add(new GestureHandlerDef(Handler.AUTO_ZOOM_OPPOSITE_AXIS,
-          Entity.DOMAIN_AXIS, new Event[] {Event.MOUSE_WHEEL}, null, Key.CTRL_SHIFT, null));
+      standardGestures.add(
+          new GestureHandlerDef(Handler.SCROLL_AXIS, domainAxis, new Event[]{Event.MOUSE_WHEEL},
+              null, Key.NONE, null));
+      standardGestures.add(new GestureHandlerDef(Handler.SCROLL_AXIS_AND_AUTO_ZOOM, domainAxis,
+          new Event[]{Event.MOUSE_WHEEL}, null, Key.SHIFT, null));
+      standardGestures.add(new GestureHandlerDef(Handler.ZOOM_AXIS_CENTER, domainAxis,
+          new Event[]{Event.MOUSE_WHEEL}, null, Key.CTRL, null));
+      standardGestures.add(new GestureHandlerDef(Handler.AUTO_ZOOM_OPPOSITE_AXIS, domainAxis,
+          new Event[]{Event.MOUSE_WHEEL}, null, Key.CTRL_SHIFT, null));
       // Zoom range axis (include zero): MOUSE WHEEL
-      standardGestures.add(new GestureHandlerDef(Handler.ZOOM_AXIS_INCLUDE_ZERO, Entity.RANGE_AXIS,
-          new Event[] {Event.MOUSE_WHEEL}, null, Key.ALL, null));
+      standardGestures.add(new GestureHandlerDef(Handler.ZOOM_AXIS_INCLUDE_ZERO, rangeAxis,
+          new Event[]{Event.MOUSE_WHEEL}, null, Key.ALL, null));
     }
     if (zoomHistory) {
       // Previous zoom history: DOUBLE CLICK on plot
       // Next zoom history: CTRL + DOUBLE CLICK on plot
       standardGestures.add(new GestureHandlerDef(Handler.PREVIOUS_ZOOM_HISTORY, Entity.PLOT,
-          new Event[] {Event.DOUBLE_CLICK}, GestureButton.BUTTON1, Key.NONE, null));
+          new Event[]{Event.DOUBLE_CLICK}, GestureButton.BUTTON1, Key.NONE, null));
       standardGestures.add(new GestureHandlerDef(Handler.NEXT_ZOOM_HISTORY, Entity.PLOT,
-          new Event[] {Event.DOUBLE_CLICK}, GestureButton.BUTTON1, Key.CTRL, null));
+          new Event[]{Event.DOUBLE_CLICK}, GestureButton.BUTTON1, Key.CTRL, null));
     }
     if (titleRemover) {
       // Remove titles, legends: CTRL + CLICK on titles
-      standardGestures.add(new GestureHandlerDef(Handler.TITLE_REMOVER, Entity.TITLE,
-          new Event[] {Event.CLICK}, GestureButton.BUTTON1, Key.CTRL, null));
+      standardGestures.add(
+          new GestureHandlerDef(Handler.TITLE_REMOVER, Entity.TITLE, new Event[]{Event.CLICK},
+              GestureButton.BUTTON1, Key.CTRL, null));
     }
     if (axisAutoRange) {
       // Auto zoom axes: DOUBLE CLICK on axis
-      standardGestures.add(new GestureHandlerDef(Handler.AUTO_ZOOM_AXIS, Entity.DOMAIN_AXIS,
-          new Event[] {Event.DOUBLE_CLICK}, GestureButton.BUTTON1, null, null));
-      standardGestures.add(new GestureHandlerDef(Handler.AUTO_ZOOM_AXIS, Entity.RANGE_AXIS,
-          new Event[] {Event.DOUBLE_CLICK}, GestureButton.BUTTON1, null, null));
+      standardGestures.add(
+          new GestureHandlerDef(Handler.AUTO_ZOOM_AXIS, domainAxis, new Event[]{Event.DOUBLE_CLICK},
+              GestureButton.BUTTON1, null, null));
+      standardGestures.add(
+          new GestureHandlerDef(Handler.AUTO_ZOOM_AXIS, rangeAxis, new Event[]{Event.DOUBLE_CLICK},
+              GestureButton.BUTTON1, null, null));
     }
     return standardGestures;
   }

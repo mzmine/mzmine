@@ -867,10 +867,17 @@ public enum DBEntryField {
    * @throws NumberFormatException if the object class was specified as number but was not parsable
    */
   public Object convertValue(String content) throws NumberFormatException {
-    if (this == MS_LEVEL && content.toLowerCase().startsWith("ms")) {
-      // sometimes for example in MS the ms level is gives as MS or MS2
-      final String prepared = content.substring(2);
-      return prepared.isBlank() ? 1 : Integer.parseInt(prepared);
+    if (this == MS_LEVEL) {
+      if (content.toLowerCase().startsWith("ms")) {
+        // sometimes for example in MS the ms level is gives as MS or MS2
+        final String prepared = content.substring(2);
+        return prepared.isBlank() ? 1 : Integer.parseInt(prepared);
+      }
+      try {
+        return Integer.parseInt(content);
+      } catch (NumberFormatException e) {
+        return content;
+      }
     }
     if (this == RT) {
       if ("-1".equals(content)) {

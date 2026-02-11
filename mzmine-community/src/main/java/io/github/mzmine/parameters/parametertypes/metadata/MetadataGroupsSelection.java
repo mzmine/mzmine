@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,71 +26,72 @@
 package io.github.mzmine.parameters.parametertypes.metadata;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
-import io.github.mzmine.util.StringUtils;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record MetadataGroupSelection(@NotNull String columnName, @NotNull String groupStr) {
+public sealed interface MetadataGroupsSelection permits Metadata2GroupsSelection,
+    Metadata1GroupSelection, MetadataListGroupsSelection {
 
-  public static MetadataGroupSelection NONE = new MetadataGroupSelection("", "");
+  @NotNull String columnName();
 
-  /**
-   * @return Checks if the current metadata table contains the specified column and the specified
-   * value. Case sensitive.
-   */
-  public boolean isValid() {
-    if (columnName == null || columnName.isBlank() || groupStr == null || groupStr.isBlank()) {
-      return false;
-    }
+  boolean isValid();
 
-    final MetadataTable metadata = MZmineCore.getProjectMetadata();
-
-    final MetadataColumn<?> column = getColumn();
-    if (column == null) {
-      return false;
-    }
-
-    final Map<RawDataFile, Object> columnValues = metadata.getData().get(column);
-    return columnValues.values().stream()
-        .anyMatch(str -> StringUtils.isEqualToString(str, groupStr));
-  }
+  boolean matchesValue(@Nullable Object value);
 
   /**
    * @return The actual column from the metadata table or null.
    */
-  @Nullable
-  public MetadataColumn<?> getColumn() {
+  default @Nullable MetadataColumn<?> getColumn() {
     return ProjectService.getMetadata().getColumnByName(columnName());
   }
 
   /**
-   * @return A list of files that match have the same value as {@link #groupStr()} in the specified
+   * @return The actual column data from the metadata table or null.
+   */
+  default @Nullable Map<RawDataFile, Object> getColumnData() {
+    return ProjectService.getMetadata().getColumnData(getColumn());
+  }
+
+  /**
+   * @return A list of files that match have the same value as the groups in the specified
    * {@link #columnName} in the {@link MetadataTable}. Empty list if the column does not exist or it
    * does not contain the value.
    */
-  public List<RawDataFile> getMatchingFiles() {
+  default @NotNull List<RawDataFile> getMatchingFiles() {
     return getMatchingFiles(ProjectService.getProject().getCurrentRawDataFiles());
   }
 
   /**
-   * @return A list of files that match have the same value as {@link #groupStr()} in the specified
+   * @return A list of files that match have the same value as the groups in the specified
    * {@link #columnName} in the {@link MetadataTable}. Empty list if the column does not exist or it
    * does not contain the value.
    */
-  public List<RawDataFile> getMatchingFiles(@NotNull List<RawDataFile> dataFiles) {
-    if (!isValid()) {
+  default @NotNull List<RawDataFile> getMatchingFiles(@NotNull List<RawDataFile> dataFiles) {
+    final Map<RawDataFile, Object> column = getColumnData();
+    if (!isValid() || column == null) {
       return List.of();
     }
 
-    final Map<RawDataFile, Object> column = ProjectService.getMetadata().getData().get(getColumn());
-
-    return dataFiles.stream().filter(raw -> StringUtils.isEqualToString(groupStr, column.get(raw)))
-        .toList();
+    return dataFiles.stream().filter(raw -> matchesValue(column.get(raw))).toList();
   }
+
+  /**
+   * @return A list of files that do NOT match the values in the groups in the specified
+   * {@link #columnName} in the {@link MetadataTable}. Copy of input list if the column does not
+   * exist or it does not contain the value.
+   */
+  default @NotNull List<RawDataFile> removeMatchingFilesCopy(@NotNull List<RawDataFile> dataFiles) {
+    final Map<RawDataFile, Object> column = getColumnData();
+    if (!isValid() || column == null) {
+      return List.copyOf(dataFiles);
+    }
+
+    return dataFiles.stream().filter(raw -> !matchesValue(column.get(raw))).toList();
+  }
+
 }

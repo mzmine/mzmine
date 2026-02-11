@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.Parameter;
@@ -54,8 +55,8 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt.Mode;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelection;
 import io.github.mzmine.parameters.parametertypes.metadata.Metadata2GroupsSelection;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
@@ -124,7 +125,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
           "Permissible range of chromatographic FWHM per row",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 1.0)), false);
   public static final OptionalParameter<IntRangeParameter> CHARGE = new OptionalParameter<>(
-      new IntRangeParameter("Charge", "Filter by charge, run isotopic features grouper first", true,
+      new IntRangeParameter("Charge",
+          "Filter by charge, run %s module first".formatted(IsotopeFinderModule.MODULE_NAME), true,
           Range.closed(1, 2)), false);
 
   public static final OptionalModuleParameter<KendrickMassDefectFilterParameters> KENDRICK_MASS_DEFECT = new OptionalModuleParameter<>(
@@ -164,9 +166,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
       "If checked, the rows that don't contain MS2 scan will be removed.", false);
 
   public static final BooleanParameter KEEP_ALL_MS2 = new BooleanParameter(
-      "Never remove rows with MS2",
-      "If checked, all rows with MS2 are retained without applying any further filters on them.",
-      true);
+      "Never remove rows with MS2", """
+      If checked, all rows with MS2 are retained without applying any further filters on them.
+      GC-EI-MS pseudo MS2 spectra are not considered MS2, because every row has one.""", false);
 
   public static final OptionalParameter<RowTypeFilterParameter> ROW_TYPE_FILTER = new OptionalParameter<>(
       new RowTypeFilterParameter());
@@ -279,14 +281,14 @@ public class RowsFilterParameters extends SimpleParameterSet {
         .getEmbeddedParameters();
     cvFilter.setAll(AbundanceMeasure.Area, ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION, 0.2, 0.2,
         false,
-        new MetadataGroupSelection(MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()));
+        new Metadata1GroupSelection(MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()));
 
     param.setParameter(RowsFilterParameters.foldChangeFilter, false);
     final FoldChangeSignificanceRowFilterParameters fcParams = param.getParameter(
         RowsFilterParameters.foldChangeFilter).getEmbeddedParameters();
 
     fcParams.setAll(AbundanceMeasure.Area, ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION,
-        Metadata2GroupsSelection.NONE, SignificanceTests.WELCHS_T_TEST, 0.05, 1d,
+        Metadata2GroupsSelection.NONE, SignificanceTests.WELCHS_T_TEST, true, 0.05, 1d,
         FoldChangeFilterSides.ABS_BOTH_SIDES);
 
     //
@@ -295,14 +297,15 @@ public class RowsFilterParameters extends SimpleParameterSet {
     param.setParameter(RowsFilterParameters.RT_RANGE, false);
     param.setParameter(RowsFilterParameters.FEATURE_DURATION, false);
     param.setParameter(RowsFilterParameters.FWHM, false);
-    param.setParameter(RowsFilterParameters.CHARGE, false);
+    // set the default to charge 1
+    param.setParameter(RowsFilterParameters.CHARGE, false, Range.closed(1, 1));
     param.setParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT, false);
     param.setParameter(RowsFilterParameters.HAS_IDENTITIES, false);
     param.setParameter(RowsFilterParameters.IDENTITY_TEXT, false);
     param.setParameter(RowsFilterParameters.COMMENT_TEXT, false);
     param.setParameter(RowsFilterParameters.REMOVE_ROW, RowsFilterChoices.KEEP_MATCHING);
     param.setParameter(RowsFilterParameters.MS2_Filter, false);
-    param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, true);
+    param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, false);
     param.setParameter(RowsFilterParameters.KEEP_ALL_ANNOTATED, false);
     param.setParameter(RowsFilterParameters.ROW_TYPE_FILTER, false);
     param.setParameter(RowsFilterParameters.Reset_ID, false);
@@ -320,9 +323,10 @@ public class RowsFilterParameters extends SimpleParameterSet {
   @Override
   public @Nullable String getVersionMessage(int version) {
     return switch (version) {
+      // 3 had message for internal change to cvFilter - but internal changes are now also printed since mzmine 4.9
+      // still print added option here because either way there is a message that RSD filter was changed
       case 3 -> """
-          "%s" has changed internally. Missing value imputation was added.
-          "%s" was added as an additional filtering option.""".formatted(cvFilter.getName(),
+          "%s" was added as an additional filtering option.""".formatted(
           foldChangeFilter.getName());
       default -> null;
     };

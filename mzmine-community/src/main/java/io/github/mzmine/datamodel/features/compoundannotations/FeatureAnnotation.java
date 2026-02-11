@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,14 +26,20 @@
 package io.github.mzmine.datamodel.features.compoundannotations;
 
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -50,6 +56,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * Describes a common feature annotation. Future implementations should also extend the
@@ -62,15 +69,17 @@ public interface FeatureAnnotation {
   String XML_ELEMENT = "feature_annotation";
   String XML_TYPE_ATTR = "annotation_type";
 
-  static FeatureAnnotation loadFromXML(XMLStreamReader reader, MZmineProject project,
-      ModularFeatureList flist, ModularFeatureListRow row) throws XMLStreamException {
+  static FeatureAnnotation loadFromXML(@NotNull XMLStreamReader reader,
+      @NotNull MZmineProject project, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException("Current element is not a feature annotation element");
     }
 
     return switch (reader.getAttributeValue(null, XML_TYPE_ATTR)) {
       case SpectralDBAnnotation.XML_ATTR ->
-          SpectralDBAnnotation.loadFromXML(reader, project, project.getCurrentRawDataFiles());
+          SpectralDBAnnotation.loadFromXML(reader, project, flist, row,
+              project.getCurrentRawDataFiles());
       case SimpleCompoundDBAnnotation.XML_ATTR ->
           SimpleCompoundDBAnnotation.loadFromXML(reader, project, flist, row);
       case MatchedLipid.XML_ELEMENT ->
@@ -191,6 +200,28 @@ public interface FeatureAnnotation {
   @Nullable Float getScore();
 
   @Nullable
+  default IsotopePattern calculateIsotopePattern() {
+    String formulaStr = getFormula();
+    final IonType ionType = getAdductType();
+
+    if (ionType == null) {
+      return null;
+    }
+    IMolecularFormula formula = null;
+    if (formulaStr == null) {
+      final MolecularStructure structure = getStructure();
+      if (structure != null) {
+        formula = structure.formula();
+      }
+    } else {
+      formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
+    }
+    return IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(formula, ionType);
+  }
+
+  @Nullable IsotopePattern getIsotopePattern();
+
+  @Nullable
   default String getScoreString() {
     var score = getScore();
     if (score == null) {
@@ -243,6 +274,17 @@ public interface FeatureAnnotation {
   default @NotNull String getAnnotationMethodUniqueId() {
     return getXmlAttributeKey();
   }
+
+  default @NotNull String getAnnotationMethodName() {
+    return DataTypes.get(getDataType()).getHeaderString();
+  }
+
+  /**
+   *
+   * @return The data type that represents this annotation in the feature table
+   * ({@link CompoundAnnotationUtils#annotationTypePriority}
+   */
+  @NotNull Class<? extends DataType> getDataType();
 
   /**
    * @return A unique identifier for saving any sub-class of this interface to XML.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.util.maths;
 
 import java.util.function.BinaryOperator;
+import org.jetbrains.annotations.Nullable;
 
 public class ArithmeticUtils {
 
@@ -130,5 +131,25 @@ public class ArithmeticUtils {
     } else {
       throw new IllegalArgumentException("Illegal operands types.");
     }
+  }
+
+  public static <T extends Number & Comparable<T>> T max(@Nullable T a, @Nullable T b) {
+    if (a == null) {
+      return b;
+    }
+    if (b == null) {
+      return a;
+    }
+    return a.compareTo(b) >= 0 ? a : b;
+  }
+
+  public static <T extends Number & Comparable<T>> T min(@Nullable T a, @Nullable T b) {
+    if (a == null) {
+      return b;
+    }
+    if (b == null) {
+      return a;
+    }
+    return a.compareTo(b) < 0 ? a : b;
   }
 }

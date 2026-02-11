@@ -47,6 +47,8 @@ import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.javafx.components.factories.TableColumns;
+import io.github.mzmine.javafx.components.util.TextLabelMeasurementUtil;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,8 +94,18 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
         type.getHeaderString());
     col.setUserData(type);
     col.setSortable(true);
-    if (type.getPrefColumnWidth() > 0) {
-      col.setPrefWidth(type.getPrefColumnWidth());
+    // at least a bit of size needed - equals roughly a single character, e.g. charge
+    col.setMinWidth(20);
+    // might be calculated
+    final double prefColumnWidth = type.getPrefColumnWidth();
+    if (prefColumnWidth > 0) {
+      col.setPrefWidth(prefColumnWidth);
+    } else {
+      // this small snipped makes the table to open in an instant.
+      // issue is that if the column has prefWidth 80 (default in javafx) then it calculates the actual size
+      // deviate from 80 and it will keep that size
+      // but types need to define a better alternative for now
+//      col.setPrefWidth(TableColumns.DEFAULT_COLUMN_WIDTH);
     }
 
     // define observable
@@ -243,10 +255,16 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
   }
 
   /**
+   * Default uses the width of the title. -1 auto calculates width but makes the table slow to open
+   * if too many columns use this. So better to define pref width in each type
+   *
    * @return -1 if off, otherwise defines the max column width
    */
-  public int getPrefColumnWidth() {
-    return -1; // generally off because columns may be resized usually
+  public double getPrefColumnWidth() {
+    // define to speed up table open - otherwise calculation of width takes long
+    // if too many types are undefined
+    return Math.min(TableColumns.DEFAULT_COLUMN_WIDTH,
+        TextLabelMeasurementUtil.measureWidth(getHeaderString() + TableColumns.EXTRA_WIDTH_MARGIN));
   }
 
   /**

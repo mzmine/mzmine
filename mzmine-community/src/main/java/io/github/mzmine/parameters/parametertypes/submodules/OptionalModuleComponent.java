@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,12 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.presets.ModulePreset;
 import io.github.mzmine.modules.presets.ModulePresetStore;
-import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.parameters.EmbeddedParameterComponentProvider;
 import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
 import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
@@ -44,14 +44,13 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.geometry.Insets;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,7 +74,7 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
   private final ObjectProperty<@NotNull BiConsumer<ParameterSet, ParameterSetupPane>> askApplyParameterSet = new SimpleObjectProperty<>(
       (params, parametersPane) -> {
         if (DialogLoggerUtil.showDialogYesNo("Overwrite parameters?",
-            "Do you want to overwrite the current parameters?")) {
+            ModulePreset.getApplyPresetMessage(params))) {
           if (parametersPane != null) {
             parametersPane.setParametersDirect(params);
           }
@@ -162,7 +161,7 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
     } else {
       topPane = FxLayout.newHBox(Insets.EMPTY, checkBox, setButton);
     }
-    if(presetButton != null) {
+    if (presetButton != null) {
       topPane.getChildren().add(presetButton);
     }
 

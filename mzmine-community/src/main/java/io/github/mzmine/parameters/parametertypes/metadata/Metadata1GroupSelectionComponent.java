@@ -33,14 +33,14 @@ import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MetadataGroupSelectionComponent extends GridPane {
+public class Metadata1GroupSelectionComponent extends GridPane {
 
   // auto completion is automatically bound to both fields
   private final MetadataGroupingComponent columnField = new MetadataGroupingComponent();
   private final TextField groupField = columnField.createLinkedGroupCombo(
       "Select group from column.");
 
-  public MetadataGroupSelectionComponent() {
+  public Metadata1GroupSelectionComponent() {
     super();
     setHgap(FxLayout.DEFAULT_SPACE);
     setVgap(FxLayout.DEFAULT_SPACE);
@@ -53,18 +53,18 @@ public class MetadataGroupSelectionComponent extends GridPane {
   }
 
   @NotNull
-  public MetadataGroupSelection getValue() {
+  public Metadata1GroupSelection getValue() {
     final String column = columnField.getValue();
     final String group = groupField.getText();
 
     if (column == null || group == null) {
-      return MetadataGroupSelection.NONE;
+      return Metadata1GroupSelection.NONE;
     }
 
-    return new MetadataGroupSelection(column.trim(), group.trim());
+    return new Metadata1GroupSelection(column.trim(), group.trim());
   }
 
-  public void setValue(@Nullable MetadataGroupSelection value) {
+  public void setValue(@Nullable Metadata1GroupSelection value) {
     if (value == null) {
       groupField.setText("");
       columnField.setValue("");

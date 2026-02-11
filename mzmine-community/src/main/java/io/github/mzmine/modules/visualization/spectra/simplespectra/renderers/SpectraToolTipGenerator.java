@@ -61,7 +61,7 @@ public class SpectraToolTipGenerator implements XYToolTipGenerator {
 
       PeakListDataSet peakListDataSet = (PeakListDataSet) dataset;
 
-      Feature peak = peakListDataSet.getPeak(series, item);
+      Feature peak = peakListDataSet.getFeature(series, item);
 
       FeatureList peakList = peakListDataSet.getFeatureList();
       FeatureListRow row = peakList.getFeatureRow(peak);

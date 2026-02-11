@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.ColoredBubbleDatasetRenderer;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
@@ -39,7 +40,6 @@ import java.awt.Font;
 import java.awt.Paint;
 import java.text.DecimalFormat;
 import org.jetbrains.annotations.NotNull;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
@@ -53,7 +53,7 @@ public class KendrickMassPlotChart extends EChartViewer {
 
   public KendrickMassPlotChart(String title, String xAxisLabel, String yAxisLabel,
       String colorScaleLabel, KendrickMassPlotXYZDataset dataset) {
-    super(ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset,
+    super(FxChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset,
         PlotOrientation.VERTICAL, false, true, true));
     setStickyZeroRangeAxis(false);
     this.colorScaleLabel = colorScaleLabel;
@@ -77,7 +77,7 @@ public class KendrickMassPlotChart extends EChartViewer {
     renderer.setDefaultToolTipGenerator(
         new KendrickToolTipGenerator(xAxisLabel, yAxisLabel, colorScaleLabel,
             dataset.getBubbleKendrickDataType().getName()));
-    
+
     PaintScaleLegend legend = generateLegend(paintScale);
     getChart().addSubtitle(legend);
     this.getChart().getXYPlot().setRenderer(renderer);

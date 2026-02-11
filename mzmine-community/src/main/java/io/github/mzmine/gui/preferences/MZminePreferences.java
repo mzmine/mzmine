@@ -156,6 +156,19 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final ParameterSetParameter<ChartThemeParameters> chartParam = new ParameterSetParameter<>(
       "Chart parameters", "The default chart parameters to be used throughout MZmine",
       new ChartThemeParameters());
+
+  /*
+   * ParameterSet for structure visualization preferences. Could add more parameters in the future
+   * like specific sizes and distances of objects, colors of element labels, line color, line
+   * thickness...
+   * <p>
+   * For now not added to preferences as it should not be needed for users to modify defaults
+   */
+//  public static final ParameterSetParameter<StructureRenderParameters> structureRendering = new ParameterSetParameter<>(
+//      "Molecular structure rendering",
+//      "Options to control the default rendering of molecular structures. Some views may add a separate zoom factor on top of the base zoom.",
+//      new StructureRenderParameters());
+
   public static final ComboParameter<Themes> theme = new ComboParameter<>("Theme",
       "Select JavaFX style to theme the MZmine window.", Themes.values(), Themes.JABREF_LIGHT);
   public static final BooleanParameter presentationMode = new BooleanParameter("Presentation mode",
@@ -271,9 +284,9 @@ public class MZminePreferences extends SimpleParameterSet {
             // how to format unit strings
             unitFormat,
             // other preferences
-            defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
-            imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
-            windowSettings, useTabSubtitles,
+            defaultColorPalette, defaultPaintScale, chartParam, theme,
+            presentationMode, imageNormalization, imageTransformation, showPrecursorWindow,
+            imsModuleWarnings, windowSettings, useTabSubtitles,
             // silent parameters without controls
             showTempFolderAlert, username, showQuickStart, siriusCountWarningOptOut,
             // conversion, data handling
@@ -310,8 +323,8 @@ public class MZminePreferences extends SimpleParameterSet {
         new ParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
             intensityFormat, ppmFormat, scoreFormat, percentFormat, unitFormat), //
         new ParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
-            chartParam, theme, presentationMode, showPrecursorWindow, imageTransformation,
-            imageNormalization, windowSettings), //
+            chartParam, theme, presentationMode, showPrecursorWindow,
+            imageTransformation, imageNormalization, windowSettings), //
         new ParameterGroup("MS data import", applyVendorCentroiding, massLynxImportChoice,
             watersLockmass, msConvertPath, keepConvertedFile, thermoRawFileParserPath,
             excludeThermoExceptionMasses) //

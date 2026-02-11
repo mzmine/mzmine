@@ -48,4 +48,13 @@ public record FullProxyConfig(@NotNull ProxyConfigOption option,
   public static @NotNull FullProxyConfig create(@NotNull ProxyConfigOption option) {
     return new FullProxyConfig(option, ManualProxyConfig.defaultConfig());
   }
+
+  @Override
+  public @NotNull String toString() {
+    if (option == ProxyConfigOption.MANUAL_PROXY) {
+      return "Proxy option: "+ manualConfig.fullDefinitionString();
+    }
+
+    return "Proxy option: "+option;
+  }
 }

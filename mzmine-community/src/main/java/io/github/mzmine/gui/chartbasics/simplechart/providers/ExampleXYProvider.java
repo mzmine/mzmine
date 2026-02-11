@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,9 +26,9 @@
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -65,6 +65,7 @@ public class ExampleXYProvider implements PlotXYDataProvider {
   private final List<DataPoint> originalDatapoints;
 
   private double finishedPercentage;
+  private boolean isComputed = false;
 
 
   public ExampleXYProvider(List<DataPoint> originalDataPoints) {
@@ -136,10 +137,16 @@ public class ExampleXYProvider implements PlotXYDataProvider {
     }
 
     finishedPercentage = 1.d;
+    isComputed = true;
   }
 
   @Override
   public double getComputationFinishedPercentage() {
     return finishedPercentage;
+  }
+
+  @Override
+  public boolean isComputed() {
+    return isComputed;
   }
 }

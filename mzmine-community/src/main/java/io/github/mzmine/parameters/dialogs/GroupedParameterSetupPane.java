@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -263,7 +263,7 @@ public class GroupedParameterSetupPane extends BorderPane {
 
     List<Parameter<?>> selected = new ArrayList<>();
     List<Text> texts = new ArrayList<>();
-    texts.add(FxTexts.styledText("Summary: ", Styles.BOLD_SEMI_TITLE));
+    texts.add(FxTexts.styledText("Active filters: ", Styles.BOLD_SEMI_TITLE));
 
     for (ParameterGroupGrid group : groupedParameterPanes) {
       for (ParameterAndComponent pc : group.grid().getComponents().values()) {
@@ -274,11 +274,12 @@ public class GroupedParameterSetupPane extends BorderPane {
         if (selectedProperty != null && selectedProperty.get()) {
           selected.add(up);
           // make text clickable to auto filter
-          final Text text = FxTexts.styledText(up.getName(), Styles.BOLD_SEMI_TITLE);
+          final Text text = FxTexts.styledText(up.getName(), Styles.BOLD_SEMI_TITLE,
+              Styles.CONTRAST_LABEL);
           text.getStyleClass().add("text-hover");
           text.setOnMouseClicked(_ -> setSearchFilter(up.getName()));
           if (selected.size() > 1) {
-            texts.add(FxTexts.styledText(", ", Styles.BOLD_SEMI_TITLE));
+            texts.add(FxTexts.styledText(", ", Styles.BOLD_SEMI_TITLE, Styles.CONTRAST_LABEL));
           }
           texts.add(text);
         }

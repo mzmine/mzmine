@@ -24,6 +24,48 @@
  */
 
 /** Controls **/
+
+ .root {
+   -error-text-color: #cc0033;
+   -warning-text-color: #CC9900;
+ }
+
+.error-label {
+  -fx-text-fill: -error-text-color;
+  -fx-icon-color: -error-text-color;
+}
+Text.error-label {
+  /* Text uses fill instead of text fill */
+  -fx-fill: -error-text-color;
+}
+
+.warning-label {
+  -fx-text-fill: -warning-text-color;
+  -fx-icon-color: -warning-text-color;
+}
+Text.warning-label {
+  /* Text uses fill instead of text fill */
+  -fx-fill: -warning-text-color;
+}
+
+/* Option to set all Text children in TextFlow to yellow */
+#warningTextFlow > Text {
+  -fx-fill: -warning-text-color;
+}
+#warningTextFlow > Label {
+  -fx-text-fill: -warning-text-color;
+}
+
+.outlined-panel {
+    -fx-border-color: -jr-accent;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px;
+    -fx-background-color: -jr-base;
+    /*-fx-effect: dropshadow(gaussian, rgba(183,232,255,0.8), 5, 0.2, 0, 5);*/
+}
+
 .button, .combo-box, .choice-box, .check-box > .box {
   -fx-background-radius: 2, 2;
   -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 4, 0, 0, 1);
@@ -124,14 +166,6 @@
 #memoryBarLabel {
 	-fx-font-size: 9.0pt;
 	-fx-label-padding: 0.0 20.0 0.0 20.0;
-}
-
-.error-label {
-  -fx-text-fill: red;
-}
-
-.warning-label {
-  -fx-text-fill: #ffe600;
 }
 
 .title-label {

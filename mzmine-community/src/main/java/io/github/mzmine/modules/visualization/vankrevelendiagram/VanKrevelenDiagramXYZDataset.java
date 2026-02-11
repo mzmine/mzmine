@@ -76,6 +76,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
   private final double[] yValues;
   private final double[] colorScaleValues;
   private final double[] bubbleSizeValues;
+  private VanKrevelenDiagramDataTypes colorVanKrevelenDataType;
   private VanKrevelenDiagramDataTypes bubbleVanKrevelenDataType;
 
 
@@ -108,6 +109,8 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
         parameters.getParameter(VanKrevelenDiagramParameters.colorScaleValues).getValue());
     initDimensionValues(bubbleSizeValues,
         parameters.getParameter(VanKrevelenDiagramParameters.bubbleSizeValues).getValue());
+    colorVanKrevelenDataType = parameters.getParameter(VanKrevelenDiagramParameters.colorScaleValues)
+        .getValue();
     bubbleVanKrevelenDataType = parameters.getParameter(
         VanKrevelenDiagramParameters.bubbleSizeValues).getValue();
     finishedSteps = 1;
@@ -144,6 +147,20 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
       case MolecularFormulaIdentity ann -> ann.getFormulaAsString();
       default -> null;
     };
+  }
+
+  FeatureListRow getRow(final int item) {
+    return filteredRows.get(item);
+  }
+
+  @Nullable
+  String getFormulaString(final int item) {
+    final Object ann = getRow(item).getPreferredAnnotation();
+    return ann == null ? null : getFormulaFromAnnotation(ann);
+  }
+
+  public VanKrevelenDiagramDataTypes getColorVanKrevelenDataType() {
+    return colorVanKrevelenDataType;
   }
 
   private void initDimensionValues(double[] values,

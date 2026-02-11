@@ -98,14 +98,13 @@ public class NewVersionCheck implements Runnable {
 
     if (currentVersion.isLowerThan(newestVersion)) {
       result.set(new VersionCheckResult(VersionCheckResultType.NEW_AVAILALABLE, newestVersion));
-      String url = "https://mzmine.org";
+      final String downloadUrl = "https://github.com/mzmine/mzmine3/releases/latest";
       logger.info(result.get().print());
       if (checkType.equals(CheckType.MENU)) {
-        desktop.displayMessage("New version", result.get().print(), url);
+        desktop.displayMessage("New version", result.get().print(), downloadUrl);
       } else if (checkType.equals(CheckType.DESKTOP)) {
-        String downloadUrl = "https://github.com/mzmine/mzmine3/releases/latest";
         Color color = MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor();
-        desktop.setStatusBarText(result.get().print().replace("\n", ". ") + url, color,
+        desktop.setStatusBarText(result.get().print().replace("\n", ". ") + downloadUrl, color,
             downloadUrl);
       }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboFieldParameter;
@@ -44,7 +45,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -87,6 +87,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
   private double maxProductIntensity = 0;
   private double maxPrecursorIntensity = 0;
   private float maxRt = 0;
+  private boolean isComputed;
 
   public MsMsDataProvider(ParameterSet parameters) {
 
@@ -127,7 +128,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
           if (intensityFilterType == IntensityFilteringType.NUM_OF_BEST_FRAGMENTS) {
             intensityFilterValue = Integer.parseInt(intensityFilter);
           } else if (intensityFilterType == IntensityFilteringType.BASE_PEAK_PERCENT
-                     || intensityFilterType == IntensityFilteringType.INTENSITY_THRESHOLD) {
+              || intensityFilterType == IntensityFilteringType.INTENSITY_THRESHOLD) {
             intensityFilterValue = Double.parseDouble(intensityFilter);
           }
         }
@@ -135,9 +136,8 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         Alert alert = new Alert(AlertType.ERROR);
         alert.setTitle("Invalid intensity filtering value level");
         alert.setHeaderText("Intensity filtering value must be a double number for \""
-                            + IntensityFilteringType.BASE_PEAK_PERCENT
-                            + "\" option and an integer number for \""
-                            + IntensityFilteringType.NUM_OF_BEST_FRAGMENTS + "\" option");
+            + IntensityFilteringType.BASE_PEAK_PERCENT + "\" option and an integer number for \""
+            + IntensityFilteringType.NUM_OF_BEST_FRAGMENTS + "\" option");
         alert.showAndWait();
       }
     }
@@ -203,9 +203,8 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
           Alert alert = new Alert(AlertType.ERROR);
           alert.setTitle("Mass detection issue");
           alert.setHeaderText("Masses are not detected properly for the " + dataFile.getName()
-                              + " data file. Scan #" + scan.getScanNumber()
-                              + " has no mass list. Run"
-                              + " \"Raw data methods\" -> \"Mass detection\", if you haven't done it yet. Scans are marked as profile mode.");
+              + " data file. Scan #" + scan.getScanNumber() + " has no mass list. Run"
+              + " \"Raw data methods\" -> \"Mass detection\", if you haven't done it yet. Scans are marked as profile mode.");
           alert.showAndWait();
         });
         return;
@@ -351,7 +350,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         Alert alert = new Alert(AlertType.WARNING);
         alert.setTitle("Suspicious module parameters");
         alert.setHeaderText("There are no data points in " + dataFile.getName()
-                            + " data file, satisfying module parameters");
+            + " data file, satisfying module parameters");
         alert.showAndWait();
       });
       return;
@@ -360,6 +359,14 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     // Scale max intensities
     maxProductIntensity = scaleProductIntensity(maxProductIntensity);
     maxPrecursorIntensity = scalePrecursorIntensity(maxPrecursorIntensity);
+    isComputed = true;
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return isComputed;
   }
 
   @Override

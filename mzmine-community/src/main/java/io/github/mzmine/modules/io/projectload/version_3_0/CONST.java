@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -83,6 +82,11 @@ public class CONST {
   public static final String XML_OTHER_TIME_VALUES_ELEMENT = "otherdata_times";
   public static final String XML_OTHER_FILE_DESC_ATTR = "otherdata_filedesc";
   public static final String XML_OTHER_TIME_SERIES_NAME_ATTR = "otherdata_timeseriesname";
+
+  /**
+   *
+   */
+  public static final String XML_VERSION_ATTR = "version";
 
   private CONST() {
   }

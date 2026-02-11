@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxLabels.Styles;
@@ -51,6 +52,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
+import java.awt.Shape;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -74,10 +76,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.fx.ChartViewer;
-import org.jfree.chart.fx.interaction.ChartMouseEventFX;
-import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
-import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.jfree.data.xy.XYSeries;
 
 public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPreview {
@@ -99,7 +98,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
   private final SpectralDeconvolutionPreviewPlot scatterPlot;
   private final Button updateButton;
   private final Map<List<ModularFeature>, Integer> featureGroupSeriesMap = new HashMap<>();
-  private final Map<List<ModularFeature>, Color> colorMap = new HashMap<>();
+  private final Map<List<ModularFeature>, ColorAndShape> colorMap = new HashMap<>();
   private final PseudoSpectrumVisualizerController pseudoSpecController;
   private final @NotNull Region pseudoSpecPane;
   private final ComboBox<FeatureList> featureListCombo;
@@ -168,8 +167,6 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
     previewWrapperPane.setTop(preparingPreviewLabel);
     selectedColor = ConfigService.getDefaultColorPalette().getFirst();
 
-    addMouseClickListenerToScatterPlot();
-
     updateButton = new Button("Update preview");
     updateButton.setOnAction(_ -> updatePreview());
 
@@ -186,6 +183,13 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
 
     featureListCombo.getSelectionModel().selectedItemProperty().subscribe(_ -> updatePreview());
     scatterPlot.showRtWidthsProperty().bind(cbShowRtWidths.selectedProperty());
+
+    scatterPlot.cursorPositionPropertyProperty().subscribe((_, pos) -> {
+      if (pos == null) {
+        return;
+      }
+      handleCrosshairClick(pos.getDomainValue(), pos.getRangeValue());
+    });
   }
 
 
@@ -212,23 +216,6 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
     return legendBox;
   }
 
-  private void addMouseClickListenerToScatterPlot() {
-    ChartViewer chartViewer = scatterPlot;
-    chartViewer.addChartMouseListener(new ChartMouseListenerFX() {
-      @Override
-      public void chartMouseClicked(ChartMouseEventFX event) {
-        XYPlot plot = (XYPlot) chartViewer.getChart().getPlot();
-        double crosshairXValue = plot.getDomainCrosshairValue();
-        double crosshairYValue = plot.getRangeCrosshairValue();
-        handleCrosshairClick(crosshairXValue, crosshairYValue);
-      }
-
-      @Override
-      public void chartMouseMoved(ChartMouseEventFX event) {
-      }
-    });
-  }
-
   private void handleCrosshairClick(double rtValue, double mzValue) {
     if (!isPlotPopulated) {
       return;
@@ -245,8 +232,8 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
         Integer seriesIndex = featureGroupSeriesMap.get(group);
         if (seriesIndex != null) {
           // Retrieve the color of the series
-          Color groupColor = colorMap.get(group);
-          selectedColor = FxColorUtil.awtColorToFX(groupColor);
+          ColorAndShape groupColor = colorMap.get(group);
+          selectedColor = FxColorUtil.awtColorToFX(groupColor.color());
         }
       }
 
@@ -354,39 +341,44 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialogWithPrevi
   }
 
   private void assignColorsToGroups() {
-    SimpleColorPalette colorPalette = ConfigService.getDefaultColorPalette();
+    SimpleColorPalette colorPalette = ConfigService.getDefaultColorPalette().clone(true);
+    final DefaultDrawingSupplier defaultDrawingSupplier = JFreeChartUtils.createDefaultDrawingSupplier();
+
     for (int i = 0; i < groupedFeatures.size(); i++) {
       List<ModularFeature> group = groupedFeatures.get(i);
-      Color color = FxColorUtil.fxColorToAWT(colorPalette.get(i % colorPalette.size()));
-      colorMap.put(group, color); // Assign each group a fixed color and store it in colorMap
+      final Color color = colorPalette.getNextColorAWT();
+      final Shape shape = defaultDrawingSupplier.getNextShape();
+      // Assign each group a fixed color and store it in colorMap
+      colorMap.put(group, new ColorAndShape(color, shape));
     }
   }
 
 
   private void populateScatterPlot() {
-    isPlotPopulated = false;
-    scatterPlot.clearDatasets();
-    scatterPlot.getChart().getPlot().setNotify(false);
+    scatterPlot.applyWithNotifyChanges(false, () -> {
+      isPlotPopulated = false;
 
-    groupedFeatures.sort(Comparator.comparingDouble(group -> group.getFirst().getRT()));
-    for (int i = 0; i < groupedFeatures.size(); i++) {
-      List<ModularFeature> group = groupedFeatures.get(i);
-      XYSeries series = new XYSeries(
-          "Group " + MZmineCore.getConfiguration().getRTFormat().format(group.getFirst().getRT()));
-      for (ModularFeature feature : group) {
-        series.add(feature.getRT(), feature.getMZ());
+      scatterPlot.clearDatasets();
+
+      groupedFeatures.sort(Comparator.comparingDouble(group -> group.getFirst().getRT()));
+      for (int i = 0; i < groupedFeatures.size(); i++) {
+        List<ModularFeature> group = groupedFeatures.get(i);
+        XYSeries series = new XYSeries("Group " + MZmineCore.getConfiguration().getRTFormat()
+            .format(group.getFirst().getRT()));
+        for (ModularFeature feature : group) {
+          series.add(feature.getRT(), feature.getMZ());
+        }
+
+        // Retrieve the color from colorMap to ensure consistency
+        ColorAndShape color = colorMap.get(group);
+        scatterPlot.addDataset(group, series, color.color(), color.shape());
+
+        // Store the series index associated with this group
+        featureGroupSeriesMap.put(group, i);
       }
 
-      // Retrieve the color from colorMap to ensure consistency
-      Color color = colorMap.get(group);
-      scatterPlot.addDataset(group, series, color);
-
-      // Store the series index associated with this group
-      featureGroupSeriesMap.put(group, i);
-    }
-
-    scatterPlot.getChart().getPlot().setNotify(true);
-    isPlotPopulated = true;
+      isPlotPopulated = true;
+    });
   }
 
 

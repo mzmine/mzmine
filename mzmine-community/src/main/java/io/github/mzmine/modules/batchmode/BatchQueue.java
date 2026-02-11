@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,7 +50,6 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -181,18 +180,16 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
         if (batchStepVersion < currentVersion) {
           // this mzmine is newer, join find potential messages for user
-          String versionMessages = IntStream.range(batchStepVersion + 1, currentVersion + 1)
-              .mapToObj(parameterSet::getVersionMessage).filter(Objects::nonNull)
-              .collect(Collectors.joining(" "));
+          String versionMessages = parameterSet.getLoadingVersionMessages();
           if (!versionMessages.isBlank()) {
             versionMessages += "\n"; // add additional break after long version messages
           }
 
           errorMessages.add(
-              "'%s' step uses outdated parameters. %s".formatted(moduleFound.getName(),
+              "\n'%s' step uses outdated parameters:\n%s".formatted(moduleFound.getName(),
                   versionMessages));
         } else if (batchStepVersion > currentVersion) {
-          errorMessages.add("'%s' step uses parameters from a newer mzmine version.".formatted(
+          errorMessages.add("\n'%s' step uses parameters from a newer mzmine version.".formatted(
               moduleFound.getName()));
         }
 

@@ -120,17 +120,22 @@ public class MZmineJsonParser extends SpectralDBTextParser {
     Object o = null;
     JsonValue value = main.get(id);
     switch (value.getValueType()) {
-      case STRING, OBJECT -> {
-        o = f.convertValue(main.getString(id));
+      case OBJECT -> {
+        o = f.convertValue(main.get(id).toString());
       }
+      case STRING -> o =  f.convertValue(main.getString(id));
       case NUMBER -> {
         o = main.getJsonNumber(id);
         if (f.getObjectClass().equals(Integer.class)) {
           o = ((JsonNumber) o).intValue();
         } else if (f.getObjectClass().equals(Float.class)) {
           o = (float) ((JsonNumber) o).doubleValue();
-        } else {
+        } else if (f.getObjectClass().equals(Double.class)) {
           o = ((JsonNumber) o).doubleValue();
+        } else if (f.getObjectClass().equals(Long.class)) {
+          o = ((JsonNumber) o).longValue();
+        } else {
+          o = f.convertValue(main.get(id).toString());
         }
       }
       case TRUE -> {

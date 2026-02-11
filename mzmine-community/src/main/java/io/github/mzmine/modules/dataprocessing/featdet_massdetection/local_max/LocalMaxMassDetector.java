@@ -328,7 +328,7 @@ public class LocalMaxMassDetector implements MassDetector {
     // check the actual intensity as noise level not the area which is harder to optimize
     // the peak detection should pick the same peaks for the same noise level no matter
     // if AREA or HEIGHT is selected for intensity representation
-    if (maxIntensity > detectionThreshold) {
+    if (maxIntensity < detectionThreshold) {
       return;
     }
 

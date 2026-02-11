@@ -84,4 +84,9 @@ public sealed interface MolecularStructure permits PrecomputedMolecularStructure
 
   int totalFormalCharge();
 
+  /**
+   * Number of atoms in structure
+   */
+  int totalAtomsCount();
+
 }

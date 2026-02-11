@@ -69,18 +69,6 @@ public interface GraphicalColumType<T> {
     throw new IllegalStateException("No feature list associated with row.");
   }
 
-  /**
-   * Returns width of the column.
-   *
-   * @return width of the column
-   */
-  public default double getColumnWidth() {
-    return switch (this) {
-      case DataType dt -> dt.getPrefColumnWidth();
-      default -> DEFAULT_GRAPHICAL_CELL_WIDTH;
-    };
-  }
-
   default double getCellHeight() {
     return DEFAULT_GRAPHICAL_CELL_HEIGHT;
   }

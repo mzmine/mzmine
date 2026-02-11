@@ -69,4 +69,11 @@ public class FormulaType extends StringType
   public boolean getDefaultVisibility() {
     return true;
   }
+
+
+  @Override
+  public double getPrefColumnWidth() {
+    // setting pref width makes table open faster due to less calculations needed
+    return FormulaListType.getFormulaPrefColumnWidth();
+  }
 }

@@ -37,8 +37,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.S
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.rtgroupingandsharecorrelation.RtGroupingAndShapeCorrelationParameters;
-import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
-import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
@@ -315,19 +313,4 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         param));
   }
 
-
-  @Override
-  protected void makeAndAddRowFilterStep(BatchQueue q) {
-    super.makeAndAddRowFilterStep(q);
-    // dont change if the step was not created
-    final MZmineProcessingStep<MZmineProcessingModule> filterStep = q.getLast();
-    if (!filter13C && !minAlignedSamples.isGreaterZero() || !filterStep.getModule()
-        .equals(MZmineCore.getModuleInstance(RowsFilterModule.class))) {
-      return;
-    }
-
-    // deactivate for gc-ei, everything has a spectrum
-    final ParameterSet param = filterStep.getParameterSet();
-    param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, false);
-  }
 }

@@ -73,9 +73,14 @@ public class ReportingParameters extends SimpleParameterSet {
       "Appends the processing parameters for each step to the end of the report (recommended).",
       true);
 
+  public static final ParameterSetParameter<ReportingStyleParameters> reportingStyle = new ParameterSetParameter<>(
+      "Style", "Parameters to style the report", new ReportingStyleParameters(), true,
+      ReportingStyleModule.class);
+
+
   public ReportingParameters() {
     super(flists, exportFile, reportTitle, reportingVendorParam, reportingCustomerParam,
-        reportingOrderParam, freeText, includeProcessingParameters, reportType);
+        reportingOrderParam, freeText, reportingStyle, includeProcessingParameters, reportType);
   }
 
   @Override

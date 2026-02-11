@@ -38,8 +38,8 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelection;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import io.github.mzmine.parameters.parametertypes.statistics.MissingValueImputationParameter;
 import java.util.List;
@@ -53,9 +53,9 @@ public class RsdFilterParameters extends SimpleParameterSet {
 
   public static final MissingValueImputationParameter missingValueImputation = new MissingValueImputationParameter();
 
-  public static final MetadataGroupSelectionParameter grouping = new MetadataGroupSelectionParameter(
+  public static final Metadata1GroupSelectionParameter grouping = new Metadata1GroupSelectionParameter(
       "Sample grouping", "Select the metadata group to calculate the CV for",
-      new MetadataGroupSelection(MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()));
+      new Metadata1GroupSelection(MetadataColumn.SAMPLE_TYPE_HEADER, SampleType.QC.toString()));
 
   public static final PercentParameter maxMissingValues = new PercentParameter(
       "Maximum missing values",
@@ -76,7 +76,7 @@ public class RsdFilterParameters extends SimpleParameterSet {
 
   public void setAll(AbundanceMeasure measure, ImputationFunctions imputation,
       double maxMissingSamples, double maxRSD, boolean keepUndetected,
-      MetadataGroupSelection grouping) {
+      Metadata1GroupSelection grouping) {
     setParameter(abundanceMeasure, measure);
     setParameter(missingValueImputation, imputation);
     setParameter(maxMissingValues, maxMissingSamples);
@@ -117,7 +117,7 @@ public class RsdFilterParameters extends SimpleParameterSet {
         config);
 
     // create filter
-    final MetadataGroupSelection group = getValue(RsdFilterParameters.grouping);
+    final Metadata1GroupSelection group = getValue(RsdFilterParameters.grouping);
     final double maxMissing = getValue(RsdFilterParameters.maxMissingValues);
     final double maxCV = getValue(RsdFilterParameters.maxCv);
     final boolean keepUndedected = getValue(RsdFilterParameters.keepUndetected);

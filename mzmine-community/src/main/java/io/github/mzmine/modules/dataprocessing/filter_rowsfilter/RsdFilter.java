@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CvType;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
+import io.github.mzmine.parameters.parametertypes.metadata.Metadata1GroupSelection;
 import io.github.mzmine.util.MathUtils;
 import java.util.List;
 
@@ -40,7 +41,7 @@ import java.util.List;
  * @param maxCvPercent
  * @param keepUndetected
  */
-record RsdFilter(io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupSelection group,
+record RsdFilter(Metadata1GroupSelection group,
                  FeaturesDataTable dataTable, double maxMissingValues, double maxCvPercent,
                  boolean keepUndetected) {
 

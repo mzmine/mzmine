@@ -95,7 +95,7 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
   @Override
   public void updateChart(@NotNull List<DatasetAndRenderer> datasets,
       @NotNull SimpleXYChart<? extends PlotXYDataProvider> chart) {
-    chart.setDatasets(datasets);
+    chart.setDatasetsAndRenderers(datasets);
 
     getTopTextFlow().getChildren().setAll(messages);
   }
