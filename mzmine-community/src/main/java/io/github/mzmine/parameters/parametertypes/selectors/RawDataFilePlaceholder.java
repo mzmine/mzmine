@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,6 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -37,22 +36,30 @@ import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.awt.Color;
-import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Keeps a {@link WeakReference} to {@link RawDataFile} and its name and file hashcode to find the
+ * raw file in the project in case it is not in the weak reference
+ */
 public class RawDataFilePlaceholder implements RawDataFile {
 
+  private WeakReference<RawDataFile> weakRawRef;
   private final String name;
   private final String absPath;
   @Nullable
   private final Integer fileHashCode;
 
   public RawDataFilePlaceholder(@NotNull final RawDataFile file) {
+    weakRawRef = new WeakReference<>(file);
     name = file.getName();
     absPath = file.getAbsolutePath();
     if (file instanceof RawDataFilePlaceholder rfp) {
@@ -72,9 +79,27 @@ public class RawDataFilePlaceholder implements RawDataFile {
 
   public RawDataFilePlaceholder(@NotNull String name, @Nullable String absPath,
       @Nullable Integer fileHashCode) {
+    weakRawRef = new WeakReference<>(null);
     this.name = name;
     this.absPath = absPath;
     this.fileHashCode = fileHashCode;
+  }
+
+  @NotNull
+  public static RawDataFilePlaceholder[] of(@Nullable RawDataFile[] raws) {
+    if (raws == null) {
+      return new RawDataFilePlaceholder[0];
+    }
+    RawDataFilePlaceholder[] placeholders = new RawDataFilePlaceholder[raws.length];
+    for (int i = 0; i < raws.length; i++) {
+      RawDataFile raw = raws[i];
+      if (raw instanceof RawDataFilePlaceholder ph) {
+        placeholders[i] = ph;
+      } else {
+        placeholders[i] = new RawDataFilePlaceholder(raw);
+      }
+    }
+    return placeholders;
   }
 
   public @Nullable Integer getFileHashCode() {
@@ -86,18 +111,69 @@ public class RawDataFilePlaceholder implements RawDataFile {
    */
   @Nullable
   public RawDataFile getMatchingFile() {
-    final MZmineProject proj = ProjectService.getProjectManager().getCurrentProject();
-    if (proj == null) {
-      return null;
-    }
-
-    return proj.getCurrentRawDataFiles().stream().filter(this::matches).findFirst().orElse(null);
+    // must filter for null as findFirst throws npe otherwise
+    return streamMatchingFiles(new RawDataFilePlaceholder[]{this}).filter(Objects::nonNull)
+        .findFirst().orElse(null);
   }
 
   public boolean matches(@Nullable final RawDataFile file) {
     return file != null && file.getName().equals(name) && (absPath == null || Objects.equals(
         absPath, file.getAbsolutePath())) && (fileHashCode == null || Objects.equals(fileHashCode,
         file.hashCode()));
+  }
+
+
+  /**
+   * Matching raw data files. May contain null if a file was not found. This points to files being
+   * removed from the project.
+   *
+   * @return of matching raw data files. null for missing files.
+   */
+  public static @NotNull Stream<@Nullable RawDataFile> streamMatchingFiles(
+      @NotNull RawDataFilePlaceholder @Nullable [] placeholders) {
+    if (placeholders == null) {
+      return Stream.empty();
+    }
+
+    // get all files once
+    final List<RawDataFile> allFiles = ProjectService.getProject().getCurrentRawDataFiles();
+
+    // find all raw files and use the same allFiles instance
+    return Arrays.stream(placeholders)
+        .map(placeholder -> {
+          final RawDataFile direct = placeholder.weakRawRef.get();
+          if (direct != null) {
+            return direct;
+          }
+          // find in all files
+          for (RawDataFile file : allFiles) {
+            if (placeholder.matches(file)) {
+              return file;
+            }
+          }
+          return null; // missing file
+        });
+  }
+
+  /**
+   * Matching raw data files. May contain null if a file was not found. This points to files being
+   * removed from the project.
+   *
+   * @return array of matching raw data files. null for missing files.
+   */
+  public static @NotNull RawDataFile @NotNull [] getMatchingFilesNullable(
+      @NotNull RawDataFilePlaceholder @Nullable [] placeholders) {
+    return streamMatchingFiles(placeholders).toArray(RawDataFile[]::new);
+  }
+
+  /**
+   * Non null matching raw data files. This may be an empty array if no data file is in memory
+   *
+   * @return array of matching raw data files. null filtered
+   */
+  public static @NotNull RawDataFile @NotNull [] getMatchingFilesFilterNull(
+      @NotNull RawDataFilePlaceholder @Nullable [] placeholders) {
+    return streamMatchingFiles(placeholders).filter(Objects::nonNull).toArray(RawDataFile[]::new);
   }
 
   @Override

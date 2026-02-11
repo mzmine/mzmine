@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -178,7 +178,7 @@ public class SpectraStackVisualizerPane extends BorderPane implements FeatureRow
     final boolean showCrosshair = parameters.getValue(
         SpectraStackVisualizerParameters.showCrosshair);
     if (group != null) {
-      group.setShowCrosshair(showCrosshair, showCrosshair);
+      group.setUseMouseMovementCrosshair(showCrosshair, showCrosshair);
 
       int rows = currentRows();
       for (int i = 0; i < group.getList().size(); i++) {
@@ -343,7 +343,9 @@ public class SpectraStackVisualizerPane extends BorderPane implements FeatureRow
         SpectraStackVisualizerParameters.showCrosshair);
 
     msone = null;
-    group = new ChartGroup(showCrosshair, showCrosshair, true, false);
+    group = new ChartGroup(false, false, true, false);
+    group.setUseMouseMovementCrosshair(showCrosshair, showCrosshair);
+
     // MS1
     if (createMS1) {
       Scan scan = null;
@@ -497,7 +499,7 @@ public class SpectraStackVisualizerPane extends BorderPane implements FeatureRow
 
     boolean changed =
         mzTolerance != this.mzTolerance || (this.mzTolerance == null && mzTolerance != null)
-        || !this.mzTolerance.equals(mzTolerance);
+            || !this.mzTolerance.equals(mzTolerance);
     this.mzTolerance = mzTolerance;
     exchangeTolerance = false;
 

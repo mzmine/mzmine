@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -322,7 +322,7 @@ public class ExportScansFeatureTask extends AbstractFeatureListTask {
    */
   protected boolean checkPreConditions(final FeatureListRow row) {
     // option to overwrite this method to control which row is processed
-    if (skipAnnotatedFeatures && CompoundAnnotationUtils.streamFeatureAnnotations(row).findFirst()
+    if (skipAnnotatedFeatures && CompoundAnnotationUtils.getBestFeatureAnnotation(row)
         .isPresent()) {
       return false;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,11 +58,10 @@ public class OnlineLcReactionMatchType extends ListWithSubsType<OnlineReactionMa
   }
 
   @Override
-  public <K> @Nullable K map(@NotNull final DataType<K> subType,
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType,
       final OnlineReactionMatch match) {
     OnlineReaction reaction = match.getReaction();
     return (K) switch (subType) {
-      case OnlineLcReactionMatchType __ -> match;
       case EductIdType __ -> match.getEductRow().getID();
       case ProductIdType __ -> match.getProductRow().getID();
       case TypeStringType __ -> match.getTypeOfThisRow();

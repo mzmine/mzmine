@@ -29,6 +29,7 @@ import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.io.IOException;
@@ -122,4 +123,13 @@ public final class ConfigService {
   public static void setIgnoreParameterWarningsInBatch(boolean ignoreParameterWarningsInBatch) {
     ConfigService.ignoreParameterWarningsInBatch = ignoreParameterWarningsInBatch;
   }
+
+  /**
+   * Centralizes the default structure render config. Might introduce parameters in the future to
+   * control how structures are rendered.
+   */
+  public static Structure2DRenderConfig getStructureRenderConfig() {
+    return Structure2DRenderConfig.DEFAULT_CONFIG;
+  }
+
 }

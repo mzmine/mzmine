@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,6 +55,7 @@ public class MergedFrameHeatmapProvider implements PlotXYZDataProvider {
   private double boxHeight;
   private double boxWidth;
   private int numValues = 0;
+  private boolean isComputed = false;
 
   public MergedFrameHeatmapProvider(@NotNull final Collection<Frame> frames,
       @NotNull final MZTolerance tolerance, final int mobilityScanBin) {
@@ -124,6 +125,8 @@ public class MergedFrameHeatmapProvider implements PlotXYZDataProvider {
       final double mzDelta = ArrayUtils.smallestDelta(mzs, scan.getNumberOfDataPoints());
       boxWidth = Math.min(mzDelta, boxWidth);
     }
+
+    isComputed = true;
   }
 
   @Override
@@ -182,5 +185,12 @@ public class MergedFrameHeatmapProvider implements PlotXYZDataProvider {
   @Override
   public Double getBoxWidth() {
     return boxWidth;
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return isComputed;
   }
 }

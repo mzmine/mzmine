@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.web;
 
+import io.github.mzmine.util.web.proxy.FullProxyConfig;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.ProxySelector;
@@ -38,6 +39,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.security.auth.login.ConfigurationSpi;
 
 public class ProxyTestUtils {
 
@@ -50,16 +52,23 @@ public class ProxyTestUtils {
     logger.info(msg);
 
     List<String> testUrls = List.of("https://auth.mzio.io/health", "https://mzio.io",
-        "https://zenodo.org/");
+        "https://zenodo.org/", "https://github.com/");
 
     StringBuilder sb = new StringBuilder();
-    sb.append(msg);
+    sb.append(msg).append("\n");
+    logProxyConfig(sb);
     logSystemProperties(sb);
+    sb.append("\n");
     logProxyDetails(sb, testUrls);
 
     final String message = sb.toString();
     logger.info(message);
     return message;
+  }
+
+  private static void logProxyConfig(StringBuilder sb) {
+    final FullProxyConfig config = ProxyUtils.getConfig();
+    sb.append("Current proxy config: ").append(config).append("\n");
   }
 
   /**
@@ -99,12 +108,12 @@ public class ProxyTestUtils {
         List<Proxy> proxies = defaultSelector.select(testUri);
 
         if (proxies == null || proxies.isEmpty()) {
-          sb.append("No proxies returned from the selector.\n");
+          sb.append("No proxies returned from the selector for ").append(url).append(".\n");
           return;
         }
 
         sb.append("Detected ").append(proxies.size())
-            .append(" proxy setting(s) via ProxySelector:\n");
+            .append(" proxy setting(s) via ProxySelector for ").append(url).append(":\n");
 
         for (Proxy proxy : proxies) {
           logProxyDetails(sb, url, proxy);
@@ -113,8 +122,8 @@ public class ProxyTestUtils {
       } catch (Exception e) {
         // 2. Log exceptions at a SEVERE level, including the stack trace
         logger.log(Level.SEVERE, "An error occurred while detecting proxies\n", e);
-        sb.append("An error occurred while detecting proxies: ").append(e.getMessage())
-            .append("\n");
+        sb.append("An error occurred while detecting proxies for ").append(url).append(": ")
+            .append(e.getMessage()).append("\n");
       }
     }
   }
@@ -145,7 +154,7 @@ public class ProxyTestUtils {
   public static String testAll() {
     // use health endpoint as it does not use redirect
     List<String> testUrls = List.of("https://auth.mzio.io/health", "https://mzio.io",
-        "https://zenodo.org/", "https://pubchem.ncbi.nlm.nih.gov/");
+        "https://zenodo.org/", "https://pubchem.ncbi.nlm.nih.gov/", "https://github.com/");
 
     return testUrls(testUrls);
   }

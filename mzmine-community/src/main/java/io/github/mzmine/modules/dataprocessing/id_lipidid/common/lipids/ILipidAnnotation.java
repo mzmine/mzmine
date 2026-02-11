@@ -33,11 +33,7 @@ public interface ILipidAnnotation {
 
   ILipidClass getLipidClass();
 
-  void setLipidClass(ILipidClass lipidClasss);
-
   String getAnnotation();
-
-  void setAnnotation(String annotation);
 
   LipidAnnotationLevel getLipidAnnotationLevel();
 

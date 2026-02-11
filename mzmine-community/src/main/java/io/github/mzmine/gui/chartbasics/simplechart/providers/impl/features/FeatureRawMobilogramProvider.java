@@ -63,6 +63,7 @@ public class FeatureRawMobilogramProvider implements PlotXYDataProvider {
   private SummedIntensityMobilitySeries rawMobilogram;
   private final Range<Double> mzRange;
   private double percentage = 0d;
+  private boolean isComputed;
 
   public FeatureRawMobilogramProvider(@NotNull final Feature f,
       @NotNull final Range<Double> mzRange) {
@@ -124,6 +125,14 @@ public class FeatureRawMobilogramProvider implements PlotXYDataProvider {
     binner.setMobilogram(mobilograms);
     rawMobilogram = binner.toSummedMobilogram(null);
     percentage = 1d;
+    isComputed = true;
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return isComputed;
   }
 
   @Override

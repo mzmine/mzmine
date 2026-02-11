@@ -68,7 +68,7 @@ public class InChIStructureType extends StringType implements EditableColumnType
   }
 
   @Override
-  public int getPrefColumnWidth() {
+  public double getPrefColumnWidth() {
     return 100;
   }
 }

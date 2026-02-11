@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,8 +26,10 @@
 package io.github.mzmine.javafx.components.factories;
 
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.components.util.FxStyles;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.Node;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
@@ -39,9 +41,20 @@ public class FxLabels {
 
   public enum Styles {
     REGULAR, BOLD_TITLE, BOLD_SEMI_TITLE, BOLD, ITALIC, // colored
-    WARNING, ERROR;
+    /**
+     * Changes color of LABELS to yellow
+     */
+    WARNING,
+    /**
+     * Changes color of LABELS to red/orange
+     */
+    ERROR,
+    /**
+     * Changes color of LABELS to magenta
+     */
+    CONTRAST_LABEL;
 
-    public void addStyleClass(Label label) {
+    public void addStyleClass(Node label) {
       var style = getStyleClass();
       if (style != null) {
         label.getStyleClass().add(style);
@@ -58,6 +71,7 @@ public class FxLabels {
         case BOLD_SEMI_TITLE -> "bold-semititle-label";
         case BOLD -> "bold-label";
         case ITALIC -> "italic-label";
+        case CONTRAST_LABEL -> "contrast-label";
       };
     }
   }
@@ -162,5 +176,22 @@ public class FxLabels {
     var hyperlink = new Hyperlink(link);
     hyperlink.setOnAction(_ -> DesktopService.getDesktop().openWebPage(hyperlink.getText()));
     return hyperlink;
+  }
+
+  public static Label colored(Label text, ObservableValue<Color> color) {
+    // text.setFill does not work - overwritten by css?
+    color.subscribe((nv) -> {
+      final String colorStr = nv == null ? null : FxColorUtil.colorToHex(nv);
+      final String style = FxStyles.replaceProperty(text.getStyle(), "-fx-text-fill", colorStr);
+      text.setStyle(style);
+    });
+    return text;
+  }
+
+  public static Label colored(Label text, Color color) {
+    final String colorStr = color == null ? null : FxColorUtil.colorToHex(color);
+    final String style = FxStyles.replaceProperty(text.getStyle(), "-fx-text-fill", colorStr);
+    text.setStyle(style);
+    return text;
   }
 }

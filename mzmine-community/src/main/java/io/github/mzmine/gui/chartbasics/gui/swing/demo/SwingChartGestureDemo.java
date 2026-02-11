@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,17 +25,16 @@
 
 package io.github.mzmine.gui.chartbasics.gui.swing.demo;
 
+import io.github.mzmine.gui.chartbasics.FxChartFactory;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import java.awt.BorderLayout;
 import java.util.Random;
+import javafx.scene.layout.StackPane;
 import javax.swing.JFrame;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import javafx.scene.layout.StackPane;
 
 public class SwingChartGestureDemo extends JFrame {
 
@@ -50,7 +49,7 @@ public class SwingChartGestureDemo extends JFrame {
     setSize(800, 600);
     setTitle("Chart gesture test");
     XYDataset dataset = createDataset();
-    JFreeChart chart = ChartFactory.createXYLineChart("Random", "i", "r", createDataset());
+    JFreeChart chart = FxChartFactory.createXYLineChart("Random", "i", "r", createDataset());
     EChartPanel canvas = new EChartPanel(chart);
     StackPane stackPane = new StackPane();
     getContentPane().add(canvas, BorderLayout.CENTER);

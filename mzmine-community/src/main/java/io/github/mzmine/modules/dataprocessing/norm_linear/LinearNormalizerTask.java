@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -41,6 +40,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Hashtable;
@@ -110,10 +110,9 @@ class LinearNormalizerTask extends AbstractTask {
     // Create new feature list
     normalizedFeatureList = new ModularFeatureList(originalFeatureList + " " + suffix,
         getMemoryMapStorage(), originalFeatureList.getRawDataFiles());
+    // do not transfer types add them later
+    FeatureListUtils.transferMetadata(originalFeatureList, normalizedFeatureList, false);
 
-    originalFeatureList.getRawDataFiles().forEach(
-        file -> normalizedFeatureList.setSelectedScans(file,
-            originalFeatureList.getSeletedScans(file)));
     // Loop through all raw data files, and find the feature with biggest
     // height
     float maxOriginalHeight = 0f;
@@ -265,11 +264,6 @@ class LinearNormalizerTask extends AbstractTask {
     // Add new feature list to the project
     handleOriginal.reflectNewFeatureListToProject(suffix, project, normalizedFeatureList,
         originalFeatureList);
-
-    // Load previous applied methods
-    for (FeatureListAppliedMethod proc : originalFeatureList.getAppliedMethods()) {
-      normalizedFeatureList.addDescriptionOfAppliedTask(proc);
-    }
 
     // Add task description to feature List
     normalizedFeatureList.addDescriptionOfAppliedTask(

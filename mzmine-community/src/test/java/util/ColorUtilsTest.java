@@ -46,7 +46,7 @@ public class ColorUtilsTest {
     final var yellow = new Color(0.941f, 0.894f, 0.259f, 1f); // yellow
     final var darkBlue = new Color(0.f, 0.447f, 0.698f, 1f); // blue
     final var red = new Color(0.835f, 0.369f, 0.f, 1f); // vermillion (darker orange)
-    final var pink = new Color(0.800f, 0.475f, 0.655f, 1f);
+    final var pink = new Color(0.749f, 0.1725f, 0.5176f, 1f);
 
     Assertions.assertEquals(133.22658710091355d, ColorUtils.getColorDifference(orange, red));
     Assertions.assertEquals(205.02990544415744d,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,10 +52,11 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -325,13 +326,16 @@ public class RowsFilterTask extends AbstractTask {
         return null;
       }
 
+      final boolean allGcEiMS = row.streamFeatures().map(ModularFeature::getAllMS2FragmentScans)
+          .flatMap(Collection::stream).allMatch(ScanUtils::isGcEiScan);
       final boolean hasMS2 = row.hasMs2Fragmentation();
       final boolean annotated = row.isIdentified();
 
       // Only remove rows that match *all* of the criteria, so add
       // rows that fail any of the criteria.
       // Only add the row if none of the criteria have failed.
-      boolean keepRow = (keepAllWithMS2 && hasMS2) || (keepAnnotated && annotated)
+      // GC-EI-MS PseudoSpectra are not counted as MS2 here
+      boolean keepRow = (!allGcEiMS && keepAllWithMS2 && hasMS2) || (keepAnnotated && annotated)
           || isFilterRowCriteriaFailed(row, rowIndex, hasMS2) != removeFailed;
       if (keepRow) {
         rowsToAdd.add(row);
@@ -466,8 +470,8 @@ public class RowsFilterTask extends AbstractTask {
     if (filterByIdentityText) {
       boolean foundText = false;
       if (!foundText && !row.getCompoundAnnotations().isEmpty()) {
-        if (CompoundAnnotationUtils.streamFeatureAnnotations(row)
-            .map(FeatureAnnotation::getCompoundName).filter(Objects::nonNull)
+        if (row.streamAllFeatureAnnotations().map(FeatureAnnotation::getCompoundName)
+            .filter(Objects::nonNull)
             .anyMatch(name -> name.toLowerCase().trim().contains(searchText))) {
           foundText = true;
         }
@@ -552,8 +556,8 @@ public class RowsFilterTask extends AbstractTask {
 
     // Filter by charge range
     if (filterByCharge) {
-      int charge = row.getBestFeature().getCharge();
-      if (charge == 0 || !chargeRange.contains(charge)) {
+      final Integer charge = row.getRowCharge();
+      if (charge == null || charge == 0 || !chargeRange.contains(charge)) {
         return true;
       }
     }

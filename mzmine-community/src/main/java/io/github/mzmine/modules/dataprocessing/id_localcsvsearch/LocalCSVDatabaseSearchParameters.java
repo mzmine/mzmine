@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -57,6 +58,8 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -131,6 +134,11 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "Matches predicted and detected isotope pattern. Make sure to run isotope finder before on the feature list.",
       new IsotopePatternMatcherParameters());
 
+  public static final BooleanParameter calculateMainSignal = new BooleanParameter(
+      "Calculate main isotopic signal",
+      "Calculate the main signal of an isotope pattern for large molecules (>C75) and elements other than CHONPFI.",
+      true);
+
   private static final Function<@Nullable String, @Nullable Float> wildcardFloatMapper = s -> {
     final Float v = ParsingUtils.stringToFloat(s);
     if (v == null || v >= 0) {
@@ -177,6 +185,13 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       HandleExtraColumnsOptions.IMPORT_SPECIFIC,
       new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IGNORE, null));
 
+  public static final ComboParameter<ChargeFilterType> chargeFilter = new ComboParameter<>(
+      "Charge filter", """
+      If enabled, the charge of the compound determined through the "%s" parameter or by importing
+      the "%s" type and matched to the determined charge of the feature (isotope pattern must be detected).
+      If no isotope pattern is detected, the charge filtering is not executed and compounds are matched
+      regardless of charge state.""".formatted(ionLibrary.getName(),
+      new IonTypeType().getHeaderString()), ChargeFilterType.values(), ChargeFilterType.NO_FILTER);
 
   // old parameter
   private final StringParameter commentFields = new StringParameter("Append comment fields",
@@ -187,12 +202,15 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_cmpd_db/local-cmpd-db-search.html",
         peakLists, dataBaseFile, fieldSeparator, columns, mzTolerance, rtTolerance, mobTolerance,
-        ccsTolerance, riTolerance, isotopePatternMatcher, ionLibrary, filterSamples, extraColumns);
+        ccsTolerance, riTolerance, chargeFilter, isotopePatternMatcher, ionLibrary,
+        calculateMainSignal, filterSamples, extraColumns);
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    final boolean superCheck = super.checkParameterValues(errorMessages);
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(errorMessages,
+        skipRawDataAndFeatureListParameters);
 
     final List<ImportType<?>> selectedTypes = getParameter(columns).getValue().stream()
         .filter(ImportType::isSelected).toList();
@@ -221,7 +239,17 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
           new SmilesStructureType().getHeaderString()));
     }
 
-    return superCheck && anyIdentifierSelected && canDetermineMz;
+    boolean chargeFilterPossible = true;
+    if (getValue(chargeFilter) != ChargeFilterType.NO_FILTER && !(getValue(ionLibrary) || getValue(
+        columns).stream().filter(i -> i.getDataType().equals(new IonTypeType())).findFirst()
+        .map(ImportType::isSelected).orElse(false))) {
+      errorMessages.add("""
+          Cannot apply charge filtering if neither the "%s" parameter nor the "%s" charge are enabled.""".formatted(
+          ionLibrary.getName(), new IonTypeType().getHeaderString()));
+      chargeFilterPossible = false;
+    }
+
+    return superCheck && anyIdentifierSelected && canDetermineMz && chargeFilterPossible;
   }
 
   private boolean isAnyIdentifierSelected(Collection<String> errorMessages,
@@ -282,7 +310,7 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       setParameter(ccsTolerance, ccsFilterEnabled);
     }
 
-    if(loadedVersion < 3) {
+    if (loadedVersion < 3) {
       // need to disable when loading an old parameter set.
       setParameter(riTolerance, false);
     }
@@ -302,6 +330,14 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
             new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IMPORT_SPECIFIC,
                 commentFieldValues));
       }
+    }
+
+    if (!loadedParams.containsKey(calculateMainSignal.getName())) {
+      setParameter(calculateMainSignal, false);
+    }
+
+    if (!loadedParams.containsKey(chargeFilter.getName())) {
+      setParameter(chargeFilter, ChargeFilterType.NO_FILTER);
     }
   }
 

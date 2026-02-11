@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -461,8 +461,8 @@ public class MSnTreeTab extends SimpleTab {
 
     // update chart
     for (var spectraPlot : spectraPlots) {
+      // triggers the chart update event internally
       spectraPlot.setNotifyChange(true);
-      spectraPlot.fireChangeEvent();
     }
   }
 

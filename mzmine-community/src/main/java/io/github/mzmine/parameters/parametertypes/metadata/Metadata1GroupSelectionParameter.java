@@ -37,29 +37,29 @@ import org.w3c.dom.Element;
 /**
  * Selects a single group from a metadata column
  */
-public class MetadataGroupSelectionParameter implements
-    UserParameter<MetadataGroupSelection, MetadataGroupSelectionComponent> {
+public class Metadata1GroupSelectionParameter implements
+    UserParameter<Metadata1GroupSelection, Metadata1GroupSelectionComponent> {
 
   private final String name;
   private final String descr;
   private final String XML_COLUMN_ATTR = "column";
   private final String XML_GROUP_ATTR = "group";
   @NotNull
-  private MetadataGroupSelection value;
+  private Metadata1GroupSelection value;
 
-  public MetadataGroupSelectionParameter() {
+  public Metadata1GroupSelectionParameter() {
     this("Sample grouping", "Select a sample metadata column and group from this column.");
   }
 
-  public MetadataGroupSelectionParameter(String name, String descr) {
-    this(name, descr, new MetadataGroupSelection("", ""));
+  public Metadata1GroupSelectionParameter(String name, String descr) {
+    this(name, descr, new Metadata1GroupSelection("", ""));
   }
 
-  public MetadataGroupSelectionParameter(String name, String descr,
-      @Nullable MetadataGroupSelection defaultValue) {
+  public Metadata1GroupSelectionParameter(String name, String descr,
+      @Nullable Metadata1GroupSelection defaultValue) {
     this.name = name;
     this.descr = descr;
-    value = requireNonNullElse(defaultValue, MetadataGroupSelection.NONE);
+    value = requireNonNullElse(defaultValue, Metadata1GroupSelection.NONE);
   }
 
   @Override
@@ -68,13 +68,13 @@ public class MetadataGroupSelectionParameter implements
   }
 
   @Override
-  public @NotNull MetadataGroupSelection getValue() {
+  public @NotNull Metadata1GroupSelection getValue() {
     return value;
   }
 
   @Override
-  public void setValue(@Nullable MetadataGroupSelection newValue) {
-    value = requireNonNullElse(newValue, MetadataGroupSelection.NONE);
+  public void setValue(@Nullable Metadata1GroupSelection newValue) {
+    value = requireNonNullElse(newValue, Metadata1GroupSelection.NONE);
   }
 
   @Override
@@ -93,7 +93,7 @@ public class MetadataGroupSelectionParameter implements
     final String column = xmlElement.getAttribute(XML_COLUMN_ATTR);
     final String group = xmlElement.getAttribute(XML_GROUP_ATTR);
 
-    this.value = new MetadataGroupSelection(column.trim(), group.trim());
+    this.value = new Metadata1GroupSelection(column.trim(), group.trim());
   }
 
   @Override
@@ -108,30 +108,31 @@ public class MetadataGroupSelectionParameter implements
   }
 
   @Override
-  public MetadataGroupSelectionComponent createEditingComponent() {
-    return new MetadataGroupSelectionComponent();
+  public Metadata1GroupSelectionComponent createEditingComponent() {
+    return new Metadata1GroupSelectionComponent();
   }
 
   @Override
   public void setValueFromComponent(
-      MetadataGroupSelectionComponent metadataGroupSelectionComponent) {
+      Metadata1GroupSelectionComponent metadataGroupSelectionComponent) {
     this.value = metadataGroupSelectionComponent.getValue();
   }
 
   @Override
-  public void setValueToComponent(MetadataGroupSelectionComponent metadataGroupSelectionComponent,
-      @Nullable MetadataGroupSelection newValue) {
+  public void setValueToComponent(Metadata1GroupSelectionComponent metadataGroupSelectionComponent,
+      @Nullable Metadata1GroupSelection newValue) {
     metadataGroupSelectionComponent.setValue(newValue);
   }
 
   @Override
-  public UserParameter<MetadataGroupSelection, MetadataGroupSelectionComponent> cloneParameter() {
-    final MetadataGroupSelectionParameter param = new MetadataGroupSelectionParameter(name, descr);
+  public UserParameter<Metadata1GroupSelection, Metadata1GroupSelectionComponent> cloneParameter() {
+    final Metadata1GroupSelectionParameter param = new Metadata1GroupSelectionParameter(name,
+        descr);
     if (value == null) {
       param.setValue(null);
       return param;
     }
-    param.setValue(new MetadataGroupSelection(value.columnName(), value.groupStr()));
+    param.setValue(new Metadata1GroupSelection(value.columnName(), value.groupStr()));
     return param;
   }
 

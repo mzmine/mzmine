@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,12 +35,14 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelRow;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
@@ -50,11 +52,13 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMat
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.annotations.online_reaction.OnlineLcReactionMatchType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
@@ -67,7 +71,6 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
@@ -76,6 +79,7 @@ import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.scans.FragmentScanSorter;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
@@ -473,7 +477,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   @Override
-  public void addCompoundAnnotation(CompoundDBAnnotation id) {
+  public void addCompoundAnnotations(@NotNull List<CompoundDBAnnotation> id) {
     // should usually not be called from multiple threads
     synchronized (writeLock) {
       List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
@@ -481,9 +485,12 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
       if (matches != null) {
         newList.addAll(matches);
       }
-      newList.add(id);
+      newList.addAll(id);
       set(CompoundDatabaseMatchesType.class, newList);
     }
+    // outside of lock
+    // cache values like isotope pattern to speed up feature table
+    CompoundAnnotationUtils.precalculateAnnotationValues(id, this);
   }
 
   @NotNull
@@ -494,8 +501,34 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   @Override
-  public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
+  public void setCompoundAnnotations(@Nullable List<CompoundDBAnnotation> annotations) {
     set(CompoundDatabaseMatchesType.class, annotations);
+    if (annotations != null) {
+      // cache values like isotope pattern to speed up feature table
+      CompoundAnnotationUtils.precalculateAnnotationValues(annotations, this);
+    }
+  }
+
+  @Override
+  public @Nullable FeatureAnnotation getPreferredAnnotation() {
+    // call the schema directly to not generate a stack overflow
+    // because ModularFeatureListRow#get(PreferredAnnotationType) calls this method
+    FeatureAnnotation featureAnnotation = schema.get(modelRowIndex,
+        DataTypes.get(PreferredAnnotationType.class));
+    if (featureAnnotation != null) {
+      return featureAnnotation;
+    }
+    final AnnotationSummary summary = CompoundAnnotationUtils.getBestAnnotationSummary(this);
+    if (summary != null && summary.annotation() != null) {
+      // this type is only set through user action, so don't cache here
+      return summary.annotation();
+    }
+    return null;
+  }
+
+  @Override
+  public boolean isUserPreferredAnnotation() {
+    return schema.get(modelRowIndex, DataTypes.get(PreferredAnnotationType.class)) != null;
   }
 
   /**
@@ -520,23 +553,29 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   @Override
-  public void addSpectralLibraryMatch(SpectralDBAnnotation id) {
+  public void addSpectralLibraryMatch(@NotNull SpectralDBAnnotation id) {
     synchronized (writeLock) {
       List<SpectralDBAnnotation> old = requireNonNullElseGet(get(SpectralLibraryMatchesType.class),
           ArrayList::new);
       old.add(id);
       set(SpectralLibraryMatchesType.class, old);
     }
+    // outside of lock
+    // cache values like isotope pattern to speed up feature table
+    CompoundAnnotationUtils.precalculateAnnotationValues(id, this);
   }
 
   @Override
-  public void addSpectralLibraryMatches(List<SpectralDBAnnotation> matches) {
+  public void addSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches) {
     synchronized (writeLock) {
       List<SpectralDBAnnotation> old = requireNonNullElseGet(get(SpectralLibraryMatchesType.class),
           ArrayList::new);
       old.addAll(matches);
       set(SpectralLibraryMatchesType.class, old);
     }
+    // outside of lock
+    // cache values like isotope pattern to speed up feature table
+    CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
   }
 
   @Override
@@ -548,6 +587,10 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   @Override
   public void setSpectralLibraryMatch(List<SpectralDBAnnotation> matches) {
     set(SpectralLibraryMatchesType.class, matches);
+    if (matches != null) {
+      // cache values like isotope pattern to speed up feature table
+      CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
+    }
   }
 
   @Override
@@ -668,20 +711,13 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   @Override
-  public Object getPreferredAnnotation() {
-    return streamAllFeatureAnnotations().findFirst().orElse(null);
-  }
-
-  @Override
+  @Nullable
   public String getPreferredAnnotationName() {
-    Object annotation = getPreferredAnnotation();
-    return switch (annotation) {
-      case FeatureAnnotation ann -> ann.getCompoundName();
-      case ManualAnnotation ann -> ann.getCompoundName();
-      case MolecularFormulaIdentity ann -> ann.getFormulaAsString();
-      case null -> null;
-      default -> throw new IllegalStateException("Unexpected value: " + annotation);
-    };
+    FeatureAnnotation annotation = getPreferredAnnotation();
+    if (annotation != null) {
+      return annotation.getCompoundName();
+    }
+    return null;
   }
 
   @Override
@@ -708,22 +744,42 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   @Override
-  public void addLipidAnnotation(MatchedLipid matchedLipid) {
+  public void addLipidAnnotation(@NotNull List<MatchedLipid> matchedLipid) {
     synchronized (writeLock) {
       // add column first if needed
       List<MatchedLipid> matches = get(LipidMatchListType.class);
       if (matches == null) {
-        matches = List.of(matchedLipid);
+        matches = new ArrayList<>(matchedLipid);
       } else {
         matches = new ArrayList<>(matches);
-        matches.add(matchedLipid);
+        matches.addAll(matchedLipid);
       }
       set(LipidMatchListType.class, matches);
+    }
+    // outside of lock
+    // cache values like isotope pattern to speed up feature table
+    CompoundAnnotationUtils.precalculateAnnotationValues(matchedLipid, this);
+  }
+
+  @Override
+  public void setLipidAnnotations(@Nullable List<MatchedLipid> matchedLipid) {
+    set(LipidMatchListType.class, matchedLipid);
+    if (matchedLipid != null) {
+      // cache values like isotope pattern to speed up feature table
+      CompoundAnnotationUtils.precalculateAnnotationValues(matchedLipid, this);
     }
   }
 
   @Override
   public String toString() {
     return FeatureUtils.rowToString(this);
+  }
+
+  @Override
+  public <T> @Nullable T get(DataType<T> key) {
+    if (key instanceof MappingType<?> mt) {
+      return (T) mt.getValue(this);
+    }
+    return super.get(key);
   }
 }

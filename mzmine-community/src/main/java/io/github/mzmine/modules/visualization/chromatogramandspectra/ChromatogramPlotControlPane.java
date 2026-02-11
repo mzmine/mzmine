@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,9 +41,12 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import org.jetbrains.annotations.Nullable;
 
 public class ChromatogramPlotControlPane extends VBox {
 
@@ -55,11 +58,15 @@ public class ChromatogramPlotControlPane extends VBox {
   private final Button btnParam;
   private final ParameterSet parameters;
   private final PolarityFilterComboBox polarityCombo;
+  private final StackPane polarityComboParentPane;
   protected NumberFormat mzFormat;
   protected Number min;
   protected Number max;
 
   protected Consumer<ParameterSet> parameterListener;
+  // may know of its parent titledPane
+  @Nullable
+  private TitledPane titledPane;
 
 
   public ChromatogramPlotControlPane(final ParameterSet parameters) {
@@ -99,7 +106,8 @@ public class ChromatogramPlotControlPane extends VBox {
 
     Tooltip.install(polarityCombo, new Tooltip("Scan polarity filter"));
 
-    HBox controlsWrap = new HBox(5, cbXIC, btnUpdateXIC, btnParam, polarityCombo);
+    polarityComboParentPane = new StackPane(polarityCombo);
+    HBox controlsWrap = new HBox(5, cbXIC, btnUpdateXIC, btnParam, polarityComboParentPane);
     controlsWrap.setAlignment(Pos.CENTER);
     mzRangeNode.setAlignment(Pos.CENTER);
     getChildren().addAll(controlsWrap, mzRangeNode);
@@ -109,6 +117,14 @@ public class ChromatogramPlotControlPane extends VBox {
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     min = null;
     max = null;
+  }
+
+  public PolarityFilterComboBox getPolarityCombo() {
+    return polarityCombo;
+  }
+
+  public StackPane getPolarityComboParentPane() {
+    return polarityComboParentPane;
   }
 
   private void setScanPolarityFilterToParameters(final PolarityType newPolarity) {
@@ -217,5 +233,14 @@ public class ChromatogramPlotControlPane extends VBox {
         mzRange.set(null);
       }
     }));
+  }
+
+  public void setParentTitledPane(@Nullable TitledPane titledPane) {
+    this.titledPane = titledPane;
+  }
+
+  @Nullable
+  public TitledPane getParentTitledPane() {
+    return titledPane;
   }
 }

@@ -27,10 +27,8 @@ package io.github.mzmine.datamodel.features.types;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.abstr.EnumDataType;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
@@ -45,9 +43,6 @@ import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
 import javafx.util.Callback;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,7 +73,7 @@ public class DetectionType extends EnumDataType<FeatureStatus> implements
   }
 
   @Override
-  public double getColumnWidth() {
+  public double getPrefColumnWidth() {
     return 10;
   }
 

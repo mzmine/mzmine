@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -134,8 +134,9 @@ public class ImagingPlot extends BorderPane {
     final boolean lockOnAspectRatio = MZmineCore.getConfiguration()
         .getModuleParameters(FeatureTableFXModule.class)
         .getParameter(FeatureTableFXParameters.lockImagesToAspectRatio).getValue();
-    MZmineCore.getConfiguration().getDefaultChartTheme().apply(chart);
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
+
+    chart.setLegendVisible(true);
 
     setCenter(chart);
     return chart;

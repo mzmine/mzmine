@@ -513,8 +513,13 @@ public class TICVisualizerTab extends MZmineTab {
    * @return current cursor position
    */
   public ChromatogramCursorPosition getCursorPosition() {
-    float selectedRT = (float) ticPlot.getXYPlot().getDomainCrosshairValue();
-    double selectedIT = ticPlot.getXYPlot().getRangeCrosshairValue();
+    final ChromatogramCursorPosition cursor = ticPlot.getCursorPosition();
+    if (cursor == null) {
+      return null;
+    }
+    float selectedRT = (float) cursor.getDomainValue();
+    double selectedIT = cursor.getRangeValue();
+
     Enumeration<TICDataSet> e = ticDataSets.elements();
     while (e.hasMoreElements()) {
       TICDataSet dataSet = e.nextElement();
@@ -525,7 +530,7 @@ public class TICVisualizerTab extends MZmineTab {
           mz = dataSet.getZValue(0, index);
         }
         ChromatogramCursorPosition pos = new ChromatogramCursorPosition(selectedRT, mz, selectedIT,
-            dataSet.getDataFile(), dataSet.getScan(index));
+            dataSet.getDataFile(), dataSet.getScan(index), index);
         return pos;
       }
     }

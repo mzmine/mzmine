@@ -27,6 +27,7 @@ package io.github.mzmine.util.reporting.jasper.reporttypes;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.reporting.jasper.ReportUtils;
 import java.util.Map;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperPrint;
@@ -34,7 +35,8 @@ import org.jetbrains.annotations.NotNull;
 
 public interface ReportModule extends MZmineModule {
 
-  JasperPrint generateReport(FeatureList flist, Map<String, Object> jasperParameters)
+  JasperPrint generateReport(@NotNull FeatureList flist,
+      @NotNull Map<String, Object> jasperParameters, @NotNull ReportUtils reportUtils)
       throws JRException;
 
   double getProgress();

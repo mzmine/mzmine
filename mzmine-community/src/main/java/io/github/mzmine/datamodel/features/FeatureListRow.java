@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
@@ -42,6 +43,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -196,7 +198,9 @@ public interface FeatureListRow extends ModularDataModel {
   Float getMaxHeight();
 
   /**
-   * Returns the charge for feature on this row. If more charges are found 0 is returned
+   * Returns the most common charge for features on this row. (most common or the lowest charge if
+   * multiple charges have the same number of features).
+   * @return most common charge state
    */
   Integer getRowCharge();
 
@@ -338,16 +342,25 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * @param annotations sets all compound annotations.
    */
-  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
+  void setCompoundAnnotations(@Nullable List<CompoundDBAnnotation> annotations);
 
   /**
    * Appends a compound annotation.
    *
    * @param id
    */
-  void addCompoundAnnotation(CompoundDBAnnotation id);
+  default void addCompoundAnnotation(@NotNull CompoundDBAnnotation id) {
+    addCompoundAnnotations(List.of(id));
+  }
 
-  void addSpectralLibraryMatch(SpectralDBAnnotation id);
+  /**
+   * Appends a compound annotation.
+   *
+   * @param ids
+   */
+  void addCompoundAnnotations(@NotNull List<CompoundDBAnnotation> ids);
+
+  void addSpectralLibraryMatch(@NotNull SpectralDBAnnotation id);
 
   boolean isIdentified();
 
@@ -525,12 +538,19 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @param matchedLipid the matched lipid
    */
-  void addLipidAnnotation(MatchedLipid matchedLipid);
+  void addLipidAnnotation(@NotNull List<MatchedLipid> matchedLipid);
+
+  /**
+   * Sets and replaces annotations from lipid search
+   *
+   * @param matchedLipid the matched lipid
+   */
+  void setLipidAnnotations(@Nullable List<MatchedLipid> matchedLipid);
 
   // -- ModularFeatureListRow additions
   Stream<ModularFeature> streamFeatures();
 
-  void addSpectralLibraryMatches(List<SpectralDBAnnotation> matches);
+  void addSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches);
 
   @Nullable Range<Float> getMobilityRange();
 
@@ -542,21 +562,31 @@ public interface FeatureListRow extends ModularDataModel {
   boolean hasIsotopePattern();
 
   /**
-   * Uses {@link FeatureAnnotationPriority} to find the best annotation from different methods
+   * Preferred annotation, either set by the user in the GUI or via
+   * {@link
+   * io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummaryOrder#getComparatorHighFirst()}
+   * to find the best annotation from different methods.
    *
    * @return the preferred annotation or null
    */
-  @Nullable Object getPreferredAnnotation();
+  @Nullable FeatureAnnotation getPreferredAnnotation();
 
+  /**
+   *
+   * @return true if the preferred annotation was set by the user specifically, false if this row
+   * has no preferred annotation or it was computed automatically by a module or the default
+   * sorting.
+   */
+  boolean isUserPreferredAnnotation();
 
   @NotNull
-  default Stream<Object> streamAllFeatureAnnotations() {
-    return new FeatureAnnotationIterator(this).stream();
+  default Stream<FeatureAnnotation> streamAllFeatureAnnotations() {
+    return getAllFeatureAnnotations().stream();
   }
 
   @NotNull
-  default List<Object> getAllFeatureAnnotations() {
-    return streamAllFeatureAnnotations().toList();
+  default List<FeatureAnnotation> getAllFeatureAnnotations() {
+    return CompoundAnnotationUtils.getAllFeatureAnnotationsByDescendingConfidence(this);
   }
 
   /**
@@ -567,14 +597,11 @@ public interface FeatureListRow extends ModularDataModel {
   @Nullable String getPreferredAnnotationName();
 
   /**
-   * @return The polarity of this row. Based on {@link Feature#getRepresentativeScan()}.
+   * @return The polarity of this row. Based on {@link Feature#getRepresentativeScan()} or MS2 scans.
    */
   @Nullable
   default PolarityType getRepresentativePolarity() {
-    final Feature bestFeature = getBestFeature();
-    if (bestFeature != null && bestFeature.getRepresentativePolarity() != null) {
-      return bestFeature.getRepresentativePolarity();
-    }
+    // checks best feature first
     return streamFeatures().sorted(Comparator.comparingDouble(Feature::getHeight).reversed())
         .map(Feature::getRepresentativePolarity).filter(Objects::nonNull).findFirst().orElse(null);
   }

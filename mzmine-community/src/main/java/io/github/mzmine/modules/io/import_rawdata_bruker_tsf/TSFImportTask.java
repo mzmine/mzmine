@@ -211,8 +211,14 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
 
       setDescription("Importing " + rawDataFileName + ": Scan " + frameId + "/" + numScans);
 
-      final Scan scan = tsfUtils.loadScan(newMZmineFile, handle, frameId, metaDataTable, frameTable,
-          frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
+      final Scan scan;
+      try {
+        scan = tsfUtils.loadScan(newMZmineFile, handle, frameId, metaDataTable,
+            frameTable, frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
+      } catch (Exception e) {
+        error("Error while loading scan %d in of file %s".formatted(frameId, rawDataFileName), e);
+        return false;
+      }
 
       if (scan == null) {
         continue;
