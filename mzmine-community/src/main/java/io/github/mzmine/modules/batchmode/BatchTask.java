@@ -76,6 +76,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Alert.AlertType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Batch mode task
@@ -87,7 +88,6 @@ public class BatchTask extends AbstractTask {
   // advanced parameters
   private final int stepsPerDataset;
   private final int totalSteps;
-  private final MZmineProject project;
   private final boolean useAdvanced;
   private final int datasets;
   private final List<StepTimeMeasurement> stepTimes = new ArrayList<>();
@@ -103,6 +103,8 @@ public class BatchTask extends AbstractTask {
   private Boolean createResultsDir;
   private File parentDir;
   private int currentDataset;
+  @Nullable
+  private final AbstractTask parentTask;
 
   BatchTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     this(project, parameters, moduleCallDate,
@@ -110,13 +112,23 @@ public class BatchTask extends AbstractTask {
   }
 
   public BatchTask(final MZmineProject project, final ParameterSet parameters,
-      final Instant moduleCallDate, final List<File> subDirectories) {
+      final Instant moduleCallDate, final @Nullable List<File> subDirectories) {
+    this(project, parameters, moduleCallDate, subDirectories, null);
+  }
+
+  public BatchTask(final MZmineProject project, final ParameterSet parameters,
+      final Instant moduleCallDate, @Nullable final List<File> subDirectories,
+      @Nullable AbstractTask parentTask) {
     super(null, moduleCallDate);
+
+    // cannot use project inside this task.
+    // may have ProjectLoadTask that will change the project always get the latest project
+
+    this.parentTask = parentTask;
     this.runGCafterBatchStep = requireNonNullElse(
         getPreference(MZminePreferences.runGCafterBatchStep), false);
 
     setName("Batch task");
-    this.project = project;
     this.queue = parameters.getParameter(BatchModeParameters.batchQueue).getValue();
     // advanced parameters
     useAdvanced = false;
@@ -141,6 +153,10 @@ public class BatchTask extends AbstractTask {
     createdFeatureLists = new ArrayList<>();
     previousCreatedDataFiles = new ArrayList<>();
     previousCreatedFeatureLists = new ArrayList<>();
+  }
+
+  private MZmineProject getProject() {
+    return ProjectService.getProject();
   }
 
   /**
@@ -179,6 +195,15 @@ public class BatchTask extends AbstractTask {
     }
 
     return finishedTask.getActualTask().getStatus();
+  }
+
+  private boolean isParentTaskStopped() {
+    return parentTask != null && parentTask.isCanceled();
+  }
+
+  @Override
+  public boolean isCanceled() {
+    return super.isCanceled() || isParentTaskStopped();
   }
 
   @Override
@@ -372,8 +397,8 @@ public class BatchTask extends AbstractTask {
     MZmineProcessingModule method = (MZmineProcessingModule) currentStep.getModule();
     ParameterSet batchStepParameters = currentStep.getParameterSet();
 
-    final List<FeatureList> beforeFeatureLists = project.getCurrentFeatureLists();
-    final List<RawDataFile> beforeDataFiles = project.getCurrentRawDataFiles();
+    final List<FeatureList> beforeFeatureLists = getProject().getCurrentFeatureLists();
+    final List<RawDataFile> beforeDataFiles = getProject().getCurrentRawDataFiles();
 
     // If the last step did not produce any data files or feature lists, use
     // the ones from the previous step
@@ -419,7 +444,7 @@ public class BatchTask extends AbstractTask {
     Instant moduleCallDate = Instant.now();
     logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString()
         + " with parameters " + batchStepParameters.cloneParameterSet(true).toString());
-    ExitCode exitCode = method.runModule(project, batchStepParameters, currentStepTasks,
+    ExitCode exitCode = method.runModule(getProject(), batchStepParameters, currentStepTasks,
         moduleCallDate);
     logger.finest(
         () -> "Module " + method.getName() + " created " + currentStepTasks.size() + " tasks");
@@ -456,8 +481,8 @@ public class BatchTask extends AbstractTask {
       return;
     }
 
-    createdDataFiles = new ArrayList<>(project.getCurrentRawDataFiles());
-    createdFeatureLists = new ArrayList<>(project.getCurrentFeatureLists());
+    createdDataFiles = new ArrayList<>(getProject().getCurrentRawDataFiles());
+    createdFeatureLists = new ArrayList<>(getProject().getCurrentFeatureLists());
     createdDataFiles.removeAll(beforeDataFiles);
     createdFeatureLists.removeAll(beforeFeatureLists);
     createdFeatureLists.removeIf(FeatureList::isExcludedFromBatchLastSelection);

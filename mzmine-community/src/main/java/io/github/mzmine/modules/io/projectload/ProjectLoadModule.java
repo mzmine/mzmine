@@ -25,17 +25,16 @@
 
 package io.github.mzmine.modules.io.projectload;
 
-import java.time.Instant;
-import java.util.Collection;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class implements BatchStep interface, so project loading can be activated in a batch.
@@ -61,6 +60,12 @@ public class ProjectLoadModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+    if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(ProjectOpeningTask.class)) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Currently loading a project, cannot start a second project import.");
+      return null;
+    }
+
     ProjectOpeningTask newTask = new ProjectOpeningTask(parameters, moduleCallDate);
     tasks.add(newTask);
     return ExitCode.OK;
