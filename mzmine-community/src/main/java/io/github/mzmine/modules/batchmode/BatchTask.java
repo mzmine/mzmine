@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,6 +41,7 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
 import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
@@ -76,6 +77,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Alert.AlertType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Batch mode task
@@ -93,7 +95,7 @@ public class BatchTask extends AbstractTask {
   private final List<StepTimeMeasurement> stepTimes = new ArrayList<>();
   private final boolean runGCafterBatchStep;
   private int processedSteps;
-  private List<File> subDirectories;
+  private @Nullable List<File> subDirectories;
   private List<RawDataFile> createdDataFiles;
   private List<RawDataFile> previousCreatedDataFiles;
   private List<FeatureList> createdFeatureLists;
@@ -110,14 +112,23 @@ public class BatchTask extends AbstractTask {
   }
 
   public BatchTask(final MZmineProject project, final ParameterSet parameters,
-      final Instant moduleCallDate, final List<File> subDirectories) {
+      final Instant moduleCallDate, final @Nullable List<File> subDirectories) {
     super(null, moduleCallDate);
     this.runGCafterBatchStep = requireNonNullElse(
         getPreference(MZminePreferences.runGCafterBatchStep), false);
 
     setName("Batch task");
-    this.project = project;
     this.queue = parameters.getParameter(BatchModeParameters.batchQueue).getValue();
+    if (queue.getFirst().getModule() instanceof ProjectLoadModule) {
+      // clear project if first step is project load. otherwise it is probably intended that
+      // the project just adds to the current project.
+      ProjectService.getProjectManager().clearProject();
+      ProjectService.getProject().clearSpectralLibrary(); // copied by default, remove in this case
+      this.project = ProjectService.getProject();
+    } else {
+      this.project = project;
+    }
+
     // advanced parameters
     useAdvanced = false;
 //    useAdvanced = parameters.getParameter(BatchModeParameters.advanced).getValue();
@@ -230,7 +241,7 @@ public class BatchTask extends AbstractTask {
     // Process individual batch steps
     for (int i = 0; i < totalSteps; i++) {
       // at the end of one dataset, clear the project and start over again
-      if (useAdvanced && currentStep() == 0) {
+      if (useAdvanced && currentStep() == 0 && subDirectories != null) {
         // clear the old project
         ProjectService.getProjectManager().clearProject();
         currentDataset++;
