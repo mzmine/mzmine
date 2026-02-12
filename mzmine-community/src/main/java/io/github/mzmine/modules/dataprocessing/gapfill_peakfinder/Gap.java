@@ -91,9 +91,6 @@ public class Gap {
         .filter(f -> f.getFeatureStatus() == FeatureStatus.DETECTED)
         .max(Comparator.comparingDouble(Feature::getHeight))
         .orElse((ModularFeature) peakListRow.getBestFeature());
-    if (bestFeature.getFeatureStatus() != FeatureStatus.DETECTED) {
-      throw new IllegalArgumentException();
-    }
     final float bestFeatureRt = bestFeature.getRT();
     // assume that previously undetected features are limited by the RT width of the most intense one
     rtLengthLeft = bestFeatureRt - bestFeature.getRawDataPointsRTRange().lowerEndpoint();
