@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -593,7 +593,8 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     // add global keys that may be added to other dialogs to receive the same key event handling
     // key typed does not work
     // using EventFilter instead of handler as this is a top level to get all events
-    rootScene.addEventFilter(KeyEvent.KEY_RELEASED, GlobalKeyHandler.getInstance());
+//    rootScene.addEventFilter(KeyEvent.KEY_RELEASED, GlobalKeyHandler.getInstance());
+    rootScene.addEventHandler(KeyEvent.KEY_RELEASED, GlobalKeyHandler.getInstance());
 
     // check user in gui mode and show message now
     MZmineCore.checkUserRemainingDays(CurrentUserService.getUser());
