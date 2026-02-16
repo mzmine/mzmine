@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardSequenceFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceSaveModule;
@@ -484,11 +485,14 @@ public class BatchWizardTab extends SimpleTab {
       return;
     }
 
+    // Apply parameter overrides from customization tab
+
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
     try {
-      final BatchQueue q = ((WorkflowWizardParameterFactory) workflow.get()
-          .getFactory()).getBatchBuilder(sequenceSteps).createQueue();
+      WizardBatchBuilder batchBuilder = ((WorkflowWizardParameterFactory) workflow.get()
+          .getFactory()).getBatchBuilder(sequenceSteps);
+      final BatchQueue q = batchBuilder.createQueue();
       batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
 
       if (batchModeParameters.showSetupDialog(false) == ExitCode.OK) {

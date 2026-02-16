@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,21 +28,11 @@ package io.github.mzmine.modules.tools.batchwizard.builders;
 import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.modules.batchmode.BatchQueue;
-import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationLocalCSVDatabaseSearchParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.CustomizationWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.ParameterOverride;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDDA;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDIA;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDeconvolution;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowImaging;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowLibraryGeneration;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowMs1Only;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowTargetPlate;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -51,7 +41,7 @@ import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import java.io.File;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -168,4 +158,35 @@ public abstract class WizardBatchBuilder {
     return null;
   }
 
+  protected void applyParameterOverrides(BatchQueue queue) {
+
+    List<ParameterOverride> parameterOverrides = steps.get(WizardPart.CUSTOMIZATION)
+        .map(p -> p.getParameter(CustomizationWizardParameters.overrides).getValue())
+        .orElse(List.of());
+
+    for (ParameterOverride parameterOverride : parameterOverrides) {
+//      parameterOverride.get
+    }
+
+    /*for (MZmineProcessingStep<?> step : queue) {
+      Class<? extends MZmineModule> moduleClass = step.getModule().getClass();
+      if (overrides.containsKey(moduleClass)) {
+        Map<String, Object> paramOverrides = overrides.get(moduleClass);
+        ParameterSet params = step.getParameterSet();
+
+        for (Map.Entry<String, Object> entry : paramOverrides.entrySet()) {
+          String paramName = entry.getKey();
+          Object value = entry.getValue();
+
+          // Find and set the parameter
+          for (Parameter<?> param : params.getParameters()) {
+            if (param.getName().equals(paramName)) {
+              ((Parameter<Object>) param).setValue(value);
+              break;
+            }
+          }
+        }
+      }
+    }*/
+  }
 }
