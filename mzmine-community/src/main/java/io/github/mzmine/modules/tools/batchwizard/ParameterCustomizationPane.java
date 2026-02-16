@@ -26,6 +26,8 @@
 package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
@@ -57,6 +59,8 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.ComboBoxTableCell;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -92,8 +96,8 @@ public class ParameterCustomizationPane extends BorderPane {
   public ParameterCustomizationPane() {
     this.moduleTreePane = new BatchModuleTreePane(true);
     this.parameterListView = new ListView<>();
-    this.parameterEditorPane = new VBox(10);
-    this.instructionsLabel = new Label("Select a module to view its parameters");
+    this.parameterEditorPane = FxLayout.newVBox();
+    this.instructionsLabel = FxLabels.newLabel("Select a module to view its parameters");
     this.overridesTable = new TableView<>();
     this.tempOverrides = new HashMap<>();
 
@@ -130,27 +134,17 @@ public class ParameterCustomizationPane extends BorderPane {
   }
 
   private VBox createModuleTreePane() {
-    VBox leftPane = new VBox(5);
-    Label moduleLabel = new Label("Select Module:");
-    moduleLabel.setStyle("-fx-font-weight: bold;");
-    leftPane.getChildren().addAll(moduleLabel, moduleTreePane);
+    Label moduleLabel = FxLabels.newBoldLabel("Select Module:");
+    VBox leftPane = FxLayout.newVBox(null, FxLayout.DEFAULT_PADDING_INSETS, true, moduleLabel,
+        moduleTreePane);
     VBox.setVgrow(moduleTreePane, Priority.ALWAYS);
-    leftPane.setPadding(new Insets(5));
     return leftPane;
   }
 
   private VBox createParameterEditorPane() {
-    VBox middlePane = new VBox(5);
+    Label paramLabel = FxLabels.newBoldLabel("Parameters:");
+    Label editorLabel = FxLabels.newBoldLabel("Parameter Editor:");
 
-    Label paramLabel = new Label("Parameters:");
-    paramLabel.setStyle("-fx-font-weight: bold;");
-    middlePane.getChildren().addAll(paramLabel, parameterListView);
-    VBox.setVgrow(parameterListView, Priority.SOMETIMES);
-
-    Label editorLabel = new Label("Parameter Editor:");
-    editorLabel.setStyle("-fx-font-weight: bold;");
-
-    parameterEditorPane.setPadding(new Insets(10));
     parameterEditorPane.getChildren().add(instructionsLabel);
 
     ScrollPane editorScroll = new ScrollPane(parameterEditorPane);
@@ -162,32 +156,30 @@ public class ParameterCustomizationPane extends BorderPane {
     overrideButton.setDisable(true);
     overrideButton.setMaxWidth(Double.MAX_VALUE);
 
-    Label scopeLabel = new Label("Apply to:");
-    HBox scopeBox = new HBox(5, scopeLabel, scopeComboBox);
-    scopeBox.setAlignment(Pos.CENTER_LEFT);
-    scopeBox.setPadding(new Insets(5));
+    Label scopeLabel = FxLabels.newLabel("Apply to:");
+    HBox scopeBox = FxLayout.newHBox(Pos.CENTER_LEFT, FxLayout.DEFAULT_PADDING_INSETS, scopeLabel,
+        scopeComboBox);
     HBox.setHgrow(scopeComboBox, Priority.ALWAYS);
 
-    HBox buttonRow = new HBox(5, addButton, overrideButton);
-    buttonRow.setAlignment(Pos.CENTER);
+    HBox buttonRow = FxLayout.newHBox(Pos.CENTER, addButton, overrideButton);
 
-    VBox buttonBox = new VBox(5, scopeBox, buttonRow);
-    buttonBox.setPadding(new Insets(5));
+    VBox buttonBox = FxLayout.newVBox(null, FxLayout.DEFAULT_PADDING_INSETS, true, scopeBox,
+        buttonRow);
 
-    VBox editorSection = new VBox(5, editorLabel, editorScroll, buttonBox);
+    VBox editorSection = FxLayout.newVBox(null, FxLayout.DEFAULT_PADDING_INSETS, true, editorLabel,
+        editorScroll, buttonBox);
     VBox.setVgrow(editorScroll, Priority.ALWAYS);
 
-    middlePane.getChildren().add(editorSection);
+    VBox middlePane = FxLayout.newVBox(null, FxLayout.DEFAULT_PADDING_INSETS, true, paramLabel,
+        parameterListView, editorSection);
+    VBox.setVgrow(parameterListView, Priority.SOMETIMES);
     VBox.setVgrow(editorSection, Priority.ALWAYS);
-    middlePane.setPadding(new Insets(5));
 
     return middlePane;
   }
 
   private VBox createOverridesPane() {
-    VBox rightPane = new VBox(5);
-    Label overviewLabel = new Label("Parameter Overrides:");
-    overviewLabel.setStyle("-fx-font-weight: bold;");
+    Label overviewLabel = FxLabels.newBoldLabel("Parameter Overrides:");
 
     TableColumn<ParameterOverride, String> moduleCol = new TableColumn<>("Module");
     moduleCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().moduleName()));
@@ -236,20 +228,18 @@ public class ParameterCustomizationPane extends BorderPane {
 
     overridesTable.getColumns().addAll(moduleCol, paramCol, valueCol, scopeCol);
     overridesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-    overridesTable.setPlaceholder(new Label("No parameter overrides set"));
+    overridesTable.setPlaceholder(FxLabels.newLabel("No parameter overrides set"));
     overridesTable.setEditable(true);
-
-    VBox.setVgrow(overridesTable, Priority.ALWAYS);
 
     removeButton.setMaxWidth(Double.MAX_VALUE);
     clearAllButton.setMaxWidth(Double.MAX_VALUE);
 
-    HBox buttonBox = new HBox(5, removeButton, clearAllButton);
-    buttonBox.setAlignment(Pos.CENTER);
-    buttonBox.setPadding(new Insets(5));
+    HBox buttonBox = FxLayout.newHBox(Pos.CENTER, FxLayout.DEFAULT_PADDING_INSETS, removeButton,
+        clearAllButton);
 
-    rightPane.getChildren().addAll(overviewLabel, overridesTable, buttonBox);
-    rightPane.setPadding(new Insets(5));
+    VBox rightPane = FxLayout.newVBox(null, FxLayout.DEFAULT_PADDING_INSETS, true, overviewLabel,
+        overridesTable, buttonBox);
+    VBox.setVgrow(overridesTable, Priority.ALWAYS);
 
     return rightPane;
   }
@@ -277,6 +267,20 @@ public class ParameterCustomizationPane extends BorderPane {
       }
       updateButtonStates();
     });
+
+    // Ctrl+F focuses the module search box - handle both KEY_PRESSED and KEY_RELEASED
+    // to prevent global quick search dialog from opening
+    addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+      if (event.isControlDown() && event.getCode() == KeyCode.F) {
+        moduleTreePane.focusSearchField();
+        event.consume();
+      }
+    });
+    addEventFilter(KeyEvent.KEY_RELEASED, event -> {
+      if (event.isControlDown() && event.getCode() == KeyCode.F) {
+        event.consume();
+      }
+    });
   }
 
   private void onModuleSelected(MZmineRunnableModule module) {
@@ -291,8 +295,7 @@ public class ParameterCustomizationPane extends BorderPane {
 
     // important: clone the parameter set before loading it in here
     ParameterSet parameters = ConfigService.getConfiguration()
-        .getModuleParameters(module.getClass())
-        .cloneParameterSet();
+        .getModuleParameters(module.getClass()).cloneParameterSet();
     if (parameters == null) {
       parameterListView.getItems().clear();
       showInstructions("No parameters available for this module");
@@ -330,10 +333,9 @@ public class ParameterCustomizationPane extends BorderPane {
       grid.setVgap(10);
       grid.setPadding(new Insets(10));
 
-      Label nameLabel = new Label(parameter.getName() + ":");
-      nameLabel.setStyle("-fx-font-weight: bold;");
+      Label nameLabel = FxLabels.newBoldLabel(parameter.getName() + ":");
 
-      Label descLabel = new Label(parameter.getDescription());
+      Label descLabel = FxLabels.newLabel(parameter.getDescription());
       descLabel.setWrapText(true);
       descLabel.setMaxWidth(400);
 
