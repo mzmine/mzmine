@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -436,6 +437,10 @@ public class WaveletResolver extends AbstractResolver {
       } else if (previousTopEdge < 1.2 && currentTopEdge < 1.2) {
         // low top/edge and never dips below saturation threshold?
         boolean allPointsAboveSaturation = true;
+        // bounds do not overlap, are checked before in mergePeakRanges
+        if (current.leftBoundaryIndex() < previous.rightBoundaryIndex()) {
+          throw new RuntimeException("Potential peaks still overlap although they should not");
+        }
         for (int j = previous.rightBoundaryIndex(); j < current.leftBoundaryIndex(); j++) {
           if (y[j] < saturationThreshold) {
             allPointsAboveSaturation = false;
@@ -506,8 +511,10 @@ public class WaveletResolver extends AbstractResolver {
     return conjugateBuffer.computeIfAbsent(scale, s -> {
       final double[] waveletKernel = generateMexicanHat(dataWidth, scale);
       final Complex[] waveletFFT = fft.transform(waveletKernel, TransformType.FORWARD);
+
       final Complex[] waveletFFTConj = Arrays.stream(waveletFFT).map(Complex::conjugate)
           .toArray(Complex[]::new);
+
       return waveletFFTConj;
     });
   }
@@ -733,8 +740,9 @@ public class WaveletResolver extends AbstractResolver {
         // for peaks that are only slightly above the SNR, check if there are a lot of signals that
         // are similar to the height of the actual peak. If that is the case, it might just be a
         // hump on the baseline
+        final double similarHeightCutoff = peak.peakY() * 0.8;
         final long signalsOfSimilarHeight = localBackgroundSamples.doubleStream()
-            .filter(signal -> signal > peak.peakY() * 0.8).count();
+            .filter(signal -> signal > similarHeightCutoff).count();
         final double similarHeightProportion =
             (double) signalsOfSimilarHeight / localBackgroundSamples.size();
         if (similarHeightProportion > maxSimilarHeightRatio) {
