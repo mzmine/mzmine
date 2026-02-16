@@ -27,10 +27,12 @@ package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModuleTreePane;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.ApplicationScope;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.ParameterOverride;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -40,18 +42,21 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -70,9 +75,11 @@ public class ParameterCustomizationPane extends BorderPane {
   private final VBox parameterEditorPane;
   private final Label instructionsLabel;
   private final TableView<ParameterOverride> overridesTable;
-  private final Button applyButton;
+  private final Button addButton;
+  private final Button overrideButton;
   private final Button removeButton;
   private final Button clearAllButton;
+  private final ComboBox<ApplicationScope> scopeComboBox;
 
   // Temporary storage while editing
   private final Map<String, ParameterOverride> tempOverrides;
@@ -80,6 +87,7 @@ public class ParameterCustomizationPane extends BorderPane {
   private MZmineRunnableModule selectedModule;
   private ParameterWrapper selectedParameter;
   private Node currentEditorComponent;
+  private ParameterOverride selectedOverride;
 
   public ParameterCustomizationPane() {
     this.moduleTreePane = new BatchModuleTreePane(true);
@@ -89,12 +97,19 @@ public class ParameterCustomizationPane extends BorderPane {
     this.overridesTable = new TableView<>();
     this.tempOverrides = new HashMap<>();
 
-    this.applyButton = FxButtons.createButton("Apply", FxIcons.ADD, "Apply this parameter override",
-        this::applyParameterOverride);
+    this.addButton = FxButtons.createButton("Add", FxIcons.ADD, "Add new parameter override",
+        this::addParameterOverride);
+    this.overrideButton = FxButtons.createButton("Override", FxIcons.EDIT,
+        "Update existing parameter override", this::updateParameterOverride);
     this.removeButton = FxButtons.createButton("Remove", FxIcons.CANCEL, "Remove selected override",
         this::removeSelectedOverride);
     this.clearAllButton = FxButtons.createButton("Clear All", FxIcons.CLEAR,
         "Clear all parameter overrides", this::clearAllOverrides);
+
+    this.scopeComboBox = new ComboBox<>();
+    this.scopeComboBox.getItems().addAll(ApplicationScope.values());
+    this.scopeComboBox.setValue(ApplicationScope.ALL);
+    this.scopeComboBox.setMaxWidth(Double.MAX_VALUE);
 
     setupUI();
     setupEventHandlers();
@@ -142,10 +157,21 @@ public class ParameterCustomizationPane extends BorderPane {
     editorScroll.setFitToWidth(true);
     editorScroll.setFitToHeight(true);
 
-    applyButton.setDisable(true);
-    applyButton.setMaxWidth(Double.MAX_VALUE);
-    HBox buttonBox = new HBox(applyButton);
-    buttonBox.setAlignment(Pos.CENTER);
+    addButton.setDisable(true);
+    addButton.setMaxWidth(Double.MAX_VALUE);
+    overrideButton.setDisable(true);
+    overrideButton.setMaxWidth(Double.MAX_VALUE);
+
+    Label scopeLabel = new Label("Apply to:");
+    HBox scopeBox = new HBox(5, scopeLabel, scopeComboBox);
+    scopeBox.setAlignment(Pos.CENTER_LEFT);
+    scopeBox.setPadding(new Insets(5));
+    HBox.setHgrow(scopeComboBox, Priority.ALWAYS);
+
+    HBox buttonRow = new HBox(5, addButton, overrideButton);
+    buttonRow.setAlignment(Pos.CENTER);
+
+    VBox buttonBox = new VBox(5, scopeBox, buttonRow);
     buttonBox.setPadding(new Insets(5));
 
     VBox editorSection = new VBox(5, editorLabel, editorScroll, buttonBox);
@@ -177,9 +203,41 @@ public class ParameterCustomizationPane extends BorderPane {
         param -> new SimpleStringProperty(param.getValue().getDisplayValue()));
     valueCol.setPrefWidth(150);
 
-    overridesTable.getColumns().addAll(moduleCol, paramCol, valueCol);
+    TableColumn<ParameterOverride, ApplicationScope> scopeCol = new TableColumn<>("Apply to");
+    scopeCol.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().scope()));
+    scopeCol.setPrefWidth(100);
+    scopeCol.setCellFactory(col -> new ComboBoxTableCell<>(ApplicationScope.values()) {
+      @Override
+      public void updateItem(ApplicationScope item, boolean empty) {
+        super.updateItem(item, empty);
+        if (!empty && item != null) {
+          setText(item.getLabel());
+        }
+      }
+    });
+    scopeCol.setOnEditCommit(event -> {
+      ParameterOverride override = event.getRowValue();
+      ApplicationScope newScope = event.getNewValue();
+      if (newScope != null && newScope != override.scope()) {
+        // Remove the old entry with the old scope
+        String oldKey = makeKey(override.moduleClassName(), override.parameterWithValue().getName(),
+            override.scope());
+        tempOverrides.remove(oldKey);
+
+        // Add the new entry with the new scope
+        String newKey = makeKey(override.moduleClassName(), override.parameterWithValue().getName(),
+            newScope);
+        tempOverrides.put(newKey,
+            new ParameterOverride(override.moduleClassName(), override.moduleName(),
+                override.parameterWithValue(), newScope));
+        refreshOverridesTable();
+      }
+    });
+
+    overridesTable.getColumns().addAll(moduleCol, paramCol, valueCol, scopeCol);
     overridesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
     overridesTable.setPlaceholder(new Label("No parameter overrides set"));
+    overridesTable.setEditable(true);
 
     VBox.setVgrow(overridesTable, Priority.ALWAYS);
 
@@ -200,9 +258,25 @@ public class ParameterCustomizationPane extends BorderPane {
     moduleTreePane.setOnAddModuleEventHandler(this::onModuleSelected);
     parameterListView.getSelectionModel().selectedItemProperty()
         .addListener((obs, oldVal, newVal) -> onParameterSelected(newVal));
-    overridesTable.getSelectionModel().selectedItemProperty()
-        .addListener((obs, oldVal, newVal) -> removeButton.setDisable(newVal == null));
+
+    overridesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+      removeButton.setDisable(newVal == null);
+      selectedOverride = newVal;
+      if (newVal != null) {
+        selectOverrideInEditor(newVal);
+      }
+      updateButtonStates();
+    });
+
     removeButton.setDisable(true);
+
+    // When scope changes, reload the parameter value for that scope
+    scopeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+      if (selectedParameter != null && newVal != null) {
+        loadExistingOverrideValue(selectedParameter.parameter);
+      }
+      updateButtonStates();
+    });
   }
 
   private void onModuleSelected(MZmineRunnableModule module) {
@@ -213,10 +287,11 @@ public class ParameterCustomizationPane extends BorderPane {
     this.selectedModule = module;
     this.selectedParameter = null;
     this.currentEditorComponent = null;
-    applyButton.setDisable(true);
+    updateButtonStates();
 
     // important: clone the parameter set before loading it in here
-    ParameterSet parameters = MZmineCore.getConfiguration().getModuleParameters(module.getClass())
+    ParameterSet parameters = ConfigService.getConfiguration()
+        .getModuleParameters(module.getClass())
         .cloneParameterSet();
     if (parameters == null) {
       parameterListView.getItems().clear();
@@ -239,7 +314,7 @@ public class ParameterCustomizationPane extends BorderPane {
 
   private void onParameterSelected(@Nullable ParameterWrapper paramWrapper) {
     if (paramWrapper == null || selectedModule == null) {
-      applyButton.setDisable(true);
+      updateButtonStates();
       return;
     }
 
@@ -271,10 +346,10 @@ public class ParameterCustomizationPane extends BorderPane {
       parameterEditorPane.getChildren().add(grid);
 
       loadExistingOverrideValue(parameter);
-      applyButton.setDisable(false);
+      updateButtonStates();
     } else {
       showInstructions("Cannot create editor for this parameter type");
-      applyButton.setDisable(true);
+      updateButtonStates();
     }
   }
 
@@ -292,7 +367,7 @@ public class ParameterCustomizationPane extends BorderPane {
   }
 
   /**
-   * Checks if the parameter already has an override.
+   * Checks if the parameter already has an override for the currently selected scope.
    */
   @SuppressWarnings("unchecked")
   private void loadExistingOverrideValue(UserParameter<?, ?> parameter) {
@@ -300,12 +375,14 @@ public class ParameterCustomizationPane extends BorderPane {
       return;
     }
 
-    String key = makeKey(selectedModule.getClass().getName(), parameter.getName());
+    ApplicationScope currentScope = scopeComboBox.getValue();
+    String key = makeKey(selectedModule.getClass().getName(), parameter.getName(), currentScope);
     ParameterOverride temp = tempOverrides.get(key);
     if (temp != null) {
       try {
         ((UserParameter<Object, Node>) parameter).setValueToComponent(currentEditorComponent,
             temp.parameterWithValue().getValue());
+        scopeComboBox.setValue(temp.scope());
       } catch (Exception e) {
         // Ignore
       }
@@ -313,7 +390,7 @@ public class ParameterCustomizationPane extends BorderPane {
   }
 
   @SuppressWarnings("unchecked")
-  private void applyParameterOverride() {
+  private void addParameterOverride() {
     if (selectedParameter == null || selectedModule == null || currentEditorComponent == null) {
       return;
     }
@@ -324,15 +401,44 @@ public class ParameterCustomizationPane extends BorderPane {
 
       String moduleClassName = selectedModule.getClass().getName();
       String moduleName = getModuleName(selectedModule.getClass());
-      String key = makeKey(moduleClassName, param.getName());
+      ApplicationScope scope = scopeComboBox.getValue();
+      String key = makeKey(moduleClassName, param.getName(), scope);
 
       tempOverrides.put(key,
-          new ParameterOverride(moduleClassName, moduleName, param.cloneParameter()));
+          new ParameterOverride(moduleClassName, moduleName, param.cloneParameter(), scope));
 
       refreshOverridesTable();
-      showInstructions("Parameter override applied: " + param.getName());
+      showInstructions(
+          "Parameter override added: " + param.getName() + " (apply to: " + scope.getLabel() + ")");
     } catch (Exception e) {
-      showInstructions("Error applying parameter: " + e.getMessage());
+      showInstructions("Error adding parameter: " + e.getMessage());
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private void updateParameterOverride() {
+    if (selectedParameter == null || selectedModule == null || currentEditorComponent == null) {
+      return;
+    }
+
+    try {
+      UserParameter<Object, Node> param = (UserParameter<Object, Node>) selectedParameter.parameter;
+      param.setValueFromComponent(currentEditorComponent);
+
+      String moduleClassName = selectedModule.getClass().getName();
+      String moduleName = getModuleName(selectedModule.getClass());
+      ApplicationScope scope = scopeComboBox.getValue();
+      String key = makeKey(moduleClassName, param.getName(), scope);
+
+      tempOverrides.put(key,
+          new ParameterOverride(moduleClassName, moduleName, param.cloneParameter(), scope));
+
+      refreshOverridesTable();
+      showInstructions(
+          "Parameter override updated: " + param.getName() + " (apply to: " + scope.getLabel()
+              + ")");
+    } catch (Exception e) {
+      showInstructions("Error updating parameter: " + e.getMessage());
     }
   }
 
@@ -342,7 +448,8 @@ public class ParameterCustomizationPane extends BorderPane {
       return;
     }
 
-    final String key = makeKey(selected.moduleClassName(), selected.parameterWithValue().getName());
+    final String key = makeKey(selected.moduleClassName(), selected.parameterWithValue().getName(),
+        selected.scope());
     tempOverrides.remove(key);
     refreshOverridesTable();
   }
@@ -371,11 +478,73 @@ public class ParameterCustomizationPane extends BorderPane {
     parameterEditorPane.getChildren().clear();
     instructionsLabel.setText(message);
     parameterEditorPane.getChildren().add(instructionsLabel);
-    applyButton.setDisable(true);
+    updateButtonStates();
   }
 
-  private String makeKey(String moduleClassName, String paramName) {
-    return moduleClassName + "::" + paramName;
+  private String makeKey(String moduleClassName, String paramName, ApplicationScope scope) {
+    return moduleClassName + "::" + paramName + "::" + scope;
+  }
+
+  /**
+   * Updates the enabled state of Add and Override buttons based on current selection
+   */
+  private void updateButtonStates() {
+    boolean hasParameterSelected =
+        selectedParameter != null && selectedModule != null && currentEditorComponent != null;
+
+    // Add button is enabled when a parameter is selected
+    addButton.setDisable(!hasParameterSelected);
+
+    // Override button is enabled when:
+    // 1. A parameter is selected
+    // 2. An override exists for the current module+parameter+scope combination
+    if (hasParameterSelected) {
+      String moduleClassName = selectedModule.getClass().getName();
+      String paramName = selectedParameter.parameter.getName();
+      ApplicationScope scope = scopeComboBox.getValue();
+      String key = makeKey(moduleClassName, paramName, scope);
+      boolean overrideExists = tempOverrides.containsKey(key);
+      overrideButton.setDisable(!overrideExists);
+    } else {
+      overrideButton.setDisable(true);
+    }
+  }
+
+  /**
+   * Selects the module and parameter in the editor when an override is clicked in the table
+   */
+  private void selectOverrideInEditor(ParameterOverride override) {
+    // Find the module
+    String targetModuleClass = override.moduleClassName();
+    MZmineRunnableModule targetModule = null;
+
+    try {
+      Class<?> moduleClass = Class.forName(targetModuleClass);
+      if (MZmineRunnableModule.class.isAssignableFrom(moduleClass)) {
+        targetModule = (MZmineRunnableModule) MZmineCore.getModuleInstance(
+            (Class<? extends MZmineRunnableModule>) moduleClass);
+      }
+    } catch (Exception e) {
+      // Module not found
+      return;
+    }
+
+    if (targetModule != null) {
+      // Load the module's parameters
+      onModuleSelected(targetModule);
+
+      // Select the parameter in the list
+      String targetParamName = override.parameterWithValue().getName();
+      for (ParameterWrapper wrapper : parameterListView.getItems()) {
+        if (wrapper.parameter.getName().equals(targetParamName)) {
+          parameterListView.getSelectionModel().select(wrapper);
+          break;
+        }
+      }
+
+      // Set the scope
+      scopeComboBox.setValue(override.scope());
+    }
   }
 
   /**
@@ -391,13 +560,12 @@ public class ParameterCustomizationPane extends BorderPane {
   public void setParameterOverrides(List<ParameterOverride> overrides) {
     tempOverrides.clear();
     for (ParameterOverride override : overrides) {
-      String key = makeKey(override.moduleClassName(), override.parameterWithValue().getName());
+      String key = makeKey(override.moduleClassName(), override.parameterWithValue().getName(),
+          override.scope());
       // We need to reconstruct the actual value object from the saved string
       // For now, we'll store it as a temp with the string value
       // In a real implementation, you'd need to deserialize based on valueType
-      tempOverrides.put(key,
-          new ParameterOverride(override.moduleClassName(), override.moduleName(),
-              override.parameterWithValue()));
+      tempOverrides.put(key, override);
     }
     refreshOverridesTable();
   }

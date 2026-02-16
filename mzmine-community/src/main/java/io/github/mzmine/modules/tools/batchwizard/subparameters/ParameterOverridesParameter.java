@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -54,6 +55,7 @@ public class ParameterOverridesParameter implements
   private static final String MODULE_CLASS_ATTR = "moduleClass";
   private static final String MODULE_NAME_ATTR = "moduleName";
   private static final String PARAM_NAME_ATTR = "parameterName";
+  private static final String SCOPE_ATTR = "scope";
 
   private List<ParameterOverride> value;
 
@@ -92,6 +94,12 @@ public class ParameterOverridesParameter implements
       String moduleClass = overrideElement.getAttribute(MODULE_CLASS_ATTR);
       String moduleName = overrideElement.getAttribute(MODULE_NAME_ATTR);
       String paramName = overrideElement.getAttribute(PARAM_NAME_ATTR);
+
+      // Load scope with backwards compatibility - default to ALL if not present
+      String scopeStr = overrideElement.getAttribute(SCOPE_ATTR);
+      final ApplicationScope scope = UniqueIdSupplier.parseOrElse(scopeStr,
+          ApplicationScope.values(), ApplicationScope.ALL);
+
       final MZmineModule module = MZmineCore.getInitializedModules().get(moduleClass);
       final ParameterSet moduleParameters = ConfigService.getConfiguration()
           .getModuleParameters(module.getClass());
@@ -101,7 +109,7 @@ public class ParameterOverridesParameter implements
           .orElse(null);
       parameter.loadValueFromXML(overrideElement);
 
-      overrides.add(new ParameterOverride(moduleClass, moduleName, parameter));
+      overrides.add(new ParameterOverride(moduleClass, moduleName, parameter, scope));
     }
 
     this.value = overrides;
@@ -120,6 +128,7 @@ public class ParameterOverridesParameter implements
       overrideElement.setAttribute(MODULE_CLASS_ATTR, override.moduleClassName());
       overrideElement.setAttribute(MODULE_NAME_ATTR, override.moduleName());
       overrideElement.setAttribute(PARAM_NAME_ATTR, override.parameterWithValue().getName());
+      overrideElement.setAttribute(SCOPE_ATTR, override.scope().name());
       override.parameterWithValue().saveValueToXML(overrideElement);
       xmlElement.appendChild(overrideElement);
     }

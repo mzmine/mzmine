@@ -34,13 +34,22 @@ import org.jetbrains.annotations.NotNull;
  * serializable so it can be saved/loaded with wizard presets.
  */
 public record ParameterOverride(String moduleClassName, String moduleName,
-                                Parameter<?> parameterWithValue) {
+                                Parameter<?> parameterWithValue, ApplicationScope scope) {
 
   public ParameterOverride(@NotNull String moduleClassName, @NotNull String moduleName,
-      @NotNull final Parameter<?> parameterWithValue) {
+      @NotNull final Parameter<?> parameterWithValue, @NotNull ApplicationScope scope) {
     this.moduleClassName = moduleClassName;
     this.moduleName = moduleName;
     this.parameterWithValue = parameterWithValue;
+    this.scope = scope;
+  }
+
+  /**
+   * Constructor for backwards compatibility with default scope of ALL
+   */
+  public ParameterOverride(@NotNull String moduleClassName, @NotNull String moduleName,
+      @NotNull final Parameter<?> parameterWithValue) {
+    this(moduleClassName, moduleName, parameterWithValue, ApplicationScope.ALL);
   }
 
   /**

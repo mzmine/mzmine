@@ -30,6 +30,7 @@ import static java.util.Objects.requireNonNullElse;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.ApplicationScope;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.CustomizationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.ParameterOverride;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
@@ -42,6 +43,7 @@ import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -174,49 +176,59 @@ public abstract class WizardBatchBuilder {
         .map(p -> p.getParameter(CustomizationWizardParameters.overrides).getValue())
         .orElse(List.of());
 
-
     for (ParameterOverride parameterOverride : parameterOverrides) {
       String targetModuleClassName = parameterOverride.moduleClassName();
       Parameter<?> sourceParameter = parameterOverride.parameterWithValue();
       String targetParameterName = sourceParameter.getName();
+      ApplicationScope scope = parameterOverride.scope();
 
       // Find all steps in the queue that match the module class name
-      boolean foundMatch = false;
-      for (var step : queue) {
-        final String stepModuleClassName = step.getModule().getClass().getName();
-        if (!stepModuleClassName.equals(targetModuleClassName)) {
-          continue;
+      List<Integer> matchingStepIndices = new ArrayList<>();
+      for (int i = 0; i < queue.size(); i++) {
+        final String stepModuleClassName = queue.get(i).getModule().getClass().getName();
+        if (stepModuleClassName.equals(targetModuleClassName)) {
+          matchingStepIndices.add(i);
         }
+      }
 
-        foundMatch = true;
+      if (matchingStepIndices.isEmpty()) {
+        logger.fine("Module %s not found in batch queue for parameter override".formatted(
+            targetModuleClassName));
+        continue;
+      }
+
+      // Determine which steps to apply the override to based on scope
+      List<Integer> targetIndices = switch (scope) {
+        case ALL -> matchingStepIndices;
+        case FIRST -> List.of(matchingStepIndices.getFirst());
+        case LAST -> List.of(matchingStepIndices.getLast());
+      };
+
+      // Apply the override to the selected steps
+      for (int index : targetIndices) {
+        var step = queue.get(index);
         final ParameterSet stepParameters = step.getParameterSet();
 
         // Find the parameter in this step's parameter set by name
         final Parameter<?> targetParameter = Arrays.stream(stepParameters.getParameters())
             .filter(param -> param.getName().equals(targetParameterName)).findFirst().orElse(null);
 
-        // Apply the value from the override to the target parameter
         if (targetParameter == null) {
           logger.warning("Parameter %s not found in module %s".formatted(targetParameterName,
               targetModuleClassName));
           continue;
         }
+
         try {
           ParameterUtils.copyParameterValue(sourceParameter, targetParameter);
-          logger.fine("Applied parameter override for %s.%s = %s".formatted(targetModuleClassName,
-              targetParameterName, sourceParameter.getValue()));
+          logger.fine("Applied parameter override (%s) for %s.%s = %s".formatted(scope,
+              targetModuleClassName, targetParameterName, sourceParameter.getValue()));
         } catch (Exception ex) {
           logger.log(Level.WARNING,
               "Failed to apply parameter override for %s.%s".formatted(targetModuleClassName,
                   targetParameterName), ex);
         }
       }
-
-      if (!foundMatch) {
-        logger.fine("Module %s not found in batch queue for parameter override".formatted(
-            targetModuleClassName));
-      }
     }
-
   }
 }
