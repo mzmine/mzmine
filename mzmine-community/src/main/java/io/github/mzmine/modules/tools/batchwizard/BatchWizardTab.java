@@ -42,6 +42,7 @@ import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardSequenceFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceSaveModule;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.CustomizationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
@@ -65,6 +66,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -72,6 +74,7 @@ import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -275,7 +278,26 @@ public class BatchWizardTab extends SimpleTab {
     addToSchema(step);
     // NOT add tabs without user parameters (components to set)
     if (step.hasUserParameters() && step.getFactory() != IonMobilityWizardParameterFactory.NO_IMS) {
-      return new Tab(step.getPresetName(), paramPane);
+      Tab tab = new Tab(step.getPresetName(), paramPane);
+
+      // Special handling for customization tab - add checkbox to header
+      if (step instanceof CustomizationWizardParameters customizationParams) {
+        final CheckBox enableCheckBox = new CheckBox();
+        final boolean customEnabled = customizationParams.getValue(
+            CustomizationWizardParameters.enabled);
+        enableCheckBox.setSelected(customEnabled);
+
+        // Bind checkbox to parameter and pane disabled state
+        enableCheckBox.selectedProperty().addListener((_, _, newVal) -> {
+          customizationParams.setParameter(CustomizationWizardParameters.enabled, newVal);
+          paramPane.setDisable(!newVal);
+        });
+        // Set initial disabled state after the pane is added to scene graph
+        Platform.runLater(() -> paramPane.setDisable(!customEnabled));
+        tab.setGraphic(enableCheckBox);
+      }
+
+      return tab;
     } else {
       return null;
     }

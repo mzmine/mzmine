@@ -27,6 +27,8 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.CustomizationWizardParameterFactory;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 
 /**
  * Wizard step for customizing individual module parameters. This step allows users to override
@@ -34,11 +36,15 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Custom
  */
 public final class CustomizationWizardParameters extends WizardStepParameters {
 
+  public static final HiddenParameter<Boolean> enabled = new HiddenParameter<>(
+      new BooleanParameter("Apply customization",
+          "Enable/disable application of parameter overrides to the batch", false));
+
   public static final ParameterOverridesParameter overrides = new ParameterOverridesParameter();
 
   public CustomizationWizardParameters() {
     super(WizardPart.CUSTOMIZATION, CustomizationWizardParameterFactory.CUSTOMIZATION,
         // parameters
-        overrides);
+        enabled, overrides);
   }
 }

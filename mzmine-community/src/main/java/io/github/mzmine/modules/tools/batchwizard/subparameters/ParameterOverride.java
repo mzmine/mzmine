@@ -25,64 +25,33 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import java.io.Serializable;
-import java.util.Objects;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a single parameter override for a specific module parameter. This class is
  * serializable so it can be saved/loaded with wizard presets.
  */
-public class ParameterOverride implements Serializable {
-
-  private final String moduleClassName;
-  private final String moduleName;
-  private final String parameterName;
-  private final String valueAsString;
-  private final String valueType;
+public record ParameterOverride(String moduleClassName, String moduleName,
+                                Parameter<?> parameterWithValue) {
 
   public ParameterOverride(@NotNull String moduleClassName, @NotNull String moduleName,
-      @NotNull String parameterName, @NotNull Object value) {
+      @NotNull final Parameter<?> parameterWithValue) {
     this.moduleClassName = moduleClassName;
     this.moduleName = moduleName;
-    this.parameterName = parameterName;
-    this.valueAsString = value == null ? "null" : value.toString();
-    this.valueType = value == null ? "null" : value.getClass().getName();
-  }
-
-  public ParameterOverride(@NotNull String moduleClassName, @NotNull String moduleName,
-      @NotNull String parameterName, @NotNull String valueAsString, @NotNull String valueType) {
-    this.moduleClassName = moduleClassName;
-    this.moduleName = moduleName;
-    this.parameterName = parameterName;
-    this.valueAsString = valueAsString;
-    this.valueType = valueType;
-  }
-
-  public String getModuleClassName() {
-    return moduleClassName;
-  }
-
-  public String getModuleName() {
-    return moduleName;
-  }
-
-  public String getParameterName() {
-    return parameterName;
-  }
-
-  public String getValueAsString() {
-    return valueAsString;
-  }
-
-  public String getValueType() {
-    return valueType;
+    this.parameterWithValue = parameterWithValue;
   }
 
   /**
    * Gets a display string for the value (truncated if too long)
    */
   public String getDisplayValue() {
+    String valueAsString = String.valueOf(parameterWithValue.getValue());
+    if (parameterWithValue instanceof OptionalParameter<?> opt) {
+      valueAsString += String.valueOf(opt.getEmbeddedParameter().getValue());
+    }
+
     if (valueAsString.length() > 50) {
       return valueAsString.substring(0, 47) + "...";
     }
@@ -90,25 +59,7 @@ public class ParameterOverride implements Serializable {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ParameterOverride that = (ParameterOverride) o;
-    return Objects.equals(moduleClassName, that.moduleClassName) && Objects.equals(parameterName,
-        that.parameterName);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(moduleClassName, parameterName);
-  }
-
-  @Override
-  public String toString() {
-    return moduleName + "." + parameterName + " = " + getDisplayValue();
+  public @NotNull String toString() {
+    return moduleName + "." + parameterWithValue.getName() + " = " + getDisplayValue();
   }
 }

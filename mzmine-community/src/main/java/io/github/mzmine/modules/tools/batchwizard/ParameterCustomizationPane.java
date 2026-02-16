@@ -74,8 +74,8 @@ public class ParameterCustomizationPane extends BorderPane {
   private final Button removeButton;
   private final Button clearAllButton;
 
-  // Temporary storage while editing - converted to ParameterOverride list when retrieved
-  private final Map<String, ParameterOverrideTemp> tempOverrides;
+  // Temporary storage while editing
+  private final Map<String, ParameterOverride> tempOverrides;
 
   private MZmineRunnableModule selectedModule;
   private ParameterWrapper selectedParameter;
@@ -164,13 +164,12 @@ public class ParameterCustomizationPane extends BorderPane {
     overviewLabel.setStyle("-fx-font-weight: bold;");
 
     TableColumn<ParameterOverride, String> moduleCol = new TableColumn<>("Module");
-    moduleCol.setCellValueFactory(
-        param -> new SimpleStringProperty(param.getValue().getModuleName()));
+    moduleCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().moduleName()));
     moduleCol.setPrefWidth(150);
 
     TableColumn<ParameterOverride, String> paramCol = new TableColumn<>("Parameter");
     paramCol.setCellValueFactory(
-        param -> new SimpleStringProperty(param.getValue().getParameterName()));
+        param -> new SimpleStringProperty(param.getValue().parameterWithValue().getName()));
     paramCol.setPrefWidth(150);
 
     TableColumn<ParameterOverride, String> valueCol = new TableColumn<>("Value");
@@ -216,7 +215,9 @@ public class ParameterCustomizationPane extends BorderPane {
     this.currentEditorComponent = null;
     applyButton.setDisable(true);
 
-    ParameterSet parameters = MZmineCore.getConfiguration().getModuleParameters(module.getClass());
+    // important: clone the parameter set before loading it in here
+    ParameterSet parameters = MZmineCore.getConfiguration().getModuleParameters(module.getClass())
+        .cloneParameterSet();
     if (parameters == null) {
       parameterListView.getItems().clear();
       showInstructions("No parameters available for this module");
@@ -290,6 +291,9 @@ public class ParameterCustomizationPane extends BorderPane {
     }
   }
 
+  /**
+   * Checks if the parameter already has an override.
+   */
   @SuppressWarnings("unchecked")
   private void loadExistingOverrideValue(UserParameter<?, ?> parameter) {
     if (selectedModule == null) {
@@ -297,11 +301,11 @@ public class ParameterCustomizationPane extends BorderPane {
     }
 
     String key = makeKey(selectedModule.getClass().getName(), parameter.getName());
-    ParameterOverrideTemp temp = tempOverrides.get(key);
+    ParameterOverride temp = tempOverrides.get(key);
     if (temp != null) {
       try {
         ((UserParameter<Object, Node>) parameter).setValueToComponent(currentEditorComponent,
-            temp.value);
+            temp.parameterWithValue().getValue());
       } catch (Exception e) {
         // Ignore
       }
@@ -317,14 +321,13 @@ public class ParameterCustomizationPane extends BorderPane {
     try {
       UserParameter<Object, Node> param = (UserParameter<Object, Node>) selectedParameter.parameter;
       param.setValueFromComponent(currentEditorComponent);
-      Object value = param.getValue();
 
       String moduleClassName = selectedModule.getClass().getName();
       String moduleName = getModuleName(selectedModule.getClass());
       String key = makeKey(moduleClassName, param.getName());
 
       tempOverrides.put(key,
-          new ParameterOverrideTemp(moduleClassName, moduleName, param.getName(), value));
+          new ParameterOverride(moduleClassName, moduleName, param.cloneParameter()));
 
       refreshOverridesTable();
       showInstructions("Parameter override applied: " + param.getName());
@@ -339,7 +342,7 @@ public class ParameterCustomizationPane extends BorderPane {
       return;
     }
 
-    String key = makeKey(selected.getModuleClassName(), selected.getParameterName());
+    final String key = makeKey(selected.moduleClassName(), selected.parameterWithValue().getName());
     tempOverrides.remove(key);
     refreshOverridesTable();
   }
@@ -352,9 +355,7 @@ public class ParameterCustomizationPane extends BorderPane {
 
   private void refreshOverridesTable() {
     overridesTable.getItems().clear();
-    for (ParameterOverrideTemp temp : tempOverrides.values()) {
-      overridesTable.getItems().add(temp.toParameterOverride());
-    }
+    overridesTable.getItems().setAll(tempOverrides.values());
   }
 
   private String getModuleName(Class<? extends MZmineRunnableModule> moduleClass) {
@@ -381,11 +382,7 @@ public class ParameterCustomizationPane extends BorderPane {
    * Get all parameter overrides as a list
    */
   public List<ParameterOverride> getParameterOverrides() {
-    List<ParameterOverride> result = new ArrayList<>();
-    for (ParameterOverrideTemp temp : tempOverrides.values()) {
-      result.add(temp.toParameterOverride());
-    }
-    return result;
+    return new ArrayList<>(tempOverrides.values());
   }
 
   /**
@@ -394,14 +391,13 @@ public class ParameterCustomizationPane extends BorderPane {
   public void setParameterOverrides(List<ParameterOverride> overrides) {
     tempOverrides.clear();
     for (ParameterOverride override : overrides) {
-      String key = makeKey(override.getModuleClassName(), override.getParameterName());
+      String key = makeKey(override.moduleClassName(), override.parameterWithValue().getName());
       // We need to reconstruct the actual value object from the saved string
       // For now, we'll store it as a temp with the string value
       // In a real implementation, you'd need to deserialize based on valueType
       tempOverrides.put(key,
-          new ParameterOverrideTemp(override.getModuleClassName(), override.getModuleName(),
-              override.getParameterName(), override.getValueAsString() // This is a simplification
-          ));
+          new ParameterOverride(override.moduleClassName(), override.moduleName(),
+              override.parameterWithValue()));
     }
     refreshOverridesTable();
   }
@@ -417,29 +413,6 @@ public class ParameterCustomizationPane extends BorderPane {
     @Override
     public String toString() {
       return parameter.getName();
-    }
-  }
-
-  /**
-   * Temporary storage that keeps the actual object value
-   */
-  private static class ParameterOverrideTemp {
-
-    private final String moduleClassName;
-    private final String moduleName;
-    private final String parameterName;
-    private final Object value;
-
-    public ParameterOverrideTemp(String moduleClassName, String moduleName, String parameterName,
-        Object value) {
-      this.moduleClassName = moduleClassName;
-      this.moduleName = moduleName;
-      this.parameterName = parameterName;
-      this.value = value;
-    }
-
-    public ParameterOverride toParameterOverride() {
-      return new ParameterOverride(moduleClassName, moduleName, parameterName, value);
     }
   }
 }

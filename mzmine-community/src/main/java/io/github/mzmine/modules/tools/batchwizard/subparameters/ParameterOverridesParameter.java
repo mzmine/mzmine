@@ -25,9 +25,15 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.tools.batchwizard.ParameterCustomizationPane;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import javafx.scene.layout.Priority;
@@ -43,13 +49,11 @@ import org.w3c.dom.NodeList;
 public class ParameterOverridesParameter implements
     UserParameter<List<ParameterOverride>, ParameterCustomizationPane> {
 
-  private static final String PARAMETER_NAME = "Parameter customization";
+  private static final String PARAMETER_NAME = "parameterCustomization";
   private static final String OVERRIDE_ELEMENT = "override";
   private static final String MODULE_CLASS_ATTR = "moduleClass";
   private static final String MODULE_NAME_ATTR = "moduleName";
   private static final String PARAM_NAME_ATTR = "parameterName";
-  private static final String VALUE_STRING_ATTR = "valueString";
-  private static final String VALUE_TYPE_ATTR = "valueType";
 
   private List<ParameterOverride> value;
 
@@ -88,11 +92,16 @@ public class ParameterOverridesParameter implements
       String moduleClass = overrideElement.getAttribute(MODULE_CLASS_ATTR);
       String moduleName = overrideElement.getAttribute(MODULE_NAME_ATTR);
       String paramName = overrideElement.getAttribute(PARAM_NAME_ATTR);
-      String valueString = overrideElement.getAttribute(VALUE_STRING_ATTR);
-      String valueType = overrideElement.getAttribute(VALUE_TYPE_ATTR);
+      final MZmineModule module = MZmineCore.getInitializedModules().get(moduleClass);
+      final ParameterSet moduleParameters = ConfigService.getConfiguration()
+          .getModuleParameters(module.getClass());
+      // clone the parameter
+      Parameter<?> parameter = Arrays.stream(moduleParameters.getParameters())
+          .filter(p -> p.getName().equals(paramName)).findFirst().map(Parameter::cloneParameter)
+          .orElse(null);
+      parameter.loadValueFromXML(overrideElement);
 
-      overrides.add(
-          new ParameterOverride(moduleClass, moduleName, paramName, valueString, valueType));
+      overrides.add(new ParameterOverride(moduleClass, moduleName, parameter));
     }
 
     this.value = overrides;
@@ -108,11 +117,10 @@ public class ParameterOverridesParameter implements
 
     for (ParameterOverride override : value) {
       Element overrideElement = doc.createElement(OVERRIDE_ELEMENT);
-      overrideElement.setAttribute(MODULE_CLASS_ATTR, override.getModuleClassName());
-      overrideElement.setAttribute(MODULE_NAME_ATTR, override.getModuleName());
-      overrideElement.setAttribute(PARAM_NAME_ATTR, override.getParameterName());
-      overrideElement.setAttribute(VALUE_STRING_ATTR, override.getValueAsString());
-      overrideElement.setAttribute(VALUE_TYPE_ATTR, override.getValueType());
+      overrideElement.setAttribute(MODULE_CLASS_ATTR, override.moduleClassName());
+      overrideElement.setAttribute(MODULE_NAME_ATTR, override.moduleName());
+      overrideElement.setAttribute(PARAM_NAME_ATTR, override.parameterWithValue().getName());
+      override.parameterWithValue().saveValueToXML(overrideElement);
       xmlElement.appendChild(overrideElement);
     }
   }
