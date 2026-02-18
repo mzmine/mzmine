@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -87,7 +87,7 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
   }
 
   @Override
-  public BatchQueue createQueue() {
+  protected BatchQueue __createQueueInternal() {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
@@ -143,6 +143,7 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
       makeAndAddSpectralNetworkingSteps(q, true, exportPath, false);
     }
     makeAndAddBatchExportStep(q, true, exportPath);
+
     return q;
   }
 
