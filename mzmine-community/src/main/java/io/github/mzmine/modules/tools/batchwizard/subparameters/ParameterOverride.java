@@ -45,14 +45,6 @@ public record ParameterOverride(String moduleClassName, String moduleName,
   }
 
   /**
-   * Constructor for backwards compatibility with default scope of ALL
-   */
-  public ParameterOverride(@NotNull String moduleClassName, @NotNull String moduleName,
-      @NotNull final Parameter<?> parameterWithValue) {
-    this(moduleClassName, moduleName, parameterWithValue, ApplicationScope.ALL);
-  }
-
-  /**
    * Gets a display string for the value (truncated if too long)
    */
   public String getDisplayValue() {

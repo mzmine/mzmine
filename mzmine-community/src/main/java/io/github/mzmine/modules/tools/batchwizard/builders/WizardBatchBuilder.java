@@ -71,7 +71,20 @@ public abstract class WizardBatchBuilder {
    *
    * @return a batch queue
    */
-  public abstract BatchQueue createQueue();
+  public final BatchQueue createQueue() {
+    // this method is final so overriding classes do not need to worry about applying the parameter override.
+    BatchQueue queue = __createQueueInternal();
+    applyParameterOverrides(queue);
+    return queue;
+  }
+
+  /**
+   * Internal createQueue method to override by implementing classes. PostProcessing is applied in
+   * the final {@link #createQueue()} method.
+   *
+   * @return a batch queue
+   */
+  protected abstract BatchQueue __createQueueInternal();
 
   /**
    * Get parameter if available or else return null. params usually comes from
@@ -168,7 +181,7 @@ public abstract class WizardBatchBuilder {
         .map(p -> p.getValue(CustomizationWizardParameters.enabled)).orElse(false);
 
     if (!customizationEnabled) {
-      logger.fine("Parameter customization is disabled, skipping overrides");
+      logger.finest("Parameter customization is disabled, skipping overrides");
       return;
     }
 
@@ -192,7 +205,7 @@ public abstract class WizardBatchBuilder {
       }
 
       if (matchingStepIndices.isEmpty()) {
-        logger.fine("Module %s not found in batch queue for parameter override".formatted(
+        logger.info("Override parameters set for module %s but not present in batch.".formatted(
             targetModuleClassName));
         continue;
       }

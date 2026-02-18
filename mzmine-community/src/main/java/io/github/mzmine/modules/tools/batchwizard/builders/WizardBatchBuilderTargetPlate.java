@@ -61,7 +61,7 @@ public class WizardBatchBuilderTargetPlate extends BaseWizardBatchBuilder {
   }
 
   @Override
-  public BatchQueue createQueue() {
+  protected BatchQueue __createQueueInternal() {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
@@ -81,7 +81,6 @@ public class WizardBatchBuilderTargetPlate extends BaseWizardBatchBuilder {
     makeAndAddBatchExportStep(q, true, null);
     makeAndAddFormulaPredictionStep(q);
 
-    applyParameterOverrides(q);
     return q;
   }
 

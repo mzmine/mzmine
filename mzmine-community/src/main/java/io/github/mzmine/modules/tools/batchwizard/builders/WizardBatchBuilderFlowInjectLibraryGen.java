@@ -76,7 +76,7 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuild
   }
 
   @Override
-  public BatchQueue createQueue() {
+  protected BatchQueue __createQueueInternal() {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
@@ -124,7 +124,6 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuild
       makeAndAddSpectralNetworkingSteps(q, true, exportPath, false);
     }
     makeAndAddBatchExportStep(q, true, exportPath);
-    applyParameterOverrides(q);
     return q;
   }
 

@@ -29,6 +29,7 @@ import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.CustomizationWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import java.util.List;
 
 /**
  * Wizard step for customizing individual module parameters. This step allows users to override
@@ -46,5 +47,12 @@ public final class CustomizationWizardParameters extends WizardStepParameters {
     super(WizardPart.CUSTOMIZATION, CustomizationWizardParameterFactory.CUSTOMIZATION,
         // parameters
         enabled, overrides);
+  }
+
+  public static CustomizationWizardParameters createDefault() {
+    CustomizationWizardParameters parameterSet = new CustomizationWizardParameters();
+    parameterSet.setParameter(enabled, false);
+    parameterSet.setParameter(overrides, List.of());
+    return (CustomizationWizardParameters) parameterSet;
   }
 }

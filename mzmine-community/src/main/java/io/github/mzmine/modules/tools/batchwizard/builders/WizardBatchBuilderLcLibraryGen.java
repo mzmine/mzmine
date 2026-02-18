@@ -87,7 +87,7 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
   }
 
   @Override
-  public BatchQueue createQueue() {
+  protected BatchQueue __createQueueInternal() {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
@@ -144,7 +144,6 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
     }
     makeAndAddBatchExportStep(q, true, exportPath);
 
-    applyParameterOverrides(q);
     return q;
   }
 

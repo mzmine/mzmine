@@ -88,7 +88,7 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
   }
 
   @Override
-  public BatchQueue createQueue() {
+  protected BatchQueue __createQueueInternal() {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
@@ -121,7 +121,6 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     makeAndAddFormulaPredictionStep(q);
     makeAndAddBatchExportStep(q, true, null);
 
-    applyParameterOverrides(q);
     return q;
   }
 

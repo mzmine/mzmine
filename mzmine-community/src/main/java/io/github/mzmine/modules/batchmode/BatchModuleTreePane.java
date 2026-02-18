@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javafx.beans.NamedArg;
+import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
@@ -50,6 +51,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 public class BatchModuleTreePane extends BorderPane {
@@ -184,22 +186,37 @@ public class BatchModuleTreePane extends BorderPane {
     if (eventHandler != null) {
       // Processing module selected?
       TreeItem<Object> selectedNode = treeView.getSelectionModel().getSelectedItem();
-      if (selectedNode == null || selectedNode.getValue() == null) {
-        return;
-      }
-      final Object selectedItem = selectedNode.getValue();
-      if (!(selectedItem instanceof BatchModuleWrapper wrappedModule)) {
-        return;
-      }
-
-      if (!(wrappedModule.getModule() instanceof MZmineRunnableModule module)) {
-        logger.finest(
-            "Cannot add module that is not an MZmineRunnableModule " + wrappedModule.toString());
+      final MZmineRunnableModule module = getModuleFromTreeItem(selectedNode);
+      if (module == null) {
         return;
       }
 
       eventHandler.accept(module);
     }
+  }
+
+  /**
+   * Unwraps the tree item and checks if it is a category item or an actual module item.
+   *
+   * @param selectedNode
+   * @return The module if a module item was selected, null otherwise.
+   */
+  private static @Nullable MZmineRunnableModule getModuleFromTreeItem(
+      @Nullable TreeItem<@Nullable Object> selectedNode) {
+    if (selectedNode == null || selectedNode.getValue() == null) {
+      return null;
+    }
+    final Object selectedItem = selectedNode.getValue();
+    if (!(selectedItem instanceof BatchModuleWrapper wrappedModule)) {
+      return null;
+    }
+
+    if (!(wrappedModule.getModule() instanceof MZmineRunnableModule module)) {
+      logger.finest(
+          "Cannot add module that is not an MZmineRunnableModule " + wrappedModule.toString());
+      return null;
+    }
+    return module;
   }
 
 
@@ -209,5 +226,20 @@ public class BatchModuleTreePane extends BorderPane {
 
   public void clearSearchText() {
     searchField.clear();
+  }
+
+  public ChangeListener<TreeItem<Object>> addModuleFocusedListener(
+      Consumer<@Nullable MZmineRunnableModule> handler) {
+
+    ChangeListener<TreeItem<Object>> listener = (_, _, i) -> handler.accept(
+        getModuleFromTreeItem(i));
+
+    treeView.getSelectionModel().selectedItemProperty().addListener(listener);
+
+    return listener;
+  }
+
+  public void removeModuleFocusedListener(ChangeListener<TreeItem<Object>> listener) {
+    treeView.getSelectionModel().selectedItemProperty().removeListener(listener);
   }
 }

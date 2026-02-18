@@ -38,7 +38,7 @@ public enum CustomizationWizardParameterFactory implements WizardParameterFactor
 
   @Override
   public WizardStepParameters create() {
-    return new CustomizationWizardParameters();
+    return CustomizationWizardParameters.createDefault();
   }
 
   @Override

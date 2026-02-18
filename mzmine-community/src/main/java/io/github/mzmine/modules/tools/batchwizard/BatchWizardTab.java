@@ -38,7 +38,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
-import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardSequenceFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceSaveModule;
@@ -288,25 +287,30 @@ public class BatchWizardTab extends SimpleTab {
 
       // Special handling for customization tab - add checkbox to header
       if (step instanceof CustomizationWizardParameters customizationParams) {
-        final CheckBox enableCheckBox = new CheckBox();
-        final boolean customEnabled = customizationParams.getValue(
-            CustomizationWizardParameters.enabled);
-        enableCheckBox.setSelected(customEnabled);
-
-        // Bind checkbox to parameter and pane disabled state
-        enableCheckBox.selectedProperty().addListener((_, _, newVal) -> {
-          customizationParams.setParameter(CustomizationWizardParameters.enabled, newVal);
-          paramPane.setDisable(!newVal);
-        });
-        // Set initial disabled state after the pane is added to scene graph
-        Platform.runLater(() -> paramPane.setDisable(!customEnabled));
-        tab.setGraphic(enableCheckBox);
+        addCheckboxToCustomizationTabHeader(customizationParams, paramPane, tab);
       }
 
       return tab;
     } else {
       return null;
     }
+  }
+
+  private static void addCheckboxToCustomizationTabHeader(
+      CustomizationWizardParameters customizationParams, ParameterSetupPane paramPane, Tab tab) {
+    final CheckBox enableCheckBox = new CheckBox();
+    final boolean customEnabled = customizationParams.getValue(
+        CustomizationWizardParameters.enabled);
+    enableCheckBox.setSelected(customEnabled);
+
+    // Bind checkbox to parameter and pane disabled state
+    enableCheckBox.selectedProperty().addListener((_, _, newVal) -> {
+      customizationParams.setParameter(CustomizationWizardParameters.enabled, newVal);
+      paramPane.setDisable(!newVal);
+    });
+    // Set initial disabled state after the pane is added to scene graph
+    Platform.runLater(() -> paramPane.setDisable(!customEnabled));
+    tab.setGraphic(enableCheckBox);
   }
 
   /**
@@ -541,9 +545,8 @@ public class BatchWizardTab extends SimpleTab {
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
     try {
-      WizardBatchBuilder batchBuilder = ((WorkflowWizardParameterFactory) workflow.get()
-          .getFactory()).getBatchBuilder(sequenceSteps);
-      final BatchQueue q = batchBuilder.createQueue();
+      final BatchQueue q = ((WorkflowWizardParameterFactory) workflow.get()
+          .getFactory()).getBatchBuilder(sequenceSteps).createQueue();
       batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
 
       if (batchModeParameters.showSetupDialog(false) == ExitCode.OK) {

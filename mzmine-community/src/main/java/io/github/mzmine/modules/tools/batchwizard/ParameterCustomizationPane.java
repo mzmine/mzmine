@@ -94,7 +94,7 @@ public class ParameterCustomizationPane extends BorderPane {
   private ParameterOverride selectedOverride;
 
   public ParameterCustomizationPane() {
-    this.moduleTreePane = new BatchModuleTreePane(true);
+    this.moduleTreePane = new BatchModuleTreePane(false);
     this.parameterListView = new ListView<>();
     this.parameterEditorPane = FxLayout.newVBox();
     this.instructionsLabel = FxLabels.newLabel("Select a module to view its parameters");
@@ -246,6 +246,7 @@ public class ParameterCustomizationPane extends BorderPane {
 
   private void setupEventHandlers() {
     moduleTreePane.setOnAddModuleEventHandler(this::onModuleSelected);
+    moduleTreePane.addModuleFocusedListener(this::onModuleSelected);
     parameterListView.getSelectionModel().selectedItemProperty()
         .addListener((obs, oldVal, newVal) -> onParameterSelected(newVal));
 
@@ -276,28 +277,25 @@ public class ParameterCustomizationPane extends BorderPane {
         event.consume();
       }
     });
-    addEventFilter(KeyEvent.KEY_RELEASED, event -> {
-      if (event.isControlDown() && event.getCode() == KeyCode.F) {
-        event.consume();
-      }
-    });
   }
 
   private void onModuleSelected(MZmineRunnableModule module) {
-    if (module == null) {
-      return;
-    }
 
+    parameterListView.getItems().clear();
     this.selectedModule = module;
     this.selectedParameter = null;
     this.currentEditorComponent = null;
     updateButtonStates();
 
+    if (module == null) {
+      onParameterSelected(null);
+      return;
+    }
+
     // important: clone the parameter set before loading it in here
     ParameterSet parameters = ConfigService.getConfiguration()
         .getModuleParameters(module.getClass()).cloneParameterSet();
     if (parameters == null) {
-      parameterListView.getItems().clear();
       showInstructions("No parameters available for this module");
       return;
     }
@@ -316,13 +314,13 @@ public class ParameterCustomizationPane extends BorderPane {
   }
 
   private void onParameterSelected(@Nullable ParameterWrapper paramWrapper) {
+    parameterEditorPane.getChildren().clear();
     if (paramWrapper == null || selectedModule == null) {
       updateButtonStates();
       return;
     }
 
     this.selectedParameter = paramWrapper;
-    parameterEditorPane.getChildren().clear();
 
     UserParameter<?, ?> parameter = paramWrapper.parameter;
     currentEditorComponent = createEditorForParameter(parameter);

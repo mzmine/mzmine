@@ -79,7 +79,7 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
   }
 
   @Override
-  public BatchQueue createQueue() {
+  protected BatchQueue __createQueueInternal() {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
@@ -125,7 +125,6 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     makeAndAddDdaExportSteps(q, steps, mzTolScans);
     makeAndAddBatchExportStep(q, isExportActive, exportPath);
 
-    applyParameterOverrides(q);
     return q;
   }
 
