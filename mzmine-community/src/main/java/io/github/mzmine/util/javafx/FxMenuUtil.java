@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -171,4 +171,20 @@ public class FxMenuUtil {
     menu.getItems().add(new SeparatorMenuItem());
   }
 
+  public static void addToSubMenuIfAvailable(@NotNull final Menu mainMenu,
+      @NotNull MenuItem itemToAdd, @NotNull String... subMenuNames) {
+    Menu currentMenu = mainMenu;
+    Menu subMenu = null;
+    for (String subMenuName : subMenuNames) {
+      subMenu = currentMenu.getItems().stream().filter(item -> subMenuName.equals(item.getText()))
+          .filter(Menu.class::isInstance).map(Menu.class::cast).findFirst().orElse(null);
+      if (subMenu == null) {
+        break;
+      }
+      currentMenu = subMenu;
+    }
+    if (subMenu != null) {
+      subMenu.getItems().add(itemToAdd);
+    }
+  }
 }
