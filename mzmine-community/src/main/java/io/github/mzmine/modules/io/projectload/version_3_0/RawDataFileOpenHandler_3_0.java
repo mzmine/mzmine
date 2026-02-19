@@ -45,12 +45,8 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlacehold
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
-import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.taskcontrol.impl.WrappedTask;
-import io.github.mzmine.taskcontrol.utils.TaskUtils;
 import io.github.mzmine.util.StreamCopy;
 import io.github.mzmine.util.ZipUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -227,13 +223,14 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
 
         param.setParameter(BatchModeParameters.batchQueue, batchQueue);
 
-        BatchTask batchTask = new BatchTask(project, param, Instant.now(), null);
+        currentTask = new BatchTask(project, param, Instant.now(), null);
+        currentTask.run();
 
-        WrappedTask[] wrappedBatchTask = TaskService.getController()
-            .addTasks(new Task[]{batchTask});
-        TaskStatus taskStatus = TaskUtils.waitForTasksToFinish(this, wrappedBatchTask);
-
-        if (taskStatus != TaskStatus.FINISHED) {
+        if (currentTask.getStatus() == TaskStatus.ERROR) {
+          error(currentTask.getErrorMessage());
+          return false;
+        }
+        if (!currentTask.isFinished()) {
           return false;
         }
 

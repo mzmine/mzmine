@@ -42,7 +42,10 @@ import org.jetbrains.annotations.NotNull;
 public class ProjectLoadModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Open project";
-  private static final String MODULE_DESCRIPTION = "This module opens an existing mzmine project and discards the current workspace, unless run in batch mode.";
+  private static final String MODULE_DESCRIPTION = """
+      This module opens an existing mzmine project and discards the current workspace, unless run in batch mode.
+      As a first step in the batch mode the project is loaded and replaces the current workspace and libraries and can be processed further in the batch.
+      As intermediate step the project is merged onto the existing workspace.""";
 
   @Override
   public @NotNull String getName() {
