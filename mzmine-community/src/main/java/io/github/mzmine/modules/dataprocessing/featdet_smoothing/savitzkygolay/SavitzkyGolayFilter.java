@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,81 +25,72 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay;
 
-import java.util.Map.Entry;
-import java.util.TreeMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Utilities for the Savitzky-Golay smoother.
- *
- * @author $Author$
- * @version $Revision$
  */
 public class SavitzkyGolayFilter {
 
-  // The filter values.
-  private static final TreeMap<Integer, int[]> VALUES = new TreeMap<>();
-
-  static {
-
-    // Load the values.
-    VALUES.put(5, new int[]{17, 12, -3});
-    VALUES.put(7, new int[]{7, 6, 3, -2});
-    VALUES.put(9, new int[]{59, 54, 39, 14, -21});
-    VALUES.put(11, new int[]{89, 84, 69, 44, 9, -36});
-    VALUES.put(13, new int[]{25, 24, 21, 16, 9, 0, -11});
-    VALUES.put(15, new int[]{167, 162, 147, 122, 87, 42, -13, -78});
-    VALUES.put(17, new int[]{43, 42, 39, 34, 27, 18, 7, -6, -21});
-    VALUES.put(19, new int[]{269, 264, 249, 224, 189, 144, 89, 24, -51, -136});
-    VALUES.put(21, new int[]{329, 324, 309, 284, 249, 204, 149, 84, 9, -76, -171});
-    VALUES.put(23, new int[]{79, 78, 75, 70, 63, 54, 43, 30, 15, -2, -21, -42});
-    VALUES.put(25, new int[]{467, 462, 447, 422, 387, 343, 287, 222, 147, 62, -33, -138, -253});
-  }
+  // Cache to store weights for widths that have already been calculated.
+  private static final Map<Integer, double[]> WEIGHTS_CACHE = new ConcurrentHashMap<>();
 
   /**
    * Utility class - no public constructor.
    */
   private SavitzkyGolayFilter() {
-
     // no public access.
   }
 
   /**
-   * Gets the normalized Savitzky-Golay filter weights.
+   * Gets the normalized Savitzky-Golay filter weights for a Quadratic/Cubic polynomial.
+   * <p>
+   * If the weights for this width exist in the cache, they are returned immediately. Otherwise,
+   * they are calculated, cached, and returned.
+   * </p>
    *
-   * @param width the full width of the filter.
+   * @param width the full width of the filter (must be odd and >= 3).
    * @return the filter weights (normalized).
    */
-  public static double[] getNormalizedWeights(final int width) {
+  public static double[] getNormalizedWeights(int width) {
 
     if (width == 0) {
       return new double[]{1d};
     }
 
-    // Get the raw values.
-    final int[] values = VALUES.get(width);
-    if (values == null) {
-      throw new IllegalArgumentException(
-          "No Savitzky-Golay filter of width " + width + " is defined");
+    if (width % 2 == 0) {
+      width += 1;
     }
 
-    // Copy values (symmetrically) to weights array.
-    final int vLen = values.length;
-    final int wLen = vLen * 2 - 1;
-    final int vEnd = vLen - 1;
-    final double[] weights = new double[wLen];
-    int sum = values[0];
-    weights[vEnd] = (double) sum;
-    for (int i = 1; i < vLen; i++) {
+    // 2. Retrieve from cache or compute if absent
+    // This is atomic and thread-safe.
+    return WEIGHTS_CACHE.computeIfAbsent(width, SavitzkyGolayFilter::calculateWeights);
+  }
 
-      final int value = values[i];
-      weights[vEnd + i] = (double) value;
-      weights[vEnd - i] = (double) value;
-      sum += 2 * value;
+  /**
+   * Internal method to calculate weights using the analytical formula. Formula: w_k = 3m(m+1) - 1 -
+   * 5k^2
+   */
+  private static double[] calculateWeights(int width) {
+    final int m = (width - 1) / 2; // The half-width
+    final double[] weights = new double[width];
+    double sum = 0.0;
+
+    // Calculate raw weights for Polynomial Order 2 (Quadratic) / 3 (Cubic)
+    for (int i = 0; i < width; i++) {
+      int k = i - m; // Distance from center
+
+      // Analytical formula
+      double val = 3.0 * m * (m + 1) - 1 - 5.0 * k * k;
+
+      weights[i] = val;
+      sum += val;
     }
 
-    // Normalize.
-    for (int i = 0; i < wLen; i++) {
-      weights[i] /= (double) sum;
+    // Normalize
+    for (int i = 0; i < width; i++) {
+      weights[i] /= sum;
     }
 
     return weights;
@@ -124,7 +116,12 @@ public class SavitzkyGolayFilter {
 
       double sum = 0.0;
       final int k = i - halfWidth;
-      for (int j = Math.max(0, -k); j < Math.min(fullWidth, numPoints - k); j++) {
+
+      // Boundary handling: strict intersection of filter and data
+      int startJ = Math.max(0, -k);
+      int endJ = Math.min(fullWidth, numPoints - k);
+
+      for (int j = startJ; j < endJ; j++) {
         sum += intensities[k + j] * weights[j];
       }
 
@@ -135,18 +132,14 @@ public class SavitzkyGolayFilter {
     return convolved;
   }
 
+  /**
+   * Returns the valid filter width. Ensures the width is odd and at least 3.
+   */
   public static int getClosestFilterWidth(int width) {
-    Entry<Integer, int[]> floorEntry = VALUES.floorEntry(width);
-    Entry<Integer, int[]> ceilEntry = VALUES.ceilingEntry(width);
-
-    if (floorEntry == null && ceilEntry != null) {
-      return ceilEntry.getKey();
-    } else if (floorEntry != null && ceilEntry == null) {
-      return floorEntry.getKey();
-    } else if (floorEntry != null && ceilEntry != null) {
-      return Math.abs(floorEntry.getKey() - width) < Math.abs(ceilEntry.getKey() - width)
-          ? floorEntry.getKey() : ceilEntry.getKey();
+    if (width < 3) {
+      return 3;
     }
-    throw new IllegalStateException("No filters defined.");
+    // Ensure odd
+    return (width % 2 == 0) ? width + 1 : width;
   }
 }
