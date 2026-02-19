@@ -26,6 +26,9 @@
 package io.github.mzmine.util.javafx;
 
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.util.StringUtils;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import javafx.scene.Node;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Menu;
@@ -183,8 +186,11 @@ public class FxMenuUtil {
       }
       currentMenu = subMenu;
     }
-    if (subMenu != null) {
-      subMenu.getItems().add(itemToAdd);
+    if (subMenu == null) {
+      throw new RuntimeException("Expected sub menu tree %s not found. Stopped at: %s".formatted(
+          Arrays.stream(subMenuNames).map(StringUtils::inQuotes)
+              .collect(Collectors.joining(" -> ")), StringUtils.inQuotes(currentMenu.getText())));
     }
+    subMenu.getItems().add(itemToAdd);
   }
 }
