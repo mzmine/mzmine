@@ -625,7 +625,8 @@ public class FeatureTableContextMenu extends ContextMenu {
         }));
 
     final MenuItem showCompoundDBResults = new ConditionalMenuItem("Compound DB search results",
-        () -> selectedRow != null && !selectedRow.getCompoundAnnotations().isEmpty());
+        () -> selectedRow != null && !FeatureUtils.extractAllCompoundAnnotations(selectedRow)
+            .isEmpty());
     showCompoundDBResults.setOnAction(_ -> CompoundDatabaseMatchTab.addNewTab(table));
 
     final MenuItem showSpectralDBResults = new ConditionalMenuItem("Spectral DB search results",
