@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -79,6 +80,7 @@ import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModul
 import io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal.RemoveScanRtCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_ri.RICalculationModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
 import io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
@@ -200,8 +202,9 @@ public final class AcademicWorkspace extends AbstractWorkspace {
     addModuleMenuItems(menu, "Gap filling/Recursive feature finding",
         MultiThreadPeakFinderModule.class, SameRangeGapFillerModule.class);
     addModuleMenuItems(menu, "Normalization", RTCorrectionModule.class,
-        RemoveScanRtCorrectionModule.class, LinearNormalizerModule.class,
-        StandardCompoundNormalizerModule.class, RICalculationModule.class);
+        ScanRtCorrectionModule.class, RemoveScanRtCorrectionModule.class,
+        LinearNormalizerModule.class, StandardCompoundNormalizerModule.class,
+        RICalculationModule.class);
 
     menu.getItems().add(buildDefaultAnnotationSubMenu());
 
