@@ -109,6 +109,10 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
+    if (scanRtCorrection) {
+      // clear before so we don't have to recalculate RTs later on
+      makeAndAddClearRtCorrectionStep(q);
+    }
     makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
         minRtDataPoints, cropRtRange, polarity);
     makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);

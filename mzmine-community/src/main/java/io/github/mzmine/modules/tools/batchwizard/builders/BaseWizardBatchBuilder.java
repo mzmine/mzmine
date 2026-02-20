@@ -119,6 +119,8 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.Spectra
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
+import io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal.RemoveScanRtCorrectionModule;
+import io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal.RemoveScanRtCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTMeasure;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionModule;
@@ -1147,6 +1149,17 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(SmoothingModule.class), param);
     q.add(step);
+  }
+
+  protected void makeAndAddClearRtCorrectionStep(final @NotNull BatchQueue q) {
+    final ParameterSet param = ConfigService.getConfiguration()
+        .getModuleParameters(RemoveScanRtCorrectionModule.class).cloneParameterSet();
+
+    param.setParameter(RemoveScanRtCorrectionParameters.files,
+        new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(RemoveScanRtCorrectionModule.class), param));
   }
 
   protected void makeAndAddScanRtCorrectionStep(final @NotNull BatchQueue q,

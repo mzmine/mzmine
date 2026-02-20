@@ -82,7 +82,8 @@ public final class IonInterfaceHplcWizardParameters extends IonInterfaceWizardPa
       "Apply smoothing in the retention time dimension, usually only needed if the peak shapes are spiky.",
       true);
 
-  public static final BooleanParameter scanRtCorrection = new BooleanParameter("Scan RT correction",
+  public static final BooleanParameter scanRtCorrection = new BooleanParameter(
+      "Apply Retention time correction",
       """
           Apply scan-based retention time correction to reduce RT deviations between samples.
           Common features are identified across samples and used to correct the scan retention times.
