@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -90,16 +89,16 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
     return switch (this) {
       case HPLC -> new IonInterfaceHplcWizardParameters(this, true, 15, 4, Range.closed(0.5, 60d),
           new RTTolerance(0.1f, Unit.MINUTES), new RTTolerance(0.08f, Unit.MINUTES),
-          new RTTolerance(0.4f, Unit.MINUTES));
+          new RTTolerance(0.4f, Unit.MINUTES), false);
       case UHPLC -> new IonInterfaceHplcWizardParameters(this, true, 15, 4, Range.closed(0.3, 30d),
           new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
-          new RTTolerance(0.1f, Unit.MINUTES));
+          new RTTolerance(0.1f, Unit.MINUTES), false);
       case HILIC -> new IonInterfaceHplcWizardParameters(this, true, 15, 5, Range.closed(0.3, 30d),
           new RTTolerance(0.15f, Unit.MINUTES), new RTTolerance(3, Unit.SECONDS),
-          new RTTolerance(6, Unit.SECONDS));
+          new RTTolerance(6, Unit.SECONDS), false);
       case GC_CI -> new IonInterfaceHplcWizardParameters(this, true, 30, 6, Range.closed(0.3, 30d),
           new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
-          new RTTolerance(0.1f, Unit.MINUTES));
+          new RTTolerance(0.1f, Unit.MINUTES), false);
       // different workflow for GC-EI
       case GC_EI -> new IonInterfaceGcElectronImpactWizardParameters(this, false, true,
           Range.closed(0.3, 30d), new RTTolerance(0.05f, Unit.MINUTES),
