@@ -86,15 +86,30 @@ import org.jetbrains.annotations.Nullable;
 
 public class CompoundAnnotationUtils {
 
+  private static final String MZCONNECT_ANALOG_COMPOUND_DB_TYPE_ID =
+      "compound_db_identity_mzconnect_analog";
+
   /**
    * This list does <b>not</b> represent an absolute order of annotation priorities, but may be used
    * for rough pre-grouping if required.
    */
-  public static final List<DataType> annotationTypePriority = DataTypes.getAll(
-      CompoundDatabaseMatchesType.class, LipidMatchListType.class,
-      SpectralLibraryMatchesType.class);
+  public static final List<DataType> annotationTypePriority = createAnnotationTypePriority();
 
   private static final Logger logger = Logger.getLogger(CompoundAnnotationUtils.class.getName());
+
+  private static List<DataType> createAnnotationTypePriority() {
+    final List<DataType> priority = new ArrayList<>(DataTypes.getAll(
+        CompoundDatabaseMatchesType.class, LipidMatchListType.class,
+        SpectralLibraryMatchesType.class));
+
+    final DataType<?> analogCompoundDbType = DataTypes.getTypeForId(
+        MZCONNECT_ANALOG_COMPOUND_DB_TYPE_ID);
+    if (analogCompoundDbType != null && !priority.contains(analogCompoundDbType)) {
+      // Keep analog close to standard Compound DB annotations for AQS ranking and preferred annotation UX.
+      priority.add(1, analogCompoundDbType);
+    }
+    return List.copyOf(priority);
+  }
 
   /**
    * Precalculates the isotope pattern and maybe other properties of a feature annotation to speed
