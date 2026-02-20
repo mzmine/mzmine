@@ -50,7 +50,7 @@ public class SavitzkyGolayFilter {
    * they are calculated, cached, and returned.
    * </p>
    *
-   * @param width the full width of the filter (must be odd and >= 3).
+   * @param width the full width of the filter. Even numbers are converted to next higher odd number
    * @return the filter weights (normalized).
    */
   public static double[] getNormalizedWeights(int width) {
@@ -118,8 +118,8 @@ public class SavitzkyGolayFilter {
       final int k = i - halfWidth;
 
       // Boundary handling: strict intersection of filter and data
-      int startJ = Math.max(0, -k);
-      int endJ = Math.min(fullWidth, numPoints - k);
+      final int startJ = Math.max(0, -k);
+      final int endJ = Math.min(fullWidth, numPoints - k);
 
       for (int j = startJ; j < endJ; j++) {
         sum += intensities[k + j] * weights[j];
