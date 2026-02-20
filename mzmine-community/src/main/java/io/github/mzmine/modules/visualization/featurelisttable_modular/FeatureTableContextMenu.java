@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -60,7 +59,6 @@ import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
@@ -76,7 +74,6 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.Spectra
 import io.github.mzmine.modules.io.export_features_gnps.masst.GnpsMasstSubmitModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
-import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardTab;
 import io.github.mzmine.modules.tools.siriusapi.MzmineToSirius;
 import io.github.mzmine.modules.tools.siriusapi.modules.export.SiriusApiExportRowsModule;
@@ -113,8 +110,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.IonMobilityUtils;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -333,24 +328,6 @@ public class FeatureTableContextMenu extends ContextMenu {
         _ -> SiriusExportModule.exportSingleRows(selectedRows.toArray(new ModularFeatureListRow[0]),
             Instant.now()));
 
-    final MenuItem exportMS1Library = new ConditionalMenuItem("Export to MS1 library",
-        () -> !selectedRows.isEmpty());
-    exportMS1Library.setOnAction(_ -> FxThread.runLater(() -> {
-      MSMSLibrarySubmissionWindow window = new MSMSLibrarySubmissionWindow();
-      window.setData(selectedRows.toArray(new ModularFeatureListRow[0]), SortingProperty.MZ,
-          SortingDirection.Ascending, false);
-      window.show();
-    }));
-
-    final MenuItem exportMSMSLibrary = new ConditionalMenuItem("Export to MS/MS library",
-        () -> !selectedRows.isEmpty());
-    exportMSMSLibrary.setOnAction(_ -> FxThread.runLater(() -> {
-      MSMSLibrarySubmissionWindow window = new MSMSLibrarySubmissionWindow();
-      window.setData(selectedRows.toArray(new ModularFeatureListRow[0]), SortingProperty.MZ,
-          SortingDirection.Ascending, true);
-      window.show();
-    }));
-
     final MenuItem exportImageToCsv = new ConditionalMenuItem("Export image to .csv",
         () -> !selectedRows.isEmpty() && selectedRows.getFirst().hasFeatureType(ImageType.class));
     exportImageToCsv.visibleProperty().bind(hasImagingData);
@@ -360,7 +337,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     // export menu
     exportMenu.getItems()
         .addAll(exportIsotopesItem, exportMSMSItem, exportToSirius, new SeparatorMenuItem(),
-            exportMS1Library, exportMSMSLibrary, new SeparatorMenuItem(), exportImageToCsv);
+            exportImageToCsv);
   }
 
   private void initSearchMenu() {
