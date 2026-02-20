@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -165,6 +164,9 @@ public class WaveletResolver extends AbstractResolver {
     double maxY = y[initialIndex];
     int index = initialIndex;
     while (index > 1 && index < y.length - 1 && y[index + direction] > maxY) {
+      // intentionally don't check the start and end here, they are more used to find the
+      // correct search direction. we want the closest local maximum because multiple scales may
+      // find a potential peak at different indices.
       index += direction;
       maxY = y[index];
       bestYIndex = index;
