@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -12,6 +11,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -65,6 +65,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
   private final Integer maxIsomersInRt;
   private final RTTolerance rtFwhm;
   private final Boolean stableIonizationAcrossSamples;
+  private final boolean scanRtCorrection;
   private final Boolean isExportActive;
   private final Boolean exportGnps;
   private final Boolean exportSirius;
@@ -88,6 +89,8 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     rtFwhm = getValue(params, IonInterfaceHplcWizardParameters.approximateChromatographicFWHM);
     stableIonizationAcrossSamples = getValue(params,
         IonInterfaceHplcWizardParameters.stableIonizationAcrossSamples);
+    scanRtCorrection = dataFiles.length > 1 && Boolean.TRUE.equals(
+        getValue(params, IonInterfaceHplcWizardParameters.scanRtCorrection));
 
     params = steps.get(WizardPart.WORKFLOW);
     OptionalValue<File> optional = getOptional(params, WorkflowDiaWizardParameters.exportPath);
@@ -126,6 +129,9 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     makeAndAddDiaMs2GroupingStep(q);
 
     makeAndAddIsotopeFinderStep(q);
+    if (scanRtCorrection) {
+      makeAndAddScanRtCorrectionStep(q, mzTolInterSample, interSampleRtTol);
+    }
     makeAndAddJoinAlignmentStep(q, interSampleRtTol);
     makeAndAddRowFilterStep(q);
     makeAndAddGapFillStep(q, interSampleRtTol, minRtDataPoints);

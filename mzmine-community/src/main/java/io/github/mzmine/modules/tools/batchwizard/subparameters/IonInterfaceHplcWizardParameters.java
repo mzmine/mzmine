@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -28,12 +27,14 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import java.util.Map;
 import javafx.collections.FXCollections;
 
 public final class IonInterfaceHplcWizardParameters extends IonInterfaceWizardParameters {
@@ -81,19 +82,26 @@ public final class IonInterfaceHplcWizardParameters extends IonInterfaceWizardPa
       "Apply smoothing in the retention time dimension, usually only needed if the peak shapes are spiky.",
       true);
 
+  public static final BooleanParameter scanRtCorrection = new BooleanParameter("Scan RT correction",
+      """
+          Apply scan-based retention time correction to reduce RT deviations between samples.
+          Common features are identified across samples and used to correct the scan retention times.
+          Only applied when more than one data file is imported and QC files are available.""",
+      false);
+
 
   public IonInterfaceHplcWizardParameters(final IonInterfaceWizardParameterFactory preset) {
     super(WizardPart.ION_INTERFACE, preset,
         // actual parameters
-        smoothing, stableIonizationAcrossSamples, cropRtRange, maximumIsomersInChromatogram,
-        minNumberOfDataPoints, approximateChromatographicFWHM, intraSampleRTTolerance,
-        interSampleRTTolerance);
+        smoothing, stableIonizationAcrossSamples, scanRtCorrection, cropRtRange,
+        maximumIsomersInChromatogram, minNumberOfDataPoints, approximateChromatographicFWHM,
+        intraSampleRTTolerance, interSampleRTTolerance);
   }
 
   public IonInterfaceHplcWizardParameters(final IonInterfaceWizardParameterFactory preset,
       final boolean stableIonization, final int maxIsomersInSample, final int minDataPoints,
       final Range<Double> cropRt, final RTTolerance fwhm, final RTTolerance intraSampleTolerance,
-      final RTTolerance interSampleTolerance) {
+      final RTTolerance interSampleTolerance, final boolean applyRtCorrection) {
     this(preset);
     // defaults
     setParameter(stableIonizationAcrossSamples, stableIonization);
@@ -103,6 +111,15 @@ public final class IonInterfaceHplcWizardParameters extends IonInterfaceWizardPa
     setParameter(approximateChromatographicFWHM, fwhm);
     setParameter(intraSampleRTTolerance, intraSampleTolerance);
     setParameter(interSampleRTTolerance, interSampleTolerance);
+    setParameter(scanRtCorrection, applyRtCorrection);
   }
 
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+
+    if (loadedParams.get(scanRtCorrection.getName()) == null) {
+      setParameter(scanRtCorrection, false);
+    }
+  }
 }
