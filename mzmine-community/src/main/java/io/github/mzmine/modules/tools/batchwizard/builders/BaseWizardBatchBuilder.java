@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -12,6 +11,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -119,8 +119,11 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.Spectra
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
-import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
-import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionParameters;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionParameters;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTMeasure;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionModule;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.MultilinearRawFileRtCalibrationParameters;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportParameters;
@@ -168,6 +171,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSp
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.FragmentUtils;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreParameters;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters.MetadataFileFormat;
@@ -1145,22 +1149,27 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     q.add(step);
   }
 
-  protected void makeAndAddRetentionTimeCalibration(BatchQueue q, MZTolerance mzTolInterSample,
-      RTTolerance interSampleRtTol, OriginalFeatureListOption handleOriginalFeatureLists) {
+  protected void makeAndAddScanRtCorrectionStep(final @NotNull BatchQueue q,
+      final @NotNull MZTolerance mzTolInterSample, final @NotNull RTTolerance interSampleRtTol) {
+    final RTCorrectionParameters scanRtParams = (RTCorrectionParameters) MZmineCore.getConfiguration()
+        .getModuleParameters(ScanRtCorrectionModule.class).cloneParameterSet();
 
-    final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(RTCorrectionModule.class).cloneParameterSet();
-    param.setParameter(RTCorrectionParameters.featureLists,
+    scanRtParams.setParameter(RTCorrectionParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(RTCorrectionParameters.MZTolerance, mzTolInterSample);
-    param.setParameter(RTCorrectionParameters.RTTolerance, interSampleRtTol);
-    param.setParameter(RTCorrectionParameters.minHeight, minFeatureHeight);
-    param.setParameter(RTCorrectionParameters.handleOriginal, handleOriginalFeatureLists);
-    param.setParameter(RTCorrectionParameters.suffix, "rt_cal");
+    scanRtParams.setParameter(RTCorrectionParameters.MZTolerance, mzTolInterSample);
+    scanRtParams.setParameter(RTCorrectionParameters.RTTolerance,
+        new RTTolerance(interSampleRtTol.getToleranceInMinutes() * 2, Unit.MINUTES));
+    scanRtParams.setParameter(RTCorrectionParameters.minHeight, minFeatureHeight);
+    scanRtParams.setParameter(RTCorrectionParameters.sampleTypes, List.of(SampleType.QC));
+    scanRtParams.setParameter(RTCorrectionParameters.rtMeasure, RTMeasure.MEDIAN);
+    ParameterSet optionParameters = scanRtParams.getParameter(
+            RTCorrectionParameters.calibrationFunctionModule)
+        .setOptionGetParameters(RtCorrectionFunctions.MultiLinearCorrection);
+    optionParameters.setParameter(MultilinearRawFileRtCalibrationParameters.correctionBandwidth,
+        0.1);
 
-    MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(RTCorrectionModule.class), param);
-    q.add(step);
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ScanRtCorrectionModule.class),
+        scanRtParams));
   }
 
   /**
