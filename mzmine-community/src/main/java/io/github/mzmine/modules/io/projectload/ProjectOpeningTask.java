@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import com.google.common.io.CountingInputStream;
 import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
 import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
@@ -55,7 +56,6 @@ import java.time.Instant;
 import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -146,11 +146,18 @@ public class ProjectOpeningTask extends AbstractTask {
       logger.info("Started opening project " + openFile);
       setStatus(TaskStatus.PROCESSING);
 
-      newProject = new MZmineProjectImpl();
-      newProject.setProjectFile(openFile);
-      newProject.setStandalone(false); // set to false by default, we check for existing files later
-      GUIUtils.closeAllWindows();
-      projectManager.setCurrentProject(newProject);
+      // only create a new project if this is not part of a batch. If this is the first step in a batch,
+      // the batch will create the new project. If this is a later step, add to the existing project
+      if (!MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
+        newProject = new MZmineProjectImpl();
+        newProject.setProjectFile(openFile);
+        newProject.setStandalone(
+            false); // set to false by default, we check for existing files later
+        GUIUtils.closeAllWindows();
+        projectManager.setCurrentProject(newProject);
+      } else {
+        newProject = (MZmineProjectImpl) ProjectService.getProject();
+      }
 
       ZipFile zipFile = new ZipFile(openFile);
       Enumeration<? extends ZipEntry> entries = zipFile.entries();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.projectload.version_3_0;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -60,11 +61,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -211,6 +215,16 @@ public class FeatureListLoadTask extends AbstractTask {
 
     // disable caching on project level
     project.setProjectLoadImsImportCaching(false);
+
+    //  group flists by date created, only use the latest set of feature lists in next batch step
+    final Set<FeatureList> mostRecentStepFeatureLists = Set.copyOf(
+        project.getCurrentFeatureLists().stream().collect(
+                Collectors.groupingBy(flist -> flist.getAppliedMethods().getLast().getModuleCallDate()))
+            .entrySet().stream().max(Entry.comparingByKey()).map(Entry::getValue)
+            .orElse(List.of()));
+    project.getCurrentFeatureLists().forEach(
+        flist -> flist.setExcludedFromBatchLast(!mostRecentStepFeatureLists.contains(flist)));
+
     setStatus(TaskStatus.FINISHED);
   }
 
