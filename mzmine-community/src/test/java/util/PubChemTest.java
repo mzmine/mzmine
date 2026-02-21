@@ -44,7 +44,6 @@ import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
 @EnabledOnOs({OS.WINDOWS})
-@Disabled("Sometimes down")
 public class PubChemTest {
 
   private static final Logger logger = Logger.getLogger(PubChemTest.class.getName());
