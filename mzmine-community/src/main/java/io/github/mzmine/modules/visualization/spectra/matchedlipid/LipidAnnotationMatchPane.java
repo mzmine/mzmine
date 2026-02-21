@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,12 +31,12 @@ import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.framework.fx.features.AbstractFeatureListRowsPane;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.color.ColorScaleUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.javafx.util.color.ColorScaleUtil;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.text.DecimalFormat;
 import java.util.List;
@@ -74,13 +74,11 @@ public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
   }
 
   @Override
-  public void onRowsChanged(List<? extends FeatureListRow> rows) {
-    super.onRowsChanged(rows);
-  }
-
-  @Override
   public void onSelectedRowsChanged(List<? extends FeatureListRow> selectedRows) {
     super.onSelectedRowsChanged(selectedRows);
+    if (!super.isAutoUpdate()) {
+      return;
+    }
     matches = 0;
     GridPane pane = new GridPane();
     GridPane.setHgrow(pane, Priority.ALWAYS);

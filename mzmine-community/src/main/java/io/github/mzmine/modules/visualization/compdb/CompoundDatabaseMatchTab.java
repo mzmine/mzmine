@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,7 +43,6 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Separator;
-import javafx.scene.control.TreeItem;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,7 +80,7 @@ public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInt
   }
 
   private void selectionChanged() {
-    if (weak.isDisposed() || table == null) {
+    if (weak.isDisposed() || table == null || !isUpdateOnSelection()) {
       return;
     }
     final ModularFeatureListRow selectedRow = table.getSelectedRow();
