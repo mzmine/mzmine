@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -28,11 +27,17 @@ package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import java.util.Map;
 
 public class AbstractBaselineCorrectorParameters extends SimpleParameterSet {
 
-  public static final BooleanParameter applyPeakRemoval = new BooleanParameter("Exclude peaks",
+  public static final ComboParameter<PeakRemoval> applyPeakRemoval = new ComboParameter<>(
+      "Peak detection", "Attempts to remove peaks prior to baseline correction.",
+      PeakRemoval.values(), PeakRemoval.WAVELET);
+
+  private final BooleanParameter oldPeakRemoval = new BooleanParameter("Exclude peaks",
       "Attempts to remove peaks prior to baseline correction.");
 
   public static final PercentParameter samplePercentage = new PercentParameter(
@@ -59,4 +64,25 @@ public class AbstractBaselineCorrectorParameters extends SimpleParameterSet {
     super(onlineHelpUrl, parameters);
   }
 
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var map = super.getNameParameterMap();
+    map.put(oldPeakRemoval.getName(), oldPeakRemoval);
+    return map;
+  }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+
+    if (loadedParams.get(oldPeakRemoval.getName()) != null) {
+      if (loadedParams.get(oldPeakRemoval) instanceof BooleanParameter p) {
+        if (p.getValue() == true) {
+          setParameter(applyPeakRemoval, PeakRemoval.LOCAL_MIN);
+        } else {
+          setParameter(applyPeakRemoval, PeakRemoval.NONE);
+        }
+      }
+    }
+  }
 }

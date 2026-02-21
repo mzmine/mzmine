@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -23,30 +22,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes;
+package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.wavelet;
 
-import java.util.Objects;
-import java.util.function.Supplier;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+/**
+ * Intermediate object to store maxima in the CWT.
+ *
+ * @param index     Index in the original signal
+ * @param scale     Scale at which it was prominent
+ * @param cwtValue  CWT coefficient value at this point/scale
+ * @param originalY y-value in the original signal
+ */
+record PotentialPeak(int index, double scale, double cwtValue, double originalY) {
 
-public record OptionalValue<T>(boolean active, T value) {
-
-  /**
-   * @param defaultValue the default value. may be null.
-   * @return the value if not null or the default value. The default value may be null.
-   */
-  @Nullable
-  public T orElse(@Nullable T defaultValue) {
-    return value != null ? value : defaultValue;
+  @Override
+  public String toString() {
+    return "PotentialPeak{index=" + index + ", scale=" + scale + ", cwtValue=" + String.format(
+        "%.2f", cwtValue) + ", y=" + String.format("%.2f", originalY) +  ", y/cwt=" + String.format("%.2f", cwtValue() / Math.sqrt(scale())) + "}";
   }
-
-  /**
-   * @param defaultValue the default value supplier. may return null.
-   * @return the value if not null or the default value. The default value may be null.
-   */
-  public T orElseGet(@NotNull Supplier<? extends @Nullable T> defaultValue) {
-    return value != null ? value : defaultValue.get();
-  }
-
 }
