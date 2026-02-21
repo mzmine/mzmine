@@ -154,6 +154,7 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
+import io.github.mzmine.modules.io.spectral_library_from_matches.MatchesSubsetLibraryModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import io.github.mzmine.modules.tools.clear_project.ClearProjectModule;
@@ -419,6 +420,7 @@ public class BatchModeModulesList {
           LibraryAnalysisCSVExportModule.class, //
           LibraryBatchGenerationModule.class, //
           GNPSLibraryBatchExportModule.class, //
+          MatchesSubsetLibraryModule.class, //
           ExportScansFeatureModule.class, //
           FeatureMLExportModularModule.class, //
           MsMsQualityExportModule.class, //
