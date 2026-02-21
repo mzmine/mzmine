@@ -31,6 +31,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -79,6 +80,12 @@ public class BatchModeModule implements MZmineProcessingModule {
           "Cannot run a second batch while the current batch is not finished.");
       return null;
     }
+    if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(ProjectOpeningTask.class)) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Currently loading a project, cannot run a batch until project load is finished.");
+      return null;
+    }
+
 
     logger.info("Running batch from file " + batchFile);
 
