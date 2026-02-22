@@ -105,7 +105,11 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
   private PaintScale paintScale;
 
   private boolean highlightAnnotated = false;
-  private final List<Rectangle2D> drawnLabelBounds = new ArrayList<>();
+  private List<Rectangle2D> drawnLabelBounds = new ArrayList<>();
+  private List<Rectangle2D> dataPointBounds = new ArrayList<>();
+  private transient XYDataset cachedBubbleRangeDataset;
+  private double cachedMinBubbleSize = Double.NaN;
+  private double cachedMaxBubbleSize = Double.NaN;
 
   /**
    * Creates a new {@code XYCircleRenderer} instance with default attributes.
@@ -120,6 +124,15 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
       final @NotNull Rectangle2D dataArea, final @NotNull XYPlot plot,
       final @Nullable XYDataset data, final @Nullable PlotRenderingInfo info) {
     drawnLabelBounds.clear();
+    dataPointBounds.clear();
+    if (data != null) {
+      updateBubbleSizeRangeCache(data);
+      cacheDataPointBounds(plot, dataArea, data);
+    } else {
+      cachedBubbleRangeDataset = null;
+      cachedMinBubbleSize = Double.NaN;
+      cachedMaxBubbleSize = Double.NaN;
+    }
     return super.initialise(g2, dataArea, plot, data, info);
   }
 
@@ -344,28 +357,16 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
     double x = dataset.getXValue(series, item);
     double y = dataset.getYValue(series, item);
     double z = 0.0;
-    double bubbleSize = 0;
-    double minBubbleSize;
-    double maxBubbleSize;
+    double bubbleSize = resolveBubbleSize(dataset, series, item);
     Color specificDatasetColor = null;
     boolean annotated = false;
     if (dataset instanceof KendrickMassPlotXYDataset kds) {
-      double[] bubbleSizeValues = kds.getBubbleSizeValues();
-      minBubbleSize = Arrays.stream(bubbleSizeValues).min().getAsDouble();
-      maxBubbleSize = Arrays.stream(bubbleSizeValues).max().getAsDouble();
-      bubbleSize = scaleBubbeSize(minBubbleSize, maxBubbleSize,
-          kds.getBubbleSize(series, item));
       if (kds.getColor() != null) {
         specificDatasetColor = kds.getColor();
       }
     }
     if (dataset instanceof XYZBubbleDataset bubbleDataset) {
       z = bubbleDataset.getZValue(series, item);
-      double[] bubbleSizeValues = bubbleDataset.getBubbleSizeValues();
-      minBubbleSize = Arrays.stream(bubbleSizeValues).min().getAsDouble();
-      maxBubbleSize = Arrays.stream(bubbleSizeValues).max().getAsDouble();
-      bubbleSize = scaleBubbeSize(minBubbleSize, maxBubbleSize,
-          bubbleDataset.getBubbleSizeValue(series, item));
     }
     if(dataset instanceof KendrickMassPlotXYZDataset xyz) {
       annotated = xyz.isAnnotated(item);
@@ -380,16 +381,11 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
           specificDatasetColor.getBlue(), 150);
     }
 
-    double xx0 = domainAxis.valueToJava2D(x, dataArea, plot.getDomainAxisEdge()) - bubbleSize / 2;
-    double yy0 = rangeAxis.valueToJava2D(y, dataArea, plot.getRangeAxisEdge()) - bubbleSize / 2;
-    double xx1 = domainAxis.valueToJava2D(x, dataArea, plot.getDomainAxisEdge()) - bubbleSize / 2;
-    double yy1 = rangeAxis.valueToJava2D(y, dataArea, plot.getRangeAxisEdge()) - bubbleSize / 2;
-    Ellipse2D circle;
-    PlotOrientation orientation = plot.getOrientation();
-    if (orientation.equals(PlotOrientation.HORIZONTAL)) {
-      circle = new Ellipse2D.Double(Math.min(yy0, yy1), Math.min(xx0, xx1), bubbleSize, bubbleSize);
-    } else {
-      circle = new Ellipse2D.Double(Math.min(xx0, xx1), Math.min(yy0, yy1), bubbleSize, bubbleSize);
+    final PlotOrientation orientation = plot.getOrientation();
+    final Ellipse2D circle = createBubbleShape(x, y, bubbleSize, dataArea, plot, domainAxis,
+        rangeAxis);
+    if (circle == null) {
+      return;
     }
     g2.setPaint(p);
     g2.fill(circle);
@@ -468,6 +464,11 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
       PublicCloneable pc = (PublicCloneable) this.paintScale;
       clone.paintScale = (PaintScale) pc.clone();
     }
+    clone.drawnLabelBounds = new ArrayList<>();
+    clone.dataPointBounds = new ArrayList<>();
+    clone.cachedBubbleRangeDataset = null;
+    clone.cachedMinBubbleSize = Double.NaN;
+    clone.cachedMaxBubbleSize = Double.NaN;
     return clone;
   }
 
@@ -489,6 +490,107 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
 
   public void setHighlightAnnotated(boolean highlightAnnotated) {
     this.highlightAnnotated = highlightAnnotated;
+  }
+
+  private void cacheDataPointBounds(final @NotNull XYPlot plot, final @NotNull Rectangle2D dataArea,
+      final @NotNull XYDataset dataset) {
+    final int datasetIndex = plot.indexOf(dataset);
+    ValueAxis domainAxis = datasetIndex >= 0 ? plot.getDomainAxisForDataset(datasetIndex) : null;
+    ValueAxis rangeAxis = datasetIndex >= 0 ? plot.getRangeAxisForDataset(datasetIndex) : null;
+    if (domainAxis == null) {
+      domainAxis = plot.getDomainAxis();
+    }
+    if (rangeAxis == null) {
+      rangeAxis = plot.getRangeAxis();
+    }
+    if (domainAxis == null || rangeAxis == null) {
+      return;
+    }
+
+    for (int series = 0; series < dataset.getSeriesCount(); series++) {
+      for (int item = 0; item < dataset.getItemCount(series); item++) {
+        final double bubbleSize = resolveBubbleSize(dataset, series, item);
+        if (bubbleSize <= 0 || !Double.isFinite(bubbleSize)) {
+          continue;
+        }
+        final double x = dataset.getXValue(series, item);
+        final double y = dataset.getYValue(series, item);
+        final Ellipse2D pointShape = createBubbleShape(x, y, bubbleSize, dataArea, plot,
+            domainAxis, rangeAxis);
+        if (pointShape != null) {
+          dataPointBounds.add(pointShape.getBounds2D());
+        }
+      }
+    }
+  }
+
+  private double resolveBubbleSize(final @NotNull XYDataset dataset, final int series,
+      final int item) {
+    final double rawBubbleSizeValue;
+    if (dataset instanceof KendrickMassPlotXYDataset kds) {
+      rawBubbleSizeValue = kds.getBubbleSize(series, item);
+    } else if (dataset instanceof XYZBubbleDataset bubbleDataset) {
+      rawBubbleSizeValue = bubbleDataset.getBubbleSizeValue(series, item);
+    } else {
+      return 0;
+    }
+
+    updateBubbleSizeRangeCache(dataset);
+    if (!Double.isFinite(cachedMinBubbleSize) || !Double.isFinite(cachedMaxBubbleSize)) {
+      return 0;
+    }
+    return scaleBubbeSize(cachedMinBubbleSize, cachedMaxBubbleSize, rawBubbleSizeValue);
+  }
+
+  private void updateBubbleSizeRangeCache(final @NotNull XYDataset dataset) {
+    if (dataset == cachedBubbleRangeDataset && Double.isFinite(cachedMinBubbleSize)
+        && Double.isFinite(cachedMaxBubbleSize)) {
+      return;
+    }
+
+    final double[] bubbleSizeValues;
+    if (dataset instanceof KendrickMassPlotXYDataset kds) {
+      bubbleSizeValues = kds.getBubbleSizeValues();
+    } else if (dataset instanceof XYZBubbleDataset bubbleDataset) {
+      bubbleSizeValues = bubbleDataset.getBubbleSizeValues();
+    } else {
+      cachedBubbleRangeDataset = null;
+      cachedMinBubbleSize = Double.NaN;
+      cachedMaxBubbleSize = Double.NaN;
+      return;
+    }
+
+    cachedBubbleRangeDataset = dataset;
+    if (bubbleSizeValues.length == 0) {
+      cachedMinBubbleSize = Double.NaN;
+      cachedMaxBubbleSize = Double.NaN;
+      return;
+    }
+
+    cachedMinBubbleSize = Arrays.stream(bubbleSizeValues).min().orElse(Double.NaN);
+    cachedMaxBubbleSize = Arrays.stream(bubbleSizeValues).max().orElse(Double.NaN);
+  }
+
+  private @Nullable Ellipse2D createBubbleShape(final double x, final double y,
+      final double bubbleSize, final @NotNull Rectangle2D dataArea, final @NotNull XYPlot plot,
+      final @NotNull ValueAxis domainAxis, final @NotNull ValueAxis rangeAxis) {
+    if (!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(bubbleSize)
+        || bubbleSize <= 0) {
+      return null;
+    }
+
+    final double transX = domainAxis.valueToJava2D(x, dataArea, plot.getDomainAxisEdge())
+                          - bubbleSize / 2d;
+    final double transY = rangeAxis.valueToJava2D(y, dataArea, plot.getRangeAxisEdge())
+                          - bubbleSize / 2d;
+    if (!Double.isFinite(transX) || !Double.isFinite(transY)) {
+      return null;
+    }
+
+    if (plot.getOrientation().equals(PlotOrientation.HORIZONTAL)) {
+      return new Ellipse2D.Double(transY, transX, bubbleSize, bubbleSize);
+    }
+    return new Ellipse2D.Double(transX, transY, bubbleSize, bubbleSize);
   }
 
   private boolean hasSpaceForItemLabel(final @NotNull Graphics2D g2,
@@ -525,6 +627,12 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
     final Rectangle2D labelBounds = addPadding(labelShape.getBounds2D(), 1.0);
     if (!dataArea.contains(labelBounds)) {
       return false;
+    }
+
+    for (final Rectangle2D pointBounds : dataPointBounds) {
+      if (pointBounds.intersects(labelBounds)) {
+        return false;
+      }
     }
 
     for (final Rectangle2D existingBounds : drawnLabelBounds) {
