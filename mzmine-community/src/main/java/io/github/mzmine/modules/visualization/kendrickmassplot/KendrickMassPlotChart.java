@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,13 +33,13 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
 import java.text.DecimalFormat;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
@@ -51,18 +51,20 @@ public class KendrickMassPlotChart extends EChartViewer {
   private final String colorScaleLabel;
   private final Color legendBg = new Color(0, 0, 0, 0);
 
-  public KendrickMassPlotChart(String title, String xAxisLabel, String yAxisLabel,
-      String colorScaleLabel, KendrickMassPlotXYZDataset dataset) {
+  public KendrickMassPlotChart(final @NotNull String title, final @NotNull String xAxisLabel,
+      final @NotNull String yAxisLabel, final @Nullable String colorScaleLabel,
+      final @NotNull KendrickMassPlotXYZDataset dataset) {
     super(FxChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset,
         PlotOrientation.VERTICAL, false, true, true));
     setStickyZeroRangeAxis(false);
     this.colorScaleLabel = colorScaleLabel;
 
-    EStandardChartTheme defaultChartTheme = ConfigService.getConfiguration().getDefaultChartTheme();
+    final EStandardChartTheme defaultChartTheme = ConfigService.getConfiguration()
+        .getDefaultChartTheme();
     defaultChartTheme.apply(this);
-    double[] colorScaleValues = dataset.getColorScaleValues();
+    final double[] colorScaleValues = dataset.getColorScaleValues();
     final double[] quantiles = MathUtils.calcQuantile(colorScaleValues, new double[]{0.00, 1.00});
-    PaintScale paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
+    final PaintScale paintScale = ConfigService.getConfiguration().getDefaultPaintScalePalette()
         .toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
     if (dataset.getParameters().getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
         .isKendrickType()) {
@@ -72,23 +74,25 @@ public class KendrickMassPlotChart extends EChartViewer {
         .isKendrickType()) {
       getChart().getXYPlot().getDomainAxis().setRange(-0.5, 0.5);
     }
-    ColoredBubbleDatasetRenderer renderer = new ColoredBubbleDatasetRenderer();
+    final ColoredBubbleDatasetRenderer renderer = new ColoredBubbleDatasetRenderer();
     renderer.setPaintScale(paintScale);
     renderer.setDefaultToolTipGenerator(
         new KendrickToolTipGenerator(xAxisLabel, yAxisLabel, colorScaleLabel,
             dataset.getBubbleKendrickDataType().getName()));
+    renderer.setDefaultItemLabelGenerator(new KendrickPreferredAnnotationItemLabelGenerator());
+    renderer.setDefaultItemLabelsVisible(true);
 
-    PaintScaleLegend legend = generateLegend(paintScale);
+    final PaintScaleLegend legend = generateLegend(paintScale);
     getChart().addSubtitle(legend);
     this.getChart().getXYPlot().setRenderer(renderer);
   }
 
-  private PaintScaleLegend generateLegend(@NotNull PaintScale scale) {
-    Paint axisPaint = this.getChart().getXYPlot().getDomainAxis().getAxisLinePaint();
-    Font axisLabelFont = this.getChart().getXYPlot().getDomainAxis().getLabelFont();
-    Font axisTickLabelFont = this.getChart().getXYPlot().getDomainAxis().getTickLabelFont();
+  private @NotNull PaintScaleLegend generateLegend(final @NotNull PaintScale scale) {
+    final Paint axisPaint = this.getChart().getXYPlot().getDomainAxis().getAxisLinePaint();
+    final Font axisLabelFont = this.getChart().getXYPlot().getDomainAxis().getLabelFont();
+    final Font axisTickLabelFont = this.getChart().getXYPlot().getDomainAxis().getTickLabelFont();
 
-    NumberAxis scaleAxis = new NumberAxis(null);
+    final NumberAxis scaleAxis = new NumberAxis(null);
     scaleAxis.setRange(scale.getLowerBound(),
         Math.max(scale.getUpperBound(), scale.getUpperBound()));
     scaleAxis.setAxisLinePaint(axisPaint);
@@ -101,7 +105,7 @@ public class KendrickMassPlotChart extends EChartViewer {
     if (colorScaleLabel != null) {
       scaleAxis.setLabel(colorScaleLabel);
     }
-    PaintScaleLegend newLegend = new PaintScaleLegend(scale, scaleAxis);
+    final PaintScaleLegend newLegend = new PaintScaleLegend(scale, scaleAxis);
     newLegend.setPadding(5, 0, 5, 0);
     newLegend.setStripOutlineVisible(false);
     newLegend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
@@ -112,4 +116,3 @@ public class KendrickMassPlotChart extends EChartViewer {
     return newLegend;
   }
 }
-

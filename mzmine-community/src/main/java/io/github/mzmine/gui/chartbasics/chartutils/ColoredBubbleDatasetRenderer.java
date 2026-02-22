@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,15 +31,24 @@ import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotX
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYZDataset;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.event.RendererChangeEvent;
+import org.jfree.chart.labels.ItemLabelPosition;
+import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.PlotRenderingInfo;
@@ -49,6 +58,7 @@ import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
+import org.jfree.chart.text.TextUtils;
 import org.jfree.chart.ui.RectangleAnchor;
 import org.jfree.chart.util.Args;
 import org.jfree.chart.util.PublicCloneable;
@@ -95,6 +105,7 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
   private PaintScale paintScale;
 
   private boolean highlightAnnotated = false;
+  private final List<Rectangle2D> drawnLabelBounds = new ArrayList<>();
 
   /**
    * Creates a new {@code XYCircleRenderer} instance with default attributes.
@@ -102,6 +113,14 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
   public ColoredBubbleDatasetRenderer() {
     updateOffsets();
     this.paintScale = new LookupPaintScale();
+  }
+
+  @Override
+  public @NotNull XYItemRendererState initialise(final @NotNull Graphics2D g2,
+      final @NotNull Rectangle2D dataArea, final @NotNull XYPlot plot,
+      final @Nullable XYDataset data, final @Nullable PlotRenderingInfo info) {
+    drawnLabelBounds.clear();
+    return super.initialise(g2, dataArea, plot, data, info);
   }
 
   /**
@@ -316,9 +335,11 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
    * @param pass the pass index.
    */
   @Override
-  public void drawItem(Graphics2D g2, XYItemRendererState state, Rectangle2D dataArea,
-      PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis, ValueAxis rangeAxis,
-      XYDataset dataset, int series, int item, CrosshairState crosshairState, int pass) {
+  public void drawItem(final @NotNull Graphics2D g2, final @NotNull XYItemRendererState state,
+      final @NotNull Rectangle2D dataArea, final @Nullable PlotRenderingInfo info,
+      final @NotNull XYPlot plot, final @NotNull ValueAxis domainAxis,
+      final @NotNull ValueAxis rangeAxis, final @NotNull XYDataset dataset, final int series,
+      final int item, final @Nullable CrosshairState crosshairState, final int pass) {
 
     double x = dataset.getXValue(series, item);
     double y = dataset.getYValue(series, item);
@@ -377,7 +398,8 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
       g2.setPaint(ConfigService.getDefaultColorPalette().getNegativeColorAWT());
     }
     g2.draw(circle);
-    if (isItemLabelVisible(series, item)) {
+    if (isItemLabelVisible(series, item) && hasSpaceForItemLabel(g2, orientation, dataset, series,
+        item, circle.getCenterX(), circle.getCenterY(), y < 0.0, dataArea)) {
       drawItemLabel(g2, orientation, dataset, series, item, circle.getCenterX(),
           circle.getCenterY(), y < 0.0);
     }
@@ -467,5 +489,56 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
 
   public void setHighlightAnnotated(boolean highlightAnnotated) {
     this.highlightAnnotated = highlightAnnotated;
+  }
+
+  private boolean hasSpaceForItemLabel(final @NotNull Graphics2D g2,
+      final @NotNull PlotOrientation orientation, final @NotNull XYDataset dataset,
+      final int series, final int item, final double x, final double y, final boolean negative,
+      final @NotNull Rectangle2D dataArea) {
+    final XYItemLabelGenerator generator = getItemLabelGenerator(series, item);
+    if (generator == null) {
+      return false;
+    }
+
+    final String label = generator.generateLabel(dataset, series, item);
+    if (label == null || label.isBlank()) {
+      return false;
+    }
+
+    final ItemLabelPosition position = negative ? getNegativeItemLabelPosition(series, item)
+        : getPositiveItemLabelPosition(series, item);
+    final Point2D anchorPoint = calculateLabelAnchorPoint(position.getItemLabelAnchor(), x, y,
+        orientation);
+
+    final Font oldFont = g2.getFont();
+    final Font labelFont = getItemLabelFont(series, item);
+    g2.setFont(labelFont);
+    final Shape labelShape = TextUtils.calculateRotatedStringBounds(label, g2,
+        (float) anchorPoint.getX(), (float) anchorPoint.getY(), position.getTextAnchor(),
+        position.getAngle(), position.getRotationAnchor());
+    g2.setFont(oldFont);
+
+    if (labelShape == null) {
+      return false;
+    }
+
+    final Rectangle2D labelBounds = addPadding(labelShape.getBounds2D(), 1.0);
+    if (!dataArea.contains(labelBounds)) {
+      return false;
+    }
+
+    for (final Rectangle2D existingBounds : drawnLabelBounds) {
+      if (existingBounds.intersects(labelBounds)) {
+        return false;
+      }
+    }
+
+    drawnLabelBounds.add(labelBounds);
+    return true;
+  }
+
+  private @NotNull Rectangle2D addPadding(final @NotNull Rectangle2D bounds, final double padding) {
+    return new Rectangle2D.Double(bounds.getX() - padding, bounds.getY() - padding,
+        bounds.getWidth() + padding * 2, bounds.getHeight() + padding * 2);
   }
 }
