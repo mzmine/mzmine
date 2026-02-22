@@ -58,7 +58,7 @@ public class SlopeEdgeDetector implements EdgeDetector {
       history.add(data);
     }
 
-    if (regression.getSlope() < 0) {
+    if (regression.getSlope() <= 0) { // slope == 0 also counts as break condition
       return startIndex - windowSize;
     }
 
@@ -75,7 +75,7 @@ public class SlopeEdgeDetector implements EdgeDetector {
 
       Data old = history.poll();
       regression.removeData(old.x(), old.y());
-      if (regression.getSlope() < 0) {
+      if (regression.getSlope() <= 0) { // slope == 0 also counts as break condition
         return i + windowSize / 2;
 //        return absMinIndex;
       }
