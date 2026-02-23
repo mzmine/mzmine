@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -200,9 +199,11 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
           detectedIndex++;
         } else {
           intensities[i] = 0d;
+          mzs[i] = 0d;
         }
         if (detectedIndex == detectedScans.size() && i < intensities.length - 1) {
           Arrays.fill(intensities, i + 1, intensities.length, 0d);
+          Arrays.fill(mzs, i + 1, mzs.length, 0d);
           break;
         }
       }
