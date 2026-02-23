@@ -363,7 +363,7 @@ runtime {
     ]
     if(OperatingSystem.current().isWindows()) {
         // only required on windows to access the trust store for root certificates
-        modules += ["jdk.crypto.mscapi"]
+        modules.add("jdk.crypto.mscapi")
     }
     jpackage {
         if (OperatingSystem.current().isWindows()) {
