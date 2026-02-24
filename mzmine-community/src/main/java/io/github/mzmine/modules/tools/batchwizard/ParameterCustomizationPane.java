@@ -44,27 +44,31 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.geometry.Insets;
+import javafx.beans.value.ChangeListener;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,6 +77,9 @@ import org.jetbrains.annotations.Nullable;
  * ParameterOverridesParameter.
  */
 public class ParameterCustomizationPane extends BorderPane {
+
+  private static final double MIN_OVERRIDES_TABLE_HEIGHT = 60d;
+  private static final double PREF_OVERRIDES_TABLE_HEIGHT = 140d;
 
   private final BatchModuleTreePane moduleTreePane;
   private final ListView<ParameterWrapper> parameterListView;
@@ -92,6 +99,8 @@ public class ParameterCustomizationPane extends BorderPane {
   private ParameterWrapper selectedParameter;
   private Node currentEditorComponent;
   private ParameterOverride selectedOverride;
+  private boolean initialSelectorLayoutApplied;
+  private int initialSelectorLayoutAttempts;
 
   public ParameterCustomizationPane() {
     this.moduleTreePane = new BatchModuleTreePane(false);
@@ -123,40 +132,161 @@ public class ParameterCustomizationPane extends BorderPane {
     SplitPane mainSplitPane = new SplitPane();
     mainSplitPane.setOrientation(Orientation.HORIZONTAL);
 
-    VBox leftPane = createModuleTreePane();
-    VBox middlePane = createParameterEditorPane();
-    VBox rightPane = createOverridesPane();
+    VBox modulePane = createModuleTreePane();
+    VBox parameterPane = createParameterEditorPane();
+    VBox editorSection = createParameterEditorSection();
+    editorSection.setMaxHeight(Region.USE_PREF_SIZE);
+    VBox overridesPane = createOverridesPane();
+    GridPane selectorGrid = createSelectorGrid(modulePane, parameterPane, overridesPane);
+    VBox editorColumn = FxLayout.newVBox(null, FxLayout.DEFAULT_PADDING_INSETS, true,
+        editorSection);
+    editorColumn.setAlignment(Pos.TOP_LEFT);
+    VBox.setVgrow(editorSection, Priority.NEVER);
 
-    mainSplitPane.getItems().addAll(leftPane, middlePane, rightPane);
-    mainSplitPane.setDividerPositions(0.25, 0.5);
+    mainSplitPane.getItems().addAll(selectorGrid, editorColumn);
+    mainSplitPane.setDividerPositions(0.5);
 
     setCenter(mainSplitPane);
+    applyInitialSelectorLayoutOnce(selectorGrid, modulePane, parameterPane);
+  }
+
+  private GridPane createSelectorGrid(VBox modulePane, VBox parameterPane, VBox overridesPane) {
+    GridPane grid = new GridPane();
+    grid.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
+    grid.setHgap(FxLayout.DEFAULT_SPACE);
+    grid.setVgap(FxLayout.DEFAULT_SPACE);
+
+    ColumnConstraints col1 = new ColumnConstraints();
+    col1.setPercentWidth(50);
+    col1.setHgrow(Priority.ALWAYS);
+    ColumnConstraints col2 = new ColumnConstraints();
+    col2.setPercentWidth(50);
+    col2.setHgrow(Priority.ALWAYS);
+    grid.getColumnConstraints().addAll(col1, col2);
+
+    grid.add(modulePane, 0, 0);
+    grid.add(parameterPane, 1, 0);
+    // Override controls span both selector columns.
+    grid.add(overridesPane, 0, 1, 2, 1);
+
+    GridPane.setHgrow(modulePane, Priority.ALWAYS);
+    GridPane.setHgrow(parameterPane, Priority.ALWAYS);
+    GridPane.setHgrow(overridesPane, Priority.ALWAYS);
+    // Keep top selector panes at their computed preferred heights.
+    GridPane.setVgrow(modulePane, Priority.NEVER);
+    GridPane.setVgrow(parameterPane, Priority.NEVER);
+    // Let overrides absorb any extra vertical space in the selector column.
+    GridPane.setVgrow(overridesPane, Priority.ALWAYS);
+
+    return grid;
+  }
+
+  private void applyInitialSelectorLayoutOnce(GridPane selectorGrid, VBox modulePane,
+      VBox parameterPane) {
+    if (initialSelectorLayoutApplied) {
+      return;
+    }
+
+    if (getParent() != null) {
+      Platform.runLater(
+          () -> applySelectorLayoutFromParent(selectorGrid, modulePane, parameterPane));
+      return;
+    }
+
+    ChangeListener<Parent> parentReadyListener = new ChangeListener<>() {
+      @Override
+      public void changed(javafx.beans.value.ObservableValue<? extends Parent> observable,
+          Parent oldValue, Parent newValue) {
+        if (newValue == null) {
+          return;
+        }
+        parentProperty().removeListener(this);
+        Platform.runLater(
+            () -> applySelectorLayoutFromParent(selectorGrid, modulePane, parameterPane));
+      }
+    };
+    parentProperty().addListener(parentReadyListener);
+  }
+
+  private void applySelectorLayoutFromParent(GridPane selectorGrid, VBox modulePane,
+      VBox parameterPane) {
+    if (initialSelectorLayoutApplied) {
+      return;
+    }
+
+    Parent parent = getParent();
+    if (parent == null) {
+      return;
+    }
+
+    double parentWidth = parent.getLayoutBounds().getWidth();
+    double parentHeight = parent.getLayoutBounds().getHeight();
+    if (parentWidth <= 0 || parentHeight <= 0) {
+      if (initialSelectorLayoutAttempts++ < 10) {
+        Platform.runLater(
+            () -> applySelectorLayoutFromParent(selectorGrid, modulePane, parameterPane));
+      }
+      return;
+    }
+
+    initialSelectorLayoutApplied = true;
+
+    // Outer split starts at 50/50. Size selector columns from the left half.
+    double leftWidth = parentWidth * 0.5;
+    double columnWidth = Math.max(140d, (leftWidth - selectorGrid.getHgap()) / 2d);
+    modulePane.setPrefWidth(columnWidth);
+    parameterPane.setPrefWidth(columnWidth);
+
+    double paddingHeight =
+        selectorGrid.getPadding().getTop() + selectorGrid.getPadding().getBottom();
+    double topToBottomGap = selectorGrid.getVgap();
+    double availableHeight = Math.max(0d, parentHeight - paddingHeight - topToBottomGap);
+    double topPaneHeight = Math.max(120d, Math.min(240d, availableHeight * 0.45d));
+    double tableHeight = Math.max(MIN_OVERRIDES_TABLE_HEIGHT,
+        Math.min(PREF_OVERRIDES_TABLE_HEIGHT, availableHeight - topPaneHeight));
+    if (topPaneHeight + tableHeight > availableHeight) {
+      topPaneHeight = Math.max(120d, availableHeight - tableHeight);
+    }
+
+    overridesTable.setPrefHeight(tableHeight);
+    modulePane.setPrefHeight(topPaneHeight);
+    modulePane.setMaxHeight(topPaneHeight);
+    parameterPane.setPrefHeight(topPaneHeight);
+    parameterPane.setMaxHeight(topPaneHeight);
   }
 
   private VBox createModuleTreePane() {
     Label moduleLabel = FxLabels.newBoldLabel("Select Module:");
-    VBox leftPane = FxLayout.newVBox(null, FxLayout.DEFAULT_PADDING_INSETS, true, moduleLabel,
+    VBox leftPane = FxLayout.newVBox(null, FxLayout.NO_PADDING_INSETS, true, moduleLabel,
         moduleTreePane);
+    leftPane.setMinWidth(0);
     VBox.setVgrow(moduleTreePane, Priority.ALWAYS);
     return leftPane;
   }
 
   private VBox createParameterEditorPane() {
     Label paramLabel = FxLabels.newBoldLabel("Parameters:");
+    VBox middlePane = FxLayout.newVBox(null, FxLayout.NO_PADDING_INSETS, true, paramLabel,
+        parameterListView);
+    middlePane.setMinWidth(0);
+    VBox.setVgrow(parameterListView, Priority.ALWAYS);
+
+    return middlePane;
+  }
+
+  private VBox createParameterEditorSection() {
     Label editorLabel = FxLabels.newBoldLabel("Parameter Editor:");
 
     parameterEditorPane.getChildren().add(instructionsLabel);
-
-    ScrollPane editorScroll = new ScrollPane(parameterEditorPane);
-    editorScroll.setFitToWidth(true);
-    editorScroll.setFitToHeight(true);
 
     addButton.setDisable(true);
     addButton.setMaxWidth(Double.MAX_VALUE);
     overrideButton.setDisable(true);
     overrideButton.setMaxWidth(Double.MAX_VALUE);
 
-    Label scopeLabel = FxLabels.newLabel("Apply to:");
+    Label scopeLabel = FxLabels.newLabel("Apply to module occurrence:");
+    scopeLabel.setTooltip(new Tooltip(
+        "Select if this parameter setting should be applied to the first, last, or all batch steps that use this module."));
     HBox scopeBox = FxLayout.newHBox(Pos.CENTER_LEFT, FxLayout.DEFAULT_PADDING_INSETS, scopeLabel,
         scopeComboBox);
     HBox.setHgrow(scopeComboBox, Priority.ALWAYS);
@@ -167,15 +297,10 @@ public class ParameterCustomizationPane extends BorderPane {
         buttonRow);
 
     VBox editorSection = FxLayout.newVBox(null, FxLayout.DEFAULT_PADDING_INSETS, true, editorLabel,
-        editorScroll, buttonBox);
-    VBox.setVgrow(editorScroll, Priority.ALWAYS);
+        buttonBox, parameterEditorPane);
+    VBox.setVgrow(parameterEditorPane, Priority.NEVER);
 
-    VBox middlePane = FxLayout.newVBox(null, FxLayout.DEFAULT_PADDING_INSETS, true, paramLabel,
-        parameterListView, editorSection);
-    VBox.setVgrow(parameterListView, Priority.SOMETIMES);
-    VBox.setVgrow(editorSection, Priority.ALWAYS);
-
-    return middlePane;
+    return editorSection;
   }
 
   private VBox createOverridesPane() {
@@ -230,15 +355,19 @@ public class ParameterCustomizationPane extends BorderPane {
     overridesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
     overridesTable.setPlaceholder(FxLabels.newLabel("No parameter overrides set"));
     overridesTable.setEditable(true);
+    // Allow columns to compress when horizontal space is limited.
+    overridesTable.setMinWidth(0);
+    // Keep the table usable while still allowing vertical compression.
+    overridesTable.setMinHeight(MIN_OVERRIDES_TABLE_HEIGHT);
+    overridesTable.setPrefHeight(PREF_OVERRIDES_TABLE_HEIGHT);
 
-    removeButton.setMaxWidth(Double.MAX_VALUE);
-    clearAllButton.setMaxWidth(Double.MAX_VALUE);
+    Region headerSpacer = new Region();
+    HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+    HBox overridesHeader = FxLayout.newHBox(Pos.CENTER_LEFT, FxLayout.DEFAULT_PADDING_INSETS,
+        overviewLabel, headerSpacer, removeButton, clearAllButton);
 
-    HBox buttonBox = FxLayout.newHBox(Pos.CENTER, FxLayout.DEFAULT_PADDING_INSETS, removeButton,
-        clearAllButton);
-
-    VBox rightPane = FxLayout.newVBox(null, FxLayout.DEFAULT_PADDING_INSETS, true, overviewLabel,
-        overridesTable, buttonBox);
+    VBox rightPane = FxLayout.newVBox(null, FxLayout.DEFAULT_PADDING_INSETS, true, overridesHeader,
+        overridesTable);
     VBox.setVgrow(overridesTable, Priority.ALWAYS);
 
     return rightPane;
@@ -327,19 +456,19 @@ public class ParameterCustomizationPane extends BorderPane {
 
     if (currentEditorComponent != null) {
       GridPane grid = new GridPane();
-      grid.setHgap(10);
-      grid.setVgap(10);
-      grid.setPadding(new Insets(10));
+      grid.setHgap(FxLayout.DEFAULT_SPACE);
+      grid.setVgap(FxLayout.DEFAULT_SPACE);
+      grid.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
 
       Label nameLabel = FxLabels.newBoldLabel(parameter.getName() + ":");
-
-      Label descLabel = FxLabels.newLabel(parameter.getDescription());
-      descLabel.setWrapText(true);
-      descLabel.setMaxWidth(400);
+      String description = parameter.getDescription();
+      if (description != null && !description.isBlank()) {
+        Tooltip tooltip = new Tooltip(description);
+        nameLabel.setTooltip(tooltip);
+      }
 
       grid.add(nameLabel, 0, 0);
-      grid.add(descLabel, 0, 1);
-      grid.add(currentEditorComponent, 0, 2);
+      grid.add(currentEditorComponent, 0, 1);
 
       GridPane.setHgrow(currentEditorComponent, Priority.ALWAYS);
 
@@ -517,12 +646,13 @@ public class ParameterCustomizationPane extends BorderPane {
     // Find the module
     String targetModuleClass = override.moduleClassName();
     MZmineRunnableModule targetModule = null;
+    Class<? extends MZmineRunnableModule> targetModuleType = null;
 
     try {
       Class<?> moduleClass = Class.forName(targetModuleClass);
       if (MZmineRunnableModule.class.isAssignableFrom(moduleClass)) {
-        targetModule = (MZmineRunnableModule) MZmineCore.getModuleInstance(
-            (Class<? extends MZmineRunnableModule>) moduleClass);
+        targetModuleType = (Class<? extends MZmineRunnableModule>) moduleClass;
+        targetModule = (MZmineRunnableModule) MZmineCore.getModuleInstance(targetModuleType);
       }
     } catch (Exception e) {
       // Module not found
@@ -530,8 +660,13 @@ public class ParameterCustomizationPane extends BorderPane {
     }
 
     if (targetModule != null) {
-      // Load the module's parameters
-      onModuleSelected(targetModule);
+      // Sync module tree selection and scroll so the current module context is visible.
+      final boolean moduleSelectedInTree =
+          targetModuleType != null && moduleTreePane.selectModuleAndScroll(targetModuleType);
+      if (!moduleSelectedInTree) {
+        // Fallback if tree lookup failed.
+        onModuleSelected(targetModule);
+      }
 
       // Select the parameter in the list
       String targetParamName = override.parameterWithValue().getName();

@@ -38,11 +38,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.beans.NamedArg;
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.TreeCell;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -226,6 +230,91 @@ public class BatchModuleTreePane extends BorderPane {
 
   public void clearSearchText() {
     searchField.clear();
+  }
+
+  /**
+   * Selects a module in the tree and scrolls to it.
+   *
+   * @return {@code true} if a matching module node was found and selected.
+   */
+  public boolean selectModuleAndScroll(final Class<? extends MZmineRunnableModule> moduleClass) {
+    if (moduleClass == null || treeView.getRoot() == null) {
+      return false;
+    }
+
+    // Reset active filter so the target module node is available in the visible tree.
+    clearSearchText();
+
+    final TreeItem<Object> moduleItem = findModuleItem(treeView.getRoot(), moduleClass);
+    if (moduleItem == null) {
+      return false;
+    }
+
+    expandParents(moduleItem);
+    treeView.getSelectionModel().select(moduleItem);
+
+    final int row = treeView.getRow(moduleItem);
+    if (row >= 0 && !isRowVisible(row)) {
+      treeView.scrollTo(row);
+      Platform.runLater(() -> {
+        // reupdate in case of layout changes
+        if (!isRowVisible(row)) {
+          treeView.scrollTo(row);
+        }
+      });
+    }
+    return true;
+  }
+
+  private boolean isRowVisible(final int row) {
+    final Node viewport = treeView.lookup(".virtual-flow");
+    if (viewport == null) {
+      return false;
+    }
+
+    final Bounds viewportBounds = viewport.localToScene(viewport.getLayoutBounds());
+    if (viewportBounds == null) {
+      return false;
+    }
+
+    for (Node node : treeView.lookupAll(".tree-cell")) {
+      if (!(node instanceof TreeCell<?> cell) || cell.isEmpty() || cell.getIndex() != row) {
+        continue;
+      }
+
+      final Bounds cellBounds = cell.localToScene(cell.getLayoutBounds());
+      return cellBounds != null && viewportBounds.intersects(cellBounds);
+    }
+    return false;
+  }
+
+  private @Nullable TreeItem<Object> findModuleItem(final TreeItem<Object> parent,
+      final Class<? extends MZmineRunnableModule> moduleClass) {
+    if (isModuleTreeItem(parent, moduleClass)) {
+      return parent;
+    }
+
+    for (TreeItem<Object> child : parent.getChildren()) {
+      final TreeItem<Object> moduleItem = findModuleItem(child, moduleClass);
+      if (moduleItem != null) {
+        return moduleItem;
+      }
+    }
+    return null;
+  }
+
+  private boolean isModuleTreeItem(final TreeItem<Object> item,
+      final Class<? extends MZmineRunnableModule> moduleClass) {
+    final MZmineRunnableModule module = getModuleFromTreeItem(item);
+    return module != null && module.getClass().equals(moduleClass);
+  }
+
+  private void expandParents(final TreeItem<?> item) {
+    TreeItem<?> parent = item.getParent();
+    while (parent != null) {
+      parent.setExpanded(true);
+      parent = parent.getParent();
+    }
   }
 
   public ChangeListener<TreeItem<Object>> addModuleFocusedListener(

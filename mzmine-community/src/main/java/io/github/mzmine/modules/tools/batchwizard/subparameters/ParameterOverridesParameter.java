@@ -50,22 +50,23 @@ import org.w3c.dom.NodeList;
 public class ParameterOverridesParameter implements
     UserParameter<List<ParameterOverride>, ParameterCustomizationPane> {
 
-  private static final String PARAMETER_NAME = "parameterCustomization";
   private static final String OVERRIDE_ELEMENT = "override";
   private static final String MODULE_CLASS_ATTR = "moduleClass";
   private static final String MODULE_NAME_ATTR = "moduleName";
   private static final String PARAM_NAME_ATTR = "parameterName";
   private static final String SCOPE_ATTR = "scope";
+  private final String name;
 
   private List<ParameterOverride> value;
 
   public ParameterOverridesParameter() {
     this.value = new ArrayList<>();
+    name = "Customization";
   }
 
   @Override
   public String getName() {
-    return PARAMETER_NAME;
+    return name;
   }
 
   @Override

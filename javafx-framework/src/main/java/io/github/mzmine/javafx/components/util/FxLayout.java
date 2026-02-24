@@ -59,6 +59,7 @@ public class FxLayout {
   public static final int DEFAULT_SPACE = 5;
   public static final int DEFAULT_ICON_SPACE = 0;
   public static final Insets DEFAULT_PADDING_INSETS = new Insets(5);
+  public static final Insets NO_PADDING_INSETS = new Insets(0);
 
   /**
    * useful for debugging purposes
