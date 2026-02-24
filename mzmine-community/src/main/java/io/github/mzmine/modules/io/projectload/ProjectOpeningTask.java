@@ -29,7 +29,6 @@ import com.google.common.io.CountingInputStream;
 import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
 import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
@@ -64,8 +63,11 @@ import org.jetbrains.annotations.NotNull;
 public class ProjectOpeningTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(ProjectOpeningTask.class.getName());
+  private final boolean mergeOntoExisting;
+  private final boolean keepCurrentLibraries;
 
   private File openFile;
+  private final ParameterSet parameters;
   private MZmineProjectImpl newProject;
 
   private RawDataFileOpenHandler rawDataFileOpenHandler;
@@ -84,11 +86,9 @@ public class ProjectOpeningTask extends AbstractTask {
   public ProjectOpeningTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.openFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();
-  }
-
-  public ProjectOpeningTask(File openFile, @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate);
-    this.openFile = openFile;
+    this.parameters = parameters;
+    mergeOntoExisting = parameters.getValue(ProjectLoaderParameters.mergeOntoExisting);
+    keepCurrentLibraries = parameters.getValue(ProjectLoaderParameters.keepLibraries);
   }
 
   /**
@@ -131,32 +131,23 @@ public class ProjectOpeningTask extends AbstractTask {
   public void run() {
 
     try {
-      // Check if existing raw data files are present
-      ProjectManager projectManager = ProjectService.getProjectManager();
-      if (projectManager.getCurrentProject().getDataFiles().length > 0) {
-        boolean confirm = DialogLoggerUtil.showDialogYesNo("Replace existing project?",
-            "Loading the project will replace the existing raw data files and feature lists. Do you want to proceed?");
-
-        if (confirm) {
-          cancel();
-          return;
-        }
-      }
 
       logger.info("Started opening project " + openFile);
       setStatus(TaskStatus.PROCESSING);
 
-      // only create a new project if this is not part of a batch. If this is the first step in a batch,
-      // the batch will create the new project. If this is a later step, add to the existing project
-      if (!MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
-        newProject = new MZmineProjectImpl();
+      if (!mergeOntoExisting) {
+        ProjectService.getProjectManager().clearProject();
+        newProject = (MZmineProjectImpl) ProjectService.getProject();
         newProject.setProjectFile(openFile);
         newProject.setStandalone(
             false); // set to false by default, we check for existing files later
         GUIUtils.closeAllWindows();
-        projectManager.setCurrentProject(newProject);
+        ProjectService.getProjectManager().setCurrentProject(newProject);
       } else {
         newProject = (MZmineProjectImpl) ProjectService.getProject();
+      }
+      if(!keepCurrentLibraries) {
+        newProject.clearSpectralLibrary();
       }
 
       ZipFile zipFile = new ZipFile(openFile);

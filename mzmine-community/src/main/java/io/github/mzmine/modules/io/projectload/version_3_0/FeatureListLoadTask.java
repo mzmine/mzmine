@@ -156,6 +156,8 @@ public class FeatureListLoadTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
+
+    List<FeatureList> loadedFeatureLists = new ArrayList<>();
     try {
       Path tempDirectory = FileAndPathUtil.createTempDirectory(TEMP_FLIST_DATA_FOLDER);
 
@@ -202,6 +204,7 @@ public class FeatureListLoadTask extends AbstractTask {
         flist.replaceCachedFilesAndScans();
 
         project.addFeatureList(flist);
+        loadedFeatureLists.add(flist);
         processedFlists++;
       }
     } catch (Exception e) {
@@ -217,12 +220,11 @@ public class FeatureListLoadTask extends AbstractTask {
     project.setProjectLoadImsImportCaching(false);
 
     //  group flists by date created, only use the latest set of feature lists in next batch step
-    final Set<FeatureList> mostRecentStepFeatureLists = Set.copyOf(
-        project.getCurrentFeatureLists().stream().collect(
-                Collectors.groupingBy(flist -> flist.getAppliedMethods().getLast().getModuleCallDate()))
-            .entrySet().stream().max(Entry.comparingByKey()).map(Entry::getValue)
-            .orElse(List.of()));
-    project.getCurrentFeatureLists().forEach(
+    final Set<FeatureList> mostRecentStepFeatureLists = Set.copyOf(loadedFeatureLists.stream()
+        .collect(
+            Collectors.groupingBy(flist -> flist.getAppliedMethods().getLast().getModuleCallDate()))
+        .entrySet().stream().max(Entry.comparingByKey()).map(Entry::getValue).orElse(List.of()));
+    loadedFeatureLists.forEach(
         flist -> flist.setExcludedFromBatchLast(!mostRecentStepFeatureLists.contains(flist)));
 
     setStatus(TaskStatus.FINISHED);
@@ -251,8 +253,8 @@ public class FeatureListLoadTask extends AbstractTask {
                 || !flist.getDateCreated()
                 .equals(reader.getAttributeValue(null, CONST.XML_DATE_CREATED_ATTR))) {
               throw new IllegalArgumentException(
-                  "Feature list names do not match. " + flist.getName() + " != "
-                      + reader.getAttributeValue(null, CONST.XML_FLIST_NAME_ATTR));
+                  "The name of the loaded feature list does not match the expected name. %s != %s Does a feature list with this name already exist?".formatted(
+                      flist.getName(), reader.getAttributeValue(null, CONST.XML_FLIST_NAME_ATTR)));
             }
           } else if (CONST.XML_ROW_ELEMENT.equals(localName)) {
             parseRow(reader, storage, project, flist);

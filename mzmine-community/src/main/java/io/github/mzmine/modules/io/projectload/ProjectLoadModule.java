@@ -25,14 +25,22 @@
 
 package io.github.mzmine.modules.io.projectload;
 
+import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.create;
+import static io.github.mzmine.util.ExitCode.OK;
+
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.io.File;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Optional;
+import javafx.stage.FileChooser;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -41,11 +49,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ProjectLoadModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Open project";
-  private static final String MODULE_DESCRIPTION = """
-      This module opens an existing mzmine project and discards the current workspace, unless run in batch mode.
-      As a first step in the batch mode the project is loaded and replaces the current workspace and libraries and can be processed further in the batch.
-      As intermediate step the project is merged onto the existing workspace.""";
+  private static final String MODULE_NAME = "Open project...";
+  private static final String MODULE_DESCRIPTION = "This module opens an existing mzmine project.";
 
   @Override
   public @NotNull String getName() {
@@ -63,7 +68,7 @@ public class ProjectLoadModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     ProjectOpeningTask newTask = new ProjectOpeningTask(parameters, moduleCallDate);
     tasks.add(newTask);
-    return ExitCode.OK;
+    return OK;
   }
 
   @Override
@@ -76,4 +81,35 @@ public class ProjectLoadModule implements MZmineProcessingModule {
     return ProjectLoaderParameters.class;
   }
 
+  public static void openQuickSelect() {
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.setTitle("Open mzmine project");
+    fileChooser.getExtensionFilters().addAll(ProjectLoaderParameters.extensions);
+
+    final File currentFile = Optional.of(ProjectService.getProject())
+        .map(MZmineProject::getProjectFile).orElse(null);
+    if (currentFile != null) {
+      File currentDir = currentFile.getParentFile();
+      if ((currentDir != null) && (currentDir.exists())) {
+        fileChooser.setInitialDirectory(currentDir);
+      }
+    }
+
+    File selectedFile = fileChooser.showOpenDialog(null);
+    if (selectedFile == null) {
+      return;
+    }
+
+    ProjectLoaderParameters param = ProjectLoaderParameters.create(selectedFile, false, false);
+
+    MZmineCore.runMZmineModule(ProjectLoadModule.class, param);
+  }
+
+  public static void showImportDialog(@NotNull File file) {
+    ProjectLoaderParameters projectLoaderParameters = create(file, false, false);
+    ExitCode exitCode = projectLoaderParameters.showSetupDialog(true);
+    if (exitCode == OK) {
+      MZmineCore.runMZmineModule(ProjectLoadModule.class, projectLoaderParameters);
+    }
+  }
 }
