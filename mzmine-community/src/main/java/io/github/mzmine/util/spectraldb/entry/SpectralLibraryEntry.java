@@ -124,7 +124,8 @@ public interface SpectralLibraryEntry extends MassList {
       case MolecularStructureType _ -> (T) getStructure();
       default -> null;
     };
-    if (value != null) {
+    if (value != null || type instanceof IonTypeType || type instanceof IonAdductType) {
+      // If parsing failed for IonTypeType we must not fall back to the raw field value (often a String).
       return value;
     }
 

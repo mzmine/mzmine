@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,12 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.framework.fx.features.SimpleFeatureListTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.FeatureUtils;
+import java.util.Collection;
 import java.util.stream.Collectors;
-import javafx.beans.binding.Bindings;
-import javafx.util.Subscription;
 
 
 public class SpectralIdentificationResultsTab extends SimpleFeatureListTab {
@@ -38,14 +38,29 @@ public class SpectralIdentificationResultsTab extends SimpleFeatureListTab {
   private final SpectraIdentificationResultsPane matchPane;
 
   public SpectralIdentificationResultsTab(final FeatureTableFX table) {
-    super("Spectral matches", false, false);
+    super("Spectral matches", true, true);
 
     matchPane = new SpectraIdentificationResultsPane(getParentGroup());
     setContent(matchPane);
     matchPane.setFeatureTable(table);
-    final var sub = table.getSelectionModel().selectedItemProperty().subscribe(
-        _ -> setSubTitle(table.getSelectedRows().stream().map(FeatureUtils::rowToString)
-            .collect(Collectors.joining(", "))));
+    matchPane.autoUpdateProperty().bindBidirectional(updateOnSelectionProperty());
+    final var sub = table.getSelectionModel().selectedItemProperty().subscribe(_ -> {
+      if (!isUpdateOnSelection()) {
+        return;
+      }
+      setSubTitle(table.getSelectedRows().stream().map(FeatureUtils::rowToString)
+          .collect(Collectors.joining(", ")));
+    });
     setOnCloseRequest(_ -> sub.unsubscribe());
   }
+
+  @Override
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> flists) {
+    if (!isUpdateOnSelection()) {
+      return;
+    }
+    super.onFeatureListSelectionChanged(flists);
+  }
+
+
 }
