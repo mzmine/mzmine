@@ -339,26 +339,32 @@ tasks.jpackage.doFirst {
 runtime {
     // compress 6 is default for jlink
     options = ["--compress=zip-6", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
-    modules = ["java.desktop",
-               "java.logging",
-               "java.net.http",
-               "java.rmi",
-               "java.sql",
-               "java.datatransfer",
-               "java.management",
-               "java.xml",
-               "java.xml.crypto",
-               "jdk.xml.dom",
-               "java.naming",
-               "java.transaction.xa",
-               "java.scripting",
-               "java.compiler",
-               "jdk.jsobject",
-               "jdk.jfr",
-               "java.security.sasl",
-               "java.security.jgss",
-               "jdk.unsupported",
-               "jdk.unsupported.desktop"]
+    modules = [
+            "java.desktop",
+            "java.logging",
+            "java.net.http",
+            "java.rmi",
+            "java.sql",
+            "java.datatransfer",
+            "java.management",
+            "java.xml",
+            "java.xml.crypto",
+            "jdk.xml.dom",
+            "java.naming",
+            "java.transaction.xa",
+            "java.scripting",
+            "java.compiler",
+            "jdk.jsobject",
+            "jdk.jfr",
+            "java.security.sasl",
+            "java.security.jgss",
+            "jdk.unsupported",
+            "jdk.unsupported.desktop"
+    ]
+    if(OperatingSystem.current().isWindows()) {
+        // only required on windows to access the trust store for root certificates
+        modules.add("jdk.crypto.mscapi")
+    }
     jpackage {
         if (OperatingSystem.current().isWindows()) {
             // The WiX toolset must be installed, see https://wixtoolset.org/releases/
