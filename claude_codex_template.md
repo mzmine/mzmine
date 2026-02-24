@@ -12,6 +12,7 @@
 - If variables do not change, make them final.
 - use exhaustive switches when pattern matching sealed interfaces or enums.
 - Use java.util.Logger for logging
+- Prefer separate files over nested classes
 
 # Inline Comments
 - Use short comments to clarify non-obvious logic or business rules.
