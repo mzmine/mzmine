@@ -59,6 +59,7 @@ import io.github.mzmine.util.web.ProxyChangedEvent;
 import io.github.mzmine.util.web.ProxyTestUtils;
 import io.github.mzmine.util.web.ProxyUtils;
 import io.github.mzmine.util.web.proxy.FullProxyConfig;
+import io.github.mzmine.util.web.truststore.NativeTrustStoreManager;
 import io.mzio.events.AuthRequiredEvent;
 import io.mzio.events.EventService;
 import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
@@ -130,6 +131,8 @@ public final class MZmineCore {
    * called.
    */
   public void startUp(@NotNull final MZmineCoreArgumentParser argsParser) {
+    NativeTrustStoreManager.initTrustStore();
+
     ProxyTestUtils.logProxyState("Proxy on startup:");
     ProxyUtils.applyConfig(FullProxyConfig.defaultConfig());
     ProxyTestUtils.logProxyState("Proxy after default config:");

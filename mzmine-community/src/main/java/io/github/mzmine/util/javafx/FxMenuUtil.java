@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,9 @@
 package io.github.mzmine.util.javafx;
 
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.util.StringUtils;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import javafx.scene.Node;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Menu;
@@ -171,4 +174,23 @@ public class FxMenuUtil {
     menu.getItems().add(new SeparatorMenuItem());
   }
 
+  public static void addToSubMenuIfAvailable(@NotNull final Menu mainMenu,
+      @NotNull MenuItem itemToAdd, @NotNull String... subMenuNames) {
+    Menu currentMenu = mainMenu;
+    Menu subMenu = null;
+    for (String subMenuName : subMenuNames) {
+      subMenu = currentMenu.getItems().stream().filter(item -> subMenuName.equals(item.getText()))
+          .filter(Menu.class::isInstance).map(Menu.class::cast).findFirst().orElse(null);
+      if (subMenu == null) {
+        break;
+      }
+      currentMenu = subMenu;
+    }
+    if (subMenu == null) {
+      throw new RuntimeException("Expected sub menu tree %s not found. Stopped at: %s".formatted(
+          Arrays.stream(subMenuNames).map(StringUtils::inQuotes)
+              .collect(Collectors.joining(" -> ")), StringUtils.inQuotes(currentMenu.getText())));
+    }
+    subMenu.getItems().add(itemToAdd);
+  }
 }
