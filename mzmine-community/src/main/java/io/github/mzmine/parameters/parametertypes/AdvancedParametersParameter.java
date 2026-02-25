@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomParameter;
 import java.util.Collection;
 import java.util.Objects;
 import javafx.scene.layout.Priority;
@@ -210,8 +211,30 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
       } else {
         return (V) getEmbeddedParameters().getParameter(optional).getEmbeddedParameter().getValue();
       }
+    } else if (parameter instanceof DefaultOffCustomParameter<?, ?, ?> docParam) {
+      return (V) getEmbeddedParameters().getParameter(docParam).resolve();
     } else {
       return (V) getEmbeddedParameters().getParameter(parameter).getValue();
     }
+  }
+
+  /**
+   * Overload for {@link DefaultOffCustomParameter} that requires no external default value —
+   * the parameter already stores its own {@link DefaultOffCustomParameter#getDefaultValue()
+   * defaultValue} and {@link DefaultOffCustomParameter#getOffValue() offValue}.
+   * <p>
+   * When the advanced parameters are not selected the parameter's stored
+   * {@link DefaultOffCustomParameter#getDefaultValue() defaultValue} is returned in any case.
+   *
+   * @param parameter the {@link DefaultOffCustomParameter} contained in the embedded parameter set
+   * @param <V>       the resolved value type
+   * @return the resolved value, or the parameter's own default when advanced is not selected
+   */
+  @SuppressWarnings("unchecked")
+  public <V> V getValueOrDefault(DefaultOffCustomParameter<V, ?, ?> parameter) {
+    if (!this.getValue()) {
+      return parameter.getDefaultValue();
+    }
+    return getEmbeddedParameters().getParameter(parameter).resolve();
   }
 }
