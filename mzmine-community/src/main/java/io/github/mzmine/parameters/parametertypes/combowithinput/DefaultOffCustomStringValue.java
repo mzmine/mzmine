@@ -24,20 +24,24 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Value for {@link DefaultOffCustomStringParameter}, combining a {@link DefaultOffCustomOption}
  * with a custom string input.
  */
-public record DefaultOffCustomStringValue(DefaultOffCustomOption option, String custom)
+public record DefaultOffCustomStringValue(@NotNull DefaultOffCustomOption option,
+    @Nullable String custom)
     implements ComboWithInputValue<DefaultOffCustomOption, String> {
 
   @Override
-  public DefaultOffCustomOption getSelectedOption() {
+  public @NotNull DefaultOffCustomOption getSelectedOption() {
     return option;
   }
 
   @Override
-  public String getEmbeddedValue() {
+  public @Nullable String getEmbeddedValue() {
     return custom;
   }
 }

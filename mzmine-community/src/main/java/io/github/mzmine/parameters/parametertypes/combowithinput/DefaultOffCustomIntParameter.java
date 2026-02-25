@@ -53,14 +53,14 @@ public class DefaultOffCustomIntParameter extends
   /**
    * @param embeddedParameter the integer parameter providing name, description, and min/max/format
    * @param defaultValue      the value returned when {@link DefaultOffCustomOption#DEFAULT} is
-   *                          selected
+   *                          selected; may be {@code null}
    * @param offValue          the value returned when {@link DefaultOffCustomOption#OFF} is selected;
    *                          may be {@code null}
    * @param includeOff        if {@code false} the {@link DefaultOffCustomOption#OFF} entry is
    *                          omitted from the combo-box choices
    */
-  public DefaultOffCustomIntParameter(@NotNull IntegerParameter embeddedParameter, int defaultValue,
-      @Nullable Integer offValue, boolean includeOff) {
+  public DefaultOffCustomIntParameter(@NotNull IntegerParameter embeddedParameter,
+      @Nullable Integer defaultValue, @Nullable Integer offValue, boolean includeOff) {
     super(embeddedParameter, defaultValue, offValue,
         new DefaultOffCustomIntValue(DefaultOffCustomOption.DEFAULT,
             embeddedParameter.getValue() != null ? embeddedParameter.getValue() : defaultValue),

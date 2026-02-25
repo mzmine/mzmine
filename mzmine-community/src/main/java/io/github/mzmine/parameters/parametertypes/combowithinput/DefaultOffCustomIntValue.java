@@ -24,35 +24,25 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Value for {@link DefaultOffCustomIntParameter}, combining a {@link DefaultOffCustomOption} with a
  * custom integer input.
  */
-public record DefaultOffCustomIntValue(DefaultOffCustomOption option, int custom)
+public record DefaultOffCustomIntValue(@NotNull DefaultOffCustomOption option,
+    @Nullable Integer custom)
     implements ComboWithInputValue<DefaultOffCustomOption, Integer> {
 
   @Override
-  public DefaultOffCustomOption getSelectedOption() {
+  public @NotNull DefaultOffCustomOption getSelectedOption() {
     return option;
   }
 
   @Override
-  public Integer getEmbeddedValue() {
+  public @Nullable Integer getEmbeddedValue() {
     return custom;
   }
 
-  /**
-   * Resolves the effective integer value.
-   *
-   * @param defaultValue the value used when {@link DefaultOffCustomOption#DEFAULT} is selected
-   * @param offValue     the value used when {@link DefaultOffCustomOption#OFF} is selected
-   * @return the resolved value
-   */
-  public int resolve(int defaultValue, int offValue) {
-    return switch (option) {
-      case DEFAULT -> defaultValue;
-      case OFF -> offValue;
-      case CUSTOM -> custom;
-    };
-  }
 }
