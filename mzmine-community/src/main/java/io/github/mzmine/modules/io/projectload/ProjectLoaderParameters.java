@@ -84,7 +84,10 @@ public class ProjectLoaderParameters extends SimpleParameterSet {
     return (ProjectLoaderParameters) parameterSet;
   }
 
+  /**
+   * Default is to replace project and to keep spectral libraries
+   */
   public static ProjectLoaderParameters create(@NotNull File file) {
-    return create(file, false, false);
+    return create(file, false, true);
   }
 }

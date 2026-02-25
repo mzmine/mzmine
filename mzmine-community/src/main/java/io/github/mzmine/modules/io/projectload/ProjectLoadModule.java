@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.io.projectload;
 
-import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.create;
 import static io.github.mzmine.util.ExitCode.OK;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -100,13 +99,15 @@ public class ProjectLoadModule implements MZmineProcessingModule {
       return;
     }
 
-    ProjectLoaderParameters param = ProjectLoaderParameters.create(selectedFile, false, false);
+    // keep libraries in quick open as most people have a single library they want to use for all
+    ProjectLoaderParameters param = ProjectLoaderParameters.create(selectedFile, false, true);
 
     MZmineCore.runMZmineModule(ProjectLoadModule.class, param);
   }
 
   public static void showImportDialog(@NotNull File file) {
-    ProjectLoaderParameters projectLoaderParameters = create(file, false, false);
+    ProjectLoaderParameters projectLoaderParameters = ProjectLoaderParameters.create(file, false,
+        true);
     ExitCode exitCode = projectLoaderParameters.showSetupDialog(true);
     if (exitCode == OK) {
       MZmineCore.runMZmineModule(ProjectLoadModule.class, projectLoaderParameters);
