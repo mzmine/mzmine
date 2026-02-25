@@ -49,21 +49,21 @@ public class DefaultOffCustomComboParameter<E> extends
    *                          may be {@code null}
    */
   public DefaultOffCustomComboParameter(@NotNull ComboParameter<E> embeddedParameter,
-      @NotNull E defaultValue, @Nullable E offValue) {
+      @Nullable E defaultValue, @Nullable E offValue) {
     this(embeddedParameter, defaultValue, offValue, true);
   }
 
   /**
    * @param embeddedParameter the combo parameter providing name, description, and choices
    * @param defaultValue      the value returned when {@link DefaultOffCustomOption#DEFAULT} is
-   *                          selected
+   *                          selected; may be {@code null}
    * @param offValue          the value returned when {@link DefaultOffCustomOption#OFF} is selected;
    *                          may be {@code null}
    * @param includeOff        if {@code false} the {@link DefaultOffCustomOption#OFF} entry is
    *                          omitted from the combo-box choices
    */
   public DefaultOffCustomComboParameter(@NotNull ComboParameter<E> embeddedParameter,
-      @NotNull E defaultValue, @Nullable E offValue, boolean includeOff) {
+      @Nullable E defaultValue, @Nullable E offValue, boolean includeOff) {
     super(embeddedParameter, defaultValue, offValue,
         new DefaultOffCustomComboValue<>(DefaultOffCustomOption.DEFAULT,
             embeddedParameter.getValue() != null ? embeddedParameter.getValue() : defaultValue),

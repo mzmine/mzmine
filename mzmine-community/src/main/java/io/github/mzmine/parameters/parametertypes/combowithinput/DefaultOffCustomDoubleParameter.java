@@ -53,14 +53,14 @@ public class DefaultOffCustomDoubleParameter extends
   /**
    * @param embeddedParameter the double parameter providing name, description, and min/max/format
    * @param defaultValue      the value returned when {@link DefaultOffCustomOption#DEFAULT} is
-   *                          selected
+   *                          selected; may be {@code null}
    * @param offValue          the value returned when {@link DefaultOffCustomOption#OFF} is selected;
    *                          may be {@code null}
    * @param includeOff        if {@code false} the {@link DefaultOffCustomOption#OFF} entry is
    *                          omitted from the combo-box choices
    */
   public DefaultOffCustomDoubleParameter(@NotNull DoubleParameter embeddedParameter,
-      double defaultValue, @Nullable Double offValue, boolean includeOff) {
+      @Nullable Double defaultValue, @Nullable Double offValue, boolean includeOff) {
     super(embeddedParameter, defaultValue, offValue,
         new DefaultOffCustomDoubleValue(DefaultOffCustomOption.DEFAULT,
             embeddedParameter.getValue() != null ? embeddedParameter.getValue() : defaultValue),

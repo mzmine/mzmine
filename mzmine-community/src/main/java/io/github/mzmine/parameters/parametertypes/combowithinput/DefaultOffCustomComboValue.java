@@ -24,22 +24,26 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Value for {@link DefaultOffCustomComboParameter}, combining a {@link DefaultOffCustomOption} with
  * a custom combo-box selection of type {@code E}.
  *
  * @param <E> the enum or combo value type
  */
-public record DefaultOffCustomComboValue<E>(DefaultOffCustomOption option, E custom)
+public record DefaultOffCustomComboValue<E>(@NotNull DefaultOffCustomOption option,
+    @Nullable E custom)
     implements ComboWithInputValue<DefaultOffCustomOption, E> {
 
   @Override
-  public DefaultOffCustomOption getSelectedOption() {
+  public @NotNull DefaultOffCustomOption getSelectedOption() {
     return option;
   }
 
   @Override
-  public E getEmbeddedValue() {
+  public @Nullable E getEmbeddedValue() {
     return custom;
   }
 }

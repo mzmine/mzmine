@@ -24,35 +24,25 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Value for {@link DefaultOffCustomDoubleParameter}, combining a {@link DefaultOffCustomOption}
  * with a custom double input.
  */
-public record DefaultOffCustomDoubleValue(DefaultOffCustomOption option, double custom)
+public record DefaultOffCustomDoubleValue(@NotNull DefaultOffCustomOption option,
+    @Nullable Double custom)
     implements ComboWithInputValue<DefaultOffCustomOption, Double> {
 
   @Override
-  public DefaultOffCustomOption getSelectedOption() {
+  public @NotNull DefaultOffCustomOption getSelectedOption() {
     return option;
   }
 
   @Override
-  public Double getEmbeddedValue() {
+  public @Nullable Double getEmbeddedValue() {
     return custom;
   }
 
-  /**
-   * Resolves the effective double value.
-   *
-   * @param defaultValue the value used when {@link DefaultOffCustomOption#DEFAULT} is selected
-   * @param offValue     the value used when {@link DefaultOffCustomOption#OFF} is selected
-   * @return the resolved value
-   */
-  public double resolve(double defaultValue, double offValue) {
-    return switch (option) {
-      case DEFAULT -> defaultValue;
-      case OFF -> offValue;
-      case CUSTOM -> custom;
-    };
-  }
 }

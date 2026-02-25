@@ -31,8 +31,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Abstract base for combo parameters that offer {@link DefaultOffCustomOption} choices and wrap an
  * arbitrary embedded parameter. Concrete subclasses supply the value record type and the embedded
- * parameter type; this class owns the stored {@code defaultValue} and {@code offValue} so they do
- * not have to be repeated at every call site.
+ * parameter type; this class owns the stored {@code defaultValue} and {@code offValue}.
  *
  * @param <V>   the resolved value type (e.g. {@link Double}, {@link Integer})
  * @param <EP>  the type of the embedded {@link UserParameter} (e.g. {@code DoubleParameter})
@@ -41,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class DefaultOffCustomParameter<V, EP extends UserParameter<V, ?>, Val extends ComboWithInputValue<DefaultOffCustomOption, V>> extends
     ComboWithInputParameter<DefaultOffCustomOption, Val, EP> {
 
-  protected final @NotNull V defaultValue;
+  protected final @Nullable V defaultValue;
   protected final @Nullable V offValue;
   protected final boolean includeOff;
 
@@ -54,7 +53,7 @@ public abstract class DefaultOffCustomParameter<V, EP extends UserParameter<V, ?
    *                          is selected; may be {@code null}
    * @param initialValue      the initial combo+input value shown in the UI
    */
-  protected DefaultOffCustomParameter(@NotNull EP embeddedParameter, @NotNull V defaultValue,
+  protected DefaultOffCustomParameter(@NotNull EP embeddedParameter, @Nullable V defaultValue,
       @Nullable V offValue, @NotNull Val initialValue) {
     this(embeddedParameter, defaultValue, offValue, initialValue, true);
   }
@@ -63,14 +62,14 @@ public abstract class DefaultOffCustomParameter<V, EP extends UserParameter<V, ?
    * @param embeddedParameter the parameter providing the input field (name, description,
    *                          validation, …)
    * @param defaultValue      returned by {@link #resolve()} when
-   *                          {@link DefaultOffCustomOption#DEFAULT} is selected
+   *                          {@link DefaultOffCustomOption#DEFAULT} is selected; may be {@code null}
    * @param offValue          returned by {@link #resolve()} when {@link DefaultOffCustomOption#OFF}
    *                          is selected; may be {@code null}
    * @param initialValue      the initial combo+input value shown in the UI
    * @param includeOff        if {@code false} the {@link DefaultOffCustomOption#OFF} entry is
    *                          omitted from the combo-box choices
    */
-  protected DefaultOffCustomParameter(@NotNull EP embeddedParameter, @NotNull V defaultValue,
+  protected DefaultOffCustomParameter(@NotNull EP embeddedParameter, @Nullable V defaultValue,
       @Nullable V offValue, @NotNull Val initialValue, boolean includeOff) {
     super(embeddedParameter, optionsFor(includeOff), DefaultOffCustomOption.CUSTOM, initialValue);
     this.defaultValue = defaultValue;
@@ -85,10 +84,10 @@ public abstract class DefaultOffCustomParameter<V, EP extends UserParameter<V, ?
 
   /**
    * Resolves the effective value using the option stored in {@link #value} together with the
-   * {@link #defaultValue} and {@link #offValue} fields. No external arguments are required.
+   * {@link #defaultValue} and {@link #offValue} fields.
    *
-   * @return the resolved value; may be {@code null} when {@link DefaultOffCustomOption#OFF} is
-   * selected and {@link #offValue} is {@code null}
+   * @return the resolved value; may be {@code null} when {@link DefaultOffCustomOption#OFF} or
+   * {@link DefaultOffCustomOption#DEFAULT} is selected and the corresponding value is {@code null}
    */
   @Nullable
   public V resolve() {
@@ -99,7 +98,7 @@ public abstract class DefaultOffCustomParameter<V, EP extends UserParameter<V, ?
     };
   }
 
-  public @NotNull V getDefaultValue() {
+  public @Nullable V getDefaultValue() {
     return defaultValue;
   }
 

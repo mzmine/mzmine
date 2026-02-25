@@ -47,24 +47,24 @@ public class DefaultOffCustomStringParameter extends
    *                          may be {@code null}
    */
   public DefaultOffCustomStringParameter(@NotNull StringParameter embeddedParameter,
-      @NotNull String defaultValue, @Nullable String offValue) {
+      @Nullable String defaultValue, @Nullable String offValue) {
     this(embeddedParameter, defaultValue, offValue, true);
   }
 
   /**
    * @param embeddedParameter the string parameter providing name, description, and validation
    * @param defaultValue      the value returned when {@link DefaultOffCustomOption#DEFAULT} is
-   *                          selected
+   *                          selected; may be {@code null}
    * @param offValue          the value returned when {@link DefaultOffCustomOption#OFF} is selected;
    *                          may be {@code null}
    * @param includeOff        if {@code false} the {@link DefaultOffCustomOption#OFF} entry is
    *                          omitted from the combo-box choices
    */
   public DefaultOffCustomStringParameter(@NotNull StringParameter embeddedParameter,
-      @NotNull String defaultValue, @Nullable String offValue, boolean includeOff) {
+      @Nullable String defaultValue, @Nullable String offValue, boolean includeOff) {
     super(embeddedParameter, defaultValue, offValue,
         new DefaultOffCustomStringValue(DefaultOffCustomOption.DEFAULT,
-            embeddedParameter.getValue() != null ? embeddedParameter.getValue() : defaultValue),
+            embeddedParameter.getValue()),
         includeOff);
   }
 

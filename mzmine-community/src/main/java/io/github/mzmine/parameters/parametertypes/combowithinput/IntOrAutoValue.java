@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 public record IntOrAutoValue(IntOrAuto value, int manual) implements ComboWithInputValue<IntOrAuto, Integer> {
 
   @Override
-  public IntOrAuto getSelectedOption() {
+  public @NotNull IntOrAuto getSelectedOption() {
     return value;
   }
 
