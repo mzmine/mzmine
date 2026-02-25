@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,27 +25,31 @@
 
 package io.github.mzmine.modules.io.projectload;
 
-import java.time.Instant;
-import java.util.Collection;
-
-import org.jetbrains.annotations.NotNull;
+import static io.github.mzmine.util.ExitCode.OK;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.io.File;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.Optional;
+import javafx.stage.FileChooser;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class implements BatchStep interface, so project loading can be activated in a batch.
- * 
+ *
  */
 public class ProjectLoadModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Open project";
-  private static final String MODULE_DESCRIPTION =
-      "This module opens an existing MZmine project. The current workspace will be discarded.";
+  private static final String MODULE_NAME = "Open project...";
+  private static final String MODULE_DESCRIPTION = "This module opens an existing mzmine project.";
 
   @Override
   public @NotNull String getName() {
@@ -63,7 +67,7 @@ public class ProjectLoadModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     ProjectOpeningTask newTask = new ProjectOpeningTask(parameters, moduleCallDate);
     tasks.add(newTask);
-    return ExitCode.OK;
+    return OK;
   }
 
   @Override
@@ -76,4 +80,37 @@ public class ProjectLoadModule implements MZmineProcessingModule {
     return ProjectLoaderParameters.class;
   }
 
+  public static void openQuickSelect() {
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.setTitle("Open mzmine project");
+    fileChooser.getExtensionFilters().addAll(ProjectLoaderParameters.extensions);
+
+    final File currentFile = Optional.of(ProjectService.getProject())
+        .map(MZmineProject::getProjectFile).orElse(null);
+    if (currentFile != null) {
+      File currentDir = currentFile.getParentFile();
+      if ((currentDir != null) && (currentDir.exists())) {
+        fileChooser.setInitialDirectory(currentDir);
+      }
+    }
+
+    File selectedFile = fileChooser.showOpenDialog(null);
+    if (selectedFile == null) {
+      return;
+    }
+
+    // keep libraries in quick open as most people have a single library they want to use for all
+    ProjectLoaderParameters param = ProjectLoaderParameters.create(selectedFile, false, true);
+
+    MZmineCore.runMZmineModule(ProjectLoadModule.class, param);
+  }
+
+  public static void showImportDialog(@NotNull File file) {
+    ProjectLoaderParameters projectLoaderParameters = ProjectLoaderParameters.create(file, false,
+        true);
+    ExitCode exitCode = projectLoaderParameters.showSetupDialog(true);
+    if (exitCode == OK) {
+      MZmineCore.runMZmineModule(ProjectLoadModule.class, projectLoaderParameters);
+    }
+  }
 }

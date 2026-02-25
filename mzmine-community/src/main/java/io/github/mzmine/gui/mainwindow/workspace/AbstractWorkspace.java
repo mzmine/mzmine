@@ -209,7 +209,8 @@ public abstract class AbstractWorkspace implements Workspace {
 
     menu.setOnShowing(_ -> getWorkspaceMenuHelper().fillRecentProjects(recentProjects));
 
-    addModuleMenuItem(menu, ProjectLoadModule.class, KeyCode.O, KeyCombination.SHORTCUT_DOWN);
+    addMenuItem(menu, "Open project", () -> ProjectLoadModule.openQuickSelect(), KeyCode.O, KeyCombination.SHORTCUT_DOWN);
+    addModuleMenuItem(menu, ProjectLoadModule.class, KeyCode.O, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN);
     menu.getItems().add(recentProjects);
     addModuleMenuItem(menu, ProjectSaveModule.class, KeyCode.S, KeyCombination.SHORTCUT_DOWN);
     addModuleMenuItem(menu, ProjectSaveAsModule.class, KeyCode.S, KeyCombination.SHORTCUT_DOWN,

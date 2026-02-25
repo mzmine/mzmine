@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,12 +27,12 @@ package io.github.mzmine.modules.io.projectload.version_3_0;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.modules.io.projectload.RawDataFileOpenHandler;
 import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
 import io.github.mzmine.parameters.Parameter;
@@ -45,8 +45,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlacehold
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
-import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.StreamCopy;
@@ -60,7 +58,6 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -225,29 +222,15 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
         resolvePathsUnpackFiles(batchQueue, tempDir);
 
         param.setParameter(BatchModeParameters.batchQueue, batchQueue);
-        final BatchModeModule batchModule = MZmineCore.getModuleInstance(BatchModeModule.class);
-        final List<Task> tasks = new ArrayList<>();
-        batchModule.runModule(project, param, tasks, Instant.now());
 
-        List<AbstractTask> abstractTasks = tasks.stream().filter(t -> t instanceof AbstractTask)
-            .map(t -> (AbstractTask) t).toList();
-        currentTask = abstractTasks.get(0);
+        currentTask = new BatchTask(project, param, Instant.now(), null);
+        currentTask.run();
 
-        AtomicBoolean finished = new AtomicBoolean(false);
-        AtomicBoolean success = new AtomicBoolean(true);
-        AllTasksFinishedListener listener = new AllTasksFinishedListener(abstractTasks, true,
-            c -> finished.set(true), c -> success.set(false), c -> success.set(false));
-
-        MZmineCore.getTaskController().addTasks(tasks.toArray(Task[]::new));
-
-        while (!finished.get()) {
-          Thread.sleep(100);
-          if (isCanceled()) {
-            return false;
-          }
+        if (currentTask.getStatus() == TaskStatus.ERROR) {
+          error(currentTask.getErrorMessage());
+          return false;
         }
-
-        if (!success.get()) {
+        if (!currentTask.isFinished()) {
           return false;
         }
 
