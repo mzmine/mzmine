@@ -24,19 +24,27 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Objects;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * Abstract base for combo parameters that offer {@link DefaultOffCustomOption} choices and wrap an
  * arbitrary embedded parameter. Concrete subclasses supply the value record type and the embedded
  * parameter type; this class owns the stored {@code defaultValue} and {@code offValue}.
  *
- * @param <V>  the resolved value type (e.g. {@link Double}, {@link Integer})
+ * @param <V> the resolved value type (e.g. {@link Double}, {@link Integer})
  */
 public class DefaultOffCustomParameter<V> extends
     ComboWithInputParameter<DefaultOffCustomOption, DefaultOffCustomValue<V>, UserParameter<V, ?>> {
+
+  private static final Logger logger = Logger.getLogger(DefaultOffCustomParameter.class.getName());
 
   protected final @Nullable V defaultValue;
   protected final @Nullable V offValue;
@@ -123,5 +131,86 @@ public class DefaultOffCustomParameter<V> extends
         new DefaultOffCustomValue<>(currentValue.getSelectedOption(), currentValue.custom()));
 
     return clone;
+  }
+
+  @Override
+  public void saveValueToXML(Element xmlElement) {
+    if (value == null) {
+      return;
+    }
+    Document doc = xmlElement.getOwnerDocument();
+    Element customValueElement = doc.createElement("custom_setting");
+    embeddedParameter.saveValueToXML(customValueElement);
+    xmlElement.appendChild(customValueElement);
+
+    UniqueIdSupplier uniqueId = (UniqueIdSupplier) value.getSelectedOption();
+    xmlElement.setAttribute("selected", uniqueId.getUniqueID());
+
+    // save the actual resolved value, no matter what the setting was. We may change "default" or
+    // "off" values in the future.
+    UserParameter<V, ?> embeddedClone = embeddedParameter.cloneParameter();
+    embeddedClone.setValue(resolveValue());
+    Element resolvedValue = doc.createElement("actual_value");
+    embeddedClone.saveValueToXML(resolvedValue);
+  }
+
+  @Override
+  public void loadValueFromXML(Element xmlElement) {
+    String selectedAttr = xmlElement.getAttribute("selected");
+
+    if (selectedAttr.isEmpty()) {
+      return;
+    }
+
+    DefaultOffCustomOption option = UniqueIdSupplier.parseOrElse(selectedAttr,
+        DefaultOffCustomOption.values(), DefaultOffCustomOption.DEFAULT);
+
+    if (option == null) {
+      logger.info(
+          "Cannot load value of parameter %s, no option selected. Falling back to default %s.".formatted(
+              getName(), String.valueOf(defaultValue)));
+      return;
+    }
+
+    embeddedParameter.loadValueFromXML(xmlElement);
+
+    NodeList actualValueList = xmlElement.getElementsByTagName("actual_value");
+    V actualValue = null;
+    if (actualValueList.getLength() > 0) {
+      embeddedParameter.loadValueFromXML((Element) actualValueList.item(0));
+      actualValue = embeddedParameter.getValue();
+    }
+
+    NodeList customValueList = xmlElement.getElementsByTagName("custom_setting");
+    if (customValueList.getLength() > 0) {
+      embeddedParameter.loadValueFromXML((Element) customValueList.item(0));
+    } else {
+      embeddedParameter.setValue(defaultValue);
+    }
+
+    switch (option) {
+      case DEFAULT -> {
+        if (Objects.equals(actualValue, defaultValue)) {
+          // default changed, set to custom
+          embeddedParameter.setValue(actualValue);
+          setValue(createValue(DefaultOffCustomOption.CUSTOM, embeddedParameter));
+        } else {
+          setValue(createValue(DefaultOffCustomOption.DEFAULT, embeddedParameter));
+        }
+      }
+      case OFF -> {
+        if (Objects.equals(actualValue, offValue)) {
+          // off value changed, set to custom
+          embeddedParameter.setValue(actualValue);
+          setValue(createValue(DefaultOffCustomOption.CUSTOM, embeddedParameter));
+        } else {
+          setValue(createValue(DefaultOffCustomOption.OFF, embeddedParameter));
+        }
+      }
+      case CUSTOM -> {
+        setValue(createValue(option, embeddedParameter));
+      }
+    }
+
   }
 }
