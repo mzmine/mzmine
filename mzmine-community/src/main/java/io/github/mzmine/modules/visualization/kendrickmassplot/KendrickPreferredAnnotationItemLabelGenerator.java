@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.labels.XYItemLabelGenerator;
@@ -37,11 +38,15 @@ public class KendrickPreferredAnnotationItemLabelGenerator implements XYItemLabe
   @Override
   public @Nullable String generateLabel(final @NotNull XYDataset dataset, final int series,
       final int item) {
-    if (!(dataset instanceof KendrickMassPlotXYZDataset kendrickDataset)) {
+    if (!(dataset instanceof XYItemObjectProvider<?> itemObjectProvider)) {
       return null;
     }
 
-    final FeatureListRow row = kendrickDataset.getSelectedRow(item);
+    final Object itemObject = itemObjectProvider.getItemObject(item);
+    if (!(itemObject instanceof FeatureListRow row)) {
+      return null;
+    }
+
     final FeatureAnnotation annotation = row.getPreferredAnnotation();
     return annotation == null ? null : annotation.getCompoundName();
   }

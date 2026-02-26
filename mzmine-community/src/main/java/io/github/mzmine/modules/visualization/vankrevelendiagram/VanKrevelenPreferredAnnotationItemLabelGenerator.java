@@ -25,24 +25,8 @@
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jfree.chart.labels.XYItemLabelGenerator;
-import org.jfree.data.xy.XYDataset;
+import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickPreferredAnnotationItemLabelGenerator;
 
-class VanKrevelenPreferredAnnotationItemLabelGenerator implements XYItemLabelGenerator {
-
-  @Override
-  public @Nullable String generateLabel(final @NotNull XYDataset dataset, final int series,
-      final int item) {
-    if (!(dataset instanceof VanKrevelenDiagramXYZDataset vanKrevelenDataset)) {
-      return null;
-    }
-
-    final FeatureListRow row = vanKrevelenDataset.getRow(item);
-    final FeatureAnnotation annotation = row.getPreferredAnnotation();
-    return annotation == null ? null : annotation.getCompoundName();
-  }
+class VanKrevelenPreferredAnnotationItemLabelGenerator
+    extends KendrickPreferredAnnotationItemLabelGenerator {
 }
