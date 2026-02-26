@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -29,6 +28,7 @@ import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomParameter;
 import java.util.Collection;
 import java.util.Objects;
 import javafx.scene.layout.Priority;
@@ -192,6 +192,10 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
   }
 
   /**
+   * Get the value or the given default for the parameter. Advanced parameter and potential optional
+   * parameters must be selected, otherwise the default is returned. <p></p> For
+   * {@link DefaultOffCustomParameter} use {@link #getValueOrDefault(DefaultOffCustomParameter)}.
+   *
    * @param parameter    The parameter in this advanced parameter set. This set must be selected and
    *                     if the parameter is an {@link OptionalParameter}, it must also be
    *                     selected.
@@ -199,7 +203,7 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
    * @param <V>
    * @return The value or the default.
    */
-  public <V> V getValueOrDefault(Parameter parameter, V defaultValue) {
+  public <V> V getValueOrDefault(Parameter parameter, @Nullable V defaultValue) {
     if (!this.getValue()) {
       return defaultValue;
     }
@@ -210,8 +214,31 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
       } else {
         return (V) getEmbeddedParameters().getParameter(optional).getEmbeddedParameter().getValue();
       }
+    } else if (parameter instanceof DefaultOffCustomParameter<?> docParam) {
+      return (V) getEmbeddedParameters().getParameter(docParam).resolveValue();
     } else {
       return (V) getEmbeddedParameters().getParameter(parameter).getValue();
     }
+  }
+
+  /**
+   * Overload for {@link DefaultOffCustomParameter} that requires no external default value — the
+   * parameter already stores its own
+   * {@link DefaultOffCustomParameter#getDefaultValue() defaultValue} and
+   * {@link DefaultOffCustomParameter#getOffValue() offValue}.
+   * <p>
+   * When the advanced parameters are not selected the parameter's stored
+   * {@link DefaultOffCustomParameter#getDefaultValue() defaultValue} is returned in any case.
+   *
+   * @param parameter the {@link DefaultOffCustomParameter} contained in the embedded parameter set
+   * @param <V>       the resolved value type
+   * @return the resolved value, or the parameter's own default when advanced is not selected
+   */
+  @SuppressWarnings("unchecked")
+  public <V> V getValueOrDefault(DefaultOffCustomParameter<V> parameter) {
+    if (!this.getValue()) {
+      return parameter.getDefaultValue();
+    }
+    return getEmbeddedParameters().getParameter(parameter).resolveValue();
   }
 }
