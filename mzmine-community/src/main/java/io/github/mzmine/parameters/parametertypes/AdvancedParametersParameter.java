@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -212,7 +211,7 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
         return (V) getEmbeddedParameters().getParameter(optional).getEmbeddedParameter().getValue();
       }
     } else if (parameter instanceof DefaultOffCustomParameter<?, ?, ?> docParam) {
-      return (V) getEmbeddedParameters().getParameter(docParam).resolve();
+      return (V) getEmbeddedParameters().getParameter(docParam).resolveValue();
     } else {
       return (V) getEmbeddedParameters().getParameter(parameter).getValue();
     }
@@ -235,6 +234,6 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
     if (!this.getValue()) {
       return parameter.getDefaultValue();
     }
-    return getEmbeddedParameters().getParameter(parameter).resolve();
+    return getEmbeddedParameters().getParameter(parameter).resolveValue();
   }
 }
