@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -49,8 +49,8 @@ public record ParameterOverride(String moduleClassName, String moduleName,
    */
   public String getDisplayValue() {
     String valueAsString = String.valueOf(parameterWithValue.getValue());
-    if (parameterWithValue instanceof OptionalParameter<?> opt) {
-      valueAsString += String.valueOf(opt.getEmbeddedParameter().getValue());
+    if (parameterWithValue instanceof EmbeddedParameter<?, ?, ?> opt) {
+      valueAsString += ", " + opt.getEmbeddedParameter().getValue();
     }
 
     if (valueAsString.length() > 50) {

@@ -41,21 +41,25 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -70,6 +74,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -81,34 +86,37 @@ public class ParameterCustomizationPane extends BorderPane {
   private static final double MIN_OVERRIDES_TABLE_HEIGHT = 60d;
   private static final double PREF_OVERRIDES_TABLE_HEIGHT = 140d;
 
-  private final BatchModuleTreePane moduleTreePane;
-  private final ListView<ParameterWrapper> parameterListView;
-  private final VBox parameterEditorPane;
-  private final Label instructionsLabel;
-  private final TableView<ParameterOverride> overridesTable;
+  // Type-safe composite key for tempOverrides, replacing fragile string concatenation.
+  private record OverrideKey(String moduleClassName, String paramName, ApplicationScope scope) {
+
+    OverrideKey(@NotNull MZmineRunnableModule module, @NotNull String paramName,
+        @NotNull ApplicationScope scope) {
+      this(module.getClass().getName(), paramName, scope);
+    }
+  }
+
+  // --- UI fields ---
+  private final BatchModuleTreePane moduleTreePane = new BatchModuleTreePane(false);
+  private final ListView<UserParameter<?, ?>> parameterListView = new ListView<>();
+  private final VBox parameterEditorPane = FxLayout.newVBox();
+  private final Label instructionsLabel = FxLabels.newLabel(
+      "Select a module to view its parameters");
+  private final TableView<ParameterOverride> overridesTable = new TableView<>();
   private final Button addButton;
   private final Button overrideButton;
   private final Button removeButton;
   private final Button clearAllButton;
-  private final ComboBox<ApplicationScope> scopeComboBox;
+  private final ComboBox<ApplicationScope> scopeComboBox = new ComboBox<>();
 
-  // Temporary storage while editing
-  private final Map<String, ParameterOverride> tempOverrides;
-
+  // --- State fields ---
+  private final Map<OverrideKey, ParameterOverride> tempOverrides = new LinkedHashMap<>();
   private MZmineRunnableModule selectedModule;
-  private ParameterWrapper selectedParameter;
+  private UserParameter<?, ?> selectedParameter;
   private Node currentEditorComponent;
-  private ParameterOverride selectedOverride;
   private boolean initialSelectorLayoutApplied;
   private int initialSelectorLayoutAttempts;
 
   public ParameterCustomizationPane() {
-    this.moduleTreePane = new BatchModuleTreePane(false);
-    this.parameterListView = new ListView<>();
-    this.parameterEditorPane = FxLayout.newVBox();
-    this.instructionsLabel = FxLabels.newLabel("Select a module to view its parameters");
-    this.overridesTable = new TableView<>();
-    this.tempOverrides = new HashMap<>();
 
     this.addButton = FxButtons.createButton("Add", FxIcons.ADD, "Add new parameter override",
         this::addParameterOverride);
@@ -119,7 +127,6 @@ public class ParameterCustomizationPane extends BorderPane {
     this.clearAllButton = FxButtons.createButton("Clear All", FxIcons.CLEAR,
         "Clear all parameter overrides", this::clearAllOverrides);
 
-    this.scopeComboBox = new ComboBox<>();
     this.scopeComboBox.getItems().addAll(ApplicationScope.values());
     this.scopeComboBox.setValue(ApplicationScope.ALL);
     this.scopeComboBox.setMaxWidth(Double.MAX_VALUE);
@@ -133,7 +140,7 @@ public class ParameterCustomizationPane extends BorderPane {
     mainSplitPane.setOrientation(Orientation.HORIZONTAL);
 
     VBox modulePane = createModuleTreePane();
-    VBox parameterPane = createParameterEditorPane();
+    VBox parameterPane = createParameterListPane();
     VBox editorSection = createParameterEditorSection();
     editorSection.setMaxHeight(Region.USE_PREF_SIZE);
     VBox overridesPane = createOverridesPane();
@@ -230,7 +237,12 @@ public class ParameterCustomizationPane extends BorderPane {
     }
 
     initialSelectorLayoutApplied = true;
+    computeAndApplySelectorLayout(selectorGrid, modulePane, parameterPane, parentWidth,
+        parentHeight);
+  }
 
+  private void computeAndApplySelectorLayout(GridPane selectorGrid, VBox modulePane,
+      VBox parameterPane, double parentWidth, double parentHeight) {
     // Outer split starts at 50/50. Size selector columns from the left half.
     double leftWidth = parentWidth * 0.5;
     double columnWidth = Math.max(140d, (leftWidth - selectorGrid.getHgap()) / 2d);
@@ -264,13 +276,19 @@ public class ParameterCustomizationPane extends BorderPane {
     return leftPane;
   }
 
-  private VBox createParameterEditorPane() {
+  private VBox createParameterListPane() {
     Label paramLabel = FxLabels.newBoldLabel("Parameters:");
+    parameterListView.setCellFactory(lv -> new ListCell<>() {
+      @Override
+      protected void updateItem(UserParameter<?, ?> item, boolean empty) {
+        super.updateItem(item, empty);
+        setText(empty || item == null ? null : item.getName());
+      }
+    });
     VBox middlePane = FxLayout.newVBox(null, FxLayout.NO_PADDING_INSETS, true, paramLabel,
         parameterListView);
     middlePane.setMinWidth(0);
     VBox.setVgrow(parameterListView, Priority.ALWAYS);
-
     return middlePane;
   }
 
@@ -287,17 +305,17 @@ public class ParameterCustomizationPane extends BorderPane {
     Label scopeLabel = FxLabels.newLabel("Apply to module occurrence:");
     scopeLabel.setTooltip(new Tooltip(
         "Select if this parameter setting should be applied to the first, last, or all batch steps that use this module."));
-    HBox scopeBox = FxLayout.newHBox(Pos.CENTER_LEFT, FxLayout.DEFAULT_PADDING_INSETS, scopeLabel,
+    HBox scopeBox = FxLayout.newHBox(Pos.CENTER_LEFT, FxLayout.NO_PADDING_INSETS, scopeLabel,
         scopeComboBox);
     HBox.setHgrow(scopeComboBox, Priority.ALWAYS);
 
-    HBox buttonRow = FxLayout.newHBox(Pos.CENTER, addButton, overrideButton);
+    HBox buttonRow = FxLayout.newHBox(Pos.CENTER, FxLayout.NO_PADDING_INSETS, addButton,
+        overrideButton);
 
-    VBox buttonBox = FxLayout.newVBox(null, FxLayout.DEFAULT_PADDING_INSETS, true, scopeBox,
-        buttonRow);
+    VBox buttonBox = FxLayout.newVBox(null, FxLayout.NO_PADDING_INSETS, true, scopeBox, buttonRow);
 
-    VBox editorSection = FxLayout.newVBox(null, FxLayout.DEFAULT_PADDING_INSETS, true, editorLabel,
-        buttonBox, parameterEditorPane);
+    VBox editorSection = FxLayout.newVBox(null, FxLayout.NO_PADDING_INSETS, true, editorLabel,
+        buttonBox, new Separator(Orientation.HORIZONTAL), parameterEditorPane);
     VBox.setVgrow(parameterEditorPane, Priority.NEVER);
 
     return editorSection;
@@ -320,6 +338,29 @@ public class ParameterCustomizationPane extends BorderPane {
         param -> new SimpleStringProperty(param.getValue().getDisplayValue()));
     valueCol.setPrefWidth(150);
 
+    overridesTable.getColumns().addAll(moduleCol, paramCol, valueCol, createScopeColumn());
+    overridesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+    overridesTable.setPlaceholder(FxLabels.newLabel("No parameter overrides set"));
+    overridesTable.setEditable(true);
+    // Allow columns to compress when horizontal space is limited.
+    overridesTable.setMinWidth(0);
+    // Keep the table usable while still allowing vertical compression.
+    overridesTable.setMinHeight(MIN_OVERRIDES_TABLE_HEIGHT);
+    overridesTable.setPrefHeight(PREF_OVERRIDES_TABLE_HEIGHT);
+
+    Region headerSpacer = new Region();
+    HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+    HBox overridesHeader = FxLayout.newHBox(Pos.CENTER_LEFT, FxLayout.NO_PADDING_INSETS,
+        overviewLabel, headerSpacer, removeButton, clearAllButton);
+
+    VBox overridesPane = FxLayout.newVBox(null, FxLayout.NO_PADDING_INSETS, true, overridesHeader,
+        overridesTable);
+    VBox.setVgrow(overridesTable, Priority.ALWAYS);
+
+    return overridesPane;
+  }
+
+  private TableColumn<ParameterOverride, ApplicationScope> createScopeColumn() {
     TableColumn<ParameterOverride, ApplicationScope> scopeCol = new TableColumn<>("Apply to");
     scopeCol.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().scope()));
     scopeCol.setPrefWidth(100);
@@ -337,51 +378,34 @@ public class ParameterCustomizationPane extends BorderPane {
       ApplicationScope newScope = event.getNewValue();
       if (newScope != null && newScope != override.scope()) {
         // Remove the old entry with the old scope
-        String oldKey = makeKey(override.moduleClassName(), override.parameterWithValue().getName(),
-            override.scope());
-        tempOverrides.remove(oldKey);
-
+        tempOverrides.remove(
+            new OverrideKey(override.moduleClassName(), override.parameterWithValue().getName(),
+                override.scope()));
         // Add the new entry with the new scope
-        String newKey = makeKey(override.moduleClassName(), override.parameterWithValue().getName(),
-            newScope);
-        tempOverrides.put(newKey,
-            new ParameterOverride(override.moduleClassName(), override.moduleName(),
+        tempOverrides.put(
+            new OverrideKey(override.moduleClassName(), override.parameterWithValue().getName(),
+                newScope), new ParameterOverride(override.moduleClassName(), override.moduleName(),
                 override.parameterWithValue(), newScope));
         refreshOverridesTable();
       }
     });
-
-    overridesTable.getColumns().addAll(moduleCol, paramCol, valueCol, scopeCol);
-    overridesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-    overridesTable.setPlaceholder(FxLabels.newLabel("No parameter overrides set"));
-    overridesTable.setEditable(true);
-    // Allow columns to compress when horizontal space is limited.
-    overridesTable.setMinWidth(0);
-    // Keep the table usable while still allowing vertical compression.
-    overridesTable.setMinHeight(MIN_OVERRIDES_TABLE_HEIGHT);
-    overridesTable.setPrefHeight(PREF_OVERRIDES_TABLE_HEIGHT);
-
-    Region headerSpacer = new Region();
-    HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-    HBox overridesHeader = FxLayout.newHBox(Pos.CENTER_LEFT, FxLayout.DEFAULT_PADDING_INSETS,
-        overviewLabel, headerSpacer, removeButton, clearAllButton);
-
-    VBox rightPane = FxLayout.newVBox(null, FxLayout.DEFAULT_PADDING_INSETS, true, overridesHeader,
-        overridesTable);
-    VBox.setVgrow(overridesTable, Priority.ALWAYS);
-
-    return rightPane;
+    return scopeCol;
   }
 
   private void setupEventHandlers() {
-    moduleTreePane.setOnAddModuleEventHandler(this::onModuleSelected);
     moduleTreePane.addModuleFocusedListener(this::onModuleSelected);
+    moduleTreePane.setOnAddModuleEventHandler(_ -> {
+      // select and focus on enter pressed
+      parameterListView.requestFocus();
+      parameterListView.getSelectionModel().selectFirst();
+    });
+
     parameterListView.getSelectionModel().selectedItemProperty()
         .addListener((obs, oldVal, newVal) -> onParameterSelected(newVal));
+    parameterListView.addEventHandler(KeyEvent.KEY_PRESSED, this::parameterListViewOnKeyPressed);
 
     overridesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
       removeButton.setDisable(newVal == null);
-      selectedOverride = newVal;
       if (newVal != null) {
         selectOverrideInEditor(newVal);
       }
@@ -393,7 +417,7 @@ public class ParameterCustomizationPane extends BorderPane {
     // When scope changes, reload the parameter value for that scope
     scopeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
       if (selectedParameter != null && newVal != null) {
-        loadExistingOverrideValue(selectedParameter.parameter);
+        loadExistingOverrideValue(selectedParameter);
       }
       updateButtonStates();
     });
@@ -408,12 +432,59 @@ public class ParameterCustomizationPane extends BorderPane {
     });
   }
 
-  private void onModuleSelected(MZmineRunnableModule module) {
+  private void parameterListViewOnKeyPressed(KeyEvent e) {
+    switch (e.getCode()) {
+      case ENTER -> {
+        Control c = switch (currentEditorComponent) {
+          case Control control -> control;
+          case Parent p -> findFirstControlNode(p);
+          case null, default -> null;
+        };
+        if (c != null) {
+          e.consume();
+          c.requestFocus();
+          // add override on enter pressed
+          c.addEventHandler(KeyEvent.KEY_PRESSED, ev -> {
+            if(ev.getCode() == KeyCode.ENTER) {
+              addParameterOverride();
+            }
+          });
+        }
+      }
+      case null, default -> {
+      }
+    }
 
-    parameterListView.getItems().clear();
+  }
+
+  /**
+   * Traverses the parent and it's childs to find the first intance of a {@link Control}.
+   */
+  private @Nullable Control findFirstControlNode(@NotNull Parent p) {
+    ObservableList<Node> children = p.getChildrenUnmodifiable();
+    // check main layer first
+    for (Node child : children) {
+      if (child instanceof Control c) {
+        return c;
+      }
+    }
+
+    for (Node child : children) {
+      if (child instanceof Parent cp) {
+        Control c = findFirstControlNode(cp);
+        if (c != null) {
+          return c;
+        }
+      }
+    }
+    return null;
+  }
+
+  private void onModuleSelected(@Nullable MZmineRunnableModule module) {
     this.selectedModule = module;
     this.selectedParameter = null;
     this.currentEditorComponent = null;
+    parameterListView.getItems().clear();
     updateButtonStates();
 
     if (module == null) {
@@ -429,11 +500,9 @@ public class ParameterCustomizationPane extends BorderPane {
       return;
     }
 
-    parameterListView.getItems().clear();
-    Arrays.stream(parameters.getParameters()).filter(p -> p instanceof UserParameter<?, ?>)
-        .filter(p -> !(p instanceof HiddenParameter))
-        .map(p -> new ParameterWrapper((UserParameter<?, ?>) p))
-        .forEach(parameterListView.getItems()::add);
+    Arrays.stream(parameters.getParameters())
+        .filter(p -> p instanceof UserParameter<?, ?> && !(p instanceof HiddenParameter))
+        .map(p -> (UserParameter<?, ?>) p).forEach(parameterListView.getItems()::add);
 
     if (parameterListView.getItems().isEmpty()) {
       showInstructions("No user-configurable parameters for this module");
@@ -442,48 +511,42 @@ public class ParameterCustomizationPane extends BorderPane {
     }
   }
 
-  private void onParameterSelected(@Nullable ParameterWrapper paramWrapper) {
+  private void onParameterSelected(@Nullable UserParameter<?, ?> parameter) {
     parameterEditorPane.getChildren().clear();
-    if (paramWrapper == null || selectedModule == null) {
-      updateButtonStates();
-      return;
-    }
-
-    this.selectedParameter = paramWrapper;
-
-    UserParameter<?, ?> parameter = paramWrapper.parameter;
-    currentEditorComponent = createEditorForParameter(parameter);
-
-    if (currentEditorComponent != null) {
-      GridPane grid = new GridPane();
-      grid.setHgap(FxLayout.DEFAULT_SPACE);
-      grid.setVgap(FxLayout.DEFAULT_SPACE);
-      grid.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
-
-      Label nameLabel = FxLabels.newBoldLabel(parameter.getName() + ":");
-      String description = parameter.getDescription();
-      if (description != null && !description.isBlank()) {
-        Tooltip tooltip = new Tooltip(description);
-        nameLabel.setTooltip(tooltip);
+    if (parameter != null && selectedModule != null) {
+      this.selectedParameter = parameter;
+      currentEditorComponent = createEditorForParameter(parameter);
+      if (currentEditorComponent != null) {
+        parameterEditorPane.getChildren().add(buildEditorGrid(parameter, currentEditorComponent));
+        loadExistingOverrideValue(parameter);
+      } else {
+        showInstructions("Cannot create editor for this parameter type");
       }
-
-      grid.add(nameLabel, 0, 0);
-      grid.add(currentEditorComponent, 0, 1);
-
-      GridPane.setHgrow(currentEditorComponent, Priority.ALWAYS);
-
-      parameterEditorPane.getChildren().add(grid);
-
-      loadExistingOverrideValue(parameter);
-      updateButtonStates();
-    } else {
-      showInstructions("Cannot create editor for this parameter type");
-      updateButtonStates();
     }
+    updateButtonStates();
+  }
+
+  private GridPane buildEditorGrid(UserParameter<?, ?> parameter, Node editorComponent) {
+    GridPane grid = new GridPane();
+    grid.setHgap(FxLayout.DEFAULT_SPACE);
+    grid.setVgap(FxLayout.DEFAULT_SPACE);
+    grid.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
+
+    Label nameLabel = FxLabels.newBoldLabel(parameter.getName() + ":");
+    String description = parameter.getDescription();
+    if (description != null && !description.isBlank()) {
+      nameLabel.setTooltip(new Tooltip(description));
+    }
+
+    grid.add(nameLabel, 0, 0);
+    grid.add(editorComponent, 0, 1);
+    GridPane.setHgrow(editorComponent, Priority.ALWAYS);
+    return grid;
   }
 
   @SuppressWarnings("unchecked")
-  private <T, C extends Node> Node createEditorForParameter(UserParameter<?, ?> parameter) {
+  private <T, C extends Node> @Nullable Node createEditorForParameter(
+      UserParameter<?, ?> parameter) {
     try {
       UserParameter<T, C> typedParam = (UserParameter<T, C>) parameter;
       C component = typedParam.createEditingComponent();
@@ -505,8 +568,8 @@ public class ParameterCustomizationPane extends BorderPane {
     }
 
     ApplicationScope currentScope = scopeComboBox.getValue();
-    String key = makeKey(selectedModule.getClass().getName(), parameter.getName(), currentScope);
-    ParameterOverride temp = tempOverrides.get(key);
+    ParameterOverride temp = tempOverrides.get(
+        new OverrideKey(selectedModule, parameter.getName(), currentScope));
     if (temp != null) {
       try {
         ((UserParameter<Object, Node>) parameter).setValueToComponent(currentEditorComponent,
@@ -518,56 +581,36 @@ public class ParameterCustomizationPane extends BorderPane {
     }
   }
 
-  @SuppressWarnings("unchecked")
   private void addParameterOverride() {
-    if (selectedParameter == null || selectedModule == null || currentEditorComponent == null) {
-      return;
-    }
+    putParameterOverride("Parameter override added");
+  }
 
-    try {
-      UserParameter<Object, Node> param = (UserParameter<Object, Node>) selectedParameter.parameter;
-      param.setValueFromComponent(currentEditorComponent);
-
-      String moduleClassName = selectedModule.getClass().getName();
-      String moduleName = getModuleName(selectedModule.getClass());
-      ApplicationScope scope = scopeComboBox.getValue();
-      String key = makeKey(moduleClassName, param.getName(), scope);
-
-      tempOverrides.put(key,
-          new ParameterOverride(moduleClassName, moduleName, param.cloneParameter(), scope));
-
-      refreshOverridesTable();
-      showInstructions(
-          "Parameter override added: " + param.getName() + " (apply to: " + scope.getLabel() + ")");
-    } catch (Exception e) {
-      showInstructions("Error adding parameter: " + e.getMessage());
-    }
+  private void updateParameterOverride() {
+    putParameterOverride("Parameter override updated");
   }
 
   @SuppressWarnings("unchecked")
-  private void updateParameterOverride() {
+  private void putParameterOverride(String actionLabel) {
     if (selectedParameter == null || selectedModule == null || currentEditorComponent == null) {
       return;
     }
-
     try {
-      UserParameter<Object, Node> param = (UserParameter<Object, Node>) selectedParameter.parameter;
+      UserParameter<Object, Node> param = (UserParameter<Object, Node>) selectedParameter;
       param.setValueFromComponent(currentEditorComponent);
 
       String moduleClassName = selectedModule.getClass().getName();
       String moduleName = getModuleName(selectedModule.getClass());
       ApplicationScope scope = scopeComboBox.getValue();
-      String key = makeKey(moduleClassName, param.getName(), scope);
-
-      tempOverrides.put(key,
-          new ParameterOverride(moduleClassName, moduleName, param.cloneParameter(), scope));
+      final ParameterOverride added = new ParameterOverride(moduleClassName, moduleName,
+          param.cloneParameter(), scope);
+      tempOverrides.put(new OverrideKey(selectedModule, param.getName(), scope), added);
 
       refreshOverridesTable();
+      overridesTable.getSelectionModel().select(added);
       showInstructions(
-          "Parameter override updated: " + param.getName() + " (apply to: " + scope.getLabel()
-              + ")");
+          actionLabel + ": " + param.getName() + " (apply to: " + scope.getLabel() + ")");
     } catch (Exception e) {
-      showInstructions("Error updating parameter: " + e.getMessage());
+      showInstructions("Error: " + e.getMessage());
     }
   }
 
@@ -576,10 +619,9 @@ public class ParameterCustomizationPane extends BorderPane {
     if (selected == null) {
       return;
     }
-
-    final String key = makeKey(selected.moduleClassName(), selected.parameterWithValue().getName(),
-        selected.scope());
-    tempOverrides.remove(key);
+    tempOverrides.remove(
+        new OverrideKey(selected.moduleClassName(), selected.parameterWithValue().getName(),
+            selected.scope()));
     refreshOverridesTable();
   }
 
@@ -590,7 +632,6 @@ public class ParameterCustomizationPane extends BorderPane {
   }
 
   private void refreshOverridesTable() {
-    overridesTable.getItems().clear();
     overridesTable.getItems().setAll(tempOverrides.values());
   }
 
@@ -610,49 +651,36 @@ public class ParameterCustomizationPane extends BorderPane {
     updateButtonStates();
   }
 
-  private String makeKey(String moduleClassName, String paramName, ApplicationScope scope) {
-    return moduleClassName + "::" + paramName + "::" + scope;
-  }
-
   /**
-   * Updates the enabled state of Add and Override buttons based on current selection
+   * Updates the enabled state of Add and Override buttons based on current selection.
    */
   private void updateButtonStates() {
-    boolean hasParameterSelected =
+    final boolean hasParameterSelected =
         selectedParameter != null && selectedModule != null && currentEditorComponent != null;
 
     // Add button is enabled when a parameter is selected
     addButton.setDisable(!hasParameterSelected);
 
-    // Override button is enabled when:
-    // 1. A parameter is selected
-    // 2. An override exists for the current module+parameter+scope combination
-    if (hasParameterSelected) {
-      String moduleClassName = selectedModule.getClass().getName();
-      String paramName = selectedParameter.parameter.getName();
-      ApplicationScope scope = scopeComboBox.getValue();
-      String key = makeKey(moduleClassName, paramName, scope);
-      boolean overrideExists = tempOverrides.containsKey(key);
-      overrideButton.setDisable(!overrideExists);
-    } else {
-      overrideButton.setDisable(true);
-    }
+    // Override button is enabled when a parameter is selected and an override already exists
+    // for the current module+parameter+scope combination
+    final boolean overrideExists = hasParameterSelected && tempOverrides.containsKey(
+        new OverrideKey(selectedModule, selectedParameter.getName(), scopeComboBox.getValue()));
+    overrideButton.setDisable(!overrideExists);
   }
 
   /**
-   * Selects the module and parameter in the editor when an override is clicked in the table
+   * Selects the module and parameter in the editor when an override is clicked in the table.
    */
+  @SuppressWarnings("unchecked")
   private void selectOverrideInEditor(ParameterOverride override) {
-    // Find the module
-    String targetModuleClass = override.moduleClassName();
     MZmineRunnableModule targetModule = null;
     Class<? extends MZmineRunnableModule> targetModuleType = null;
 
     try {
-      Class<?> moduleClass = Class.forName(targetModuleClass);
+      Class<?> moduleClass = Class.forName(override.moduleClassName());
       if (MZmineRunnableModule.class.isAssignableFrom(moduleClass)) {
         targetModuleType = (Class<? extends MZmineRunnableModule>) moduleClass;
-        targetModule = (MZmineRunnableModule) MZmineCore.getModuleInstance(targetModuleType);
+        targetModule = MZmineCore.getModuleInstance(targetModuleType);
       }
     } catch (Exception e) {
       // Module not found
@@ -661,18 +689,16 @@ public class ParameterCustomizationPane extends BorderPane {
 
     if (targetModule != null) {
       // Sync module tree selection and scroll so the current module context is visible.
-      final boolean moduleSelectedInTree =
-          targetModuleType != null && moduleTreePane.selectModuleAndScroll(targetModuleType);
-      if (!moduleSelectedInTree) {
+      if (!moduleTreePane.selectModuleAndScroll(targetModuleType)) {
         // Fallback if tree lookup failed.
         onModuleSelected(targetModule);
       }
 
       // Select the parameter in the list
       String targetParamName = override.parameterWithValue().getName();
-      for (ParameterWrapper wrapper : parameterListView.getItems()) {
-        if (wrapper.parameter.getName().equals(targetParamName)) {
-          parameterListView.getSelectionModel().select(wrapper);
+      for (UserParameter<?, ?> param : parameterListView.getItems()) {
+        if (param.getName().equals(targetParamName)) {
+          parameterListView.getSelectionModel().select(param);
           break;
         }
       }
@@ -683,39 +709,22 @@ public class ParameterCustomizationPane extends BorderPane {
   }
 
   /**
-   * Get all parameter overrides as a list
+   * Get all parameter overrides as a list.
    */
   public List<ParameterOverride> getParameterOverrides() {
     return new ArrayList<>(tempOverrides.values());
   }
 
   /**
-   * Set parameter overrides from a list
+   * Set parameter overrides from a list.
    */
   public void setParameterOverrides(List<ParameterOverride> overrides) {
     tempOverrides.clear();
     for (ParameterOverride override : overrides) {
-      String key = makeKey(override.moduleClassName(), override.parameterWithValue().getName(),
-          override.scope());
-      // We need to reconstruct the actual value object from the saved string
-      // For now, we'll store it as a temp with the string value
-      // In a real implementation, you'd need to deserialize based on valueType
-      tempOverrides.put(key, override);
+      tempOverrides.put(
+          new OverrideKey(override.moduleClassName(), override.parameterWithValue().getName(),
+              override.scope()), override);
     }
     refreshOverridesTable();
-  }
-
-  private static class ParameterWrapper {
-
-    private final UserParameter<?, ?> parameter;
-
-    public ParameterWrapper(UserParameter<?, ?> parameter) {
-      this.parameter = parameter;
-    }
-
-    @Override
-    public String toString() {
-      return parameter.getName();
-    }
   }
 }
