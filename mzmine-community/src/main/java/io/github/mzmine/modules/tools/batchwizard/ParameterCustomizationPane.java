@@ -98,7 +98,7 @@ public class ParameterCustomizationPane extends BorderPane {
   // --- UI fields ---
   private final BatchModuleTreePane moduleTreePane = new BatchModuleTreePane(false);
   private final ListView<UserParameter<?, ?>> parameterListView = new ListView<>();
-  private final VBox parameterEditorPane = FxLayout.newVBox();
+  private final VBox parameterEditorColumn = FxLayout.newVBox();
   private final Label instructionsLabel = FxLabels.newLabel(
       "Select a module to view its parameters");
   private final TableView<ParameterOverride> overridesTable = new TableView<>();
@@ -221,13 +221,13 @@ public class ParameterCustomizationPane extends BorderPane {
       return;
     }
 
-    Parent parent = getParent();
+    final Parent parent = getParent();
     if (parent == null) {
       return;
     }
 
-    double parentWidth = parent.getLayoutBounds().getWidth();
-    double parentHeight = parent.getLayoutBounds().getHeight();
+    final double parentWidth = parent.getLayoutBounds().getWidth();
+    final double parentHeight = parent.getLayoutBounds().getHeight();
     if (parentWidth <= 0 || parentHeight <= 0) {
       if (initialSelectorLayoutAttempts++ < 10) {
         Platform.runLater(
@@ -295,7 +295,7 @@ public class ParameterCustomizationPane extends BorderPane {
   private VBox createParameterEditorSection() {
     Label editorLabel = FxLabels.newBoldLabel("Parameter Editor:");
 
-    parameterEditorPane.getChildren().add(instructionsLabel);
+    parameterEditorColumn.getChildren().add(instructionsLabel);
 
     addButton.setDisable(true);
     addButton.setMaxWidth(Double.MAX_VALUE);
@@ -315,8 +315,8 @@ public class ParameterCustomizationPane extends BorderPane {
     VBox buttonBox = FxLayout.newVBox(null, FxLayout.NO_PADDING_INSETS, true, scopeBox, buttonRow);
 
     VBox editorSection = FxLayout.newVBox(null, FxLayout.NO_PADDING_INSETS, true, editorLabel,
-        buttonBox, new Separator(Orientation.HORIZONTAL), parameterEditorPane);
-    VBox.setVgrow(parameterEditorPane, Priority.NEVER);
+        buttonBox, new Separator(Orientation.HORIZONTAL), parameterEditorColumn);
+    VBox.setVgrow(parameterEditorColumn, Priority.NEVER);
 
     return editorSection;
   }
@@ -374,22 +374,23 @@ public class ParameterCustomizationPane extends BorderPane {
       }
     });
     scopeCol.setOnEditCommit(event -> {
-      ParameterOverride override = event.getRowValue();
       ApplicationScope newScope = event.getNewValue();
-      if (newScope != null && newScope != override.scope()) {
-        // Remove the old entry with the old scope
-        tempOverrides.remove(
-            new OverrideKey(override.moduleClassName(), override.parameterWithValue().getName(),
-                override.scope()));
-        // Add the new entry with the new scope
-        tempOverrides.put(
-            new OverrideKey(override.moduleClassName(), override.parameterWithValue().getName(),
-                newScope), new ParameterOverride(override.moduleClassName(), override.moduleName(),
-                override.parameterWithValue(), newScope));
-        refreshOverridesTable();
+      if (newScope != null && newScope != event.getRowValue().scope()) {
+        changeOverrideScope(event.getRowValue(), newScope);
       }
     });
     return scopeCol;
+  }
+
+  private void changeOverrideScope(@NotNull ParameterOverride override,
+      @NotNull ApplicationScope newScope) {
+    final String moduleClass = override.moduleClassName();
+    final String paramName = override.parameterWithValue().getName();
+    tempOverrides.remove(new OverrideKey(moduleClass, paramName, override.scope()));
+    tempOverrides.put(new OverrideKey(moduleClass, paramName, newScope),
+        new ParameterOverride(moduleClass, override.moduleName(), override.parameterWithValue(),
+            newScope));
+    refreshOverridesTable();
   }
 
   private void setupEventHandlers() {
@@ -404,15 +405,15 @@ public class ParameterCustomizationPane extends BorderPane {
         .addListener((obs, oldVal, newVal) -> onParameterSelected(newVal));
     parameterListView.addEventHandler(KeyEvent.KEY_PRESSED, this::parameterListViewOnKeyPressed);
 
+    removeButton.disableProperty().bind(
+        overridesTable.getSelectionModel().selectedItemProperty().isNull());
+
     overridesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-      removeButton.setDisable(newVal == null);
       if (newVal != null) {
         selectOverrideInEditor(newVal);
       }
       updateButtonStates();
     });
-
-    removeButton.setDisable(true);
 
     // When scope changes, reload the parameter value for that scope
     scopeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
@@ -512,12 +513,12 @@ public class ParameterCustomizationPane extends BorderPane {
   }
 
   private void onParameterSelected(@Nullable UserParameter<?, ?> parameter) {
-    parameterEditorPane.getChildren().clear();
+    parameterEditorColumn.getChildren().clear();
     if (parameter != null && selectedModule != null) {
       this.selectedParameter = parameter;
       currentEditorComponent = createEditorForParameter(parameter);
       if (currentEditorComponent != null) {
-        parameterEditorPane.getChildren().add(buildEditorGrid(parameter, currentEditorComponent));
+        parameterEditorColumn.getChildren().add(buildEditorGrid(parameter, currentEditorComponent));
         loadExistingOverrideValue(parameter);
       } else {
         showInstructions("Cannot create editor for this parameter type");
@@ -645,9 +646,9 @@ public class ParameterCustomizationPane extends BorderPane {
   }
 
   private void showInstructions(String message) {
-    parameterEditorPane.getChildren().clear();
+    parameterEditorColumn.getChildren().clear();
     instructionsLabel.setText(message);
-    parameterEditorPane.getChildren().add(instructionsLabel);
+    parameterEditorColumn.getChildren().add(instructionsLabel);
     updateButtonStates();
   }
 
