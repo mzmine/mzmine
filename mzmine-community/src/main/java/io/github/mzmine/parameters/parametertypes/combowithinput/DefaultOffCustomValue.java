@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -12,6 +11,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,18 +24,19 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Value for {@link DefaultOffCustomComboParameter}, combining a {@link DefaultOffCustomOption} with
- * a custom combo-box selection of type {@code E}.
- *
- * @param <E> the enum or combo value type
- */
-public record DefaultOffCustomComboValue<E>(@NotNull DefaultOffCustomOption option,
-    @Nullable E custom)
-    implements ComboWithInputValue<DefaultOffCustomOption, E> {
+public class DefaultOffCustomValue<T> implements ComboWithInputValue<DefaultOffCustomOption, T> {
+
+  private final @NotNull DefaultOffCustomOption option;
+  private final @Nullable T custom;
+
+  public DefaultOffCustomValue(@NotNull DefaultOffCustomOption option, @Nullable T custom) {
+    this.option = option;
+    this.custom = custom;
+  }
 
   @Override
   public @NotNull DefaultOffCustomOption getSelectedOption() {
@@ -43,7 +44,38 @@ public record DefaultOffCustomComboValue<E>(@NotNull DefaultOffCustomOption opti
   }
 
   @Override
-  public @Nullable E getEmbeddedValue() {
+  public @Nullable T getEmbeddedValue() {
     return custom;
   }
+
+  public @NotNull DefaultOffCustomOption option() {
+    return option;
+  }
+
+  public @Nullable T custom() {
+    return custom;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || obj.getClass() != this.getClass()) {
+      return false;
+    }
+    var that = (DefaultOffCustomValue) obj;
+    return Objects.equals(this.option, that.option) && Objects.equals(this.custom, that.custom);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(option, custom);
+  }
+
+  @Override
+  public String toString() {
+    return "DefaultOffCustomValue[" + "option=" + option + ", " + "custom=" + custom + ']';
+  }
+
 }
