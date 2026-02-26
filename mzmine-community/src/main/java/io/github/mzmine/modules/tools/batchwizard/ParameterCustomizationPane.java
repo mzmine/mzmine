@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
@@ -44,10 +45,10 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -83,6 +84,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ParameterCustomizationPane extends BorderPane {
 
+  private static final Logger logger = Logger.getLogger(ParameterCustomizationPane.class.getName());
   private static final double MIN_OVERRIDES_TABLE_HEIGHT = 60d;
   private static final double PREF_OVERRIDES_TABLE_HEIGHT = 140d;
 
@@ -140,11 +142,11 @@ public class ParameterCustomizationPane extends BorderPane {
     mainSplitPane.setOrientation(Orientation.HORIZONTAL);
 
     VBox modulePane = createModuleTreePane();
-    VBox parameterPane = createParameterListPane();
+    VBox parameterListWrapper = createParameterListPane();
     VBox editorSection = createParameterEditorSection();
     editorSection.setMaxHeight(Region.USE_PREF_SIZE);
     VBox overridesPane = createOverridesPane();
-    GridPane selectorGrid = createSelectorGrid(modulePane, parameterPane, overridesPane);
+    GridPane selectorGrid = createSelectorGrid(modulePane, parameterListWrapper, overridesPane);
     VBox editorColumn = FxLayout.newVBox(null, FxLayout.DEFAULT_PADDING_INSETS, true,
         editorSection);
     editorColumn.setAlignment(Pos.TOP_LEFT);
@@ -154,10 +156,15 @@ public class ParameterCustomizationPane extends BorderPane {
     mainSplitPane.setDividerPositions(0.5);
 
     setCenter(mainSplitPane);
-    applyInitialSelectorLayoutOnce(selectorGrid, modulePane, parameterPane);
+    parentProperty().subscribe((parent) -> {
+      if (parent != null) {
+        applyParentSizeToSelectorLayoutOnce(selectorGrid, modulePane, parameterListWrapper);
+      }
+    });
   }
 
-  private GridPane createSelectorGrid(VBox modulePane, VBox parameterPane, VBox overridesPane) {
+  private static GridPane createSelectorGrid(VBox modulePane, VBox parameterPane,
+      VBox overridesPane) {
     GridPane grid = new GridPane();
     grid.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
     grid.setHgap(FxLayout.DEFAULT_SPACE);
@@ -188,35 +195,13 @@ public class ParameterCustomizationPane extends BorderPane {
     return grid;
   }
 
-  private void applyInitialSelectorLayoutOnce(GridPane selectorGrid, VBox modulePane,
-      VBox parameterPane) {
-    if (initialSelectorLayoutApplied) {
-      return;
-    }
-
-    if (getParent() != null) {
-      Platform.runLater(
-          () -> applySelectorLayoutFromParent(selectorGrid, modulePane, parameterPane));
-      return;
-    }
-
-    ChangeListener<Parent> parentReadyListener = new ChangeListener<>() {
-      @Override
-      public void changed(javafx.beans.value.ObservableValue<? extends Parent> observable,
-          Parent oldValue, Parent newValue) {
-        if (newValue == null) {
-          return;
-        }
-        parentProperty().removeListener(this);
-        Platform.runLater(
-            () -> applySelectorLayoutFromParent(selectorGrid, modulePane, parameterPane));
-      }
-    };
-    parentProperty().addListener(parentReadyListener);
-  }
-
-  private void applySelectorLayoutFromParent(GridPane selectorGrid, VBox modulePane,
-      VBox parameterPane) {
+  /**
+   * Triggers the {@link #computeAndApplySelectorLayout(GridPane, VBox, VBox, double, double)}
+   * method once when the parent layout has been computed. Has an internal retry loop.
+   *
+   */
+  private void applyParentSizeToSelectorLayoutOnce(GridPane selectorGrid, VBox modulePane,
+      VBox parameterListWrapper) {
     if (initialSelectorLayoutApplied) {
       return;
     }
@@ -229,25 +214,27 @@ public class ParameterCustomizationPane extends BorderPane {
     final double parentWidth = parent.getLayoutBounds().getWidth();
     final double parentHeight = parent.getLayoutBounds().getHeight();
     if (parentWidth <= 0 || parentHeight <= 0) {
+      // this retry is required, bounds are not directly computed when the parent changed.
       if (initialSelectorLayoutAttempts++ < 10) {
-        Platform.runLater(
-            () -> applySelectorLayoutFromParent(selectorGrid, modulePane, parameterPane));
+        // use platform and not FxThread to be scheduled at the back of the executuion queue
+        Platform.runLater(() -> applyParentSizeToSelectorLayoutOnce(selectorGrid, modulePane,
+            parameterListWrapper));
       }
       return;
     }
 
     initialSelectorLayoutApplied = true;
-    computeAndApplySelectorLayout(selectorGrid, modulePane, parameterPane, parentWidth,
+    computeAndApplySelectorLayout(selectorGrid, modulePane, parameterListWrapper, parentWidth,
         parentHeight);
   }
 
   private void computeAndApplySelectorLayout(GridPane selectorGrid, VBox modulePane,
-      VBox parameterPane, double parentWidth, double parentHeight) {
+      VBox parameterListWrapper, double parentWidth, double parentHeight) {
     // Outer split starts at 50/50. Size selector columns from the left half.
     double leftWidth = parentWidth * 0.5;
     double columnWidth = Math.max(140d, (leftWidth - selectorGrid.getHgap()) / 2d);
     modulePane.setPrefWidth(columnWidth);
-    parameterPane.setPrefWidth(columnWidth);
+    parameterListWrapper.setPrefWidth(columnWidth);
 
     double paddingHeight =
         selectorGrid.getPadding().getTop() + selectorGrid.getPadding().getBottom();
@@ -263,15 +250,14 @@ public class ParameterCustomizationPane extends BorderPane {
     overridesTable.setPrefHeight(tableHeight);
     modulePane.setPrefHeight(topPaneHeight);
     modulePane.setMaxHeight(topPaneHeight);
-    parameterPane.setPrefHeight(topPaneHeight);
-    parameterPane.setMaxHeight(topPaneHeight);
+    parameterListWrapper.setPrefHeight(topPaneHeight);
+    parameterListWrapper.setMaxHeight(topPaneHeight);
   }
 
   private VBox createModuleTreePane() {
     Label moduleLabel = FxLabels.newBoldLabel("Select Module:");
     VBox leftPane = FxLayout.newVBox(null, FxLayout.NO_PADDING_INSETS, true, moduleLabel,
         moduleTreePane);
-    leftPane.setMinWidth(0);
     VBox.setVgrow(moduleTreePane, Priority.ALWAYS);
     return leftPane;
   }
@@ -287,7 +273,6 @@ public class ParameterCustomizationPane extends BorderPane {
     });
     VBox middlePane = FxLayout.newVBox(null, FxLayout.NO_PADDING_INSETS, true, paramLabel,
         parameterListView);
-    middlePane.setMinWidth(0);
     VBox.setVgrow(parameterListView, Priority.ALWAYS);
     return middlePane;
   }
@@ -324,18 +309,17 @@ public class ParameterCustomizationPane extends BorderPane {
   private VBox createOverridesPane() {
     Label overviewLabel = FxLabels.newBoldLabel("Parameter Overrides:");
 
-    TableColumn<ParameterOverride, String> moduleCol = new TableColumn<>("Module");
-    moduleCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().moduleName()));
+    TableColumn<ParameterOverride, String> moduleCol = TableColumns.createColumn("Module",
+        USE_COMPUTED_SIZE, param -> new SimpleStringProperty(param.moduleName()));
     moduleCol.setPrefWidth(150);
 
-    TableColumn<ParameterOverride, String> paramCol = new TableColumn<>("Parameter");
-    paramCol.setCellValueFactory(
-        param -> new SimpleStringProperty(param.getValue().parameterWithValue().getName()));
+    TableColumn<ParameterOverride, String> paramCol = TableColumns.createColumn("Parameter",
+        USE_COMPUTED_SIZE,
+        param -> new SimpleObjectProperty<>(param.parameterWithValue().getName()));
     paramCol.setPrefWidth(150);
 
-    TableColumn<ParameterOverride, String> valueCol = new TableColumn<>("Value");
-    valueCol.setCellValueFactory(
-        param -> new SimpleStringProperty(param.getValue().getDisplayValue()));
+    TableColumn<ParameterOverride, String> valueCol = TableColumns.createColumn("Value",
+        USE_COMPUTED_SIZE, param -> new SimpleStringProperty(param.getDisplayValue()));
     valueCol.setPrefWidth(150);
 
     overridesTable.getColumns().addAll(moduleCol, paramCol, valueCol, createScopeColumn());
@@ -361,8 +345,8 @@ public class ParameterCustomizationPane extends BorderPane {
   }
 
   private TableColumn<ParameterOverride, ApplicationScope> createScopeColumn() {
-    TableColumn<ParameterOverride, ApplicationScope> scopeCol = new TableColumn<>("Apply to");
-    scopeCol.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().scope()));
+    TableColumn<ParameterOverride, ApplicationScope> scopeCol = TableColumns.createColumn(
+        "Apply to", USE_COMPUTED_SIZE, param -> new SimpleObjectProperty<>(param.scope()));
     scopeCol.setPrefWidth(100);
     scopeCol.setCellFactory(col -> new ComboBoxTableCell<>(ApplicationScope.values()) {
       @Override
@@ -405,8 +389,8 @@ public class ParameterCustomizationPane extends BorderPane {
         .addListener((obs, oldVal, newVal) -> onParameterSelected(newVal));
     parameterListView.addEventHandler(KeyEvent.KEY_PRESSED, this::parameterListViewOnKeyPressed);
 
-    removeButton.disableProperty().bind(
-        overridesTable.getSelectionModel().selectedItemProperty().isNull());
+    removeButton.disableProperty()
+        .bind(overridesTable.getSelectionModel().selectedItemProperty().isNull());
 
     overridesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
       if (newVal != null) {
@@ -446,7 +430,7 @@ public class ParameterCustomizationPane extends BorderPane {
           c.requestFocus();
           // add override on enter pressed
           c.addEventHandler(KeyEvent.KEY_PRESSED, ev -> {
-            if(ev.getCode() == KeyCode.ENTER) {
+            if (ev.getCode() == KeyCode.ENTER) {
               addParameterOverride();
             }
           });
