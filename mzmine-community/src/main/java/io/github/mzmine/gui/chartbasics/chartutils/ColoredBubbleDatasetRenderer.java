@@ -76,6 +76,9 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
    *
    */
   private static final long serialVersionUID = 1L;
+  private static final double LABEL_EDGE_GAP = 2.0;
+  private static final double LABEL_PADDING = 2.0;
+  private static final double SELF_POINT_EPSILON = 0.01;
 
   /**
    * The circle width (defaults to 1.0).
@@ -392,10 +395,12 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
       g2.setPaint(ConfigService.getDefaultColorPalette().getNegativeColorAWT());
     }
     g2.draw(circle);
-    if (isItemLabelVisible(series, item) && hasSpaceForItemLabel(g2, orientation, dataset, series,
-        item, circle.getCenterX(), circle.getCenterY(), y < 0.0, dataArea)) {
-      drawItemLabel(g2, orientation, dataset, series, item, circle.getCenterX(),
-          circle.getCenterY(), y < 0.0);
+    if (isItemLabelVisible(series, item)) {
+      final LabelPlacement labelPlacement = resolveItemLabelPlacement(g2, orientation, dataset,
+          series, item, circle.getCenterX(), circle.getCenterY(), bubbleSize, y < 0.0, dataArea);
+      if (labelPlacement != null) {
+        drawResolvedItemLabel(g2, dataset, series, item, labelPlacement);
+      }
     }
 
 
@@ -607,43 +612,64 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
     return new Ellipse2D.Double(transX, transY, bubbleSize, bubbleSize);
   }
 
-  private boolean hasSpaceForItemLabel(final @NotNull Graphics2D g2,
+  private @Nullable LabelPlacement resolveItemLabelPlacement(final @NotNull Graphics2D g2,
       final @NotNull PlotOrientation orientation, final @NotNull XYDataset dataset,
-      final int series, final int item, final double x, final double y, final boolean negative,
-      final @NotNull Rectangle2D dataArea) {
+      final int series, final int item, final double x, final double y, final double bubbleSize,
+      final boolean negative, final @NotNull Rectangle2D dataArea) {
     final XYItemLabelGenerator generator = getItemLabelGenerator(series, item);
     if (generator == null) {
-      return false;
+      return null;
     }
 
     final String label = generator.generateLabel(dataset, series, item);
     if (label == null || label.isBlank()) {
-      return false;
+      return null;
     }
 
     final ItemLabelPosition position = negative ? getNegativeItemLabelPosition(series, item)
         : getPositiveItemLabelPosition(series, item);
-    final Point2D anchorPoint = calculateLabelAnchorPoint(position.getItemLabelAnchor(), x, y,
+    final Point2D baseAnchorPoint = calculateLabelAnchorPoint(position.getItemLabelAnchor(), x, y,
         orientation);
-
-    final Font oldFont = g2.getFont();
-    final Font labelFont = getItemLabelFont(series, item);
-    g2.setFont(labelFont);
-    final Shape labelShape = TextUtils.calculateRotatedStringBounds(label, g2,
-        (float) anchorPoint.getX(), (float) anchorPoint.getY(), position.getTextAnchor(),
-        position.getAngle(), position.getRotationAnchor());
-    g2.setFont(oldFont);
-
-    if (labelShape == null) {
-      return false;
+    final Point2D anchorPoint = offsetAnchorFromBubbleEdge(baseAnchorPoint, x, y, bubbleSize);
+    final Rectangle2D labelBounds = calculateLabelBounds(g2, label, position, series, item,
+        anchorPoint);
+    if (labelBounds == null || !dataArea.contains(labelBounds)) {
+      return null;
+    }
+    if (!isLabelBoundsFree(labelBounds, x, y)) {
+      return null;
     }
 
-    final Rectangle2D labelBounds = addPadding(labelShape.getBounds2D(), 1.0);
-    if (!dataArea.contains(labelBounds)) {
-      return false;
+    drawnLabelBounds.add(labelBounds);
+    return new LabelPlacement(position, anchorPoint);
+  }
+
+  private @NotNull Point2D offsetAnchorFromBubbleEdge(final @NotNull Point2D baseAnchorPoint,
+      final double x, final double y, final double bubbleSize) {
+    double dx = baseAnchorPoint.getX() - x;
+    double dy = baseAnchorPoint.getY() - y;
+    if (Math.abs(dx) < SELF_POINT_EPSILON && Math.abs(dy) < SELF_POINT_EPSILON) {
+      dx = 0.0;
+      dy = -1.0;
     }
 
+    final double vectorLength = Math.hypot(dx, dy);
+    final double normalizedX = dx / vectorLength;
+    final double normalizedY = dy / vectorLength;
+    final double distanceFromCenter = Math.max(0.0, bubbleSize / 2d) + LABEL_EDGE_GAP;
+    return new Point2D.Double(x + normalizedX * distanceFromCenter,
+        y + normalizedY * distanceFromCenter);
+  }
+
+  private boolean isLabelBoundsFree(final @NotNull Rectangle2D labelBounds, final double x,
+      final double y) {
+    boolean skippedSelf = false;
     for (final Rectangle2D pointBounds : dataPointBounds) {
+      if (!skippedSelf && Math.abs(pointBounds.getCenterX() - x) <= SELF_POINT_EPSILON
+          && Math.abs(pointBounds.getCenterY() - y) <= SELF_POINT_EPSILON) {
+        skippedSelf = true;
+        continue;
+      }
       if (pointBounds.intersects(labelBounds)) {
         return false;
       }
@@ -654,9 +680,49 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
         return false;
       }
     }
-
-    drawnLabelBounds.add(labelBounds);
     return true;
+  }
+
+  private void drawResolvedItemLabel(final @NotNull Graphics2D g2, final @NotNull XYDataset dataset,
+      final int series, final int item, final @NotNull LabelPlacement placement) {
+    final XYItemLabelGenerator generator = getItemLabelGenerator(series, item);
+    if (generator == null) {
+      return;
+    }
+
+    final String label = generator.generateLabel(dataset, series, item);
+    if (label == null || label.isBlank()) {
+      return;
+    }
+
+    final Font oldFont = g2.getFont();
+    final Paint oldPaint = g2.getPaint();
+    g2.setFont(getItemLabelFont(series, item));
+    g2.setPaint(getItemLabelPaint(series, item));
+    TextUtils.drawRotatedString(label, g2, (float) placement.anchorPoint().getX(),
+        (float) placement.anchorPoint().getY(), placement.position().getTextAnchor(),
+        placement.position().getAngle(), placement.position().getRotationAnchor());
+    g2.setFont(oldFont);
+    g2.setPaint(oldPaint);
+  }
+
+  private @Nullable Rectangle2D calculateLabelBounds(final @NotNull Graphics2D g2,
+      final @NotNull String label, final @NotNull ItemLabelPosition position, final int series,
+      final int item, final @NotNull Point2D anchorPoint) {
+    final Font oldFont = g2.getFont();
+    g2.setFont(getItemLabelFont(series, item));
+    final Shape labelShape = TextUtils.calculateRotatedStringBounds(label, g2,
+        (float) anchorPoint.getX(), (float) anchorPoint.getY(), position.getTextAnchor(),
+        position.getAngle(), position.getRotationAnchor());
+    g2.setFont(oldFont);
+    if (labelShape == null) {
+      return null;
+    }
+    return addPadding(labelShape.getBounds2D(), LABEL_PADDING);
+  }
+
+  private record LabelPlacement(@NotNull ItemLabelPosition position,
+                                @NotNull Point2D anchorPoint) {
   }
 
   private @NotNull Rectangle2D addPadding(final @NotNull Rectangle2D bounds, final double padding) {
