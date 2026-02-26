@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,6 +41,7 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
 import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
@@ -76,6 +77,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Alert.AlertType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Batch mode task
@@ -87,13 +89,12 @@ public class BatchTask extends AbstractTask {
   // advanced parameters
   private final int stepsPerDataset;
   private final int totalSteps;
-  private final MZmineProject project;
   private final boolean useAdvanced;
   private final int datasets;
   private final List<StepTimeMeasurement> stepTimes = new ArrayList<>();
   private final boolean runGCafterBatchStep;
   private int processedSteps;
-  private List<File> subDirectories;
+  private @Nullable List<File> subDirectories;
   private List<RawDataFile> createdDataFiles;
   private List<RawDataFile> previousCreatedDataFiles;
   private List<FeatureList> createdFeatureLists;
@@ -110,14 +111,14 @@ public class BatchTask extends AbstractTask {
   }
 
   public BatchTask(final MZmineProject project, final ParameterSet parameters,
-      final Instant moduleCallDate, final List<File> subDirectories) {
+      final Instant moduleCallDate, final @Nullable List<File> subDirectories) {
     super(null, moduleCallDate);
     this.runGCafterBatchStep = requireNonNullElse(
         getPreference(MZminePreferences.runGCafterBatchStep), false);
 
     setName("Batch task");
-    this.project = project;
     this.queue = parameters.getParameter(BatchModeParameters.batchQueue).getValue();
+
     // advanced parameters
     useAdvanced = false;
 //    useAdvanced = parameters.getParameter(BatchModeParameters.advanced).getValue();
@@ -230,7 +231,7 @@ public class BatchTask extends AbstractTask {
     // Process individual batch steps
     for (int i = 0; i < totalSteps; i++) {
       // at the end of one dataset, clear the project and start over again
-      if (useAdvanced && currentStep() == 0) {
+      if (useAdvanced && currentStep() == 0 && subDirectories != null) {
         // clear the old project
         ProjectService.getProjectManager().clearProject();
         currentDataset++;
@@ -372,8 +373,8 @@ public class BatchTask extends AbstractTask {
     MZmineProcessingModule method = (MZmineProcessingModule) currentStep.getModule();
     ParameterSet batchStepParameters = currentStep.getParameterSet();
 
-    final List<FeatureList> beforeFeatureLists = project.getCurrentFeatureLists();
-    final List<RawDataFile> beforeDataFiles = project.getCurrentRawDataFiles();
+    final List<FeatureList> beforeFeatureLists = getProject().getCurrentFeatureLists();
+    final List<RawDataFile> beforeDataFiles = getProject().getCurrentRawDataFiles();
 
     // If the last step did not produce any data files or feature lists, use
     // the ones from the previous step
@@ -419,7 +420,7 @@ public class BatchTask extends AbstractTask {
     Instant moduleCallDate = Instant.now();
     logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString()
         + " with parameters " + batchStepParameters.cloneParameterSet(true).toString());
-    ExitCode exitCode = method.runModule(project, batchStepParameters, currentStepTasks,
+    ExitCode exitCode = method.runModule(getProject(), batchStepParameters, currentStepTasks,
         moduleCallDate);
     logger.finest(
         () -> "Module " + method.getName() + " created " + currentStepTasks.size() + " tasks");
@@ -456,8 +457,8 @@ public class BatchTask extends AbstractTask {
       return;
     }
 
-    createdDataFiles = new ArrayList<>(project.getCurrentRawDataFiles());
-    createdFeatureLists = new ArrayList<>(project.getCurrentFeatureLists());
+    createdDataFiles = new ArrayList<>(getProject().getCurrentRawDataFiles());
+    createdFeatureLists = new ArrayList<>(getProject().getCurrentFeatureLists());
     createdDataFiles.removeAll(beforeDataFiles);
     createdFeatureLists.removeAll(beforeFeatureLists);
     createdFeatureLists.removeIf(FeatureList::isExcludedFromBatchLastSelection);
@@ -596,5 +597,11 @@ public class BatchTask extends AbstractTask {
 
   public BatchQueue getQueueCopy() {
     return queue.clone();
+  }
+
+  private MZmineProject getProject() {
+    // uses the current project as the project may change, e.g., by loading a project in the batch
+    // potentially make a supplier in the future. will need to update the project opening task in that case.
+    return ProjectService.getProject();
   }
 }

@@ -28,6 +28,7 @@ package io.github.mzmine.util.web.truststore;
 import java.security.KeyStore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -58,6 +59,8 @@ public class NativeTrustStoreManager {
     try {
       final SSLContext sslContext = createMergedSSLContext();
       SSLContext.setDefault(sslContext);
+      // also set the old http/1 style
+      HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
     } catch (Exception ex) {
       logger.log(Level.SEVERE,
           "Could not initialize merged trust store with OS trust store. Will skip this step. "
