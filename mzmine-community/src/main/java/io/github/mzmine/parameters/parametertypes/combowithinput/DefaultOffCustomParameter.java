@@ -152,6 +152,8 @@ public class DefaultOffCustomParameter<V> extends
     embeddedClone.setValue(resolveValue());
     Element resolvedValue = doc.createElement("actual_value");
     embeddedClone.saveValueToXML(resolvedValue);
+
+    xmlElement.appendChild(resolvedValue);
   }
 
   @Override
@@ -172,8 +174,6 @@ public class DefaultOffCustomParameter<V> extends
       return;
     }
 
-    embeddedParameter.loadValueFromXML(xmlElement);
-
     NodeList actualValueList = xmlElement.getElementsByTagName("actual_value");
     V actualValue = null;
     if (actualValueList.getLength() > 0) {
@@ -190,7 +190,7 @@ public class DefaultOffCustomParameter<V> extends
 
     switch (option) {
       case DEFAULT -> {
-        if (Objects.equals(actualValue, defaultValue)) {
+        if (!Objects.equals(actualValue, defaultValue)) {
           // default changed, set to custom
           embeddedParameter.setValue(actualValue);
           setValue(createValue(DefaultOffCustomOption.CUSTOM, embeddedParameter));
@@ -199,7 +199,7 @@ public class DefaultOffCustomParameter<V> extends
         }
       }
       case OFF -> {
-        if (Objects.equals(actualValue, offValue)) {
+        if (!Objects.equals(actualValue, offValue)) {
           // off value changed, set to custom
           embeddedParameter.setValue(actualValue);
           setValue(createValue(DefaultOffCustomOption.CUSTOM, embeddedParameter));
