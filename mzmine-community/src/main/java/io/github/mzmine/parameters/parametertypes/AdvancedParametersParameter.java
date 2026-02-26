@@ -192,6 +192,10 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
   }
 
   /**
+   * Get the value or the given default for the parameter. Advanced parameter and potential optional
+   * parameters must be selected, otherwise the default is returned. <p></p> For
+   * {@link DefaultOffCustomParameter} use {@link #getValueOrDefault(DefaultOffCustomParameter)}.
+   *
    * @param parameter    The parameter in this advanced parameter set. This set must be selected and
    *                     if the parameter is an {@link OptionalParameter}, it must also be
    *                     selected.
@@ -199,7 +203,7 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
    * @param <V>
    * @return The value or the default.
    */
-  public <V> V getValueOrDefault(Parameter parameter, V defaultValue) {
+  public <V> V getValueOrDefault(Parameter parameter, @Nullable V defaultValue) {
     if (!this.getValue()) {
       return defaultValue;
     }
@@ -218,9 +222,10 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
   }
 
   /**
-   * Overload for {@link DefaultOffCustomParameter} that requires no external default value —
-   * the parameter already stores its own {@link DefaultOffCustomParameter#getDefaultValue()
-   * defaultValue} and {@link DefaultOffCustomParameter#getOffValue() offValue}.
+   * Overload for {@link DefaultOffCustomParameter} that requires no external default value — the
+   * parameter already stores its own
+   * {@link DefaultOffCustomParameter#getDefaultValue() defaultValue} and
+   * {@link DefaultOffCustomParameter#getOffValue() offValue}.
    * <p>
    * When the advanced parameters are not selected the parameter's stored
    * {@link DefaultOffCustomParameter#getDefaultValue() defaultValue} is returned in any case.
