@@ -40,7 +40,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -108,6 +107,7 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
   private List<Rectangle2D> drawnLabelBounds = new ArrayList<>();
   private List<Rectangle2D> dataPointBounds = new ArrayList<>();
   private transient XYDataset cachedBubbleRangeDataset;
+  private boolean bubbleSizeRangeCacheValid = false;
   private double cachedMinBubbleSize = Double.NaN;
   private double cachedMaxBubbleSize = Double.NaN;
 
@@ -129,9 +129,7 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
       updateBubbleSizeRangeCache(data);
       cacheDataPointBounds(plot, dataArea, data);
     } else {
-      cachedBubbleRangeDataset = null;
-      cachedMinBubbleSize = Double.NaN;
-      cachedMaxBubbleSize = Double.NaN;
+      invalidateBubbleSizeRangeCache();
     }
     return super.initialise(g2, dataArea, plot, data, info);
   }
@@ -466,9 +464,7 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
     }
     clone.drawnLabelBounds = new ArrayList<>();
     clone.dataPointBounds = new ArrayList<>();
-    clone.cachedBubbleRangeDataset = null;
-    clone.cachedMinBubbleSize = Double.NaN;
-    clone.cachedMaxBubbleSize = Double.NaN;
+    clone.invalidateBubbleSizeRangeCache();
     return clone;
   }
 
@@ -535,7 +531,9 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
       return 0;
     }
 
-    updateBubbleSizeRangeCache(dataset);
+    if (dataset != cachedBubbleRangeDataset || !bubbleSizeRangeCacheValid) {
+      updateBubbleSizeRangeCache(dataset);
+    }
     if (!Double.isFinite(cachedMinBubbleSize) || !Double.isFinite(cachedMaxBubbleSize)) {
       return 0;
     }
@@ -543,32 +541,48 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
   }
 
   private void updateBubbleSizeRangeCache(final @NotNull XYDataset dataset) {
-    if (dataset == cachedBubbleRangeDataset && Double.isFinite(cachedMinBubbleSize)
-        && Double.isFinite(cachedMaxBubbleSize)) {
+    if (dataset == cachedBubbleRangeDataset && bubbleSizeRangeCacheValid) {
       return;
     }
 
+    bubbleSizeRangeCacheValid = true;
+    cachedBubbleRangeDataset = dataset;
     final double[] bubbleSizeValues;
     if (dataset instanceof KendrickMassPlotXYDataset kds) {
       bubbleSizeValues = kds.getBubbleSizeValues();
     } else if (dataset instanceof XYZBubbleDataset bubbleDataset) {
       bubbleSizeValues = bubbleDataset.getBubbleSizeValues();
     } else {
-      cachedBubbleRangeDataset = null;
       cachedMinBubbleSize = Double.NaN;
       cachedMaxBubbleSize = Double.NaN;
       return;
     }
 
-    cachedBubbleRangeDataset = dataset;
-    if (bubbleSizeValues.length == 0) {
+    double minBubbleSize = Double.POSITIVE_INFINITY;
+    double maxBubbleSize = Double.NEGATIVE_INFINITY;
+    for (final double bubbleSizeValue : bubbleSizeValues) {
+      if (!Double.isFinite(bubbleSizeValue)) {
+        continue;
+      }
+      minBubbleSize = Math.min(minBubbleSize, bubbleSizeValue);
+      maxBubbleSize = Math.max(maxBubbleSize, bubbleSizeValue);
+    }
+
+    if (!Double.isFinite(minBubbleSize) || !Double.isFinite(maxBubbleSize)) {
       cachedMinBubbleSize = Double.NaN;
       cachedMaxBubbleSize = Double.NaN;
       return;
     }
 
-    cachedMinBubbleSize = Arrays.stream(bubbleSizeValues).min().orElse(Double.NaN);
-    cachedMaxBubbleSize = Arrays.stream(bubbleSizeValues).max().orElse(Double.NaN);
+    cachedMinBubbleSize = minBubbleSize;
+    cachedMaxBubbleSize = maxBubbleSize;
+  }
+
+  private void invalidateBubbleSizeRangeCache() {
+    cachedBubbleRangeDataset = null;
+    bubbleSizeRangeCacheValid = false;
+    cachedMinBubbleSize = Double.NaN;
+    cachedMaxBubbleSize = Double.NaN;
   }
 
   private @Nullable Ellipse2D createBubbleShape(final double x, final double y,
