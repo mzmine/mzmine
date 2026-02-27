@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.kendrickmassplot;
+package io.github.mzmine.gui.chartbasics.simplechart.generators;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
@@ -33,7 +33,11 @@ import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
 
-public class KendrickPreferredAnnotationItemLabelGenerator implements XYItemLabelGenerator {
+/**
+ * Generic item label generator for chart datasets that expose {@link FeatureListRow} as item
+ * objects via {@link XYItemObjectProvider}.
+ */
+public class PreferredAnnotationItemLabelGenerator implements XYItemLabelGenerator {
 
   @Override
   public @Nullable String generateLabel(final @NotNull XYDataset dataset, final int series,

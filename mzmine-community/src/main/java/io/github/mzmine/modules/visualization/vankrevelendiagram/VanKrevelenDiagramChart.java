@@ -33,6 +33,7 @@ import io.github.mzmine.gui.chartbasics.chartutils.ColoredBubbleDatasetRenderer;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.simplechart.generators.PreferredAnnotationItemLabelGenerator;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.MathUtils;
 import java.awt.Color;
@@ -79,7 +80,7 @@ public class VanKrevelenDiagramChart extends EChartViewer {
     renderer.setDefaultToolTipGenerator(
         new VanKrevelenToolTipGenerator(xAxisLabel, yAxisLabel, colorScaleLabel,
             dataset.getBubbleVanKrevelenDataType().getName()));
-    renderer.setDefaultItemLabelGenerator(new VanKrevelenPreferredAnnotationItemLabelGenerator());
+    renderer.setDefaultItemLabelGenerator(new PreferredAnnotationItemLabelGenerator());
     renderer.setDefaultItemLabelsVisible(true);
     final PaintScaleLegend legend = generateLegend(paintScale);
     getChart().addSubtitle(legend);
