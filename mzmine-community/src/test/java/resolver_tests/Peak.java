@@ -38,21 +38,21 @@ import org.jetbrains.annotations.Nullable;
  * {@link Peak#constructorCall()}
  *
  */
-record Peak(float topRt, @Nullable Range<Float> rtRange, @Nullable String desc) {
+public record Peak(float topRt, @Nullable Range<Float> rtRange, @Nullable String desc) {
 
   public Peak(float topRt) {
     this(topRt, null, null);
   }
 
-  static Peak top(float topRt) {
+  public static Peak top(float topRt) {
     return new Peak(topRt);
   }
 
-  static Peak topRange(float topRt, Range<Float> rtRange) {
+  public static Peak topRange(float topRt, Range<Float> rtRange) {
     return new Peak(topRt, rtRange, null);
   }
 
-  boolean find(List<Peak> otherPeaks) {
+  public boolean find(List<Peak> otherPeaks) {
 
     for (Peak otherPeak : otherPeaks) {
       if (matches(otherPeak)) {
@@ -62,7 +62,7 @@ record Peak(float topRt, @Nullable Range<Float> rtRange, @Nullable String desc) 
     return false;
   }
 
-  boolean matches(@Nullable Peak other) {
+  public boolean matches(@Nullable Peak other) {
     if (other == null) {
       return false;
     }
@@ -80,19 +80,19 @@ record Peak(float topRt, @Nullable Range<Float> rtRange, @Nullable String desc) 
     return true;
   }
 
-  static <T extends Scan> void printConstructorCalls(List<IonTimeSeries<T>> peaks) {
+  public static <T extends Scan> void printConstructorCalls(List<IonTimeSeries<T>> peaks) {
     String calls = peaks.stream().map(Peak::of).map(Peak::constructorCall)
         .collect(Collectors.joining(",\n"));
     System.out.println(calls);
   }
 
-  static <T extends Scan> Peak of(IonTimeSeries<T> series) {
+  public static <T extends Scan> Peak of(IonTimeSeries<T> series) {
     return new Peak(series.getRetentionTime(FeatureDataUtils.getMostIntenseIndex(series)),
         Range.closed(series.getRetentionTime(0),
             series.getRetentionTime(series.getNumberOfValues() - 1)), null);
   }
 
-  static <T extends Scan> List<Peak> of(List<IonTimeSeries<T>> series) {
+  public static <T extends Scan> List<Peak> of(List<IonTimeSeries<T>> series) {
     return series.stream().map(Peak::of).toList();
   }
 
