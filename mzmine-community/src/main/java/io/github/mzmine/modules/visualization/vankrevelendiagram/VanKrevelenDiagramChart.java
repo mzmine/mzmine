@@ -77,6 +77,7 @@ public class VanKrevelenDiagramChart extends EChartViewer {
             Arrays.stream(dataset.getxValues()).max().orElse(0.0));
     final ColoredBubbleDatasetRenderer renderer = new ColoredBubbleDatasetRenderer();
     renderer.setPaintScale(paintScale);
+    renderer.setDefaultItemLabelPaint(defaultChartTheme.getItemLabelPaint());
     renderer.setDefaultToolTipGenerator(
         new VanKrevelenToolTipGenerator(xAxisLabel, yAxisLabel, colorScaleLabel,
             dataset.getBubbleVanKrevelenDataType().getName()));

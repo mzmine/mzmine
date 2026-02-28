@@ -77,6 +77,7 @@ public class KendrickMassPlotChart extends EChartViewer {
     }
     final ColoredBubbleDatasetRenderer renderer = new ColoredBubbleDatasetRenderer();
     renderer.setPaintScale(paintScale);
+    renderer.setDefaultItemLabelPaint(defaultChartTheme.getItemLabelPaint());
     renderer.setDefaultToolTipGenerator(
         new KendrickToolTipGenerator(xAxisLabel, yAxisLabel, colorScaleLabel,
             dataset.getBubbleKendrickDataType().getName()));
