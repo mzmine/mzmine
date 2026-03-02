@@ -66,7 +66,7 @@ public class BatchWizardCreateBatchChecker {
   private final WizardSequence sequenceSteps;
 
   private final List<String> errors = new ArrayList<>();
-  private final @Null File metadata;
+  private final @Nullable File metadata;
   private final File[] dataFiles;
   private final boolean rsdQcFilter;
   private final @Nullable MetadataTable table;
