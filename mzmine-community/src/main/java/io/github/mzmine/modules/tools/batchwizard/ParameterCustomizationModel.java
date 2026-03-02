@@ -40,6 +40,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Observable model for the parameter customization MVCI component. Holds all state as JavaFX
@@ -74,7 +75,6 @@ public class ParameterCustomizationModel {
   private final ObjectProperty<Node> currentEditorComponent = new SimpleObjectProperty<>();
   private final StringProperty instructionsText = new SimpleStringProperty(
       "Select a module to view its parameters");
-  private final BooleanProperty showInstructions = new SimpleBooleanProperty(true);
 
   // --- Button states ---
   private final BooleanProperty addButtonDisabled = new SimpleBooleanProperty(true);
@@ -174,26 +174,12 @@ public class ParameterCustomizationModel {
     return instructionsText;
   }
 
-  public String getInstructionsText() {
+  public @Nullable String getInstructionsText() {
     return instructionsText.get();
   }
 
-  public void setInstructionsText(String text) {
+  public void setInstructionsText(@Nullable String text) {
     instructionsText.set(text);
-  }
-
-  // --- showInstructions ---
-
-  public BooleanProperty showInstructionsProperty() {
-    return showInstructions;
-  }
-
-  public boolean isShowInstructions() {
-    return showInstructions.get();
-  }
-
-  public void setShowInstructions(boolean show) {
-    showInstructions.set(show);
   }
 
   // --- scrollToModuleRequest ---

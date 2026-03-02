@@ -110,8 +110,12 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     // --- Build sub-sections ---
     BatchModuleTreePane moduleTreePane = new BatchModuleTreePane(false);
     ListView<UserParameter<?, ?>> parameterListView = buildParameterListView();
-    VBox parameterEditorColumn = FxLayout.newVBox();
-    Label instructionsLabel = FxLabels.newLabel(model.getInstructionsText());
+    final VBox parameterEditorColumn = FxLayout.newVBox();
+    final VBox editorContentContainer = FxLayout.newVBox();
+    final Label instructionsLabel = FxLabels.newLabel(model.instructionsTextProperty());
+    instructionsLabel.visibleProperty().bind(model.instructionsTextProperty().isNotNull());
+    instructionsLabel.managedProperty().bind(instructionsLabel.visibleProperty());
+    parameterEditorColumn.getChildren().setAll(instructionsLabel, editorContentContainer);
 
     Button addButton = FxButtons.createButton("Add", FxIcons.ADD, "Add new parameter override",
         this::addParameterOverride);
@@ -214,11 +218,9 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     });
 
     // --- Editor column: react to model changes ---
-    model.instructionsTextProperty().subscribe(instructionsLabel::setText);
-    model.showInstructionsProperty()
-        .subscribe(_ -> updateEditorColumn(parameterEditorColumn, instructionsLabel));
+    model.instructionsTextProperty().subscribe(_ -> updateEditorColumn(editorContentContainer));
     model.currentEditorComponentProperty()
-        .subscribe(_ -> updateEditorColumn(parameterEditorColumn, instructionsLabel));
+        .subscribe(_ -> updateEditorColumn(editorContentContainer));
 
     // --- Build layout sections ---
     VBox modulePane = buildModuleTreePane(moduleTreePane);
@@ -265,14 +267,12 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
 
   // --- Editor column update ---
 
-  private void updateEditorColumn(VBox parameterEditorColumn, Label instructionsLabel) {
-    parameterEditorColumn.getChildren().clear();
-    Node editor = model.getCurrentEditorComponent();
-    if (model.isShowInstructions() || editor == null) {
-      parameterEditorColumn.getChildren().add(instructionsLabel);
-    } else {
-      parameterEditorColumn.getChildren()
-          .add(buildEditorGrid(model.getSelectedParameter(), editor));
+  private void updateEditorColumn(@NotNull VBox editorContentContainer) {
+    editorContentContainer.getChildren().clear();
+    final Node editor = model.getCurrentEditorComponent();
+    final UserParameter<?, ?> selectedParameter = model.getSelectedParameter();
+    if (editor != null && selectedParameter != null) {
+      editorContentContainer.getChildren().add(buildEditorGrid(selectedParameter, editor));
     }
   }
 
@@ -521,10 +521,8 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
       model.setSelectedOverride(added);
       model.setInstructionsText(
           actionLabel + ": " + param.getName() + " (apply to: " + scope.getLabel() + ")");
-      model.setShowInstructions(true);
     } catch (Exception e) {
       model.setInstructionsText("Error: " + e.getMessage());
-      model.setShowInstructions(true);
     }
   }
 
@@ -541,7 +539,6 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
   void clearAllOverrides() {
     model.getOverrides().clear();
     model.setInstructionsText("All parameter overrides cleared");
-    model.setShowInstructions(true);
   }
 
   void changeOverrideScope(@NotNull ParameterOverride override,
@@ -608,7 +605,6 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
 
     if (module == null) {
       model.setInstructionsText("Select a module to view its parameters");
-      model.setShowInstructions(true);
       return;
     }
 
@@ -617,7 +613,6 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
         .getModuleParameters(module.getClass()).cloneParameterSet();
     if (parameters == null) {
       model.setInstructionsText("No parameters available for this module");
-      model.setShowInstructions(true);
       return;
     }
 
@@ -632,7 +627,6 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     } else {
       model.setInstructionsText("Select a parameter to edit its value");
     }
-    model.setShowInstructions(true);
   }
 
   void onParameterSelected(@Nullable UserParameter<?, ?> parameter) {
@@ -642,15 +636,16 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
       model.setCurrentEditorComponent(editor);
       if (editor != null) {
         loadExistingOverrideValue(parameter);
-        model.setShowInstructions(false);
+        model.setInstructionsText(null);
       } else {
         model.setInstructionsText("Cannot create editor for this parameter type");
-        model.setShowInstructions(true);
       }
     } else {
       model.setSelectedParameter(null);
       model.setCurrentEditorComponent(null);
-      model.setShowInstructions(true);
+      model.setInstructionsText(
+          model.getSelectedModule() == null ? "Select a module to view its parameters"
+              : "Select a parameter to edit its value");
     }
   }
 
@@ -702,7 +697,6 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     // Request the view to select the parameter by name in the list. By the time this fires
     // (synchronously on the FX thread), availableParameters is already populated.
     model.requestSelectParameterByName(override.parameterWithValue().getName());
-
   }
 
   // --- Private helpers ---
