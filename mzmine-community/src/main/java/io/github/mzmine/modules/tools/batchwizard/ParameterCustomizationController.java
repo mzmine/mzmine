@@ -162,9 +162,9 @@ public class ParameterCustomizationController extends FxController<ParameterCust
       param.setValueFromComponent(currentEditorComponent);
 
       String moduleClassName = selectedModule.getClass().getName();
-      String moduleName = getModuleName(selectedModule.getClass());
+      String moduleUniqueId = getModuleUniqueId(selectedModule.getClass());
       ApplicationScope scope = model.getSelectedScope();
-      final ParameterOverride added = new ParameterOverride(moduleClassName, moduleName,
+      final ParameterOverride added = new ParameterOverride(moduleClassName, moduleUniqueId,
           param.cloneParameter(), scope);
       model.getOverrides().put(new OverrideKey(selectedModule, param.getName(), scope), added);
       model.setSelectedOverride(added);
@@ -199,7 +199,7 @@ public class ParameterCustomizationController extends FxController<ParameterCust
     String paramName = override.parameterWithValue().getName();
     model.getOverrides().remove(new OverrideKey(moduleClass, paramName, override.scope()));
     model.getOverrides().put(new OverrideKey(moduleClass, paramName, newScope),
-        new ParameterOverride(moduleClass, override.moduleName(), override.parameterWithValue(),
+        new ParameterOverride(moduleClass, override.moduleUniqueId(), override.parameterWithValue(),
             newScope));
   }
 
@@ -336,10 +336,10 @@ public class ParameterCustomizationController extends FxController<ParameterCust
     model.setOverrideButtonDisabled(!overrideExists);
   }
 
-  private String getModuleName(Class<? extends MZmineRunnableModule> moduleClass) {
+  private String getModuleUniqueId(Class<? extends MZmineRunnableModule> moduleClass) {
     try {
       MZmineModule module = MZmineCore.getModuleInstance(moduleClass);
-      return module != null ? module.getName() : moduleClass.getSimpleName();
+      return module != null ? module.getUniqueID() : moduleClass.getSimpleName();
     } catch (Exception e) {
       return moduleClass.getSimpleName();
     }

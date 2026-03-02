@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -33,13 +32,13 @@ import org.jetbrains.annotations.NotNull;
  * Represents a single parameter override for a specific module parameter. This class is
  * serializable so it can be saved/loaded with wizard presets.
  */
-public record ParameterOverride(String moduleClassName, String moduleName,
+public record ParameterOverride(String moduleClassName, String moduleUniqueId,
                                 Parameter<?> parameterWithValue, ApplicationScope scope) {
 
-  public ParameterOverride(@NotNull String moduleClassName, @NotNull String moduleName,
+  public ParameterOverride(@NotNull String moduleClassName, @NotNull String moduleUniqueId,
       @NotNull final Parameter<?> parameterWithValue, @NotNull ApplicationScope scope) {
     this.moduleClassName = moduleClassName;
-    this.moduleName = moduleName;
+    this.moduleUniqueId = moduleUniqueId;
     this.parameterWithValue = parameterWithValue;
     this.scope = scope;
   }
@@ -61,6 +60,6 @@ public record ParameterOverride(String moduleClassName, String moduleName,
 
   @Override
   public @NotNull String toString() {
-    return moduleName + "." + parameterWithValue.getName() + " = " + getDisplayValue();
+    return moduleUniqueId + "." + parameterWithValue.getName() + " = " + getDisplayValue();
   }
 }

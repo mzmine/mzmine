@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -59,7 +58,6 @@ public class FxLayout {
   public static final int DEFAULT_SPACE = 5;
   public static final int DEFAULT_ICON_SPACE = 0;
   public static final Insets DEFAULT_PADDING_INSETS = new Insets(5);
-  public static final Insets NO_PADDING_INSETS = new Insets(0);
 
   /**
    * useful for debugging purposes

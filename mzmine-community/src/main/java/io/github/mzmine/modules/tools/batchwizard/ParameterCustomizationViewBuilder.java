@@ -44,6 +44,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -314,7 +315,7 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
 
   private VBox buildModuleTreePane(BatchModuleTreePane moduleTreePane) {
     Label moduleLabel = FxLabels.newBoldLabel("Select Module:");
-    VBox leftPane = FxLayout.newVBox(null, FxLayout.NO_PADDING_INSETS, true, moduleLabel,
+    VBox leftPane = FxLayout.newVBox(null, Insets.EMPTY, true, moduleLabel,
         moduleTreePane);
     VBox.setVgrow(moduleTreePane, Priority.ALWAYS);
     return leftPane;
@@ -322,7 +323,7 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
 
   private VBox buildParameterListPane(ListView<UserParameter<?, ?>> parameterListView) {
     Label paramLabel = FxLabels.newBoldLabel("Parameters:");
-    VBox middlePane = FxLayout.newVBox(null, FxLayout.NO_PADDING_INSETS, true, paramLabel,
+    VBox middlePane = FxLayout.newVBox(null, Insets.EMPTY, true, paramLabel,
         parameterListView);
     VBox.setVgrow(parameterListView, Priority.ALWAYS);
     return middlePane;
@@ -338,15 +339,15 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     Label scopeLabel = FxLabels.newLabel("Apply to module occurrence:");
     scopeLabel.setTooltip(new Tooltip(
         "Select if this parameter setting should be applied to the first, last, or all batch steps that use this module."));
-    HBox scopeBox = FxLayout.newHBox(Pos.CENTER_LEFT, FxLayout.NO_PADDING_INSETS, scopeLabel,
+    HBox scopeBox = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, scopeLabel,
         scopeComboBox);
     HBox.setHgrow(scopeComboBox, Priority.ALWAYS);
 
-    HBox buttonRow = FxLayout.newHBox(Pos.CENTER, FxLayout.NO_PADDING_INSETS, addButton,
+    HBox buttonRow = FxLayout.newHBox(Pos.CENTER, Insets.EMPTY, addButton,
         overrideButton);
-    VBox buttonBox = FxLayout.newVBox(null, FxLayout.NO_PADDING_INSETS, true, scopeBox, buttonRow);
+    VBox buttonBox = FxLayout.newVBox(null, Insets.EMPTY, true, scopeBox, buttonRow);
 
-    VBox editorSection = FxLayout.newVBox(null, FxLayout.NO_PADDING_INSETS, true, editorLabel,
+    VBox editorSection = FxLayout.newVBox(null, Insets.EMPTY, true, editorLabel,
         buttonBox, new Separator(Orientation.HORIZONTAL), parameterEditorColumn);
     VBox.setVgrow(parameterEditorColumn, Priority.NEVER);
     return editorSection;
@@ -354,7 +355,7 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
 
   private void buildOverridesTable(TableView<ParameterOverride> overridesTable) {
     TableColumn<ParameterOverride, String> moduleCol = TableColumns.createColumn("Module",
-        Region.USE_COMPUTED_SIZE, param -> new SimpleStringProperty(param.moduleName()));
+        Region.USE_COMPUTED_SIZE, param -> new SimpleStringProperty(param.moduleUniqueId()));
     moduleCol.setPrefWidth(150);
 
     TableColumn<ParameterOverride, String> paramCol = TableColumns.createColumn("Parameter",
@@ -402,9 +403,9 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     Label overviewLabel = FxLabels.newBoldLabel("Parameter Overrides:");
     Region headerSpacer = new Region();
     HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-    HBox overridesHeader = FxLayout.newHBox(Pos.CENTER_LEFT, FxLayout.NO_PADDING_INSETS,
+    HBox overridesHeader = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY,
         overviewLabel, headerSpacer, removeButton, clearAllButton);
-    VBox overridesPane = FxLayout.newVBox(null, FxLayout.NO_PADDING_INSETS, true, overridesHeader,
+    VBox overridesPane = FxLayout.newVBox(null, Insets.EMPTY, true, overridesHeader,
         overridesTable);
     VBox.setVgrow(overridesTable, Priority.ALWAYS);
     return overridesPane;

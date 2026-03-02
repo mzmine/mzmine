@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -73,7 +72,7 @@ public abstract class WizardBatchBuilder {
    */
   public final BatchQueue createQueue() {
     // this method is final so overriding classes do not need to worry about applying the parameter override.
-    BatchQueue queue = __createQueueInternal();
+    BatchQueue queue = createQueueInternal();
     applyParameterOverrides(queue);
     return queue;
   }
@@ -84,7 +83,7 @@ public abstract class WizardBatchBuilder {
    *
    * @return a batch queue
    */
-  protected abstract BatchQueue __createQueueInternal();
+  protected abstract BatchQueue createQueueInternal();
 
   /**
    * Get parameter if available or else return null. params usually comes from
