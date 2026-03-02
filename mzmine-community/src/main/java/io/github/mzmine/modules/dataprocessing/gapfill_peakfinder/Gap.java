@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,11 +38,17 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class Gap {
+
+  private static final Logger logger = Logger.getLogger(Gap.class.getName());
 
   protected FeatureListRow featureListRow;
   protected RawDataFile rawDataFile;
@@ -56,6 +62,9 @@ public class Gap {
   protected List<GapDataPoint> currentPeakDataPoints;
   protected List<GapDataPoint> bestPeakDataPoints;
   protected double bestPeakHeight;
+  protected int bestPeakMaxIndex;
+  protected final float rtLengthLeft;
+  protected final float rtLengthRight;
 
   /**
    * Constructor: Initializes an empty gap
@@ -77,6 +86,15 @@ public class Gap {
     this.mzRange = mzRange;
     this.rtRange = rtRange;
     this.validateRtShape = validateRtShape;
+
+    final ModularFeature bestFeature = peakListRow.streamFeatures()
+        .filter(f -> f.getFeatureStatus() == FeatureStatus.DETECTED)
+        .max(Comparator.comparingDouble(Feature::getHeight))
+        .orElse((ModularFeature) peakListRow.getBestFeature());
+    final float bestFeatureRt = bestFeature.getRT();
+    // assume that previously undetected features are limited by the RT width of the most intense one
+    rtLengthLeft = bestFeatureRt - bestFeature.getRawDataPointsRTRange().lowerEndpoint();
+    rtLengthRight = bestFeature.getRawDataPointsRTRange().upperEndpoint() - bestFeatureRt;
   }
 
   public void offerNextScan(Scan scan) {
@@ -146,6 +164,35 @@ public class Gap {
     if (bestPeakDataPoints == null || bestPeakDataPoints.size() < minDataPoints) {
       return false;
     }
+
+    final double bestPeakRt = bestPeakDataPoints.get(bestPeakMaxIndex).getRT();
+
+    final int newStartIndex;
+    if (bestPeakRt - bestPeakDataPoints.get(0).getRT() > rtLengthLeft) {
+      final double newStartRt = bestPeakRt - rtLengthLeft;
+      newStartIndex = BinarySearch.binarySearch(newStartRt, DefaultTo.CLOSEST_VALUE, 0,
+          bestPeakMaxIndex, i -> bestPeakDataPoints.get(i).getRT());
+//      bestPeakDataPoints = bestPeakDataPoints.subList(newStartIndex, bestPeakDataPoints.size());
+//      bestPeakMaxIndex -= newStartIndex;
+    } else {
+      newStartIndex = 0;
+    }
+    final int newEndIndex;
+    if (bestPeakDataPoints.getLast().getRT() - bestPeakRt > rtLengthRight) {
+      final double newEndRt = bestPeakRt + rtLengthRight;
+      newEndIndex = BinarySearch.binarySearch(newEndRt, DefaultTo.CLOSEST_VALUE, bestPeakMaxIndex,
+          bestPeakDataPoints.size(), i -> bestPeakDataPoints.get(i).getRT());
+//      bestPeakDataPoints = bestPeakDataPoints.subList(0, newEndIndex);
+    } else {
+      newEndIndex = bestPeakDataPoints.size();
+    }
+    if ((newEndIndex - newStartIndex) * 1.5 < bestPeakDataPoints.size()) {
+      logger.finest(
+          () -> "Trimming row %s in file %s with %d dp to %d dp with maximum at %d to start at %d and end at %d.".formatted(
+              featureListRow.toString(), rawDataFile.getName(), bestPeakDataPoints.size(),
+              newEndIndex - newStartIndex, bestPeakMaxIndex, newStartIndex, newEndIndex));
+    }
+    bestPeakDataPoints = bestPeakDataPoints.subList(newStartIndex, newEndIndex);
 
     return addFeatureToRow();
   }
@@ -261,6 +308,8 @@ public class Gap {
     // 3) Check if this is the best candidate for a peak
     if ((bestPeakDataPoints == null) || (bestPeakHeight < currentMaxHeight)) {
       bestPeakDataPoints = currentPeakDataPoints.subList(startInd, toIndex);
+      bestPeakHeight = currentMaxHeight;
+      bestPeakMaxIndex = highestMaximumInd - startInd;
     }
 
   }
