@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -48,6 +47,7 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
   protected final RTTolerance rtFwhm;
   protected final Boolean stableIonizationAcrossSamples;
   protected final Boolean rtSmoothing;
+  protected final boolean scanRtCorrection;
   protected final Boolean applySpectralNetworking;
   protected final File exportPath;
   protected final boolean isExportActive;
@@ -69,6 +69,8 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     rtFwhm = getValue(params, IonInterfaceHplcWizardParameters.approximateChromatographicFWHM);
     stableIonizationAcrossSamples = getValue(params,
         IonInterfaceHplcWizardParameters.stableIonizationAcrossSamples);
+    scanRtCorrection = dataFiles.length > 1 && Boolean.TRUE.equals(
+        getValue(params, IonInterfaceHplcWizardParameters.scanRtCorrection));
 
     // DDA workflow parameters
     params = steps.get(WizardPart.WORKFLOW);
@@ -83,6 +85,10 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
+    if (scanRtCorrection) {
+      // clear before so we don't have to recalculate RTs later on
+      makeAndAddClearRtCorrectionStep(q);
+    }
     makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
         minRtDataPoints, cropRtRange, polarity);
     makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
@@ -101,6 +107,9 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     makeAndAddDeisotopingStep(q, intraSampleRtTol);
     makeAndAddFeatureFilterStep(q);
     makeAndAddIsotopeFinderStep(q);
+    if (scanRtCorrection) {
+      makeAndAddScanRtCorrectionStep(q, mzTolInterSample, interSampleRtTol);
+    }
     makeAndAddJoinAlignmentStep(q, interSampleRtTol);
     makeAndAddRowFilterStep(q);
     makeAndAddGapFillStep(q, interSampleRtTol, minRtDataPoints);
