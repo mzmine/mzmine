@@ -22,44 +22,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.javafx.mvci;
+package io.github.mzmine.javafx.components.util;
 
-import javafx.scene.layout.Region;
+import javafx.collections.ObservableList;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.control.Control;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * MVCI controller with cached view. This is usually used when a view is exeansive to create and may
- * be removed/added from/to the scene graph often. Otherwise, use the base implementation
- * {@link FxController}
- */
-public abstract class FxCachedViewController<ViewModelClass> extends FxController<ViewModelClass> {
+public class FxLayoutUtil {
 
-  @Nullable
-  protected Region cachedView;
-
-  protected FxCachedViewController(@NotNull ViewModelClass model) {
-    super(model);
-  }
-
-  /**
-   * Returns cached view or builds it if null
-   */
-  public synchronized @NotNull Region buildView() {
-    if (cachedView == null) {
-      cachedView = super.buildView();
+  public static @Nullable Control findFirstControlNode(@NotNull Parent p) {
+    ObservableList<Node> children = p.getChildrenUnmodifiable();
+    for (Node child : children) {
+      if (child instanceof Control c) {
+        return c;
+      }
     }
-    return cachedView;
-  }
-
-  /**
-   * Clears the internally cached view and returns the old view
-   *
-   * @return the old view
-   */
-  public synchronized @Nullable Region clearCachedView() {
-    Region internalView = cachedView;
-    cachedView = null;
-    return internalView;
+    for (Node child : children) {
+      if (child instanceof Parent cp) {
+        Control c = findFirstControlNode(cp);
+        if (c != null) {
+          return c;
+        }
+      }
+    }
+    return null;
   }
 }

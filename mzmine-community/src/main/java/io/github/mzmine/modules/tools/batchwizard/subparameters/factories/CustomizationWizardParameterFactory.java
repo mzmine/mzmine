@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -22,44 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.javafx.mvci;
+package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
-import javafx.scene.layout.Region;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.CustomizationWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * MVCI controller with cached view. This is usually used when a view is exeansive to create and may
- * be removed/added from/to the scene graph often. Otherwise, use the base implementation
- * {@link FxController}
+ * Factory for parameter customization wizard step
  */
-public abstract class FxCachedViewController<ViewModelClass> extends FxController<ViewModelClass> {
+public enum CustomizationWizardParameterFactory implements WizardParameterFactory {
 
-  @Nullable
-  protected Region cachedView;
+  CUSTOMIZATION;
 
-  protected FxCachedViewController(@NotNull ViewModelClass model) {
-    super(model);
+  @Override
+  public WizardStepParameters create() {
+    return CustomizationWizardParameters.createDefault();
   }
 
-  /**
-   * Returns cached view or builds it if null
-   */
-  public synchronized @NotNull Region buildView() {
-    if (cachedView == null) {
-      cachedView = super.buildView();
-    }
-    return cachedView;
+  @Override
+  public @NotNull String getUniqueID() {
+    return name();
   }
 
-  /**
-   * Clears the internally cached view and returns the old view
-   *
-   * @return the old view
-   */
-  public synchronized @Nullable Region clearCachedView() {
-    Region internalView = cachedView;
-    cachedView = null;
-    return internalView;
+  @Override
+  public String toString() {
+    return "Parameter Customization";
   }
 }

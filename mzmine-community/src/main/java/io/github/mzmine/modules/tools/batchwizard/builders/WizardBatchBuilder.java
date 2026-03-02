@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -28,30 +27,24 @@ package io.github.mzmine.modules.tools.batchwizard.builders;
 import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.modules.batchmode.BatchQueue;
-import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationLocalCSVDatabaseSearchParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.ApplicationScope;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.CustomizationWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.ParameterOverride;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDDA;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDIA;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDeconvolution;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowImaging;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowLibraryGeneration;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowMs1Only;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowTargetPlate;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -77,7 +70,20 @@ public abstract class WizardBatchBuilder {
    *
    * @return a batch queue
    */
-  public abstract BatchQueue createQueue();
+  public final BatchQueue createQueue() {
+    // this method is final so overriding classes do not need to worry about applying the parameter override.
+    BatchQueue queue = createQueueInternal();
+    applyParameterOverrides(queue);
+    return queue;
+  }
+
+  /**
+   * Internal createQueue method to override by implementing classes. PostProcessing is applied in
+   * the final {@link #createQueue()} method.
+   *
+   * @return a batch queue
+   */
+  protected abstract BatchQueue createQueueInternal();
 
   /**
    * Get parameter if available or else return null. params usually comes from
@@ -168,4 +174,73 @@ public abstract class WizardBatchBuilder {
     return null;
   }
 
+  protected void applyParameterOverrides(BatchQueue queue) {
+    // Check if customization is enabled
+    boolean customizationEnabled = steps.get(WizardPart.CUSTOMIZATION)
+        .map(p -> p.getValue(CustomizationWizardParameters.enabled)).orElse(false);
+
+    if (!customizationEnabled) {
+      logger.finest("Parameter customization is disabled, skipping overrides");
+      return;
+    }
+
+    final List<ParameterOverride> parameterOverrides = steps.get(WizardPart.CUSTOMIZATION)
+        .map(p -> p.getParameter(CustomizationWizardParameters.overrides).getValue())
+        .orElse(List.of());
+
+    for (ParameterOverride parameterOverride : parameterOverrides) {
+      String targetModuleClassName = parameterOverride.moduleClassName();
+      Parameter<?> sourceParameter = parameterOverride.parameterWithValue();
+      String targetParameterName = sourceParameter.getName();
+      ApplicationScope scope = parameterOverride.scope();
+
+      // Find all steps in the queue that match the module class name
+      List<Integer> matchingStepIndices = new ArrayList<>();
+      for (int i = 0; i < queue.size(); i++) {
+        final String stepModuleClassName = queue.get(i).getModule().getClass().getName();
+        if (stepModuleClassName.equals(targetModuleClassName)) {
+          matchingStepIndices.add(i);
+        }
+      }
+
+      if (matchingStepIndices.isEmpty()) {
+        logger.info("Override parameters set for module %s but not present in batch.".formatted(
+            targetModuleClassName));
+        continue;
+      }
+
+      // Determine which steps to apply the override to based on scope
+      List<Integer> targetIndices = switch (scope) {
+        case ALL -> matchingStepIndices;
+        case FIRST -> List.of(matchingStepIndices.getFirst());
+        case LAST -> List.of(matchingStepIndices.getLast());
+      };
+
+      // Apply the override to the selected steps
+      for (int index : targetIndices) {
+        var step = queue.get(index);
+        final ParameterSet stepParameters = step.getParameterSet();
+
+        // Find the parameter in this step's parameter set by name
+        final Parameter<?> targetParameter = Arrays.stream(stepParameters.getParameters())
+            .filter(param -> param.getName().equals(targetParameterName)).findFirst().orElse(null);
+
+        if (targetParameter == null) {
+          logger.warning("Parameter %s not found in module %s".formatted(targetParameterName,
+              targetModuleClassName));
+          continue;
+        }
+
+        try {
+          ParameterUtils.copyParameterValue(sourceParameter, targetParameter);
+          logger.fine("Applied parameter override (%s) for %s.%s = %s".formatted(scope,
+              targetModuleClassName, targetParameterName, sourceParameter.getValue()));
+        } catch (Exception ex) {
+          logger.log(Level.WARNING,
+              "Failed to apply parameter override for %s.%s".formatted(targetModuleClassName,
+                  targetParameterName), ex);
+        }
+      }
+    }
+  }
 }
