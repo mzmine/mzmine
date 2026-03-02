@@ -101,6 +101,7 @@ import io.github.mzmine.modules.io.import_feature_networks.ImportFeatureNetworks
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
+import io.github.mzmine.modules.io.spectral_library_from_matches.MatchesSubsetLibraryModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule;
@@ -357,7 +358,8 @@ public abstract class AbstractWorkspace implements Workspace {
         KeyCombination.SHORTCUT_DOWN);
     addModuleMenuItems(menu, IsotopePatternPreviewModule.class, QualityParametersModule.class);
     addModuleMenuItems(menu, "Libraries", LibraryAnalysisCSVExportModule.class,
-        MsMsQualityExportModule.class, MergeLibrariesModule.class);
+        MsMsQualityExportModule.class, MatchesSubsetLibraryModule.class,
+        MergeLibrariesModule.class);
     addModuleMenuItems(menu, "timsTOF fleX", TimsTOFMaldiAcquisitionModule.class,
         SimsefImagingSchedulerModule.class);
     return menu;
