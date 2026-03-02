@@ -88,7 +88,7 @@ public record MsLevelFilter(Options filter, int specificLevel) implements
   }
 
   @Override
-  public Options getSelectedOption() {
+  public @NotNull Options getSelectedOption() {
     return filter;
   }
 

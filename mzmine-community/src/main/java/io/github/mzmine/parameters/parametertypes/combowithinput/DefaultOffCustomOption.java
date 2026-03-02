@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,40 +25,30 @@
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
-import io.github.mzmine.parameters.parametertypes.combowithinput.IntOrAutoValue.IntOrAuto;
 import org.jetbrains.annotations.NotNull;
 
-public record IntOrAutoValue(IntOrAuto value, int manual) implements ComboWithInputValue<IntOrAuto, Integer> {
+/**
+ * Options for combo parameters that allow a built-in default, an off/disabled state, or a custom
+ * user-defined value.
+ */
+public enum DefaultOffCustomOption implements UniqueIdSupplier {
+  DEFAULT, OFF, CUSTOM;
 
   @Override
-  public @NotNull IntOrAuto getSelectedOption() {
-    return value;
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case DEFAULT -> "default";
+      case OFF -> "off";
+      case CUSTOM -> "custom";
+    };
   }
 
   @Override
-  public Integer getEmbeddedValue() {
-    return manual;
+  public String toString() {
+    return switch (this) {
+      case DEFAULT -> "Default";
+      case OFF -> "Off";
+      case CUSTOM -> "Custom";
+    };
   }
-
-  public enum IntOrAuto implements UniqueIdSupplier {
-    AUTO, MANUAL;
-
-    @Override
-    public @NotNull String getUniqueID() {
-      return switch (this) {
-        case AUTO -> "auto";
-        case MANUAL -> "manual";
-      };
-    }
-
-
-    @Override
-    public String toString() {
-      return switch (this) {
-        case AUTO -> "auto";
-        case MANUAL -> "manual";
-      };
-    }
-  }
-
 }

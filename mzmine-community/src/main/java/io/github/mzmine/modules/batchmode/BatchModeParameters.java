@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,7 +48,7 @@ public class BatchModeParameters extends SimpleParameterSet {
     super(
         "https://mzmine.github.io/mzmine_documentation/workflows/batch_processing/batch-processing.html",
         batchQueue,
-//        advanced,
+//        advanced, // when enabling this, make sure to set appropriate setting in RawDataFileOpenHandler_3_0
         lastFiles);
   }
 

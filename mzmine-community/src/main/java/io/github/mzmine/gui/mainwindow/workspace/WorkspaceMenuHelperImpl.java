@@ -31,6 +31,7 @@ import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.taskcontrol.SimpleRunnableTask;
 import io.github.mzmine.taskcontrol.TaskService;
@@ -92,8 +93,7 @@ class WorkspaceMenuHelperImpl extends WorkspaceMenuHelper {
         File f = new File(c.getText());
         if (f.exists()) {
           // load file
-          ProjectOpeningTask newTask = new ProjectOpeningTask(f, Instant.now());
-          MZmineCore.getTaskController().addTask(newTask);
+          ProjectLoadModule.showImportDialog(f);
         }
       });
       return item;

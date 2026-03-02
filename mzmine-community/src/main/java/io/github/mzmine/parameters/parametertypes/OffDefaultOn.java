@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -12,6 +11,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -22,43 +22,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes.combowithinput;
+package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
-import io.github.mzmine.parameters.parametertypes.combowithinput.IntOrAutoValue.IntOrAuto;
-import org.jetbrains.annotations.NotNull;
+/**
+ * Interface for Options of
+ * {@link io.github.mzmine.parameters.parametertypes.ComboParameter<OffDefaultOn>} in
+ * {@link io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter}s to reduce
+ * ambiguity. This is meant to replace a
+ * {@link io.github.mzmine.parameters.parametertypes.BooleanParameter} in an advanced parameter set
+ * to make it clear what the default value is, hence {@link #getValue} may be false or true.
+ */
+public interface OffDefaultOn {
 
-public record IntOrAutoValue(IntOrAuto value, int manual) implements ComboWithInputValue<IntOrAuto, Integer> {
-
-  @Override
-  public @NotNull IntOrAuto getSelectedOption() {
-    return value;
-  }
-
-  @Override
-  public Integer getEmbeddedValue() {
-    return manual;
-  }
-
-  public enum IntOrAuto implements UniqueIdSupplier {
-    AUTO, MANUAL;
-
-    @Override
-    public @NotNull String getUniqueID() {
-      return switch (this) {
-        case AUTO -> "auto";
-        case MANUAL -> "manual";
-      };
-    }
-
-
-    @Override
-    public String toString() {
-      return switch (this) {
-        case AUTO -> "auto";
-        case MANUAL -> "manual";
-      };
-    }
-  }
-
+  boolean getValue();
 }
