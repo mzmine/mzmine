@@ -29,9 +29,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.ApplicationScope
 import io.github.mzmine.modules.tools.batchwizard.subparameters.ParameterOverride;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.LinkedHashMap;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -75,10 +73,6 @@ public class ParameterCustomizationModel {
   private final ObjectProperty<Node> currentEditorComponent = new SimpleObjectProperty<>();
   private final StringProperty instructionsText = new SimpleStringProperty(
       "Select a module to view its parameters");
-
-  // --- Button states ---
-  private final BooleanProperty addButtonDisabled = new SimpleBooleanProperty(true);
-  private final BooleanProperty overrideButtonDisabled = new SimpleBooleanProperty(true);
 
   // --- View command properties (controller → view) ---
   // Set by the controller to request the view to scroll the module tree to a specific module.

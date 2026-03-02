@@ -58,11 +58,13 @@ public class ParameterCustomizationController extends FxController<ParameterCust
   }
 
   public void setParameterOverrides(List<ParameterOverride> overrides) {
-    model.getOverrides().clear();
-    for (ParameterOverride override : overrides) {
-      model.getOverrides().put(
-          new OverrideKey(override.moduleClassName(), override.parameterWithValue().getName(),
-              override.scope()), override);
-    }
+    onGuiThread(() -> {
+      model.getOverrides().clear();
+      for (ParameterOverride override : overrides) {
+        model.getOverrides().put(
+            new OverrideKey(override.moduleClassName(), override.parameterWithValue().getName(),
+                override.scope()), override);
+      }
+    });
   }
 }

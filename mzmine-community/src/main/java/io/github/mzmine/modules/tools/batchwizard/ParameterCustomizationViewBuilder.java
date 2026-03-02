@@ -49,7 +49,6 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -164,9 +163,7 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     });
 
     // --- Model → parameterListView items ---
-    model.getAvailableParameters().addListener(
-        (ListChangeListener<UserParameter<?, ?>>) _ -> parameterListView.getItems()
-            .setAll(model.getAvailableParameters()));
+    Bindings.bindContent(parameterListView.getItems(), model.getAvailableParameters());
 
     // --- Wire parameter list selection → controller ---
     parameterListView.getSelectionModel().selectedItemProperty()
