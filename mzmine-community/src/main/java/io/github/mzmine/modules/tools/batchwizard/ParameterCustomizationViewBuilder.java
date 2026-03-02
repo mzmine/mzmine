@@ -28,16 +28,23 @@ import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.components.util.FxLayoutUtil;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModuleTreePane;
+import io.github.mzmine.modules.tools.batchwizard.ParameterCustomizationModel.OverrideKey;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.ApplicationScope;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.ParameterOverride;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
@@ -51,6 +58,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -69,6 +77,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * MVCI view builder for the parameter customization pane. Creates all UI components, binds them to
@@ -80,17 +90,6 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
   private static final double MIN_OVERRIDES_TABLE_HEIGHT = 60d;
   private static final double PREF_OVERRIDES_TABLE_HEIGHT = 140d;
 
-  // Callbacks to the controller
-  private final Consumer<MZmineRunnableModule> onModuleSelected;
-  private final Consumer<UserParameter<?, ?>> onParameterSelected;
-  private final Runnable onAdd;
-  private final Runnable onUpdate;
-  private final Runnable onRemove;
-  private final Runnable onClear;
-  private final BiConsumer<ParameterOverride, ApplicationScope> onChangeScope;
-  private final Consumer<ParameterOverride> onOverrideSelected;
-  private final Consumer<KeyEvent> onParameterListKeyPressed;
-
   // View-local state for the one-time parent-size layout pass
   private boolean initialSelectorLayoutApplied;
   private int initialSelectorLayoutAttempts;
@@ -98,23 +97,8 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
   // Flag to prevent feedback loops when syncing model → table selection
   private boolean updatingTableSelectionFromModel;
 
-  ParameterCustomizationViewBuilder(ParameterCustomizationModel model,
-      Consumer<MZmineRunnableModule> onModuleSelected,
-      Consumer<UserParameter<?, ?>> onParameterSelected, Runnable onAdd, Runnable onUpdate,
-      Runnable onRemove, Runnable onClear,
-      BiConsumer<ParameterOverride, ApplicationScope> onChangeScope,
-      Consumer<ParameterOverride> onOverrideSelected,
-      Consumer<KeyEvent> onParameterListKeyPressed) {
+  ParameterCustomizationViewBuilder(ParameterCustomizationModel model) {
     super(model);
-    this.onModuleSelected = onModuleSelected;
-    this.onParameterSelected = onParameterSelected;
-    this.onAdd = onAdd;
-    this.onUpdate = onUpdate;
-    this.onRemove = onRemove;
-    this.onClear = onClear;
-    this.onChangeScope = onChangeScope;
-    this.onOverrideSelected = onOverrideSelected;
-    this.onParameterListKeyPressed = onParameterListKeyPressed;
   }
 
   @Override
@@ -130,13 +114,13 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     Label instructionsLabel = FxLabels.newLabel(model.getInstructionsText());
 
     Button addButton = FxButtons.createButton("Add", FxIcons.ADD, "Add new parameter override",
-        onAdd::run);
+        this::addParameterOverride);
     Button overrideButton = FxButtons.createButton("Override", FxIcons.EDIT,
-        "Update existing parameter override", onUpdate::run);
+        "Update existing parameter override", this::updateParameterOverride);
     Button removeButton = FxButtons.createButton("Remove", FxIcons.CANCEL,
-        "Remove selected override", onRemove::run);
+        "Remove selected override", this::removeSelectedOverride);
     Button clearAllButton = FxButtons.createButton("Clear All", FxIcons.CLEAR,
-        "Clear all parameter overrides", onClear::run);
+        "Clear all parameter overrides", this::clearAllOverrides);
     ComboBox<ApplicationScope> scopeComboBox = new ComboBox<>();
     scopeComboBox.getItems().addAll(ApplicationScope.values());
     scopeComboBox.setMaxWidth(Double.MAX_VALUE);
@@ -144,7 +128,7 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     TableView<ParameterOverride> overridesTable = new TableView<>();
 
     // --- Wire tree → controller ---
-    moduleTreePane.addModuleFocusedListener(onModuleSelected::accept);
+    moduleTreePane.addModuleFocusedListener(this::onModuleSelected);
     moduleTreePane.setOnAddModuleEventHandler(_ -> {
       parameterListView.requestFocus();
       parameterListView.getSelectionModel().selectFirst();
@@ -157,7 +141,7 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
           // Fallback: module not in tree, still notify controller with the last known module.
           MZmineRunnableModule instance = MZmineCore.getModuleInstance(moduleClass);
           if (instance != null) {
-            onModuleSelected.accept(instance);
+            this.onModuleSelected(instance);
           }
         }
       }
@@ -182,15 +166,24 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
 
     // --- Wire parameter list selection → controller ---
     parameterListView.getSelectionModel().selectedItemProperty()
-        .addListener((obs, oldVal, newVal) -> onParameterSelected.accept(newVal));
-    parameterListView.addEventHandler(KeyEvent.KEY_PRESSED, onParameterListKeyPressed::accept);
+        .addListener((_, _, newVal) -> onParameterSelected(newVal));
+    parameterListView.addEventHandler(KeyEvent.KEY_PRESSED, this::onParameterListKeyPressed);
 
     // --- Scope ComboBox ↔ model (bidirectional) ---
     Bindings.bindBidirectional(scopeComboBox.valueProperty(), model.selectedScopeProperty());
 
     // --- Button disabled states bound to model ---
-    addButton.disableProperty().bind(model.addButtonDisabledProperty());
-    overrideButton.disableProperty().bind(model.overrideButtonDisabledProperty());
+    addButton.disableProperty().bind(Bindings.createBooleanBinding(
+        () -> model.getSelectedParameter() != null && model.getSelectedModule() != null
+            && model.getCurrentEditorComponent() != null, model.selectedParameterProperty(),
+        model.selectedModuleProperty(), model.currentEditorComponentProperty()).not());
+
+    overrideButton.disableProperty().bind(Bindings.createBooleanBinding(
+        () -> model.getSelectedParameter() != null && model.getOverrides().containsKey(
+            new OverrideKey(model.getSelectedModule(), model.getSelectedParameter().getName(),
+                model.getSelectedScope())), model.selectedParameterProperty(),
+        model.selectedModuleProperty(), model.selectedOverrideProperty()).not());
+
     removeButton.disableProperty()
         .bind(overridesTable.getSelectionModel().selectedItemProperty().isNull());
 
@@ -200,7 +193,7 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     // --- Wire overrides table selection → controller ---
     overridesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
       if (!updatingTableSelectionFromModel) {
-        onOverrideSelected.accept(newVal);
+        onOverrideSelected(newVal);
       }
     });
 
@@ -265,6 +258,8 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
       }
     });
 
+    setupModelListeners();
+
     return root;
   }
 
@@ -315,16 +310,14 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
 
   private VBox buildModuleTreePane(BatchModuleTreePane moduleTreePane) {
     Label moduleLabel = FxLabels.newBoldLabel("Select Module:");
-    VBox leftPane = FxLayout.newVBox(null, Insets.EMPTY, true, moduleLabel,
-        moduleTreePane);
+    VBox leftPane = FxLayout.newVBox(null, Insets.EMPTY, true, moduleLabel, moduleTreePane);
     VBox.setVgrow(moduleTreePane, Priority.ALWAYS);
     return leftPane;
   }
 
   private VBox buildParameterListPane(ListView<UserParameter<?, ?>> parameterListView) {
     Label paramLabel = FxLabels.newBoldLabel("Parameters:");
-    VBox middlePane = FxLayout.newVBox(null, Insets.EMPTY, true, paramLabel,
-        parameterListView);
+    VBox middlePane = FxLayout.newVBox(null, Insets.EMPTY, true, paramLabel, parameterListView);
     VBox.setVgrow(parameterListView, Priority.ALWAYS);
     return middlePane;
   }
@@ -339,16 +332,14 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     Label scopeLabel = FxLabels.newLabel("Apply to module occurrence:");
     scopeLabel.setTooltip(new Tooltip(
         "Select if this parameter setting should be applied to the first, last, or all batch steps that use this module."));
-    HBox scopeBox = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, scopeLabel,
-        scopeComboBox);
+    HBox scopeBox = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, scopeLabel, scopeComboBox);
     HBox.setHgrow(scopeComboBox, Priority.ALWAYS);
 
-    HBox buttonRow = FxLayout.newHBox(Pos.CENTER, Insets.EMPTY, addButton,
-        overrideButton);
+    HBox buttonRow = FxLayout.newHBox(Pos.CENTER, Insets.EMPTY, addButton, overrideButton);
     VBox buttonBox = FxLayout.newVBox(null, Insets.EMPTY, true, scopeBox, buttonRow);
 
-    VBox editorSection = FxLayout.newVBox(null, Insets.EMPTY, true, editorLabel,
-        buttonBox, new Separator(Orientation.HORIZONTAL), parameterEditorColumn);
+    VBox editorSection = FxLayout.newVBox(null, Insets.EMPTY, true, editorLabel, buttonBox,
+        new Separator(Orientation.HORIZONTAL), parameterEditorColumn);
     VBox.setVgrow(parameterEditorColumn, Priority.NEVER);
     return editorSection;
   }
@@ -392,7 +383,7 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     scopeCol.setOnEditCommit(event -> {
       ApplicationScope newScope = event.getNewValue();
       if (newScope != null && newScope != event.getRowValue().scope()) {
-        onChangeScope.accept(event.getRowValue(), newScope);
+        this.changeOverrideScope(event.getRowValue(), newScope);
       }
     });
     return scopeCol;
@@ -403,8 +394,8 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     Label overviewLabel = FxLabels.newBoldLabel("Parameter Overrides:");
     Region headerSpacer = new Region();
     HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-    HBox overridesHeader = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY,
-        overviewLabel, headerSpacer, removeButton, clearAllButton);
+    HBox overridesHeader = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, overviewLabel,
+        headerSpacer, removeButton, clearAllButton);
     VBox overridesPane = FxLayout.newVBox(null, Insets.EMPTY, true, overridesHeader,
         overridesTable);
     VBox.setVgrow(overridesTable, Priority.ALWAYS);
@@ -488,5 +479,255 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     modulePane.setMaxHeight(topPaneHeight);
     parameterListWrapper.setPrefHeight(topPaneHeight);
     parameterListWrapper.setMaxHeight(topPaneHeight);
+  }
+
+  private void setupModelListeners() {
+    // When scope changes (user or controller), reload the existing override value for the current parameter.
+    model.selectedScopeProperty().subscribe(scope -> {
+      if (model.getSelectedParameter() != null && scope != null) {
+        loadExistingOverrideValue(model.getSelectedParameter());
+      }
+    });
+  }
+
+  // --- Override management ---
+
+  void addParameterOverride() {
+    putParameterOverride("Parameter override added");
+  }
+
+  void updateParameterOverride() {
+    putParameterOverride("Parameter override updated");
+  }
+
+  @SuppressWarnings("unchecked")
+  private void putParameterOverride(String actionLabel) {
+    UserParameter<?, ?> selectedParameter = model.getSelectedParameter();
+    MZmineRunnableModule selectedModule = model.getSelectedModule();
+    Node currentEditorComponent = model.getCurrentEditorComponent();
+    if (selectedParameter == null || selectedModule == null || currentEditorComponent == null) {
+      return;
+    }
+    try {
+      UserParameter<Object, Node> param = (UserParameter<Object, Node>) selectedParameter;
+      param.setValueFromComponent(currentEditorComponent);
+
+      String moduleClassName = selectedModule.getClass().getName();
+      String moduleUniqueId = getModuleUniqueId(selectedModule.getClass());
+      ApplicationScope scope = model.getSelectedScope();
+      final ParameterOverride added = new ParameterOverride(moduleClassName, moduleUniqueId,
+          param.cloneParameter(), scope);
+      model.getOverrides().put(new OverrideKey(selectedModule, param.getName(), scope), added);
+      model.setSelectedOverride(added);
+      model.setInstructionsText(
+          actionLabel + ": " + param.getName() + " (apply to: " + scope.getLabel() + ")");
+      model.setShowInstructions(true);
+    } catch (Exception e) {
+      model.setInstructionsText("Error: " + e.getMessage());
+      model.setShowInstructions(true);
+    }
+  }
+
+  void removeSelectedOverride() {
+    ParameterOverride selected = model.getSelectedOverride();
+    if (selected == null) {
+      return;
+    }
+    model.getOverrides().remove(
+        new OverrideKey(selected.moduleClassName(), selected.parameterWithValue().getName(),
+            selected.scope()));
+  }
+
+  void clearAllOverrides() {
+    model.getOverrides().clear();
+    model.setInstructionsText("All parameter overrides cleared");
+    model.setShowInstructions(true);
+  }
+
+  void changeOverrideScope(@NotNull ParameterOverride override,
+      @NotNull ApplicationScope newScope) {
+    String moduleClass = override.moduleClassName();
+    String paramName = override.parameterWithValue().getName();
+    model.getOverrides().remove(new OverrideKey(moduleClass, paramName, override.scope()));
+    model.getOverrides().put(new OverrideKey(moduleClass, paramName, newScope),
+        new ParameterOverride(moduleClass, override.moduleUniqueId(), override.parameterWithValue(),
+            newScope));
+  }
+
+  private String getModuleUniqueId(Class<? extends MZmineRunnableModule> moduleClass) {
+    try {
+      MZmineModule module = MZmineCore.getModuleInstance(moduleClass);
+      return module != null ? module.getUniqueID() : moduleClass.getSimpleName();
+    } catch (Exception e) {
+      return moduleClass.getSimpleName();
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T, C extends Node> @Nullable Node createEditorForParameter(
+      UserParameter<?, ?> parameter) {
+    try {
+      UserParameter<T, C> typedParam = (UserParameter<T, C>) parameter;
+      C component = typedParam.createEditingComponent();
+      typedParam.setValueToComponent(component, typedParam.getValue());
+      return component;
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  // --- Keyboard handling ---
+
+  void onParameterListKeyPressed(KeyEvent e) {
+    if (e.getCode() != KeyCode.ENTER) {
+      return;
+    }
+    Node currentEditor = model.getCurrentEditorComponent();
+    Control c = switch (currentEditor) {
+      case Control control -> control;
+      case Parent p -> FxLayoutUtil.findFirstControlNode(p);
+      case null, default -> null;
+    };
+    if (c != null) {
+      e.consume();
+      c.requestFocus();
+      c.addEventHandler(KeyEvent.KEY_PRESSED, ev -> {
+        if (ev.getCode() == KeyCode.ENTER) {
+          addParameterOverride();
+        }
+      });
+    }
+  }
+
+  // --- Module / parameter selection ---
+  void onModuleSelected(@Nullable MZmineRunnableModule module) {
+    model.setSelectedModule(module);
+    model.setSelectedParameter(null);
+    model.setCurrentEditorComponent(null);
+    model.getAvailableParameters().clear();
+
+    if (module == null) {
+      model.setInstructionsText("Select a module to view its parameters");
+      model.setShowInstructions(true);
+      return;
+    }
+
+    // Clone the parameter set so edits in the UI don't affect the global config.
+    ParameterSet parameters = ConfigService.getConfiguration()
+        .getModuleParameters(module.getClass()).cloneParameterSet();
+    if (parameters == null) {
+      model.setInstructionsText("No parameters available for this module");
+      model.setShowInstructions(true);
+      return;
+    }
+
+    List<UserParameter<?, ?>> params = new ArrayList<>();
+    Arrays.stream(parameters.getParameters())
+        .filter(p -> p instanceof UserParameter<?, ?> && !(p instanceof HiddenParameter))
+        .map(p -> (UserParameter<?, ?>) p).forEach(params::add);
+    model.getAvailableParameters().setAll(params);
+
+    if (params.isEmpty()) {
+      model.setInstructionsText("No user-configurable parameters for this module");
+    } else {
+      model.setInstructionsText("Select a parameter to edit its value");
+    }
+    model.setShowInstructions(true);
+  }
+
+  void onParameterSelected(@Nullable UserParameter<?, ?> parameter) {
+    if (parameter != null && model.getSelectedModule() != null) {
+      model.setSelectedParameter(parameter);
+      Node editor = createEditorForParameter(parameter);
+      model.setCurrentEditorComponent(editor);
+      if (editor != null) {
+        loadExistingOverrideValue(parameter);
+        model.setShowInstructions(false);
+      } else {
+        model.setInstructionsText("Cannot create editor for this parameter type");
+        model.setShowInstructions(true);
+      }
+    } else {
+      model.setSelectedParameter(null);
+      model.setCurrentEditorComponent(null);
+      model.setShowInstructions(true);
+    }
+  }
+
+  /**
+   * Called when the user selects an override in the overrides table. Synchronizes the module tree,
+   * parameter list, and scope selector to reflect the selected override.
+   */
+  @SuppressWarnings("unchecked")
+  void onOverrideSelected(@Nullable ParameterOverride override) {
+    if (override == null) {
+      model.setSelectedOverride(null);
+      return;
+    }
+    model.setSelectedOverride(override);
+
+    // Early-exit: the UI is already in sync with this override (e.g. after putParameterOverride).
+    MZmineRunnableModule currentModule = model.getSelectedModule();
+    if (currentModule != null && currentModule.getClass().getName()
+        .equals(override.moduleClassName()) && model.getSelectedParameter() != null
+        && model.getSelectedParameter().getName().equals(override.parameterWithValue().getName())
+        && override.scope().equals(model.getSelectedScope())) {
+      return;
+    }
+
+    MZmineRunnableModule targetModule;
+    Class<? extends MZmineRunnableModule> targetModuleType;
+    try {
+      Class<?> moduleClass = Class.forName(override.moduleClassName());
+      if (!MZmineRunnableModule.class.isAssignableFrom(moduleClass)) {
+        return;
+      }
+      targetModuleType = (Class<? extends MZmineRunnableModule>) moduleClass;
+      targetModule = MZmineCore.getModuleInstance(targetModuleType);
+    } catch (Exception e) {
+      return;
+    }
+
+    if (targetModule == null) {
+      return;
+    }
+
+    // Set scope first so the scopeComboBox updates before the parameter editor reloads.
+    model.setSelectedScope(override.scope());
+
+    // Request the view to scroll the module tree. This will trigger onModuleSelected, which
+    // populates availableParameters synchronously before requestSelectParameterByName fires.
+    model.requestScrollToModule(targetModuleType);
+
+    // Request the view to select the parameter by name in the list. By the time this fires
+    // (synchronously on the FX thread), availableParameters is already populated.
+    model.requestSelectParameterByName(override.parameterWithValue().getName());
+
+  }
+
+  // --- Private helpers ---
+
+  /**
+   * Checks if an override already exists for the current module+parameter+scope and loads its value
+   * into the editor component if so.
+   */
+  @SuppressWarnings("unchecked")
+  private void loadExistingOverrideValue(UserParameter<?, ?> parameter) {
+    MZmineRunnableModule selectedModule = model.getSelectedModule();
+    Node currentEditorComponent = model.getCurrentEditorComponent();
+    if (selectedModule == null || currentEditorComponent == null) {
+      return;
+    }
+    ApplicationScope currentScope = model.getSelectedScope();
+    ParameterOverride temp = model.getOverrides()
+        .get(new OverrideKey(selectedModule, parameter.getName(), currentScope));
+    if (temp != null) {
+      try {
+        ((UserParameter<Object, Node>) parameter).setValueToComponent(currentEditorComponent,
+            temp.parameterWithValue().getValue());
+      } catch (Exception e) {
+        // Ignore type mismatch — the override value may not be compatible.
+      }
+    }
   }
 }

@@ -196,34 +196,6 @@ public class ParameterCustomizationModel {
     showInstructions.set(show);
   }
 
-  // --- addButtonDisabled ---
-
-  public BooleanProperty addButtonDisabledProperty() {
-    return addButtonDisabled;
-  }
-
-  public boolean isAddButtonDisabled() {
-    return addButtonDisabled.get();
-  }
-
-  public void setAddButtonDisabled(boolean disabled) {
-    addButtonDisabled.set(disabled);
-  }
-
-  // --- overrideButtonDisabled ---
-
-  public BooleanProperty overrideButtonDisabledProperty() {
-    return overrideButtonDisabled;
-  }
-
-  public boolean isOverrideButtonDisabled() {
-    return overrideButtonDisabled.get();
-  }
-
-  public void setOverrideButtonDisabled(boolean disabled) {
-    overrideButtonDisabled.set(disabled);
-  }
-
   // --- scrollToModuleRequest ---
 
   public ObjectProperty<Class<? extends MZmineRunnableModule>> scrollToModuleRequestProperty() {
