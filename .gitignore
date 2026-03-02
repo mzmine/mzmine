@@ -25,6 +25,12 @@ not-bio
 /src/test/resources/rawdatafiles/local
 /src/test/java/import_data/speed/local/tims32subs/
 
+# AI Agent ignores
+codex.md
+AGENTS.md
+claude.md
+.claude/
+
 # External tools fetched locally (do not commit downloaded parser binaries)
 /external_tools/thermo_raw_file_parser/
 external_tools/sciex_wiff2/*
