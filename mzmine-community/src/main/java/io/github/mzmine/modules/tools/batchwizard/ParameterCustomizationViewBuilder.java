@@ -45,6 +45,7 @@ import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
@@ -508,6 +509,13 @@ public class ParameterCustomizationViewBuilder extends FxViewBuilder<ParameterCu
     try {
       UserParameter<Object, Node> param = (UserParameter<Object, Node>) selectedParameter;
       param.setValueFromComponent(currentEditorComponent);
+
+      List<String> errors = new ArrayList<>();
+      if (!param.checkValue(errors)) {
+        model.setInstructionsText("Invalid parameter value:\n%s".formatted(
+            errors.stream().map(Object::toString).collect(Collectors.joining("\n"))));
+        return;
+      }
 
       String moduleClassName = selectedModule.getClass().getName();
       String moduleUniqueId = getModuleUniqueId(selectedModule.getClass());

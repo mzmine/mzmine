@@ -80,8 +80,14 @@ public class ParameterOverridesParameter implements
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    // Always valid - can have 0 or more overrides
-    return true;
+
+    boolean check = true;
+    final List<String> myErrors = new ArrayList<>();
+    for (ParameterOverride override : value) {
+      check = check && override.parameterWithValue().checkValue(myErrors);
+    }
+    myErrors.stream().map("Parameter override: %s"::formatted).forEach(errorMessages::add);
+    return check;
   }
 
   @Override
