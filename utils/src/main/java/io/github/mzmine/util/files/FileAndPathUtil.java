@@ -795,11 +795,9 @@ public class FileAndPathUtil {
       // Preferred packaged location for jpackage --app-content on all platforms.
       File extAtMainDir = new File(mainDir, "external_tools/");
       if (extAtMainDir.exists()) {
+        // this route is taken for packaged apps on linux. inside the /lib folder
         return extAtMainDir;
       }
-
-      // Default packaged location even if not present, to keep error messages meaningful.
-      return extAtMainDir;
     }
 
     // Dev-run from module dir: parent project root
