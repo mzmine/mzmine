@@ -777,24 +777,31 @@ public class FileAndPathUtil {
   }
 
   /**
-   * External tools live in the installation main directory /external_tools/
+   * External tools from jpackage --app-content live in
+   * {softwareMainDirectory}/external_tools/
+   * (for Linux installers this is typically {installDir}/lib/external_tools/).
    */
   public static @NotNull File resolveInExternalToolsDir(String path) {
     return new File(getExternalToolsDir(), path);
   }
 
   /**
-   * External tools live in the installation main directory /external_tools/
+   * Resolve external tools for packaged apps and dev runs.
    *
    */
   private static @NotNull File getExternalToolsDir() {
     final File mainDir = FileAndPathUtil.getSoftwareMainDirectory();
     if (mainDir != null) {
-      File extAtAppRoot = new File(mainDir, "external_tools/");
-      if (extAtAppRoot.exists()) {
-        return extAtAppRoot;
+      // Preferred packaged location for jpackage --app-content on all platforms.
+      File extAtMainDir = new File(mainDir, "external_tools/");
+      if (extAtMainDir.exists()) {
+        return extAtMainDir;
       }
+
+      // Default packaged location even if not present, to keep error messages meaningful.
+      return extAtMainDir;
     }
+
     // Dev-run from module dir: parent project root
     File extParent = new File("../external_tools/");
     if (extParent.exists()) {
