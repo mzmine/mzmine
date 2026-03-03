@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
 import javafx.scene.layout.Priority;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -48,6 +49,9 @@ import org.w3c.dom.NodeList;
  */
 public class ParameterOverridesParameter implements
     UserParameter<List<ParameterOverride>, ParameterCustomizationPane> {
+
+  private static final Logger logger = Logger.getLogger(
+      ParameterOverridesParameter.class.getName());
 
   private static final String OVERRIDE_ELEMENT = "override";
   private static final String MODULE_CLASS_ATTR = "moduleClass";
@@ -107,6 +111,12 @@ public class ParameterOverridesParameter implements
           ApplicationScope.values(), ApplicationScope.ALL);
 
       final MZmineModule module = MZmineCore.getInitializedModules().get(moduleClass);
+      if (module == null) {
+        logger.warning("Module class for module " + moduleClass
+            + " does not exist. Batch will not be reproducible.");
+        continue;
+      }
+
       final ParameterSet moduleParameters = ConfigService.getConfiguration()
           .getModuleParameters(module.getClass());
       // clone the parameter
