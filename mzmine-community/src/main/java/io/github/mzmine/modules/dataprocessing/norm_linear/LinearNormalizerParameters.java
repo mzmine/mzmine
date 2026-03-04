@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -26,19 +25,30 @@
 package io.github.mzmine.modules.dataprocessing.norm_linear;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 public class LinearNormalizerParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final StringParameter suffix = new StringParameter("Name suffix",
-      "Suffix to be added to feature list name", "normalized");
+      "Suffix to be added to feature list name", "norm");
+
+  public static final CheckComboParameter<SampleType> sampleTypes = new CheckComboParameter<>(
+      "Reference samples", """
+      Select all sample types that shall be used to calculate the recalibration from.
+      The recalibration of all other samples will be based on the acquisition order, which is
+      determined by the acquisition type column in the metadata (CTRL/CMD + M).
+      """, SampleType.values(), List.of(SampleType.values()));
 
   public static final ComboParameter<NormalizationType> normalizationType = new ComboParameter<NormalizationType>(
       "Normalization type", "Normalize intensities by...", NormalizationType.values());
@@ -52,9 +62,22 @@ public class LinearNormalizerParameters extends SimpleParameterSet {
           + "processed list.\nREMOVE saves memory.", false);
 
   public LinearNormalizerParameters() {
-    super(new Parameter[]{featureLists, suffix, normalizationType, featureMeasurementType,
-            handleOriginal},
+    super(new Parameter[]{featureLists, suffix, sampleTypes, normalizationType,
+            featureMeasurementType, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/norm_linear/norm_linear.html");
   }
 
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 2 ->
+          "Added reference samples parameter to allow interpolation from QCs, updated normalization algorithm (Results will differ from previous results).";
+      default -> null;
+    };
+  }
 }

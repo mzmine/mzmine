@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -28,25 +27,34 @@ package io.github.mzmine.modules.dataprocessing.norm_linear;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
-import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,19 +64,19 @@ class LinearNormalizerTask extends AbstractTask {
 
   private final OriginalFeatureListOption handleOriginal;
 
-  static final float maximumOverallFeatureHeightAfterNormalization = 100000.0f;
-
   private final MZmineProject project;
   private final ModularFeatureList originalFeatureList;
   private ModularFeatureList normalizedFeatureList;
 
-  private int processedDataFiles;
-  private final int totalDataFiles;
+  private final long totalRows;
+  private long processedRows;
 
   private final String suffix;
   private final NormalizationType normalizationType;
   private final AbundanceMeasure abundanceMeasure;
+  private final SampleTypeFilter sampleTypeFilter;
   private final ParameterSet parameters;
+
 
   public LinearNormalizerTask(MZmineProject project, FeatureList featureList,
       ParameterSet parameters, @Nullable MemoryMapStorage storage,
@@ -79,19 +87,19 @@ class LinearNormalizerTask extends AbstractTask {
     this.originalFeatureList = (ModularFeatureList) featureList;
     this.parameters = parameters;
 
-    totalDataFiles = originalFeatureList.getNumberOfRawDataFiles();
-
     suffix = parameters.getParameter(LinearNormalizerParameters.suffix).getValue();
     normalizationType = parameters.getParameter(LinearNormalizerParameters.normalizationType)
         .getValue();
     abundanceMeasure = parameters.getParameter(LinearNormalizerParameters.featureMeasurementType)
         .getValue();
     handleOriginal = parameters.getParameter(LinearNormalizerParameters.handleOriginal).getValue();
-
+    sampleTypeFilter = new SampleTypeFilter(
+        parameters.getParameter(LinearNormalizerParameters.sampleTypes).getValue());
+    totalRows = originalFeatureList.getNumberOfRows();
   }
 
   public double getFinishedPercentage() {
-    return (double) processedDataFiles / (double) totalDataFiles;
+    return (double) processedRows / (double) totalRows;
   }
 
   public String getTaskDescription() {
@@ -103,162 +111,65 @@ class LinearNormalizerTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running linear normalizer");
 
-    // This hashtable maps rows from original alignment result to rows of
-    // the normalized alignment
-    Hashtable<FeatureListRow, ModularFeatureListRow> rowMap = new Hashtable<>();
-
     // Create new feature list
     normalizedFeatureList = new ModularFeatureList(originalFeatureList + " " + suffix,
         getMemoryMapStorage(), originalFeatureList.getRawDataFiles());
     // do not transfer types add them later
-    FeatureListUtils.transferMetadata(originalFeatureList, normalizedFeatureList, false);
+    FeatureListUtils.transferMetadata(originalFeatureList, normalizedFeatureList, true);
 
-    // Loop through all raw data files, and find the feature with biggest
-    // height
-    float maxOriginalHeight = 0f;
-    for (RawDataFile file : originalFeatureList.getRawDataFiles()) {
-      for (FeatureListRow originalFeatureListRow : originalFeatureList.getRows()) {
-        Feature p = originalFeatureListRow.getFeature(file);
-        if (p != null) {
-          if (maxOriginalHeight <= p.getHeight()) {
-            maxOriginalHeight = p.getHeight();
-          }
-        }
-      }
+    final List<RawDataFile> referenceFiles = sampleTypeFilter.filterFiles(
+        originalFeatureList.getRawDataFiles());
+    if (referenceFiles.isEmpty()) {
+      error(
+          "No reference files found for normalization. %s".formatted(sampleTypeFilter.toString()));
+      return;
     }
 
-    // Loop through all raw data files, and normalize feature values
-    for (RawDataFile file : originalFeatureList.getRawDataFiles()) {
+    final Map<@NotNull RawDataFile, @NotNull Double> referenceToNormalizationMetric = referenceFiles.stream()
+        .collect(Collectors.toMap(Function.identity(), this::getNormalizationMetricForFile));
+    final double maxNormalizationMetric = referenceToNormalizationMetric.values().stream()
+        .max(Double::compare).orElse(1d);
 
-      // Cancel?
-      if (isCanceled()) {
-        return;
-      }
+    /// Key: the (reference) data file
+    /// Value: the normalization factor for the reference data file. apply by multiplication with the abundance of the features.
+    final Map<@NotNull RawDataFile, Double> fileToNormFactor = referenceToNormalizationMetric.entrySet()
+        .stream()
+        .collect(Collectors.toMap(Entry::getKey, e -> maxNormalizationMetric / e.getValue()));
 
-      // Determine normalization type and calculate normalization factor
-      float normalizationFactor = 1.0f;
+    final MetadataTable metadata = ProjectService.getMetadata();
 
-      // - normalization by average feature intensity
-      if (normalizationType == NormalizationType.AverageIntensity) {
-        float intensitySum = 0f;
-        int intensityCount = 0;
-        for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
-          Feature p = featureListRow.getFeature(file);
-          if (p != null) {
-            if (abundanceMeasure == AbundanceMeasure.Height) {
-              intensitySum += p.getHeight();
-            } else {
-              intensitySum += p.getArea();
-            }
-            intensityCount++;
-          }
-        }
-        normalizationFactor = intensitySum / (float) intensityCount;
-      }
-
-      // - normalization by average squared feature intensity
-      if (normalizationType == NormalizationType.AverageSquaredIntensity) {
-        float intensitySum = 0f;
-        int intensityCount = 0;
-        for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
-          Feature p = featureListRow.getFeature(file);
-          if (p != null) {
-            if (abundanceMeasure == AbundanceMeasure.Height) {
-              intensitySum += (p.getHeight() * p.getHeight());
-            } else {
-              intensitySum += (p.getArea() * p.getArea());
-            }
-            intensityCount++;
-          }
-        }
-        normalizationFactor = intensitySum / (float) intensityCount;
-      }
-
-      // - normalization by maximum feature intensity
-      if (normalizationType == NormalizationType.MaximumFeatureHeight) {
-        float maximumIntensity = 0;
-        for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
-          Feature p = featureListRow.getFeature(file);
-          if (p != null) {
-            if (abundanceMeasure == AbundanceMeasure.Height) {
-              if (maximumIntensity < p.getHeight()) {
-                maximumIntensity = p.getHeight();
-              }
-            } else {
-              if (maximumIntensity < p.getArea()) {
-                maximumIntensity = p.getArea();
-              }
-            }
-
-          }
-        }
-        normalizationFactor = maximumIntensity;
-      }
-
-      // - normalization by total raw signal
-      if (normalizationType == NormalizationType.TotalRawSignal) {
-        normalizationFactor = 0;
-        for (Scan scan : file.getScanNumbers(1)) {
-          normalizationFactor += Objects.requireNonNullElse(scan.getTIC(), 0f).floatValue();
-        }
-      }
-
-      // Readjust normalization factor so that maximum height will be
-      // equal to maximumOverallFeatureHeightAfterNormalization after
-      // normalization
-      float maxNormalizedHeight = maxOriginalHeight / normalizationFactor;
-      normalizationFactor =
-          normalizationFactor * maxNormalizedHeight / maximumOverallFeatureHeightAfterNormalization;
-
-      // Normalize all peak intenisities using the normalization factor
-      ObservableList<FeatureListRow> rows = originalFeatureList.getRows();
-      for (int i = 0, rowsSize = rows.size(); i < rowsSize; i++) {
-        ModularFeatureListRow originalFeatureListRow = (ModularFeatureListRow) rows.get(i);
-
-        // Cancel?
-        if (isCanceled()) {
-          return;
-        }
-
-        Feature originalFeature = originalFeatureListRow.getFeature(file);
-        if (originalFeature != null) {
-
-          ModularFeature normalizedFeature = new ModularFeature(normalizedFeatureList,
-              originalFeature);
-
-          float normalizedHeight = originalFeature.getHeight() / normalizationFactor;
-          float normalizedArea = originalFeature.getArea() / normalizationFactor;
-          normalizedFeature.setHeight(normalizedHeight);
-          normalizedFeature.setArea(normalizedArea);
-
-          ModularFeatureListRow normalizedRow = rowMap.get(originalFeatureListRow);
-
-          if (normalizedRow == null) {
-
-            normalizedRow = new ModularFeatureListRow(normalizedFeatureList, originalFeatureListRow,
-                false);
-
-            rowMap.put(originalFeatureListRow, normalizedRow);
-          }
-
-          normalizedRow.addFeature(file, normalizedFeature);
-
-        }
-
-      }
-
-      // Progress
-      processedDataFiles++;
-
-    }
-
-    // Finally add all normalized rows to normalized alignment result
-    for (FeatureListRow originalFeatureListRow : originalFeatureList.getRows()) {
-      ModularFeatureListRow normalizedRow = rowMap.get(originalFeatureListRow);
-      if (normalizedRow == null) {
+    final NormalizedAreaType normAreaType = DataTypes.get(NormalizedAreaType.class);
+    final NormalizedHeightType normHeightType = DataTypes.get(NormalizedHeightType.class);
+    normalizedFeatureList.addRowType(normHeightType);
+    normalizedFeatureList.addRowType(normAreaType);
+    for (RawDataFile fileToInterpolate : originalFeatureList.getRawDataFiles()) {
+      if (fileToNormFactor.get(fileToInterpolate) != null) {
         continue;
       }
-      normalizedFeatureList.addRow(normalizedRow);
+
+      final InterpolationWeights result = MetadataTableUtils.extractAcquisitionDateInterpolationWeights(
+          fileToInterpolate, referenceFiles, metadata);
+
+      final double interpolatedNormFactor =
+          result.previousWeight() * fileToNormFactor.get(result.previousRun())
+              + result.nextRunWeight() * fileToNormFactor.get(result.nextRun());
+      fileToNormFactor.put(fileToInterpolate, interpolatedNormFactor);
+    }
+
+    for (final FeatureListRow originalRow : originalFeatureList.getRowsCopy()) {
+      // when we copy features here and set the new height/area directly, we get the best progress
+      // estimate and no hiccups for large feature tables
+      final ModularFeatureListRow newRow = new ModularFeatureListRow(normalizedFeatureList,
+          (ModularFeatureListRow) originalRow, true);
+      normalizedFeatureList.addRow(newRow);
+
+      for (ModularFeature feature : newRow.getFeatures()) {
+        final RawDataFile file = feature.getRawDataFile();
+        final double normFactor = fileToNormFactor.get(file);
+        feature.set(normHeightType, (float) (feature.getHeight() * normFactor));
+        feature.set(normAreaType, (float) (feature.getArea() * normFactor));
+      }
+      processedRows++;
     }
 
     // Add new feature list to the project
@@ -273,6 +184,70 @@ class LinearNormalizerTask extends AbstractTask {
     logger.info("Finished linear normalizer");
     setStatus(TaskStatus.FINISHED);
 
+  }
+
+  private double getNormalizationMetricForFile(RawDataFile file) {
+    return switch (normalizationType) {
+      case AverageIntensity -> {
+        // - normalization by average feature intensity
+        double intensitySum = 0f;
+        int intensityCount = 0;
+        for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
+          ModularFeature p = (ModularFeature) featureListRow.getFeature(file);
+          if (p != null) {
+            intensitySum += abundanceMeasure.get(p);
+            intensityCount++;
+          }
+        }
+        if (Double.compare(intensitySum, 0d) == 0) {
+          throw new IllegalStateException("No features found for file: " + file.getName());
+        }
+        yield intensitySum / (float) Math.max(1, intensityCount);
+      }
+      case AverageSquaredIntensity -> {
+        // - normalization by average squared feature intensity
+        float intensitySum = 0f;
+        int intensityCount = 0;
+        for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
+          ModularFeature p = (ModularFeature) featureListRow.getFeature(file);
+          if (p != null) {
+            final float abundance = abundanceMeasure.get(p);
+            intensitySum += abundance * abundance;
+            intensityCount++;
+          }
+        }
+        if (Double.compare(intensitySum, 0d) == 0) {
+          throw new IllegalStateException("No features found for file: " + file.getName());
+        }
+        yield intensitySum / (double) Math.max(1, intensityCount);
+      }
+      case MaximumFeatureHeight -> {
+        // - normalization by maximum feature intensity
+        double maximumIntensity = 0;
+        for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
+          ModularFeature p = (ModularFeature) featureListRow.getFeature(file);
+          if (p != null) {
+            float abundance = abundanceMeasure.get(p);
+            if (maximumIntensity < abundance) {
+              maximumIntensity = abundance;
+            }
+          }
+        }
+        if (Double.compare(maximumIntensity, 0d) == 0) {
+          throw new IllegalStateException("No features found for file: " + file.getName());
+        }
+        yield maximumIntensity;
+      }
+      case TotalRawSignal -> // - normalization by total raw signal
+      {
+        final double ticSum = file.stream().filter(s -> s.getMSLevel() == 1)
+            .mapToDouble(s -> Objects.requireNonNullElse(s.getTIC(), 0d)).sum();
+        if (Double.compare(ticSum, 0d) == 0) {
+          throw new IllegalStateException("No TIC found for file: " + file.getName());
+        }
+        yield ticSum;
+      }
+    };
   }
 
 }
