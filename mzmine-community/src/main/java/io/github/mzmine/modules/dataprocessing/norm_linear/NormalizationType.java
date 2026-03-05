@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,20 +24,42 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_linear;
 
-public enum NormalizationType {
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
+import org.jetbrains.annotations.NotNull;
 
-  AverageIntensity("Average intensity"), AverageSquaredIntensity(
-      "Average squared intensity"), MaximumFeatureHeight(
-          "Maximum peak intensity"), TotalRawSignal("Total raw signal");
+public enum NormalizationType implements ModuleOptionsEnum<NormalizationTypeModule> {
+
+  AverageIntensity("Average intensity", "linear_average_intensity",
+      AverageIntensityNormalizationTypeModule.class), AverageSquaredIntensity(
+      "Average squared intensity", "linear_average_squared_intensity",
+      AverageSquaredIntensityNormalizationTypeModule.class), MaximumFeatureHeight(
+      "Maximum peak intensity", "linear_maximum_feature_height",
+      MaximumFeatureHeightNormalizationTypeModule.class), TotalRawSignal("Total raw signal",
+      "linear_total_raw_signal", TotalRawSignalNormalizationTypeModule.class);
 
   private final String name;
+  private final String stableId;
+  private final Class<? extends NormalizationTypeModule> moduleClass;
 
-  NormalizationType(String name) {
+  NormalizationType(@NotNull final String name, @NotNull final String stableId,
+      @NotNull final Class<? extends NormalizationTypeModule> moduleClass) {
     this.name = name;
+    this.stableId = stableId;
+    this.moduleClass = moduleClass;
   }
 
+  @Override
+  public @NotNull Class<? extends NormalizationTypeModule> getModuleClass() {
+    return moduleClass;
+  }
+
+  @Override
+  public @NotNull String getStableId() {
+    return stableId;
+  }
+
+  @Override
   public String toString() {
-    return this.name;
+    return name;
   }
-
 }

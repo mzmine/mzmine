@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,8 +51,9 @@ public class LinearNormalizerParameters extends SimpleParameterSet {
       determined by the acquisition type column in the metadata (CTRL/CMD + M).
       """, SampleType.values(), List.of(SampleType.values()));
 
-  public static final ComboParameter<NormalizationType> normalizationType = new ComboParameter<NormalizationType>(
-      "Normalization type", "Normalize intensities by...", NormalizationType.values());
+  public static final ModuleOptionsEnumComboParameter<NormalizationType> normalizationType = new ModuleOptionsEnumComboParameter<>(
+      "Normalization type", "Normalize intensities by...", NormalizationType.AverageIntensity);
+
 
   public static final ComboParameter<AbundanceMeasure> featureMeasurementType = new ComboParameter<AbundanceMeasure>(
       "Feature measurement type", "Measure features using", AbundanceMeasure.values());
@@ -69,12 +71,14 @@ public class LinearNormalizerParameters extends SimpleParameterSet {
 
   @Override
   public int getVersion() {
-    return 2;
+    return 3;
   }
 
   @Override
   public @Nullable String getVersionMessage(int version) {
     return switch (version) {
+      case 3 ->
+          "Normalization type was migrated to module options and now stores method-specific parameters.";
       case 2 ->
           "Added reference samples parameter to allow interpolation from QCs, updated normalization algorithm (Results will differ from previous results).";
       default -> null;

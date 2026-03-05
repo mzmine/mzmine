@@ -24,7 +24,6 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_linear;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -42,6 +41,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTabl
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -50,11 +50,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.function.Function;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,9 +69,10 @@ class LinearNormalizerTask extends AbstractTask {
 
   private final String suffix;
   private final NormalizationType normalizationType;
-  private final AbundanceMeasure abundanceMeasure;
+  private final NormalizationTypeModule normalizationTypeModule;
+  private final ParameterSet normalizationTypeModuleParameters;
   private final SampleTypeFilter sampleTypeFilter;
-  private final ParameterSet parameters;
+  private final ParameterSet mainParameters;
 
 
   public LinearNormalizerTask(MZmineProject project, FeatureList featureList,
@@ -85,13 +82,14 @@ class LinearNormalizerTask extends AbstractTask {
 
     this.project = project;
     this.originalFeatureList = (ModularFeatureList) featureList;
-    this.parameters = parameters;
+    this.mainParameters = parameters;
 
     suffix = parameters.getParameter(LinearNormalizerParameters.suffix).getValue();
-    normalizationType = parameters.getParameter(LinearNormalizerParameters.normalizationType)
-        .getValue();
-    abundanceMeasure = parameters.getParameter(LinearNormalizerParameters.featureMeasurementType)
-        .getValue();
+    final ValueWithParameters<NormalizationType> normalizationTypeWithParameters = parameters.getParameter(
+        LinearNormalizerParameters.normalizationType).getValueWithParameters();
+    normalizationType = normalizationTypeWithParameters.value();
+    normalizationTypeModule = normalizationType.getModuleInstance();
+    normalizationTypeModuleParameters = normalizationTypeWithParameters.parameters();
     handleOriginal = parameters.getParameter(LinearNormalizerParameters.handleOriginal).getValue();
     sampleTypeFilter = new SampleTypeFilter(
         parameters.getParameter(LinearNormalizerParameters.sampleTypes).getValue());
@@ -125,35 +123,32 @@ class LinearNormalizerTask extends AbstractTask {
       return;
     }
 
-    final Map<@NotNull RawDataFile, @NotNull Double> referenceToNormalizationMetric = referenceFiles.stream()
-        .collect(Collectors.toMap(Function.identity(), this::getNormalizationMetricForFile));
-    final double maxNormalizationMetric = referenceToNormalizationMetric.values().stream()
-        .max(Double::compare).orElse(1d);
-
-    /// Key: the (reference) data file
-    /// Value: the normalization factor for the reference data file. apply by multiplication with the abundance of the features.
-    final Map<@NotNull RawDataFile, Double> fileToNormFactor = referenceToNormalizationMetric.entrySet()
-        .stream()
-        .collect(Collectors.toMap(Entry::getKey, e -> maxNormalizationMetric / e.getValue()));
-
     final MetadataTable metadata = ProjectService.getMetadata();
+    final Map<@NotNull RawDataFile, @NotNull NormalizationFunction> fileToFunction = normalizationTypeModule.createReferenceFunctions(
+        referenceFiles, originalFeatureList, metadata, mainParameters,
+        normalizationTypeModuleParameters);
 
     final NormalizedAreaType normAreaType = DataTypes.get(NormalizedAreaType.class);
     final NormalizedHeightType normHeightType = DataTypes.get(NormalizedHeightType.class);
     normalizedFeatureList.addRowType(normHeightType);
     normalizedFeatureList.addRowType(normAreaType);
-    for (RawDataFile fileToInterpolate : originalFeatureList.getRawDataFiles()) {
-      if (fileToNormFactor.get(fileToInterpolate) != null) {
+    for (final RawDataFile fileToInterpolate : originalFeatureList.getRawDataFiles()) {
+      if (fileToFunction.containsKey(fileToInterpolate)) {
         continue;
       }
 
       final InterpolationWeights result = MetadataTableUtils.extractAcquisitionDateInterpolationWeights(
           fileToInterpolate, referenceFiles, metadata);
-
-      final double interpolatedNormFactor =
-          result.previousWeight() * fileToNormFactor.get(result.previousRun())
-              + result.nextRunWeight() * fileToNormFactor.get(result.nextRun());
-      fileToNormFactor.put(fileToInterpolate, interpolatedNormFactor);
+      final NormalizationFunction previousFunction = fileToFunction.get(result.previousRun());
+      final NormalizationFunction nextFunction = fileToFunction.get(result.nextRun());
+      if (previousFunction == null || nextFunction == null) {
+        throw new IllegalStateException("No reference normalization functions available for file: "
+            + fileToInterpolate.getName());
+      }
+      final NormalizationFunction interpolatedFunction = normalizationTypeModule.createInterpolatedFunction(
+          fileToInterpolate, previousFunction, nextFunction, result, metadata, mainParameters,
+          normalizationTypeModuleParameters);
+      fileToFunction.put(fileToInterpolate, interpolatedFunction);
     }
 
     for (final FeatureListRow originalRow : originalFeatureList.getRowsCopy()) {
@@ -165,7 +160,20 @@ class LinearNormalizerTask extends AbstractTask {
 
       for (ModularFeature feature : newRow.getFeatures()) {
         final RawDataFile file = feature.getRawDataFile();
-        final double normFactor = fileToNormFactor.get(file);
+        final NormalizationFunction normalizationFunction = fileToFunction.get(file);
+        if (normalizationFunction == null) {
+          throw new IllegalStateException(
+              "No normalization function available for file: " + file.getName());
+        }
+        final Double mz = feature.getMZ();
+        if (mz == null) {
+          throw new IllegalStateException("No m/z found for feature in file: " + file.getName());
+        }
+        final Float rt = feature.getRT();
+        if (rt == null) {
+          throw new IllegalStateException("No RT found for feature in file: " + file.getName());
+        }
+        final double normFactor = normalizationFunction.getFactor(mz, rt);
         feature.set(normHeightType, (float) (feature.getHeight() * normFactor));
         feature.set(normAreaType, (float) (feature.getArea() * normFactor));
       }
@@ -179,75 +187,10 @@ class LinearNormalizerTask extends AbstractTask {
     // Add task description to feature List
     normalizedFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Linear normalization of by " + normalizationType,
-            LinearNormalizerModule.class, parameters, getModuleCallDate()));
+            LinearNormalizerModule.class, mainParameters, getModuleCallDate()));
 
     logger.info("Finished linear normalizer");
     setStatus(TaskStatus.FINISHED);
 
   }
-
-  private double getNormalizationMetricForFile(RawDataFile file) {
-    return switch (normalizationType) {
-      case AverageIntensity -> {
-        // - normalization by average feature intensity
-        double intensitySum = 0f;
-        int intensityCount = 0;
-        for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
-          ModularFeature p = (ModularFeature) featureListRow.getFeature(file);
-          if (p != null) {
-            intensitySum += abundanceMeasure.get(p);
-            intensityCount++;
-          }
-        }
-        if (Double.compare(intensitySum, 0d) == 0) {
-          throw new IllegalStateException("No features found for file: " + file.getName());
-        }
-        yield intensitySum / (float) Math.max(1, intensityCount);
-      }
-      case AverageSquaredIntensity -> {
-        // - normalization by average squared feature intensity
-        float intensitySum = 0f;
-        int intensityCount = 0;
-        for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
-          ModularFeature p = (ModularFeature) featureListRow.getFeature(file);
-          if (p != null) {
-            final float abundance = abundanceMeasure.get(p);
-            intensitySum += abundance * abundance;
-            intensityCount++;
-          }
-        }
-        if (Double.compare(intensitySum, 0d) == 0) {
-          throw new IllegalStateException("No features found for file: " + file.getName());
-        }
-        yield intensitySum / (double) Math.max(1, intensityCount);
-      }
-      case MaximumFeatureHeight -> {
-        // - normalization by maximum feature intensity
-        double maximumIntensity = 0;
-        for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
-          ModularFeature p = (ModularFeature) featureListRow.getFeature(file);
-          if (p != null) {
-            float abundance = abundanceMeasure.get(p);
-            if (maximumIntensity < abundance) {
-              maximumIntensity = abundance;
-            }
-          }
-        }
-        if (Double.compare(maximumIntensity, 0d) == 0) {
-          throw new IllegalStateException("No features found for file: " + file.getName());
-        }
-        yield maximumIntensity;
-      }
-      case TotalRawSignal -> // - normalization by total raw signal
-      {
-        final double ticSum = file.stream().filter(s -> s.getMSLevel() == 1)
-            .mapToDouble(s -> Objects.requireNonNullElse(s.getTIC(), 0d)).sum();
-        if (Double.compare(ticSum, 0d) == 0) {
-          throw new IllegalStateException("No TIC found for file: " + file.getName());
-        }
-        yield ticSum;
-      }
-    };
-  }
-
 }
