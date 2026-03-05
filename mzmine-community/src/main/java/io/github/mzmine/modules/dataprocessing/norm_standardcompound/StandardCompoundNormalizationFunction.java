@@ -54,7 +54,7 @@ public class StandardCompoundNormalizationFunction implements NormalizationFunct
   }
 
   @Override
-  public @NotNull RawDataFilePlaceholder getReferenceFilePlaceholder() {
+  public @NotNull RawDataFilePlaceholder getRawDataFilePlaceholder() {
     return referenceFilePlaceholder;
   }
 

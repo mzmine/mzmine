@@ -35,13 +35,13 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface NormalizationFunction {
 
-  @NotNull RawDataFilePlaceholder getReferenceFilePlaceholder();
+  @NotNull RawDataFilePlaceholder getRawDataFilePlaceholder();
 
   @NotNull LocalDateTime getAcquisitionTimestamp();
 
   double getFactor(@NotNull Double mz, @NotNull Float rt);
 
-  default @Nullable RawDataFile getReferenceRawDataFile() {
-    return getReferenceFilePlaceholder().getMatchingFile();
+  default @Nullable RawDataFile getRawDataFile() {
+    return getRawDataFilePlaceholder().getMatchingFile();
   }
 }

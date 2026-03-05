@@ -54,7 +54,7 @@ public class InterpolatedNormalizationFunction implements NormalizationFunction 
   }
 
   @Override
-  public @NotNull RawDataFilePlaceholder getReferenceFilePlaceholder() {
+  public @NotNull RawDataFilePlaceholder getRawDataFilePlaceholder() {
     return referenceFilePlaceholder;
   }
 

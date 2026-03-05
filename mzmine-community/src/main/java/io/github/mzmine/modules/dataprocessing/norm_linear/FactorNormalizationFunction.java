@@ -34,27 +34,27 @@ import org.jetbrains.annotations.NotNull;
  */
 public class FactorNormalizationFunction implements NormalizationFunction {
 
-  private final RawDataFilePlaceholder referenceFilePlaceholder;
+  private final RawDataFilePlaceholder rawDataFilePlaceholder;
   private final LocalDateTime acquisitionTimestamp;
   private final double factor;
 
   public FactorNormalizationFunction(@NotNull final RawDataFile referenceFile,
       @NotNull final LocalDateTime acquisitionTimestamp, final double factor) {
-    this.referenceFilePlaceholder = new RawDataFilePlaceholder(referenceFile);
+    this.rawDataFilePlaceholder = new RawDataFilePlaceholder(referenceFile);
     this.acquisitionTimestamp = acquisitionTimestamp;
     this.factor = factor;
   }
 
-  public FactorNormalizationFunction(@NotNull final RawDataFilePlaceholder referenceFilePlaceholder,
+  public FactorNormalizationFunction(@NotNull final RawDataFilePlaceholder rawDataFilePlaceholder,
       @NotNull final LocalDateTime acquisitionTimestamp, final double factor) {
-    this.referenceFilePlaceholder = referenceFilePlaceholder;
+    this.rawDataFilePlaceholder = rawDataFilePlaceholder;
     this.acquisitionTimestamp = acquisitionTimestamp;
     this.factor = factor;
   }
 
   @Override
-  public @NotNull RawDataFilePlaceholder getReferenceFilePlaceholder() {
-    return referenceFilePlaceholder;
+  public @NotNull RawDataFilePlaceholder getRawDataFilePlaceholder() {
+    return rawDataFilePlaceholder;
   }
 
   @Override
