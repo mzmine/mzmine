@@ -22,10 +22,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_standardcompound;
+package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.dataprocessing.norm_linear.NormalizationFunction;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class StandardCompoundNormalizationFunction implements NormalizationFunction {
 
-  private final RawDataFilePlaceholder referenceFilePlaceholder;
+  private final RawDataFilePlaceholder rawDataFilePlaceholder;
   private final LocalDateTime acquisitionTimestamp;
   private final StandardUsageType usageType;
   private final double mzVsRtBalance;
@@ -46,7 +45,7 @@ public class StandardCompoundNormalizationFunction implements NormalizationFunct
       @NotNull final LocalDateTime acquisitionTimestamp, @NotNull final StandardUsageType usageType,
       final double mzVsRtBalance,
       @NotNull final List<StandardCompoundReferencePoint> referencePoints) {
-    this.referenceFilePlaceholder = new RawDataFilePlaceholder(referenceFile);
+    this.rawDataFilePlaceholder = new RawDataFilePlaceholder(referenceFile);
     this.acquisitionTimestamp = acquisitionTimestamp;
     this.usageType = usageType;
     this.mzVsRtBalance = mzVsRtBalance;
@@ -55,7 +54,7 @@ public class StandardCompoundNormalizationFunction implements NormalizationFunct
 
   @Override
   public @NotNull RawDataFilePlaceholder getRawDataFilePlaceholder() {
-    return referenceFilePlaceholder;
+    return rawDataFilePlaceholder;
   }
 
   @Override
@@ -94,12 +93,35 @@ public class StandardCompoundNormalizationFunction implements NormalizationFunct
   }
 
   private double getWeightedStandardAbundance(final double mz, final float rt) {
+    // decision: direct standard hits should dominate weighted interpolation.
+    double directMatchSum = 0.0d;
+    int directMatchCount = 0;
     double weightedSum = 0.0d;
     double sumOfWeights = 0.0d;
+
     for (final StandardCompoundReferencePoint point : referencePoints) {
-      final double weight = point.missingInFile() ? 0.0d : 1.0d / calcDistance(mz, rt, point);
+      if (point.missingInFile()) {
+        continue;
+      }
+
+      final double distance = calcDistance(mz, rt, point);
+      if (distance == 0.0d) {
+        directMatchSum += point.abundance();
+        directMatchCount++;
+        continue;
+      }
+
+      final double weight = 1.0d / distance;
       weightedSum += point.abundance() * weight;
       sumOfWeights += weight;
+    }
+
+    if (directMatchCount > 0) {
+      return directMatchSum / directMatchCount;
+    }
+    if (sumOfWeights == 0.0d) {
+      // decision: keep legacy missing-standard behavior (factor of 1) when all standards are missing.
+      return 1.0d;
     }
     return weightedSum / sumOfWeights;
   }
@@ -109,3 +131,4 @@ public class StandardCompoundNormalizationFunction implements NormalizationFunct
     return mzVsRtBalance * Math.abs(mz - point.mz()) + Math.abs(rt - point.rt());
   }
 }
+

@@ -22,48 +22,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_linear;
+package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import java.time.LocalDateTime;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Factor normalization function represented by one global factor.
+ * Function that returns a normalization factor for specific feature coordinates.
  */
-public class FactorNormalizationFunction implements NormalizationFunction {
+public interface NormalizationFunction {
 
-  private final RawDataFilePlaceholder rawDataFilePlaceholder;
-  private final LocalDateTime acquisitionTimestamp;
-  private final double factor;
+  @NotNull RawDataFilePlaceholder getRawDataFilePlaceholder();
 
-  public FactorNormalizationFunction(@NotNull final RawDataFile referenceFile,
-      @NotNull final LocalDateTime acquisitionTimestamp, final double factor) {
-    this.rawDataFilePlaceholder = new RawDataFilePlaceholder(referenceFile);
-    this.acquisitionTimestamp = acquisitionTimestamp;
-    this.factor = factor;
+  @NotNull LocalDateTime getAcquisitionTimestamp();
+
+  double getFactor(@NotNull Double mz, @NotNull Float rt);
+
+  default @Nullable RawDataFile getRawDataFile() {
+    return getRawDataFilePlaceholder().getMatchingFile();
   }
 
-  public FactorNormalizationFunction(@NotNull final RawDataFilePlaceholder rawDataFilePlaceholder,
-      @NotNull final LocalDateTime acquisitionTimestamp, final double factor) {
-    this.rawDataFilePlaceholder = rawDataFilePlaceholder;
-    this.acquisitionTimestamp = acquisitionTimestamp;
-    this.factor = factor;
-  }
-
-  @Override
-  public @NotNull RawDataFilePlaceholder getRawDataFilePlaceholder() {
-    return rawDataFilePlaceholder;
-  }
-
-  @Override
-  public @NotNull LocalDateTime getAcquisitionTimestamp() {
-    return acquisitionTimestamp;
-  }
-
-  @Override
-  public double getFactor(@NotNull final Double mz, @NotNull final Float rt) {
-    return factor;
-  }
 }

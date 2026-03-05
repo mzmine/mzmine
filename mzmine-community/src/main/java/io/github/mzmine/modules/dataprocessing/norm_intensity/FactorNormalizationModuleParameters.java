@@ -22,26 +22,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_linear;
+package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
-import java.time.LocalDateTime;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
+import java.util.List;
 
-/**
- * Function that returns a normalization factor for specific feature coordinates.
- */
-public interface NormalizationFunction {
+public class FactorNormalizationModuleParameters extends SimpleParameterSet {
 
-  @NotNull RawDataFilePlaceholder getRawDataFilePlaceholder();
+  public static final CheckComboParameter<SampleType> sampleTypes = new CheckComboParameter<>(
+      "Reference samples", """
+      Select all sample types that shall be used to calculate the recalibration from.
+      The recalibration of all other samples will be based on the acquisition order, which is
+      determined by the acquisition type column in the metadata (CTRL/CMD + M).
+      """, SampleType.values(), List.of(SampleType.QC));
 
-  @NotNull LocalDateTime getAcquisitionTimestamp();
-
-  double getFactor(@NotNull Double mz, @NotNull Float rt);
-
-  default @Nullable RawDataFile getRawDataFile() {
-    return getRawDataFilePlaceholder().getMatchingFile();
+  public FactorNormalizationModuleParameters() {
+    super(sampleTypes);
   }
 }

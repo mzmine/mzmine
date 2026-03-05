@@ -22,9 +22,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_linear;
+package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
@@ -49,4 +50,7 @@ public interface NormalizationTypeModule extends MZmineModule {
       @NotNull NormalizationFunction nextRunCalibration,
       @NotNull InterpolationWeights interpolationWeights, @NotNull MetadataTable metadata,
       @NotNull ParameterSet parameters, @NotNull ParameterSet normalizerParameters);
+
+  @NotNull List<RawDataFile> getReferenceSamples(@NotNull final FeatureList flist,
+      @NotNull final ParameterSet normalizationModuleParameters);
 }

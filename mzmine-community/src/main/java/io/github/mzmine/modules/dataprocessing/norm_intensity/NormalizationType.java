@@ -22,20 +22,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_linear;
+package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 import org.jetbrains.annotations.NotNull;
 
 public enum NormalizationType implements ModuleOptionsEnum<NormalizationTypeModule> {
 
-  AverageIntensity("Average intensity", "linear_average_intensity",
+  AverageIntensity("Average intensity", "average_intensity",
       AverageIntensityNormalizationTypeModule.class), AverageSquaredIntensity(
-      "Average squared intensity", "linear_average_squared_intensity",
+      "Average squared intensity", "average_squared_intensity",
       AverageSquaredIntensityNormalizationTypeModule.class), MaximumFeatureHeight(
-      "Maximum peak intensity", "linear_maximum_feature_height",
+      "Maximum peak intensity", "maximum_feature_height",
       MaximumFeatureHeightNormalizationTypeModule.class), TotalRawSignal("Total raw signal",
-      "linear_total_raw_signal", TotalRawSignalNormalizationTypeModule.class);
+      "total_raw_signal", TotalRawSignalNormalizationTypeModule.class), StandardCompounds(
+      "Standard compounds", "standard_compounds", StandardCompoundNormalizationTypeModule.class);
 
   private final String name;
   private final String stableId;

@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_linear;
+package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
@@ -30,32 +30,31 @@ import java.time.LocalDateTime;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Interpolates two normalization functions by weighting their returned feature factors.
+ * Factor normalization function represented by one global factor.
  */
-public class InterpolatedNormalizationFunction implements NormalizationFunction {
+public class FactorNormalizationFunction implements NormalizationFunction {
 
-  private final RawDataFilePlaceholder referenceFilePlaceholder;
+  private final RawDataFilePlaceholder rawDataFilePlaceholder;
   private final LocalDateTime acquisitionTimestamp;
-  private final NormalizationFunction previousFunction;
-  private final double previousWeight;
-  private final NormalizationFunction nextFunction;
-  private final double nextWeight;
+  private final double factor;
 
-  public InterpolatedNormalizationFunction(@NotNull final RawDataFile targetFile,
-      @NotNull final LocalDateTime acquisitionTimestamp,
-      @NotNull final NormalizationFunction previousFunction, final double previousWeight,
-      @NotNull final NormalizationFunction nextFunction, final double nextWeight) {
-    this.referenceFilePlaceholder = new RawDataFilePlaceholder(targetFile);
+  public FactorNormalizationFunction(@NotNull final RawDataFile referenceFile,
+      @NotNull final LocalDateTime acquisitionTimestamp, final double factor) {
+    this.rawDataFilePlaceholder = new RawDataFilePlaceholder(referenceFile);
     this.acquisitionTimestamp = acquisitionTimestamp;
-    this.previousFunction = previousFunction;
-    this.previousWeight = previousWeight;
-    this.nextFunction = nextFunction;
-    this.nextWeight = nextWeight;
+    this.factor = factor;
+  }
+
+  public FactorNormalizationFunction(@NotNull final RawDataFilePlaceholder rawDataFilePlaceholder,
+      @NotNull final LocalDateTime acquisitionTimestamp, final double factor) {
+    this.rawDataFilePlaceholder = rawDataFilePlaceholder;
+    this.acquisitionTimestamp = acquisitionTimestamp;
+    this.factor = factor;
   }
 
   @Override
   public @NotNull RawDataFilePlaceholder getRawDataFilePlaceholder() {
-    return referenceFilePlaceholder;
+    return rawDataFilePlaceholder;
   }
 
   @Override
@@ -65,7 +64,6 @@ public class InterpolatedNormalizationFunction implements NormalizationFunction 
 
   @Override
   public double getFactor(@NotNull final Double mz, @NotNull final Float rt) {
-    return previousFunction.getFactor(mz, rt) * previousWeight
-        + nextFunction.getFactor(mz, rt) * nextWeight;
+    return factor;
   }
 }

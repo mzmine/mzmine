@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_standardcompound;
+package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -86,4 +86,18 @@ class StandardCompoundNormalizationFunctionTest {
 
     assertEquals(0.5d, factor, 1e-12);
   }
+
+  @Test
+  void weightedUsesDirectMatchesBeforeDistanceWeights() {
+    final RawDataFile file = RawDataFile.createDummyFile();
+    final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
+        file, LocalDateTime.of(2026, 1, 1, 10, 0), StandardUsageType.Weighted, 1.0d,
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 250d, false),
+            new StandardCompoundReferencePoint(100d, 8f, 500d, false)));
+
+    final double factor = function.getFactor(100d, 5f);
+
+    assertEquals(0.4d, factor, 1e-12);
+  }
 }
+

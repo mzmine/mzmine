@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_linear;
+package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -45,7 +45,7 @@ public class AverageIntensityNormalizationTypeModule extends AbstractFactorNorma
       @NotNull final ParameterSet linearNormalizerParameters,
       @NotNull final ParameterSet moduleSpecificParameters) {
     final AbundanceMeasure abundanceMeasure = linearNormalizerParameters.getValue(
-        LinearNormalizerParameters.featureMeasurementType);
+        IntensityNormalizerParameters.featureMeasurementType);
     if (abundanceMeasure == null) {
       throw new IllegalStateException("No feature abundance measure selected for normalization.");
     }

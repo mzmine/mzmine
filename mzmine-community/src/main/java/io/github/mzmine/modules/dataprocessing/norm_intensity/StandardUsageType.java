@@ -22,31 +22,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_linear;
+package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.parameters.ParameterSet;
-import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
+public enum StandardUsageType {
 
-public class TotalRawSignalNormalizationTypeModule extends AbstractFactorNormalizationTypeModule {
+  Nearest("Nearest standard"), Weighted("Weighted contribution of all standards");
 
-  @Override
-  public @NotNull String getName() {
-    return "Total raw signal";
+  private final String name;
+
+  StandardUsageType(final String name) {
+    this.name = name;
   }
 
   @Override
-  protected double getNormalizationMetricForFile(@NotNull final RawDataFile file,
-      @NotNull final ModularFeatureList featureList,
-      @NotNull final ParameterSet linearNormalizerParameters,
-      @NotNull final ParameterSet moduleSpecificParameters) {
-    final double ticSum = file.stream().filter(scan -> scan.getMSLevel() == 1)
-        .mapToDouble(scan -> Objects.requireNonNullElse(scan.getTIC(), 0d)).sum();
-    if (Double.compare(ticSum, 0d) == 0) {
-      throw new IllegalStateException("No TIC found for file: " + file.getName());
-    }
-    return ticSum;
+  public String toString() {
+    return name;
   }
 }
+

@@ -22,15 +22,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_linear;
+package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +45,16 @@ public abstract class AbstractFactorNormalizationTypeModule implements Normaliza
 
   @Override
   public final @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return SimpleParameterSet.class;
+    return FactorNormalizationModuleParameters.class;
+  }
+
+  @NotNull
+  public List<RawDataFile> getReferenceSamples(@NotNull final FeatureList flist,
+      @NotNull final ParameterSet normalizationModuleParameters) {
+    final var sampleTypeFilter = new SampleTypeFilter(
+        normalizationModuleParameters.getParameter(FactorNormalizationModuleParameters.sampleTypes)
+            .getValue());
+    return sampleTypeFilter.filterFiles(flist.getRawDataFiles());
   }
 
   @Override

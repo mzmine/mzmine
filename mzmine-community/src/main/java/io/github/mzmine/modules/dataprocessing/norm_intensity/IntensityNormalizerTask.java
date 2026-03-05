@@ -22,7 +22,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_linear;
+package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
-import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
@@ -54,9 +53,9 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class LinearNormalizerTask extends AbstractTask {
+class IntensityNormalizerTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(LinearNormalizerTask.class.getName());
+  private static final Logger logger = Logger.getLogger(IntensityNormalizerTask.class.getName());
 
   private final OriginalFeatureListOption handleOriginal;
 
@@ -71,11 +70,10 @@ class LinearNormalizerTask extends AbstractTask {
   private final NormalizationType normalizationType;
   private final NormalizationTypeModule normalizationTypeModule;
   private final ParameterSet normalizationTypeModuleParameters;
-  private final SampleTypeFilter sampleTypeFilter;
   private final ParameterSet mainParameters;
 
 
-  public LinearNormalizerTask(MZmineProject project, FeatureList featureList,
+  public IntensityNormalizerTask(MZmineProject project, FeatureList featureList,
       ParameterSet parameters, @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate); // no new data stored -> null
@@ -84,15 +82,14 @@ class LinearNormalizerTask extends AbstractTask {
     this.originalFeatureList = (ModularFeatureList) featureList;
     this.mainParameters = parameters;
 
-    suffix = parameters.getParameter(LinearNormalizerParameters.suffix).getValue();
+    suffix = parameters.getParameter(IntensityNormalizerParameters.suffix).getValue();
     final ValueWithParameters<NormalizationType> normalizationTypeWithParameters = parameters.getParameter(
-        LinearNormalizerParameters.normalizationType).getValueWithParameters();
+        IntensityNormalizerParameters.normalizationType).getValueWithParameters();
     normalizationType = normalizationTypeWithParameters.value();
     normalizationTypeModule = normalizationType.getModuleInstance();
     normalizationTypeModuleParameters = normalizationTypeWithParameters.parameters();
-    handleOriginal = parameters.getParameter(LinearNormalizerParameters.handleOriginal).getValue();
-    sampleTypeFilter = new SampleTypeFilter(
-        parameters.getParameter(LinearNormalizerParameters.sampleTypes).getValue());
+    handleOriginal = parameters.getParameter(IntensityNormalizerParameters.handleOriginal)
+        .getValue();
     totalRows = originalFeatureList.getNumberOfRows();
   }
 
@@ -115,11 +112,11 @@ class LinearNormalizerTask extends AbstractTask {
     // do not transfer types add them later
     FeatureListUtils.transferMetadata(originalFeatureList, normalizedFeatureList, true);
 
-    final List<RawDataFile> referenceFiles = sampleTypeFilter.filterFiles(
-        originalFeatureList.getRawDataFiles());
+    final List<RawDataFile> referenceFiles = normalizationTypeModule.getReferenceSamples(
+        normalizedFeatureList, normalizationTypeModuleParameters);
     if (referenceFiles.isEmpty()) {
-      error(
-          "No reference files found for normalization. %s".formatted(sampleTypeFilter.toString()));
+      error("No reference files found for normalization. %s: %s".formatted(
+          normalizationTypeModule.getName(), normalizationTypeModuleParameters.toString()));
       return;
     }
 
@@ -187,7 +184,7 @@ class LinearNormalizerTask extends AbstractTask {
     // Add task description to feature List
     normalizedFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Linear normalization of by " + normalizationType,
-            LinearNormalizerModule.class, mainParameters, getModuleCallDate()));
+            IntensityNormalizerModule.class, mainParameters, getModuleCallDate()));
 
     logger.info("Finished linear normalizer");
     setStatus(TaskStatus.FINISHED);
