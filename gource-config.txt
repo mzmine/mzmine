@@ -1,0 +1,9 @@
+[gource]
+auto-skip-seconds=0.5
+seconds-per-day=0.05
+file-show-filter=.*\.(java|html|fxml|css)
+hide=filenames
+highlight-users=true
+key=true
+logo=logo/MZmine_logo_white_small.png
+user-image-dir=users/
