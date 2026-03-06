@@ -30,7 +30,9 @@ import org.jetbrains.annotations.NotNull;
 public enum NormalizationType implements ModuleOptionsEnum<NormalizationTypeModule> {
 
   AverageIntensity("Average intensity", "average_intensity",
-      AverageIntensityNormalizationTypeModule.class), AverageSquaredIntensity(
+      AverageIntensityNormalizationTypeModule.class), MedianFeatureIntensity(
+      "Median feature intensity", "median_feature_intensity",
+      MedianFeatureIntensityNormalizationTypeModule.class), AverageSquaredIntensity(
       "Average squared intensity", "average_squared_intensity",
       AverageSquaredIntensityNormalizationTypeModule.class), MaximumFeatureHeight(
       "Maximum peak intensity", "maximum_feature_height",
