@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -41,6 +40,8 @@ import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportParameters;
@@ -52,6 +53,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParame
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
@@ -313,4 +315,21 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         param));
   }
 
+  protected void makeAndAddRetentionTimeCalibration(BatchQueue q, MZTolerance mzTolInterSample,
+      RTTolerance interSampleRtTol, OriginalFeatureListOption handleOriginalFeatureLists) {
+
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(RTCorrectionModule.class).cloneParameterSet();
+    param.setParameter(RTCorrectionParameters.featureLists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(RTCorrectionParameters.MZTolerance, mzTolInterSample);
+    param.setParameter(RTCorrectionParameters.RTTolerance, interSampleRtTol);
+    param.setParameter(RTCorrectionParameters.minHeight, minFeatureHeight);
+    param.setParameter(RTCorrectionParameters.handleOriginal, handleOriginalFeatureLists);
+    param.setParameter(RTCorrectionParameters.suffix, "rt_cal");
+
+    MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(RTCorrectionModule.class), param);
+    q.add(step);
+  }
 }
