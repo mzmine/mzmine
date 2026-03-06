@@ -30,7 +30,6 @@ import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Label;
@@ -146,35 +145,6 @@ public class NormalizationFunctionsParameter implements
 
   private static boolean normalizationFunctionsEqual(final @NotNull NormalizationFunction first,
       final @NotNull NormalizationFunction second) {
-    if (!first.rawDataFilePlaceholder().equals(second.rawDataFilePlaceholder())
-        || !first.acquisitionTimestamp().equals(second.acquisitionTimestamp())) {
-      return false;
-    }
-
-    if (first instanceof final FactorNormalizationFunction firstFactor
-        && second instanceof final FactorNormalizationFunction secondFactor) {
-      return Double.compare(firstFactor.getConstantFactor(), secondFactor.getConstantFactor()) == 0;
-    }
-
-    if (first instanceof final StandardCompoundNormalizationFunction firstStandard
-        && second instanceof final StandardCompoundNormalizationFunction secondStandard) {
-      return firstStandard.usageType() == secondStandard.usageType()
-          && Double.compare(firstStandard.mzVsRtBalance(), secondStandard.mzVsRtBalance()) == 0
-          && firstStandard.referencePoints().equals(secondStandard.referencePoints());
-    }
-
-    if (first instanceof final InterpolatedNormalizationFunction firstInterpolated
-        && second instanceof final InterpolatedNormalizationFunction secondInterpolated) {
-      return Double.compare(firstInterpolated.getPreviousWeight(),
-          secondInterpolated.getPreviousWeight()) == 0
-          && Double.compare(firstInterpolated.getNextWeight(), secondInterpolated.getNextWeight())
-          == 0 && normalizationFunctionsEqual(firstInterpolated.getPreviousFunction(),
-          secondInterpolated.getPreviousFunction()) && normalizationFunctionsEqual(
-          firstInterpolated.getNextFunction(), secondInterpolated.getNextFunction());
-    }
-
-    // decision: unhandled future function implementations are considered unequal until explicitly mapped.
-    return Objects.equals(first.getClass(), second.getClass())
-        && Double.compare(first.getFactor(0d, 0f), second.getFactor(0d, 0f)) == 0;
+    return first.equals(second);
   }
 }

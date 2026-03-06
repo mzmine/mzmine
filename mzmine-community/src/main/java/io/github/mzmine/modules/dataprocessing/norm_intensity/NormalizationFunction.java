@@ -39,7 +39,9 @@ import org.w3c.dom.NodeList;
 /**
  * Function that returns a normalization factor for specific feature coordinates.
  */
-public interface NormalizationFunction extends UniqueIdSupplier {
+public sealed interface NormalizationFunction extends UniqueIdSupplier permits
+    FactorNormalizationFunction, StandardCompoundNormalizationFunction,
+    InterpolatedNormalizationFunction {
 
   String XML_FUNCTION_ELEMENT = "normalizationFunction";
   String XML_FUNCTION_TYPE_ATTR = "type";

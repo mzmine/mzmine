@@ -25,9 +25,11 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -38,6 +40,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -91,8 +94,8 @@ class NormalizationFunctionsParameterTest {
         InterpolatedNormalizationFunction.class, loadedFunctions.get(2));
     assertEquals("target_file", loadedInterpolated.rawDataFilePlaceholder().getName());
     assertEquals(interpolatedTimestamp, loadedInterpolated.acquisitionTimestamp());
-    assertEquals(0.25d, loadedInterpolated.getPreviousWeight(), 1e-12);
-    assertEquals(0.75d, loadedInterpolated.getNextWeight(), 1e-12);
+    assertEquals(0.25d, loadedInterpolated.previousWeight(), 1e-12);
+    assertEquals(0.75d, loadedInterpolated.nextWeight(), 1e-12);
     assertEquals(0.875d, loadedInterpolated.getFactor(100d, 5f), 1e-12);
   }
 
@@ -154,5 +157,43 @@ class NormalizationFunctionsParameterTest {
         featureList,
         new RawDataFilePlaceholder("unknown", tempDir.resolve("unknown.mzML").toString(), 999));
     assertNull(missingFile);
+  }
+
+  @Test
+  void valueEqualsIsTrueForEquivalentRecordValues() {
+    final NormalizationFunctionsParameter firstParameter = new NormalizationFunctionsParameter();
+    firstParameter.setValue(createFunctions(2d));
+
+    final NormalizationFunctionsParameter secondParameter = new NormalizationFunctionsParameter();
+    secondParameter.setValue(createFunctions(2d));
+
+    assertTrue(firstParameter.valueEquals(secondParameter));
+    assertTrue(secondParameter.valueEquals(firstParameter));
+  }
+
+  @Test
+  void valueEqualsIsFalseForDifferentRecordValues() {
+    final NormalizationFunctionsParameter firstParameter = new NormalizationFunctionsParameter();
+    firstParameter.setValue(createFunctions(2d));
+
+    final NormalizationFunctionsParameter secondParameter = new NormalizationFunctionsParameter();
+    secondParameter.setValue(createFunctions(3d));
+
+    assertFalse(firstParameter.valueEquals(secondParameter));
+    assertFalse(secondParameter.valueEquals(firstParameter));
+  }
+
+  private @NotNull List<NormalizationFunction> createFunctions(final double factorValue) {
+    final FactorNormalizationFunction factorFunction = new FactorNormalizationFunction(
+        new RawDataFilePlaceholder("factor_file", tempDir.resolve("factor.mzML").toString(), 11),
+        LocalDateTime.of(2026, 1, 1, 10, 0), factorValue);
+    final StandardCompoundNormalizationFunction standardFunction = new StandardCompoundNormalizationFunction(
+        new RawDataFilePlaceholder("standard_file", tempDir.resolve("standard.mzML").toString(),
+            12), LocalDateTime.of(2026, 1, 1, 10, 10), StandardUsageType.Nearest, 1d,
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d, false)));
+    final InterpolatedNormalizationFunction interpolatedFunction = new InterpolatedNormalizationFunction(
+        new RawDataFilePlaceholder("target_file", tempDir.resolve("target.mzML").toString(), 13),
+        LocalDateTime.of(2026, 1, 1, 10, 5), factorFunction, 0.25d, standardFunction, 0.75d);
+    return List.of(factorFunction, standardFunction, interpolatedFunction);
   }
 }
