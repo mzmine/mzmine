@@ -247,6 +247,41 @@ public class MetadataTable {
   }
 
   /**
+   * Return metadata value of the corresponding RawData file.
+   *
+   * @param column      project metadata column
+   * @param rawDataFile RawData file
+   * @param <T>         type of the project metadata column
+   * @return parameter value
+   */
+  @SuppressWarnings("unchecked")
+  public <T> Optional<T> get(MetadataColumn<T> column, RawDataFile rawDataFile) {
+    var row = data.get(column);
+    if (row != null) {
+      return Optional.ofNullable((T) row.get(rawDataFile));
+    }
+
+    return Optional.empty();
+  }
+
+  /**
+   * Return metadata value of the corresponding RawData file as a String
+   *
+   * @param column      project metadata column
+   * @param rawDataFile RawData file
+   * @return metadata value as string
+   */
+  public Optional<String> getAsString(MetadataColumn<?> column, RawDataFile rawDataFile) {
+    var row = data.get(column);
+    if (row != null) {
+      final Object value = row.get(rawDataFile);
+      return Optional.ofNullable(value == null ? null : value.toString());
+    }
+
+    return Optional.empty();
+  }
+
+  /**
    * Try to set particular value of the parameter of the RawData file. The parameter column will be
    * added in case if it wasn't previously obtained in the table.
    *
