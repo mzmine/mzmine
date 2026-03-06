@@ -26,23 +26,24 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
+import io.github.mzmine.util.XMLUtils;
 import java.time.LocalDateTime;
 import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Element;
 
 /**
  * Factor normalization function represented by one global factor.
  */
-public class FactorNormalizationFunction implements NormalizationFunction {
+public record FactorNormalizationFunction(RawDataFilePlaceholder rawDataFilePlaceholder,
+                                          LocalDateTime acquisitionTimestamp,
+                                          double factor) implements NormalizationFunction {
 
-  private final RawDataFilePlaceholder rawDataFilePlaceholder;
-  private final LocalDateTime acquisitionTimestamp;
-  private final double factor;
+  public static final String XML_TYPE = "factor";
+  private static final String XML_FACTOR_ATTR = "factor";
 
   public FactorNormalizationFunction(@NotNull final RawDataFile referenceFile,
       @NotNull final LocalDateTime acquisitionTimestamp, final double factor) {
-    this.rawDataFilePlaceholder = new RawDataFilePlaceholder(referenceFile);
-    this.acquisitionTimestamp = acquisitionTimestamp;
-    this.factor = factor;
+    this(new RawDataFilePlaceholder(referenceFile), acquisitionTimestamp, factor);
   }
 
   public FactorNormalizationFunction(@NotNull final RawDataFilePlaceholder rawDataFilePlaceholder,
@@ -53,17 +54,45 @@ public class FactorNormalizationFunction implements NormalizationFunction {
   }
 
   @Override
-  public @NotNull RawDataFilePlaceholder getRawDataFilePlaceholder() {
+  public @NotNull RawDataFilePlaceholder rawDataFilePlaceholder() {
     return rawDataFilePlaceholder;
   }
 
   @Override
-  public @NotNull LocalDateTime getAcquisitionTimestamp() {
+  public @NotNull LocalDateTime acquisitionTimestamp() {
     return acquisitionTimestamp;
   }
 
   @Override
+  public @NotNull String getUniqueID() {
+    return XML_TYPE;
+  }
+
+  @Override
   public double getFactor(@NotNull final Double mz, @NotNull final Float rt) {
+    return factor;
+  }
+
+  @Override
+  public void saveToXML(final @NotNull Element functionElement) {
+    functionElement.setAttribute(XML_FUNCTION_TYPE_ATTR, getUniqueID());
+    rawDataFilePlaceholder.saveToXML(functionElement);
+    NormalizationFunction.saveAcquisitionTimestamp(functionElement, acquisitionTimestamp);
+    functionElement.setAttribute(XML_FACTOR_ATTR, Double.toString(factor));
+  }
+
+  public static @NotNull FactorNormalizationFunction loadFromXML(
+      final @NotNull Element functionElement) {
+    final RawDataFilePlaceholder rawDataFilePlaceholder = RawDataFilePlaceholder.loadFromXML(
+        functionElement);
+    final LocalDateTime acquisitionTimestamp = NormalizationFunction.loadAcquisitionTimestamp(
+        functionElement);
+    final double factor = Double.parseDouble(
+        XMLUtils.requireAttribute(functionElement, XML_FACTOR_ATTR));
+    return new FactorNormalizationFunction(rawDataFilePlaceholder, acquisitionTimestamp, factor);
+  }
+
+  public double getConstantFactor() {
     return factor;
   }
 }

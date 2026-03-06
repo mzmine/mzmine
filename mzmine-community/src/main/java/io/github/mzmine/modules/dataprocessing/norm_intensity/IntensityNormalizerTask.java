@@ -47,6 +47,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -181,10 +182,25 @@ class IntensityNormalizerTask extends AbstractTask {
     handleOriginal.reflectNewFeatureListToProject(suffix, project, normalizedFeatureList,
         originalFeatureList);
 
+    final List<NormalizationFunction> finalNormalizationFunctions = new ArrayList<>(
+        originalFeatureList.getNumberOfRawDataFiles());
+    for (final RawDataFile rawDataFile : originalFeatureList.getRawDataFiles()) {
+      final NormalizationFunction normalizationFunction = fileToFunction.get(rawDataFile);
+      if (normalizationFunction == null) {
+        throw new IllegalStateException(
+            "No normalization function available for file: " + rawDataFile.getName());
+      }
+      finalNormalizationFunctions.add(normalizationFunction);
+    }
+
+    final ParameterSet appliedMethodParameters = mainParameters.cloneParameterSet(true);
+    appliedMethodParameters.setParameter(IntensityNormalizerParameters.normalizationFunctions,
+        List.copyOf(finalNormalizationFunctions));
+
     // Add task description to feature List
     normalizedFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Linear normalization of by " + normalizationType,
-            IntensityNormalizerModule.class, mainParameters, getModuleCallDate()));
+            IntensityNormalizerModule.class, appliedMethodParameters, getModuleCallDate()));
 
     logger.info("Finished linear normalizer");
     setStatus(TaskStatus.FINISHED);

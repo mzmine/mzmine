@@ -28,10 +28,12 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 public class IntensityNormalizerParameters extends SimpleParameterSet {
@@ -52,20 +54,25 @@ public class IntensityNormalizerParameters extends SimpleParameterSet {
   public static final ModuleOptionsEnumComboParameter<NormalizationType> normalizationType = new ModuleOptionsEnumComboParameter<>(
       "Normalization type", "Normalize intensities by...", NormalizationType.AverageIntensity);
 
+  public static final HiddenParameter<List<NormalizationFunction>> normalizationFunctions = new HiddenParameter<>(
+      new NormalizationFunctionsParameter());
+
   public IntensityNormalizerParameters() {
-    super(new Parameter[]{featureLists, suffix, normalizationType,
-            featureMeasurementType, handleOriginal},
+    super(new Parameter[]{featureLists, suffix, normalizationType, featureMeasurementType,
+            handleOriginal, normalizationFunctions},
         "https://mzmine.github.io/mzmine_documentation/module_docs/norm_linear/norm_linear.html");
   }
 
   @Override
   public int getVersion() {
-    return 4;
+    return 5;
   }
 
   @Override
   public @Nullable String getVersionMessage(int version) {
     return switch (version) {
+      case 5 ->
+          "Stores per-file normalization functions in the applied method to support persistent normalization of newly added features.";
       case 4 ->
           "Standard compound normalization was migrated into the linear normalizer as a normalization type.";
       case 3 ->

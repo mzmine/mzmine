@@ -45,7 +45,7 @@ class StandardCompoundNormalizationFunctionTest {
     final double factor = function.getFactor(100.1d, 5.1f);
 
     assertEquals(0.5d, factor, 1e-12);
-    assertEquals(timestamp, function.getAcquisitionTimestamp());
+    assertEquals(timestamp, function.acquisitionTimestamp());
   }
 
   @Test

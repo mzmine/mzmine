@@ -25,24 +25,81 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
+import io.github.mzmine.util.XMLUtils;
 import java.time.LocalDateTime;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Function that returns a normalization factor for specific feature coordinates.
  */
-public interface NormalizationFunction {
+public interface NormalizationFunction extends UniqueIdSupplier {
 
-  @NotNull RawDataFilePlaceholder getRawDataFilePlaceholder();
+  String XML_FUNCTION_ELEMENT = "normalizationFunction";
+  String XML_FUNCTION_TYPE_ATTR = "type";
+  String XML_ACQUISITION_TIMESTAMP_ATTR = "acquisitionTimestamp";
 
-  @NotNull LocalDateTime getAcquisitionTimestamp();
+  @NotNull RawDataFilePlaceholder rawDataFilePlaceholder();
+
+  @NotNull LocalDateTime acquisitionTimestamp();
 
   double getFactor(@NotNull Double mz, @NotNull Float rt);
 
+  void saveToXML(@NotNull Element functionElement);
+
   default @Nullable RawDataFile getRawDataFile() {
-    return getRawDataFilePlaceholder().getMatchingFile();
+    return rawDataFilePlaceholder().getMatchingFile();
+  }
+
+  static void appendFunctionElement(final @NotNull Element parentElement,
+      final @NotNull NormalizationFunction normalizationFunction) {
+    final Document document = parentElement.getOwnerDocument();
+    final Element functionElement = document.createElement(XML_FUNCTION_ELEMENT);
+    normalizationFunction.saveToXML(functionElement);
+    parentElement.appendChild(functionElement);
+  }
+
+  static @NotNull NormalizationFunction loadFromXML(final @NotNull Element functionElement) {
+    final String functionType = XMLUtils.requireAttribute(functionElement, XML_FUNCTION_TYPE_ATTR);
+    return switch (functionType) {
+      case FactorNormalizationFunction.XML_TYPE ->
+          FactorNormalizationFunction.loadFromXML(functionElement);
+      case StandardCompoundNormalizationFunction.XML_TYPE ->
+          StandardCompoundNormalizationFunction.loadFromXML(functionElement);
+      case InterpolatedNormalizationFunction.XML_TYPE ->
+          InterpolatedNormalizationFunction.loadFromXML(functionElement);
+      default -> throw new IllegalArgumentException(
+          "Unsupported normalization function type: " + functionType);
+    };
+  }
+
+  static void saveAcquisitionTimestamp(final @NotNull Element functionElement,
+      final @NotNull LocalDateTime acquisitionTimestamp) {
+    functionElement.setAttribute(XML_ACQUISITION_TIMESTAMP_ATTR, acquisitionTimestamp.toString());
+  }
+
+  static @NotNull LocalDateTime loadAcquisitionTimestamp(final @NotNull Element functionElement) {
+    return LocalDateTime.parse(
+        XMLUtils.requireAttribute(functionElement, XML_ACQUISITION_TIMESTAMP_ATTR));
+  }
+
+  static @NotNull Element findDirectChild(final @NotNull Element parent,
+      final @NotNull String tagName) {
+    final NodeList matchingNodes = parent.getElementsByTagName(tagName);
+    for (int i = 0; i < matchingNodes.getLength(); i++) {
+      final Node node = matchingNodes.item(i);
+      if (node.getParentNode() == parent && node instanceof final Element element) {
+        return element;
+      }
+    }
+    throw new IllegalArgumentException(
+        "Missing required child element '" + tagName + "' in " + parent.getTagName());
   }
 
 }

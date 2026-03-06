@@ -25,16 +25,20 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IntensityNormalizerModule implements MZmineProcessingModule {
 
@@ -79,6 +83,28 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return IntensityNormalizerParameters.class;
+  }
+
+  public static @NotNull List<NormalizationFunction> getNormalizationFunctionsOfLatestCall(
+      final @NotNull FeatureList featureList) {
+    final List<NormalizationFunction> normalizationFunctions = ParameterUtils.getParameterValueOfLatestMethodCall(
+        featureList.getAppliedMethods(), IntensityNormalizerModule.class,
+        IntensityNormalizerParameters.normalizationFunctions);
+    if (normalizationFunctions == null) {
+      return List.of();
+    }
+    return List.copyOf(normalizationFunctions);
+  }
+
+  public static @Nullable NormalizationFunction getNormalizationFunctionOfLatestCallForFile(
+      final @NotNull FeatureList featureList, final @NotNull RawDataFile rawDataFile) {
+    for (final NormalizationFunction normalizationFunction : getNormalizationFunctionsOfLatestCall(
+        featureList)) {
+      if (normalizationFunction.rawDataFilePlaceholder().matches(rawDataFile)) {
+        return normalizationFunction;
+      }
+    }
+    return null;
   }
 
 }

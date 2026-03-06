@@ -26,40 +26,54 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
+import io.github.mzmine.util.XMLUtils;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * File-specific standard compound normalization function.
  */
-public class StandardCompoundNormalizationFunction implements NormalizationFunction {
+public record StandardCompoundNormalizationFunction(
+    @NotNull RawDataFilePlaceholder rawDataFilePlaceholder,
+    @NotNull LocalDateTime acquisitionTimestamp, @NotNull StandardUsageType usageType,
+    double mzVsRtBalance,
+    @NotNull List<@NotNull StandardCompoundReferencePoint> referencePoints) implements
+    NormalizationFunction {
 
-  private final RawDataFilePlaceholder rawDataFilePlaceholder;
-  private final LocalDateTime acquisitionTimestamp;
-  private final StandardUsageType usageType;
-  private final double mzVsRtBalance;
-  private final List<StandardCompoundReferencePoint> referencePoints;
+  public static final String XML_TYPE = "standardCompound";
+  private static final String XML_STANDARD_USAGE_TYPE_ATTR = "standardUsageType";
+  private static final String XML_MZ_VS_RT_BALANCE_ATTR = "mzVsRtBalance";
+  private static final String XML_STANDARD_POINT_ELEMENT = "standardPoint";
+  private static final String XML_STANDARD_POINT_MZ_ATTR = "mz";
+  private static final String XML_STANDARD_POINT_RT_ATTR = "rt";
+  private static final String XML_STANDARD_POINT_ABUNDANCE_ATTR = "abundance";
+  private static final String XML_STANDARD_POINT_MISSING_ATTR = "missingInFile";
 
   public StandardCompoundNormalizationFunction(@NotNull final RawDataFile referenceFile,
       @NotNull final LocalDateTime acquisitionTimestamp, @NotNull final StandardUsageType usageType,
       final double mzVsRtBalance,
       @NotNull final List<StandardCompoundReferencePoint> referencePoints) {
-    this.rawDataFilePlaceholder = new RawDataFilePlaceholder(referenceFile);
-    this.acquisitionTimestamp = acquisitionTimestamp;
-    this.usageType = usageType;
-    this.mzVsRtBalance = mzVsRtBalance;
-    this.referencePoints = List.copyOf(referencePoints);
+    this(new RawDataFilePlaceholder(referenceFile), acquisitionTimestamp, usageType, mzVsRtBalance,
+        referencePoints);
   }
 
   @Override
-  public @NotNull RawDataFilePlaceholder getRawDataFilePlaceholder() {
+  public @NotNull RawDataFilePlaceholder rawDataFilePlaceholder() {
     return rawDataFilePlaceholder;
   }
 
   @Override
-  public @NotNull LocalDateTime getAcquisitionTimestamp() {
+  public @NotNull LocalDateTime acquisitionTimestamp() {
     return acquisitionTimestamp;
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return XML_TYPE;
   }
 
   @Override
@@ -130,5 +144,65 @@ public class StandardCompoundNormalizationFunction implements NormalizationFunct
       @NotNull final StandardCompoundReferencePoint point) {
     return mzVsRtBalance * Math.abs(mz - point.mz()) + Math.abs(rt - point.rt());
   }
-}
 
+  @Override
+  public void saveToXML(final @NotNull Element functionElement) {
+    functionElement.setAttribute(XML_FUNCTION_TYPE_ATTR, getUniqueID());
+    rawDataFilePlaceholder.saveToXML(functionElement);
+    NormalizationFunction.saveAcquisitionTimestamp(functionElement, acquisitionTimestamp);
+    functionElement.setAttribute(XML_STANDARD_USAGE_TYPE_ATTR, usageType.name());
+    functionElement.setAttribute(XML_MZ_VS_RT_BALANCE_ATTR, Double.toString(mzVsRtBalance));
+
+    for (final StandardCompoundReferencePoint point : referencePoints) {
+      final Element pointElement = functionElement.getOwnerDocument()
+          .createElement(XML_STANDARD_POINT_ELEMENT);
+      pointElement.setAttribute(XML_STANDARD_POINT_MZ_ATTR, Double.toString(point.mz()));
+      pointElement.setAttribute(XML_STANDARD_POINT_RT_ATTR, Float.toString(point.rt()));
+      pointElement.setAttribute(XML_STANDARD_POINT_ABUNDANCE_ATTR,
+          Double.toString(point.abundance()));
+      pointElement.setAttribute(XML_STANDARD_POINT_MISSING_ATTR,
+          Boolean.toString(point.missingInFile()));
+      functionElement.appendChild(pointElement);
+    }
+  }
+
+  public static @NotNull StandardCompoundNormalizationFunction loadFromXML(
+      final @NotNull Element functionElement) {
+    final RawDataFilePlaceholder rawDataFilePlaceholder = RawDataFilePlaceholder.loadFromXML(
+        functionElement);
+    final LocalDateTime acquisitionTimestamp = NormalizationFunction.loadAcquisitionTimestamp(
+        functionElement);
+    final StandardUsageType standardUsageType = StandardUsageType.valueOf(
+        XMLUtils.requireAttribute(functionElement, XML_STANDARD_USAGE_TYPE_ATTR));
+    final double mzVsRtBalance = Double.parseDouble(
+        XMLUtils.requireAttribute(functionElement, XML_MZ_VS_RT_BALANCE_ATTR));
+
+    final List<StandardCompoundReferencePoint> referencePoints = new ArrayList<>();
+    final NodeList pointNodes = functionElement.getElementsByTagName(XML_STANDARD_POINT_ELEMENT);
+    for (int i = 0; i < pointNodes.getLength(); i++) {
+      final Element pointElement = (Element) pointNodes.item(i);
+      final double mz = Double.parseDouble(
+          XMLUtils.requireAttribute(pointElement, XML_STANDARD_POINT_MZ_ATTR));
+      final float rt = Float.parseFloat(
+          XMLUtils.requireAttribute(pointElement, XML_STANDARD_POINT_RT_ATTR));
+      final double abundance = Double.parseDouble(
+          XMLUtils.requireAttribute(pointElement, XML_STANDARD_POINT_ABUNDANCE_ATTR));
+      final boolean missingInFile = Boolean.parseBoolean(
+          XMLUtils.requireAttribute(pointElement, XML_STANDARD_POINT_MISSING_ATTR));
+      referencePoints.add(new StandardCompoundReferencePoint(mz, rt, abundance, missingInFile));
+    }
+
+    return new StandardCompoundNormalizationFunction(rawDataFilePlaceholder, acquisitionTimestamp,
+        standardUsageType, mzVsRtBalance, referencePoints);
+  }
+
+  @Override
+  public @NotNull StandardUsageType usageType() {
+    return usageType;
+  }
+
+  @Override
+  public @NotNull List<StandardCompoundReferencePoint> referencePoints() {
+    return referencePoints;
+  }
+}
