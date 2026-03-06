@@ -77,7 +77,7 @@ public record StandardCompoundNormalizationFunction(
   }
 
   @Override
-  public double getFactor(@NotNull final Double mz, @NotNull final Float rt) {
+  public double getNormalizationFactor(@NotNull final Double mz, @NotNull final Float rt) {
     final double standardAbundance = switch (usageType) {
       case Nearest -> getNearestStandardAbundance(mz, rt);
       case Weighted -> getWeightedStandardAbundance(mz, rt);

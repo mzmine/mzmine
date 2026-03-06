@@ -60,9 +60,9 @@ public record InterpolatedNormalizationFunction(
   }
 
   @Override
-  public double getFactor(@NotNull final Double mz, @NotNull final Float rt) {
-    return previousFunction.getFactor(mz, rt) * previousWeight
-        + nextFunction.getFactor(mz, rt) * nextWeight;
+  public double getNormalizationFactor(@NotNull final Double mz, @NotNull final Float rt) {
+    return previousFunction.getNormalizationFactor(mz, rt) * previousWeight
+        + nextFunction.getNormalizationFactor(mz, rt) * nextWeight;
   }
 
   @Override

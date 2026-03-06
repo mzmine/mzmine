@@ -69,7 +69,7 @@ public record FactorNormalizationFunction(RawDataFilePlaceholder rawDataFilePlac
   }
 
   @Override
-  public double getFactor(@NotNull final Double mz, @NotNull final Float rt) {
+  public double getNormalizationFactor(@NotNull final Double mz, @NotNull final Float rt) {
     return factor;
   }
 

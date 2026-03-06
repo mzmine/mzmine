@@ -88,7 +88,7 @@ class NormalizationFunctionsParameterTest {
     assertEquals(standardTimestamp, loadedStandard.acquisitionTimestamp());
     assertEquals(StandardUsageType.Nearest, loadedStandard.usageType());
     assertEquals(1, loadedStandard.referencePoints().size());
-    assertEquals(0.5d, loadedStandard.getFactor(100d, 5f), 1e-12);
+    assertEquals(0.5d, loadedStandard.getNormalizationFactor(100d, 5f), 1e-12);
 
     final InterpolatedNormalizationFunction loadedInterpolated = assertInstanceOf(
         InterpolatedNormalizationFunction.class, loadedFunctions.get(2));
@@ -96,7 +96,7 @@ class NormalizationFunctionsParameterTest {
     assertEquals(interpolatedTimestamp, loadedInterpolated.acquisitionTimestamp());
     assertEquals(0.25d, loadedInterpolated.previousWeight(), 1e-12);
     assertEquals(0.75d, loadedInterpolated.nextWeight(), 1e-12);
-    assertEquals(0.875d, loadedInterpolated.getFactor(100d, 5f), 1e-12);
+    assertEquals(0.875d, loadedInterpolated.getNormalizationFactor(100d, 5f), 1e-12);
   }
 
   @Test
@@ -146,12 +146,12 @@ class NormalizationFunctionsParameterTest {
     final List<NormalizationFunction> latestFunctions = IntensityNormalizerModule.getNormalizationFunctionsOfLatestCall(
         featureList);
     assertEquals(1, latestFunctions.size());
-    assertEquals(3d, latestFunctions.getFirst().getFactor(100d, 5f), 1e-12);
+    assertEquals(3d, latestFunctions.getFirst().getNormalizationFactor(100d, 5f), 1e-12);
 
     final NormalizationFunction latestForFile = IntensityNormalizerModule.getNormalizationFunctionOfLatestCallForFile(
         featureList, rawDataFile);
     assertNotNull(latestForFile);
-    assertEquals(3d, latestForFile.getFactor(100d, 5f), 1e-12);
+    assertEquals(3d, latestForFile.getNormalizationFactor(100d, 5f), 1e-12);
 
     final NormalizationFunction missingFile = IntensityNormalizerModule.getNormalizationFunctionOfLatestCallForFile(
         featureList,

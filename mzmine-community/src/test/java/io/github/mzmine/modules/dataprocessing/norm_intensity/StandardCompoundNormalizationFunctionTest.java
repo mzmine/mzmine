@@ -42,7 +42,7 @@ class StandardCompoundNormalizationFunctionTest {
         List.of(new StandardCompoundReferencePoint(100d, 5f, 200d, false),
             new StandardCompoundReferencePoint(150d, 10f, 500d, false)));
 
-    final double factor = function.getFactor(100.1d, 5.1f);
+    final double factor = function.getNormalizationFactor(100.1d, 5.1f);
 
     assertEquals(0.5d, factor, 1e-12);
     assertEquals(timestamp, function.acquisitionTimestamp());
@@ -56,7 +56,7 @@ class StandardCompoundNormalizationFunctionTest {
         List.of(new StandardCompoundReferencePoint(100d, 4f, 200d, false),
             new StandardCompoundReferencePoint(100d, 6f, 400d, false)));
 
-    final double factor = function.getFactor(100d, 5f);
+    final double factor = function.getNormalizationFactor(100d, 5f);
 
     assertEquals(0.25d, factor, 1e-12);
   }
@@ -69,7 +69,7 @@ class StandardCompoundNormalizationFunctionTest {
         List.of(new StandardCompoundReferencePoint(100d, 4f, 100d, false),
             new StandardCompoundReferencePoint(100d, 6f, 300d, false)));
 
-    final double factor = function.getFactor(100d, 4.5f);
+    final double factor = function.getNormalizationFactor(100d, 4.5f);
 
     assertEquals(2d / 3d, factor, 1e-12);
   }
@@ -82,7 +82,7 @@ class StandardCompoundNormalizationFunctionTest {
         List.of(new StandardCompoundReferencePoint(100d, 5f, 1d, true),
             new StandardCompoundReferencePoint(100d, 6f, 200d, false)));
 
-    final double factor = function.getFactor(100d, 5.5f);
+    final double factor = function.getNormalizationFactor(100d, 5.5f);
 
     assertEquals(0.5d, factor, 1e-12);
   }
@@ -95,7 +95,7 @@ class StandardCompoundNormalizationFunctionTest {
         List.of(new StandardCompoundReferencePoint(100d, 5f, 250d, false),
             new StandardCompoundReferencePoint(100d, 8f, 500d, false)));
 
-    final double factor = function.getFactor(100d, 5f);
+    final double factor = function.getNormalizationFactor(100d, 5f);
 
     assertEquals(0.4d, factor, 1e-12);
   }

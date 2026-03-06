@@ -26,7 +26,7 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MathUtils;
@@ -52,9 +52,9 @@ public class MedianFeatureIntensityNormalizationTypeModule extends
       throw new IllegalStateException("No feature abundance measure selected for normalization.");
     }
 
-    final double[] abundances = featureList.stream().map(r -> r.getFeature(file))
-        .filter(Objects::nonNull).filter(f -> f.getHeight() != null).mapToDouble(Feature::getHeight)
-        .toArray();
+    final double[] abundances = featureList.stream().map(r -> (ModularFeature) r.getFeature(file))
+        .filter(Objects::nonNull).mapToDouble(abundanceMeasure::getOrNaN)
+        .filter(d -> !Double.isNaN(d)).toArray();
 
     final double median = MathUtils.calcMedian(abundances);
     if (Double.compare(median, 0d) == 0) {

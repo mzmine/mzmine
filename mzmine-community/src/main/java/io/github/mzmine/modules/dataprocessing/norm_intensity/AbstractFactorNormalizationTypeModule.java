@@ -108,8 +108,9 @@ public abstract class AbstractFactorNormalizationTypeModule implements Normaliza
     }
 
     final double factor =
-        nextRunCalibration.getFactor(0d, 0f) * interpolationWeights.nextRunWeight()
-            + previousRunCalibration.getFactor(0d, 0f) * interpolationWeights.previousWeight();
+        nextRunCalibration.getNormalizationFactor(0d, 0f) * interpolationWeights.nextRunWeight()
+            + previousRunCalibration.getNormalizationFactor(0d, 0f)
+            * interpolationWeights.previousWeight();
 
     return new FactorNormalizationFunction(fileToInterpolate, runDate, factor);
   }

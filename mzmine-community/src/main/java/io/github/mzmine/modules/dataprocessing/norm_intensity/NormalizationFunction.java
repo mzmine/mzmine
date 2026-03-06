@@ -33,8 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Function that returns a normalization factor for specific feature coordinates.
@@ -51,10 +49,20 @@ public sealed interface NormalizationFunction extends UniqueIdSupplier permits
 
   @NotNull LocalDateTime acquisitionTimestamp();
 
-  double getFactor(@NotNull Double mz, @NotNull Float rt);
+  /**
+   * @param mz the mz of the feature
+   * @param rt the rt of the feature
+   * @return A factor to multiply area/height with to get normalized values.
+   */
+  double getNormalizationFactor(@NotNull Double mz, @NotNull Float rt);
 
   void saveToXML(@NotNull Element functionElement);
 
+  /**
+   *
+   * @return The data file this normalization applies to. may be null if the file was removed from
+   * the project.
+   */
   default @Nullable RawDataFile getRawDataFile() {
     return rawDataFilePlaceholder().getMatchingFile();
   }
@@ -89,19 +97,6 @@ public sealed interface NormalizationFunction extends UniqueIdSupplier permits
   static @NotNull LocalDateTime loadAcquisitionTimestamp(final @NotNull Element functionElement) {
     return LocalDateTime.parse(
         XMLUtils.requireAttribute(functionElement, XML_ACQUISITION_TIMESTAMP_ATTR));
-  }
-
-  static @NotNull Element findDirectChild(final @NotNull Element parent,
-      final @NotNull String tagName) {
-    final NodeList matchingNodes = parent.getElementsByTagName(tagName);
-    for (int i = 0; i < matchingNodes.getLength(); i++) {
-      final Node node = matchingNodes.item(i);
-      if (node.getParentNode() == parent && node instanceof final Element element) {
-        return element;
-      }
-    }
-    throw new IllegalArgumentException(
-        "Missing required child element '" + tagName + "' in " + parent.getTagName());
   }
 
 }

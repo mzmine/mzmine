@@ -73,7 +73,6 @@ class IntensityNormalizerTask extends AbstractTask {
   private final ParameterSet normalizationTypeModuleParameters;
   private final ParameterSet mainParameters;
 
-
   public IntensityNormalizerTask(MZmineProject project, FeatureList featureList,
       ParameterSet parameters, @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate) {
@@ -171,7 +170,7 @@ class IntensityNormalizerTask extends AbstractTask {
         if (rt == null) {
           throw new IllegalStateException("No RT found for feature in file: " + file.getName());
         }
-        final double normFactor = normalizationFunction.getFactor(mz, rt);
+        final double normFactor = normalizationFunction.getNormalizationFactor(mz, rt);
         feature.set(normHeightType, (float) (feature.getHeight() * normFactor));
         feature.set(normAreaType, (float) (feature.getArea() * normFactor));
       }
