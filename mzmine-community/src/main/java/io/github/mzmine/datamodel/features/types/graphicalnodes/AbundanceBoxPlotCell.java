@@ -30,8 +30,10 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import java.text.DecimalFormat;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
+import javafx.geometry.Insets;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
@@ -53,12 +55,20 @@ public class AbundanceBoxPlotCell extends
     boxPlot.abundanceMeasureProperty().set(abundanceMeasure);
     boxPlot.groupingColumnProperty().bindBidirectional(groupingColumn);
 
+    // use simpler format in table. User might change the default intensity formatting
+    // this usually just adds too many decimals to the axis labels which do not have to be so precise
+    // Maybe also change that in the plot itself
+    boxPlot.abundanceNumberFormatProperty().set(new DecimalFormat("0.0E0"));
     boxPlot.showCategoryAxisLabelProperty().set(false);
     boxPlot.showTitleProperty().set(false);
     boxPlot.showColumnAxisLabelsProperty().set(false);
     view = boxPlot.buildView();
 
     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+    // smaller insets
+    boxPlot.getChart().getChart().getCategoryPlot().setInsets(ChartCell.DEFAULT_SMALL_PLOT_INSETS);
+    // no extra space around the chart in cell - effectively still 1px space
+    setPadding(Insets.EMPTY);
   }
 
   @Override
