@@ -27,8 +27,7 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 /**
  * A standard reference point for one file-specific normalization function.
  */
-public record StandardCompoundReferencePoint(double mz, float rt, double abundance,
-                                             boolean missingInFile) {
+public record StandardCompoundReferencePoint(double mz, float rt, double abundance) {
 
 }
 

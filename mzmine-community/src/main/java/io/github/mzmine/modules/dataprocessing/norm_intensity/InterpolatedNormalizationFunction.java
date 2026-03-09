@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.util.XMLUtils;
+import io.github.mzmine.util.maths.Precision;
 import java.time.LocalDateTime;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
@@ -52,6 +53,14 @@ public record InterpolatedNormalizationFunction(
       @NotNull final NormalizationFunction nextFunction, final double nextWeight) {
     this(new RawDataFilePlaceholder(targetFile), acquisitionTimestamp, previousFunction,
         previousWeight, nextFunction, nextWeight);
+  }
+
+  public InterpolatedNormalizationFunction {
+    if (!Precision.equalRelativeSignificance(previousWeight + nextWeight, 1d, 0.00001)) {
+      throw new IllegalStateException(
+          "Sum of previous and next run weight must be 1. prev=%f, next=%f".formatted(
+              previousWeight, nextWeight));
+    }
   }
 
   @Override

@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -71,16 +70,10 @@ public abstract class AbstractFactorNormalizationTypeModule implements Normaliza
     final double maxNormalizationMetric = referenceToNormalizationMetric.values().stream()
         .max(Double::compare).orElse(1d);
 
-    final DateMetadataColumn runDateColumn = metadata.getRunDateColumn();
     final Map<@NotNull RawDataFile, @NotNull NormalizationFunction> functions = new HashMap<>();
     for (final Entry<@NotNull RawDataFile, @NotNull Double> entry : referenceToNormalizationMetric.entrySet()) {
       final RawDataFile file = entry.getKey();
-      LocalDateTime runDate = file.getStartTimeStamp();
-      runDate = runDate == null ? metadata.getValue(metadata.getRunDateColumn(), file) : runDate;
-      if (runDate == null) {
-        throw new IllegalStateException(
-            "No acquisition timestamp found for file: " + file.getName());
-      }
+      final LocalDateTime runDate = NormalizationTypeModule.getRunDateOrThrow(metadata, file);
       final double normalizationFactor = maxNormalizationMetric / entry.getValue();
       functions.put(file, new FactorNormalizationFunction(file, runDate, normalizationFactor));
     }
@@ -95,22 +88,15 @@ public abstract class AbstractFactorNormalizationTypeModule implements Normaliza
       @NotNull final InterpolationWeights interpolationWeights,
       @NotNull final MetadataTable metadata, @NotNull final ParameterSet mainParameters,
       @NotNull final ParameterSet normalizerParameters) {
-    if (!(previousRunCalibration instanceof FactorNormalizationFunction)
-        || !(nextRunCalibration instanceof FactorNormalizationFunction)) {
+    if (!(previousRunCalibration instanceof FactorNormalizationFunction prev)
+        || !(nextRunCalibration instanceof FactorNormalizationFunction next)) {
       throw new IllegalStateException("Input calibrations are no factor-based calibrations.");
     }
-    LocalDateTime runDate = fileToInterpolate.getStartTimeStamp();
-    runDate = runDate == null ? metadata.getValue(metadata.getRunDateColumn(), fileToInterpolate)
-        : runDate;
-    if (runDate == null) {
-      throw new IllegalStateException(
-          "No acquisition timestamp found for file: " + fileToInterpolate.getName());
-    }
+    final LocalDateTime runDate = NormalizationTypeModule.getRunDateOrThrow(metadata,
+        fileToInterpolate);
 
-    final double factor =
-        nextRunCalibration.getNormalizationFactor(0d, 0f) * interpolationWeights.nextRunWeight()
-            + previousRunCalibration.getNormalizationFactor(0d, 0f)
-            * interpolationWeights.previousWeight();
+    final double factor = next.factor() * interpolationWeights.nextRunWeight()
+        + prev.factor() * interpolationWeights.previousWeight();
 
     return new FactorNormalizationFunction(fileToInterpolate, runDate, factor);
   }

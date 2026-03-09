@@ -31,6 +31,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
 import io.github.mzmine.parameters.ParameterSet;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +40,16 @@ import org.jetbrains.annotations.NotNull;
  * Creates one normalization function per reference file.
  */
 public interface NormalizationTypeModule extends MZmineModule {
+
+  static @NotNull LocalDateTime getRunDateOrThrow(@NotNull MetadataTable metadata,
+      @NotNull RawDataFile file) {
+    LocalDateTime runDate = file.getStartTimeStamp();
+    runDate = runDate == null ? metadata.getValue(metadata.getRunDateColumn(), file) : runDate;
+    if (runDate == null) {
+      throw new IllegalStateException("No acquisition timestamp found for file: " + file.getName());
+    }
+    return runDate;
+  }
 
   @NotNull Map<@NotNull RawDataFile, @NotNull NormalizationFunction> createReferenceFunctions(
       @NotNull List<@NotNull RawDataFile> referenceFiles, @NotNull ModularFeatureList featureList,

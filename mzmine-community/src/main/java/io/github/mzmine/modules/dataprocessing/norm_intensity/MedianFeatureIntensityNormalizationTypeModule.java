@@ -58,7 +58,8 @@ public class MedianFeatureIntensityNormalizationTypeModule extends
 
     final double median = MathUtils.calcMedian(abundances);
     if (Double.compare(median, 0d) == 0) {
-      throw new IllegalStateException("No features found for file: " + file.getName());
+      throw new IllegalStateException(
+          "No features found or median of feature intensities is 0 for file: " + file.getName());
     }
 
     return median;

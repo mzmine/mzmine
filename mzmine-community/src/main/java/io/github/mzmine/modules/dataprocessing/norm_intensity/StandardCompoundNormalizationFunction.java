@@ -51,7 +51,6 @@ public record StandardCompoundNormalizationFunction(
   private static final String XML_STANDARD_POINT_MZ_ATTR = "mz";
   private static final String XML_STANDARD_POINT_RT_ATTR = "rt";
   private static final String XML_STANDARD_POINT_ABUNDANCE_ATTR = "abundance";
-  private static final String XML_STANDARD_POINT_MISSING_ATTR = "missingInFile";
 
   public StandardCompoundNormalizationFunction(@NotNull final RawDataFile referenceFile,
       @NotNull final LocalDateTime acquisitionTimestamp, @NotNull final StandardUsageType usageType,
@@ -83,11 +82,11 @@ public record StandardCompoundNormalizationFunction(
       case Weighted -> getWeightedStandardAbundance(mz, rt);
     };
 
-    double legacyNormalizationFactor = standardAbundance / 100.0d;
-    if (legacyNormalizationFactor == 0.0d) {
-      legacyNormalizationFactor = Double.MIN_VALUE;
+    if (Double.compare(standardAbundance, 0.0d) == 0 || !Double.isFinite(standardAbundance)) {
+      throw new IllegalStateException(
+          "Illegal standard abundance of %.2f.".formatted(standardAbundance));
     }
-    return 1.0d / legacyNormalizationFactor;
+    return 1.0d / standardAbundance;
   }
 
   private double getNearestStandardAbundance(final double mz, final float rt) {
@@ -114,10 +113,6 @@ public record StandardCompoundNormalizationFunction(
     double sumOfWeights = 0.0d;
 
     for (final StandardCompoundReferencePoint point : referencePoints) {
-      if (point.missingInFile()) {
-        continue;
-      }
-
       final double distance = calcDistance(mz, rt, point);
       if (distance == 0.0d) {
         directMatchSum += point.abundance();
@@ -160,8 +155,6 @@ public record StandardCompoundNormalizationFunction(
       pointElement.setAttribute(XML_STANDARD_POINT_RT_ATTR, Float.toString(point.rt()));
       pointElement.setAttribute(XML_STANDARD_POINT_ABUNDANCE_ATTR,
           Double.toString(point.abundance()));
-      pointElement.setAttribute(XML_STANDARD_POINT_MISSING_ATTR,
-          Boolean.toString(point.missingInFile()));
       functionElement.appendChild(pointElement);
     }
   }
@@ -187,9 +180,7 @@ public record StandardCompoundNormalizationFunction(
           XMLUtils.requireAttribute(pointElement, XML_STANDARD_POINT_RT_ATTR));
       final double abundance = Double.parseDouble(
           XMLUtils.requireAttribute(pointElement, XML_STANDARD_POINT_ABUNDANCE_ATTR));
-      final boolean missingInFile = Boolean.parseBoolean(
-          XMLUtils.requireAttribute(pointElement, XML_STANDARD_POINT_MISSING_ATTR));
-      referencePoints.add(new StandardCompoundReferencePoint(mz, rt, abundance, missingInFile));
+      referencePoints.add(new StandardCompoundReferencePoint(mz, rt, abundance));
     }
 
     return new StandardCompoundNormalizationFunction(rawDataFilePlaceholder, acquisitionTimestamp,

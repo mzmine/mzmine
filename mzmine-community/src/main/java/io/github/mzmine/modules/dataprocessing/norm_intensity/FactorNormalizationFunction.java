@@ -34,8 +34,8 @@ import org.w3c.dom.Element;
 /**
  * Factor normalization function represented by one global factor.
  */
-public record FactorNormalizationFunction(RawDataFilePlaceholder rawDataFilePlaceholder,
-                                          LocalDateTime acquisitionTimestamp,
+public record FactorNormalizationFunction(@NotNull RawDataFilePlaceholder rawDataFilePlaceholder,
+                                          @NotNull LocalDateTime acquisitionTimestamp,
                                           double factor) implements NormalizationFunction {
 
   public static final String XML_TYPE = "factor";
@@ -92,7 +92,4 @@ public record FactorNormalizationFunction(RawDataFilePlaceholder rawDataFilePlac
     return new FactorNormalizationFunction(rawDataFilePlaceholder, acquisitionTimestamp, factor);
   }
 
-  public double getConstantFactor() {
-    return factor;
-  }
 }

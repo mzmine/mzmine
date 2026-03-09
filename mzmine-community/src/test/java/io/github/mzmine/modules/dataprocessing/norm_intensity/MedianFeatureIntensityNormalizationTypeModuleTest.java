@@ -68,8 +68,8 @@ class MedianFeatureIntensityNormalizationTypeModuleTest {
         FactorNormalizationFunction.class, functions.get(fileB));
 
     // Median(file_a)=2.5 and Median(file_b)=1.0 => maxMetric=2.5.
-    assertEquals(1d, functionA.getConstantFactor(), 1e-12);
-    assertEquals(2.5d, functionB.getConstantFactor(), 1e-12);
+    assertEquals(1d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
+    assertEquals(2.5d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
     assertEquals(fileA.getStartTimeStamp(), functionA.acquisitionTimestamp());
     assertEquals(fileB.getStartTimeStamp(), functionB.acquisitionTimestamp());
   }
@@ -85,7 +85,8 @@ class MedianFeatureIntensityNormalizationTypeModuleTest {
             createMainParameters(AbundanceMeasure.Height),
             new FactorNormalizationModuleParameters()));
 
-    assertEquals("No features found for file: empty_file", exception.getMessage());
+    assertEquals("No features found or median of feature intensities is 0 for file: empty_file",
+        exception.getMessage());
   }
 
   private static @NotNull RawDataFileImpl createRawFile(final @NotNull String name,

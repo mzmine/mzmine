@@ -39,12 +39,12 @@ class StandardCompoundNormalizationFunctionTest {
     final LocalDateTime timestamp = LocalDateTime.of(2026, 1, 1, 10, 0);
     final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
         file, timestamp, StandardUsageType.Nearest, 1.0d,
-        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d, false),
-            new StandardCompoundReferencePoint(150d, 10f, 500d, false)));
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d),
+            new StandardCompoundReferencePoint(150d, 10f, 500d)));
 
     final double factor = function.getNormalizationFactor(100.1d, 5.1f);
 
-    assertEquals(0.5d, factor, 1e-12);
+    assertEquals(0.005d, factor, 1e-12);
     assertEquals(timestamp, function.acquisitionTimestamp());
   }
 
@@ -53,12 +53,12 @@ class StandardCompoundNormalizationFunctionTest {
     final RawDataFile file = RawDataFile.createDummyFile();
     final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
         file, LocalDateTime.of(2026, 1, 1, 10, 0), StandardUsageType.Nearest, 1.0d,
-        List.of(new StandardCompoundReferencePoint(100d, 4f, 200d, false),
-            new StandardCompoundReferencePoint(100d, 6f, 400d, false)));
+        List.of(new StandardCompoundReferencePoint(100d, 4f, 200d),
+            new StandardCompoundReferencePoint(100d, 6f, 400d)));
 
     final double factor = function.getNormalizationFactor(100d, 5f);
 
-    assertEquals(0.25d, factor, 1e-12);
+    assertEquals(0.0025d, factor, 1e-12);
   }
 
   @Test
@@ -66,25 +66,12 @@ class StandardCompoundNormalizationFunctionTest {
     final RawDataFile file = RawDataFile.createDummyFile();
     final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
         file, LocalDateTime.of(2026, 1, 1, 10, 0), StandardUsageType.Weighted, 1.0d,
-        List.of(new StandardCompoundReferencePoint(100d, 4f, 100d, false),
-            new StandardCompoundReferencePoint(100d, 6f, 300d, false)));
+        List.of(new StandardCompoundReferencePoint(100d, 4f, 100d),
+            new StandardCompoundReferencePoint(100d, 6f, 300d)));
 
     final double factor = function.getNormalizationFactor(100d, 4.5f);
 
-    assertEquals(2d / 3d, factor, 1e-12);
-  }
-
-  @Test
-  void weightedKeepsLegacyMissingStandardHandling() {
-    final RawDataFile file = RawDataFile.createDummyFile();
-    final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
-        file, LocalDateTime.of(2026, 1, 1, 10, 0), StandardUsageType.Weighted, 1.0d,
-        List.of(new StandardCompoundReferencePoint(100d, 5f, 1d, true),
-            new StandardCompoundReferencePoint(100d, 6f, 200d, false)));
-
-    final double factor = function.getNormalizationFactor(100d, 5.5f);
-
-    assertEquals(0.5d, factor, 1e-12);
+    assertEquals(2d / 3d * 0.01d, factor, 1e-12);
   }
 
   @Test
@@ -92,12 +79,12 @@ class StandardCompoundNormalizationFunctionTest {
     final RawDataFile file = RawDataFile.createDummyFile();
     final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
         file, LocalDateTime.of(2026, 1, 1, 10, 0), StandardUsageType.Weighted, 1.0d,
-        List.of(new StandardCompoundReferencePoint(100d, 5f, 250d, false),
-            new StandardCompoundReferencePoint(100d, 8f, 500d, false)));
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 250d),
+            new StandardCompoundReferencePoint(100d, 8f, 500d)));
 
     final double factor = function.getNormalizationFactor(100d, 5f);
 
-    assertEquals(0.4d, factor, 1e-12);
+    assertEquals(0.004d, factor, 1e-12);
   }
 }
 

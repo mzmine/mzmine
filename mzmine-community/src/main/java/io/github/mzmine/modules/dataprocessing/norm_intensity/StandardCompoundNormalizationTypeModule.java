@@ -79,11 +79,13 @@ public class StandardCompoundNormalizationTypeModule implements NormalizationTyp
         StandardCompoundNormalizationTypeParameters.mzVsRtBalance);
     final AbundanceMeasure abundanceMeasure = mainParameters.getValue(
         IntensityNormalizerParameters.featureMeasurementType);
+    final boolean requireAllStandards = moduleSpecificParameters.getValue(
+        StandardCompoundNormalizationTypeParameters.requireAllStandards);
 
     final Map<@NotNull RawDataFile, @NotNull NormalizationFunction> fileToFunction = new HashMap<>();
     for (final RawDataFile rawFile : referenceFiles) {
       final List<StandardCompoundReferencePoint> referencePoints = createReferencePoints(rawFile,
-          standardRows, abundanceMeasure);
+          standardRows, abundanceMeasure, requireAllStandards);
       final LocalDateTime acquisitionTimestamp = getAcquisitionTimestamp(rawFile, metadata);
       fileToFunction.put(rawFile,
           new StandardCompoundNormalizationFunction(rawFile, acquisitionTimestamp,
@@ -108,7 +110,7 @@ public class StandardCompoundNormalizationTypeModule implements NormalizationTyp
 
   private @NotNull List<StandardCompoundReferencePoint> createReferencePoints(
       @NotNull final RawDataFile rawFile, @NotNull final FeatureListRow[] standardRows,
-      @NotNull final AbundanceMeasure abundanceMeasure) {
+      @NotNull final AbundanceMeasure abundanceMeasure, boolean requireAllStandards) {
     final List<StandardCompoundReferencePoint> referencePoints = new ArrayList<>(
         standardRows.length);
     for (final FeatureListRow standardRow : standardRows) {
@@ -117,25 +119,34 @@ public class StandardCompoundNormalizationTypeModule implements NormalizationTyp
         throw new IllegalStateException(
             "No average m/z found for standard row: " + standardRow.getID());
       }
+
       final Float standardRt = standardRow.getAverageRT();
       if (standardRt == null) {
         throw new IllegalStateException(
             "No average RT found for standard row: " + standardRow.getID());
       }
+
       final ModularFeature standardFeature = (ModularFeature) standardRow.getFeature(rawFile);
-      if (standardFeature == null) {
-        // decision: keep legacy behavior for missing standards in a specific file.
-        referencePoints.add(new StandardCompoundReferencePoint(standardMz, standardRt, 1.0d, true));
+      if (standardFeature == null && requireAllStandards) {
+        throw new RuntimeException(
+            "Standard " + standardRow.toString() + " was not detected in file "
+                + rawFile.getName());
+      } else if (standardFeature == null) {
         continue;
       }
+
       final Float standardAbundance = abundanceMeasure.get(standardFeature);
-      if (standardAbundance == null) {
+      if (standardAbundance == null || Float.compare(standardAbundance, 0.0f) == 0
+          || !Float.isFinite(standardAbundance)) {
+        if (!requireAllStandards) {
+          continue;
+        }
         throw new IllegalStateException(
-            "No standard abundance found for row %d in file %s".formatted(standardRow.getID(),
-                rawFile.getName()));
+            "Invalid standard abundance found for row %s in file %s: %.2E".formatted(
+                standardRow.toString(), rawFile.getName(), standardAbundance));
       }
       referencePoints.add(
-          new StandardCompoundReferencePoint(standardMz, standardRt, standardAbundance, false));
+          new StandardCompoundReferencePoint(standardMz, standardRt, standardAbundance));
     }
     return referencePoints;
   }

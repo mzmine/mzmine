@@ -82,7 +82,7 @@ public class NormalizationFunctionsParameter implements
 
   @Override
   public @NotNull List<NormalizationFunction> getValue() {
-    return normalizationFunctions;
+    return List.copyOf(normalizationFunctions);
   }
 
   @Override
@@ -95,7 +95,7 @@ public class NormalizationFunctionsParameter implements
 
   @Override
   public boolean checkValue(final @NotNull Collection<String> errorMessages) {
-    return normalizationFunctions != null;
+    return true;
   }
 
   @Override
@@ -109,8 +109,7 @@ public class NormalizationFunctionsParameter implements
     }
 
     for (int i = 0; i < normalizationFunctions.size(); i++) {
-      if (!normalizationFunctionsEqual(normalizationFunctions.get(i),
-          other.normalizationFunctions.get(i))) {
+      if (!normalizationFunctions.get(i).equals(other.normalizationFunctions.get(i))) {
         return false;
       }
     }
@@ -141,10 +140,5 @@ public class NormalizationFunctionsParameter implements
     for (final NormalizationFunction normalizationFunction : normalizationFunctions) {
       NormalizationFunction.appendFunctionElement(xmlElement, normalizationFunction);
     }
-  }
-
-  private static boolean normalizationFunctionsEqual(final @NotNull NormalizationFunction first,
-      final @NotNull NormalizationFunction second) {
-    return first.equals(second);
   }
 }

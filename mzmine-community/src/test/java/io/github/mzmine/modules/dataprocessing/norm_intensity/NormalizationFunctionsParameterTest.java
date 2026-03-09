@@ -61,7 +61,7 @@ class NormalizationFunctionsParameterTest {
     final StandardCompoundNormalizationFunction standardFunction = new StandardCompoundNormalizationFunction(
         new RawDataFilePlaceholder("standard_file", tempDir.resolve("standard.mzML").toString(),
             12), standardTimestamp, StandardUsageType.Nearest, 1d,
-        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d, false)));
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d)));
     final InterpolatedNormalizationFunction interpolatedFunction = new InterpolatedNormalizationFunction(
         new RawDataFilePlaceholder("target_file", tempDir.resolve("target.mzML").toString(), 13),
         interpolatedTimestamp, factorFunction, 0.25d, standardFunction, 0.75d);
@@ -80,7 +80,7 @@ class NormalizationFunctionsParameterTest {
         FactorNormalizationFunction.class, loadedFunctions.get(0));
     assertEquals("factor_file", loadedFactor.rawDataFilePlaceholder().getName());
     assertEquals(factorTimestamp, loadedFactor.acquisitionTimestamp());
-    assertEquals(2d, loadedFactor.getConstantFactor(), 1e-12);
+    assertEquals(2d, loadedFactor.getNormalizationFactor(0d, 0f), 1e-12);
 
     final StandardCompoundNormalizationFunction loadedStandard = assertInstanceOf(
         StandardCompoundNormalizationFunction.class, loadedFunctions.get(1));
@@ -119,7 +119,7 @@ class NormalizationFunctionsParameterTest {
         FactorNormalizationFunction.class, loadedFunctions.getFirst());
     assertEquals("file_a", loadedFactor.rawDataFilePlaceholder().getName());
     assertEquals(timestamp, loadedFactor.acquisitionTimestamp());
-    assertEquals(1.25d, loadedFactor.getConstantFactor(), 1e-12);
+    assertEquals(1.25d, loadedFactor.getNormalizationFactor(0d, 0f), 1e-12);
   }
 
   @Test
@@ -190,7 +190,7 @@ class NormalizationFunctionsParameterTest {
     final StandardCompoundNormalizationFunction standardFunction = new StandardCompoundNormalizationFunction(
         new RawDataFilePlaceholder("standard_file", tempDir.resolve("standard.mzML").toString(),
             12), LocalDateTime.of(2026, 1, 1, 10, 10), StandardUsageType.Nearest, 1d,
-        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d, false)));
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d)));
     final InterpolatedNormalizationFunction interpolatedFunction = new InterpolatedNormalizationFunction(
         new RawDataFilePlaceholder("target_file", tempDir.resolve("target.mzML").toString(), 13),
         LocalDateTime.of(2026, 1, 1, 10, 5), factorFunction, 0.25d, standardFunction, 0.75d);

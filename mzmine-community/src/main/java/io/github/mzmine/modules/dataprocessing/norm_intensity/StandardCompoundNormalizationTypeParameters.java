@@ -26,6 +26,7 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -50,8 +51,13 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
   public static final FeatureSelectionParameter standardCompounds = new FeatureSelectionParameter(
       "Standard compounds", "List of features for choosing the normalization standards", null);
 
+  public static final BooleanParameter requireAllStandards = new BooleanParameter(
+      "Require all standards",
+      "If enabled, all selected standards must be present in each raw file for normalization",
+      true);
+
   public StandardCompoundNormalizationTypeParameters() {
-    super(sampleTypes, standardUsageType, mzVsRtBalance, standardCompounds);
+    super(sampleTypes, standardUsageType, mzVsRtBalance, standardCompounds, requireAllStandards);
   }
 }
 

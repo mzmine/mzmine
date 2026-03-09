@@ -98,13 +98,13 @@ class IntensityNormalizerTask extends AbstractTask {
   }
 
   public String getTaskDescription() {
-    return "Linear normalization of " + originalFeatureList + " by " + normalizationType;
+    return "Intensity normalization of " + originalFeatureList + " by " + normalizationType;
   }
 
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
-    logger.info("Running linear normalizer");
+    logger.info("Running Intensity normalizer");
 
     // Create new feature list
     normalizedFeatureList = new ModularFeatureList(originalFeatureList + " " + suffix,
@@ -130,6 +130,9 @@ class IntensityNormalizerTask extends AbstractTask {
     normalizedFeatureList.addRowType(normHeightType);
     normalizedFeatureList.addRowType(normAreaType);
     for (final RawDataFile fileToInterpolate : originalFeatureList.getRawDataFiles()) {
+      if (isCanceled()) {
+        return;
+      }
       if (fileToFunction.containsKey(fileToInterpolate)) {
         continue;
       }
@@ -149,6 +152,9 @@ class IntensityNormalizerTask extends AbstractTask {
     }
 
     for (final FeatureListRow originalRow : originalFeatureList.getRowsCopy()) {
+      if (isCanceled()) {
+        return;
+      }
       // when we copy features here and set the new height/area directly, we get the best progress
       // estimate and no hiccups for large feature tables
       final ModularFeatureListRow newRow = new ModularFeatureListRow(normalizedFeatureList,
@@ -177,6 +183,9 @@ class IntensityNormalizerTask extends AbstractTask {
       processedRows++;
     }
 
+    if (isCanceled()) {
+      return;
+    }
     // Add new feature list to the project
     handleOriginal.reflectNewFeatureListToProject(suffix, project, normalizedFeatureList,
         originalFeatureList);
@@ -198,7 +207,7 @@ class IntensityNormalizerTask extends AbstractTask {
 
     // Add task description to feature List
     normalizedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Linear normalization of by " + normalizationType,
+        new SimpleFeatureListAppliedMethod("Intensity normalization by " + normalizationType,
             IntensityNormalizerModule.class, appliedMethodParameters, getModuleCallDate()));
 
     logger.info("Finished linear normalizer");
