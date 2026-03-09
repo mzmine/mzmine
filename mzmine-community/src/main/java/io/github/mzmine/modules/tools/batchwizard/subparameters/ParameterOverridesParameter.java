@@ -110,7 +110,7 @@ public class ParameterOverridesParameter implements
       final ApplicationScope scope = UniqueIdSupplier.parseOrElse(scopeStr,
           ApplicationScope.values(), ApplicationScope.ALL);
 
-      final MZmineModule module = MZmineCore.getInitializedModules().get(moduleClass);
+      final MZmineModule module = MZmineCore.getModuleInstance(moduleClass);
       if (module == null) {
         logger.warning("Module class for module " + moduleClass
             + " does not exist. Batch will not be reproducible.");
