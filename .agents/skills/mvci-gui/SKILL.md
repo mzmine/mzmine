@@ -8,6 +8,7 @@ description: Use a MVC or MVCI architecture when building complex user interface
 
 ## Model
 
+- Treat the Model as the single source of truth.
 - The Model controls the state. It holds all data in JavaFX properties.
 - Indicate if the value of a property can be null or not with @Nullable or @NotNull annotations in
   the `<>` brackets such as `ObjectProperty<@Nullable X>`.
@@ -37,7 +38,16 @@ description: Use a MVC or MVCI architecture when building complex user interface
 - The ViewBuilder is responsible for the logic that reacts to user input.
 - The ViewBuilder is responsible for logic that reflects the Controller's or Interactor's changes to
   the Model in the View.
-- Event handlers to react to interactions should be put into the view builder.
+- Event handlers to react to user interactions should be put into the view builder.
+- UI control listeners should update one model property (the direct user intent).
+- UI control listeners should not update multiple model properties or perform derived UI
+  recomputation.
+- Derived updates must be triggered by model-property listeners in the ViewBuilder.
+- Prefer bindings from View to Model; if control property is read-only (e.g., selectedItem), use a
+  one-line listener that only writes the matching model property.
+- Avoid calling `onXSelected(...)` methods from other listeners/subscribers; use model properties to
+  drive flow.
+-
 
 ## Interactor
 
@@ -50,4 +60,11 @@ description: Use a MVC or MVCI architecture when building complex user interface
 ## Logic placement decision
 
 - The ViewBuilder handles UI events wiring, the Controller or Interactor handle application-facing
-  commands. 
+  commands.
+
+## Anti-patterns (forbidden)
+
+- `selectedItem listener -> calls onParameterSelected(...)` where `onParameterSelected` sets several
+  model properties.
+- Any UI listener that sets `selected*` plus `propertyX` plus `propertyY` in one callback.
+- Bidirectional sync loops managed by ad-hoc cross-calls instead of model-driven updates.

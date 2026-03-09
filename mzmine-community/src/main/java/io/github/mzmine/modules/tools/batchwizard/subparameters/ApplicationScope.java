@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -22,44 +23,49 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.javafx.mvci;
+package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import javafx.scene.layout.Region;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * MVCI controller with cached view. This is usually used when a view is exeansive to create and may
- * be removed/added from/to the scene graph often. Otherwise, use the base implementation
- * {@link FxController}
+ * Defines when a parameter override should be applied to module instances in a batch.
  */
-public abstract class FxCachedViewController<ViewModelClass> extends FxController<ViewModelClass> {
+public enum ApplicationScope implements UniqueIdSupplier {
+  /**
+   * Apply to all instances of the module
+   */
+  ALL("All"),
+  /**
+   * Apply only to the first instance of the module
+   */
+  FIRST("First"),
+  /**
+   * Apply only to the last instance of the module
+   */
+  LAST("Last");
 
-  @Nullable
-  protected Region cachedView;
+  private final String label;
 
-  protected FxCachedViewController(@NotNull ViewModelClass model) {
-    super(model);
+  ApplicationScope(String label) {
+    this.label = label;
   }
 
-  /**
-   * Returns cached view or builds it if null
-   */
-  public synchronized @NotNull Region buildView() {
-    if (cachedView == null) {
-      cachedView = super.buildView();
-    }
-    return cachedView;
+  public String getLabel() {
+    return label;
   }
 
-  /**
-   * Clears the internally cached view and returns the old view
-   *
-   * @return the old view
-   */
-  public synchronized @Nullable Region clearCachedView() {
-    Region internalView = cachedView;
-    cachedView = null;
-    return internalView;
+  @Override
+  public String toString() {
+    return label;
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case ALL -> "all";
+      case FIRST -> "first";
+      case LAST -> "last";
+    };
   }
 }
