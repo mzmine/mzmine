@@ -26,14 +26,18 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class IntensityNormalizerParameters extends SimpleParameterSet {
 
@@ -62,5 +66,28 @@ public class IntensityNormalizerParameters extends SimpleParameterSet {
     super(new Parameter[]{featureLists, suffix, normalizationType, featureMeasurementType,
             handleOriginal, normalizationFunctions},
         "https://mzmine.github.io/mzmine_documentation/module_docs/norm_intensity/norm_intensity.html");
+  }
+
+  public static @NotNull IntensityNormalizerParameters create(
+      final @NotNull FeatureListsSelection selectedFeatureLists,
+      final @NotNull String selectedSuffix,
+      final @NotNull NormalizationType selectedNormalizationType,
+      final @NotNull ParameterSet selectedNormalizationTypeParameters,
+      final @NotNull AbundanceMeasure selectedFeatureMeasurementType,
+      final @NotNull OriginalFeatureListOption selectedOriginalFeatureListHandling,
+      final @NotNull List<NormalizationFunction> selectedNormalizationFunctions) {
+    final IntensityNormalizerParameters parameters = (IntensityNormalizerParameters) new IntensityNormalizerParameters().cloneParameterSet();
+    parameters.setParameter(IntensityNormalizerParameters.featureLists, selectedFeatureLists);
+    parameters.setParameter(IntensityNormalizerParameters.suffix, selectedSuffix);
+    parameters.getParameter(IntensityNormalizerParameters.normalizationType)
+        .setValue(selectedNormalizationType,
+            selectedNormalizationTypeParameters.cloneParameterSet());
+    parameters.setParameter(IntensityNormalizerParameters.featureMeasurementType,
+        selectedFeatureMeasurementType);
+    parameters.setParameter(IntensityNormalizerParameters.handleOriginal,
+        selectedOriginalFeatureListHandling);
+    parameters.setParameter(IntensityNormalizerParameters.normalizationFunctions,
+        selectedNormalizationFunctions);
+    return parameters;
   }
 }

@@ -52,6 +52,13 @@ public record StandardCompoundNormalizationFunction(
   private static final String XML_STANDARD_POINT_RT_ATTR = "rt";
   private static final String XML_STANDARD_POINT_ABUNDANCE_ATTR = "abundance";
 
+  public StandardCompoundNormalizationFunction {
+    // decision: enforce at least one standard point to avoid runtime failure paths.
+    if (referencePoints.isEmpty()) {
+      throw new IllegalStateException("No standard reference points available.");
+    }
+  }
+
   public StandardCompoundNormalizationFunction(@NotNull final RawDataFile referenceFile,
       @NotNull final LocalDateTime acquisitionTimestamp, @NotNull final StandardUsageType usageType,
       final double mzVsRtBalance,
@@ -106,6 +113,10 @@ public record StandardCompoundNormalizationFunction(
   }
 
   private double getWeightedStandardAbundance(final double mz, final float rt) {
+    if (referencePoints.isEmpty()) {
+      throw new IllegalStateException("No standard reference points available.");
+    }
+
     // decision: direct standard hits should dominate weighted interpolation.
     double directMatchSum = 0.0d;
     int directMatchCount = 0;
@@ -127,10 +138,6 @@ public record StandardCompoundNormalizationFunction(
 
     if (directMatchCount > 0) {
       return directMatchSum / directMatchCount;
-    }
-    if (sumOfWeights == 0.0d) {
-      // decision: keep legacy missing-standard behavior (factor of 1) when all standards are missing.
-      return 1.0d;
     }
     return weightedSum / sumOfWeights;
   }

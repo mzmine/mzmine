@@ -30,8 +30,10 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class StandardCompoundNormalizationTypeParameters extends SimpleParameterSet {
 
@@ -58,6 +60,26 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
 
   public StandardCompoundNormalizationTypeParameters() {
     super(sampleTypes, standardUsageType, mzVsRtBalance, standardCompounds, requireAllStandards);
+  }
+
+  public static @NotNull StandardCompoundNormalizationTypeParameters create(
+      final @NotNull List<SampleType> selectedSampleTypes,
+      final @NotNull StandardUsageType selectedStandardUsageType,
+      final double selectedMzVsRtBalance,
+      final @NotNull List<FeatureSelection> selectedStandardCompounds,
+      final boolean selectedRequireAllStandards) {
+    final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
+    parameters.setParameter(StandardCompoundNormalizationTypeParameters.sampleTypes,
+        selectedSampleTypes);
+    parameters.setParameter(StandardCompoundNormalizationTypeParameters.standardUsageType,
+        selectedStandardUsageType);
+    parameters.setParameter(StandardCompoundNormalizationTypeParameters.mzVsRtBalance,
+        selectedMzVsRtBalance);
+    parameters.setParameter(StandardCompoundNormalizationTypeParameters.standardCompounds,
+        selectedStandardCompounds);
+    parameters.setParameter(StandardCompoundNormalizationTypeParameters.requireAllStandards,
+        selectedRequireAllStandards);
+    return parameters;
   }
 }
 

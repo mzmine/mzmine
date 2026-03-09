@@ -31,18 +31,26 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 class NormalizationFunctionsParameterTest {
 
@@ -100,16 +108,47 @@ class NormalizationFunctionsParameterTest {
   }
 
   @Test
+  void loadValueFromXMLSkipsInvalidFunctionEntries() throws Exception {
+    final LocalDateTime timestamp = LocalDateTime.of(2026, 1, 1, 10, 0);
+    final FactorNormalizationFunction validFunction = new FactorNormalizationFunction(
+        new RawDataFilePlaceholder("valid_file", tempDir.resolve("valid.mzML").toString(), 7),
+        timestamp, 2d);
+
+    final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        .newDocument();
+    final Element root = document.createElement("normalizationFunctions");
+    document.appendChild(root);
+
+    NormalizationFunction.appendFunctionElement(root, validFunction);
+
+    final Element invalidFunction = document.createElement(
+        NormalizationFunction.XML_FUNCTION_ELEMENT);
+    invalidFunction.setAttribute(NormalizationFunction.XML_FUNCTION_TYPE_ATTR, "unknown_type");
+    root.appendChild(invalidFunction);
+
+    final NormalizationFunctionsParameter parameter = new NormalizationFunctionsParameter();
+    parameter.loadValueFromXML(root);
+
+    final List<NormalizationFunction> loadedFunctions = parameter.getValue();
+    assertEquals(1, loadedFunctions.size());
+    final FactorNormalizationFunction loadedValid = assertInstanceOf(
+        FactorNormalizationFunction.class, loadedFunctions.getFirst());
+    assertEquals("valid_file", loadedValid.rawDataFilePlaceholder().getName());
+    assertEquals(2d, loadedValid.getNormalizationFactor(0d, 0f), 1e-12);
+  }
+
+  @Test
   void hiddenParameterInNormalizerParameterSetPersistsFunctions() throws Exception {
-    final IntensityNormalizerParameters parameters = new IntensityNormalizerParameters();
     final LocalDateTime timestamp = LocalDateTime.of(2026, 1, 2, 10, 0);
     final List<NormalizationFunction> functions = List.of(new FactorNormalizationFunction(
         new RawDataFilePlaceholder("file_a", tempDir.resolve("a.mzML").toString(), 42), timestamp,
         1.25d));
-    parameters.setParameter(IntensityNormalizerParameters.normalizationFunctions, functions);
+    final IntensityNormalizerParameters parameters = createIntensityParameters("hidden_save",
+        AbundanceMeasure.Height, OriginalFeatureListOption.KEEP, functions);
 
     final String xml = ParameterUtils.saveValuesToXMLString(parameters);
-    final IntensityNormalizerParameters loaded = new IntensityNormalizerParameters();
+    final IntensityNormalizerParameters loaded = createIntensityParameters("placeholder",
+        AbundanceMeasure.Area, OriginalFeatureListOption.REMOVE, List.of());
     ParameterUtils.loadValuesFromXMLString(loaded, xml);
 
     final List<NormalizationFunction> loadedFunctions = loaded.getValue(
@@ -127,16 +166,16 @@ class NormalizationFunctionsParameterTest {
     final RawDataFile rawDataFile = RawDataFile.createDummyFile();
     final ModularFeatureList featureList = new ModularFeatureList("flist", null, rawDataFile);
 
-    final IntensityNormalizerParameters olderParameters = new IntensityNormalizerParameters();
-    olderParameters.setParameter(IntensityNormalizerParameters.normalizationFunctions, List.of(
+    final IntensityNormalizerParameters olderParameters = createIntensityParameters("older",
+        AbundanceMeasure.Height, OriginalFeatureListOption.KEEP, List.of(
         new FactorNormalizationFunction(new RawDataFilePlaceholder(rawDataFile),
             LocalDateTime.of(2026, 1, 1, 9, 0), 2d)));
     featureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod(IntensityNormalizerModule.class, olderParameters,
             Instant.parse("2026-01-01T09:30:00Z")));
 
-    final IntensityNormalizerParameters latestParameters = new IntensityNormalizerParameters();
-    latestParameters.setParameter(IntensityNormalizerParameters.normalizationFunctions, List.of(
+    final IntensityNormalizerParameters latestParameters = createIntensityParameters("latest",
+        AbundanceMeasure.Height, OriginalFeatureListOption.KEEP, List.of(
         new FactorNormalizationFunction(new RawDataFilePlaceholder(rawDataFile),
             LocalDateTime.of(2026, 1, 1, 11, 0), 3d)));
     featureList.addDescriptionOfAppliedTask(
@@ -195,5 +234,16 @@ class NormalizationFunctionsParameterTest {
         new RawDataFilePlaceholder("target_file", tempDir.resolve("target.mzML").toString(), 13),
         LocalDateTime.of(2026, 1, 1, 10, 5), factorFunction, 0.25d, standardFunction, 0.75d);
     return List.of(factorFunction, standardFunction, interpolatedFunction);
+  }
+
+  private @NotNull IntensityNormalizerParameters createIntensityParameters(
+      final @NotNull String suffix, final @NotNull AbundanceMeasure abundanceMeasure,
+      final @NotNull OriginalFeatureListOption handleOriginal,
+      final @NotNull List<NormalizationFunction> normalizationFunctions) {
+    return IntensityNormalizerParameters.create(
+        new FeatureListsSelection(FeatureListsSelectionType.ALL_FEATURELISTS), suffix,
+        NormalizationType.TotalRawSignal,
+        FactorNormalizationModuleParameters.create(List.of(SampleType.QC)), abundanceMeasure,
+        handleOriginal, normalizationFunctions);
   }
 }

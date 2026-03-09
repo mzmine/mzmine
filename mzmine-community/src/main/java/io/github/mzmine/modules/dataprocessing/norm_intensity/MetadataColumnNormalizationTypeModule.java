@@ -113,16 +113,9 @@ public class MetadataColumnNormalizationTypeModule implements NormalizationTypeM
       @NotNull final InterpolationWeights interpolationWeights,
       @NotNull final MetadataTable metadata, @NotNull final ParameterSet mainParameters,
       @NotNull final ParameterSet normalizerParameters) {
-    if (!(previousRunCalibration instanceof final FactorNormalizationFunction prev)
-        || !(nextRunCalibration instanceof final FactorNormalizationFunction next)) {
-      throw new IllegalStateException("Input calibrations are no factor-based calibrations.");
-    }
 
-    final LocalDateTime runDate = NormalizationTypeModule.getRunDateOrThrow(metadata,
-        fileToInterpolate);
-    final double factor = next.factor() * interpolationWeights.nextRunWeight()
-        + prev.factor() * interpolationWeights.previousWeight();
-
-    return new FactorNormalizationFunction(fileToInterpolate, runDate, factor);
+    throw new RuntimeException(
+        "Interpolating a normalization is invalid for Metadata normalization. Prove a metadata value for file %s.".formatted(
+            fileToInterpolate.getName()));
   }
 }

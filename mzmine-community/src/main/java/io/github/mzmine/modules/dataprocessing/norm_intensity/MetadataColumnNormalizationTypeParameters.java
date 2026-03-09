@@ -31,6 +31,8 @@ import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParam
 import io.github.mzmine.project.ProjectService;
 import java.util.Collection;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MetadataColumnNormalizationTypeParameters extends SimpleParameterSet {
 
@@ -41,6 +43,14 @@ public class MetadataColumnNormalizationTypeParameters extends SimpleParameterSe
 
   public MetadataColumnNormalizationTypeParameters() {
     super(metadataColumn);
+  }
+
+  public static @NotNull MetadataColumnNormalizationTypeParameters create(
+      final @Nullable String selectedMetadataColumn) {
+    final MetadataColumnNormalizationTypeParameters parameters = (MetadataColumnNormalizationTypeParameters) new MetadataColumnNormalizationTypeParameters().cloneParameterSet();
+    parameters.setParameter(MetadataColumnNormalizationTypeParameters.metadataColumn,
+        selectedMetadataColumn);
+    return parameters;
   }
 
   @Override

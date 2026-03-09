@@ -42,19 +42,17 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-class MedianFeatureIntensityNormalizationTypeModuleTest {
+class AverageIntensityNormalizationTypeModuleTest {
 
   @Test
-  void createReferenceFunctionsUsesMedianFeatureIntensity() {
-    final MedianFeatureIntensityNormalizationTypeModule module = new MedianFeatureIntensityNormalizationTypeModule();
+  void createReferenceFunctionsUsesAverageFeatureIntensity() {
+    final AverageIntensityNormalizationTypeModule module = new AverageIntensityNormalizationTypeModule();
     final RawDataFileImpl fileA = createRawFile("file_a", LocalDateTime.of(2026, 1, 1, 10, 0));
     final RawDataFileImpl fileB = createRawFile("file_b", LocalDateTime.of(2026, 1, 1, 10, 5));
 
     final ModularFeatureList featureList = new ModularFeatureList("flist", null, fileA, fileB);
-    addRow(featureList, 1, fileA, 1f, fileB, 1f);
-    addRow(featureList, 2, fileA, 2f, fileB, 1f);
-    addRow(featureList, 3, fileA, 3f, fileB, 1f);
-    addRow(featureList, 4, fileA, 100f, fileB, 1f);
+    addRow(featureList, 1, fileA, 2f, 2f, fileB, 1f, 1f);
+    addRow(featureList, 2, fileA, 4f, 4f, fileB, 1f, 1f);
 
     final Map<RawDataFile, NormalizationFunction> functions = module.createReferenceFunctions(
         List.of(fileA, fileB), featureList, new MetadataTable(false),
@@ -65,16 +63,38 @@ class MedianFeatureIntensityNormalizationTypeModuleTest {
     final FactorNormalizationFunction functionB = assertInstanceOf(
         FactorNormalizationFunction.class, functions.get(fileB));
 
-    // Median(file_a)=2.5 and Median(file_b)=1.0 => maxMetric=2.5.
+    // Average(file_a)=3 and Average(file_b)=1 => maxMetric=3.
     assertEquals(1d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
-    assertEquals(2.5d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
-    assertEquals(fileA.getStartTimeStamp(), functionA.acquisitionTimestamp());
-    assertEquals(fileB.getStartTimeStamp(), functionB.acquisitionTimestamp());
+    assertEquals(3d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
   }
 
   @Test
-  void createReferenceFunctionsThrowsIfNoFeaturesFound() {
-    final MedianFeatureIntensityNormalizationTypeModule module = new MedianFeatureIntensityNormalizationTypeModule();
+  void createReferenceFunctionsUsesSelectedFeatureMeasurementType() {
+    final AverageIntensityNormalizationTypeModule module = new AverageIntensityNormalizationTypeModule();
+    final RawDataFileImpl fileA = createRawFile("file_a", LocalDateTime.of(2026, 1, 1, 10, 0));
+    final RawDataFileImpl fileB = createRawFile("file_b", LocalDateTime.of(2026, 1, 1, 10, 5));
+
+    final ModularFeatureList featureList = new ModularFeatureList("flist", null, fileA, fileB);
+    addRow(featureList, 1, fileA, 1f, 20f, fileB, 1f, 10f);
+    addRow(featureList, 2, fileA, 1f, 10f, fileB, 1f, 10f);
+
+    final Map<RawDataFile, NormalizationFunction> functions = module.createReferenceFunctions(
+        List.of(fileA, fileB), featureList, new MetadataTable(false),
+        createMainParameters(AbundanceMeasure.Area), createFactorParameters());
+
+    final FactorNormalizationFunction functionA = assertInstanceOf(
+        FactorNormalizationFunction.class, functions.get(fileA));
+    final FactorNormalizationFunction functionB = assertInstanceOf(
+        FactorNormalizationFunction.class, functions.get(fileB));
+
+    // Average area(file_a)=15 and Average area(file_b)=10 => maxMetric=15.
+    assertEquals(1d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
+    assertEquals(1.5d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
+  }
+
+  @Test
+  void createReferenceFunctionsThrowsIfIntensitySumIsZero() {
+    final AverageIntensityNormalizationTypeModule module = new AverageIntensityNormalizationTypeModule();
     final RawDataFileImpl file = createRawFile("empty_file", LocalDateTime.of(2026, 1, 1, 10, 0));
     final ModularFeatureList featureList = new ModularFeatureList("flist", null, file);
 
@@ -82,7 +102,6 @@ class MedianFeatureIntensityNormalizationTypeModuleTest {
         () -> module.createReferenceFunctions(List.of(file), featureList, new MetadataTable(false),
             createMainParameters(AbundanceMeasure.Height), createFactorParameters()));
 
-    assertEquals("No features found or median of feature intensities is 0 for file: empty_file",
-        exception.getMessage());
+    assertEquals("Sum of feature intensities is 0 for file: empty_file", exception.getMessage());
   }
 }

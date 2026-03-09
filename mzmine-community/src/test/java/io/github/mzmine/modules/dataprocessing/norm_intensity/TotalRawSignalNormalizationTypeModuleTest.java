@@ -24,7 +24,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
-import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.addRow;
+import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.addScan;
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createFactorParameters;
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createMainParameters;
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createRawFile;
@@ -42,20 +42,19 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-class MedianFeatureIntensityNormalizationTypeModuleTest {
+class TotalRawSignalNormalizationTypeModuleTest {
 
   @Test
-  void createReferenceFunctionsUsesMedianFeatureIntensity() {
-    final MedianFeatureIntensityNormalizationTypeModule module = new MedianFeatureIntensityNormalizationTypeModule();
+  void createReferenceFunctionsUsesMs1TicSum() {
+    final TotalRawSignalNormalizationTypeModule module = new TotalRawSignalNormalizationTypeModule();
     final RawDataFileImpl fileA = createRawFile("file_a", LocalDateTime.of(2026, 1, 1, 10, 0));
     final RawDataFileImpl fileB = createRawFile("file_b", LocalDateTime.of(2026, 1, 1, 10, 5));
 
-    final ModularFeatureList featureList = new ModularFeatureList("flist", null, fileA, fileB);
-    addRow(featureList, 1, fileA, 1f, fileB, 1f);
-    addRow(featureList, 2, fileA, 2f, fileB, 1f);
-    addRow(featureList, 3, fileA, 3f, fileB, 1f);
-    addRow(featureList, 4, fileA, 100f, fileB, 1f);
+    addScan(fileA, 1, 1, 1f, new double[]{100d, 101d}, new double[]{10d, 20d});
+    addScan(fileA, 2, 2, 2f, new double[]{100d}, new double[]{1000d});
+    addScan(fileB, 1, 1, 1f, new double[]{100d, 101d}, new double[]{5d, 10d});
 
+    final ModularFeatureList featureList = new ModularFeatureList("flist", null, fileA, fileB);
     final Map<RawDataFile, NormalizationFunction> functions = module.createReferenceFunctions(
         List.of(fileA, fileB), featureList, new MetadataTable(false),
         createMainParameters(AbundanceMeasure.Height), createFactorParameters());
@@ -65,24 +64,23 @@ class MedianFeatureIntensityNormalizationTypeModuleTest {
     final FactorNormalizationFunction functionB = assertInstanceOf(
         FactorNormalizationFunction.class, functions.get(fileB));
 
-    // Median(file_a)=2.5 and Median(file_b)=1.0 => maxMetric=2.5.
+    // TIC(file_a)=30 from MS1 scans only, TIC(file_b)=15 => maxMetric=30.
     assertEquals(1d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
-    assertEquals(2.5d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
-    assertEquals(fileA.getStartTimeStamp(), functionA.acquisitionTimestamp());
-    assertEquals(fileB.getStartTimeStamp(), functionB.acquisitionTimestamp());
+    assertEquals(2d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
   }
 
   @Test
-  void createReferenceFunctionsThrowsIfNoFeaturesFound() {
-    final MedianFeatureIntensityNormalizationTypeModule module = new MedianFeatureIntensityNormalizationTypeModule();
-    final RawDataFileImpl file = createRawFile("empty_file", LocalDateTime.of(2026, 1, 1, 10, 0));
+  void createReferenceFunctionsThrowsIfNoMs1TicFound() {
+    final TotalRawSignalNormalizationTypeModule module = new TotalRawSignalNormalizationTypeModule();
+    final RawDataFileImpl file = createRawFile("no_tic", LocalDateTime.of(2026, 1, 1, 10, 0));
+    addScan(file, 1, 2, 1f, new double[]{100d}, new double[]{100d});
+
     final ModularFeatureList featureList = new ModularFeatureList("flist", null, file);
 
     final IllegalStateException exception = assertThrows(IllegalStateException.class,
         () -> module.createReferenceFunctions(List.of(file), featureList, new MetadataTable(false),
             createMainParameters(AbundanceMeasure.Height), createFactorParameters()));
 
-    assertEquals("No features found or median of feature intensities is 0 for file: empty_file",
-        exception.getMessage());
+    assertEquals("No TIC found for file: no_tic", exception.getMessage());
   }
 }

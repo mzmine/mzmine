@@ -25,6 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import java.time.LocalDateTime;
@@ -32,6 +33,17 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class StandardCompoundNormalizationFunctionTest {
+
+  @Test
+  void constructorThrowsIfReferencePointsAreEmpty() {
+    final RawDataFile file = RawDataFile.createDummyFile();
+
+    final IllegalStateException exception = assertThrows(IllegalStateException.class,
+        () -> new StandardCompoundNormalizationFunction(file, LocalDateTime.of(2026, 1, 1, 10, 0),
+            StandardUsageType.Nearest, 1.0d, List.of()));
+
+    assertEquals("No standard reference points available.", exception.getMessage());
+  }
 
   @Test
   void nearestUsesClosestReferencePoint() {
@@ -86,5 +98,30 @@ class StandardCompoundNormalizationFunctionTest {
 
     assertEquals(0.004d, factor, 1e-12);
   }
-}
 
+  @Test
+  void nearestThrowsOnZeroStandardAbundance() {
+    final RawDataFile file = RawDataFile.createDummyFile();
+    final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
+        file, LocalDateTime.of(2026, 1, 1, 10, 0), StandardUsageType.Nearest, 1.0d,
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 0d)));
+
+    final IllegalStateException exception = assertThrows(IllegalStateException.class,
+        () -> function.getNormalizationFactor(100d, 5f));
+
+    assertEquals("Illegal standard abundance of 0.00.", exception.getMessage());
+  }
+
+  @Test
+  void weightedThrowsOnNonFiniteStandardAbundance() {
+    final RawDataFile file = RawDataFile.createDummyFile();
+    final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
+        file, LocalDateTime.of(2026, 1, 1, 10, 0), StandardUsageType.Weighted, 1.0d,
+        List.of(new StandardCompoundReferencePoint(100d, 5f, Double.NaN)));
+
+    final IllegalStateException exception = assertThrows(IllegalStateException.class,
+        () -> function.getNormalizationFactor(100d, 5f));
+
+    assertEquals("Illegal standard abundance of NaN.", exception.getMessage());
+  }
+}

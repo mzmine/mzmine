@@ -28,6 +28,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class FactorNormalizationModuleParameters extends SimpleParameterSet {
 
@@ -40,5 +41,12 @@ public class FactorNormalizationModuleParameters extends SimpleParameterSet {
 
   public FactorNormalizationModuleParameters() {
     super(sampleTypes);
+  }
+
+  public static @NotNull FactorNormalizationModuleParameters create(
+      final @NotNull List<SampleType> selectedSampleTypes) {
+    final FactorNormalizationModuleParameters parameters = (FactorNormalizationModuleParameters) new FactorNormalizationModuleParameters().cloneParameterSet();
+    parameters.setParameter(FactorNormalizationModuleParameters.sampleTypes, selectedSampleTypes);
+    return parameters;
   }
 }
