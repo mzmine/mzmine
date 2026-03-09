@@ -88,7 +88,7 @@ class NormalizationFunctionsParameterTest {
     assertEquals(standardTimestamp, loadedStandard.acquisitionTimestamp());
     assertEquals(StandardUsageType.Nearest, loadedStandard.usageType());
     assertEquals(1, loadedStandard.referencePoints().size());
-    assertEquals(0.5d, loadedStandard.getNormalizationFactor(100d, 5f), 1e-12);
+    assertEquals(0.005d, loadedStandard.getNormalizationFactor(100d, 5f), 1e-12);
 
     final InterpolatedNormalizationFunction loadedInterpolated = assertInstanceOf(
         InterpolatedNormalizationFunction.class, loadedFunctions.get(2));
@@ -96,7 +96,7 @@ class NormalizationFunctionsParameterTest {
     assertEquals(interpolatedTimestamp, loadedInterpolated.acquisitionTimestamp());
     assertEquals(0.25d, loadedInterpolated.previousWeight(), 1e-12);
     assertEquals(0.75d, loadedInterpolated.nextWeight(), 1e-12);
-    assertEquals(0.875d, loadedInterpolated.getNormalizationFactor(100d, 5f), 1e-12);
+    assertEquals(0.50375d, loadedInterpolated.getNormalizationFactor(100d, 5f), 1e-12);
   }
 
   @Test

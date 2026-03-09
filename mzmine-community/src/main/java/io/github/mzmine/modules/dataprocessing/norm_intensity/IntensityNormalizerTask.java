@@ -109,7 +109,6 @@ class IntensityNormalizerTask extends AbstractTask {
     // Create new feature list
     normalizedFeatureList = new ModularFeatureList(originalFeatureList + " " + suffix,
         getMemoryMapStorage(), originalFeatureList.getRawDataFiles());
-    // do not transfer types add them later
     FeatureListUtils.transferMetadata(originalFeatureList, normalizedFeatureList, true);
 
     final List<RawDataFile> referenceFiles = normalizationTypeModule.getReferenceSamples(
