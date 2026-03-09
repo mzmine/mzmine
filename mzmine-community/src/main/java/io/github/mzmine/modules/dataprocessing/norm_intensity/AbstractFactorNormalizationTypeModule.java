@@ -40,6 +40,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Basic implementation for normalization functions that have constant factor and do not rely on mz
+ * or rt of the feature.
+ */
 public abstract class AbstractFactorNormalizationTypeModule implements NormalizationTypeModule {
 
   @Override

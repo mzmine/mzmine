@@ -34,7 +34,6 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import java.util.List;
-import org.jetbrains.annotations.Nullable;
 
 public class IntensityNormalizerParameters extends SimpleParameterSet {
 
@@ -44,7 +43,8 @@ public class IntensityNormalizerParameters extends SimpleParameterSet {
       "Suffix to be added to feature list name", "norm");
 
   public static final ComboParameter<AbundanceMeasure> featureMeasurementType = new ComboParameter<AbundanceMeasure>(
-      "Feature measurement type", "Measure features using", AbundanceMeasure.values());
+      "Feature measurement type", "Measure features using",
+      List.of(AbundanceMeasure.Area, AbundanceMeasure.Height), AbundanceMeasure.Height);
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
       "Original feature list",
@@ -52,7 +52,8 @@ public class IntensityNormalizerParameters extends SimpleParameterSet {
           + "processed list.\nREMOVE saves memory.", false);
 
   public static final ModuleOptionsEnumComboParameter<NormalizationType> normalizationType = new ModuleOptionsEnumComboParameter<>(
-      "Normalization type", "Normalize intensities by...", NormalizationType.AverageIntensity);
+      "Normalization type", "Normalize intensities by...",
+      NormalizationType.MedianFeatureIntensity);
 
   public static final HiddenParameter<List<NormalizationFunction>> normalizationFunctions = new HiddenParameter<>(
       new NormalizationFunctionsParameter());
@@ -60,26 +61,6 @@ public class IntensityNormalizerParameters extends SimpleParameterSet {
   public IntensityNormalizerParameters() {
     super(new Parameter[]{featureLists, suffix, normalizationType, featureMeasurementType,
             handleOriginal, normalizationFunctions},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/norm_linear/norm_linear.html");
-  }
-
-  @Override
-  public int getVersion() {
-    return 5;
-  }
-
-  @Override
-  public @Nullable String getVersionMessage(int version) {
-    return switch (version) {
-      case 5 ->
-          "Stores per-file normalization functions in the applied method to support persistent normalization of newly added features.";
-      case 4 ->
-          "Standard compound normalization was migrated into the linear normalizer as a normalization type.";
-      case 3 ->
-          "Normalization type was migrated to module options and now stores method-specific parameters.";
-      case 2 ->
-          "Added reference samples parameter to allow interpolation from QCs, updated normalization algorithm (Results will differ from previous results).";
-      default -> null;
-    };
+        "https://mzmine.github.io/mzmine_documentation/module_docs/norm_intensity/norm_intensity.html");
   }
 }

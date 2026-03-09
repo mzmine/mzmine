@@ -86,7 +86,8 @@ public class StandardCompoundNormalizationTypeModule implements NormalizationTyp
     for (final RawDataFile rawFile : referenceFiles) {
       final List<StandardCompoundReferencePoint> referencePoints = createReferencePoints(rawFile,
           standardRows, abundanceMeasure, requireAllStandards);
-      final LocalDateTime acquisitionTimestamp = getAcquisitionTimestamp(rawFile, metadata);
+      final LocalDateTime acquisitionTimestamp = NormalizationTypeModule.getRunDateOrThrow(metadata,
+          rawFile);
       fileToFunction.put(rawFile,
           new StandardCompoundNormalizationFunction(rawFile, acquisitionTimestamp,
               standardUsageType, mzVsRtBalance, referencePoints));
@@ -102,9 +103,10 @@ public class StandardCompoundNormalizationTypeModule implements NormalizationTyp
       @NotNull final InterpolationWeights interpolationWeights,
       @NotNull final MetadataTable metadata, @NotNull final ParameterSet mainParameters,
       @NotNull final ParameterSet normalizerParameters) {
-    final LocalDateTime runDate = getAcquisitionTimestamp(fileToInterpolate, metadata);
-    return new InterpolatedNormalizationFunction(fileToInterpolate, runDate, previousRunCalibration,
-        interpolationWeights.previousWeight(), nextRunCalibration,
+    final LocalDateTime acquisitionTimestamp = NormalizationTypeModule.getRunDateOrThrow(metadata,
+        fileToInterpolate);
+    return new InterpolatedNormalizationFunction(fileToInterpolate, acquisitionTimestamp,
+        previousRunCalibration, interpolationWeights.previousWeight(), nextRunCalibration,
         interpolationWeights.nextRunWeight());
   }
 
@@ -148,21 +150,11 @@ public class StandardCompoundNormalizationTypeModule implements NormalizationTyp
       referencePoints.add(
           new StandardCompoundReferencePoint(standardMz, standardRt, standardAbundance));
     }
+    if (referencePoints.isEmpty()) {
+      throw new IllegalStateException(
+          "No intensity normalization standards found for file: " + rawFile.getName());
+    }
     return referencePoints;
   }
 
-  private @NotNull LocalDateTime getAcquisitionTimestamp(@NotNull final RawDataFile rawFile,
-      @NotNull final MetadataTable metadata) {
-    final LocalDateTime startTimeStamp = rawFile.getStartTimeStamp();
-    if (startTimeStamp != null) {
-      return startTimeStamp;
-    }
-
-    final LocalDateTime metadataRunDate = metadata.getValue(metadata.getRunDateColumn(), rawFile);
-    if (metadataRunDate != null) {
-      return metadataRunDate;
-    }
-    throw new IllegalStateException(
-        "No acquisition timestamp found for file: " + rawFile.getName());
-  }
 }

@@ -122,13 +122,4 @@ public record InterpolatedNormalizationFunction(
         previousFunction, previousWeight, nextFunction, nextWeight);
   }
 
-  @Override
-  public @NotNull NormalizationFunction previousFunction() {
-    return previousFunction;
-  }
-
-  @Override
-  public @NotNull NormalizationFunction nextFunction() {
-    return nextFunction;
-  }
 }

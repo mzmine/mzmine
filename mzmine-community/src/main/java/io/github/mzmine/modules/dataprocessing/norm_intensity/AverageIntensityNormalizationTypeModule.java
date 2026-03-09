@@ -63,7 +63,8 @@ public class AverageIntensityNormalizationTypeModule extends AbstractFactorNorma
       }
     }
     if (Double.compare(intensitySum, 0d) == 0) {
-      throw new IllegalStateException("No features found for file: " + file.getName());
+      throw new IllegalStateException(
+          "Sum of feature intensities is 0 for file: " + file.getName());
     }
     return intensitySum / Math.max(1, intensityCount);
   }

@@ -26,6 +26,7 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -175,9 +176,8 @@ class IntensityNormalizerTask extends AbstractTask {
         if (rt == null) {
           throw new IllegalStateException("No RT found for feature in file: " + file.getName());
         }
-        final double normFactor = normalizationFunction.getNormalizationFactor(mz, rt);
-        feature.set(normHeightType, (float) (feature.getHeight() * normFactor));
-        feature.set(normAreaType, (float) (feature.getArea() * normFactor));
+
+        FeatureDataUtils.normalizeAbundances(feature, normalizationFunction);
       }
       processedRows++;
     }

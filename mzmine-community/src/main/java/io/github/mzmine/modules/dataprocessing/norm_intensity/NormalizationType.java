@@ -30,17 +30,16 @@ import org.jetbrains.annotations.NotNull;
 public enum NormalizationType implements ModuleOptionsEnum<NormalizationTypeModule> {
 
   AverageIntensity("Average intensity", "average_intensity",
-      AverageIntensityNormalizationTypeModule.class), MedianFeatureIntensity(
-      "Median feature intensity", "median_feature_intensity",
-      MedianFeatureIntensityNormalizationTypeModule.class), AverageSquaredIntensity(
-      "Average squared intensity", "average_squared_intensity",
-      AverageSquaredIntensityNormalizationTypeModule.class), MaximumFeatureHeight(
-      "Maximum peak intensity", "maximum_feature_height",
-      MaximumFeatureHeightNormalizationTypeModule.class), TotalRawSignal("Total raw signal",
-      "total_raw_signal", TotalRawSignalNormalizationTypeModule.class), MetadataColumn(
-      "Metadata column", "metadata_column",
-      MetadataColumnNormalizationTypeModule.class), StandardCompounds(
-      "Standard compounds", "standard_compounds", StandardCompoundNormalizationTypeModule.class);
+      AverageIntensityNormalizationTypeModule.class), //
+  MedianFeatureIntensity("Median feature intensity", "median_feature_intensity",
+      MedianFeatureIntensityNormalizationTypeModule.class), //
+  MaximumFeatureHeight("Maximum peak intensity", "maximum_feature_height",
+      MaximumFeatureHeightNormalizationTypeModule.class), //
+  TotalRawSignal("TIC normalization", "tic", TotalRawSignalNormalizationTypeModule.class), //
+  MetadataColumn("Metadata column", "metadata_column",
+      MetadataColumnNormalizationTypeModule.class),  //
+  StandardCompounds("Standard compounds", "standard_compounds",
+      StandardCompoundNormalizationTypeModule.class);
 
   private final String name;
   private final String stableId;

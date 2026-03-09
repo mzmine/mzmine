@@ -34,7 +34,7 @@ public class TotalRawSignalNormalizationTypeModule extends AbstractFactorNormali
 
   @Override
   public @NotNull String getName() {
-    return "Total raw signal";
+    return "TIC normalization";
   }
 
   @Override
