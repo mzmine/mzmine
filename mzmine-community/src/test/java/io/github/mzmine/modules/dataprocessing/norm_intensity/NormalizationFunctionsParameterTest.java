@@ -199,6 +199,48 @@ class NormalizationFunctionsParameterTest {
   }
 
   @Test
+  void getNormalizationFunctionsOfLatestCallReturnsEmptyIfNoAppliedMethods() {
+    final RawDataFile rawDataFile = RawDataFile.createDummyFile();
+    final ModularFeatureList featureList = new ModularFeatureList("flist", null, rawDataFile);
+
+    final List<NormalizationFunction> functions = IntensityNormalizerModule.getNormalizationFunctionsOfLatestCall(
+        featureList);
+
+    assertTrue(functions.isEmpty());
+  }
+
+  @Test
+  void saveLoadRoundtripPreservesWeightedUsageType() {
+    final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
+        new RawDataFilePlaceholder("file", tempDir.resolve("file.mzML").toString(), 1),
+        LocalDateTime.of(2026, 1, 1, 10, 0), StandardUsageType.Weighted, 1d,
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d)));
+
+    final NormalizationFunctionsParameter parameter = new NormalizationFunctionsParameter();
+    parameter.setValue(List.of(function));
+
+    final String xml = ParameterUtils.saveParameterToXMLString(parameter);
+    final NormalizationFunctionsParameter loaded = new NormalizationFunctionsParameter();
+    ParameterUtils.loadParameterFromString(loaded, xml);
+
+    final StandardCompoundNormalizationFunction loadedFunction = assertInstanceOf(
+        StandardCompoundNormalizationFunction.class, loaded.getValue().getFirst());
+    assertEquals(StandardUsageType.Weighted, loadedFunction.usageType());
+  }
+
+  @Test
+  void saveLoadRoundtripWithEmptyList() {
+    final NormalizationFunctionsParameter parameter = new NormalizationFunctionsParameter();
+    parameter.setValue(List.of());
+
+    final String xml = ParameterUtils.saveParameterToXMLString(parameter);
+    final NormalizationFunctionsParameter loaded = new NormalizationFunctionsParameter();
+    ParameterUtils.loadParameterFromString(loaded, xml);
+
+    assertTrue(loaded.getValue().isEmpty());
+  }
+
+  @Test
   void valueEqualsIsTrueForEquivalentRecordValues() {
     final NormalizationFunctionsParameter firstParameter = new NormalizationFunctionsParameter();
     firstParameter.setValue(createFunctions(2d));

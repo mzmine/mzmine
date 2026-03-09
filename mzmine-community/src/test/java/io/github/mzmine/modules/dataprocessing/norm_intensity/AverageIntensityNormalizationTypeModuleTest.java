@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -103,5 +104,30 @@ class AverageIntensityNormalizationTypeModuleTest {
             createMainParameters(AbundanceMeasure.Height), createFactorParameters()));
 
     assertEquals("Sum of feature intensities is 0 for file: empty_file", exception.getMessage());
+  }
+
+  @Test
+  void createInterpolatedFunctionInterpolatesFactors() {
+    final AverageIntensityNormalizationTypeModule module = new AverageIntensityNormalizationTypeModule();
+    final RawDataFileImpl prevFile = createRawFile("prev", LocalDateTime.of(2026, 1, 1, 10, 0));
+    final RawDataFileImpl nextFile = createRawFile("next", LocalDateTime.of(2026, 1, 1, 10, 10));
+    final RawDataFileImpl targetFile = createRawFile("target", LocalDateTime.of(2026, 1, 1, 10, 5));
+
+    final FactorNormalizationFunction prevFunction = new FactorNormalizationFunction(prevFile,
+        prevFile.getStartTimeStamp(), 2d);
+    final FactorNormalizationFunction nextFunction = new FactorNormalizationFunction(nextFile,
+        nextFile.getStartTimeStamp(), 4d);
+
+    // InterpolationWeights(nextRun, previousRun, previousWeight, nextRunWeight)
+    final InterpolationWeights weights = new InterpolationWeights(nextFile, prevFile, 0.25d, 0.75d);
+
+    final NormalizationFunction result = module.createInterpolatedFunction(targetFile, prevFunction,
+        nextFunction, weights, new MetadataTable(false),
+        createMainParameters(AbundanceMeasure.Height), createFactorParameters());
+
+    final FactorNormalizationFunction interpolated = assertInstanceOf(
+        FactorNormalizationFunction.class, result);
+    // factor = nextFactor*nextRunWeight + prevFactor*previousWeight = 4*0.75 + 2*0.25 = 3.5
+    assertEquals(3.5d, interpolated.getNormalizationFactor(0d, 0f), 1e-12);
   }
 }

@@ -124,4 +124,39 @@ class StandardCompoundNormalizationFunctionTest {
 
     assertEquals("Illegal standard abundance of NaN.", exception.getMessage());
   }
+
+  @Test
+  void mzVsRtBalanceControlsDistanceWeighting() {
+    final RawDataFile file = RawDataFile.createDummyFile();
+    // Point A at mz=100, Point B at mz=110; query at mz=103 is closer to A in m/z.
+    // With balance=0, m/z is ignored and both points have equal RT distance,
+    // so the later point (B) is picked by the tiebreaking rule.
+    final StandardCompoundNormalizationFunction zeroBalance = new StandardCompoundNormalizationFunction(
+        file, LocalDateTime.of(2026, 1, 1, 10, 0), StandardUsageType.Nearest, 0.0d,
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d),
+            new StandardCompoundReferencePoint(110d, 5f, 400d)));
+
+    assertEquals(1d / 400d, zeroBalance.getNormalizationFactor(103d, 5f), 1e-12);
+
+    // With balance=1.0, mz distance is included: A is nearest (dist 3 vs 7).
+    final StandardCompoundNormalizationFunction unitBalance = new StandardCompoundNormalizationFunction(
+        file, LocalDateTime.of(2026, 1, 1, 10, 0), StandardUsageType.Nearest, 1.0d,
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d),
+            new StandardCompoundReferencePoint(110d, 5f, 400d)));
+
+    assertEquals(1d / 200d, unitBalance.getNormalizationFactor(103d, 5f), 1e-12);
+  }
+
+  @Test
+  void weightedAveragesMultipleDirectMatches() {
+    final RawDataFile file = RawDataFile.createDummyFile();
+    // Two points at identical mz and RT — both are direct matches for the query.
+    final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
+        file, LocalDateTime.of(2026, 1, 1, 10, 0), StandardUsageType.Weighted, 1.0d,
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d),
+            new StandardCompoundReferencePoint(100d, 5f, 400d)));
+
+    // directMatchSum=600, directMatchCount=2, average=300.
+    assertEquals(1d / 300d, function.getNormalizationFactor(100d, 5f), 1e-12);
+  }
 }

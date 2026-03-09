@@ -85,4 +85,45 @@ class MedianFeatureIntensityNormalizationTypeModuleTest {
     assertEquals("No features found or median of feature intensities is 0 for file: empty_file",
         exception.getMessage());
   }
+
+  @Test
+  void createReferenceFunctionsThrowsIfAllAbundancesAreZero() {
+    final MedianFeatureIntensityNormalizationTypeModule module = new MedianFeatureIntensityNormalizationTypeModule();
+    final RawDataFileImpl file = createRawFile("zero_file", LocalDateTime.of(2026, 1, 1, 10, 0));
+    final ModularFeatureList featureList = new ModularFeatureList("flist", null, file);
+    addRow(featureList, 1, file, 0f, null, null);
+    addRow(featureList, 2, file, 0f, null, null);
+
+    final IllegalStateException exception = assertThrows(IllegalStateException.class,
+        () -> module.createReferenceFunctions(List.of(file), featureList, new MetadataTable(false),
+            createMainParameters(AbundanceMeasure.Height), createFactorParameters()));
+
+    assertEquals("No features found or median of feature intensities is 0 for file: zero_file",
+        exception.getMessage());
+  }
+
+  @Test
+  void createReferenceFunctionsUsesAreaMeasure() {
+    final MedianFeatureIntensityNormalizationTypeModule module = new MedianFeatureIntensityNormalizationTypeModule();
+    final RawDataFileImpl fileA = createRawFile("file_a", LocalDateTime.of(2026, 1, 1, 10, 0));
+    final RawDataFileImpl fileB = createRawFile("file_b", LocalDateTime.of(2026, 1, 1, 10, 5));
+
+    final ModularFeatureList featureList = new ModularFeatureList("flist", null, fileA, fileB);
+    // Heights are identical for both files; only areas differ.
+    addRow(featureList, 1, fileA, 1f, 2f, fileB, 1f, 1f);
+    addRow(featureList, 2, fileA, 1f, 4f, fileB, 1f, 1f);
+
+    final Map<RawDataFile, NormalizationFunction> functions = module.createReferenceFunctions(
+        List.of(fileA, fileB), featureList, new MetadataTable(false),
+        createMainParameters(AbundanceMeasure.Area), createFactorParameters());
+
+    final FactorNormalizationFunction functionA = assertInstanceOf(
+        FactorNormalizationFunction.class, functions.get(fileA));
+    final FactorNormalizationFunction functionB = assertInstanceOf(
+        FactorNormalizationFunction.class, functions.get(fileB));
+
+    // Median area(file_a)=3.0 and Median area(file_b)=1.0 => maxMetric=3.0.
+    assertEquals(1d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
+    assertEquals(3d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
+  }
 }

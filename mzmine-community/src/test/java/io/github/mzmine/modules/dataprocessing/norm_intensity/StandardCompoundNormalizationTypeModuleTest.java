@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -151,6 +152,61 @@ class StandardCompoundNormalizationTypeModuleTest {
       final @NotNull ModularFeatureListRow... standardRows) {
     return StandardCompoundNormalizationTypeParameters.create(List.of(SampleType.values()),
         usageType, 1d, toFeatureSelections(standardRows), requireAllStandards);
+  }
+
+  @Test
+  void createReferenceFunctionsSkipsInvalidStandardsWhenNotRequired() {
+    final StandardCompoundNormalizationTypeModule module = new StandardCompoundNormalizationTypeModule();
+    final RawDataFileImpl fileA = createRawFile("file_a", LocalDateTime.of(2026, 1, 1, 10, 0));
+
+    final ModularFeatureList featureList = new ModularFeatureList("flist", null, fileA);
+    // row1 has valid abundance; row2 has zero abundance and should be skipped.
+    final ModularFeatureListRow standardRow1 = addRow(featureList, 1, fileA, 200f, null, null);
+    final ModularFeatureListRow standardRow2 = addRow(featureList, 2, fileA, 0f, null, null);
+
+    final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParameters(
+        StandardUsageType.Nearest, false, standardRow1, standardRow2);
+
+    final Map<RawDataFile, NormalizationFunction> functions = module.createReferenceFunctions(
+        List.of(fileA), featureList, new MetadataTable(false),
+        createMainParameters(AbundanceMeasure.Height), moduleParameters);
+
+    final StandardCompoundNormalizationFunction functionA = assertInstanceOf(
+        StandardCompoundNormalizationFunction.class, functions.get(fileA));
+    // Only row1 reference point remains; row2 (zero abundance) was skipped.
+    assertEquals(1, functionA.referencePoints().size());
+    assertEquals(1d / 200d, functionA.getNormalizationFactor(100d, 5f), 1e-12);
+  }
+
+  @Test
+  void createInterpolatedFunctionCreatesInterpolatedNormalizationFunction() {
+    final StandardCompoundNormalizationTypeModule module = new StandardCompoundNormalizationTypeModule();
+    final RawDataFileImpl prevFile = createRawFile("prev", LocalDateTime.of(2026, 1, 1, 10, 0));
+    final RawDataFileImpl nextFile = createRawFile("next", LocalDateTime.of(2026, 1, 1, 10, 10));
+    final RawDataFileImpl targetFile = createRawFile("target", LocalDateTime.of(2026, 1, 1, 10, 5));
+
+    final StandardCompoundNormalizationFunction prevFunction = new StandardCompoundNormalizationFunction(
+        prevFile, prevFile.getStartTimeStamp(), StandardUsageType.Nearest, 1.0d,
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 400d)));
+    final StandardCompoundNormalizationFunction nextFunction = new StandardCompoundNormalizationFunction(
+        nextFile, nextFile.getStartTimeStamp(), StandardUsageType.Nearest, 1.0d,
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d)));
+
+    // InterpolationWeights(nextRun, previousRun, previousWeight, nextRunWeight)
+    final InterpolationWeights weights = new InterpolationWeights(nextFile, prevFile, 0.25d, 0.75d);
+
+    final NormalizationFunction result = module.createInterpolatedFunction(targetFile, prevFunction,
+        nextFunction, weights, new MetadataTable(false),
+        createMainParameters(AbundanceMeasure.Height),
+        createModuleParametersWithoutStandards(StandardUsageType.Nearest, true));
+
+    final InterpolatedNormalizationFunction interpolated = assertInstanceOf(
+        InterpolatedNormalizationFunction.class, result);
+    assertEquals(0.25d, interpolated.previousWeight(), 1e-12);
+    assertEquals(0.75d, interpolated.nextWeight(), 1e-12);
+    // factor = prevFactor*previousWeight + nextFactor*nextRunWeight
+    //        = 1/400*0.25 + 1/200*0.75 = 0.000625 + 0.00375 = 0.004375
+    assertEquals(0.004375d, interpolated.getNormalizationFactor(100d, 5f), 1e-12);
   }
 
   private static @NotNull StandardCompoundNormalizationTypeParameters createModuleParametersWithoutStandards(
