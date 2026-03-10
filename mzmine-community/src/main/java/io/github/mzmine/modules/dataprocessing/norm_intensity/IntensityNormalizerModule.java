@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -23,30 +22,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_standardcompound;
-
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.time.Instant;
-import java.util.Collection;
-
-import org.jetbrains.annotations.NotNull;
+package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * Normalization module using selected internal standards
- */
-public class StandardCompoundNormalizerModule implements MZmineProcessingModule {
+public class IntensityNormalizerModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Standard compound normalizer";
-  private static final String MODULE_DESCRIPTION =
-      "This module normalizes the feature heights and areas according to selected internal standards.";
+  private static final String MODULE_NAME = "Intensity normalizer";
+  private static final String MODULE_DESCRIPTION = "Linear normalizer scales feature intensities by a normalization factor determined according to the selected normalization type.";
 
   @Override
   public @NotNull String getName() {
@@ -63,16 +60,19 @@ public class StandardCompoundNormalizerModule implements MZmineProcessingModule 
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    FeatureList featureLists[] = parameters.getParameter(StandardCompoundNormalizerParameters.featureList)
-        .getValue().getMatchingFeatureLists();
+    FeatureList featureLists[] = parameters.getParameter(IntensityNormalizerParameters.featureLists)
+        .getValue()
+        .getMatchingFeatureLists();
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList featureList : featureLists) {
-      Task newTask = new StandardCompoundNormalizerTask(project, featureList, parameters, storage, moduleCallDate);
+      Task newTask = new IntensityNormalizerTask(project, featureList, parameters, storage,
+          moduleCallDate);
       tasks.add(newTask);
     }
 
     return ExitCode.OK;
+
   }
 
   @Override
@@ -82,7 +82,29 @@ public class StandardCompoundNormalizerModule implements MZmineProcessingModule 
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return StandardCompoundNormalizerParameters.class;
+    return IntensityNormalizerParameters.class;
+  }
+
+  public static @NotNull List<NormalizationFunction> getNormalizationFunctionsOfLatestCall(
+      final @NotNull FeatureList featureList) {
+    final List<NormalizationFunction> normalizationFunctions = ParameterUtils.getParameterValueOfLatestMethodCall(
+        featureList.getAppliedMethods(), IntensityNormalizerModule.class,
+        IntensityNormalizerParameters.normalizationFunctions);
+    if (normalizationFunctions == null) {
+      return List.of();
+    }
+    return List.copyOf(normalizationFunctions);
+  }
+
+  public static @Nullable NormalizationFunction getNormalizationFunctionOfLatestCallForFile(
+      final @NotNull FeatureList featureList, final @NotNull RawDataFile rawDataFile) {
+    for (final NormalizationFunction normalizationFunction : getNormalizationFunctionsOfLatestCall(
+        featureList)) {
+      if (normalizationFunction.rawDataFilePlaceholder().matches(rawDataFile)) {
+        return normalizationFunction;
+      }
+    }
+    return null;
   }
 
 }
