@@ -65,6 +65,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
   private final Integer maxIsomersInRt;
   private final RTTolerance rtFwhm;
   private final Boolean stableIonizationAcrossSamples;
+  private final boolean scanRtCorrection;
   private final Boolean isExportActive;
   private final Boolean exportGnps;
   private final Boolean exportSirius;
@@ -88,6 +89,8 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     rtFwhm = getValue(params, IonInterfaceHplcWizardParameters.approximateChromatographicFWHM);
     stableIonizationAcrossSamples = getValue(params,
         IonInterfaceHplcWizardParameters.stableIonizationAcrossSamples);
+    scanRtCorrection = dataFiles.length > 1 && Boolean.TRUE.equals(
+        getValue(params, IonInterfaceHplcWizardParameters.scanRtCorrection));
 
     params = steps.get(WizardPart.WORKFLOW);
     OptionalValue<File> optional = getOptional(params, WorkflowDiaWizardParameters.exportPath);
@@ -106,6 +109,10 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
+    if (scanRtCorrection) {
+      // clear before so we don't have to recalculate RTs later on
+      makeAndAddClearRtCorrectionStep(q);
+    }
     makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
         minRtDataPoints, cropRtRange, polarity);
     makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
@@ -126,6 +133,9 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     makeAndAddDiaMs2GroupingStep(q);
 
     makeAndAddIsotopeFinderStep(q);
+    if (scanRtCorrection) {
+      makeAndAddScanRtCorrectionStep(q, mzTolInterSample, interSampleRtTol);
+    }
     makeAndAddJoinAlignmentStep(q, interSampleRtTol);
     makeAndAddRowFilterStep(q);
     makeAndAddGapFillStep(q, interSampleRtTol, minRtDataPoints);
