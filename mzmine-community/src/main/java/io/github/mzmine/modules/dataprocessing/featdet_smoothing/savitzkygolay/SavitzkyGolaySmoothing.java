@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -67,8 +67,8 @@ public class SavitzkyGolaySmoothing implements SmoothingAlgorithm {
   }
 
   /**
-   * @param access The intensity series to be smoothed. Ideally an instance of {@link
-   *               io.github.mzmine.datamodel.data_access.EfficientDataAccess} for best
+   * @param access The intensity series to be smoothed. Ideally an instance of
+   *               {@link io.github.mzmine.datamodel.data_access.EfficientDataAccess} for best
    *               performance.
    * @return
    */
@@ -86,8 +86,17 @@ public class SavitzkyGolaySmoothing implements SmoothingAlgorithm {
     double[] smoothed = new double[numPoints];
     for (int i = 0; i < numPoints; i++) {
       final int k = i - halfWidth;
-      for (int j = Math.max(0, -k); j < Math.min(fullWidth, numPoints - k); j++) {
+      double totalWeight = 0;
+      final int points = Math.min(fullWidth, numPoints - k);
+      for (int j = Math.max(0, -k); j < points; j++) {
         smoothed[i] += access.getIntensity(k + j) * normWeights[j];
+        totalWeight += normWeights[j];
+      }
+
+      // Renormalize at boundaries where not all weights are used
+      // otherwise the total Weight is already 1
+      if (points < fullWidth) {
+        smoothed[i] /= totalWeight;
       }
 
       if (smoothed[i] < 0d) {
