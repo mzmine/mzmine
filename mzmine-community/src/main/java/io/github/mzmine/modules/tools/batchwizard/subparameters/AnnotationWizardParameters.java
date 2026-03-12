@@ -44,7 +44,7 @@ import io.github.mzmine.util.files.ExtensionFilters;
  */
 public final class AnnotationWizardParameters extends WizardStepParameters {
 
-  public static final AnnotationLocalCSVDatabaseSearchWizzardParameter localCsvSearch = new AnnotationLocalCSVDatabaseSearchWizzardParameter(
+  public static final AnnotationLocalCSVDatabaseSearchWizardParameter localCsvSearch = new AnnotationLocalCSVDatabaseSearchWizardParameter(
       "Local compound database search", """
       Search a local CSV or TSV database as comma- or tab-separated data, respectively.
       Matches are done based on m/z, retention time, and ion mobility if applicable and selected.""");

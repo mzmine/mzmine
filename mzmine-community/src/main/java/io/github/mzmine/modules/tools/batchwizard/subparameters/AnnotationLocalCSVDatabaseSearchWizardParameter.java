@@ -38,14 +38,14 @@ import javafx.scene.control.Button;
 /**
  * Adds button to export example csv based on multiple parameters
  */
-public class AnnotationLocalCSVDatabaseSearchWizzardParameter extends
+public class AnnotationLocalCSVDatabaseSearchWizardParameter extends
     OptionalModuleParameter<AnnotationLocalCSVDatabaseSearchParameters> {
 
-  public AnnotationLocalCSVDatabaseSearchWizzardParameter(String name, String description) {
+  public AnnotationLocalCSVDatabaseSearchWizardParameter(String name, String description) {
     this(name, description, new AnnotationLocalCSVDatabaseSearchParameters(), false);
   }
 
-  public AnnotationLocalCSVDatabaseSearchWizzardParameter(String name, String description,
+  public AnnotationLocalCSVDatabaseSearchWizardParameter(String name, String description,
       AnnotationLocalCSVDatabaseSearchParameters embeddedParameters, boolean defaultVal) {
     super(name, description, embeddedParameters, defaultVal);
   }
@@ -76,7 +76,7 @@ public class AnnotationLocalCSVDatabaseSearchWizzardParameter extends
   @Override
   public OptionalModuleParameter<AnnotationLocalCSVDatabaseSearchParameters> cloneParameter() {
     final AnnotationLocalCSVDatabaseSearchParameters embeddedParametersClone = (AnnotationLocalCSVDatabaseSearchParameters) getEmbeddedParameters().cloneParameterSet();
-    return new AnnotationLocalCSVDatabaseSearchWizzardParameter(getName(), getDescription(),
+    return new AnnotationLocalCSVDatabaseSearchWizardParameter(getName(), getDescription(),
         embeddedParametersClone, getValue());
   }
 }
