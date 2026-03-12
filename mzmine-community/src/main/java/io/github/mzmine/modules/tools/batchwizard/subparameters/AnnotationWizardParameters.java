@@ -35,7 +35,6 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesWithDownloadParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.files.ExtensionFilters;
 
 /**
@@ -45,11 +44,10 @@ import io.github.mzmine.util.files.ExtensionFilters;
  */
 public final class AnnotationWizardParameters extends WizardStepParameters {
 
-  public static final OptionalModuleParameter<AnnotationLocalCSVDatabaseSearchParameters> localCsvSearch = new OptionalModuleParameter<>(
+  public static final AnnotationLocalCSVDatabaseSearchWizzardParameter localCsvSearch = new AnnotationLocalCSVDatabaseSearchWizzardParameter(
       "Local compound database search", """
       Search a local CSV or TSV database as comma- or tab-separated data, respectively.
-      Matches are done based on m/z, retention time, and ion mobility if applicable and selected.
-      """, new AnnotationLocalCSVDatabaseSearchParameters());
+      Matches are done based on m/z, retention time, and ion mobility if applicable and selected.""");
 
   public static final BooleanParameter lipidAnnotation = new BooleanParameter("Annotate lipids", """
       Lipid annotation can be applied on MS1 only data (including imaging),
