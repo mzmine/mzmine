@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.mzio.global.events)
     implementation(libs.semver4j)
+    implementation(libs.apache.httpclient)
 }
 
 semver {

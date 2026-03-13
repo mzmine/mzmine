@@ -39,6 +39,20 @@ import java.time.Duration;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.http.auth.AuthSchemeProvider;
+import org.apache.http.client.config.AuthSchemes;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.impl.auth.SPNegoSchemeFactory;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.ProxyAuthenticationStrategy;
+import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ProxyTestUtils {
 
@@ -170,9 +184,12 @@ public class ProxyTestUtils {
     sb.append(testJdkClient(urls, "JDK default selector", selector, Redirect.ALWAYS));
     sb.append("\n");
     // test apache client - not in this package and java client should work
-//    sb.append(testApacheClient(urls, "Apache NULL SYSTEM selector", null, true));
-//    sb.append(testApacheClient(urls, "Apache NULL selector", null));
-//    sb.append(testApacheClient(urls, "Apache default selector", selector));
+    sb.append(testApacheClient(urls, "Apache NULL SYSTEM selector", null, true));
+    sb.append("\n");
+    sb.append(testApacheClient(urls, "Apache NULL selector", null));
+    sb.append("\n");
+    sb.append(testApacheClient(urls, "Apache default selector", selector));
+    sb.append("\n");
 
     return sb.toString();
   }
@@ -249,46 +266,73 @@ public class ProxyTestUtils {
    * APACHE CLIENT IS NOT AVAILABLE IN UTILS PACKAGE. This is only needed if the default http client
    * does not work then maybe we should use apache or other client.
    */
-//  private static String testApacheClient(List<String> urls, String title, ProxySelector selector) {
-//    return testApacheClient(urls, title, selector, false);
-//  }
+  private static @NotNull String testApacheClient(final @NotNull List<String> urls,
+      final @NotNull String title, final @Nullable ProxySelector selector) {
+    return testApacheClient(urls, title, selector, false);
+  }
 
-//  private static String testApacheClient(List<String> urls, String title, ProxySelector selector,
-//      boolean useSystemProxy) {
-//    StringBuilder sb = new StringBuilder();
-//    sb.append(title).append(" useSystemProxy: ").append(useSystemProxy).append("; results: \n");
-//
-//    final HttpClientBuilder clientBuilder = HttpClients.custom();
-//    if (useSystemProxy) {
-//      clientBuilder.useSystemProperties();
-//    }
-//
-//    if (selector != null) {
-//      clientBuilder.setRoutePlanner(new SystemDefaultRoutePlanner(selector));
-//    }
-//
-//    try (org.apache.http.impl.client.CloseableHttpClient client = clientBuilder.build()) {
-//
-//      for (String url : urls) {
-//        try {
-//          HttpGet request = new HttpGet(url);
-//          var response = client.execute(request);
-//
-//          if (response.getStatusLine().getStatusCode() >= 200
-//              && response.getStatusLine().getStatusCode() < 300) {
-//            sb.append("success (%s); ".formatted(url));
-//          } else {
-//            sb.append("failed %d (%s); ".formatted(response.getStatusLine().getStatusCode(), url));
-//          }
-//        } catch (Exception e) {
-//          sb.append("error connecting (%s; message: %s); ".formatted(url, e.getMessage()));
-//        }
-//      }
-//    } catch (Exception e) {
-//      sb.append("error creating client: ").append(e.getMessage()).append("; ");
-//    }
-//    final String message = sb.toString();
-//    logger.info(message);
-//    return message;
-//  }
+  private static @NotNull String testApacheClient(final @NotNull List<String> urls,
+      final @NotNull String title, final @Nullable ProxySelector selector,
+      final boolean useSystemProxy) {
+
+    final StringBuilder sb = new StringBuilder();
+    sb.append(title).append(" useSystemProxy: ").append(useSystemProxy).append("; results: \n");
+
+    final HttpClientBuilder clientBuilder = HttpClients.custom();
+    if (useSystemProxy) {
+      clientBuilder.useSystemProperties();
+    }
+
+    if (selector != null) {
+      clientBuilder.setRoutePlanner(new SystemDefaultRoutePlanner(selector));
+    }
+
+    final String previousUseSubjectCredsOnly = System.getProperty("javax.security.auth.useSubjectCredsOnly");
+    // decision: Allow GSS to obtain the logged-in Windows Kerberos ticket for SPNEGO proxy auth.
+    System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
+    try {
+      final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+          .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(true)).build();
+      clientBuilder.setDefaultAuthSchemeRegistry(authSchemeRegistry);
+      clientBuilder.setProxyAuthenticationStrategy(ProxyAuthenticationStrategy.INSTANCE);
+      clientBuilder.setDefaultCredentialsProvider(new SystemDefaultCredentialsProvider());
+
+      final RequestConfig requestConfig = RequestConfig.custom()
+          .setProxyPreferredAuthSchemes(List.of(AuthSchemes.SPNEGO)).build();
+      clientBuilder.setDefaultRequestConfig(requestConfig);
+
+      try (org.apache.http.impl.client.CloseableHttpClient client = clientBuilder.build()) {
+        for (final String url : urls) {
+          try {
+            final HttpGet request = new HttpGet(url);
+            try (var response = client.execute(request)) {
+              if (response.getStatusLine().getStatusCode() >= 200
+                  && response.getStatusLine().getStatusCode() < 300) {
+                sb.append("success (%s); ".formatted(url));
+              } else {
+                sb.append("failed %d (%s); ".formatted(response.getStatusLine().getStatusCode(), url));
+              }
+            }
+          } catch (Exception e) {
+            sb.append("error connecting (%s; message: %s); ".formatted(url, e.getMessage()));
+          }
+        }
+      } catch (Exception e) {
+        sb.append("error creating client: ").append(e.getMessage()).append("; ");
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Failed to configure SPNEGO authentication", e);
+      sb.append("error configuring SPNEGO: ").append(e.getMessage()).append("; ");
+    } finally {
+      if (previousUseSubjectCredsOnly == null) {
+        System.clearProperty("javax.security.auth.useSubjectCredsOnly");
+      } else {
+        System.setProperty("javax.security.auth.useSubjectCredsOnly", previousUseSubjectCredsOnly);
+      }
+    }
+
+    final String message = sb.toString();
+    logger.info(message);
+    return message;
+  }
 }
