@@ -44,6 +44,11 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.mzio.global.events)
     implementation(libs.semver4j)
+    implementation(libs.apache.httpclient)
+
+    if (org.gradle.internal.os.OperatingSystem.current().isWindows) {
+        implementation(libs.apache.httpclient.win)
+    }
 }
 
 semver {
