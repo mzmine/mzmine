@@ -60,6 +60,7 @@ jfree-fxgraphics = "org.jfree:org.jfree.fxgraphics2d:2.1.1"
 fxcharts = "eu.hansolo.fx:charts:21.0.7"
 # web, rest
 apache-httpclient = "org.apache.httpcomponents:httpclient:4.5.14"
+apache-httpclient-win = "org.apache.httpcomponents:httpclient-win:4.5.14"
 okhttp = { module = "com.squareup.okhttp:okhttp", version.ref = "okhttp" }
 okhttp-logging-interceptor = { module = "com.squareup.okhttp:logging-interceptor", version.ref = "okhttp" }
 # formats, io, json
