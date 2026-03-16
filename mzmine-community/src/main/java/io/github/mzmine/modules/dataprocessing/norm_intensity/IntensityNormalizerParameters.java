@@ -25,6 +25,8 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -59,6 +61,15 @@ public class IntensityNormalizerParameters extends SimpleParameterSet {
       "Normalization type", "Normalize intensities by...",
       NormalizationType.MedianFeatureIntensity);
 
+  /**
+   * Holds the result of the normalization in a
+   * {@link io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod} so it can
+   * later be applied to newly added features by gap filling and manual integration. Use
+   * {@link IntensityNormalizerModule#getNormalizationFunctionOfLatestCallForFile(FeatureList,
+   * RawDataFile)} and
+   * {@link IntensityNormalizerModule#getNormalizationFunctionsOfLatestCall(FeatureList)} to extract
+   * these {@link NormalizationFunction}s.
+   */
   public static final HiddenParameter<List<NormalizationFunction>> normalizationFunctions = new HiddenParameter<>(
       new NormalizationFunctionsParameter());
 

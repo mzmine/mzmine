@@ -326,8 +326,20 @@ public class FeatureTableFX extends BorderPane {
     return switch (parameters.getValue(FeatureTableFXParameters.defaultAbundanceMeasure)) {
       case Height -> HeightType.class;
       case Area -> AreaType.class;
-      case NORMALIZED_HEIGHT -> NormalizedHeightType.class;
-      case NORMALIZED_AREA -> NormalizedAreaType.class;
+      case NORMALIZED_HEIGHT -> {
+        if (getFeatureList() != null && getFeatureList().hasRowType(NormalizedHeightType.class)
+            && getFeatureList().hasFeatureType(NormalizedHeightType.class)) {
+          yield NormalizedHeightType.class;
+        }
+        yield HeightType.class;
+      }
+      case NORMALIZED_AREA -> {
+        if (getFeatureList() != null && getFeatureList().hasRowType(NormalizedAreaType.class)
+            && getFeatureList().hasFeatureType(NormalizedHeightType.class)) {
+          yield NormalizedAreaType.class;
+        }
+        yield AreaType.class;
+      }
     };
   }
 

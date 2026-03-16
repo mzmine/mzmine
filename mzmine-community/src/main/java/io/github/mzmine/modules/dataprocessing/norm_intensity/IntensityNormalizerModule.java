@@ -43,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
 public class IntensityNormalizerModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Intensity normalizer";
-  private static final String MODULE_DESCRIPTION = "Linear normalizer scales feature intensities by a normalization factor determined according to the selected normalization type.";
+  private static final String MODULE_DESCRIPTION = "Intensity normalizers scales feature intensities by a normalization factor or function determined according to the selected normalization type.";
 
   @Override
   public @NotNull String getName() {
@@ -61,8 +61,7 @@ public class IntensityNormalizerModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     FeatureList featureLists[] = parameters.getParameter(IntensityNormalizerParameters.featureLists)
-        .getValue()
-        .getMatchingFeatureLists();
+        .getValue().getMatchingFeatureLists();
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList featureList : featureLists) {

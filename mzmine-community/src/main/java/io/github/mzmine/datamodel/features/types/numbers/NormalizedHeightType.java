@@ -30,7 +30,7 @@ public class NormalizedHeightType extends HeightType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "norm_height";
+    return "height_norm";
   }
 
   @Override

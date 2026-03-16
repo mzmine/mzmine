@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
 import io.github.mzmine.parameters.ParameterSet;
 import java.time.LocalDateTime;
@@ -77,7 +78,7 @@ public abstract class AbstractFactorNormalizationTypeModule implements Normaliza
     final Map<@NotNull RawDataFile, @NotNull NormalizationFunction> functions = new HashMap<>();
     for (final Entry<@NotNull RawDataFile, @NotNull Double> entry : referenceToNormalizationMetric.entrySet()) {
       final RawDataFile file = entry.getKey();
-      final LocalDateTime runDate = NormalizationTypeModule.getRunDateOrThrow(metadata, file);
+      final LocalDateTime runDate = MetadataTableUtils.getRunDate(metadata, file);
       final double normalizationFactor = maxNormalizationMetric / entry.getValue();
       functions.put(file, new FactorNormalizationFunction(file, runDate, normalizationFactor));
     }
@@ -96,8 +97,11 @@ public abstract class AbstractFactorNormalizationTypeModule implements Normaliza
         || !(nextRunCalibration instanceof FactorNormalizationFunction next)) {
       throw new IllegalStateException("Input calibrations are no factor-based calibrations.");
     }
-    final LocalDateTime runDate = NormalizationTypeModule.getRunDateOrThrow(metadata,
-        fileToInterpolate);
+    final LocalDateTime runDate = MetadataTableUtils.getRunDate(metadata, fileToInterpolate);
+    if (runDate == null) {
+      throw new IllegalStateException(
+          "No acquisition timestamp found for file: " + fileToInterpolate.getName());
+    }
 
     final double factor = next.factor() * interpolationWeights.nextRunWeight()
         + prev.factor() * interpolationWeights.previousWeight();

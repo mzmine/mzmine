@@ -30,7 +30,7 @@ public class NormalizedAreaType extends AreaType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "norm_area";
+    return "area_norm";
   }
 
   @Override

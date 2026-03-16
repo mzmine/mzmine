@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DoubleMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
@@ -98,7 +99,7 @@ public class MetadataColumnNormalizationTypeModule implements NormalizationTypeM
       final RawDataFile file = entry.getKey();
       final double factor =
           Double.compare(entry.getValue(), 0) == 0 ? 1 : maxMetadataValue / entry.getValue();
-      final LocalDateTime runDate = NormalizationTypeModule.getRunDateOrThrow(metadata, file);
+      final LocalDateTime runDate = MetadataTableUtils.getRunDate(metadata, file);
       functions.put(file, new FactorNormalizationFunction(file, runDate, factor));
     }
 

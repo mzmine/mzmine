@@ -130,8 +130,7 @@ public class MetadataTableUtils {
 
   public static @Nullable RawDataFile getPreviousRun(@NotNull RawDataFile file,
       @NotNull Collection<@NotNull RawDataFile> otherFiles, @NotNull MetadataTable metadata) {
-    final DateMetadataColumn runDateColumn = metadata.getRunDateColumn();
-    final LocalDateTime runDate = metadata.getValue(runDateColumn, file);
+    final LocalDateTime runDate = MetadataTableUtils.getRunDate(metadata, file);
     if (runDate == null) {
       throw new FileHasNoRunDateException(file);
     }
@@ -140,12 +139,12 @@ public class MetadataTableUtils {
     RawDataFile previousRun = null;
 
     for (final RawDataFile thatFile : otherFiles) {
-      final LocalDateTime thatDate = metadata.getValue(runDateColumn, thatFile);
+      final LocalDateTime thatDate = MetadataTableUtils.getRunDate(metadata, thatFile);
       if (thatDate == null) {
-        throw new FileHasNoRunDateException(thatFile);
+        continue;
       }
 
-      final long diff = runDate.until(thatDate, ChronoUnit.SECONDS);
+      final long diff = runDate.until(thatDate, ChronoUnit.NANOS);
       if (diff < 0 && diff > minPreviousRun) {
         minPreviousRun = diff;
         previousRun = thatFile;
@@ -158,7 +157,7 @@ public class MetadataTableUtils {
   public static @Nullable RawDataFile getNextRun(@NotNull RawDataFile file,
       @NotNull Collection<@NotNull RawDataFile> otherFiles, @NotNull MetadataTable metadata) {
     final DateMetadataColumn runDateColumn = metadata.getRunDateColumn();
-    final LocalDateTime runDate = metadata.getValue(runDateColumn, file);
+    final LocalDateTime runDate = MetadataTableUtils.getRunDate(metadata, file);
     if (runDate == null) {
       throw new FileHasNoRunDateException(file);
     }
@@ -167,12 +166,12 @@ public class MetadataTableUtils {
     RawDataFile nextRun = null;
 
     for (RawDataFile thatFile : otherFiles) {
-      final LocalDateTime thatDate = metadata.getValue(runDateColumn, thatFile);
+      final LocalDateTime thatDate = MetadataTableUtils.getRunDate(metadata, thatFile);
       if (thatDate == null) {
-        throw new FileHasNoRunDateException(thatFile);
+        continue;
       }
 
-      final long diff = runDate.until(thatDate, ChronoUnit.SECONDS);
+      final long diff = runDate.until(thatDate, ChronoUnit.NANOS);
       if (diff > 0 && diff < minNextRun) {
         minNextRun = diff;
         nextRun = thatFile;
@@ -191,6 +190,8 @@ public class MetadataTableUtils {
    * @param referenceFiles    The reference files.
    * @param metadata          The current metadata table.
    * @return {@link InterpolationWeights} for the two neighbouring files.
+   * @throws FileHasNoRunDateException, if a file that shall be interpolated has no run date.
+   * @throws IllegalStateException, if no previous or next run could be found.
    */
   public static @NotNull InterpolationWeights extractAcquisitionDateInterpolationWeights(
       @NotNull final RawDataFile fileToInterpolate,
@@ -223,6 +224,16 @@ public class MetadataTableUtils {
     final InterpolationWeights result = new InterpolationWeights(nextRun, previousRun,
         previousWeight, nextRunWeight);
     return result;
+  }
+
+  /**
+   * Get the run date from the file or the metadata table or null if none provide a run date.
+   */
+  public static @Nullable LocalDateTime getRunDate(@NotNull MetadataTable metadata,
+      @NotNull RawDataFile file) {
+    LocalDateTime runDate = file.getStartTimeStamp();
+    runDate = runDate == null ? metadata.getValue(metadata.getRunDateColumn(), file) : runDate;
+    return runDate;
   }
 
   /**

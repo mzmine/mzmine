@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
 import io.github.mzmine.parameters.ParameterSet;
 import java.time.LocalDateTime;
@@ -86,7 +87,7 @@ public class StandardCompoundNormalizationTypeModule implements NormalizationTyp
     for (final RawDataFile rawFile : referenceFiles) {
       final List<StandardCompoundReferencePoint> referencePoints = createReferencePoints(rawFile,
           standardRows, abundanceMeasure, requireAllStandards);
-      final LocalDateTime acquisitionTimestamp = NormalizationTypeModule.getRunDateOrThrow(metadata,
+      final LocalDateTime acquisitionTimestamp = MetadataTableUtils.getRunDate(metadata,
           rawFile);
       fileToFunction.put(rawFile,
           new StandardCompoundNormalizationFunction(rawFile, acquisitionTimestamp,
@@ -103,7 +104,7 @@ public class StandardCompoundNormalizationTypeModule implements NormalizationTyp
       @NotNull final InterpolationWeights interpolationWeights,
       @NotNull final MetadataTable metadata, @NotNull final ParameterSet mainParameters,
       @NotNull final ParameterSet normalizerParameters) {
-    final LocalDateTime acquisitionTimestamp = NormalizationTypeModule.getRunDateOrThrow(metadata,
+    final LocalDateTime acquisitionTimestamp = MetadataTableUtils.getRunDate(metadata,
         fileToInterpolate);
     return new InterpolatedNormalizationFunction(fileToInterpolate, acquisitionTimestamp,
         previousRunCalibration, interpolationWeights.previousWeight(), nextRunCalibration,
