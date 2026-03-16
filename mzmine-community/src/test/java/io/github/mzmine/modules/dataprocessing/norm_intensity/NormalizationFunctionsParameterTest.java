@@ -241,6 +241,35 @@ class NormalizationFunctionsParameterTest {
   }
 
   @Test
+  void saveLoadRoundtripKeepsNullAcquisitionTimestampForNonInterpolatedFunctions() {
+    final FactorNormalizationFunction factorFunction = new FactorNormalizationFunction(
+        new RawDataFilePlaceholder("factor_file", tempDir.resolve("factor.mzML").toString(), 11),
+        null, 2d);
+    final StandardCompoundNormalizationFunction standardFunction = new StandardCompoundNormalizationFunction(
+        new RawDataFilePlaceholder("standard_file", tempDir.resolve("standard.mzML").toString(),
+            12), null, StandardUsageType.Nearest, 1d,
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d)));
+
+    final NormalizationFunctionsParameter parameter = new NormalizationFunctionsParameter();
+    parameter.setValue(List.of(factorFunction, standardFunction));
+
+    final String xml = ParameterUtils.saveParameterToXMLString(parameter);
+    final NormalizationFunctionsParameter loadedParameter = new NormalizationFunctionsParameter();
+    ParameterUtils.loadParameterFromString(loadedParameter, xml);
+
+    final List<NormalizationFunction> loadedFunctions = loadedParameter.getValue();
+    assertEquals(2, loadedFunctions.size());
+
+    final FactorNormalizationFunction loadedFactor = assertInstanceOf(
+        FactorNormalizationFunction.class, loadedFunctions.get(0));
+    assertNull(loadedFactor.acquisitionTimestamp());
+
+    final StandardCompoundNormalizationFunction loadedStandard = assertInstanceOf(
+        StandardCompoundNormalizationFunction.class, loadedFunctions.get(1));
+    assertNull(loadedStandard.acquisitionTimestamp());
+  }
+
+  @Test
   void valueEqualsIsTrueForEquivalentRecordValues() {
     final NormalizationFunctionsParameter firstParameter = new NormalizationFunctionsParameter();
     firstParameter.setValue(createFunctions(2d));

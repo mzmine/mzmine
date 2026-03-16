@@ -53,7 +53,7 @@ final class NormIntensityTestUtils {
   }
 
   static @NotNull RawDataFileImpl createRawFile(final @NotNull String name,
-      final @NotNull LocalDateTime timestamp) {
+      final @Nullable LocalDateTime timestamp) {
     final RawDataFileImpl rawDataFile = new RawDataFileImpl(name, null, null);
     rawDataFile.setStartTimeStamp(timestamp);
     return rawDataFile;

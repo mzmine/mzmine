@@ -47,7 +47,7 @@ public sealed interface NormalizationFunction extends UniqueIdSupplier permits
 
   @NotNull RawDataFilePlaceholder rawDataFilePlaceholder();
 
-  @NotNull LocalDateTime acquisitionTimestamp();
+  @Nullable LocalDateTime acquisitionTimestamp();
 
   /**
    * @param mz the mz of the feature
@@ -90,13 +90,23 @@ public sealed interface NormalizationFunction extends UniqueIdSupplier permits
   }
 
   static void saveAcquisitionTimestamp(final @NotNull Element functionElement,
-      final @NotNull LocalDateTime acquisitionTimestamp) {
-    functionElement.setAttribute(XML_ACQUISITION_TIMESTAMP_ATTR, acquisitionTimestamp.toString());
+      final @Nullable LocalDateTime acquisitionTimestamp) {
+    if (acquisitionTimestamp != null) {
+      functionElement.setAttribute(XML_ACQUISITION_TIMESTAMP_ATTR, acquisitionTimestamp.toString());
+    }
   }
 
-  static @NotNull LocalDateTime loadAcquisitionTimestamp(final @NotNull Element functionElement) {
-    return LocalDateTime.parse(
-        XMLUtils.requireAttribute(functionElement, XML_ACQUISITION_TIMESTAMP_ATTR));
+  static @Nullable LocalDateTime loadAcquisitionTimestamp(final @NotNull Element functionElement) {
+    if (!functionElement.hasAttribute(XML_ACQUISITION_TIMESTAMP_ATTR)) {
+      return null;
+    }
+
+    final String acquisitionTimestamp = functionElement.getAttribute(XML_ACQUISITION_TIMESTAMP_ATTR);
+    if (acquisitionTimestamp.isBlank()) {
+      return null;
+    }
+
+    return LocalDateTime.parse(acquisitionTimestamp);
   }
 
 }

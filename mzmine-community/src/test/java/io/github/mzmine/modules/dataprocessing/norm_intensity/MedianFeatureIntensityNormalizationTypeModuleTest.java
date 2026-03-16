@@ -30,6 +30,7 @@ import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensi
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createRawFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
@@ -125,5 +126,30 @@ class MedianFeatureIntensityNormalizationTypeModuleTest {
     // Median area(file_a)=3.0 and Median area(file_b)=1.0 => maxMetric=3.0.
     assertEquals(1d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
     assertEquals(3d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
+  }
+
+  @Test
+  void createReferenceFunctionsWorksWithoutRunDate() {
+    final MedianFeatureIntensityNormalizationTypeModule module = new MedianFeatureIntensityNormalizationTypeModule();
+    final RawDataFileImpl fileA = createRawFile("file_a", null);
+    final RawDataFileImpl fileB = createRawFile("file_b", null);
+
+    final ModularFeatureList featureList = new ModularFeatureList("flist", null, fileA, fileB);
+    addRow(featureList, 1, fileA, 1f, fileB, 1f);
+    addRow(featureList, 2, fileA, 2f, fileB, 1f);
+
+    final Map<RawDataFile, NormalizationFunction> functions = module.createReferenceFunctions(
+        List.of(fileA, fileB), featureList, new MetadataTable(false),
+        createMainParameters(AbundanceMeasure.Height), createFactorParameters());
+
+    final FactorNormalizationFunction functionA = assertInstanceOf(
+        FactorNormalizationFunction.class, functions.get(fileA));
+    final FactorNormalizationFunction functionB = assertInstanceOf(
+        FactorNormalizationFunction.class, functions.get(fileB));
+
+    assertNull(functionA.acquisitionTimestamp());
+    assertNull(functionB.acquisitionTimestamp());
+    assertEquals(1d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
+    assertEquals(1.5d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
   }
 }

@@ -29,25 +29,26 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlacehold
 import io.github.mzmine.util.XMLUtils;
 import java.time.LocalDateTime;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
  * Factor normalization function represented by one global factor.
  */
 public record FactorNormalizationFunction(@NotNull RawDataFilePlaceholder rawDataFilePlaceholder,
-                                          @NotNull LocalDateTime acquisitionTimestamp,
+                                          @Nullable LocalDateTime acquisitionTimestamp,
                                           double factor) implements NormalizationFunction {
 
   public static final String XML_TYPE = "factor";
   private static final String XML_FACTOR_ATTR = "factor";
 
   public FactorNormalizationFunction(@NotNull final RawDataFile referenceFile,
-      @NotNull final LocalDateTime acquisitionTimestamp, final double factor) {
+      @Nullable final LocalDateTime acquisitionTimestamp, final double factor) {
     this(new RawDataFilePlaceholder(referenceFile), acquisitionTimestamp, factor);
   }
 
   public FactorNormalizationFunction(@NotNull final RawDataFilePlaceholder rawDataFilePlaceholder,
-      @NotNull final LocalDateTime acquisitionTimestamp, final double factor) {
+      @Nullable final LocalDateTime acquisitionTimestamp, final double factor) {
     this.rawDataFilePlaceholder = rawDataFilePlaceholder;
     this.acquisitionTimestamp = acquisitionTimestamp;
     this.factor = factor;
@@ -59,7 +60,7 @@ public record FactorNormalizationFunction(@NotNull RawDataFilePlaceholder rawDat
   }
 
   @Override
-  public @NotNull LocalDateTime acquisitionTimestamp() {
+  public @Nullable LocalDateTime acquisitionTimestamp() {
     return acquisitionTimestamp;
   }
 

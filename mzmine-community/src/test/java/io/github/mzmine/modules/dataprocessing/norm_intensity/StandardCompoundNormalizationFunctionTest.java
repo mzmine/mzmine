@@ -25,6 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.github.mzmine.datamodel.RawDataFile;
@@ -158,5 +159,16 @@ class StandardCompoundNormalizationFunctionTest {
 
     // directMatchSum=600, directMatchCount=2, average=300.
     assertEquals(1d / 300d, function.getNormalizationFactor(100d, 5f), 1e-12);
+  }
+
+  @Test
+  void constructorAcceptsNullAcquisitionTimestamp() {
+    final RawDataFile file = RawDataFile.createDummyFile();
+    final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
+        file, null, StandardUsageType.Nearest, 1.0d,
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d)));
+
+    assertNull(function.acquisitionTimestamp());
+    assertEquals(0.005d, function.getNormalizationFactor(100d, 5f), 1e-12);
   }
 }

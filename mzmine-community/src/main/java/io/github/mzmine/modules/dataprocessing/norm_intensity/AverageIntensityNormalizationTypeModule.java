@@ -29,6 +29,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.javafx.dialogs.NotificationService;
+import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 

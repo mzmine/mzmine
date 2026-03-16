@@ -31,6 +31,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -39,7 +40,7 @@ import org.w3c.dom.NodeList;
  */
 public record StandardCompoundNormalizationFunction(
     @NotNull RawDataFilePlaceholder rawDataFilePlaceholder,
-    @NotNull LocalDateTime acquisitionTimestamp, @NotNull StandardUsageType usageType,
+    @Nullable LocalDateTime acquisitionTimestamp, @NotNull StandardUsageType usageType,
     double mzVsRtBalance,
     @NotNull List<@NotNull StandardCompoundReferencePoint> referencePoints) implements
     NormalizationFunction {
@@ -60,7 +61,8 @@ public record StandardCompoundNormalizationFunction(
   }
 
   public StandardCompoundNormalizationFunction(@NotNull final RawDataFile referenceFile,
-      @NotNull final LocalDateTime acquisitionTimestamp, @NotNull final StandardUsageType usageType,
+      @Nullable final LocalDateTime acquisitionTimestamp,
+      @NotNull final StandardUsageType usageType,
       final double mzVsRtBalance,
       @NotNull final List<StandardCompoundReferencePoint> referencePoints) {
     this(new RawDataFilePlaceholder(referenceFile), acquisitionTimestamp, usageType, mzVsRtBalance,
@@ -73,7 +75,7 @@ public record StandardCompoundNormalizationFunction(
   }
 
   @Override
-  public @NotNull LocalDateTime acquisitionTimestamp() {
+  public @Nullable LocalDateTime acquisitionTimestamp() {
     return acquisitionTimestamp;
   }
 

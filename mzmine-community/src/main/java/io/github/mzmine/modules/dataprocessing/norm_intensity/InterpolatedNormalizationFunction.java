@@ -30,6 +30,7 @@ import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.time.LocalDateTime;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -37,7 +38,7 @@ import org.w3c.dom.Element;
  */
 public record InterpolatedNormalizationFunction(
     @NotNull RawDataFilePlaceholder rawDataFilePlaceholder,
-    @NotNull LocalDateTime acquisitionTimestamp, @NotNull NormalizationFunction previousFunction,
+    @Nullable LocalDateTime acquisitionTimestamp, @NotNull NormalizationFunction previousFunction,
     double previousWeight, @NotNull NormalizationFunction nextFunction,
     double nextWeight) implements NormalizationFunction {
 
@@ -48,7 +49,7 @@ public record InterpolatedNormalizationFunction(
   private static final String XML_NEXT_FUNCTION_ELEMENT = "nextFunction";
 
   public InterpolatedNormalizationFunction(@NotNull final RawDataFile targetFile,
-      @NotNull final LocalDateTime acquisitionTimestamp,
+      @Nullable final LocalDateTime acquisitionTimestamp,
       @NotNull final NormalizationFunction previousFunction, final double previousWeight,
       @NotNull final NormalizationFunction nextFunction, final double nextWeight) {
     this(new RawDataFilePlaceholder(targetFile), acquisitionTimestamp, previousFunction,
