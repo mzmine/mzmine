@@ -29,11 +29,13 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RIToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
@@ -47,11 +49,20 @@ public class GCAlignerParameters extends SimpleParameterSet {
 
   public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter();
 
+  public static final OptionalParameter<RIToleranceParameter> OPTIONAL_RI_TOLERANCE = new OptionalParameter<>(new RIToleranceParameter());
+
   public static final DoubleParameter RT_WEIGHT = new DoubleParameter("Weight for RT", """
       Score for perfectly matching RT values. The RT delta is divided by the RT tolerance and scaled 0-1.
       The weight then multiplies this score so that higher RT delta give a penalty.
       The RT wight shifts the focus on RT or spectral similarity (minimum similarity-1).""",
       MZmineCore.getConfiguration().getGuiFormats().scoreFormat(), 0.5d);
+
+  public static final DoubleParameter RI_WEIGHT = new DoubleParameter("Weight for RI", """
+      Score for perfectly matching RI values. The RI delta is divided by the RI tolerance and scaled 0-1.
+      The weight then multiplies this score so that higher RI delta give a penalty.
+      The RI weight shifts the focus on RI or spectral similarity (minimum similarity-1).""",
+      MZmineCore.getConfiguration().getGuiFormats().scoreFormat(), 0.0d);
+
 
   public static final ModuleOptionsEnumComboParameter<SpectralSimilarityFunctions> SIMILARITY_FUNCTION = new ModuleOptionsEnumComboParameter<>(
       "Similarity", "Algorithm to calculate spectral similarity between to samples",
@@ -65,7 +76,7 @@ public class GCAlignerParameters extends SimpleParameterSet {
       false);
 
   public GCAlignerParameters() {
-    super(new Parameter[]{FEATURE_LISTS, MZ_TOLERANCE, RT_TOLERANCE, RT_WEIGHT, SIMILARITY_FUNCTION,
+    super(new Parameter[]{FEATURE_LISTS, MZ_TOLERANCE, RT_TOLERANCE, OPTIONAL_RI_TOLERANCE, RT_WEIGHT, RI_WEIGHT, SIMILARITY_FUNCTION,
             FEATURE_LIST_NAME, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/align_gcei/align_gc_ei.html");
   }

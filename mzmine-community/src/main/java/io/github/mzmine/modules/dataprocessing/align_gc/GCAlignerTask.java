@@ -34,6 +34,7 @@ import io.github.mzmine.modules.dataprocessing.align_common.BaseFeatureListAlign
 import io.github.mzmine.modules.dataprocessing.align_common.FeatureCloner;
 import io.github.mzmine.modules.dataprocessing.align_common.FeatureCloner.SimpleFeatureCloner;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -41,6 +42,7 @@ import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -72,6 +74,7 @@ public class GCAlignerTask extends AbstractFeatureListTask {
 
     featureLists = Arrays.stream(
             parameters.getValue(GCAlignerParameters.FEATURE_LISTS).getMatchingFeatureLists())
+        .sorted(Comparator.comparing(ModularFeatureList::toString))
         .map(flist -> (FeatureList) flist).toList();
 
     this.parameters = parameters;
@@ -106,9 +109,22 @@ public class GCAlignerTask extends AbstractFeatureListTask {
     var postProcessor = new GCConsensusAlignerPostProcessor(mzTolerance);
     // create the row aligner that handles the scoring
     var rowAligner = new GcRowAlignScorer(parameters);
-    listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
-        getMemoryMapStorage(), rowAligner, featureCloner, FeatureListRowSorter.DEFAULT_RT,
-        postProcessor);
+
+    var riWeight = parameters.getValue(GCAlignerParameters.RI_WEIGHT);
+    var rtWeight = parameters.getValue(GCAlignerParameters.RI_WEIGHT);
+    boolean usingRI = parameters.getValue(GCAlignerParameters.OPTIONAL_RI_TOLERANCE) && riWeight > 0;
+
+    if (usingRI && rtWeight > 0) {
+      throw new RuntimeException("Attempted to run GCAlignerModule with both retention time and retention index criteria");
+    } else if (usingRI) {
+      listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
+          getMemoryMapStorage(), rowAligner, featureCloner, FeatureListRowSorter.DEFAULT_RI,
+          postProcessor);
+    } else {
+      listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
+          getMemoryMapStorage(), rowAligner, featureCloner, FeatureListRowSorter.DEFAULT_RT,
+          postProcessor);
+    }
 
     alignedFeatureList = listAligner.alignFeatureLists();
     if (alignedFeatureList == null || isCanceled()) {

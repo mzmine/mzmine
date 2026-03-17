@@ -146,7 +146,7 @@ public class JoinRowAlignScorer implements FeatureRowAlignScorer {
       // retention time and m/z is already checked for candidates
       if (additionalChecks(rowToAdd, candidateInAligned)) {
         final RowVsRowScore score = new RowVsRowScore(rowToAdd, candidateInAligned, mzRange,
-            rtRange, mobilityRange, null, mzWeight, rtWeight, mobilityWeight, 0);
+            rtRange, null, mobilityRange, null, mzWeight, rtWeight, 0, mobilityWeight, 0);
         scoresList.add(score);
       }
     }
@@ -242,7 +242,7 @@ public class JoinRowAlignScorer implements FeatureRowAlignScorer {
 
     MobilityTolerance mobTol = compareMobility ? mobilityTolerance : null;
     RowAlignmentScoreCalculator calculator = new RowAlignmentScoreCalculator(originalFeatureLists,
-        mzTolerance, rtTolerance, mobTol, mzWeight, rtWeight, mobilityWeight);
+        mzTolerance, rtTolerance, null, mobTol, mzWeight, rtWeight, 0, mobilityWeight);
     FeatureListUtils.addAlignmentScores(alignedFeatureList, calculator, false);
   }
 }

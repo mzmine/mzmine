@@ -169,8 +169,8 @@ public class LcImageAlignerTask extends AbstractTask {
       final List<FeatureListRow> matchingLcRows = FeatureListUtils.getCandidatesWithinRanges(
           mzRange, Range.all(), mobRange, lcRows, true);
       for (FeatureListRow lcRow : matchingLcRows) {
-        RowVsRowScore score = new RowVsRowScore(imageRow, lcRow, mzRange, null, mobRange, null,
-            mzWeight, 0, mobWeight, 0);
+        RowVsRowScore score = new RowVsRowScore(imageRow, lcRow, mzRange, null, null, mobRange, null,
+            mzWeight, 0, 0, mobWeight, 0);
         scores.add(score);
       }
       scoredRows.getAndIncrement();
@@ -198,7 +198,7 @@ public class LcImageAlignerTask extends AbstractTask {
     // do not apply all the advanced filters to keep it simple
     MobilityTolerance mobTol = useMobTol ? this.mobTol : null;
     RowAlignmentScoreCalculator calculator = new RowAlignmentScoreCalculator(imageLists, mzTol,
-        null, mobTol, mzWeight, 0, mobWeight);
+        null, null, mobTol, mzWeight, 0, 0, mobWeight);
     FeatureListUtils.addAlignmentScores(alignedFlist, calculator, true);
 
     if (isCanceled()) {

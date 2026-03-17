@@ -156,6 +156,7 @@ public class MZToleranceParameter implements UserParameter<MZTolerance, MZTolera
     double mzTolerance = 0.001;
     double ppmTolerance = 5;
     NodeList items = xmlElement.getElementsByTagName("absolutetolerance");
+
     for (int i = 0; i < items.getLength(); i++) {
       String itemString = items.item(i).getTextContent();
       mzTolerance = Double.parseDouble(itemString);

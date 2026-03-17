@@ -39,9 +39,11 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
 
   private static final String DEFAULT_NAME = "Retention index tolerance";
   private static final String DEFAULT_DESC = "Maximum allowed difference between two retention index values";
+  private static final boolean DEFAULT_ALLOW_NULL = false;
   private final ObservableList<RIColumn> columnTypes;
   private final String name;
   private final String description;
+  private final boolean allowNullComparison;
   private RITolerance value;
 
   public RIToleranceParameter() {
@@ -52,20 +54,35 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
     ArrayList<RIColumn> columnTypes = new ArrayList<>(Arrays.asList(RIColumn.values()));
     columnTypes.remove(RIColumn.DEFAULT);
 
-    this(name, description, FXCollections.observableArrayList(columnTypes));
+    this.name = name;
+    this.description = description;
+    this.columnTypes = FXCollections.observableList(columnTypes);
+    this.allowNullComparison = DEFAULT_ALLOW_NULL;
   }
 
   public RIToleranceParameter(String name, String description,
-      ObservableList<RIColumn> columnTypes) {
+      ObservableList<RIColumn> columnTypes, boolean allowNullComparison) {
     this.name = name;
     this.description = description;
     this.columnTypes = columnTypes;
+    this.allowNullComparison = allowNullComparison;
+  }
+  public RIToleranceParameter(String name, String description,
+      boolean allowNullComparison) {
+    this.name = name;
+    this.description = description;
+    this.allowNullComparison = allowNullComparison;
+
+    ArrayList<RIColumn> columnTypes = new ArrayList<>(Arrays.asList(RIColumn.values()));
+    columnTypes.remove(RIColumn.DEFAULT);
+    this.columnTypes = FXCollections.observableArrayList(columnTypes);
   }
 
   public RIToleranceParameter(String name, String description, RITolerance defaultValue) {
     this.name = name;
     this.description = description;
     this.value = defaultValue;
+    this.allowNullComparison = DEFAULT_ALLOW_NULL;
 
     ArrayList<RIColumn> columnTypes = new ArrayList<>(Arrays.asList(RIColumn.values()));
     columnTypes.remove(RIColumn.DEFAULT);
@@ -75,6 +92,7 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
   public RIToleranceParameter(RITolerance defaultValue) {
     this.name = DEFAULT_NAME;
     this.description = DEFAULT_DESC;
+    this.allowNullComparison = DEFAULT_ALLOW_NULL;
     this.value = defaultValue;
 
     ArrayList<RIColumn> columnTypes = new ArrayList<>(Arrays.asList(RIColumn.values()));
@@ -88,6 +106,7 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
     this.description = description;
     this.value = defaultValue;
     this.columnTypes = columnTypes;
+    this.allowNullComparison = DEFAULT_ALLOW_NULL;
   }
 
   /**
@@ -108,12 +127,12 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
 
   @Override
   public RIToleranceComponent createEditingComponent() {
-    return new RIToleranceComponent(columnTypes);
+    return new RIToleranceComponent(columnTypes, allowNullComparison);
   }
 
   @Override
   public RIToleranceParameter cloneParameter() {
-    RIToleranceParameter copy = new RIToleranceParameter(name, description, columnTypes);
+    RIToleranceParameter copy = new RIToleranceParameter(name, description, columnTypes, allowNullComparison);
     copy.setValue(this.getValue());
     return copy;
   }

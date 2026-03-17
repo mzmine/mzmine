@@ -43,18 +43,20 @@ public record RowVsRowScore(double score, FeatureListRow rowToAdd,
    * @param alignedRow               the alignedRow, where all ranges were extracted from
    * @param mzRange                  range based on alignedRow or null if deactivated for scoring
    * @param rtRange                  range based on alignedRow or null if deactivated for scoring
+   * @param riRange                  range based on alignedRow or null if deactivated for scoring
    * @param mobilityRange            range based on alignedRow or null if deactivated for scoring
    * @param mzWeight                 factors for contribution
    * @param rtWeight                 factors for contribution
+   * @param riWeight                 factors for contribution
    * @param mobilityWeight           factors for contribution
    */
   public RowVsRowScore(final FeatureListRow rowToAddProviderOfRanges,
       final FeatureListRow alignedRow, @Nullable Range<Double> mzRange,
-      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange,
-      @Nullable Range<Float> ccsRange, final double mzWeight, final double rtWeight,
+      @Nullable Range<Float> rtRange, @Nullable Range <Float> riRange, @Nullable Range<Float> mobilityRange,
+      @Nullable Range<Float> ccsRange, final double mzWeight, final double rtWeight, final double riWeight,
       final double mobilityWeight, final double ccsWeight) {
-    this(FeatureListUtils.getAlignmentScore(alignedRow, mzRange, rtRange, mobilityRange, ccsRange,
-        mzWeight, rtWeight, mobilityWeight, ccsWeight), rowToAddProviderOfRanges, alignedRow);
+    this(FeatureListUtils.getAlignmentScore(alignedRow, mzRange, rtRange, riRange, mobilityRange, ccsRange,
+        mzWeight, rtWeight, riWeight, mobilityWeight, ccsWeight), rowToAddProviderOfRanges, alignedRow);
   }
 
   /**
@@ -62,14 +64,16 @@ public record RowVsRowScore(double score, FeatureListRow rowToAdd,
    *                                 from here are
    * @param alignedRow               the alignedRow, where all ranges were extracted from
    * @param rtRange                  range based on alignedRow or null if deactivated for scoring
+   * @param riRange                  range based on alignedRow or null if deactivated for scoring
    * @param similarity               spectral similarity based on alignedRow
    * @param rtWeight                 factors for contribution
+   * @param riWeight                 factors for contribution
    * @param similarityWeight         factors for contribution
    */
   public RowVsRowScore(final FeatureListRow rowToAddProviderOfRanges,
-      final FeatureListRow alignedRow, @Nullable Range<Float> rtRange, final double rtWeight,
-      double similarity, final double similarityWeight) {
-    this(FeatureListUtils.getAlignmentScore(alignedRow, rtRange, similarity, rtWeight,
+      final FeatureListRow alignedRow, @Nullable Range<Float> rtRange, @Nullable Range<Float> riRange,
+      final double rtWeight, final double riWeight, double similarity, final double similarityWeight) {
+    this(FeatureListUtils.getAlignmentScore(alignedRow, similarity, rtRange, riRange, rtWeight, riWeight,
         similarityWeight), rowToAddProviderOfRanges, alignedRow);
   }
 

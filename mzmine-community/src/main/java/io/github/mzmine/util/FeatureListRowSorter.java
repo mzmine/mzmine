@@ -42,6 +42,8 @@ public class FeatureListRowSorter implements Comparator<FeatureListRow> {
 
   public static final FeatureListRowSorter DEFAULT_RT = new FeatureListRowSorter(SortingProperty.RT,
       SortingDirection.Ascending);
+  public static final FeatureListRowSorter DEFAULT_RI = new FeatureListRowSorter(SortingProperty.RI,
+      SortingDirection.Ascending);
   public static final FeatureListRowSorter DEFAULT_ID = new FeatureListRowSorter(SortingProperty.ID,
       SortingDirection.Ascending);
   public static final FeatureListRowSorter MZ_ASCENDING = new FeatureListRowSorter(
@@ -105,11 +107,13 @@ public class FeatureListRowSorter implements Comparator<FeatureListRow> {
         }
         yield mz + requireNonNullElse(row.getAverageRT(), 0f) / 10000000.0;
       }
+      case RI -> {
+        yield requireNonNullElse(row.getAverageRI(), Float.MAX_VALUE)
+            + requireNonNullElse(row.getAverageRT(), 0f) / 1000000.0
+            + row.getAverageMZ() / 1000000000.0;
+      }
       case RT -> requireNonNullElse(row.getAverageRT(), 0f) + row.getAverageMZ() / 10000000.0;
       case ID -> row.getID();
     };
-
-    // We should never get here, so throw exception
   }
-
 }

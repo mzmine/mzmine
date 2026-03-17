@@ -50,8 +50,9 @@ public class RIToleranceComponent extends HBox {
   private final TextField toleranceField;
   private final ComboBox<RIColumn> toleranceType;
   private final CheckBox allowMatchesWithoutRi;
+  private final boolean includeCheckbox;
 
-  public RIToleranceComponent(ObservableList<RIColumn> riColumnTypes) {
+  public RIToleranceComponent(ObservableList<RIColumn> riColumnTypes, boolean includeCheckbox) {
     this.toleranceTypes = FXCollections.observableArrayList(riColumnTypes);
 
     setSpacing(5);
@@ -61,15 +62,20 @@ public class RIToleranceComponent extends HBox {
     this.toleranceType = new ComboBox<>(toleranceTypes);
     this.toleranceType.getSelectionModel().select(0);
 
-    this.allowMatchesWithoutRi = new CheckBox("Allow matches without RI");
-
-    getChildren().addAll(this.toleranceField, this.toleranceType, allowMatchesWithoutRi);
+    this.includeCheckbox = includeCheckbox;
+    getChildren().addAll(this.toleranceField, this.toleranceType);
+    if (includeCheckbox) {
+      this.allowMatchesWithoutRi = new CheckBox("Allow matches without RI");
+      getChildren().add(this.allowMatchesWithoutRi);
+    } else {
+      allowMatchesWithoutRi = null;
+    }
   }
 
   public RITolerance getValue() {
     RIColumn selectedColumnType = toleranceType.getValue();
     String valueString = toleranceField.getText();
-    final boolean allowWithoutRi = allowMatchesWithoutRi.isSelected();
+    final boolean allowWithoutRi = allowMatchesWithoutRi != null ? allowMatchesWithoutRi.isSelected() : false;
 
     Float tolerance = null;
     try {
@@ -93,7 +99,9 @@ public class RIToleranceComponent extends HBox {
 
     toleranceType.setValue(selectedColumnType);
     toleranceField.setText(format.format(tolerance));
-    allowMatchesWithoutRi.setSelected(value.isMatchOnNull());
+    if (allowMatchesWithoutRi != null) {
+      allowMatchesWithoutRi.setSelected(value.isMatchOnNull());
+    }
   }
 
   public void setToolTipText(String toolTip) {

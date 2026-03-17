@@ -72,7 +72,11 @@ public class FeatureSorter implements Comparator<Feature> {
       }
       case RT -> {
         Float rt = peak.getRT();
-        yield rt == null ? peak.getMZ() : peak.getMZ() / 1000000.0 + rt;
+        yield rt == null ? peak.getMZ() / 1000000.0 : peak.getMZ() / 1000000.0 + rt;
+      }
+      case RI -> {
+        Float ri = peak.getRI();
+        yield ri == null ? peak.getMZ() / 1000000.0: peak.getMZ() / 1000000.0 + ri;
       }
     };
   }
