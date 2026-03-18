@@ -74,7 +74,6 @@ public class GCAlignerTask extends AbstractFeatureListTask {
 
     featureLists = Arrays.stream(
             parameters.getValue(GCAlignerParameters.FEATURE_LISTS).getMatchingFeatureLists())
-        .sorted(Comparator.comparing(ModularFeatureList::toString))
         .map(flist -> (FeatureList) flist).toList();
 
     this.parameters = parameters;

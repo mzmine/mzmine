@@ -48,6 +48,7 @@ import io.github.mzmine.util.DataTypeUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -548,6 +549,8 @@ public interface FeatureList {
    * Sorts the internal rows
    */
   void applyDefaultRowsSorting();
+
+  void applyRowsSorting(final Comparator<FeatureListRow> comparator);
 
   void clearRows();
 

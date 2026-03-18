@@ -48,6 +48,7 @@ import io.mzio.links.MzioMZmineLinks;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -253,7 +254,8 @@ public class BaseFeatureListAligner {
         + alignedFeatureList.getName());
 
     // then sort by RT and reset IDs
-    FeatureListUtils.sortByDefault(alignedFeatureList, true);
+    System.out.println(baseRowSorter);
+    FeatureListUtils.sort(alignedFeatureList, baseRowSorter, true);
 
     // score alignment by the number of features that fall within the mz, RT, mobility range
     // do not apply all the advanced filters to keep it simple

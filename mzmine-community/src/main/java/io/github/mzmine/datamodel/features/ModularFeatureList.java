@@ -649,6 +649,11 @@ public class ModularFeatureList implements FeatureList {
     featureListRows.sort(comparator);
   }
 
+  @Override
+  public void applyRowsSorting(final Comparator<FeatureListRow> comparator) {
+    featureListRows.sort(comparator);
+  }
+
   /**
    * Only removes the row from the list of rows. The data backend does not have to change. The "gap"
    * left by the removed row may still contain the information but this does not impede performance

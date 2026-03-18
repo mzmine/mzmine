@@ -670,6 +670,36 @@ public class FeatureListUtils {
    */
   public static void sortByDefault(FeatureList featureList, boolean renumberIDs) {
     featureList.applyDefaultRowsSorting();
+
+    if (!renumberIDs) {
+      return;
+    }
+    // reset IDs
+    int newRowID = 1;
+    for (var row : featureList.getRows()) {
+      row.set(IDType.class, newRowID);
+      newRowID++;
+    }
+  }
+
+  /**
+   * Sort feature list using selected comparator
+   *
+   * @param featureList target list
+   */
+  public static void sort(FeatureList featureList, final FeatureListRowSorter comparator, boolean renumberIDs) {
+    // sort rows by rt
+    featureList.applyRowsSorting(comparator);
+
+    if (!renumberIDs) {
+      return;
+    }
+    // reset IDs
+    int newRowID = 1;
+    for (var row : featureList.getRows()) {
+      row.set(IDType.class, newRowID);
+      newRowID++;
+    }
   }
 
   /**
@@ -679,7 +709,7 @@ public class FeatureListUtils {
    */
   public static void sortByDefaultRT(FeatureList featureList) {
     // sort rows by rt
-    featureList.getRows().sort(FeatureListRowSorter.DEFAULT_RT);
+    featureList.applyRowsSorting(FeatureListRowSorter.DEFAULT_RT);
   }
 
   /**
@@ -689,7 +719,7 @@ public class FeatureListUtils {
    */
   public static void sortByDefaultRI(FeatureList featureList) {
     // sort rows by rt
-    featureList.getRows().sort(FeatureListRowSorter.DEFAULT_RI);
+    featureList.applyRowsSorting(FeatureListRowSorter.DEFAULT_RI);
   }
 
   /**
