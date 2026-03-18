@@ -254,7 +254,6 @@ public class BaseFeatureListAligner {
         + alignedFeatureList.getName());
 
     // then sort by RT and reset IDs
-    System.out.println(baseRowSorter);
     FeatureListUtils.sort(alignedFeatureList, baseRowSorter, true);
 
     // score alignment by the number of features that fall within the mz, RT, mobility range

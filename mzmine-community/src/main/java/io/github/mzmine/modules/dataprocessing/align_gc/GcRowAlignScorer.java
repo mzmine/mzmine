@@ -92,7 +92,7 @@ public class GcRowAlignScorer implements FeatureRowAlignScorer {
       candidatesInAligned =
           !isNullOrUnbounded(riRange) ? FeatureListUtils.getCandidatesWithinRiRange(riRange,
               sortedBaseRows.stream().filter(row -> row.getAverageRI() != null).toList(), true)
-              : sortedBaseRows;
+              : List.of();
       candidatesInAligned = Stream.concat(candidatesInAligned.stream(), sortedBaseRows.stream().filter(row -> rowToAdd.getAverageRI() == null)).toList();
     } else {
       candidatesInAligned = FeatureListUtils.getCandidatesWithinRtRange(rtRange, sortedBaseRows, true);
