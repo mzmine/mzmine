@@ -147,7 +147,7 @@ public class GcRowAlignScorer implements FeatureRowAlignScorer {
 
     // TODO think about best way to calculate an alignment score that also includes spectral similarity
     RowAlignmentScoreCalculator calculator = new RowAlignmentScoreCalculator(originalFeatureLists,
-        mzTolerance, rtTolerance, null, null, 0, rtWeight, 0, 0);
+        mzTolerance, rtTolerance, riTolerance, null, 0, rtWeight, riWeight, 0);
     FeatureListUtils.addAlignmentScores(alignedFeatureList, calculator, false);
   }
 }
