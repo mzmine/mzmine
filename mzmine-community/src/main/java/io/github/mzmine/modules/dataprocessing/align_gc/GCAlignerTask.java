@@ -110,10 +110,10 @@ public class GCAlignerTask extends AbstractFeatureListTask {
     var rowAligner = new GcRowAlignScorer(parameters);
 
     var riWeight = parameters.getValue(GCAlignerParameters.RI_WEIGHT);
-    var rtWeight = parameters.getValue(GCAlignerParameters.RI_WEIGHT);
+    var rtWeight = parameters.getValue(GCAlignerParameters.RT_WEIGHT);
     boolean usingRI = parameters.getValue(GCAlignerParameters.OPTIONAL_RI_TOLERANCE) && riWeight > 0;
 
-    if (usingRI && rtWeight > 0) {
+    if (usingRI && rtWeight > 0f) {
       throw new RuntimeException("Attempted to run GCAlignerModule with both retention time and retention index criteria");
     } else if (usingRI) {
       listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
