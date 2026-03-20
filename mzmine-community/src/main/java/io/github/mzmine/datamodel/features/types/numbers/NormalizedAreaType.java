@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -23,20 +22,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_standardcompound;
+package io.github.mzmine.datamodel.features.types.numbers;
 
-public enum StandardUsageType {
+import org.jetbrains.annotations.NotNull;
 
-  Nearest("Nearest standard"), Weighted("Weighted contribution of all standards");
+public class NormalizedAreaType extends AreaType {
 
-  private final String name;
-
-  StandardUsageType(String name) {
-    this.name = name;
+  @Override
+  public @NotNull String getUniqueID() {
+    return "area_norm";
   }
 
-  public String toString() {
-    return this.name;
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Norm. area";
   }
-
 }

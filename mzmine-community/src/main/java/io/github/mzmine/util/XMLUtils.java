@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -276,5 +275,28 @@ public class XMLUtils {
       e.printStackTrace();
       return null;
     }
+  }
+
+  public static @NotNull String requireAttribute(final @NotNull Element element,
+      final @NotNull String attributeName) {
+    final String value = element.getAttribute(attributeName);
+    if (value == null || value.isBlank()) {
+      throw new IllegalArgumentException(
+          "Missing required attribute '" + attributeName + "' in element " + element.getTagName());
+    }
+    return value;
+  }
+
+  public static @NotNull Element findChildElement(final @NotNull Element parent,
+      final @NotNull String tagName) {
+    final NodeList matchingNodes = parent.getElementsByTagName(tagName);
+    for (int i = 0; i < matchingNodes.getLength(); i++) {
+      final Node node = matchingNodes.item(i);
+      if (node.getParentNode() == parent && node instanceof final Element element) {
+        return element;
+      }
+    }
+    throw new IllegalArgumentException(
+        "Missing required child element '" + tagName + "' in " + parent.getTagName());
   }
 }

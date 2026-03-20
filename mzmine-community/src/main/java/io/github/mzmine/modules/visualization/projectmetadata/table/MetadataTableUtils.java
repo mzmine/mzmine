@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -28,9 +27,14 @@ package io.github.mzmine.modules.visualization.projectmetadata.table;
 import static io.github.mzmine.util.files.FileAndPathUtil.eraseFormat;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.FileHasNoRunDateException;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -122,5 +126,124 @@ public class MetadataTableUtils {
     return name.equalsIgnoreCase(target) || name.equalsIgnoreCase(eraseFormat(target))
         || noFormatName.equalsIgnoreCase(target) || noFormatName.equalsIgnoreCase(
         eraseFormat(target));
+  }
+
+  public static @Nullable RawDataFile getPreviousRun(@NotNull RawDataFile file,
+      @NotNull Collection<@NotNull RawDataFile> otherFiles, @NotNull MetadataTable metadata) {
+    final LocalDateTime runDate = MetadataTableUtils.getRunDate(metadata, file);
+    if (runDate == null) {
+      throw new FileHasNoRunDateException(file);
+    }
+
+    long minPreviousRun = Long.MIN_VALUE;
+    RawDataFile previousRun = null;
+
+    for (final RawDataFile thatFile : otherFiles) {
+      final LocalDateTime thatDate = MetadataTableUtils.getRunDate(metadata, thatFile);
+      if (thatDate == null) {
+        continue;
+      }
+
+      final long diff = runDate.until(thatDate, ChronoUnit.NANOS);
+      if (diff < 0 && diff > minPreviousRun) {
+        minPreviousRun = diff;
+        previousRun = thatFile;
+      }
+    }
+
+    return previousRun;
+  }
+
+  public static @Nullable RawDataFile getNextRun(@NotNull RawDataFile file,
+      @NotNull Collection<@NotNull RawDataFile> otherFiles, @NotNull MetadataTable metadata) {
+    final DateMetadataColumn runDateColumn = metadata.getRunDateColumn();
+    final LocalDateTime runDate = MetadataTableUtils.getRunDate(metadata, file);
+    if (runDate == null) {
+      throw new FileHasNoRunDateException(file);
+    }
+
+    long minNextRun = Long.MAX_VALUE;
+    RawDataFile nextRun = null;
+
+    for (RawDataFile thatFile : otherFiles) {
+      final LocalDateTime thatDate = MetadataTableUtils.getRunDate(metadata, thatFile);
+      if (thatDate == null) {
+        continue;
+      }
+
+      final long diff = runDate.until(thatDate, ChronoUnit.NANOS);
+      if (diff > 0 && diff < minNextRun) {
+        minNextRun = diff;
+        nextRun = thatFile;
+      }
+    }
+
+    return nextRun;
+  }
+
+  /**
+   *
+   * Finds the two closest reference files. If a reference is only available on one side of the
+   * acquisition, that file will be used as previous and next.
+   *
+   * @param fileToInterpolate The file to search the closest reference files for
+   * @param referenceFiles    The reference files.
+   * @param metadata          The current metadata table.
+   * @return {@link InterpolationWeights} for the two neighbouring files.
+   * @throws FileHasNoRunDateException, if a file that shall be interpolated has no run date.
+   * @throws IllegalStateException, if no previous or next run could be found.
+   */
+  public static @NotNull InterpolationWeights extractAcquisitionDateInterpolationWeights(
+      @NotNull final RawDataFile fileToInterpolate,
+      @NotNull List<@NotNull RawDataFile> referenceFiles, @NotNull MetadataTable metadata) {
+    RawDataFile nextRun = getNextRun(fileToInterpolate, referenceFiles, metadata);
+    RawDataFile previousRun = getPreviousRun(fileToInterpolate, referenceFiles, metadata);
+
+    if (nextRun == null && previousRun != null) {
+      nextRun = previousRun;
+    } else if (previousRun == null && nextRun != null) {
+      previousRun = nextRun;
+    } else if (nextRun == null && previousRun == null) {
+      throw new IllegalStateException(
+          "Neither previous or next run found for sample \"%s\". Cannot normalize that file. "
+              + "Remove from processing or provide appropriate samples for normalization.");
+    }
+
+    final LocalDateTime runDate = metadata.getValue(metadata.getRunDateColumn(), fileToInterpolate);
+    final LocalDateTime previousRunDate = metadata.getValue(metadata.getRunDateColumn(),
+        previousRun);
+    final LocalDateTime nextRunDate = metadata.getValue(metadata.getRunDateColumn(), nextRun);
+
+    final long totalTimeDistance =
+        Math.abs(runDate.until(nextRunDate, ChronoUnit.SECONDS)) + Math.abs(
+            runDate.until(previousRunDate, ChronoUnit.SECONDS));
+    final double previousWeight =
+        (double) Math.abs(runDate.until(nextRunDate, ChronoUnit.SECONDS)) / totalTimeDistance;
+    final double nextRunWeight =
+        (double) Math.abs(runDate.until(previousRunDate, ChronoUnit.SECONDS)) / totalTimeDistance;
+    final InterpolationWeights result = new InterpolationWeights(nextRun, previousRun,
+        previousWeight, nextRunWeight);
+    return result;
+  }
+
+  /**
+   * Get the run date from the file or the metadata table or null if none provide a run date.
+   */
+  public static @Nullable LocalDateTime getRunDate(@NotNull MetadataTable metadata,
+      @NotNull RawDataFile file) {
+    LocalDateTime runDate = file.getStartTimeStamp();
+    runDate = runDate == null ? metadata.getValue(metadata.getRunDateColumn(), file) : runDate;
+    return runDate;
+  }
+
+  /**
+   * Weights to interpolate normalization between two different two related data files
+   *
+   * @param previousWeight weight for the previous run (how close it is time)
+   * @param nextRunWeight  weight for the next run (how close it is in time)
+   */
+  public record InterpolationWeights(@NotNull RawDataFile nextRun, @NotNull RawDataFile previousRun,
+                                     double previousWeight, double nextRunWeight) {
+
   }
 }

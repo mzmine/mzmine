@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -29,14 +28,19 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Used to define the abundance of features
  */
-public enum AbundanceMeasure {
-  Height(HeightType.class), Area(AreaType.class);
+public enum AbundanceMeasure implements UniqueIdSupplier {
+  Height(HeightType.class), Area(AreaType.class), NORMALIZED_HEIGHT(
+      NormalizedHeightType.class), NORMALIZED_AREA(NormalizedAreaType.class);
 
   final Class<? extends DataType<Float>> type;
 
@@ -66,4 +70,24 @@ public enum AbundanceMeasure {
     return Objects.requireNonNullElse(featureOrRow.get(type), Float.NaN);
   }
 
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case NORMALIZED_HEIGHT -> "Normalized height";
+      case NORMALIZED_AREA -> "Normalized area";
+      case Area -> "Area";
+      case Height -> "Height";
+    };
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case NORMALIZED_AREA -> "normalized_area";
+      case NORMALIZED_HEIGHT -> "normalized_height";
+      case Area -> "Area"; // upper case for compatibility
+      case Height -> "Height"; // upper case for compatibility
+    };
+  }
 }

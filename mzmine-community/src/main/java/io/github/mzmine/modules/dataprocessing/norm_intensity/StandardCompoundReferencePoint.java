@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -23,22 +22,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.norm_linear;
+package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
-public enum NormalizationType {
-
-  AverageIntensity("Average intensity"), AverageSquaredIntensity(
-      "Average squared intensity"), MaximumFeatureHeight(
-          "Maximum peak intensity"), TotalRawSignal("Total raw signal");
-
-  private final String name;
-
-  NormalizationType(String name) {
-    this.name = name;
-  }
-
-  public String toString() {
-    return this.name;
-  }
+/**
+ * A standard reference point for one file-specific normalization function.
+ */
+public record StandardCompoundReferencePoint(double mz, float rt, double abundance) {
 
 }
+
