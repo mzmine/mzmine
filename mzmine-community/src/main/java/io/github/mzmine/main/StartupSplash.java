@@ -71,7 +71,7 @@ public final class StartupSplash {
   private static final String MZIO_LOGO_RESOURCE = "icons/introductiontab/logo_mzio.png";
   private static final int MAX_LOGO_WIDTH = 800;
   private static final int SPLASH_PADDING = 24;
-  private static final int LOG_LABEL_HEIGHT = 22;
+  private static final int LOG_LABEL_HEIGHT = 18;
   private static final int BRAND_FONT_SIZE = 16;
   private static final int BRAND_LOGO_HEIGHT = 16;
   private static final double BRAND_TEXT_Y_OFFSET = 6.0;
@@ -194,7 +194,7 @@ public final class StartupSplash {
   private static HBox createMzioBrand() {
     final Label byLabel = new Label("by");
     byLabel.setTextFill(fontColor);
-    byLabel.setFont(Font.font("System", FontWeight.THIN, BRAND_FONT_SIZE));
+    byLabel.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.THIN, BRAND_FONT_SIZE));
     // decision: compensate for font bounds so the text visually aligns with the logo.
     byLabel.setTranslateY(BRAND_TEXT_Y_OFFSET);
 

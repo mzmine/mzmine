@@ -112,9 +112,9 @@ public final class MZmineCore {
   public static void main(final String[] args) {
     try {
       printDebugInfo(args);
+
       final MZmineCoreArgumentParser argsParser = new MZmineCoreArgumentParser(args);
       getInstance().startUp(argsParser);
-
       launchBatchOrGui(args, argsParser);
 
     } catch (Exception ex) {
@@ -131,9 +131,7 @@ public final class MZmineCore {
    * called.
    */
   public void startUp(@NotNull final MZmineCoreArgumentParser argsParser) {
-    if (shouldShowStartupSplash(argsParser)) {
-      StartupSplash.show();
-    }
+    showStartupSplash(argsParser);
 
     NativeTrustStoreManager.initTrustStore();
 
@@ -588,18 +586,22 @@ public final class MZmineCore {
     return !isHeadLessMode();
   }
 
-  private static boolean shouldShowStartupSplash(
-      @NotNull final MZmineCoreArgumentParser argsParser) {
-    if (argsParser.getBatchFile() != null) { // basically a headless check
-      return false;
+  private static void showStartupSplash(@NotNull final MZmineCoreArgumentParser argsParser) {
+    if (argsParser.getBatchFile() != null) {
+      // basically a headless check when DesktopService is not initialized (always headless at this point)
+      return;
     }
     if (argsParser.isCliLogin() || argsParser.isCliLoginPassword()) {
-      return false;
+      return;
     }
 
     final File batchFile = argsParser.getBatchFile();
     final boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
-    return batchFile == null && !keepRunningInHeadless;
+
+    if (batchFile != null || keepRunningInHeadless) {
+      return;
+    }
+    StartupSplash.show();
   }
 
   /**

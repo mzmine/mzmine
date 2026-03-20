@@ -127,11 +127,4 @@ public class FxThread {
 
     isFxInitialized = true;
   }
-
-  /**
-   * Might be needed for graphics export in headless batch mode.
-   */
-  public static void initJavaFxInHeadlessMode() {
-    initJavaFx();
-  }
 }
