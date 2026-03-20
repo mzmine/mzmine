@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.AnnotationWizardParameterFactory;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.CustomizationWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.DataImportWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.FilterWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
@@ -42,7 +43,7 @@ import java.util.Optional;
  * Describes the sequence of steps in the wizard. Elements should stay in correct order.
  */
 public enum WizardPart {
-  DATA_IMPORT, ION_INTERFACE, IMS, MS, FILTER, ANNOTATION, WORKFLOW;
+  DATA_IMPORT, ION_INTERFACE, IMS, MS, FILTER, ANNOTATION, WORKFLOW, CUSTOMIZATION;
 
   @Override
   public String toString() {
@@ -53,6 +54,7 @@ public enum WizardPart {
       case ANNOTATION -> "Annotation";
       case WORKFLOW -> "Workflow";
       case ION_INTERFACE -> "Sample introduction/ionization";
+      case CUSTOMIZATION -> "Customization";
     };
   }
 
@@ -73,6 +75,7 @@ public enum WizardPart {
       case IMS -> IonMobilityWizardParameterFactory.values();
       case MS -> MassSpectrometerWizardParameterFactory.values();
       case WORKFLOW -> WorkflowWizardParameterFactory.values();
+      case CUSTOMIZATION -> CustomizationWizardParameterFactory.values();
     };
   }
 

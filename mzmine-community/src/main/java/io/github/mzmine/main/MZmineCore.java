@@ -392,6 +392,29 @@ public final class MZmineCore {
   }
 
   /**
+   * Returns the instance of a module of given class.getName()
+   */
+  @SuppressWarnings("unchecked")
+  public synchronized static MZmineModule getModuleInstance(
+      final @Nullable String moduleClassName) {
+    if (moduleClassName == null) {
+      return null;
+    }
+    MZmineModule module = getInstance().initializedModules.get(moduleClassName);
+
+    if (module != null) {
+      return module;
+    }
+
+    try {
+      final Class moduleClass = Class.forName(moduleClassName);
+      return getModuleInstance(moduleClass);
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  /**
    *
    * @return An unmodifiable copy of the currently initialized modules.
    */
@@ -403,7 +426,7 @@ public final class MZmineCore {
    *
    * @return An unmodifiable copy of the currently initialized modules.
    */
-  public static Map<String, MZmineModule> getInitializedModules() {
+  private static Map<String, MZmineModule> getInitializedModules() {
     return Map.copyOf(getInstance().initializedModules);
   }
 

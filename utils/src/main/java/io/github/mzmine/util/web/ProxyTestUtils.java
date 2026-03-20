@@ -39,7 +39,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.security.auth.login.ConfigurationSpi;
 
 public class ProxyTestUtils {
 
@@ -212,13 +211,27 @@ public class ProxyTestUtils {
           HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url))
               .timeout(Duration.ofSeconds(30)).GET().build();
 
-          HttpResponse<Void> response = client.send(request,
-              HttpResponse.BodyHandlers.discarding());
+          HttpResponse<String> response = client.send(request,
+              HttpResponse.BodyHandlers.ofString());
 
           if (response.statusCode() >= 200 && response.statusCode() < 300) {
             sb.append("success (%s); ".formatted(url));
           } else {
-            sb.append("failed %d (%s); ".formatted(response.statusCode(), url));
+            sb.append("failed %d".formatted(response.statusCode()));
+
+            // Log authentication headers if present
+            var wwwAuth = response.headers().firstValue("WWW-Authenticate");
+            var proxyAuth = response.headers().firstValue("Proxy-Authenticate");
+            wwwAuth.ifPresent(s -> sb.append("; WWW-Authenticate: ").append(s));
+            proxyAuth.ifPresent(s -> sb.append("; Proxy-Authenticate: ").append(s));
+            sb.append(" (%s); ".formatted(url));
+
+            // Log response body if available
+            String body = response.body();
+            if (body != null && !body.trim().isEmpty()) {
+              String truncatedBody = body.length() > 200 ? body.substring(0, 200) + "..." : body;
+              sb.append("Response body: ").append(truncatedBody).append("; ");
+            }
           }
         } catch (Exception e) {
           sb.append("error connecting (%s; message: %s); ".formatted(url, e.getMessage()));
